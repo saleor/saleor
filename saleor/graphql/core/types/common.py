@@ -176,8 +176,9 @@ class OrderError(Error):
         description="Warehouse ID which causes the error.",
         required=False,
     )
-    order_line = graphene.ID(
-        description="Order line ID which causes the error.",
+    order_lines = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of order line IDs that cause the error.",
         required=False,
     )
     variants = graphene.List(

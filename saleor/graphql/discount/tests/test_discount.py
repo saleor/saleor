@@ -9,7 +9,11 @@ from django_countries import countries
 from ....discount import DiscountValueType, VoucherType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import Sale, SaleChannelListing, Voucher
-from ...tests.utils import get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
@@ -1763,3 +1767,129 @@ def test_query_sales_with_sort(
 
     for order, sale_name in enumerate(result_order):
         assert sales[order]["node"]["name"] == sale_name
+
+
+QUERY_SALE_BY_ID = """
+    query Sale($id: ID!) {
+        sale(id: $id) {
+            id
+            name
+            type
+            discountValue
+        }
+    }
+"""
+
+
+def test_staff_query_sale(staff_api_client, sale, permission_manage_discounts):
+    variables = {"id": graphene.Node.to_global_id("Sale", sale.pk)}
+    response = staff_api_client.post_graphql(
+        QUERY_SALE_BY_ID, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["sale"]["name"] == sale.name
+    assert content["data"]["sale"]["type"] == sale.type.upper()
+
+
+def test_query_sale_by_app(app_api_client, sale, permission_manage_discounts):
+    variables = {"id": graphene.Node.to_global_id("Sale", sale.pk)}
+    response = app_api_client.post_graphql(
+        QUERY_SALE_BY_ID, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["sale"]["name"] == sale.name
+    assert content["data"]["sale"]["type"] == sale.type.upper()
+
+
+def test_query_sale_by_customer(api_client, sale, permission_manage_discounts):
+    variables = {"id": graphene.Node.to_global_id("Sale", sale.pk)}
+    response = api_client.post_graphql(QUERY_SALE_BY_ID, variables)
+    assert_no_permission(response)
+
+
+def test_staff_query_sale_by_invalid_id(
+    staff_api_client, sale, permission_manage_discounts
+):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        QUERY_SALE_BY_ID, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["sale"] is None
+
+
+def test_staff_query_sale_with_invalid_object_type(
+    staff_api_client, sale, permission_manage_discounts
+):
+    variables = {"id": graphene.Node.to_global_id("Order", sale.pk)}
+    response = staff_api_client.post_graphql(
+        QUERY_SALE_BY_ID, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["sale"] is None
+
+
+QUERY_VOUCHER_BY_ID = """
+    query Voucher($id: ID!) {
+        voucher(id: $id) {
+            id
+            code
+            name
+            discountValue
+        }
+    }
+"""
+
+
+def test_staff_query_voucher(staff_api_client, voucher, permission_manage_discounts):
+    variables = {"id": graphene.Node.to_global_id("Voucher", voucher.pk)}
+    response = staff_api_client.post_graphql(
+        QUERY_VOUCHER_BY_ID, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["voucher"]["name"] == voucher.name
+    assert content["data"]["voucher"]["code"] == voucher.code
+
+
+def test_query_voucher_by_app(app_api_client, voucher, permission_manage_discounts):
+    variables = {"id": graphene.Node.to_global_id("Voucher", voucher.pk)}
+    response = app_api_client.post_graphql(
+        QUERY_VOUCHER_BY_ID, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["voucher"]["name"] == voucher.name
+    assert content["data"]["voucher"]["code"] == voucher.code
+
+
+def test_query_voucher_by_customer(api_client, voucher, permission_manage_discounts):
+    variables = {"id": graphene.Node.to_global_id("Voucher", voucher.pk)}
+    response = api_client.post_graphql(QUERY_VOUCHER_BY_ID, variables)
+    assert_no_permission(response)
+
+
+def test_staff_query_voucher_by_invalid_id(
+    staff_api_client, voucher, permission_manage_discounts
+):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        QUERY_VOUCHER_BY_ID, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["voucher"] is None
+
+
+def test_staff_query_voucher_with_invalid_object_type(
+    staff_api_client, voucher, permission_manage_discounts
+):
+    variables = {"id": graphene.Node.to_global_id("Order", voucher.pk)}
+    response = staff_api_client.post_graphql(
+        QUERY_VOUCHER_BY_ID, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["voucher"] is None

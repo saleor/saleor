@@ -75,7 +75,7 @@ class SetPassword(CreateToken):
         try:
             cls._set_password_for_user(email, password, token)
         except ValidationError as e:
-            errors = validation_error_to_error_type(e)
+            errors = validation_error_to_error_type(e, AccountError)
             return cls.handle_typed_errors(errors)
         return super().mutate(root, info, **data)
 

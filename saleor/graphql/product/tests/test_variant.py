@@ -12,15 +12,19 @@ from ....attribute import AttributeInputType
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.units import WeightUnits
-from ....order import OrderStatus
-from ....order.models import OrderLine
+from ....order import OrderEvents, OrderStatus
+from ....order.models import OrderEvent, OrderLine
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Product, ProductChannelListing, ProductVariant
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
 from ...core.enums import WeightUnitsEnum
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 
 def test_fetch_variant(
@@ -62,10 +66,6 @@ def test_fetch_variant(
                     name
                     slug
                 }
-            }
-            costPrice {
-                currency
-                amount
             }
             media {
                 id
@@ -361,15 +361,12 @@ CREATE_VARIANT_MUTATION = """
                                 slug
                                 reference
                                 richText
+                                boolean
                                 file {
                                     url
                                     contentType
                                 }
                             }
-                        }
-                        costPrice {
-                            currency
-                            amount
                         }
                         weight {
                             value
@@ -503,6 +500,69 @@ def test_create_variant_with_file_attribute(
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count + 1
 
+    created_webhook_mock.assert_called_once_with(product.variants.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+def test_create_variant_with_boolean_attribute(
+    created_webhook_mock,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    boolean_attribute,
+    size_attribute,
+    warehouse,
+):
+    product_type.variant_attributes.add(boolean_attribute)
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    boolean_attr_id = graphene.Node.to_global_id("Attribute", boolean_attribute.id)
+    size_attr_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    variables = {
+        "productId": product_id,
+        "sku": "1",
+        "stocks": [
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+                "quantity": 20,
+            }
+        ],
+        "costPrice": 3.22,
+        "price": 1.32,
+        "weight": 10.22,
+        "attributes": [
+            {"id": boolean_attr_id, "boolean": True},
+            {"id": size_attr_id, "values": ["XXXL"]},
+        ],
+        "trackInventory": True,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["name"] == "Boolean: Yes / XXXL"
+    expected_attribute_data = {
+        "attribute": {"slug": "boolean"},
+        "values": [
+            {
+                "name": "Boolean: Yes",
+                "slug": f"{boolean_attribute.id}_true",
+                "reference": None,
+                "richText": None,
+                "boolean": True,
+                "file": None,
+            }
+        ],
+    }
+
+    assert expected_attribute_data in data["attributes"]
     created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
@@ -698,6 +758,7 @@ def test_create_variant_with_page_reference_attribute(
             "richText": None,
             "reference": page_ref_1,
             "name": page_list[0].title,
+            "boolean": None,
         },
         {
             "slug": f"{variant_pk}_{page_list[1].pk}",
@@ -705,6 +766,7 @@ def test_create_variant_with_page_reference_attribute(
             "richText": None,
             "reference": page_ref_2,
             "name": page_list[1].title,
+            "boolean": None,
         },
     ]
     for value in expected_values:
@@ -848,6 +910,7 @@ def test_create_variant_with_product_reference_attribute(
             "richText": None,
             "reference": product_ref_1,
             "name": product_list[0].name,
+            "boolean": None,
         },
         {
             "slug": f"{variant_pk}_{product_list[1].pk}",
@@ -855,6 +918,7 @@ def test_create_variant_with_product_reference_attribute(
             "richText": None,
             "reference": product_ref_2,
             "name": product_list[1].name,
+            "boolean": None,
         },
     ]
     for value in expected_values:
@@ -1145,7 +1209,7 @@ def test_create_product_variant_duplicated_attributes(
         "field": "attributes",
         "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
         "message": ANY,
-        "attributes": None,
+        "attributes": [color_attribute_id, size_attribute_id],
     }
     assert not product.variants.filter(sku=sku).exists()
 
@@ -1400,10 +1464,6 @@ def test_update_product_variant(
                                 slug
                             }
                         }
-                        costPrice {
-                            currency
-                            amount
-                        }
                     }
                 }
             }
@@ -1503,6 +1563,7 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
                             }
                             reference
                             richText
+                            boolean
                         }
                     }
                 }
@@ -1593,6 +1654,56 @@ def test_update_product_variant_with_current_attribute(
     assert variant.sku == sku
     assert variant.attributes.first().values.first().slug == "red"
     assert variant.attributes.last().values.first().slug == "small"
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_with_boolean_attribute(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    boolean_attribute,
+    warehouse,
+    size_attribute,
+):
+    product_type.variant_attributes.add(boolean_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    attr_id = graphene.Node.to_global_id("Attribute", boolean_attribute.id)
+    size_attr_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    new_value = False
+    values_count = boolean_attribute.values.count()
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": size_attr_id, "values": ["XXXL"]},
+            {"id": attr_id, "boolean": new_value},
+        ],
+    }
+
+    associate_attribute_values_to_instance(
+        variant, boolean_attribute, boolean_attribute.values.first()
+    )
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["attribute"]["slug"] == boolean_attribute.slug
+    assert data["attributes"][-1]["values"][0]["name"] == "Boolean: No"
+    assert data["attributes"][-1]["values"][0]["boolean"] is new_value
+    assert boolean_attribute.values.count() == values_count
+    product_variant_updated.assert_called_once_with(product.variants.last())
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
@@ -2421,6 +2532,31 @@ def test_delete_variant_in_draft_order(
 
     assert result_call_args == expected_call_args
 
+    events = OrderEvent.objects.filter(type=OrderEvents.ORDER_LINE_VARIANT_DELETED)
+    assert events
+    assert {event.order for event in events} == {draft_order, second_draft_order}
+    assert {event.user for event in events} == {staff_api_client.user}
+    expected_params = [
+        {
+            "item": str(line),
+            "line_pk": line.pk,
+            "quantity": line.quantity,
+        }
+        for line in draft_order.lines.all()
+    ]
+    for param in expected_params:
+        assert param in events.get(order=draft_order).parameters
+    expected_params = [
+        {
+            "item": str(line),
+            "line_pk": line.pk,
+            "quantity": line.quantity,
+        }
+        for line in second_draft_order.lines.all()
+    ]
+    for param in expected_params:
+        assert param in events.get(order=second_draft_order).parameters
+
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_default_variant(
@@ -2607,18 +2743,21 @@ def test_fetch_all_variants_anonymous_user(
     assert data["totalCount"] == 0
 
 
-def test_product_variants_by_ids(user_api_client, variant, channel_USD):
-    query = """
-        query getProduct($ids: [ID!], $channel: String) {
-            productVariants(ids: $ids, first: 1, channel: $channel) {
-                edges {
-                    node {
-                        id
-                    }
+QUERY_PRODUCT_VARIANTS_BY_IDS = """
+    query getProduct($ids: [ID!], $channel: String) {
+        productVariants(ids: $ids, first: 1, channel: $channel) {
+            edges {
+                node {
+                    id
                 }
             }
         }
-    """
+    }
+"""
+
+
+def test_product_variants_by_ids(user_api_client, variant, channel_USD):
+    query = QUERY_PRODUCT_VARIANTS_BY_IDS
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
     variables = {"ids": [variant_id], "channel": channel_USD.slug}
@@ -2627,6 +2766,30 @@ def test_product_variants_by_ids(user_api_client, variant, channel_USD):
     data = content["data"]["productVariants"]
     assert data["edges"][0]["node"]["id"] == variant_id
     assert len(data["edges"]) == 1
+
+
+def test_product_variants_by_invalid_ids(user_api_client, variant, channel_USD):
+    query = QUERY_PRODUCT_VARIANTS_BY_IDS
+    variant_id = "cbs"
+
+    variables = {"ids": [variant_id], "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {variant_id}."
+    assert content["data"]["productVariants"] is None
+
+
+def test_product_variants_by_ids_that_do_not_exist(
+    user_api_client, variant, channel_USD
+):
+    query = QUERY_PRODUCT_VARIANTS_BY_IDS
+    variant_id = graphene.Node.to_global_id("Order", -1)
+
+    variables = {"ids": [variant_id], "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["productVariants"]["edges"] == []
 
 
 def test_product_variants_visible_in_listings_by_customer(
@@ -4001,7 +4164,7 @@ VARIANT_STOCKS_DELETE_MUTATION = """
                     }
                 }
             }
-            stockErrors{
+            errors{
                 field
                 code
                 message
@@ -4040,7 +4203,7 @@ def test_product_variant_stocks_delete_mutation(
     data = content["data"]["productVariantStocksDelete"]
 
     variant.refresh_from_db()
-    assert not data["stockErrors"]
+    assert not data["errors"]
     assert (
         len(data["productVariant"]["stocks"])
         == variant.stocks.count()
@@ -4076,9 +4239,35 @@ def test_product_variant_stocks_delete_mutation_invalid_warehouse_id(
     data = content["data"]["productVariantStocksDelete"]
 
     variant.refresh_from_db()
-    assert not data["stockErrors"]
+    assert not data["errors"]
     assert (
         len(data["productVariant"]["stocks"]) == variant.stocks.count() == stocks_count
     )
     assert data["productVariant"]["stocks"][0]["quantity"] == 10
     assert data["productVariant"]["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+
+
+def test_product_variant_stocks_delete_mutation_invalid_object_type_of_warehouse_id(
+    staff_api_client, variant, warehouse, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    Stock.objects.bulk_create(
+        [Stock(product_variant=variant, warehouse=warehouse, quantity=10)]
+    )
+
+    warehouse_ids = [graphene.Node.to_global_id("Product", warehouse.id)]
+
+    variables = {"variantId": variant_id, "warehouseIds": warehouse_ids}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksDelete"]
+
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["field"] == "warehouseIds"

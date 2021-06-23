@@ -1,3 +1,4 @@
+import os
 from unittest.mock import Mock, patch
 
 import graphene
@@ -9,7 +10,11 @@ from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....tests.utils import dummy_editorjs
-from ...tests.utils import get_graphql_content, get_multipart_request_body
+from ...tests.utils import (
+    get_graphql_content,
+    get_graphql_content_from_response,
+    get_multipart_request_body,
+)
 
 QUERY_CATEGORY = """
     query ($id: ID, $slug: String, $channel: String){
@@ -59,6 +64,46 @@ def test_category_query_by_id(user_api_client, product, channel_USD):
     assert category_data["name"] == category.name
     assert len(category_data["ancestors"]["edges"]) == category.get_ancestors().count()
     assert len(category_data["children"]["edges"]) == category.get_children().count()
+
+
+def test_category_query_invalid_id(user_api_client, product, channel_USD):
+    category_id = "'"
+    variables = {
+        "id": category_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_CATEGORY, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {category_id}."
+    assert content["data"]["category"] is None
+
+
+def test_category_query_object_with_given_id_does_not_exist(
+    user_api_client, product, channel_USD
+):
+    category_id = graphene.Node.to_global_id("Category", -1)
+    variables = {
+        "id": category_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_CATEGORY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["category"] is None
+
+
+def test_category_query_object_with_invalid_object_type(
+    user_api_client, product, channel_USD
+):
+    category = Category.objects.first()
+    category_id = graphene.Node.to_global_id("Product", category.pk)
+    variables = {
+        "id": category_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_CATEGORY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["category"] is None
 
 
 def test_category_query_description(user_api_client, product, channel_USD):
@@ -349,6 +394,11 @@ def test_category_create_mutation(
     assert not data["category"]["parent"]
     category = Category.objects.get(name=category_name)
     assert category.background_image.file
+    img_name, format = os.path.splitext(image_file._name)
+    file_name = category.background_image.name
+    assert file_name != image_file._name
+    assert file_name.startswith(f"category-backgrounds/{img_name}")
+    assert file_name.endswith(format)
     mock_create_thumbnails.assert_called_once_with(category.pk)
     assert data["category"]["backgroundImage"]["alt"] == image_alt
 
@@ -548,7 +598,7 @@ def test_category_update_mutation_invalid_background_image(
     content = get_graphql_content(response)
     data = content["data"]["categoryUpdate"]
     assert data["errors"][0]["field"] == "backgroundImage"
-    assert data["errors"][0]["message"] == "Invalid file type"
+    assert data["errors"][0]["message"] == "Invalid file type."
 
 
 def test_category_update_mutation_without_background_image(

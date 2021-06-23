@@ -506,7 +506,7 @@ input AttributeFilterInput {
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
   availableInGrid: Boolean
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   search: String
   ids: [ID]
   type: AttributeTypeEnum
@@ -519,6 +519,7 @@ input AttributeInput {
   slug: String!
   values: [String]
   valuesRange: IntRangeInput
+  boolean: Boolean
 }
 
 enum AttributeInputTypeEnum {
@@ -528,6 +529,7 @@ enum AttributeInputTypeEnum {
   REFERENCE
   NUMERIC
   RICH_TEXT
+  BOOLEAN
 }
 
 type AttributeReorderValues {
@@ -608,6 +610,7 @@ type AttributeValue implements Node {
   reference: ID
   file: File
   richText: JSONString
+  boolean: Boolean
 }
 
 type AttributeValueBulkDelete {
@@ -658,6 +661,7 @@ input AttributeValueInput {
   contentType: String
   references: [ID!]
   richText: JSONString
+  boolean: Boolean
 }
 
 type AttributeValueTranslatableContent implements Node {
@@ -773,7 +777,7 @@ type CategoryDelete {
 
 input CategoryFilterInput {
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   ids: [ID]
 }
 
@@ -1226,7 +1230,7 @@ enum CollectionErrorCode {
 input CollectionFilterInput {
   published: CollectionPublished
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   ids: [ID]
   channel: String
 }
@@ -1666,7 +1670,7 @@ input CustomerFilterInput {
   numberOfOrders: IntRangeInput
   placedOrders: DateRangeInput
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
 }
 
 input CustomerInput {
@@ -1910,6 +1914,7 @@ type ExportError {
 }
 
 enum ExportErrorCode {
+  GRAPHQL_ERROR
   INVALID
   NOT_FOUND
   REQUIRED
@@ -2518,7 +2523,7 @@ enum MenuErrorCode {
 input MenuFilterInput {
   search: String
   slug: [String]
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
 }
 
 input MenuInput {
@@ -2583,7 +2588,7 @@ type MenuItemDelete {
 
 input MenuItemFilterInput {
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
 }
 
 input MenuItemInput {
@@ -2667,6 +2672,11 @@ enum MetadataErrorCode {
   INVALID
   NOT_FOUND
   REQUIRED
+}
+
+input MetadataFilter {
+  key: String!
+  value: String
 }
 
 input MetadataInput {
@@ -3022,6 +3032,7 @@ type Order implements Node & ObjectWithMetadata {
   discountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
   translatedDiscountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
   discounts: [OrderDiscount!]
+  errors: [OrderError!]!
 }
 
 enum OrderAction {
@@ -3126,7 +3137,7 @@ input OrderDraftFilterInput {
   customer: String
   created: DateRangeInput
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   channels: [ID]
 }
 
@@ -3135,7 +3146,7 @@ type OrderError {
   message: String
   code: OrderErrorCode!
   warehouse: ID
-  orderLine: ID
+  orderLines: [ID!]
   variants: [ID!]
   addressType: AddressTypeEnum
 }
@@ -3255,6 +3266,8 @@ enum OrderEventsEnum {
   ORDER_DISCOUNT_DELETED
   ORDER_LINE_DISCOUNT_UPDATED
   ORDER_LINE_DISCOUNT_REMOVED
+  ORDER_LINE_PRODUCT_DELETED
+  ORDER_LINE_VARIANT_DELETED
   UPDATED_ADDRESS
   EMAIL_SENT
   CONFIRMED
@@ -3285,7 +3298,7 @@ input OrderFilterInput {
   customer: String
   created: DateRangeInput
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   channels: [ID]
 }
 
@@ -3616,7 +3629,7 @@ enum PageErrorCode {
 
 input PageFilterInput {
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   pageTypes: [ID]
   ids: [ID]
 }
@@ -4102,7 +4115,7 @@ type Product implements Node & ObjectWithMetadata {
   taxType: TaxType
   attributes: [SelectedAttribute!]!
   channelListings: [ProductChannelListing!]
-  mediaById(id: ID): ProductMedia!
+  mediaById(id: ID): ProductMedia
   imageById(id: ID): ProductImage @deprecated(reason: "Will be removed in Saleor 4.0. Use the `mediaById` field instead.")
   variants: [ProductVariant]
   media: [ProductMedia!]
@@ -4276,7 +4289,7 @@ input ProductFilterInput {
   stockAvailability: StockAvailability
   stocks: ProductStockFilterInput
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
@@ -4491,7 +4504,7 @@ input ProductTypeFilterInput {
   search: String
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   ids: [ID]
 }
 
@@ -4548,7 +4561,6 @@ type ProductVariant implements Node & ObjectWithMetadata {
   channelListings: [ProductVariantChannelListing!]
   pricing(address: AddressInput): VariantPricingInfo
   attributes(variantSelection: VariantAttributeScope): [SelectedAttribute!]!
-  costPrice: Money
   margin: Int
   quantityOrdered: Int
   revenue(period: ReportingPeriod): TaxedMoney
@@ -4637,7 +4649,7 @@ type ProductVariantDelete {
 input ProductVariantFilterInput {
   search: String
   sku: [String]
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
 }
 
 input ProductVariantInput {
@@ -5754,6 +5766,7 @@ type Voucher implements Node {
   endDate: DateTime
   applyOncePerOrder: Boolean!
   applyOncePerCustomer: Boolean!
+  onlyForStaff: Boolean!
   discountValueType: DiscountValueTypeEnum!
   minCheckoutItemsQuantity: Int
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -5855,6 +5868,7 @@ input VoucherInput {
   countries: [String]
   applyOncePerOrder: Boolean
   applyOncePerCustomer: Boolean
+  onlyForStaff: Boolean
   usageLimit: Int
 }
 
@@ -5915,23 +5929,12 @@ type Warehouse implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
-  companyName: String!
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
   email: String!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-}
-
-input WarehouseAddressInput {
-  streetAddress1: String!
-  streetAddress2: String
-  city: String!
-  cityArea: String
-  postalCode: String
-  country: CountryCode!
-  countryArea: String
-  phone: String
+  companyName: String! @deprecated(reason: "Use address.CompanyName. This field will be removed in Saleor 4.0.")
 }
 
 type WarehouseCountableConnection {
@@ -5953,10 +5956,9 @@ type WarehouseCreate {
 
 input WarehouseCreateInput {
   slug: String
-  companyName: String
   email: String
   name: String!
-  address: WarehouseAddressInput!
+  address: AddressInput!
   shippingZones: [ID]
 }
 
@@ -6015,10 +6017,9 @@ type WarehouseUpdate {
 
 input WarehouseUpdateInput {
   slug: String
-  companyName: String
   email: String
   name: String
-  address: WarehouseAddressInput
+  address: AddressInput
 }
 
 type Webhook implements Node {

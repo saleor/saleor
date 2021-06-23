@@ -1,3 +1,4 @@
+import os
 from unittest.mock import Mock, patch
 
 import graphene
@@ -8,7 +9,11 @@ from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import Collection, Product
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....tests.utils import dummy_editorjs
-from ...tests.utils import get_graphql_content, get_multipart_request_body
+from ...tests.utils import (
+    get_graphql_content,
+    get_graphql_content_from_response,
+    get_multipart_request_body,
+)
 
 QUERY_COLLECTION = """
     query ($id: ID, $slug: String, $channel: String){
@@ -462,6 +467,11 @@ def test_create_collection(
     assert data["products"]["totalCount"] == len(product_ids)
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image.file
+    img_name, format = os.path.splitext(image_file._name)
+    file_name = collection.background_image.name
+    assert file_name != image_file._name
+    assert file_name.startswith(f"collection-backgrounds/{img_name}")
+    assert file_name.endswith(format)
     mock_create_thumbnails.assert_called_once_with(collection.pk)
     assert data["backgroundImage"]["alt"] == image_alt
 
@@ -698,7 +708,7 @@ def test_update_collection_invalid_background_image(
     content = get_graphql_content(response)
     data = content["data"]["collectionUpdate"]
     assert data["errors"][0]["field"] == "backgroundImage"
-    assert data["errors"][0]["message"] == "Invalid file type"
+    assert data["errors"][0]["message"] == "Invalid file type."
 
 
 UPDATE_COLLECTION_SLUG_MUTATION = """
@@ -1176,6 +1186,47 @@ def test_collection_image_query_without_associated_file(
     data = content["data"]["collection"]
     assert data["name"] == published_collection.name
     assert data["backgroundImage"] is None
+
+
+def test_collection_query_invalid_id(
+    user_api_client, published_collection, channel_USD
+):
+    collection_id = "'"
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {collection_id}."
+    assert content["data"]["collection"] is None
+
+
+def test_collection_query_object_with_given_id_does_not_exist(
+    user_api_client, published_collection, channel_USD
+):
+    collection_id = graphene.Node.to_global_id("Collection", -1)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["collection"] is None
+
+
+def test_collection_query_object_with_invalid_object_type(
+    user_api_client, published_collection, channel_USD
+):
+    collection_id = graphene.Node.to_global_id("Product", published_collection.pk)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["collection"] is None
 
 
 def test_update_collection_mutation_remove_background_image(

@@ -13,7 +13,7 @@ def prefech_qs_for_filter(qs):
 def filter_search_warehouse(qs, _, value):
     search_fields = [
         "name",
-        "company_name",
+        "address__company_name",
         "email",
         "address__street_address_1",
         "address__street_address_2",
@@ -33,7 +33,7 @@ def filter_search_stock(qs, _, value):
         "product_variant__product__name",
         "product_variant__name",
         "warehouse__name",
-        "warehouse__company_name",
+        "warehouse__address__company_name",
     ]
     if value:
         qs = qs.select_related("product_variant", "warehouse").prefetch_related(

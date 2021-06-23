@@ -4,7 +4,7 @@ from measurement.measures import Weight
 
 from ....core.units import WeightUnits
 from ...shipping.resolvers import resolve_price_range
-from ...tests.utils import get_graphql_content
+from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 
 SHIPPING_ZONE_QUERY = """
     query ShippingQuery($id: ID!, $channel: String,) {
@@ -127,6 +127,31 @@ def test_shipping_zone_query_weights_returned_in_default_unit(
         shipping_data["shippingMethods"][0]["maximumOrderWeight"]["unit"]
         == WeightUnits.G.upper()
     )
+
+
+def test_staff_query_shipping_zone_by_invalid_id(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["shippingZone"] is None
+
+
+def test_staff_query_shipping_zone_object_given_id_does_not_exists(
+    staff_api_client, permission_manage_shipping
+):
+    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    response = staff_api_client.post_graphql(
+        SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["shippingZone"] is None
 
 
 MULTIPLE_SHIPPING_QUERY = """
