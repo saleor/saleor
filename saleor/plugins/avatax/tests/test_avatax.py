@@ -325,6 +325,65 @@ def test_calculate_checkout_total(
 
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_total_not_charged_product_and_shipping_with_0_price(
+    checkout_with_item,
+    shipping_zone,
+    address,
+    ship_to_pl_address,
+    site_settings,
+    monkeypatch,
+    plugin_configuration,
+):
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PS081282": "desc"},
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
+    )
+    manager = get_plugins_manager()
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.save()
+    site_settings.company_address = address
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    channel = checkout_with_item.channel
+    shipping_method = shipping_zone.shipping_methods.get()
+    shipping_channel_listing = shipping_method.channel_listings.get(channel=channel)
+    shipping_channel_listing.price = Money(0, "USD")
+    shipping_channel_listing.save()
+
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.save()
+
+    line = checkout_with_item.lines.first()
+    variant = line.variant
+    product = variant.product
+    product.charge_taxes = False
+    product.metadata = {}
+    manager.assign_tax_code_to_object_meta(product.product_type, "PS081282")
+    product.save()
+    product.product_type.save()
+
+    discounts = None
+    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
+    lines = fetch_checkout_lines(checkout_with_item)
+    total = manager.calculate_checkout_total(
+        checkout_info, lines, ship_to_pl_address, discounts
+    )
+    total = quantize_price(total, total.currency)
+
+    channel_listing = variant.channel_listings.get(channel=channel)
+    expected_amount = (line.quantity * channel_listing.price).amount
+    assert total == TaxedMoney(
+        net=Money(expected_amount, "USD"), gross=Money(expected_amount, "USD")
+    )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_checkout_shipping(
     checkout_with_item,
     shipping_zone,
