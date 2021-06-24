@@ -2316,3 +2316,59 @@ def test_translation_query_no_permission(staff_api_client, menu_item):
     }
     response = staff_api_client.post_graphql(QUERY_TRANSLATION_MENU_ITEM, variables)
     assert_no_permission(response)
+
+
+def test_product_and_attribute_translation(user_api_client, product, channel_USD):
+    description = dummy_editorjs("test desription")
+    product.translations.create(
+        language_code="pl", name="Produkt", description=description
+    )
+    assigned_attribute = product.attributes.first()
+    attribute = assigned_attribute.attribute
+    attribute.translations.create(language_code="pl", name="Kolor")
+
+    query = """
+        query productById($productId: ID!, $channel: String) {
+            product(id: $productId, channel: $channel) {
+                translation(languageCode: PL) {
+                    name
+                    description
+                    descriptionJson
+                    language {
+                        code
+                    }
+                }
+                attributes{
+                    attribute{
+                        translation(languageCode: PL){
+                            id
+                            name
+                            language{
+                                code
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    response = user_api_client.post_graphql(
+        query, {"productId": product_id, "channel": channel_USD.slug}
+    )
+    data = get_graphql_content(response)["data"]
+
+    product_translation_data = data["product"]["translation"]
+    assert product_translation_data["name"] == "Produkt"
+    assert product_translation_data["language"]["code"] == "PL"
+    assert (
+        product_translation_data["description"]
+        == product_translation_data["descriptionJson"]
+        == dummy_editorjs("test desription", json_format=True)
+    )
+    attribute_translation_data = data["product"]["attributes"][0]["attribute"][
+        "translation"
+    ]
+    assert attribute_translation_data["name"] == "Kolor"
+    assert attribute_translation_data["language"]["code"] == "PL"
