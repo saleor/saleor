@@ -20,7 +20,6 @@ from .products import ProductByIdLoader, ProductVariantByIdLoader
 class BaseProductAttributesByProductTypeIdLoader(DataLoader):
     """Loads product attributes by product type ID."""
 
-    context_key = "product_attributes_by_producttype"
     model_name = None
 
     def batch_load(self, keys):
