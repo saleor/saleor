@@ -18,7 +18,6 @@ from ...checkout.fetch import (
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
-    add_variant_to_checkout,
     add_variants_to_checkout,
     calculate_checkout_quantity,
     change_billing_address_in_checkout,
@@ -428,19 +427,18 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
         if variants and quantities:
-            for variant, quantity in zip(variants, quantities):
-                try:
-                    checkout = add_variant_to_checkout(
-                        checkout_info, variant, quantity, replace=replace
-                    )
-                except InsufficientStock as exc:
-                    error = prepare_insufficient_stock_checkout_validation_error(exc)
-                    raise ValidationError({"lines": error})
-                except ProductNotPublished as exc:
-                    raise ValidationError(
-                        "Can't add unpublished product.",
-                        code=exc.code,
-                    )
+            try:
+                checkout = add_variants_to_checkout(
+                    checkout, variants, quantities, checkout_info.channel.slug
+                )
+            except InsufficientStock as exc:
+                error = prepare_insufficient_stock_checkout_validation_error(exc)
+                raise ValidationError({"lines": error})
+            except ProductNotPublished as exc:
+                raise ValidationError(
+                    "Can't add unpublished product.",
+                    code=exc.code,
+                )
 
         lines = fetch_checkout_lines(checkout)
         checkout_info.valid_shipping_methods = (
