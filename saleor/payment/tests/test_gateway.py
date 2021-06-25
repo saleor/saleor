@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 from ...plugins.manager import get_plugins_manager
 from .. import ChargeStatus, CustomPaymentChoices, TransactionKind, gateway
@@ -80,7 +81,10 @@ TOKEN = "token"
 USED_GATEWAY = "mirumee.payments.dummy"
 
 
-def test_process_payment(fake_payment_interface, payment_txn_preauth):
+@patch("saleor.payment.gateway.update_payment")
+def test_process_payment(
+    update_payment_mock, fake_payment_interface, payment_txn_preauth
+):
     PAYMENT_DATA = create_payment_information(
         payment=payment_txn_preauth, payment_token=TOKEN
     )
@@ -100,6 +104,9 @@ def test_process_payment(fake_payment_interface, payment_txn_preauth):
     assert transaction.kind == TransactionKind.CAPTURE
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE
+    update_payment_mock.assert_called_once_with(
+        payment_txn_preauth, PROCESS_PAYMENT_RESPONSE
+    )
 
 
 def test_store_source_when_processing_payment(
@@ -124,7 +131,8 @@ def test_store_source_when_processing_payment(
     assert transaction.customer_id == PROCESS_PAYMENT_RESPONSE.customer_id
 
 
-def test_authorize_payment(fake_payment_interface, payment_dummy):
+@patch("saleor.payment.gateway.update_payment")
+def test_authorize_payment(update_payment_mock, fake_payment_interface, payment_dummy):
     PAYMENT_DATA = create_payment_information(
         payment=payment_dummy, payment_token=TOKEN
     )
@@ -144,9 +152,13 @@ def test_authorize_payment(fake_payment_interface, payment_dummy):
     assert transaction.kind == TransactionKind.AUTH
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE
+    update_payment_mock.assert_called_once_with(payment_dummy, AUTHORIZE_RESPONSE)
 
 
-def test_capture_payment(fake_payment_interface, payment_txn_preauth):
+@patch("saleor.payment.gateway.update_payment")
+def test_capture_payment(
+    update_payment_mock, fake_payment_interface, payment_txn_preauth
+):
     auth_transaction = payment_txn_preauth.transactions.get()
     PAYMENT_DATA = create_payment_information(
         payment=payment_txn_preauth, payment_token=auth_transaction.token
@@ -166,6 +178,9 @@ def test_capture_payment(fake_payment_interface, payment_txn_preauth):
     assert transaction.kind == TransactionKind.CAPTURE
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE
+    update_payment_mock.assert_called_once_with(
+        payment_txn_preauth, PROCESS_PAYMENT_RESPONSE
+    )
 
 
 def test_refund_for_manual_payment(payment_txn_captured):
@@ -260,7 +275,10 @@ def test_void_payment(fake_payment_interface, payment_txn_preauth):
     assert transaction.gateway_response == RAW_RESPONSE
 
 
-def test_confirm_payment(fake_payment_interface, payment_txn_to_confirm):
+@patch("saleor.payment.gateway.update_payment")
+def test_confirm_payment(
+    update_payment_mock, fake_payment_interface, payment_txn_to_confirm
+):
     auth_transaction = payment_txn_to_confirm.transactions.get()
     PAYMENT_DATA = create_payment_information(
         payment=payment_txn_to_confirm,
@@ -284,6 +302,9 @@ def test_confirm_payment(fake_payment_interface, payment_txn_to_confirm):
     assert transaction.kind == TransactionKind.CONFIRM
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE
+    update_payment_mock.assert_called_once_with(
+        payment_txn_to_confirm, CONFIRM_RESPONSE
+    )
 
 
 def test_list_gateways(fake_payment_interface):
