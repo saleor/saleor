@@ -1,4 +1,5 @@
 import datetime
+import uuid
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import graphene
@@ -42,8 +43,12 @@ from ..account.types import AddressInput
 from ..channel.utils import clean_channel
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
+from ..core.scalars import UUID
 from ..core.types.common import CheckoutError
-from ..core.validators import validate_variants_available_in_channel
+from ..core.validators import (
+    validate_one_of_args_is_in_mutation,
+    validate_variants_available_in_channel,
+)
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -194,6 +199,23 @@ def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
                 )
             }
         )
+
+
+def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []):
+    try:
+        checkout = models.Checkout.objects.prefetch_related(*prefetch_lookups).get(
+            token=token
+        )
+    except ObjectDoesNotExist:
+        raise ValidationError(
+            {
+                "token": ValidationError(
+                    f"Couldn't resolve to a node: {token}.",
+                    code=CheckoutErrorCode.NOT_FOUND.value,
+                )
+            }
+        )
+    return checkout
 
 
 class CheckoutLineInput(graphene.InputObjectType):
@@ -393,7 +415,14 @@ class CheckoutLinesAdd(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="The ID of the checkout.", required=True)
+        checkout_id = graphene.ID(
+            description=(
+                "The ID of the checkout."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         lines = graphene.List(
             CheckoutLineInput,
             required=True,
@@ -450,10 +479,22 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, lines, replace=False):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(
+        cls, _root, info, lines, checkout_id=None, token=None, replace=False
+    ):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
         discounts = info.context.discounts
         manager = info.context.plugins
 
@@ -496,15 +537,24 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id, lines):
-        return super().perform_mutation(root, info, checkout_id, lines, replace=True)
+    def perform_mutation(cls, root, info, lines, checkout_id=None, token=None):
+        return super().perform_mutation(
+            root, info, lines, checkout_id, token, replace=True
+        )
 
 
 class CheckoutLineDelete(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="The ID of the checkout.", required=True)
+        checkout_id = graphene.ID(
+            description=(
+                "The ID of the checkout."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         line_id = graphene.ID(description="ID of the checkout line to delete.")
 
     class Meta:
@@ -513,10 +563,20 @@ class CheckoutLineDelete(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, line_id):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(cls, _root, info, line_id, checkout_id=None, token=None):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
         line = cls.get_node_or_error(
             info, line_id, only_type=CheckoutLine, field="line_id"
         )
@@ -541,7 +601,14 @@ class CheckoutCustomerAttach(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(required=True, description="ID of the checkout.")
+        checkout_id = graphene.ID(
+            required=False,
+            description=(
+                "ID of the checkout."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+        )
+        token = UUID(description="Checkout token.", required=False)
 
     class Meta:
         description = "Sets the customer as the owner of the checkout."
@@ -553,10 +620,21 @@ class CheckoutCustomerAttach(BaseMutation):
         return context.user.is_authenticated
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, customer_id=None):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(
+        cls, _root, info, checkout_id=None, token=None, customer_id=None
+    ):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
 
         checkout.user = info.context.user
         checkout.email = info.context.user.email
@@ -570,7 +648,14 @@ class CheckoutCustomerDetach(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.", required=True)
+        checkout_id = graphene.ID(
+            description=(
+                "Checkout ID."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
 
     class Meta:
         description = "Removes the user assigned as the owner of the checkout."
@@ -582,10 +667,19 @@ class CheckoutCustomerDetach(BaseMutation):
         return context.user.is_authenticated
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(cls, _root, info, checkout_id=None, token=None):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
 
         # Raise error if the current user doesn't own the checkout of the given ID.
         if checkout.user and checkout.user != info.context.user:
@@ -602,7 +696,14 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(required=True, description="ID of the checkout.")
+        checkout_id = graphene.ID(
+            required=False,
+            description=(
+                "ID of the checkout."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+        )
+        token = UUID(description="Checkout token.", required=False)
         shipping_address = AddressInput(
             required=True,
             description="The mailing address to where the checkout will be shipped.",
@@ -627,24 +728,36 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         check_lines_quantity(variants, quantities, country, channel_slug)
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, shipping_address):
-        pk = cls.get_global_id_or_error(
-            checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(
+        cls, _root, info, shipping_address, checkout_id=None, token=None
+    ):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
 
-        try:
-            checkout = models.Checkout.objects.prefetch_related(
-                "lines__variant__product__product_type"
-            ).get(pk=pk)
-        except ObjectDoesNotExist:
-            raise ValidationError(
-                {
-                    "checkout_id": ValidationError(
-                        f"Couldn't resolve to a node: {checkout_id}",
-                        code=CheckoutErrorCode.NOT_FOUND,
-                    )
-                }
+        if token:
+            checkout = get_checkout_by_token(
+                token, prefetch_lookups=["lines__variant__product__product_type"]
             )
+        # DEPRECATED
+        if checkout_id:
+            pk = cls.get_global_id_or_error(
+                checkout_id, only_type=Checkout, field="checkout_id"
+            )
+            try:
+                checkout = models.Checkout.objects.prefetch_related(
+                    "lines__variant__product__product_type"
+                ).get(pk=pk)
+            except ObjectDoesNotExist:
+                raise ValidationError(
+                    {
+                        "checkout_id": ValidationError(
+                            f"Couldn't resolve to a node: {checkout_id}",
+                            code=CheckoutErrorCode.NOT_FOUND,
+                        )
+                    }
+                )
 
         lines = fetch_checkout_lines(checkout)
         if not is_shipping_required(lines):
@@ -695,7 +808,14 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(required=True, description="ID of the checkout.")
+        checkout_id = graphene.ID(
+            required=False,
+            description=(
+                "ID of the checkout."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+        )
+        token = UUID(description="Checkout token.", required=False)
         billing_address = AddressInput(
             required=True, description="The billing address of the checkout."
         )
@@ -706,10 +826,22 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, billing_address):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(
+        cls, _root, info, billing_address, checkout_id=None, token=None
+    ):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
         billing_address = cls.validate_address(
             billing_address,
             address_type=AddressType.BILLING,
@@ -727,7 +859,14 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(required=True, description="ID of the checkout.")
+        checkout_id = graphene.ID(
+            required=False,
+            description=(
+                "ID of the checkout."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+        )
+        token = UUID(description="Checkout token.", required=False)
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="New language code."
         )
@@ -738,10 +877,20 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, language_code):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(cls, _root, info, language_code, checkout_id=None, token=None):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
         checkout.language_code = language_code
         checkout.save(update_fields=["language_code", "last_change"])
         info.context.plugins.checkout_updated(checkout)
@@ -752,7 +901,14 @@ class CheckoutEmailUpdate(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.")
+        checkout_id = graphene.ID(
+            description=(
+                "Checkout ID."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         email = graphene.String(required=True, description="email.")
 
     class Meta:
@@ -761,10 +917,19 @@ class CheckoutEmailUpdate(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, email):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(cls, _root, info, email, checkout_id=None, token=None):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
 
         checkout.email = email
         cls.clean_instance(info, checkout)
@@ -777,7 +942,14 @@ class CheckoutShippingMethodUpdate(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.")
+        checkout_id = graphene.ID(
+            description=(
+                "Checkout ID."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         shipping_method_id = graphene.ID(required=True, description="Shipping method.")
 
     class Meta:
@@ -786,10 +958,22 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, shipping_method_id):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(
+        cls, _root, info, shipping_method_id, checkout_id=None, token=None
+    ):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
         manager = info.context.plugins
         lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
@@ -857,7 +1041,14 @@ class CheckoutComplete(BaseMutation):
     )
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.", required=True)
+        checkout_id = graphene.ID(
+            description=(
+                "Checkout ID."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         store_source = graphene.Boolean(
             default_value=False,
             description=(
@@ -891,22 +1082,35 @@ class CheckoutComplete(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, store_source, **data):
+    def perform_mutation(
+        cls, _root, info, store_source, checkout_id=None, token=None, **data
+    ):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
+        )
+
         tracking_code = analytics.get_client_id(info.context)
         with transaction_with_commit_on_errors():
             try:
-                checkout = cls.get_node_or_error(
-                    info,
-                    checkout_id,
-                    only_type=Checkout,
-                    field="checkout_id",
-                )
+                if token:
+                    checkout = get_checkout_by_token(token)
+                # DEPRECATED
+                else:
+                    checkout = cls.get_node_or_error(
+                        info,
+                        checkout_id or token,
+                        only_type=Checkout,
+                        field="checkout_id",
+                    )
             except ValidationError as e:
-                checkout_token = cls.get_global_id_or_error(
-                    checkout_id, only_type=Checkout, field="checkout_id"
-                )
+                # DEPRECATED
+                if checkout_id:
+                    token = cls.get_global_id_or_error(
+                        checkout_id, only_type=Checkout, field="checkout_id"
+                    )
 
-                order = order_models.Order.objects.get_by_checkout_token(checkout_token)
+                order = order_models.Order.objects.get_by_checkout_token(token)
                 if order:
                     if not order.channel.is_active:
                         raise ValidationError(
@@ -958,7 +1162,14 @@ class CheckoutAddPromoCode(BaseMutation):
     )
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.", required=True)
+        checkout_id = graphene.ID(
+            description=(
+                "Checkout ID. "
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         promo_code = graphene.String(
             description="Gift card code or voucher code.", required=True
         )
@@ -969,10 +1180,20 @@ class CheckoutAddPromoCode(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, promo_code):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(cls, _root, info, promo_code, checkout_id=None, token=None):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
         manager = info.context.plugins
         lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
@@ -1002,7 +1223,14 @@ class CheckoutRemovePromoCode(BaseMutation):
     )
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.", required=True)
+        checkout_id = graphene.ID(
+            description=(
+                "Checkout ID."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         promo_code = graphene.String(
             description="Gift card code or voucher code.", required=True
         )
@@ -1013,10 +1241,20 @@ class CheckoutRemovePromoCode(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, promo_code):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(cls, _root, info, promo_code, checkout_id=None, token=None):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
         manager = info.context.plugins
         checkout_info = fetch_checkout_info(
             checkout, [], info.context.discounts, manager
