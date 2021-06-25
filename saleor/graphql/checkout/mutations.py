@@ -413,7 +413,7 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def clean_input(
-        cls, checkout, variants, quantities, checkout_info, manager, discounts, replace
+        cls, checkout, variants, quantities, checkout_info, manager, discounts
     ):
         cls.validate_checkout_lines(
             variants, quantities, checkout.get_country(), checkout_info.channel.slug
@@ -448,7 +448,7 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, lines, replace=False):
+    def perform_mutation(cls, _root, info, checkout_id, lines):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
@@ -461,7 +461,7 @@ class CheckoutLinesAdd(BaseMutation):
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
         cls.clean_input(
-            checkout, variants, quantities, checkout_info, manager, discounts, replace
+            checkout, variants, quantities, checkout_info, manager, discounts
         )
 
         lines = fetch_checkout_lines(checkout)
@@ -495,7 +495,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, lines):
-        return super().perform_mutation(root, info, checkout_id, lines, replace=True)
+        return super().perform_mutation(root, info, checkout_id, lines)
 
 
 class CheckoutLineDelete(BaseMutation):

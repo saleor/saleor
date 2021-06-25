@@ -149,11 +149,11 @@ def add_variants_to_checkout(checkout, variants, quantities, channel_slug):
         if not product_channel_listing or not product_channel_listing.is_published:
             raise ProductNotPublished()
 
-    lines_with_quantities = {line.variant.pk: line for line in checkout.lines.all()}
+    lines = {line.variant.pk: line for line in checkout.lines.all()}
     to_create = []
     for variant, quantity in zip(variants, quantities):
-        if variant.pk in lines_with_quantities:
-            line = lines_with_quantities[variant.pk]
+        if variant.pk in lines:
+            line = lines[variant.pk]
             if quantity > 0:
                 line.quantity = quantity
                 line.save(update_fields=["quantity"])
