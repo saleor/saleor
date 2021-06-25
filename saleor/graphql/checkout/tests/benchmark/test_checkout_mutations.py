@@ -381,6 +381,79 @@ def test_update_checkout_lines(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
+def test_add_checkout_lines(
+    api_client,
+    checkout_with_single_item,
+    stock,
+    product_with_default_variant,
+    product_with_single_variant,
+    product_with_two_variants,
+    count_queries,
+):
+    query = (
+        FRAGMENT_CHECKOUT_LINE
+        + """
+            mutation addCheckoutLines($checkoutId: ID!, $lines: [CheckoutLineInput]!){
+              checkoutLinesAdd(checkoutId: $checkoutId, lines: $lines) {
+                checkout {
+                  id
+                  lines {
+                    ...CheckoutLine
+                  }
+                }
+                errors {
+                  field
+                  message
+                }
+              }
+            }
+        """
+    )
+    variables = {
+        "checkoutId": Node.to_global_id("Checkout", checkout_with_single_item.pk),
+        "lines": [
+            {
+                "quantity": 1,
+                "variantId": Node.to_global_id(
+                    "ProductVariant", stock.product_variant.pk
+                ),
+            },
+            {
+                "quantity": 2,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_default_variant.variants.first().pk,
+                ),
+            },
+            {
+                "quantity": 10,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_single_variant.variants.first().pk,
+                ),
+            },
+            {
+                "quantity": 3,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_two_variants.variants.first().pk,
+                ),
+            },
+            {
+                "quantity": 2,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_two_variants.variants.last().pk,
+                ),
+            },
+        ],
+    }
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+    assert not response["data"]["checkoutLinesAdd"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
 def test_checkout_shipping_address_update(
     api_client, graphql_address_data, checkout_with_variants, count_queries
 ):
