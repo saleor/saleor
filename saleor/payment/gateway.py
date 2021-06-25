@@ -12,7 +12,7 @@ from .utils import (
     create_transaction,
     gateway_postprocess,
     get_already_processed_transaction_or_create_new_transaction,
-    update_payment_method_details,
+    update_payment,
     validate_gateway_response,
 )
 
@@ -94,8 +94,8 @@ def process_payment(
         channel_slug=channel_slug,
     )
     action_required = response is not None and response.action_required
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
@@ -131,8 +131,8 @@ def authorize(
         payment_data,
         channel_slug=channel_slug,
     )
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.AUTH,
@@ -172,8 +172,8 @@ def capture(
         payment_data,
         channel_slug=channel_slug,
     )
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
@@ -273,8 +273,8 @@ def confirm(
         channel_slug=channel_slug,
     )
     action_required = response is not None and response.action_required
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CONFIRM,
