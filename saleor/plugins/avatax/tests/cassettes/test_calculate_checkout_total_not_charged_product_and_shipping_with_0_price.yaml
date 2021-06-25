@@ -1,0 +1,70 @@
+interactions:
+- request:
+    body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
+      "lines": [{"quantity": 1, "amount": "0.000", "taxCode": "FR020100", "taxIncluded":
+      true, "itemCode": "Shipping", "description": null}], "code": "dd5c408f-b533-494c-b2a1-2985140b71be",
+      "date": "2021-06-24", "customerCode": 0, "addresses": {"shipFrom": {"line1":
+      "Teczowa 7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL",
+      "postalCode": "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "",
+      "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode": "53-105"}},
+      "commit": false, "currencyCode": "USD", "email": ""}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '626'
+      User-Agent:
+      - python-requests/2.25.1
+    method: POST
+    uri: https://rest.avatax.com/api/v2/transactions/createoradjust
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEA5VWXW/aShD9K5GfQ2QbSAhvXNJIkRBEgdxKverDYg+wrb12d9dpaJX/3jPrNR/B
+        SXrzBPO1M2fOHPI7kGkwDM+DpEgpGAZp2k964WDVWfa73U7vupd0lrGIOvH1oB/1wuVVtKSAo/NS
+        qO0dcuNefH3VPw9SYblAHMZRJ7zsxD2ElWKbk7I3LS5jha0MEhaUl4UWeot4uy25xlxkZGY6JQ3b
+        UthkM66745crrUklW295nN/ASM/JRqg1PeChcVtAUhlb5KQfjVjTon6F85SVdvto6LB+HfkvqbTQ
+        3h66h2vHgYme0budFmgZAZqSQiUyI4CyEpmh8yArEmFlofblNWFYK9V6cuIqK40pDLnB90VXxPMe
+        dGgYnZK0OaxrCyuyUV5UymKdF1ios3xyHR5abqRJXkctxPNhCL6KZYZF7OvANBZZUmUAmPnCD4j0
+        G1Dl/T6QQDNAYVrYkbMiyE3//QCMJ7QMLIJhdLywT6sVJVY+URtNDjeLTH6XciGzGvK8SOVKUnqS
+        uQgHw+7lsNu/AGsH19EXtNMEY93aEXfQja5jACWeT/K5e6kI/Pzvd3MhVgtlBDotFKejEw6ZVvkS
+        PB0GEXL+nmapX8PRymo+tZjGpK1/85hz0txZyncL87STsHnKzTeyLEE3P9BR7R+VcPz3uGpaRQ2T
+        V3HzydO1DSEA13CkZsxRdXhPKMO2+pJvH8I4jEI+LG/k+XpXg96bC0HcnUqyKmVOWV3hvlKy4MJb
+        W5pgPR610925I4DoDIP7CZrQtHbcrL+1LOJbpaXxzbsMZ5iKnAXrfjYZTVmIWNVoZIxcK0qbG3aR
+        XnTG0wXCnCWVjkuNg4/SiaAq1KIFT+1ENLyIuyH+HErvo+8LzypbVrbGeV4t2cqgBLPa5CeYW6FS
+        odMzltDaM6rsptDQxyalB5XnZb0WAu7MP9aUQYXG2hARpkpJO1v9I4xk4b8n3Wj1IxzwSzMt1L0w
+        ZrHR1U5EpbklgOy5vRNQjxGnoppTpJ0PZd5z16rYmom018VgOhk5k2IpM48NZplTlkEFXr6eB1gf
+        j2A3uqjWm5sdQ+HaNATCrElh7J0yFUQloVtNcr1plPtJ2B3R5h3s+7bTcZSDo5abZiMhPyjSVJMx
+        H4nVEgTDhrcTeiKWzy+y7KMP1jA++1kmfprv4izik2SjVwD+2IWfW8a8+PT5YTaejD7DsDsafC4x
+        j8h83/1uJwq5+qsrs+L5wR0aMzAO+1EI/cVvirS46vqRrFDr3deX83fU94OBFpT8Kn6Ksyu08f48
+        ukgw/AfzXIZO4P2VetX43/NgXabKc/5vh39ZXsGzw3MvMP6uxjt1+DsdQmNH5wtpxfG2qhNC/SMt
+        SsHEADCIeUMnmitH4MHtI/7gPwiO4aNqVa6T09rLnz/EWoydOuPKX76+/AEOKTBmtAoAAA==
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Thu, 24 Jun 2021 08:36:35 GMT
+      Location:
+      - /api/v2/companies/242975/transactions/0
+      Server:
+      - Kestrel
+      ServerDuration:
+      - '00:00:00.0130762'
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+    status:
+      code: 201
+      message: Created
+version: 1
