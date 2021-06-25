@@ -174,7 +174,7 @@ def add_variants_to_checkout(
     if to_update:
         CheckoutLine.objects.bulk_update(to_update, ["quantity"])
     if to_create:
-        checkout.lines.bulk_create(to_create)
+        CheckoutLine.objects.bulk_create(to_create)
     return checkout
 
 
