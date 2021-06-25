@@ -458,11 +458,12 @@ class CheckoutLinesAdd(BaseMutation):
         if variants and quantities:
             try:
                 checkout = add_variants_to_checkout(
-                    checkout, variants, quantities, checkout_info.channel.slug
+                    checkout,
+                    variants,
+                    quantities,
+                    checkout_info.channel.slug,
+                    skip_stock_check=True,  # already checked by validate_checkout_lines
                 )
-            except InsufficientStock as exc:
-                error = prepare_insufficient_stock_checkout_validation_error(exc)
-                raise ValidationError({"lines": error})
             except ProductNotPublished as exc:
                 raise ValidationError(
                     "Can't add unpublished product.",
