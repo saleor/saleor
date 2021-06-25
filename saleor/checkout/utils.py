@@ -131,8 +131,9 @@ def add_variants_to_checkout(
 ):
     """Add variants to checkout.
 
-    Suitable for new checkouts as it always creates new checkout lines without checking
-    if there are any existing ones already.
+    If a variant is not placed in checkout it will be created.
+    Otherwise, it's quantity will be replaced (if greated than 0).
+    If quantity is set to 0, checkout line will be deleted.
     """
 
     # check quantities
@@ -154,18 +155,24 @@ def add_variants_to_checkout(
 
     lines = {line.variant.pk: line for line in checkout.lines.all()}
     to_create = []
+    to_update = []
+    to_delete = []
     for variant, quantity in zip(variants, quantities):
         if variant.pk in lines:
             line = lines[variant.pk]
             if quantity > 0:
                 line.quantity = quantity
-                line.save(update_fields=["quantity"])
+                to_update.append(line)
             else:
-                line.delete()
+                to_delete.append(line)
         else:
             to_create.append(
                 CheckoutLine(checkout=checkout, variant=variant, quantity=quantity)
             )
+    if to_delete:
+        CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()
+    if to_update:
+        CheckoutLine.objects.bulk_update(to_update, ["quantity"])
     if to_create:
         checkout.lines.bulk_create(to_create)
     return checkout
