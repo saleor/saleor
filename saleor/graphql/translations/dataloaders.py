@@ -11,7 +11,6 @@ from ..core.dataloaders import DataLoader
 
 
 class BaseTranslationByIdAndLanguageCodeLoader(DataLoader):
-    context_key = "translation_by_id_and_language_code"
     model = None
     relation_name = None
 
