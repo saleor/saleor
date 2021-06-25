@@ -218,6 +218,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `values` for attributes without choices from now are empty list.
   - attributes with choices - `DROPDOWN` and `MULTISELECT`
   - attributes without choices - `FILE`, `REFERENCE`, `NUMERIC` and `RICH_TEXT`
+- Unify checkout identifier in checkout mutations and queries - #7511 by @IKarbowiak
 
 ### Other
 
