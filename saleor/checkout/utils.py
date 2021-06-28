@@ -131,8 +131,8 @@ def add_variants_to_checkout(
 ):
     """Add variants to checkout.
 
-    If a variant is not placed in checkout it will be created.
-    Otherwise, it's quantity will be replaced (if greated than 0).
+    If a variant is not placed in checkout, a new checkout line will be created.
+    Otherwise, its quantity will be replaced (if greater than 0).
     If quantity is set to 0, checkout line will be deleted.
     """
 
@@ -153,7 +153,7 @@ def add_variants_to_checkout(
         if not product_channel_listing or not product_channel_listing.is_published:
             raise ProductNotPublished()
 
-    lines = {line.variant.pk: line for line in checkout.lines.all()}
+    lines = {line.variant_id: line for line in checkout.lines.all()}
     to_create = []
     to_update = []
     to_delete = []

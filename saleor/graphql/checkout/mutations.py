@@ -444,8 +444,9 @@ class CheckoutLinesAdd(BaseMutation):
     def clean_input(
         cls, checkout, variants, quantities, checkout_info, manager, discounts
     ):
+        channel_slug = checkout_info.channel.slug
         cls.validate_checkout_lines(
-            variants, quantities, checkout.get_country(), checkout_info.channel.slug
+            variants, quantities, checkout.get_country(), channel_slug
         )
         variants_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variants_db_ids, checkout.channel_id)
@@ -461,7 +462,7 @@ class CheckoutLinesAdd(BaseMutation):
                     checkout,
                     variants,
                     quantities,
-                    checkout_info.channel.slug,
+                    channel_slug,
                     skip_stock_check=True,  # already checked by validate_checkout_lines
                 )
             except ProductNotPublished as exc:
