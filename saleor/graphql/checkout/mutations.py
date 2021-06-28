@@ -19,7 +19,6 @@ from ...checkout.fetch import (
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
-    add_variant_to_checkout,
     add_variants_to_checkout,
     calculate_checkout_quantity,
     change_billing_address_in_checkout,
@@ -443,10 +442,11 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def clean_input(
-        cls, checkout, variants, quantities, checkout_info, manager, discounts, replace
+        cls, checkout, variants, quantities, checkout_info, manager, discounts
     ):
+        channel_slug = checkout_info.channel.slug
         cls.validate_checkout_lines(
-            variants, quantities, checkout.get_country(), checkout_info.channel.slug
+            variants, quantities, checkout.get_country(), channel_slug
         )
         variants_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variants_db_ids, checkout.channel_id)
@@ -457,19 +457,19 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
         if variants and quantities:
-            for variant, quantity in zip(variants, quantities):
-                try:
-                    checkout = add_variant_to_checkout(
-                        checkout_info, variant, quantity, replace=replace
-                    )
-                except InsufficientStock as exc:
-                    error = prepare_insufficient_stock_checkout_validation_error(exc)
-                    raise ValidationError({"lines": error})
-                except ProductNotPublished as exc:
-                    raise ValidationError(
-                        "Can't add unpublished product.",
-                        code=exc.code,
-                    )
+            try:
+                checkout = add_variants_to_checkout(
+                    checkout,
+                    variants,
+                    quantities,
+                    channel_slug,
+                    skip_stock_check=True,  # already checked by validate_checkout_lines
+                )
+            except ProductNotPublished as exc:
+                raise ValidationError(
+                    "Can't add unpublished product.",
+                    code=exc.code,
+                )
 
         lines = fetch_checkout_lines(checkout)
         checkout_info.valid_shipping_methods = (
@@ -479,9 +479,7 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(
-        cls, _root, info, lines, checkout_id=None, token=None, replace=False
-    ):
+    def perform_mutation(cls, _root, info, lines, checkout_id=None, token=None):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
             CheckoutErrorCode, "checkout_id", checkout_id, "token", token
@@ -504,7 +502,7 @@ class CheckoutLinesAdd(BaseMutation):
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
         cls.clean_input(
-            checkout, variants, quantities, checkout_info, manager, discounts, replace
+            checkout, variants, quantities, checkout_info, manager, discounts
         )
 
         lines = fetch_checkout_lines(checkout)
@@ -538,9 +536,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
 
     @classmethod
     def perform_mutation(cls, root, info, lines, checkout_id=None, token=None):
-        return super().perform_mutation(
-            root, info, lines, checkout_id, token, replace=True
-        )
+        return super().perform_mutation(root, info, lines, checkout_id, token)
 
 
 class CheckoutLineDelete(BaseMutation):

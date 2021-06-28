@@ -126,16 +126,20 @@ def calculate_checkout_quantity(lines: Iterable["CheckoutLineInfo"]):
     return sum([line_info.line.quantity for line_info in lines])
 
 
-def add_variants_to_checkout(checkout, variants, quantities, channel_slug):
+def add_variants_to_checkout(
+    checkout, variants, quantities, channel_slug, skip_stock_check=False
+):
     """Add variants to checkout.
 
-    Suitable for new checkouts as it always creates new checkout lines without checking
-    if there are any existing ones already.
+    If a variant is not placed in checkout, a new checkout line will be created.
+    Otherwise, its quantity will be replaced (if greater than 0).
+    If quantity is set to 0, checkout line will be deleted.
     """
 
     # check quantities
     country_code = checkout.get_country()
-    check_stock_quantity_bulk(variants, country_code, quantities, channel_slug)
+    if not skip_stock_check:
+        check_stock_quantity_bulk(variants, country_code, quantities, channel_slug)
 
     channel_listings = product_models.ProductChannelListing.objects.filter(
         channel_id=checkout.channel.id,
@@ -149,13 +153,28 @@ def add_variants_to_checkout(checkout, variants, quantities, channel_slug):
         if not product_channel_listing or not product_channel_listing.is_published:
             raise ProductNotPublished()
 
-    # create checkout lines
-    lines = []
+    variant_ids_in_lines = {line.variant_id: line for line in checkout.lines.all()}
+    to_create = []
+    to_update = []
+    to_delete = []
     for variant, quantity in zip(variants, quantities):
-        lines.append(
-            CheckoutLine(checkout=checkout, variant=variant, quantity=quantity)
-        )
-    checkout.lines.bulk_create(lines)
+        if variant.pk in variant_ids_in_lines:
+            line = variant_ids_in_lines[variant.pk]
+            if quantity > 0:
+                line.quantity = quantity
+                to_update.append(line)
+            else:
+                to_delete.append(line)
+        else:
+            to_create.append(
+                CheckoutLine(checkout=checkout, variant=variant, quantity=quantity)
+            )
+    if to_delete:
+        CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()
+    if to_update:
+        CheckoutLine.objects.bulk_update(to_update, ["quantity"])
+    if to_create:
+        CheckoutLine.objects.bulk_create(to_create)
     return checkout
 
 

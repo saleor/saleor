@@ -97,6 +97,25 @@ def test_checkout_lines_add_with_unavailable_variant(
     assert errors[0]["variants"] == [variant_id]
 
 
+def test_checkout_lines_add_with_insufficient_stock(
+    user_api_client, checkout_with_item, stock
+):
+    variant = stock.product_variant
+    checkout = checkout_with_item
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "token": checkout.token,
+        "lines": [{"variantId": variant_id, "quantity": 49}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutLinesAdd"]["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
+
+
 def test_checkout_lines_add_with_zero_quantity(
     user_api_client, checkout_with_item, stock
 ):
