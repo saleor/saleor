@@ -174,9 +174,11 @@ def validate_variant_channel_listings(
 def validate_product_is_available_for_purchase(order: "Order", errors: T_ERRORS):
     invalid_lines = []
     for line in order.lines.all():
-        if not line.variant:
+        variant = line.variant
+        if not variant:
             continue
-        product_channel_listing = line.variant.product.channel_listings.filter(
+        product = variant.product
+        product_channel_listing = product.channel_listings.filter(  # type: ignore
             channel_id=order.channel_id
         ).first()
         if not (

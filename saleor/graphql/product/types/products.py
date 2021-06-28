@@ -1003,7 +1003,7 @@ class ProductType(CountableDjangoObjectType):
         requestor = get_user_or_app_from_context(info.context)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        qs = root.products.visible_to_user(requestor, channel)
+        qs = root.products.visible_to_user(requestor, channel)  # type: ignore
         return ChannelQsContext(qs=qs, channel_slug=channel)
 
     @staticmethod
@@ -1085,7 +1085,9 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @traced_resolver
     def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        qs = root.node.products.visible_to_user(requestor, root.channel_slug)
+        qs = root.node.products.visible_to_user(  # type: ignore
+            requestor, root.channel_slug
+        )
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod

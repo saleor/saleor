@@ -120,7 +120,7 @@ def _validate_gift_cards(checkout: Checkout):
     """Check if all gift cards assigned to checkout are available."""
     if (
         not checkout.gift_cards.count()
-        == checkout.gift_cards.active(date=date.today()).count()
+        == checkout.gift_cards.active(date=date.today()).count()  # type: ignore
     ):
         msg = "Gift card has expired. Order placement cancelled."
         raise NotApplicable(msg)
