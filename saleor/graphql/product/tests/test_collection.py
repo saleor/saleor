@@ -355,7 +355,6 @@ def test_filter_collection_products_by_multiple_attributes(
 
     filters = {
         "attributes": [{"slug": "modes", "values": ["eco"]}],
-        "channel": channel_USD.slug,
     }
     variables = {
         "id": graphene.Node.to_global_id("Collection", published_collection.pk),

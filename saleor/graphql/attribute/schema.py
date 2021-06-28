@@ -30,6 +30,9 @@ class AttributeQueries(graphene.ObjectType):
         description="List of the shop's attributes.",
         filter=AttributeFilterInput(description="Filtering options for attributes."),
         sort_by=AttributeSortingInput(description="Sorting options for attributes."),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
     )
     attribute = graphene.Field(
         Attribute,

@@ -512,7 +512,6 @@ input AttributeFilterInput {
   type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
-  channel: String
 }
 
 input AttributeInput {
@@ -798,7 +797,6 @@ enum CategorySortField {
 
 input CategorySortingInput {
   direction: OrderDirection!
-  channel: String
   field: CategorySortField!
 }
 
@@ -1232,7 +1230,6 @@ input CollectionFilterInput {
   search: String
   metadata: [MetadataFilter]
   ids: [ID]
-  channel: String
 }
 
 input CollectionInput {
@@ -1272,7 +1269,6 @@ enum CollectionSortField {
 
 input CollectionSortingInput {
   direction: OrderDirection!
-  channel: String
   field: CollectionSortField!
 }
 
@@ -4294,7 +4290,6 @@ input ProductFilterInput {
   minimalPrice: PriceRangeInput
   productTypes: [ID]
   ids: [ID]
-  channel: String
 }
 
 type ProductImage {
@@ -4379,7 +4374,6 @@ input ProductMediaUpdateInput {
 
 input ProductOrder {
   direction: OrderDirection!
-  channel: String
   attributeId: ID
   field: ProductOrderField
 }
@@ -4786,7 +4780,7 @@ type Query {
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   channel(id: ID): Channel
   channels: [Channel!]
-  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, channel: String, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID, slug: String): Attribute
   appsInstallations: [AppInstallation!]!
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
@@ -4943,7 +4937,6 @@ enum SaleSortField {
 
 input SaleSortingInput {
   direction: OrderDirection!
-  channel: String
   field: SaleSortField!
 }
 
@@ -5890,7 +5883,6 @@ enum VoucherSortField {
 
 input VoucherSortingInput {
   direction: OrderDirection!
-  channel: String
   field: VoucherSortField!
 }
 
