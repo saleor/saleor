@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
 from ...order.error_codes import OrderErrorCode
-from ...product.models import Product, ProductVariant
+from ...product.models import Product, ProductChannelListing, ProductVariant
 from ...warehouse.availability import check_stock_quantity
 from ..core.validators import validate_variants_available_in_channel
 
@@ -177,9 +177,8 @@ def validate_product_is_available_for_purchase(order: "Order", errors: T_ERRORS)
         variant = line.variant
         if not variant:
             continue
-        product = variant.product
-        product_channel_listing = product.channel_listings.filter(  # type: ignore
-            channel_id=order.channel_id
+        product_channel_listing = ProductChannelListing.objects.filter(
+            channel_id=order.channel_id, product_id=variant.product_id
         ).first()
         if not (
             product_channel_listing

@@ -90,8 +90,8 @@ def add_variant_to_checkout(
     of added to.
     """
     checkout = checkout_info.checkout
-    product_channel_listing = variant.product.channel_listings.filter(  # type: ignore
-        channel_id=checkout.channel_id
+    product_channel_listing = product_models.ProductChannelListing.objects.filter(
+        channel_id=checkout.channel_id, product_id=variant.product_id
     ).first()
     if not product_channel_listing or not product_channel_listing.is_published:
         raise ProductNotPublished()
