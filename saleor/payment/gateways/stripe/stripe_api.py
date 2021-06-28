@@ -94,16 +94,13 @@ def get_or_create_customer(
     api_key: str,
     customer_id: Optional[str] = None,
     customer_email: Optional[str] = None,
-    metadata: Optional[dict] = None,
 ) -> Optional[StripeObject]:
     try:
         if customer_id:
             with stripe_opentracing_trace("stripe.Customer.retrieve"):
                 return stripe.Customer.retrieve(customer_id, api_key=api_key)
         with stripe_opentracing_trace("stripe.Customer.create"):
-            return stripe.Customer.create(
-                api_key=api_key, email=customer_email, metadata=metadata
-            )
+            return stripe.Customer.create(api_key=api_key, email=customer_email)
     except StripeError as error:
         logger.warning(
             "Failed to get/create Stripe customer",
@@ -119,18 +116,25 @@ def create_payment_intent(
     auto_capture: bool = True,
     customer: Optional[StripeObject] = None,
     payment_method_id: Optional[str] = None,
+    metadata: Optional[dict] = None,
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
 
     capture_method = AUTOMATIC_CAPTURE_METHOD if auto_capture else MANUAL_CAPTURE_METHOD
     additional_params = {}  # type: ignore
+
     if customer:
-        additional_params = {
-            "customer": customer,
-            "setup_future_usage": "on_session",
-        }
+        additional_params["customer"] = customer
 
     if payment_method_id and customer:
-        additional_params["payment_method"] = payment_method_id
+        additional_params.update(
+            {
+                "setup_future_usage": "on_session",
+                "payment_method": payment_method_id,
+            }
+        )
+
+    if metadata:
+        additional_params["metadata"] = metadata
 
     try:
         with stripe_opentracing_trace("stripe.PaymentIntent.create"):
@@ -254,8 +258,8 @@ def get_payment_method_details(
         if not charges_data:
             return None
         payment_method_details = charges_data[-1]
-        if payment_method_details["type"] == "card":
-            card_details = payment_method_details["card"]
+        if payment_method_details.get("type") == "card":
+            card_details = payment_method_details.get("card", {})
             exp_year = card_details.get("exp_year", "")
             exp_year = int(exp_year) if exp_year else None
             exp_month = card_details.get("exp_month", "")

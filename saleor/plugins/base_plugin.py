@@ -738,11 +738,20 @@ class BasePlugin:
         configuration with current values and provide access to it via API.
         """
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
+        fields_without_structure = []
         for configuration_field in configuration:
 
             structure_to_add = config_structure.get(configuration_field.get("name"))
             if structure_to_add:
                 configuration_field.update(structure_to_add)
+            else:
+                fields_without_structure.append(configuration_field)
+
+        if fields_without_structure:
+            [
+                configuration.remove(field)  # type: ignore
+                for field in fields_without_structure
+            ]
 
     @classmethod
     def _update_configuration_structure(cls, configuration: PluginConfigurationType):

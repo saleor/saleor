@@ -169,7 +169,10 @@ def order_refunded(
 
 
 def order_voided(
-    order: "Order", user: "User", payment: "Payment", manager: "PluginsManager"
+    order: "Order",
+    user: Optional["User"],
+    payment: "Payment",
+    manager: "PluginsManager",
 ):
     events.payment_voided_event(order=order, user=user, payment=payment)
     manager.order_updated(order)

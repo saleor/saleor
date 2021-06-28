@@ -12,6 +12,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....discount.utils import fetch_active_discounts
+from ....order.actions import order_captured, order_refunded, order_voided
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
@@ -140,7 +141,7 @@ def _finalize_checkout(
     )
 
 
-def _update_payment(
+def _update_payment_with_new_transaction(
     payment: Payment, stripe_object: StripeObject, kind: str, amount: str, currency: str
 ):
     gateway_response = GatewayResponse(
@@ -162,6 +163,8 @@ def _update_payment(
         gateway_response=gateway_response,
     )
     gateway_postprocess(transaction, payment)
+
+    return transaction
 
 
 def _process_payment_with_checkout(
@@ -190,7 +193,7 @@ def handle_authorized_payment_intent(
         return
     if payment.order_id:
         if payment.charge_status == ChargeStatus.PENDING:
-            _update_payment(
+            _update_payment_with_new_transaction(
                 payment,
                 payment_intent,
                 TransactionKind.AUTH,
@@ -221,13 +224,15 @@ def handle_failed_payment_intent(
             extra={"payment_intent": payment_intent.id},
         )
         return
-    _update_payment(
+    _update_payment_with_new_transaction(
         payment,
         payment_intent,
         TransactionKind.CANCEL,
         payment_intent.amount,
         payment_intent.currency,
     )
+    if payment.order:
+        order_voided(payment.order, None, payment, get_plugins_manager())
 
 
 def handle_processing_payment_intent(
@@ -268,12 +273,19 @@ def handle_successful_payment_intent(
         return
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:
-            _update_payment(
+            capture_transaction = _update_payment_with_new_transaction(
                 payment,
                 payment_intent,
                 TransactionKind.CAPTURE,
                 payment_intent.amount_received,
                 payment_intent.currency,
+            )
+            order_captured(
+                payment.order,  # type: ignore
+                None,
+                capture_transaction.amount,
+                payment,
+                get_plugins_manager(),
             )
         return
 
@@ -310,12 +322,22 @@ def handle_refund(charge: StripeObject, gateway_config: "GatewayConfig"):
                 "payment_intent_id": payment_intent_id,
             },
         )
+        return
 
     if payment.charge_status in ChargeStatus.FULLY_REFUNDED:
         logger.info(
             "Order already fully refunded", extra={"order_id": payment.order_id}
         )
         return
-    _update_payment(
+
+    refund_transaction = _update_payment_with_new_transaction(
         payment, refund, TransactionKind.REFUND, refund.amount, refund.currency
     )
+    if payment.order:
+        order_refunded(
+            payment.order,
+            None,
+            refund_transaction.amount,
+            payment,
+            get_plugins_manager(),
+        )

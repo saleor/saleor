@@ -156,10 +156,17 @@ def test_pre_save_plugin_configuration(mocked_stripe, stripe_plugin):
     assert mocked_stripe.called
 
 
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
 def test_process_payment(
-    mocked_payment_intent, stripe_plugin, payment_stripe_for_checkout
+    mocked_payment_intent,
+    mocked_customer,
+    stripe_plugin,
+    payment_stripe_for_checkout,
+    channel_USD,
 ):
+    customer = StripeObject(id="cus_id")
+    mocked_customer.return_value = customer
     payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
     client_secret = "client-secret"
@@ -198,6 +205,15 @@ def test_process_payment(
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
         capture_method=AUTOMATIC_CAPTURE_METHOD,
+        customer=customer,
+        metadata={
+            "channel": channel_USD.slug,
+            "payment_id": payment_info.graphql_payment_id,
+        },
+    )
+
+    mocked_customer.assert_called_once_with(
+        api_key=api_key, email=payment_info.customer_email
     )
 
 
@@ -210,7 +226,7 @@ def test_process_payment_with_customer(
     payment_stripe_for_checkout,
     channel_USD,
 ):
-    customer = Mock()
+    customer = StripeObject(id="cus_id")
     mocked_customer_create.return_value = customer
 
     payment_intent = Mock()
@@ -225,11 +241,13 @@ def test_process_payment_with_customer(
     payment_intent.client_secret = client_secret
     payment_intent.last_response.data = dummy_response
 
-    plugin = stripe_plugin(auto_capture=True, store_customers_cards=True)
+    plugin = stripe_plugin(auto_capture=True)
 
-    payment_stripe_for_checkout.billing_email = "admin@example.com"
+    payment_stripe_for_checkout.checkout.email = "admin@example.com"
     payment_info = create_payment_information(
-        payment_stripe_for_checkout, customer_id=None, store_source=True
+        payment_stripe_for_checkout,
+        customer_id=None,
+        store_source=True,
     )
 
     response = plugin.process_payment(payment_info, None)
@@ -254,13 +272,15 @@ def test_process_payment_with_customer(
         currency=payment_info.currency,
         capture_method=AUTOMATIC_CAPTURE_METHOD,
         customer=customer,
-        setup_future_usage="on_session",
+        metadata={
+            "channel": channel_USD.slug,
+            "payment_id": payment_info.graphql_payment_id,
+        },
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
         email="admin@example.com",
-        metadata={"channel": channel_USD.slug},
     )
 
 
@@ -288,9 +308,9 @@ def test_process_payment_with_customer_and_payment_method(
     payment_intent.client_secret = client_secret
     payment_intent.last_response.data = dummy_response
 
-    plugin = stripe_plugin(auto_capture=True, store_customers_cards=True)
+    plugin = stripe_plugin(auto_capture=True)
 
-    payment_stripe_for_checkout.billing_email = "admin@example.com"
+    payment_stripe_for_checkout.checkout.email = "admin@example.com"
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
         customer_id=None,
@@ -322,18 +342,25 @@ def test_process_payment_with_customer_and_payment_method(
         customer=customer,
         setup_future_usage="on_session",
         payment_method="pm_ID",
+        metadata={
+            "channel": channel_USD.slug,
+            "payment_id": payment_info.graphql_payment_id,
+        },
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
         email="admin@example.com",
-        metadata={"channel": channel_USD.slug},
     )
 
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
 def test_process_payment_with_disabled_order_auto_confirmation(
-    mocked_payment_intent, stripe_plugin, payment_stripe_for_checkout, site_settings
+    mocked_payment_intent,
+    stripe_plugin,
+    payment_stripe_for_checkout,
+    site_settings,
+    channel_USD,
 ):
     payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
@@ -374,12 +401,16 @@ def test_process_payment_with_disabled_order_auto_confirmation(
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
         capture_method=MANUAL_CAPTURE_METHOD,
+        metadata={
+            "channel": channel_USD.slug,
+            "payment_id": payment_info.graphql_payment_id,
+        },
     )
 
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
 def test_process_payment_with_manual_capture(
-    mocked_payment_intent, stripe_plugin, payment_stripe_for_checkout
+    mocked_payment_intent, stripe_plugin, payment_stripe_for_checkout, channel_USD
 ):
     payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
@@ -406,12 +437,16 @@ def test_process_payment_with_manual_capture(
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
         capture_method=MANUAL_CAPTURE_METHOD,
+        metadata={
+            "channel": channel_USD.slug,
+            "payment_id": payment_info.graphql_payment_id,
+        },
     )
 
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
 def test_process_payment_with_error(
-    mocked_payment_intent, stripe_plugin, payment_stripe_for_checkout
+    mocked_payment_intent, stripe_plugin, payment_stripe_for_checkout, channel_USD
 ):
     mocked_payment_intent.side_effect = StripeError(message="stripe-error")
 
@@ -439,6 +474,10 @@ def test_process_payment_with_error(
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
         capture_method=AUTOMATIC_CAPTURE_METHOD,
+        metadata={
+            "channel": channel_USD.slug,
+            "payment_id": payment_info.graphql_payment_id,
+        },
     )
 
 

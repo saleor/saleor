@@ -120,7 +120,6 @@ def test_create_payment_intent_with_customer(mocked_payment_intent):
         currency="USD",
         capture_method=AUTOMATIC_CAPTURE_METHOD,
         customer=customer,
-        setup_future_usage="on_session",
     )
 
     assert isinstance(intent, StripeObject)
@@ -134,7 +133,7 @@ def test_create_payment_intent_manual_auto_capture(mocked_payment_intent):
     api_key = "api_key"
     mocked_payment_intent.create.return_value = StripeObject()
 
-    intent, error = create_payment_intent(
+    _intent, _error = create_payment_intent(
         api_key, Decimal(10), "USD", auto_capture=False
     )
 
@@ -335,7 +334,6 @@ def test_get_or_create_customer_retrieve(mocked_customer):
         api_key=api_key,
         customer_email=customer_email,
         customer_id=customer_id,
-        metadata={},
     )
 
     assert isinstance(customer, StripeObject)
@@ -358,7 +356,6 @@ def test_get_or_create_customer_failed_retrieve(mocked_customer):
         api_key=api_key,
         customer_email=customer_email,
         customer_id=customer_id,
-        metadata={},
     )
 
     assert customer is None
@@ -376,13 +373,10 @@ def test_get_or_create_customer_create(mocked_customer):
         api_key=api_key,
         customer_email=customer_email,
         customer_id=None,
-        metadata={"channel": "usd"},
     )
 
     assert isinstance(customer, StripeObject)
-    mocked_customer.create.assert_called_with(
-        email=customer_email, api_key=api_key, metadata={"channel": "usd"}
-    )
+    mocked_customer.create.assert_called_with(email=customer_email, api_key=api_key)
 
 
 @patch(
@@ -398,13 +392,10 @@ def test_get_or_create_customer_failed_create(mocked_customer):
         api_key=api_key,
         customer_email=customer_email,
         customer_id=None,
-        metadata={"channel": "usd"},
     )
 
     assert customer is None
-    mocked_customer.create.assert_called_with(
-        email=customer_email, api_key=api_key, metadata={"channel": "usd"}
-    )
+    mocked_customer.create.assert_called_with(email=customer_email, api_key=api_key)
 
 
 @patch(
