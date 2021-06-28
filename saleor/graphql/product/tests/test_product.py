@@ -1703,8 +1703,7 @@ def test_products_query_with_filter_attributes(
     variables = {
         "filter": {
             "attributes": [{"slug": attribute.slug, "values": [attr_value.slug]}],
-            "channel": channel_USD.slug,
-        }
+        },
     }
 
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -2095,8 +2094,8 @@ def test_products_with_variants_query_as_app(
 @pytest.mark.parametrize(
     "products_filter",
     [
-        {"minimalPrice": {"gte": 1.0, "lte": 2.0}, "channel": "main"},
-        {"isPublished": False, "channel": "main"},
+        {"minimalPrice": {"gte": 1.0, "lte": 2.0}},
+        {"isPublished": False},
         {"search": "Juice1"},
     ],
 )
@@ -2132,8 +2131,7 @@ def test_products_query_with_filter(
         channel=channel_USD,
         is_published=False,
     )
-    products_filter["channel"] = channel_USD.slug
-    variables = {"filter": products_filter}
+    variables = {"filter": products_filter, "channel": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
     content = get_graphql_content(response)
@@ -2156,7 +2154,7 @@ def test_products_query_with_price_filter_as_staff(
     product.variants.first().channel_listings.filter().update(price_amount=None)
 
     variables = {
-        "filter": {"price": {"gte": 9, "lte": 31}, "channel": channel_USD.slug},
+        "filter": {"price": {"gte": 9, "lte": 31}},
         "channel": channel_USD.slug,
     }
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -2179,7 +2177,7 @@ def test_products_query_with_price_filter_as_user(
     second_product_id = graphene.Node.to_global_id("Product", product_list[1].id)
     third_product_id = graphene.Node.to_global_id("Product", product_list[2].id)
     variables = {
-        "filter": {"price": {"gte": 9, "lte": 31}, "channel": channel_USD.slug},
+        "filter": {"price": {"gte": 9, "lte": 31}},
         "channel": channel_USD.slug,
     }
     user_api_client.user.user_permissions.add(permission_manage_products)
@@ -2236,7 +2234,8 @@ def test_products_query_with_filter_stock_availability_as_staff(
         price_amount=None
     )
     variables = {
-        "filter": {"stockAvailability": "OUT_OF_STOCK", "channel": channel_USD.slug}
+        "filter": {"stockAvailability": "OUT_OF_STOCK"},
+        "channel": channel_USD.slug,
     }
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
@@ -2265,7 +2264,7 @@ def test_products_query_with_filter_stock_availability_as_user(
         price_amount=None
     )
     variables = {
-        "filter": {"stockAvailability": "OUT_OF_STOCK", "channel": channel_USD.slug},
+        "filter": {"stockAvailability": "OUT_OF_STOCK"},
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(query_products_with_filter, variables)
@@ -2296,7 +2295,8 @@ def test_products_query_with_filter_stock_availability_channel_without_shipping_
         order_line=order_line, stock=stock, quantity_allocated=stock.quantity
     )
     variables = {
-        "filter": {"stockAvailability": "OUT_OF_STOCK", "channel": channel_USD.slug}
+        "filter": {"stockAvailability": "OUT_OF_STOCK"},
+        "channel": channel_USD.slug,
     }
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
@@ -2704,7 +2704,7 @@ def test_filter_products_with_unavailable_variants_attributes_as_user(
     query Products($attributesFilter: [AttributeInput], $channel: String) {
         products(
             first: 5,
-            filter: {attributes: $attributesFilter,channel: $channel},
+            filter: {attributes: $attributesFilter},
             channel: $channel
         ) {
             edges {
@@ -2746,7 +2746,7 @@ def test_filter_products_with_unavailable_variants_attributes_as_staff(
     query Products($attributesFilter: [AttributeInput], $channel: String) {
         products(
             first: 5,
-            filter: {attributes: $attributesFilter,channel: $channel},
+            filter: {attributes: $attributesFilter},
             channel: $channel
         ) {
             edges {
@@ -2852,7 +2852,7 @@ def test_sort_products(user_api_client, product, channel_USD):
     query = SORT_PRODUCTS_QUERY
 
     # Test sorting by PRICE, ascending
-    sort_by = f'{{field: PRICE, direction: ASC, channel: "{channel_USD.slug}"}}'
+    sort_by = "{field: PRICE, direction: ASC}"
     asc_price_query = query % {"sort_by_product_order": sort_by}
     response = user_api_client.post_graphql(asc_price_query, variables)
     content = get_graphql_content(response)
@@ -2867,7 +2867,7 @@ def test_sort_products(user_api_client, product, channel_USD):
     assert price1 < price2
 
     # Test sorting by PRICE, descending
-    sort_by = f'{{field: PRICE, direction:DESC, channel: "{channel_USD.slug}"}}'
+    sort_by = "{field: PRICE, direction:DESC}"
     desc_price_query = query % {"sort_by_product_order": sort_by}
     response = user_api_client.post_graphql(desc_price_query, variables)
     content = get_graphql_content(response)
@@ -2881,7 +2881,7 @@ def test_sort_products(user_api_client, product, channel_USD):
     assert price1 > price2
 
     # Test sorting by MINIMAL_PRICE, ascending
-    sort_by = f'{{field: MINIMAL_PRICE, direction:ASC, channel: "{channel_USD.slug}"}}'
+    sort_by = "{field: MINIMAL_PRICE, direction:ASC}"
     asc_price_query = query % {"sort_by_product_order": sort_by}
     response = user_api_client.post_graphql(asc_price_query, variables)
     content = get_graphql_content(response)
@@ -2891,7 +2891,7 @@ def test_sort_products(user_api_client, product, channel_USD):
     assert price1 < price2
 
     # Test sorting by MINIMAL_PRICE, descending
-    sort_by = f'{{field: MINIMAL_PRICE, direction:DESC, channel: "{channel_USD.slug}"}}'
+    sort_by = "{field: MINIMAL_PRICE, direction:DESC}"
     desc_price_query = query % {"sort_by_product_order": sort_by}
     response = user_api_client.post_graphql(desc_price_query, variables)
     content = get_graphql_content(response)
@@ -2959,7 +2959,7 @@ def test_sort_products_by_price_as_staff(staff_api_client, product, channel_USD)
     query = SORT_PRODUCTS_QUERY
 
     # Test sorting by PRICE, ascending
-    sort_by = f'{{field: PRICE, direction: ASC, channel: "{channel_USD.slug}"}}'
+    sort_by = "{field: PRICE, direction: ASC}"
     asc_price_query = query % {"sort_by_product_order": sort_by}
     response = staff_api_client.post_graphql(asc_price_query, variables)
     content = get_graphql_content(response)
@@ -2975,7 +2975,7 @@ def test_sort_products_by_price_as_staff(staff_api_client, product, channel_USD)
     assert price1 < price2
 
     # Test sorting by PRICE, descending
-    sort_by = f'{{field: PRICE, direction:DESC, channel: "{channel_USD.slug}"}}'
+    sort_by = "{field: PRICE, direction:DESC}"
     desc_price_query = query % {"sort_by_product_order": sort_by}
     response = staff_api_client.post_graphql(desc_price_query, variables)
     content = get_graphql_content(response)
@@ -8962,9 +8962,9 @@ def test_collections_query_with_filter(
             for num, collection in enumerate(collections)
         ]
     )
-    collection_filter["channel"] = channel_USD.slug
     variables = {
         "filter": collection_filter,
+        "channel": channel_USD.slug,
     }
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_collections_with_filter, variables)
@@ -8975,8 +8975,8 @@ def test_collections_query_with_filter(
 
 
 QUERY_COLLECTIONS_WITH_SORT = """
-    query ($sort_by: CollectionSortingInput!) {
-        collections(first:5, sortBy: $sort_by) {
+    query ($sort_by: CollectionSortingInput!, $channel: String) {
+        collections(first:5, sortBy: $sort_by, channel: $channel) {
                 edges{
                     node{
                         name
@@ -9023,8 +9023,7 @@ def test_collections_query_with_sort(
         ]
     )
     product.collections.add(Collection.objects.get(name="Coll2"))
-    collection_sort["channel"] = channel_USD.slug
-    variables = {"sort_by": collection_sort}
+    variables = {"sort_by": collection_sort, "channel": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(QUERY_COLLECTIONS_WITH_SORT, variables)
     content = get_graphql_content(response)

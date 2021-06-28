@@ -219,6 +219,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - attributes with choices - `DROPDOWN` and `MULTISELECT`
   - attributes without choices - `FILE`, `REFERENCE`, `NUMERIC` and `RICH_TEXT`
 - Unify checkout identifier in checkout mutations and queries - #7511 by @IKarbowiak
+- Use root level channel argument for filtering and sorting - #7374 by @IKarbowiak
+  - drop `channel` field from filters and sorters
 
 ### Other
 
