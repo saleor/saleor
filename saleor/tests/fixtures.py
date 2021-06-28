@@ -4271,6 +4271,25 @@ def warehouses_for_cc(address):
 
 
 @pytest.fixture
+def warehouse_for_cc(address):
+    return Warehouse.objects.create(
+        address=address.get_copy(),
+        name="Local Warehouse",
+        slug="local-warehouse",
+        email="local@example.com",
+        click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+    )
+
+
+@pytest.fixture(params=["warehouse_for_cc", "shipping_method"])
+def delivery_method(request, warehouse_for_cc, shipping_method):
+    if request.param == "warehouse":
+        return warehouse_for_cc
+    if request.param == "shipping_method":
+        return shipping_method
+
+
+@pytest.fixture
 def stocks_for_cc(warehouses_for_cc, product_variant_list):
     return Stock.objects.bulk_create(
         [
