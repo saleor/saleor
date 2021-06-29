@@ -12,8 +12,8 @@ from ....attribute import AttributeInputType
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.units import WeightUnits
-from ....order import OrderStatus
-from ....order.models import OrderLine
+from ....order import OrderEvents, OrderStatus
+from ....order.models import OrderEvent, OrderLine
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Product, ProductChannelListing, ProductVariant
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
@@ -2531,6 +2531,31 @@ def test_delete_variant_in_draft_order(
     result_call_args = sorted(mocked_recalculate_orders_task.mock_calls[0].args[0])
 
     assert result_call_args == expected_call_args
+
+    events = OrderEvent.objects.filter(type=OrderEvents.ORDER_LINE_VARIANT_DELETED)
+    assert events
+    assert {event.order for event in events} == {draft_order, second_draft_order}
+    assert {event.user for event in events} == {staff_api_client.user}
+    expected_params = [
+        {
+            "item": str(line),
+            "line_pk": line.pk,
+            "quantity": line.quantity,
+        }
+        for line in draft_order.lines.all()
+    ]
+    for param in expected_params:
+        assert param in events.get(order=draft_order).parameters
+    expected_params = [
+        {
+            "item": str(line),
+            "line_pk": line.pk,
+            "quantity": line.quantity,
+        }
+        for line in second_draft_order.lines.all()
+    ]
+    for param in expected_params:
+        assert param in events.get(order=second_draft_order).parameters
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")

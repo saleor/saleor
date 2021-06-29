@@ -16,6 +16,7 @@ from .types import Address, AddressValidationData, ChoiceValue, User
 from .utils import (
     get_allowed_fields_camel_case,
     get_required_fields_camel_case,
+    get_upper_fields_camel_case,
     get_user_permissions,
 )
 
@@ -92,14 +93,14 @@ def resolve_address_validation_rules(
         address_latin_format=rules.address_latin_format,
         allowed_fields=get_allowed_fields_camel_case(rules.allowed_fields),
         required_fields=get_required_fields_camel_case(rules.required_fields),
-        upper_fields=rules.upper_fields,
+        upper_fields=get_upper_fields_camel_case(rules.upper_fields),
         country_area_type=rules.country_area_type,
         country_area_choices=[
             ChoiceValue(area[0], area[1]) for area in rules.country_area_choices
         ],
         city_type=rules.city_type,
         city_choices=[ChoiceValue(area[0], area[1]) for area in rules.city_choices],
-        city_area_type=rules.city_type,
+        city_area_type=rules.city_area_type,
         city_area_choices=[
             ChoiceValue(area[0], area[1]) for area in rules.city_area_choices
         ],

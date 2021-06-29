@@ -8,8 +8,8 @@ from prices import Money, TaxedMoney
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
-from ....order import OrderStatus
-from ....order.models import OrderLine
+from ....order import OrderEvents, OrderStatus
+from ....order.models import OrderEvent, OrderLine
 from ....plugins.manager import get_plugins_manager
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
@@ -614,6 +614,23 @@ def test_delete_products_variants_in_draft_order(
     assert not ProductChannelListing.objects.filter(product_id__in=products_id).exists()
     mocked_recalculate_orders_task.assert_called_once_with([draft_order.id])
 
+    event = OrderEvent.objects.filter(
+        type=OrderEvents.ORDER_LINE_PRODUCT_DELETED
+    ).last()
+    assert event
+    assert event.order == draft_order
+    assert event.user == staff_api_client.user
+    expected_params = [
+        {
+            "item": str(line),
+            "line_pk": line.pk,
+            "quantity": line.quantity,
+        }
+        for line in draft_order.lines.all()
+    ]
+    for param in expected_params:
+        assert param in event.parameters
+
 
 def test_delete_product_media(
     staff_api_client, product_with_images, permission_manage_products
@@ -1069,6 +1086,23 @@ def test_delete_product_variants_in_draft_orders(
 
     assert OrderLine.objects.filter(pk=order_line_not_in_draft_pk).exists()
     mocked_recalculate_orders_task.assert_called_once_with([draft_order.id])
+
+    event = OrderEvent.objects.filter(
+        type=OrderEvents.ORDER_LINE_VARIANT_DELETED
+    ).last()
+    assert event
+    assert event.order == draft_order
+    assert event.user == staff_api_client.user
+    expected_params = [
+        {
+            "item": str(line),
+            "line_pk": line.pk,
+            "quantity": line.quantity,
+        }
+        for line in draft_order.lines.all()
+    ]
+    for param in expected_params:
+        assert param in event.parameters
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")

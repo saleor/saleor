@@ -243,6 +243,8 @@ def get_checkout_lines_data(
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     channel = checkout_info.channel
     for line_info in lines_info:
+        if not line_info.product.charge_taxes:
+            continue
         product = line_info.product
         name = product.name
         product_type = line_info.product_type

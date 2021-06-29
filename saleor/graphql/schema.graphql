@@ -512,7 +512,6 @@ input AttributeFilterInput {
   type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
-  channel: String
 }
 
 input AttributeInput {
@@ -798,7 +797,6 @@ enum CategorySortField {
 
 input CategorySortingInput {
   direction: OrderDirection!
-  channel: String
   field: CategorySortField!
 }
 
@@ -1232,7 +1230,6 @@ input CollectionFilterInput {
   search: String
   metadata: [MetadataFilter]
   ids: [ID]
-  channel: String
 }
 
 input CollectionInput {
@@ -1272,7 +1269,6 @@ enum CollectionSortField {
 
 input CollectionSortingInput {
   direction: OrderDirection!
-  channel: String
   field: CollectionSortField!
 }
 
@@ -2877,21 +2873,21 @@ type Mutation {
   voucherChannelListingUpdate(id: ID!, input: VoucherChannelListingInput!): VoucherChannelListingUpdate
   exportProducts(input: ExportProductsInput!): ExportProducts
   fileUpload(file: Upload!): FileUpload
-  checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
-  checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID!, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
+  checkoutAddPromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutAddPromoCode
+  checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID, token: UUID): CheckoutBillingAddressUpdate
+  checkoutComplete(checkoutId: ID, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
-  checkoutCustomerAttach(checkoutId: ID!): CheckoutCustomerAttach
-  checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
-  checkoutEmailUpdate(checkoutId: ID, email: String!): CheckoutEmailUpdate
-  checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
-  checkoutLinesAdd(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesAdd
-  checkoutLinesUpdate(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesUpdate
-  checkoutRemovePromoCode(checkoutId: ID!, promoCode: String!): CheckoutRemovePromoCode
-  checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
-  checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
-  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
-  checkoutLanguageCodeUpdate(checkoutId: ID!, languageCode: LanguageCodeEnum!): CheckoutLanguageCodeUpdate
+  checkoutCustomerAttach(checkoutId: ID, token: UUID): CheckoutCustomerAttach
+  checkoutCustomerDetach(checkoutId: ID, token: UUID): CheckoutCustomerDetach
+  checkoutEmailUpdate(checkoutId: ID, email: String!, token: UUID): CheckoutEmailUpdate
+  checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete
+  checkoutLinesAdd(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesAdd
+  checkoutLinesUpdate(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesUpdate
+  checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
+  checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
+  checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
+  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate
+  checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
   channelDelete(id: ID!, input: ChannelDeleteInput): ChannelDelete
@@ -3032,6 +3028,7 @@ type Order implements Node & ObjectWithMetadata {
   discountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
   translatedDiscountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
   discounts: [OrderDiscount!]
+  errors: [OrderError!]!
 }
 
 enum OrderAction {
@@ -3145,7 +3142,7 @@ type OrderError {
   message: String
   code: OrderErrorCode!
   warehouse: ID
-  orderLine: ID
+  orderLines: [ID!]
   variants: [ID!]
   addressType: AddressTypeEnum
 }
@@ -3265,6 +3262,8 @@ enum OrderEventsEnum {
   ORDER_DISCOUNT_DELETED
   ORDER_LINE_DISCOUNT_UPDATED
   ORDER_LINE_DISCOUNT_REMOVED
+  ORDER_LINE_PRODUCT_DELETED
+  ORDER_LINE_VARIANT_DELETED
   UPDATED_ADDRESS
   EMAIL_SENT
   CONFIRMED
@@ -4291,7 +4290,6 @@ input ProductFilterInput {
   minimalPrice: PriceRangeInput
   productTypes: [ID]
   ids: [ID]
-  channel: String
 }
 
 type ProductImage {
@@ -4376,7 +4374,6 @@ input ProductMediaUpdateInput {
 
 input ProductOrder {
   direction: OrderDirection!
-  channel: String
   attributeId: ID
   field: ProductOrderField
 }
@@ -4783,7 +4780,7 @@ type Query {
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   channel(id: ID): Channel
   channels: [Channel!]
-  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, channel: String, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID, slug: String): Attribute
   appsInstallations: [AppInstallation!]!
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
@@ -4940,7 +4937,6 @@ enum SaleSortField {
 
 input SaleSortingInput {
   direction: OrderDirection!
-  channel: String
   field: SaleSortField!
 }
 
@@ -5887,7 +5883,6 @@ enum VoucherSortField {
 
 input VoucherSortingInput {
   direction: OrderDirection!
-  channel: String
   field: VoucherSortField!
 }
 

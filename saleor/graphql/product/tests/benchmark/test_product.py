@@ -7,6 +7,7 @@ from graphene import Node
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.taxes import TaxType
 from .....plugins.manager import PluginsManager
+from .....product.models import ProductTranslation
 from ....tests.utils import get_graphql_content
 
 
@@ -669,4 +670,30 @@ def test_filter_products_by_boolean_attributes(
             ]
         },
     }
+    get_graphql_content(api_client.post_graphql(query, variables))
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_product_translations(api_client, product_list, channel_USD, count_queries):
+    query = """
+      query($channel: String) {
+        products(channel: $channel, first: 20) {
+          edges {
+            node {
+              name
+              translation(languageCode: EN) {
+                name
+              }
+            }
+          }
+        }
+      }
+    """
+    translations = []
+    for product in product_list:
+        translations.append(ProductTranslation(product=product, language_code="en"))
+    ProductTranslation.objects.bulk_create(translations)
+
+    variables = {"channel": channel_USD.slug}
     get_graphql_content(api_client.post_graphql(query, variables))

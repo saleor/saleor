@@ -58,12 +58,12 @@ def sales_for_pagination(channel_USD):
 
 QUERY_SALES_PAGINATION = """
     query (
-        $first: Int, $last: Int, $after: String, $before: String,
+        $first: Int, $last: Int, $after: String, $before: String,, $channel: String
         $sortBy: SaleSortingInput, $filter: SaleFilterInput
     ){
         sales(
             first: $first, last: $last, after: $after, before: $before,
-            sortBy: $sortBy, filter: $filter
+            sortBy: $sortBy, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -123,9 +123,14 @@ def test_sales_pagination_with_sorting_and_channel(
 ):
     page_size = 3
     sales_order = ["Sale1", "Sale3", "Sale4"]
-    sort_by = {"field": "VALUE", "direction": "ASC", "channel": channel_USD.slug}
+    sort_by = {"field": "VALUE", "direction": "ASC"}
 
-    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "sortBy": sort_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_SALES_PAGINATION,
         variables,
@@ -268,12 +273,12 @@ def vouchers_for_pagination(db, channel_USD):
 
 QUERY_VOUCHERS_PAGINATION = """
     query (
-        $first: Int, $last: Int, $after: String, $before: String,
+        $first: Int, $last: Int, $after: String, $before: String, $channel: String
         $sortBy: VoucherSortingInput, $filter: VoucherFilterInput
     ){
         vouchers(
             first: $first, last: $last, after: $after, before: $before,
-            sortBy: $sortBy, filter: $filter
+            sortBy: $sortBy, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -355,8 +360,12 @@ def test_vouchers_pagination_with_sorting_and_channel(
 ):
     page_size = 3
 
-    sort_by["channel"] = channel_USD.slug
-    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "sortBy": sort_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_VOUCHERS_PAGINATION,
         variables,
