@@ -4721,7 +4721,7 @@ def test_create_product_invalid_product_attributes(
             "taxCode": product_tax_rate,
             "attributes": [
                 {"id": color_attr_id, "values": [" "]},
-                {"id": weight_attr_id, "values": [None]},
+                {"id": weight_attr_id, "values": ["  "]},
                 {
                     "id": size_attr_id,
                     "values": [non_existent_attr_value, color_value_slug],
