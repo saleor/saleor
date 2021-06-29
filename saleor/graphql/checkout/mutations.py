@@ -900,7 +900,6 @@ class CheckoutComplete(BaseMutation):
                     checkout_id,
                     only_type=Checkout,
                     field="checkout_id",
-                    qs=models.Checkout.objects.select_for_update(of=("self",)),
                 )
             except ValidationError as e:
                 checkout_token = cls.get_global_id_or_error(

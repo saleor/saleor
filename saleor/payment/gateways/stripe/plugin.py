@@ -58,7 +58,6 @@ class StripeGatewayPlugin(BasePlugin):
     DEFAULT_CONFIGURATION = [
         {"name": "public_api_key", "value": None},
         {"name": "secret_api_key", "value": None},
-        {"name": "store_customers_cards", "value": False},
         {"name": "automatic_payment_capture", "value": True},
         {"name": "supported_currencies", "value": ""},
         {"name": "webhook_endpoint_id", "value": None},
@@ -76,12 +75,6 @@ class StripeGatewayPlugin(BasePlugin):
             "help_text": "Provide Stripe secret API key.",
             "label": "Secret API key",
         },
-        "store_customers_cards": {
-            "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should store cards on payments "
-            "in Stripe customer.",
-            "label": "Store customers card",
-        },
         "automatic_payment_capture": {
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": "Determines if Saleor should automaticaly capture payments.",
@@ -93,6 +86,11 @@ class StripeGatewayPlugin(BasePlugin):
             " Please enter currency codes separated by a comma.",
             "label": "Supported currencies",
         },
+        "webhook_endpoint_id": {
+            "type": ConfigurationTypeField.OUTPUT,
+            "help_text": "Unique identifier for the webhook endpoint object.",
+            "label": "Webhook endpoint",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -103,7 +101,6 @@ class StripeGatewayPlugin(BasePlugin):
         raw_configuration = {
             item["name"]: item["value"] for item in plugin_configuration
         }
-        webhook_endpoint_id = raw_configuration.get("webhook_endpoint_id")
         webhook_secret = raw_configuration.get("webhook_secret_key")
 
         super().__init__(*args, **kwargs)
@@ -115,10 +112,10 @@ class StripeGatewayPlugin(BasePlugin):
             connection_params={
                 "public_api_key": configuration["public_api_key"],
                 "secret_api_key": configuration["secret_api_key"],
-                "webhook_id": webhook_endpoint_id,
+                "webhook_id": configuration["webhook_endpoint_id"],
                 "webhook_secret": webhook_secret,
             },
-            store_customer=configuration["store_customers_cards"],
+            store_customer=True,
         )
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
@@ -156,14 +153,12 @@ class StripeGatewayPlugin(BasePlugin):
 
         data = payment_information.data
         payment_method_id = data.get("payment_method_id") if data else None
-        customer = None
-        if payment_information.reuse_source and self.config.store_customer:
-            customer = get_or_create_customer(
-                api_key=api_key,
-                customer_email=payment_information.customer_email,
-                customer_id=payment_information.customer_id,
-                metadata={"channel": self.channel.slug},  # type: ignore
-            )
+
+        customer = get_or_create_customer(
+            api_key=api_key,
+            customer_email=payment_information.customer_email,
+            customer_id=payment_information.customer_id,
+        )
         intent, error = create_payment_intent(
             api_key=api_key,
             amount=payment_information.amount,
@@ -171,6 +166,10 @@ class StripeGatewayPlugin(BasePlugin):
             auto_capture=auto_capture,
             customer=customer,
             payment_method_id=payment_method_id,
+            metadata={
+                "channel": self.channel.slug,  # type: ignore
+                "payment_id": payment_information.graphql_payment_id,
+            },
         )
         raw_response = None
         client_secret = None
@@ -191,6 +190,7 @@ class StripeGatewayPlugin(BasePlugin):
             raw_response=raw_response,
             action_required_data={"client_secret": client_secret, "id": intent_id},
             customer_id=customer.id if customer else None,
+            psp_reference=intent.id if intent else None,
         )
 
     @require_active_plugin
@@ -395,21 +395,22 @@ class StripeGatewayPlugin(BasePlugin):
     @classmethod
     def pre_save_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         configuration = plugin_configuration.configuration
-        configuration = {item["name"]: item["value"] for item in configuration}
+        flat_configuration = {item["name"]: item["value"] for item in configuration}
 
-        api_key = configuration["secret_api_key"]
-        webhook_id = configuration.get("webhook_endpoint_id")
-        webhook_secret = configuration.get("webhook_secret_key")
+        api_key = flat_configuration["secret_api_key"]
+        webhook_id = flat_configuration.get("webhook_endpoint_id")
+        webhook_secret = flat_configuration.get("webhook_secret_key")
 
         if not plugin_configuration.active:
             if webhook_id:
                 # delete all webhook details when we disable a stripe integration.
-                plugin_configuration.configuration.remove(
-                    {
-                        "name": "webhook_endpoint_id",
-                        "value": webhook_id,
-                    }
-                )
+                webhook_id_field = [
+                    c_field
+                    for c_field in configuration
+                    if c_field["name"] == "webhook_endpoint_id"
+                ][0]
+                webhook_id_field["value"] = ""
+
                 plugin_configuration.configuration.remove(
                     {
                         "name": "webhook_secret_key",
@@ -438,9 +439,12 @@ class StripeGatewayPlugin(BasePlugin):
             )
             return
 
-        webhook = subscribe_webhook(
-            api_key, plugin_configuration.channel.slug  # type: ignore
-        )
+        webhook = None
+        if not webhook_id and not webhook_secret:
+            webhook = subscribe_webhook(
+                api_key, plugin_configuration.channel.slug  # type: ignore
+            )
+
         if not webhook:
             logger.warning(
                 "Unable to subscribe to Stripe webhook", extra={"domain": domain}
@@ -499,5 +503,4 @@ class StripeGatewayPlugin(BasePlugin):
                 "field": "api_key",
                 "value": self.config.connection_params["public_api_key"],
             },
-            {"field": "store_customer_card", "value": self.config.store_customer},
         ]
