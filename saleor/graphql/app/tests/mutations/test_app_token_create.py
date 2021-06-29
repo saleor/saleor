@@ -1,4 +1,5 @@
 import graphene
+from django.contrib.auth.hashers import check_password
 
 from .....app.error_codes import AppErrorCode
 from .....app.models import App
@@ -41,9 +42,9 @@ def test_app_token_create(
     token_data = content["data"]["appTokenCreate"]["appToken"]
     auth_token_data = content["data"]["appTokenCreate"]["authToken"]
     auth_token = app.tokens.get().auth_token
-    assert auth_token_data == auth_token
+    assert check_password(auth_token_data, auth_token)
 
-    assert token_data["authToken"] == auth_token[-4:]
+    assert token_data["authToken"] == auth_token_data[-4:]
     assert token_data["name"] == "Default token"
 
 
@@ -70,9 +71,9 @@ def test_app_token_create_for_app(
     token_data = content["data"]["appTokenCreate"]["appToken"]
     auth_token_data = content["data"]["appTokenCreate"]["authToken"]
     auth_token = app.tokens.get().auth_token
-    assert auth_token_data == auth_token
+    assert check_password(auth_token_data, auth_token)
 
-    assert token_data["authToken"] == auth_token[-4:]
+    assert token_data["authToken"] == auth_token_data[-4:]
     assert token_data["name"] == "Default token"
 
 
@@ -124,9 +125,9 @@ def test_app_token_create_superuser_can_create_token_for_any_app(
     token_data = content["data"]["appTokenCreate"]["appToken"]
     auth_token_data = content["data"]["appTokenCreate"]["authToken"]
     auth_token = app.tokens.get().auth_token
-    assert auth_token_data == auth_token
+    assert check_password(auth_token_data, auth_token)
 
-    assert token_data["authToken"] == auth_token[-4:]
+    assert token_data["authToken"] == auth_token_data[-4:]
     assert token_data["name"] == "Default token"
 
 

@@ -53,7 +53,7 @@ def test_apps_query(
     staff_api_client,
     permission_manage_apps,
     permission_manage_orders,
-    app,
+    app_with_token,
     external_app,
     app_filter,
     count,
@@ -62,7 +62,11 @@ def test_apps_query(
     external_app.save()
     webhooks = Webhook.objects.bulk_create(
         [
-            Webhook(app=app, name="first", target_url="http://www.example.com/test"),
+            Webhook(
+                app=app_with_token,
+                name="first",
+                target_url="http://www.example.com/test",
+            ),
             Webhook(app=external_app, name="second", target_url="http://www.exa.com/s"),
         ]
     )

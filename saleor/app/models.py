@@ -1,5 +1,6 @@
-from typing import Set
+from typing import Set, Tuple
 
+from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.models import Permission
 from django.db import models
 from oauthlib.common import generate_token
@@ -97,10 +98,46 @@ class App(ModelWithMetadata):
         return perm_value in self.get_permissions()
 
 
+class AppTokenManager(models.Manager):
+    def create_app_token(self, app: App, name: str = "") -> Tuple["AppToken", str]:
+        """Create app token and save the value as hashed password."""
+        token = generate_token()
+        auth_token = make_password(token)
+        token_obj = self.create(
+            name=name,
+            app=app,
+            auth_token=auth_token,
+            raw_auth_token_last_4_chars=token[-4:],
+        )
+        return token_obj, token
+
+    def validate_app_token(self, token: str):
+        """Verify provided app token."""
+        apps = App.objects.filter(is_active=True)
+        auth_tokens = self.filter(
+            models.Exists(apps.filter(pk=models.OuterRef("app_id")))
+        ).values_list("auth_token", flat=True)
+        return any([check_password(token, auth_token) for auth_token in auth_tokens])
+
+
 class AppToken(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="tokens")
     name = models.CharField(blank=True, default="", max_length=128)
-    auth_token = models.CharField(default=generate_token, unique=True, max_length=30)
+    auth_token = models.CharField(unique=True, max_length=128)
+    raw_auth_token_last_4_chars = models.CharField(max_length=4)
+
+    objects = AppTokenManager()
+
+    def create_auth_token(self) -> str:
+        """Create app token and assign the value as hashed password.
+
+        Save last 4 token characters of raw token.
+        Return raw token. Required save after execution.
+        """
+        token = generate_token()
+        self.auth_token = make_password(token)
+        self.raw_auth_token_last_4_chars = token[-4:]
+        return token
 
 
 class AppInstallation(Job):
