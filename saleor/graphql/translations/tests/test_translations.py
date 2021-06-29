@@ -1743,10 +1743,6 @@ QUERY_TRANSLATION_PRODUCT = """
                 translation(languageCode: $languageCode){
                     name
                 }
-                product{
-                    id
-                    name
-                }
             }
         }
     }
@@ -1776,7 +1772,6 @@ def test_translation_query_product(
     data = content["data"]["translation"]
     assert data["name"] == product.name
     assert data["translation"]["name"] == product_translation_fr.name
-    assert data["product"]["name"] == product.name
 
 
 QUERY_TRANSLATION_COLLECTION = """
@@ -1789,10 +1784,6 @@ QUERY_TRANSLATION_COLLECTION = """
                 id
                 name
                 translation(languageCode: $languageCode){
-                    name
-                }
-                collection{
-                    id
                     name
                 }
             }
@@ -1827,7 +1818,6 @@ def test_translation_query_collection(
     data = content["data"]["translation"]
     assert data["name"] == published_collection.name
     assert data["translation"]["name"] == collection_translation_fr.name
-    assert data["collection"]["name"] == published_collection.name
 
 
 QUERY_TRANSLATION_CATEGORY = """
@@ -1840,10 +1830,6 @@ QUERY_TRANSLATION_CATEGORY = """
                 id
                 name
                 translation(languageCode: $languageCode){
-                    name
-                }
-                category {
-                    id
                     name
                 }
             }
@@ -1871,7 +1857,6 @@ def test_translation_query_category(
     data = content["data"]["translation"]
     assert data["name"] == category.name
     assert data["translation"]["name"] == category_translation_fr.name
-    assert data["category"]["name"] == category.name
 
 
 QUERY_TRANSLATION_ATTRIBUTE = """
@@ -1884,10 +1869,6 @@ QUERY_TRANSLATION_ATTRIBUTE = """
                 id
                 name
                 translation(languageCode: $languageCode){
-                    name
-                }
-                attribute {
-                    id
                     name
                 }
             }
@@ -1916,7 +1897,6 @@ def test_translation_query_attribute(
     data = content["data"]["translation"]
     assert data["name"] == attribute.name
     assert data["translation"]["name"] == translated_attribute.name
-    assert data["attribute"]["name"] == attribute.name
 
 
 QUERY_TRANSLATION_ATTRIBUTE_VALUE = """
@@ -1929,10 +1909,6 @@ QUERY_TRANSLATION_ATTRIBUTE_VALUE = """
                 id
                 name
                 translation(languageCode: $languageCode){
-                    name
-                }
-                attributeValue {
-                    id
                     name
                 }
             }
@@ -1965,7 +1941,6 @@ def test_translation_query_attribute_value(
     data = content["data"]["translation"]
     assert data["name"] == pink_attribute_value.name
     assert data["translation"]["name"] == translated_attribute_value.name
-    assert data["attributeValue"]["name"] == pink_attribute_value.name
 
 
 QUERY_TRANSLATION_VARIANT = """
@@ -1978,10 +1953,6 @@ QUERY_TRANSLATION_VARIANT = """
                 id
                 name
                 translation(languageCode: $languageCode){
-                    name
-                }
-                productVariant {
-                    id
                     name
                 }
             }
@@ -2012,7 +1983,6 @@ def test_translation_query_variant(
     data = content["data"]["translation"]
     assert data["name"] == variant.name
     assert data["translation"]["name"] == variant_translation_fr.name
-    assert data["productVariant"]["name"] == variant.name
 
 
 QUERY_TRANSLATION_PAGE = """
@@ -2025,10 +1995,6 @@ QUERY_TRANSLATION_PAGE = """
                 id
                 title
                 translation(languageCode: $languageCode){
-                    title
-                }
-                page {
-                    id
                     title
                 }
             }
@@ -2070,7 +2036,6 @@ def test_translation_query_page(
     data = content["data"]["translation"]
     assert data["title"] == page.title
     assert data["translation"]["title"] == page_translation_fr.title
-    assert data["page"]["title"] == page.title
 
 
 QUERY_TRANSLATION_SHIPPING_METHOD = """
@@ -2084,10 +2049,6 @@ QUERY_TRANSLATION_SHIPPING_METHOD = """
                 name
                 description
                 translation(languageCode: $languageCode){
-                    name
-                }
-                shippingMethod {
-                    id
                     name
                 }
             }
@@ -2128,10 +2089,6 @@ def test_translation_query_shipping_method(
     assert data["name"] == shipping_method.name
     assert data["description"] == shipping_method.description
     assert data["translation"]["name"] == shipping_method_translation_fr.name
-    if return_shipping_method:
-        assert data["shippingMethod"]["name"] == shipping_method.name
-    else:
-        assert not data["shippingMethod"]
 
 
 QUERY_TRANSLATION_SALE = """
@@ -2144,10 +2101,6 @@ QUERY_TRANSLATION_SALE = """
                 id
                 name
                 translation(languageCode: $languageCode){
-                    name
-                }
-                sale {
-                    id
                     name
                 }
             }
@@ -2181,10 +2134,6 @@ def test_translation_query_sale(
     data = content["data"]["translation"]
     assert data["name"] == sale.name
     assert data["translation"]["name"] == sale_translation_fr.name
-    if return_sale:
-        assert data["sale"]["name"] == sale.name
-    else:
-        assert not data["sale"]
 
 
 QUERY_TRANSLATION_VOUCHER = """
@@ -2197,10 +2146,6 @@ QUERY_TRANSLATION_VOUCHER = """
                 id
                 name
                 translation(languageCode: $languageCode){
-                    name
-                }
-                voucher {
-                    id
                     name
                 }
             }
@@ -2234,10 +2179,6 @@ def test_translation_query_voucher(
     data = content["data"]["translation"]
     assert data["name"] == voucher.name
     assert data["translation"]["name"] == voucher_translation_fr.name
-    if return_voucher:
-        assert data["voucher"]["name"] == voucher.name
-    else:
-        assert not data["voucher"]
 
 
 QUERY_TRANSLATION_MENU_ITEM = """
@@ -2250,10 +2191,6 @@ QUERY_TRANSLATION_MENU_ITEM = """
                 id
                 name
                 translation(languageCode: $languageCode){
-                    name
-                }
-                menuItem {
-                    id
                     name
                 }
             }
@@ -2284,7 +2221,6 @@ def test_translation_query_menu_item(
     data = content["data"]["translation"]
     assert data["name"] == menu_item.name
     assert data["translation"]["name"] == menu_item_translation_fr.name
-    assert data["menuItem"]["name"] == menu_item.name
 
 
 def test_translation_query_incorrect_kind(
