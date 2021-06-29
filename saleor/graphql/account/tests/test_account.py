@@ -4396,6 +4396,42 @@ def test_query_customers_with_sort(
         assert users[order]["node"]["firstName"] == user_first_name
 
 
+def test_customers_sort_by_rank_without_search(
+    staff_api_client, permission_manage_users
+):
+    variables = {"sort_by": {"field": "RANK", "direction": "DESC"}}
+    response = staff_api_client.post_graphql(
+        QUERY_CUSTOMERS_WITH_SORT, variables, permissions=[permission_manage_users]
+    )
+    data = get_graphql_content(response, ignore_errors=True)
+    assert len(data["errors"]) == 1
+    assert (
+        data["errors"][0]["message"]
+        == "Sorting by Rank is available only with searching."
+    )
+
+
+@pytest.mark.parametrize("search_value", ["", "  ", None])
+def test_customers_sort_by_rank_with_empty_search_value(
+    search_value, staff_api_client, permission_manage_users
+):
+    variables = {
+        "filters": {
+            "search": search_value,
+        },
+        "sort_by": {"field": "RANK", "direction": "DESC"},
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_CUSTOMERS_WITH_SORT, variables, permissions=[permission_manage_users]
+    )
+    data = get_graphql_content(response, ignore_errors=True)
+    assert len(data["errors"]) == 1
+    assert (
+        data["errors"][0]["message"]
+        == "Sorting by Rank is available only with searching."
+    )
+
+
 @pytest.mark.parametrize(
     "customer_filter, count",
     [
