@@ -204,7 +204,7 @@ class ShippingMethod(ModelWithMetadata):
     minimum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
-    objects = ShippingMethodQueryset.as_manager()
+    objects = models.Manager.from_queryset(ShippingMethodQueryset)()
     translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):

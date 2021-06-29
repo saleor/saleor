@@ -3,8 +3,6 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Count, F, OuterRef, Subquery, Sum
-from django.db.models.functions import Coalesce
 from django.utils import timezone
 from prices import Money
 
@@ -92,8 +90,8 @@ def add_variant_to_checkout(
     of added to.
     """
     checkout = checkout_info.checkout
-    product_channel_listing = variant.product.channel_listings.filter(
-        channel_id=checkout.channel_id
+    product_channel_listing = product_models.ProductChannelListing.objects.filter(
+        channel_id=checkout.channel_id, product_id=variant.product_id
     ).first()
     if not product_channel_listing or not product_channel_listing.is_published:
         raise ProductNotPublished()
