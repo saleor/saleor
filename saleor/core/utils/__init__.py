@@ -105,7 +105,7 @@ def create_thumbnails(pk, model, size_set, image_attr=None):
     warmer = VersatileImageFieldWarmer(
         instance_or_queryset=instance, rendition_key_set=size_set, image_attr=image_attr
     )
-    task_logger.info("Creating thumbnails for  %s", pk)
+    task_logger.info("Creating thumbnails for %s", pk)
     num_created, failed_to_create = warmer.warm()
     if num_created:
         task_logger.info("Created %d thumbnails", num_created)
