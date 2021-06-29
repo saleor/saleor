@@ -3453,11 +3453,10 @@ def test_sort_product_by_rank_without_search(
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
-    with pytest.raises(AssertionError) as e:
-        get_graphql_content(response)
-
+    data = get_graphql_content(response, ignore_errors=True)
+    assert len(data["errors"]) == 1
     assert (
-        e._excinfo[1].args[0][0]["message"]
+        data["errors"][0]["message"]
         == "Sorting by Rank is available only with searching."
     )
 
@@ -3490,11 +3489,10 @@ def test_sort_product_by_rank_with_empty_search_value(
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
-    with pytest.raises(AssertionError) as e:
-        get_graphql_content(response)
-
+    data = get_graphql_content(response, ignore_errors=True)
+    assert len(data["errors"]) == 1
     assert (
-        e._excinfo[1].args[0][0]["message"]
+        data["errors"][0]["message"]
         == "Sorting by Rank is available only with searching."
     )
 
