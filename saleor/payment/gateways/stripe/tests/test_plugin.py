@@ -108,8 +108,9 @@ def test_pre_save_plugin_configuration_removes_webhook_when_disabled(
 
     assert all(
         [
-            c_field["name"] != "webhook_endpoint_id"
+            c_field["value"] != "endpoint"
             for c_field in configuration.configuration
+            if c_field["name"] == "webhook_endpoint_id"
         ]
     )
     assert all(
