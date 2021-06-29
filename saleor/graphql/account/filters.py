@@ -9,6 +9,8 @@ from ..core.types.common import DateRangeInput, IntRangeInput
 from ..utils.filters import filter_range_field
 from .enums import StaffMemberStatus
 
+SEARCH_RESULT_TRESHOLD = 0.3
+
 
 def filter_date_joined(qs, _, value):
     return filter_range_field(qs, "date_joined__date", value)
@@ -47,7 +49,7 @@ def filter_user_search(qs, _, value):
                     ),
                 )
             )
-            .filter(Q(addresses_rank__gte=0.3))
+            .filter(Q(addresses_rank__gte=SEARCH_RESULT_TRESHOLD))
             .values("addresses_rank")
         )
         user_addresses = (
@@ -68,8 +70,8 @@ def filter_user_search(qs, _, value):
                     Subquery(user_addresses.filter(user_id=OuterRef("pk"))[:1]),
                 )
             )
-            .filter(Q(rank__gte=0.3))
-            .order_by("-rank")
+            .filter(Q(rank__gte=SEARCH_RESULT_TRESHOLD))
+            .order_by("-rank", "id")
         )
     return qs
 
