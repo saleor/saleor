@@ -87,7 +87,7 @@ class Voucher(models.Model):
     collections = models.ManyToManyField("product.Collection", blank=True)
     categories = models.ManyToManyField("product.Category", blank=True)
 
-    objects = VoucherQueryset.as_manager()
+    objects = models.Manager.from_queryset(VoucherQueryset)()
     translated = TranslationProxy()
 
     class Meta:
@@ -247,7 +247,7 @@ class Sale(models.Model):
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
 
-    objects = SaleQueryset.as_manager()
+    objects = models.Manager.from_queryset(SaleQueryset)()
     translated = TranslationProxy()
 
     class Meta:

@@ -36,7 +36,7 @@ class Warehouse(ModelWithMetadata):
     address = models.ForeignKey(Address, on_delete=models.PROTECT)
     email = models.EmailField(blank=True, default="")
 
-    objects = WarehouseQueryset.as_manager()
+    objects = models.Manager.from_queryset(WarehouseQueryset)()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-slug",)
@@ -63,8 +63,8 @@ class StockQuerySet(models.QuerySet):
         )
 
     def for_channel(self, channel_slug: str):
-        ShippingZoneChannel = Channel.shipping_zones.through
-        WarehouseShippingZone = ShippingZone.warehouses.through
+        ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
+        WarehouseShippingZone = ShippingZone.warehouses.through  # type: ignore
         channels = Channel.objects.filter(slug=channel_slug).values("pk")
         shipping_zone_channels = ShippingZoneChannel.objects.filter(
             Exists(channels.filter(pk=OuterRef("channel_id")))
@@ -119,7 +119,7 @@ class Stock(models.Model):
     )
     quantity = models.PositiveIntegerField(default=0)
 
-    objects = StockQuerySet.as_manager()
+    objects = models.Manager.from_queryset(StockQuerySet)()
 
     class Meta:
         unique_together = [["warehouse", "product_variant"]]
