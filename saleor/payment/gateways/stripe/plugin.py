@@ -1,11 +1,12 @@
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http.request import split_domain_port
+from stripe.stripe_object import StripeObject
 
 from ....graphql.core.enums import PluginErrorCode
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
@@ -140,6 +141,28 @@ class StripeGatewayPlugin(BasePlugin):
         site_settings = Site.objects.get_current().settings
         return site_settings.automatically_confirm_all_new_orders
 
+    def _get_transaction_details_for_stripe_status(
+        self, status: str
+    ) -> Tuple[str, bool]:
+        kind = TransactionKind.AUTH
+        action_required = True
+
+        # payment still requires an action
+        if status in ACTION_REQUIRED_STATUSES:
+            kind = TransactionKind.ACTION_TO_CONFIRM
+            action_required = True
+        elif status == PROCESSING_STATUS:
+            kind = TransactionKind.PENDING
+            action_required = False
+        elif status == SUCCESS_STATUS:
+            kind = TransactionKind.CAPTURE
+            action_required = False
+        elif status == AUTHORIZED_STATUS:
+            kind = TransactionKind.AUTH
+            action_required = False
+
+        return kind, action_required
+
     @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
@@ -152,7 +175,9 @@ class StripeGatewayPlugin(BasePlugin):
             auto_capture = False
 
         data = payment_information.data
+
         payment_method_id = data.get("payment_method_id") if data else None
+        setup_future_usage = data.get("setup_future_usage") if data else None
 
         customer = get_or_create_customer(
             api_key=api_key,
@@ -170,19 +195,33 @@ class StripeGatewayPlugin(BasePlugin):
                 "channel": self.channel.slug,  # type: ignore
                 "payment_id": payment_information.graphql_payment_id,
             },
+            setup_future_usage=setup_future_usage,
         )
+
+        if error and payment_method_id and not intent:
+            # we can receive an error which is caused by a required authentication
+            # but stripe already created payment_intent.
+            stripe_error = error.error
+            intent = getattr(stripe_error, "payment_intent", None)
+            error = None if intent else error
+
         raw_response = None
         client_secret = None
         intent_id = None
+        kind = TransactionKind.ACTION_TO_CONFIRM
+        action_required = True
         if intent:
+            kind, action_required = self._get_transaction_details_for_stripe_status(
+                intent.status
+            )
             client_secret = intent.client_secret
             raw_response = intent.last_response.data
             intent_id = intent.id
 
         return GatewayResponse(
             is_success=True if not error else False,
-            action_required=True,
-            kind=TransactionKind.ACTION_TO_CONFIRM,
+            action_required=action_required,
+            kind=kind,
             amount=payment_information.amount,
             currency=payment_information.currency,
             transaction_id=intent.id if intent else "",
