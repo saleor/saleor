@@ -178,6 +178,7 @@ class StripeGatewayPlugin(BasePlugin):
 
         payment_method_id = data.get("payment_method_id") if data else None
         setup_future_usage = data.get("setup_future_usage") if data else None
+        off_session = data.get("off_session") if data else None
 
         customer = get_or_create_customer(
             api_key=api_key,
@@ -196,6 +197,7 @@ class StripeGatewayPlugin(BasePlugin):
                 "payment_id": payment_information.graphql_payment_id,
             },
             setup_future_usage=setup_future_usage,
+            off_session=off_session,
         )
 
         if error and payment_method_id and not intent:
