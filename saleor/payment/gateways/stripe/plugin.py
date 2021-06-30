@@ -150,7 +150,6 @@ class StripeGatewayPlugin(BasePlugin):
         # payment still requires an action
         if status in ACTION_REQUIRED_STATUSES:
             kind = TransactionKind.ACTION_TO_CONFIRM
-            action_required = True
         elif status == PROCESSING_STATUS:
             kind = TransactionKind.PENDING
             action_required = False
@@ -274,29 +273,17 @@ class StripeGatewayPlugin(BasePlugin):
             payment_intent, error = retrieve_payment_intent(api_key, payment_intent_id)
 
         kind = TransactionKind.AUTH
-        action_required = True
-
         if payment_intent:
             amount = price_from_minor_unit(
                 payment_intent.amount, payment_intent.currency
             )
             currency = payment_intent.currency
 
-            # payment still requires an action
-            if payment_intent.status in ACTION_REQUIRED_STATUSES:
-                kind = TransactionKind.ACTION_TO_CONFIRM
-                action_required = True
-
-            elif payment_intent.status == PROCESSING_STATUS:
-                kind = TransactionKind.PENDING
-                action_required = False
-            elif payment_intent.status == SUCCESS_STATUS:
-                kind = TransactionKind.CAPTURE
-                action_required = False
+            kind, action_required = self._get_transaction_details_for_stripe_status(
+                payment_intent.status
+            )
+            if kind == TransactionKind.CAPTURE:
                 payment_method_info = get_payment_method_details(payment_intent)
-            elif payment_intent.status == AUTHORIZED_STATUS:
-                kind = TransactionKind.AUTH
-                action_required = False
         else:
             action_required = False
             amount = payment_information.amount
