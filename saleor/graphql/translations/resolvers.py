@@ -1,14 +1,48 @@
 from ...attribute import models as attribute_models
 from ...core.tracing import traced_resolver
 from ...discount import models as discount_models
+from ...menu import models as menu_models
+from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
+from ...site import models as site_models
+from . import dataloaders
+
+TYPE_TO_TRANSLATION_LOADER_MAP = {
+    attribute_models.Attribute: (
+        dataloaders.AttributeTranslationByIdAndLanguageCodeLoader
+    ),
+    attribute_models.AttributeValue: (
+        dataloaders.AttributeValueTranslationByIdAndLanguageCodeLoader
+    ),
+    product_models.Category: (dataloaders.CategoryTranslationByIdAndLanguageCodeLoader),
+    product_models.Collection: (
+        dataloaders.CollectionTranslationByIdAndLanguageCodeLoader
+    ),
+    menu_models.MenuItem: (dataloaders.MenuItemTranslationByIdAndLanguageCodeLoader),
+    page_models.Page: dataloaders.PageTranslationByIdAndLanguageCodeLoader,
+    product_models.Product: (dataloaders.ProductTranslationByIdAndLanguageCodeLoader),
+    product_models.ProductVariant: (
+        dataloaders.ProductVariantTranslationByIdAndLanguageCodeLoader
+    ),
+    discount_models.Sale: dataloaders.SaleTranslationByIdAndLanguageCodeLoader,
+    shipping_models.ShippingMethod: (
+        dataloaders.ShippingMethodTranslationByIdAndLanguageCodeLoader
+    ),
+    site_models.SiteSettings: (
+        dataloaders.SiteSettingsTranslationByIdAndLanguageCodeLoader
+    ),
+    discount_models.Voucher: (dataloaders.VoucherTranslationByIdAndLanguageCodeLoader),
+}
 
 
-@traced_resolver
-def resolve_translation(instance, _info, language_code):
+def resolve_translation(instance, info, language_code):
     """Get translation object from instance based on language code."""
-    return instance.translations.filter(language_code=language_code).first()
+
+    loader = TYPE_TO_TRANSLATION_LOADER_MAP.get(type(instance))
+    if loader:
+        return loader(info.context).load((instance.pk, language_code))
+    raise TypeError(f"No dataloader found to {type(instance)}")
 
 
 @traced_resolver

@@ -512,7 +512,6 @@ input AttributeFilterInput {
   type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
-  channel: String
 }
 
 input AttributeInput {
@@ -559,7 +558,7 @@ type AttributeTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
-  attribute: Attribute
+  attribute: Attribute @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type AttributeTranslate {
@@ -656,7 +655,7 @@ input AttributeValueFilterInput {
 
 input AttributeValueInput {
   id: ID
-  values: [String]
+  values: [String!]
   file: String
   contentType: String
   references: [ID!]
@@ -668,7 +667,7 @@ type AttributeValueTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
-  attributeValue: AttributeValue
+  attributeValue: AttributeValue @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type AttributeValueTranslate {
@@ -698,7 +697,7 @@ type AttributeValueUpdate {
 
 input BulkAttributeValueInput {
   id: ID
-  values: [String]!
+  values: [String!]!
 }
 
 type BulkProductError {
@@ -798,7 +797,6 @@ enum CategorySortField {
 
 input CategorySortingInput {
   direction: OrderDirection!
-  channel: String
   field: CategorySortField!
 }
 
@@ -810,7 +808,7 @@ type CategoryTranslatableContent implements Node {
   description: JSONString
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
-  category: Category
+  category: Category @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type CategoryTranslate {
@@ -1232,7 +1230,6 @@ input CollectionFilterInput {
   search: String
   metadata: [MetadataFilter]
   ids: [ID]
-  channel: String
 }
 
 input CollectionInput {
@@ -1272,7 +1269,6 @@ enum CollectionSortField {
 
 input CollectionSortingInput {
   direction: OrderDirection!
-  channel: String
   field: CollectionSortField!
 }
 
@@ -1284,7 +1280,7 @@ type CollectionTranslatableContent implements Node {
   description: JSONString
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
-  collection: Collection
+  collection: Collection @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type CollectionTranslate {
@@ -2620,7 +2616,7 @@ type MenuItemTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): MenuItemTranslation
-  menuItem: MenuItem
+  menuItem: MenuItem @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type MenuItemTranslate {
@@ -2877,21 +2873,21 @@ type Mutation {
   voucherChannelListingUpdate(id: ID!, input: VoucherChannelListingInput!): VoucherChannelListingUpdate
   exportProducts(input: ExportProductsInput!): ExportProducts
   fileUpload(file: Upload!): FileUpload
-  checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
-  checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID!, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
+  checkoutAddPromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutAddPromoCode
+  checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID, token: UUID): CheckoutBillingAddressUpdate
+  checkoutComplete(checkoutId: ID, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
-  checkoutCustomerAttach(checkoutId: ID!): CheckoutCustomerAttach
-  checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
-  checkoutEmailUpdate(checkoutId: ID, email: String!): CheckoutEmailUpdate
-  checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
-  checkoutLinesAdd(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesAdd
-  checkoutLinesUpdate(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesUpdate
-  checkoutRemovePromoCode(checkoutId: ID!, promoCode: String!): CheckoutRemovePromoCode
-  checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
-  checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
-  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
-  checkoutLanguageCodeUpdate(checkoutId: ID!, languageCode: LanguageCodeEnum!): CheckoutLanguageCodeUpdate
+  checkoutCustomerAttach(checkoutId: ID, token: UUID): CheckoutCustomerAttach
+  checkoutCustomerDetach(checkoutId: ID, token: UUID): CheckoutCustomerDetach
+  checkoutEmailUpdate(checkoutId: ID, email: String!, token: UUID): CheckoutEmailUpdate
+  checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete
+  checkoutLinesAdd(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesAdd
+  checkoutLinesUpdate(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesUpdate
+  checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
+  checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
+  checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
+  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate
+  checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
   channelDelete(id: ID!, input: ChannelDeleteInput): ChannelDelete
@@ -3678,7 +3674,7 @@ type PageTranslatableContent implements Node {
   content: JSONString
   contentJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
-  page: Page
+  page: Page @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type PageTranslate {
@@ -4294,7 +4290,6 @@ input ProductFilterInput {
   minimalPrice: PriceRangeInput
   productTypes: [ID]
   ids: [ID]
-  channel: String
 }
 
 type ProductImage {
@@ -4379,7 +4374,6 @@ input ProductMediaUpdateInput {
 
 input ProductOrder {
   direction: OrderDirection!
-  channel: String
   attributeId: ID
   field: ProductOrderField
 }
@@ -4425,7 +4419,7 @@ type ProductTranslatableContent implements Node {
   description: JSONString
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
-  product: Product
+  product: Product @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type ProductTranslate {
@@ -4580,7 +4574,7 @@ type ProductVariantBulkCreate {
 }
 
 input ProductVariantBulkCreateInput {
-  attributes: [BulkAttributeValueInput]!
+  attributes: [BulkAttributeValueInput!]!
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
@@ -4632,7 +4626,7 @@ type ProductVariantCreate {
 }
 
 input ProductVariantCreateInput {
-  attributes: [AttributeValueInput]!
+  attributes: [AttributeValueInput!]!
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
@@ -4653,7 +4647,7 @@ input ProductVariantFilterInput {
 }
 
 input ProductVariantInput {
-  attributes: [AttributeValueInput]
+  attributes: [AttributeValueInput!]
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
@@ -4699,7 +4693,7 @@ type ProductVariantTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
-  productVariant: ProductVariant
+  productVariant: ProductVariant @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type ProductVariantTranslate {
@@ -4786,7 +4780,7 @@ type Query {
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   channel(id: ID): Channel
   channels: [Channel!]
-  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, channel: String, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID, slug: String): Attribute
   appsInstallations: [AppInstallation!]!
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
@@ -4943,7 +4937,6 @@ enum SaleSortField {
 
 input SaleSortingInput {
   direction: OrderDirection!
-  channel: String
   field: SaleSortField!
 }
 
@@ -4951,7 +4944,7 @@ type SaleTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): SaleTranslation
-  sale: Sale
+  sale: Sale @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type SaleTranslate {
@@ -5073,7 +5066,7 @@ type ShippingMethodTranslatableContent implements Node {
   name: String!
   description: JSONString
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethod @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type ShippingMethodTranslation implements Node {
@@ -5890,7 +5883,6 @@ enum VoucherSortField {
 
 input VoucherSortingInput {
   direction: OrderDirection!
-  channel: String
   field: VoucherSortField!
 }
 
@@ -5898,7 +5890,7 @@ type VoucherTranslatableContent implements Node {
   id: ID!
   name: String
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
-  voucher: Voucher
+  voucher: Voucher @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type VoucherTranslate {

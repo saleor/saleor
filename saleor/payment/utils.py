@@ -1,7 +1,7 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import graphene
 from django.core.serializers.json import DjangoJSONEncoder
@@ -252,10 +252,6 @@ def validate_gateway_response(response: GatewayResponse):
 @traced_atomic_transaction()
 def gateway_postprocess(transaction, payment):
     changed_fields = []
-    psp_reference = transaction.gateway_response.get("pspReference")
-    if psp_reference:
-        payment.psp_reference = psp_reference
-        changed_fields.append("psp_reference")
 
     if not transaction.is_success or transaction.already_processed:
         if changed_fields:
@@ -342,10 +338,22 @@ def prepare_key_for_gateway_customer_id(gateway_name: str) -> str:
     return (gateway_name.strip().upper()) + ".customer_id"
 
 
-def update_payment_method_details(
-    payment: "Payment", gateway_response: "GatewayResponse"
-):
+def update_payment(payment: "Payment", gateway_response: "GatewayResponse"):
     changed_fields = []
+    if psp_reference := gateway_response.psp_reference:
+        payment.psp_reference = psp_reference
+        changed_fields.append("psp_reference")
+
+    if gateway_response.payment_method_info:
+        _update_payment_method_details(payment, gateway_response, changed_fields)
+
+    if changed_fields:
+        payment.save(update_fields=changed_fields)
+
+
+def _update_payment_method_details(
+    payment: "Payment", gateway_response: "GatewayResponse", changed_fields: List[str]
+):
     if not gateway_response.payment_method_info:
         return
     if gateway_response.payment_method_info.brand:
@@ -363,8 +371,6 @@ def update_payment_method_details(
     if gateway_response.payment_method_info.type:
         payment.payment_method_type = gateway_response.payment_method_info.type
         changed_fields.append("payment_method_type")
-    if changed_fields:
-        payment.save(update_fields=changed_fields)
 
 
 def get_payment_token(payment: Payment):

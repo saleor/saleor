@@ -127,12 +127,12 @@ def attributes_for_pagination(collection, category, channel_USD):
 
 QUERY_ATTRIBUTES_PAGINATION = """
     query (
-        $first: Int, $last: Int, $after: String, $before: String,
+        $first: Int, $last: Int, $after: String, $before: String, $channel: String
         $sortBy: AttributeSortingInput, $filter: AttributeFilterInput
     ){
         attributes (
             first: $first, last: $last, after: $after, before: $before,
-            sortBy: $sortBy, filter: $filter
+            sortBy: $sortBy, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -219,9 +219,14 @@ def test_attributes_pagination_with_filtering_in_collection(
     page_size = 2
     attributes_order = ["Attr3", "AttrAttr2"]
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
-    filter_by = {"inCollection": collection_id, "channel": channel_USD.slug}
+    filter_by = {"inCollection": collection_id}
 
-    variables = {"first": page_size, "after": None, "filter": filter_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": filter_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(QUERY_ATTRIBUTES_PAGINATION, variables)
     content = get_graphql_content(response)
     attributes_nodes = content["data"]["attributes"]["edges"]
@@ -236,9 +241,14 @@ def test_attributes_pagination_with_filtering_in_category(
     page_size = 2
     attributes_order = ["Attr3", "AttrAttr2"]
     category_id = graphene.Node.to_global_id("Category", category.id)
-    filter_by = {"inCategory": category_id, "channel": channel_USD.slug}
+    filter_by = {"inCategory": category_id}
 
-    variables = {"first": page_size, "after": None, "filter": filter_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": filter_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(QUERY_ATTRIBUTES_PAGINATION, variables)
     content = get_graphql_content(response)
     attributes_nodes = content["data"]["attributes"]["edges"]

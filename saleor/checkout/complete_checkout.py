@@ -24,6 +24,7 @@ from ..discount.utils import (
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
 )
+from ..giftcard.models import GiftCard
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
@@ -118,10 +119,12 @@ def _process_user_data_for_order(checkout_info: "CheckoutInfo", manager):
 
 def _validate_gift_cards(checkout: Checkout):
     """Check if all gift cards assigned to checkout are available."""
-    if (
-        not checkout.gift_cards.count()
-        == checkout.gift_cards.active(date=date.today()).count()
-    ):
+    today = date.today()
+    all_gift_cards = GiftCard.objects.filter(checkouts=checkout.token).count()
+    active_gift_cards = (
+        GiftCard.objects.active(date=today).filter(checkouts=checkout.token).count()
+    )
+    if not all_gift_cards == active_gift_cards:
         msg = "Gift card has expired. Order placement cancelled."
         raise NotApplicable(msg)
 

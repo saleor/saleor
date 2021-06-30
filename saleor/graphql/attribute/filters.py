@@ -8,7 +8,7 @@ from ...product import models
 from ..attribute.enums import AttributeTypeEnum
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, MetadataFilterBase
-from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
+from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_fields_containing_value
@@ -107,7 +107,7 @@ class AttributeFilter(MetadataFilterBase):
         )
 
 
-class AttributeFilterInput(ChannelFilterInputObjectType):
+class AttributeFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = AttributeFilter
 
