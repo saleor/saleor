@@ -117,6 +117,8 @@ def create_payment_intent(
     customer: Optional[StripeObject] = None,
     payment_method_id: Optional[str] = None,
     metadata: Optional[dict] = None,
+    setup_future_usage: Optional[str] = None,
+    off_session: Optional[bool] = None,
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
 
     capture_method = AUTOMATIC_CAPTURE_METHOD if auto_capture else MANUAL_CAPTURE_METHOD
@@ -126,12 +128,14 @@ def create_payment_intent(
         additional_params["customer"] = customer
 
     if payment_method_id and customer:
-        additional_params.update(
-            {
-                "setup_future_usage": "on_session",
-                "payment_method": payment_method_id,
-            }
-        )
+        additional_params["payment_method"] = payment_method_id
+
+        additional_params["off_session"] = off_session if off_session else False
+        if off_session:
+            additional_params["confirm"] = True
+
+    if setup_future_usage in ["on_session", "off_session"] and not payment_method_id:
+        additional_params["setup_future_usage"] = setup_future_usage
 
     if metadata:
         additional_params["metadata"] = metadata
