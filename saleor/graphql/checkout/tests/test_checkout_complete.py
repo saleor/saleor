@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
@@ -21,8 +22,8 @@ from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_COMPLETE = """
-    mutation checkoutComplete($checkoutId: ID!, $redirectUrl: String) {
-        checkoutComplete(checkoutId: $checkoutId, redirectUrl: $redirectUrl) {
+    mutation checkoutComplete($token: UUID, $redirectUrl: String) {
+        checkoutComplete(token: $token, redirectUrl: $redirectUrl) {
             order {
                 id,
                 token
@@ -75,8 +76,7 @@ def test_checkout_complete_unconfirmed_order_already_exists(
     order_with_lines.status = OrderStatus.UNCONFIRMED
     order_with_lines.checkout_token = checkout.pk
     order_with_lines.save()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     checkout.delete()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
@@ -100,8 +100,7 @@ def test_checkout_complete_order_already_exists(
     orders_count = Order.objects.count()
     order_with_lines.checkout_token = checkout.pk
     order_with_lines.save()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     checkout.delete()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
@@ -128,8 +127,7 @@ def test_checkout_complete_with_inactive_channel_order_already_exists(
     channel.save()
     order_with_lines.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     checkout.delete()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
@@ -180,8 +178,7 @@ def test_checkout_complete_with_inactive_channel(
     payment.save()
     assert not payment.transactions.exists()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
@@ -235,9 +232,8 @@ def test_checkout_complete(
     assert not payment.transactions.exists()
 
     orders_count = Order.objects.count()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     redirect_url = "https://www.example.com"
-    variables = {"checkoutId": checkout_id, "redirectUrl": redirect_url}
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
@@ -298,10 +294,9 @@ def test_checkout_complete_with_variant_without_price(
         price_amount=None
     )
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     variant_id = graphene.Node.to_global_id("ProductVariant", checkout_line_variant.pk)
     redirect_url = "https://www.example.com"
-    variables = {"checkoutId": checkout_id, "redirectUrl": redirect_url}
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
@@ -325,8 +320,10 @@ def test_checkout_complete_requires_confirmation(
     payment.checkout = checkout_ready_to_complete
     payment.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_ready_to_complete.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {
+        "token": checkout_ready_to_complete.token,
+        "redirectUrl": "https://www.example.com",
+    }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
 
@@ -380,8 +377,7 @@ def test_checkout_with_voucher_complete(
     assert not payment.transactions.exists()
 
     orders_count = Order.objects.count()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
@@ -449,8 +445,7 @@ def test_checkout_complete_without_inventory_tracking(
     assert not payment.transactions.exists()
 
     orders_count = Order.objects.count()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
@@ -525,8 +520,7 @@ def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
     assert not payment.transactions.exists()
 
     orders_count = Order.objects.count()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
@@ -598,8 +592,7 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     assert not payment.transactions.exists()
 
     orders_count = Order.objects.count()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     get_graphql_content(response)
 
@@ -621,15 +614,15 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     mocked_process_payment.assert_called_once()
 
 
-def test_checkout_complete_invalid_checkout_id(user_api_client):
-    checkout_id = "invalidId"
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+def test_checkout_complete_invalid_token(user_api_client):
+    token = uuid.uuid4()
+    variables = {"token": token, "redirectUrl": "https://www.example.com"}
     orders_count = Order.objects.count()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert data["errors"][0]["message"] == "Couldn't resolve id: invalidId."
-    assert data["errors"][0]["field"] == "checkoutId"
+    assert data["errors"][0]["message"] == f"Couldn't resolve to a node: {token}."
+    assert data["errors"][0]["field"] == "token"
     assert orders_count == Order.objects.count()
 
 
@@ -641,8 +634,7 @@ def test_checkout_complete_no_payment(
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     orders_count = Order.objects.count()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
@@ -684,8 +676,7 @@ def test_checkout_complete_confirmation_needed(
     payment.checkout = checkout
     payment.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     orders_count = Order.objects.count()
 
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
@@ -738,10 +729,9 @@ def test_checkout_confirm(
     payment.checkout = checkout
     payment.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     orders_count = Order.objects.count()
 
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
@@ -783,8 +773,7 @@ def test_checkout_complete_insufficient_stock(
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     orders_count = Order.objects.count()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
@@ -831,8 +820,7 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     orders_count = Order.objects.count()
 
     # when
@@ -888,8 +876,7 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     payment.charge_status = ChargeStatus.NOT_CHARGED
     payment.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     orders_count = Order.objects.count()
 
     # when
@@ -944,8 +931,7 @@ def test_checkout_complete_without_redirect_url(
     assert not payment.transactions.exists()
 
     orders_count = Order.objects.count()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id}
+    variables = {"token": checkout.token}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
@@ -1010,8 +996,7 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
     assert not payment.transactions.exists()
 
     orders_count = Order.objects.count()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
 
     # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
@@ -1035,10 +1020,10 @@ def test_order_already_exists(
     checkout = checkout_ready_to_complete
     order_with_lines.checkout_token = checkout.token
     order_with_lines.save()
+    token = checkout.token
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     checkout.delete()
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": token, "redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
@@ -1075,8 +1060,7 @@ def test_create_order_raises_insufficient_stock(
     payment.checkout = checkout
     payment.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
@@ -1095,8 +1079,7 @@ def test_checkout_complete_with_digital(
 
     order_count = Order.objects.count()
     checkout = checkout_with_digital_item
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
 
     # Set a billing address
     checkout.billing_address = address
@@ -1177,8 +1160,7 @@ def test_checkout_complete_0_total_value(
     assert not payment.transactions.exists()
 
     orders_count = Order.objects.count()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)

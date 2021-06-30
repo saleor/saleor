@@ -81,7 +81,7 @@ class WishlistItem(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
-    objects = WishlistItemQuerySet.as_manager()
+    objects = models.Manager.from_queryset(WishlistItemQuerySet)()
 
     class Meta:
         unique_together = ("wishlist", "product")

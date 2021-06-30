@@ -58,7 +58,7 @@ class AttributePage(SortableModel):
         related_name="attributesrelated",
     )
 
-    objects = AssociatedAttributeQuerySet.as_manager()
+    objects = models.Manager.from_queryset(AssociatedAttributeQuerySet)()
 
     class Meta:
         unique_together = (("attribute", "page_type"),)

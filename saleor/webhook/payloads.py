@@ -333,7 +333,7 @@ def generate_product_payload(product: "Product"):
             ],
             "channel_listings": json.loads(
                 serialize_product_channel_listing_payload(
-                    product.channel_listings.all()
+                    product.channel_listings.all()  # type: ignore
                 )
             ),
             "variants": lambda x: json.loads((generate_product_variant_payload(x))),

@@ -3438,8 +3438,7 @@ def test_set_default_address(
     assert data["user"]["defaultShippingAddress"]["id"] == address_id
 
 
-def test_address_validation_rules(user_api_client):
-    query = """
+GET_ADDRESS_VALIDATION_RULES_QUERY = """
     query getValidator(
         $country_code: CountryCode!, $country_area: String, $city_area: String) {
         addressValidationRules(
@@ -3450,37 +3449,9 @@ def test_address_validation_rules(user_api_client):
             countryName
             addressFormat
             addressLatinFormat
-            postalCodeMatchers
-            cityType
-            cityAreaType
-        }
-    }
-    """
-    variables = {"country_code": "PL", "country_area": None, "city_area": None}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["addressValidationRules"]
-    assert data["countryCode"] == "PL"
-    assert data["countryName"] == "POLAND"
-    assert data["addressFormat"] is not None
-    assert data["addressLatinFormat"] is not None
-    assert data["cityType"] == "city"
-    assert data["cityAreaType"] == "suburb"
-    matcher = data["postalCodeMatchers"][0]
-    matcher = re.compile(matcher)
-    assert matcher.match("00-123")
-
-
-def test_address_validation_rules_with_country_area(user_api_client):
-    query = """
-    query getValidator(
-        $country_code: CountryCode!, $country_area: String, $city_area: String) {
-        addressValidationRules(
-                countryCode: $country_code,
-                countryArea: $country_area,
-                cityArea: $city_area) {
-            countryCode
-            countryName
+            allowedFields
+            requiredFields
+            upperFields
             countryAreaType
             countryAreaChoices {
                 verbose
@@ -3496,9 +3467,49 @@ def test_address_validation_rules_with_country_area(user_api_client):
                 raw
                 verbose
             }
+            postalCodeType
+            postalCodeMatchers
+            postalCodeExamples
+            postalCodePrefix
         }
     }
-    """
+"""
+
+
+def test_address_validation_rules(user_api_client):
+    query = GET_ADDRESS_VALIDATION_RULES_QUERY
+    variables = {"country_code": "PL", "country_area": None, "city_area": None}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["addressValidationRules"]
+    assert data["countryCode"] == "PL"
+    assert data["countryName"] == "POLAND"
+    assert data["addressFormat"] is not None
+    assert data["addressLatinFormat"] is not None
+    assert data["cityType"] == "city"
+    assert data["cityAreaType"] == "suburb"
+    matcher = data["postalCodeMatchers"][0]
+    matcher = re.compile(matcher)
+    assert matcher.match("00-123")
+    assert not data["cityAreaChoices"]
+    assert not data["cityChoices"]
+    assert not data["countryAreaChoices"]
+    assert data["postalCodeExamples"]
+    assert data["postalCodeType"] == "postal"
+    assert set(data["allowedFields"]) == {
+        "companyName",
+        "city",
+        "postalCode",
+        "streetAddress1",
+        "name",
+        "streetAddress2",
+    }
+    assert set(data["requiredFields"]) == {"postalCode", "streetAddress1", "city"}
+    assert set(data["upperFields"]) == {"city"}
+
+
+def test_address_validation_rules_with_country_area(user_api_client):
+    query = GET_ADDRESS_VALIDATION_RULES_QUERY
     variables = {
         "country_code": "CN",
         "country_area": "Fujian Sheng",
@@ -3515,6 +3526,27 @@ def test_address_validation_rules_with_country_area(user_api_client):
     assert data["cityChoices"]
     assert data["cityAreaType"] == "district"
     assert not data["cityAreaChoices"]
+    assert data["cityChoices"]
+    assert data["countryAreaChoices"]
+    assert data["postalCodeExamples"]
+    assert data["postalCodeType"] == "postal"
+    assert set(data["allowedFields"]) == {
+        "city",
+        "postalCode",
+        "streetAddress1",
+        "name",
+        "streetAddress2",
+        "countryArea",
+        "companyName",
+        "cityArea",
+    }
+    assert set(data["requiredFields"]) == {
+        "postalCode",
+        "streetAddress1",
+        "city",
+        "countryArea",
+    }
+    assert set(data["upperFields"]) == {"countryArea"}
 
 
 def test_address_validation_rules_fields_in_camel_case(user_api_client):
@@ -4277,6 +4309,24 @@ def test_query_customers_with_filter_metadata(
     user = users[0]
     _, user_id = graphene.Node.from_global_id(user["node"]["id"])
     assert second_customer.id == int(user_id)
+
+
+def test_query_customers_search_without_duplications(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+):
+    customer = User.objects.create(email="david@example.com")
+    customer.addresses.create(first_name="David")
+    customer.addresses.create(first_name="David")
+
+    variables = {"filter": {"search": "David"}}
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    users = content["data"]["customers"]["edges"]
+    assert len(users) == 1
 
 
 QUERY_CUSTOMERS_WITH_SORT = """
