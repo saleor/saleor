@@ -319,6 +319,21 @@ LOGGING = {
                 + "%(pathname)s %(process)d %(threadName)s"
             ),
         },
+        "celery_json": {
+            "()": "saleor.core.logging.JsonCeleryFormatter",
+            "datefmt": "%Y-%m-%dT%H:%M:%SZ",
+            "format": (
+                "%(asctime)s %(levelname)s %(celeryTaskId)s %(celeryTaskName)s "
+            ),
+        },
+        "celery_task_json": {
+            "()": "saleor.core.logging.JsonCeleryTaskFormatter",
+            "datefmt": "%Y-%m-%dT%H:%M:%SZ",
+            "format": (
+                "%(asctime)s %(levelname)s %(celeryTaskId)s %(celeryTaskName)s "
+                "%(message)s "
+            ),
+        },
         "verbose": {
             "format": (
                 "%(levelname)s %(name)s %(message)s [PID:%(process)d:%(threadName)s]"
@@ -336,6 +351,16 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "django.server" if DEBUG else "json",
         },
+        "celery_app": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose" if DEBUG else "celery_json",
+        },
+        "celery_task": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose" if DEBUG else "celery_task_json",
+        },
         "null": {
             "class": "logging.NullHandler",
         },
@@ -344,6 +369,16 @@ LOGGING = {
         "django": {"level": "INFO", "propagate": True},
         "django.server": {
             "handlers": ["django.server"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "celery.app.trace": {
+            "handlers": ["celery_app"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "celery.task": {
+            "handlers": ["celery_task"],
             "level": "INFO",
             "propagate": False,
         },
