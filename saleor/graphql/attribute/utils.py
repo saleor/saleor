@@ -211,9 +211,11 @@ class AttributeAssignmentMixin:
         value = cast(datetime, attr_values.date)
         defaults = {
             "date_time": value,
-            "name": f"{attribute.name}: {value.strftime('%d %b %Y')}",
+            "name": f"{attribute.name}: {value.date()}",
         }
-        return cls._update_or_create_value(instance, attribute, defaults)
+        return (
+            cls._update_or_create_value(instance, attribute, defaults) if value else ()
+        )
 
     @classmethod
     def _pre_save_date_time_values(
@@ -225,9 +227,11 @@ class AttributeAssignmentMixin:
         value = cast(datetime, attr_values.date_time)
         defaults = {
             "date_time": value,
-            "name": f"{attribute.name}: {value.strftime('%d %b %Y %H:%M:%S')}",
+            "name": f"{attribute.name}: {value}",
         }
-        return cls._update_or_create_value(instance, attribute, defaults)
+        return (
+            cls._update_or_create_value(instance, attribute, defaults) if value else ()
+        )
 
     @classmethod
     def _update_or_create_value(
@@ -719,12 +723,15 @@ def validate_date_time_input(
     attribute_errors: T_ERROR_DICT,
     variant_validation: bool,
 ):
-    is_date = attribute.input_type == AttributeInputType.DATE
-    is_date_time = attribute.input_type == AttributeInputType.DATE_TIME
+    is_blank_date = (
+        attribute.input_type == AttributeInputType.DATE and not attr_values.date
+    )
+    is_blank_date_time = (
+        attribute.input_type == AttributeInputType.DATE_TIME
+        and not attr_values.date_time
+    )
 
-    if attribute.value_required and (
-        is_date and not attr_values.date or is_date_time and not attr_values.date_time
-    ):
+    if attribute.value_required and (is_blank_date or is_blank_date_time):
         attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
             attr_values.global_id
         )

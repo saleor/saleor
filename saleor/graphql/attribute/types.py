@@ -99,7 +99,6 @@ class AttributeValue(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_date(root: models.AttributeValue, info, **_kwargs):
         return root.date_time
 

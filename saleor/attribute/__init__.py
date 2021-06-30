@@ -27,7 +27,10 @@ class AttributeInputType:
     ]
 
     # list of the input types that can be used in variant selection
-    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, BOOLEAN, NUMERIC]
+    ALLOWED_IN_VARIANT_SELECTION = [
+        DROPDOWN,
+        BOOLEAN,
+    ]
 
     TYPES_WITH_CHOICES = [
         DROPDOWN,
