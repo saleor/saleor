@@ -111,7 +111,7 @@ def test_graphql_view_access_control_header(client, settings):
     assert response[ACCESS_CONTROL_ALLOW_METHODS] == "POST, OPTIONS"
     assert (
         response[ACCESS_CONTROL_ALLOW_HEADERS]
-        == "Origin, Content-Type, Accept, Authorization"
+        == "Origin, Content-Type, Accept, Authorization, Authorization-Bearer"
     )
 
     response = client.options(API_PATH)
