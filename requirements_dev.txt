@@ -55,7 +55,7 @@ django-storages==1.11.1; python_version >= "3.5"
 django-stubs-ext==0.2.0; python_version >= "3.6"
 django-stubs==1.8.0; python_version >= "3.6"
 django-versatileimagefield==2.1
-django==3.2.4; python_version >= "3.6"
+django==3.2.5; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
