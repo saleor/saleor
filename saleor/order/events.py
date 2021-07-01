@@ -3,13 +3,14 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from ..account import events as account_events
 from ..account.models import User
+from ..app.models import App
 from ..discount.models import OrderDiscount
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment.models import Payment
 from . import OrderEvents, OrderEventsEmails
 from .models import OrderEvent
 
-UserType = Optional[User]
+UserType = Union[None, User, App]
 
 
 def _line_per_quantity_to_line_object(quantity, line):
@@ -34,7 +35,7 @@ def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> Dict:
 
 
 def _user_is_valid(user: UserType) -> bool:
-    return bool(user and not user.is_anonymous)
+    return bool(user and not isinstance(user, App) and not user.is_anonymous)
 
 
 def event_order_refunded_notification(
