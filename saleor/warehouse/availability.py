@@ -1,10 +1,11 @@
 from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, Iterable, List
 
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 
 from ..core.exceptions import InsufficientStock, InsufficientStockData
+from ..product.models import ProductVariantChannelListing
 from .models import Stock, StockQuerySet
 
 if TYPE_CHECKING:
@@ -94,3 +95,72 @@ def is_product_in_stock(
         country_code, channel_slug, product
     ).annotate_available_quantity()
     return any(stocks.values_list("available_quantity", flat=True))
+
+
+def check_preorder_threshold_bulk(
+    variants: Iterable["ProductVariant"],
+    quantities: Iterable[int],
+    channel_slug: str,
+):
+    """Validate if there is enough preordered variants according to thresholds.
+
+    :raises InsufficientStock: when there is not enough available items for a variant.
+    """
+    all_variants_channel_listings = (
+        ProductVariantChannelListing.objects.filter(variant__in=variants)
+        .annotate(
+            available_preorder_quantity=F("preorder_quantity_threshold")
+            - Coalesce(Sum("preorder_allocations__quantity"), 0),
+            preorder_quantity_allocated=Coalesce(
+                Sum("preorder_allocations__quantity"), 0
+            ),
+        )
+        .select_related("channel")
+    )
+    variants_channel_availability = {
+        channel_listing.variant_id: (
+            channel_listing.available_preorder_quantity,
+            channel_listing.preorder_quantity_threshold,
+        )
+        for channel_listing in all_variants_channel_listings
+        if channel_listing.channel.slug == channel_slug
+    }
+
+    variant_channels: Dict[int, List[ProductVariantChannelListing]] = defaultdict(list)
+    for channel_listing in all_variants_channel_listings:
+        variant_channels[channel_listing.variant_id].append(channel_listing)
+
+    variants_global_allocations = {
+        variant_id: sum(
+            channel_listing.preorder_quantity_allocated  # type: ignore
+            for channel_listing in channel_listings
+        )
+        for variant_id, channel_listings in variant_channels.items()
+    }
+
+    insufficient_stocks: List[InsufficientStockData] = []
+    for variant, quantity in zip(variants, quantities):
+        if variants_channel_availability[variant.id][1] is not None:
+            if quantity > variants_channel_availability[variant.id][0]:
+                insufficient_stocks.append(
+                    InsufficientStockData(
+                        variant=variant,
+                        available_quantity=variants_channel_availability[variant.id][0],
+                    )
+                )
+
+        if variant.preorder_global_threshold is not None:
+            global_availability = (
+                variant.preorder_global_threshold
+                - variants_global_allocations[variant.id]
+            )
+            if quantity > global_availability:
+                insufficient_stocks.append(
+                    InsufficientStockData(
+                        variant=variant,
+                        available_quantity=global_availability,
+                    )
+                )
+
+    if insufficient_stocks:
+        raise InsufficientStock(insufficient_stocks)
