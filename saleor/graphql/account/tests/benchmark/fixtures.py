@@ -82,6 +82,7 @@ def users_for_customers_benchmarks(channel_USD, address, shipping_method):
 
     for user in users_for_customers_benchmarks:
         gift_cards.extend(_prepare_gift_cards_for_user(user))
+        events.extend(_prepare_events_for_user(user))
         _create_permission_groups(user)
 
     CustomerEvent.objects.bulk_create(events)
