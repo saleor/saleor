@@ -216,7 +216,7 @@ class AttributeInput(graphene.InputObjectType):
 class AttributeValueInput(graphene.InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
     values = graphene.List(
-        graphene.String,
+        graphene.NonNull(graphene.String),
         required=False,
         description=(
             "The value or slug of an attribute to resolve. "

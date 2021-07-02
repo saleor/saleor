@@ -179,7 +179,6 @@ def test_sort_products_by_publication_date(
         "sortBy": {
             "direction": direction,
             "field": "PUBLICATION_DATE",
-            "channel": channel_USD.slug,
         },
         "channel": channel_USD.slug,
     }

@@ -24,7 +24,8 @@ class Invoice(ModelWithMetadata, Job):
     created = models.DateTimeField(null=True)
     external_url = models.URLField(null=True, max_length=2048)
     invoice_file = models.FileField(upload_to="invoices")
-    objects = InvoiceQueryset.as_manager()
+
+    objects = models.Manager.from_queryset(InvoiceQueryset)()
 
     @property
     def url(self):

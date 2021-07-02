@@ -278,7 +278,7 @@ COUNTRY_CHOICES = [
     if code not in UNKNOWN_COUNTRIES
 ]
 # Sort choices list by country name
-COUNTRY_CHOICES = sorted(COUNTRY_CHOICES, key=lambda choice: choice[1])
+COUNTRY_CHOICES = sorted(COUNTRY_CHOICES, key=lambda choice: choice[1])  # type: ignore
 
 for country, label in COUNTRY_CHOICES:
     country_rules = i18naddress.get_validation_rules({"country_code": country})
