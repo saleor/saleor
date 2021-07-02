@@ -43,8 +43,6 @@ def app_middleware(next, root, info, **kwargs):
             auth = request.META.get(app_auth_header, "").split()
             if len(auth) == 2:
                 auth_prefix, auth_token = auth
-                if len(auth_token) != 30:
-                    return next(root, info, **kwargs)
                 if auth_prefix.lower() == prefix:
                     request.app = SimpleLazyObject(lambda: get_app(auth_token))
     return next(root, info, **kwargs)
