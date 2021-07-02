@@ -28,8 +28,7 @@ class JWTMiddleware:
 
 
 def get_app(auth_token) -> Optional[App]:
-    qs = App.objects.filter(tokens__auth_token=auth_token, is_active=True)
-    return qs.first()
+    return App.objects.filter(tokens__auth_token=auth_token, is_active=True).first()
 
 
 def app_middleware(next, root, info, **kwargs):
@@ -44,6 +43,8 @@ def app_middleware(next, root, info, **kwargs):
             auth = request.META.get(app_auth_header, "").split()
             if len(auth) == 2:
                 auth_prefix, auth_token = auth
+                if len(auth_token) != 30:
+                    return next(root, info, **kwargs)
                 if auth_prefix.lower() == prefix:
                     request.app = SimpleLazyObject(lambda: get_app(auth_token))
     return next(root, info, **kwargs)
