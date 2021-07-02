@@ -20,6 +20,7 @@ from .. import AddressType, calculations
 from ..fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
+    DeliveryMethodInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
 )
@@ -149,7 +150,7 @@ def test_get_discount_for_checkout_value_voucher(
         shipping_method_channel_listings=None,
         valid_shipping_methods=[],
         valid_pick_up_points=[],
-        delivery_method=None,
+        delivery_method_info=DeliveryMethodInfo.from_delivery_method(None, None),
     )
     lines = [
         CheckoutLineInfo(
@@ -238,7 +239,7 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     checkout_info = CheckoutInfo(
         checkout=checkout,
         shipping_method=None,
-        delivery_method=None,
+        delivery_method_info=None,
         shipping_address=None,
         billing_address=None,
         channel=channel_USD,
@@ -353,7 +354,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     checkout_info = CheckoutInfo(
         checkout=checkout,
         shipping_method=None,
-        delivery_method=None,
+        delivery_method_info=None,
         shipping_address=None,
         billing_address=None,
         channel=channel_USD,
@@ -423,11 +424,14 @@ def test_get_discount_for_checkout_shipping_voucher(
         channel=channel_USD,
         discount=Money(discount_value, channel_USD.currency_code),
     )
+    shipping_address = Mock(spec=Address, country=Mock(code="PL"))
     checkout_info = CheckoutInfo(
         checkout=checkout,
         shipping_method=shipping_method,
-        delivery_method=None,
-        shipping_address=Mock(spec=Address, country=Mock(code="PL")),
+        shipping_address=shipping_address,
+        delivery_method_info=DeliveryMethodInfo.from_delivery_method(
+            shipping_method, shipping_address
+        ),
         billing_address=None,
         channel=channel_USD,
         user=None,
@@ -435,6 +439,7 @@ def test_get_discount_for_checkout_shipping_voucher(
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
+
     discount = get_voucher_discount_for_checkout(
         manager, voucher, checkout_info, [], None, None
     )
@@ -486,7 +491,7 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     checkout_info = CheckoutInfo(
         checkout=checkout,
         shipping_method=shipping_method,
-        delivery_method=None,
+        delivery_method_info=None,
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
@@ -533,7 +538,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
     checkout_info = CheckoutInfo(
         checkout=checkout,
         shipping_method=None,
-        delivery_method=[],
+        delivery_method_info=None,
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
@@ -680,7 +685,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     checkout_info = CheckoutInfo(
         checkout=checkout,
         shipping_method=shipping_method,
-        delivery_method=None,
+        delivery_method_info=None,
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,

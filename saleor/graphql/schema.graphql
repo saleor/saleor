@@ -3783,7 +3783,6 @@ type Mutation {
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID, token: UUID): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
-<<<<<<< HEAD
   checkoutCustomerAttach(checkoutId: ID, token: UUID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID, token: UUID): CheckoutCustomerDetach
   checkoutEmailUpdate(checkoutId: ID, email: String!, token: UUID): CheckoutEmailUpdate
@@ -3931,6 +3930,8 @@ type Order implements Node & ObjectWithMetadata {
   userEmail: String
   isShippingRequired: Boolean!
   languageCode: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `languageCodeEnum` field to fetch the language code. ")
+  isClickAndCollect: Boolean
+  deliveryMethod: DeliveryMethod
   languageCodeEnum: LanguageCodeEnum!
   discount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use discounts field.")
   discountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use discounts field.")
