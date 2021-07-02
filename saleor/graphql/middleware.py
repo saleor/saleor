@@ -28,7 +28,8 @@ class JWTMiddleware:
 
 
 def get_app(auth_token) -> Optional[App]:
-    return App.objects.filter(tokens__auth_token=auth_token, is_active=True).first()
+    qs = App.objects.filter(tokens__auth_token=auth_token, is_active=True)
+    return qs.first()
 
 
 def app_middleware(next, root, info, **kwargs):
