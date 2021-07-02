@@ -12,12 +12,12 @@ from prices import TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo
-from .fetch import CheckoutLineInfo
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
     from ..order.models import OrderLine
+    from .fetch import CheckoutLineInfo
 
 
 def base_checkout_shipping_price(
@@ -27,7 +27,9 @@ def base_checkout_shipping_price(
     # FIXME: Optimize checkout.is_shipping_required
     shipping_method = checkout_info.shipping_method
 
-    if lines is not None and all(isinstance(line, CheckoutLineInfo) for line in lines):
+    if lines is not None:
+        # and all(isinstance(line, CheckoutLineInfo) for line in lines):
+        # why is this needed here?
         from .utils import is_shipping_required
 
         shipping_required = is_shipping_required(lines)
@@ -43,6 +45,12 @@ def base_checkout_shipping_price(
     return quantize_price(
         TaxedMoney(net=shipping_price, gross=shipping_price), shipping_price.currency
     )
+
+
+def base_checkout_shipping_price_click_and_collect(
+    checkout_info: "CheckoutInfo", lines=None
+) -> TaxedMoney:
+    return zero_taxed_money(checkout_info.checkout.currency)
 
 
 def base_checkout_total(

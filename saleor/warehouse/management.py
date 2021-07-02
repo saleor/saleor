@@ -1,5 +1,5 @@
 from collections import defaultdict, namedtuple
-from typing import TYPE_CHECKING, Dict, Iterable, List, cast
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, cast
 
 from django.db.models import F, Sum
 
@@ -18,7 +18,10 @@ StockData = namedtuple("StockData", ["pk", "quantity"])
 
 @traced_atomic_transaction()
 def allocate_stocks(
-    order_lines_info: Iterable["OrderLineData"], country_code: str, channel_slug: str
+    order_lines_info: Iterable["OrderLineData"],
+    country_code: str,
+    channel_slug: str,
+    additional_filter_lookup: Optional[Dict[str, Any]] = None,
 ):
     """Allocate stocks for given `order_lines` in given country.
 
@@ -36,11 +39,15 @@ def allocate_stocks(
         return
 
     variants = [line_info.variant for line_info in order_lines_info]
+    filter_lookup = {"product_variant__in": variants}
+
+    if additional_filter_lookup is not None:
+        filter_lookup.update(additional_filter_lookup)
 
     stocks = list(
         Stock.objects.select_for_update(of=("self",))
         .for_country_and_channel(country_code, channel_slug)
-        .filter(product_variant__in=variants)
+        .filter(**filter_lookup)
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity")
     )

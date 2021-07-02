@@ -1,8 +1,25 @@
 import itertools
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable, List, Optional, Union
+from functools import singledispatchmethod  # type: ignore[attr-defined]
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Protocol,
+    Union,
+    cast,
+)
 
-from ..shipping.models import ShippingMethodChannelListing
+from prices import TaxedMoney
+
+from saleor.warehouse import WarehouseClickAndCollectOption
+
+from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ..warehouse.models import Warehouse
+from . import base_calculations
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
@@ -16,9 +33,13 @@ if TYPE_CHECKING:
         ProductVariant,
         ProductVariantChannelListing,
     )
-    from ..shipping.models import ShippingMethod
-    from ..warehouse.models import Warehouse
     from .models import Checkout, CheckoutLine
+
+
+# Due to mypy bug (paste ticket)
+class ShippingCalculation(Protocol):
+    def __call__(self, checkout_info: "CheckoutInfo", lines: Any) -> TaxedMoney:
+        ...
 
 
 @dataclass
@@ -39,7 +60,7 @@ class CheckoutInfo:
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     shipping_method: Optional["ShippingMethod"]  # Will be deprecated
-    delivery_method: Optional[Union["ShippingMethod", "Warehouse"]]
+    delivery_method_info: "DeliveryMethodInfo"
     valid_shipping_methods: List["ShippingMethod"]
     valid_pick_up_points: List["Warehouse"]
     shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
@@ -58,6 +79,60 @@ class CheckoutInfo:
 
     def get_customer_email(self) -> str:
         return self.user.email if self.user else self.checkout.email
+
+
+@dataclass(frozen=True)
+class DeliveryMethodInfo:
+    is_click_and_collect: bool
+    is_local_collection_point: bool
+    delivery_method: Optional[Union["ShippingMethod", "Warehouse"]]
+    shipping_address: Optional["Address"]
+    shipping_calculation_strategy: ShippingCalculation
+
+    @singledispatchmethod
+    @classmethod
+    def from_delivery_method(cls, delivery_method, shipping_address):
+        raise NotImplementedError("Incompatible Type")
+
+    @from_delivery_method.register(ShippingMethod)
+    @from_delivery_method.register(type(None))
+    @classmethod
+    def _(cls, delivery_method, shipping_address):
+
+        shipping_calculation_strategy = base_calculations.base_checkout_shipping_price
+        return cls(
+            is_click_and_collect=False,
+            is_local_collection_point=False,
+            shipping_address=shipping_address,
+            delivery_method=delivery_method,
+            shipping_calculation_strategy=shipping_calculation_strategy,
+        )
+
+    @from_delivery_method.register(Warehouse)  # type: ignore[no-redef]
+    @classmethod
+    def _(cls, delivery_method, _):
+        is_local_collection_point = (
+            delivery_method.click_and_collect_option
+            == WarehouseClickAndCollectOption.LOCAL_STOCK
+        )
+
+        shipping_calculation_strategy = (
+            base_calculations.base_checkout_shipping_price_click_and_collect
+        )
+        return cls(
+            is_click_and_collect=True,
+            is_local_collection_point=is_local_collection_point,
+            delivery_method=delivery_method,
+            shipping_address=delivery_method.address,
+            shipping_calculation_strategy=shipping_calculation_strategy,
+        )
+
+    def get_warehouse_filter_lookup(self) -> Dict[str, Any]:
+        return (
+            {"warehouse__pk": self.delivery_method.pk}
+            if self.is_local_collection_point and self.delivery_method is not None
+            else {}
+        )
 
 
 def fetch_checkout_lines(checkout: "Checkout") -> Iterable[CheckoutLineInfo]:
@@ -112,6 +187,10 @@ def fetch_checkout_info(
     shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
         shipping_method=shipping_method, channel=channel
     ).first()
+    delivery_method = checkout.collection_point or shipping_method
+    delivery_method_info = DeliveryMethodInfo.from_delivery_method(
+        delivery_method, shipping_address
+    )
     checkout_info = CheckoutInfo(
         checkout=checkout,
         user=checkout.user,
@@ -119,11 +198,12 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         shipping_method=shipping_method,
-        delivery_method=checkout.collection_point or shipping_method,
+        delivery_method_info=delivery_method_info,
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
+
     valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
         checkout_info, shipping_address, lines, discounts, manager
     )
@@ -132,6 +212,7 @@ def fetch_checkout_info(
     )
     checkout_info.valid_shipping_methods = valid_shipping_methods
     checkout_info.valid_pick_up_points = valid_pick_up_points
+    checkout_info.delivery_method_info = delivery_method_info
 
     return checkout_info
 
@@ -148,6 +229,10 @@ def update_checkout_info_shipping_address(
         checkout_info, address, lines, discounts, manager
     )
     checkout_info.valid_shipping_methods = valid_methods
+    delivery_method = checkout_info.delivery_method_info.delivery_method
+    checkout_info.delivery_method_info = DeliveryMethodInfo.from_delivery_method(
+        delivery_method, address
+    )
 
 
 def get_valid_shipping_method_list_for_checkout_info(
@@ -201,12 +286,17 @@ def update_checkout_info_delivery_method(
     checkout_info: CheckoutInfo,
     delivery_method: Optional[Union["ShippingMethod", "Warehouse"]],
 ):
-    checkout_info.delivery_method = delivery_method
-    if isinstance(delivery_method, ShippingMethod):
+    checkout_info.delivery_method_info = DeliveryMethodInfo.from_delivery_method(
+        delivery_method, checkout_info.shipping_address
+    )
+    if not checkout_info.delivery_method_info.is_click_and_collect:
+        shipping_method = cast(
+            ShippingMethod, checkout_info.delivery_method_info.delivery_method
+        )
         checkout_info.shipping_method_channel_listings = (
             (
                 ShippingMethodChannelListing.objects.filter(
-                    shipping_method=delivery_method, channel=checkout_info.channel
+                    shipping_method=shipping_method, channel=checkout_info.channel
                 ).first()
             )
             if delivery_method

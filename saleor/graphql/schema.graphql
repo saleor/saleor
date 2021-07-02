@@ -3035,6 +3035,8 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  isClickAndCollect: Boolean
+  deliveryMethod: DeliveryMethod
   languageCode: String! @deprecated(reason: "Use the `languageCodeEnum` field to fetch the language code. This field will be removed in Saleor 4.0.")
   languageCodeEnum: LanguageCodeEnum!
   discount: Money @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")

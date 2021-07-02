@@ -5,7 +5,7 @@ from promise import Promise
 
 from saleor.graphql.warehouse.dataloaders import WarehouseByIdLoader
 
-from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
+from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo, DeliveryMethodInfo
 from ...checkout.models import Checkout, CheckoutLine
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
@@ -225,6 +225,16 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
 
                     checkout_info_map = {}
                     for key, checkout, channel in zip(keys, checkouts, channels):
+                        delivery_method = shipping_method_map.get(
+                            checkout.shipping_method_id
+                        ) or collection_points_map.get(checkout.collection_point_id)
+                        shipping_address = (
+                            address_map.get(checkout.shipping_address_id),
+                        )
+                        delivery_method_info = DeliveryMethodInfo.from_delivery_method(
+                            delivery_method, shipping_address
+                        )
+
                         checkout_info_map[key] = CheckoutInfo(
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
@@ -238,10 +248,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             shipping_method=shipping_method_map.get(
                                 checkout.shipping_method_id
                             ),
-                            delivery_method=shipping_method_map.get(
-                                checkout.shipping_method_id
-                            )
-                            or collection_points_map.get(checkout.collection_point_id),
+                            delivery_method_info=delivery_method_info,
                             valid_shipping_methods=[],
                             valid_pick_up_points=[],
                             shipping_method_channel_listings=(
@@ -250,6 +257,10 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                                 )
                             ),
                         )
+                        delivery_method = shipping_method_map.get(
+                            checkout.shipping_method_id
+                        ) or collection_points_map.get(checkout.collection_point_id)
+
                     return [checkout_info_map[key] for key in keys]
 
                 return Promise.all(

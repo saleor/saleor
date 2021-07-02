@@ -8,6 +8,8 @@ from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
 
+from saleor.graphql.checkout.types import DeliveryMethod
+
 from ...account.models import Address
 from ...account.utils import requestor_is_staff_member_or_app
 from ...core.anonymize import obfuscate_address, obfuscate_email
@@ -657,6 +659,13 @@ class Order(CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
     )
+    is_click_and_collect = graphene.Boolean(
+        description="Returns True, if order is set as click and collect"
+    )
+    delivery_method = graphene.Field(
+        DeliveryMethod,
+        description="The shipping method related with checkout, or warehouse if C&C",
+    )
     language_code = graphene.String(
         deprecation_reason=(
             "Use the `languageCodeEnum` field to fetch the language code. "
@@ -1028,6 +1037,23 @@ class Order(CountableDjangoObjectType):
         return Promise.all([shipping_method, channel]).then(
             wrap_shipping_method_with_channel_context
         )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_delivery_method(root: models.Order, info):
+        if root.shipping_method_id:
+            return Order.resolve_shipping_method(root, info)
+        if root.collection_point_id:
+            collection_point = WarehouseByIdLoader(info.context).load(
+                root.collection_point_id
+            )
+            return collection_point
+        return None
+
+    @staticmethod
+    @traced_resolver
+    def resolve_is_click_and_collect(root: models.Order, info):
+        return root.is_click_and_collect
 
     @staticmethod
     @traced_resolver

@@ -32,6 +32,7 @@ from ..warehouse.models import Warehouse
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
 from .fetch import (
+    update_checkout_info_delivery_method,
     update_checkout_info_shipping_address,
     update_checkout_info_shipping_method,
 )
@@ -622,9 +623,35 @@ def is_valid_shipping_method(checkout_info: "CheckoutInfo"):
 
     valid_methods = checkout_info.valid_shipping_methods
     if valid_methods is None or checkout_info.shipping_method not in valid_methods:
-        clear_shipping_method(checkout_info)
+        clear_shipping_method(checkout_info)  # TODO: Derid
         return False
     return True
+
+
+def is_valid_delivery_method(checkout_info: "CheckoutInfo") -> bool:
+    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method = delivery_method_info.delivery_method
+    if not delivery_method:
+        return False
+    if not delivery_method_info.shipping_address:
+        return False
+    return True
+
+
+def is_delivery_method_in_valid_delivery_methods(checkout_info: "CheckoutInfo") -> bool:
+    valid_delivery_methods = checkout_info.valid_delivery_methods
+    return bool(
+        valid_delivery_methods
+        and checkout_info.delivery_method_info.delivery_method in valid_delivery_methods
+    )
+
+
+def clear_delivery_method(checkout_info: "CheckoutInfo"):
+    checkout = checkout_info.checkout
+    checkout.collection_point = None
+    checkout.shipping_method = None  # TODO: Think about it
+    update_checkout_info_delivery_method(checkout_info, None)
+    checkout.save(update_fields=["shipping_method", "collection_point", "last_change"])
 
 
 def clear_shipping_method(checkout_info: "CheckoutInfo"):
