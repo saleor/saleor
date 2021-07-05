@@ -1432,10 +1432,7 @@ def test_customer_update(
     assert name_changed_event.parameters == {"message": customer.get_full_name()}
 
 
-def test_customer_update_generates_event_when_changing_email(
-    staff_api_client, staff_user, customer_user, address, permission_manage_users
-):
-    query = """
+UPDATE_CUSTOMER_EMAIL_MUTATION = """
     mutation UpdateCustomer(
             $id: ID!, $firstName: String, $lastName: String, $email: String) {
         customerUpdate(id: $id, input: {
@@ -1449,7 +1446,13 @@ def test_customer_update_generates_event_when_changing_email(
             }
         }
     }
-    """
+"""
+
+
+def test_customer_update_generates_event_when_changing_email(
+    staff_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    query = UPDATE_CUSTOMER_EMAIL_MUTATION
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     address_data = convert_dict_keys_to_camel_case(address.as_data())
@@ -1477,21 +1480,7 @@ def test_customer_update_generates_event_when_changing_email(
 def test_customer_update_without_any_changes_generates_no_event(
     staff_api_client, customer_user, address, permission_manage_users
 ):
-    query = """
-    mutation UpdateCustomer(
-            $id: ID!, $firstName: String, $lastName: String, $email: String) {
-        customerUpdate(id: $id, input: {
-            firstName: $firstName,
-            lastName: $lastName,
-            email: $email
-        }) {
-            errors {
-                field
-                message
-            }
-        }
-    }
-    """
+    query = UPDATE_CUSTOMER_EMAIL_MUTATION
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     address_data = convert_dict_keys_to_camel_case(address.as_data())
@@ -1511,6 +1500,32 @@ def test_customer_update_without_any_changes_generates_no_event(
 
     # No event should have been generated
     assert not account_events.CustomerEvent.objects.exists()
+
+
+def test_customer_update_generates_event_when_changing_email_by_app(
+    app_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    query = UPDATE_CUSTOMER_EMAIL_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
+
+    new_street_address = "Updated street address"
+    address_data["streetAddress1"] = new_street_address
+
+    variables = {
+        "id": user_id,
+        "firstName": customer_user.first_name,
+        "lastName": customer_user.last_name,
+        "email": "mirumee@example.com",
+    }
+    app_api_client.post_graphql(query, variables, permissions=[permission_manage_users])
+
+    # The email was changed, an event should have been triggered
+    email_changed_event = account_events.CustomerEvent.objects.get()
+    assert email_changed_event.type == account_events.CustomerEvents.EMAIL_ASSIGNED
+    assert email_changed_event.user is None
+    assert email_changed_event.parameters == {"message": "mirumee@example.com"}
 
 
 ACCOUNT_UPDATE_QUERY = """
@@ -1963,6 +1978,45 @@ def test_customer_delete(
     mocked_deletion_event.assert_called_once_with(
         staff_user=staff_user, deleted_count=1
     )
+    delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
+
+
+@patch("saleor.account.signals.delete_versatile_image")
+@patch(
+    "saleor.graphql.account.utils.account_events.staff_user_deleted_a_customer_event"
+)
+def test_customer_delete_by_app(
+    mocked_deletion_event,
+    delete_versatile_image_mock,
+    app_api_client,
+    staff_user,
+    customer_user,
+    image,
+    permission_manage_users,
+    media_root,
+):
+    """Ensure deleting a customer actually deletes the customer and creates proper
+    related events"""
+
+    query = CUSTOMER_DELETE_MUTATION
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    customer_user.avatar = image
+    customer_user.save(update_fields=["avatar"])
+    variables = {"id": customer_id}
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["customerDelete"]
+    assert data["errors"] == []
+    assert data["user"]["id"] == customer_id
+
+    # Ensure the customer was properly deleted
+    # and any related event was properly triggered
+    assert mocked_deletion_event.call_count == 1
+    args, kwargs = mocked_deletion_event.call_args
+    assert kwargs["deleted_count"] == 1
+    assert kwargs["staff_user"].is_anonymous
     delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
 
 

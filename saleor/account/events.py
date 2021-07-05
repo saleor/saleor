@@ -1,8 +1,11 @@
 from typing import Optional
 
+from ..core.utils.validators import user_is_valid
 from ..order.models import Order, OrderLine
 from . import CustomerEvents
 from .models import CustomerEvent, User
+
+UserType = Optional[User]
 
 
 def customer_account_created_event(*, user: User) -> Optional[CustomerEvent]:
@@ -49,8 +52,10 @@ def customer_placed_order_event(*, user: User, order: Order) -> Optional[Custome
 
 
 def customer_added_to_note_order_event(
-    *, user: User, order: Order, message: str
+    *, user: UserType, order: Order, message: str
 ) -> CustomerEvent:
+    if not user_is_valid(user):
+        user = None
     return CustomerEvent.objects.create(
         user=user,
         order=order,
@@ -71,8 +76,10 @@ def customer_downloaded_a_digital_link_event(
 
 
 def staff_user_deleted_a_customer_event(
-    *, staff_user: User, deleted_count: int = 1
+    *, staff_user: UserType, deleted_count: int = 1
 ) -> CustomerEvent:
+    if not user_is_valid(staff_user):
+        staff_user = None
     return CustomerEvent.objects.create(
         user=staff_user,
         order=None,
@@ -82,8 +89,10 @@ def staff_user_deleted_a_customer_event(
 
 
 def staff_user_assigned_email_to_a_customer_event(
-    *, staff_user: User, new_email: str
+    *, staff_user: UserType, new_email: str
 ) -> CustomerEvent:
+    if not user_is_valid(staff_user):
+        staff_user = None
     return CustomerEvent.objects.create(
         user=staff_user,
         order=None,
@@ -92,20 +101,11 @@ def staff_user_assigned_email_to_a_customer_event(
     )
 
 
-def staff_user_added_note_to_a_customer_event(
-    *, staff_user: User, note: str
-) -> CustomerEvent:
-    return CustomerEvent.objects.create(
-        user=staff_user,
-        order=None,
-        type=CustomerEvents.NOTE_ADDED,
-        parameters={"message": note},
-    )
-
-
 def staff_user_assigned_name_to_a_customer_event(
-    *, staff_user: User, new_name: str
+    *, staff_user: UserType, new_name: str
 ) -> CustomerEvent:
+    if not user_is_valid(staff_user):
+        staff_user = None
     return CustomerEvent.objects.create(
         user=staff_user,
         order=None,
