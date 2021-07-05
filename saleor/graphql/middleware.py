@@ -3,9 +3,10 @@ from typing import Optional
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import AnonymousUser
+from django.db.models import Exists, OuterRef
 from django.utils.functional import SimpleLazyObject
 
-from ..app.models import App
+from ..app.models import App, AppToken
 from ..core.exceptions import ReadOnlyException
 from .views import API_PATH, GraphQLView
 
@@ -28,7 +29,10 @@ class JWTMiddleware:
 
 
 def get_app(auth_token) -> Optional[App]:
-    return App.objects.filter(tokens__auth_token=auth_token, is_active=True).first()
+    tokens = AppToken.objects.filter(auth_token=auth_token).values("pk")
+    return App.objects.filter(
+        Exists(tokens.filter(app_id=OuterRef("pk"))), is_active=True
+    ).first()
 
 
 def app_middleware(next, root, info, **kwargs):
