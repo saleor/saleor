@@ -1053,7 +1053,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_is_click_and_collect(root: models.Order, info):
-        return root.is_click_and_collect
+        return bool(root.collection_point_id)
 
     @staticmethod
     @traced_resolver

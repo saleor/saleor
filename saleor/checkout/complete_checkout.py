@@ -99,7 +99,6 @@ def _process_shipping_data_for_order(
 
     result: Dict[str, Any] = {
         "shipping_address": shipping_address,
-        "is_click_and_collect": is_click_and_collect,
         "shipping_method_name": smart_text(
             checkout_info.shipping_method
         ),  # TODO: collection_point_name?
