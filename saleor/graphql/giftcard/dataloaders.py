@@ -12,4 +12,4 @@ class GiftCardsByUserLoader(DataLoader):
         gift_cards_by_user_map = defaultdict(list)
         for gift_card in gift_cards:
             gift_cards_by_user_map[gift_card.user_id].append(gift_card)
-        return [gift_cards_by_user_map.get(user_id) for user_id in keys]
+        return [gift_cards_by_user_map.get(user_id, []) for user_id in keys]

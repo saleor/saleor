@@ -273,7 +273,7 @@ class User(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_addresses(root: models.User, info, **_kwargs):
+    def resolve_addresses(root: models.User, _info, **_kwargs):
         return root.addresses.annotate_default(root).all()  # type: ignore
 
     @staticmethod
@@ -344,13 +344,13 @@ class User(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_orders(root: models.User, info, **_kwargs):
-        def _resolve_order(orders):
+        def _resolve_orders(orders):
             requester = info.context.user
             if requester.has_perm(OrderPermissions.MANAGE_ORDERS):
                 return orders
             return list(filter(lambda order: order.status != OrderStatus.DRAFT, orders))
 
-        return OrdersByUserLoader(info.context).load(root.id).then(_resolve_order)
+        return OrdersByUserLoader(info.context).load(root.id).then(_resolve_orders)
 
     @staticmethod
     @traced_resolver
