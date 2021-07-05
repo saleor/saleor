@@ -5,7 +5,16 @@ from typing import Dict, Iterable, List, Optional
 import django_filters
 import graphene
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
+from django.db.models import (
+    DateTimeField,
+    Exists,
+    F,
+    FloatField,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+)
 from django.db.models.fields import IntegerField
 from django.db.models.functions import Cast, Coalesce
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
@@ -110,6 +119,41 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
         queries[attr_pk] += attr_val_pks
 
 
+def _clean_product_attributes_date_time_range_filter_input(
+    filter_value, queries: T_PRODUCT_FILTER_QUERIES, *, is_date=False
+):
+    attribute_slugs = [slug for slug, _ in filter_value]
+    attributes = Attribute.objects.filter(slug__in=attribute_slugs).prefetch_related(
+        "values"
+    )
+    values_map = {
+        attr.slug: {
+            "pk": attr.pk,
+            "values": {val.date_time: val.pk for val in attr.values.all()},
+        }
+        for attr in attributes
+    }
+    for attr_slug, val_range in filter_value:
+        attr_pk = values_map[attr_slug]["pk"]
+        attr_values = values_map[attr_slug]["values"]
+        gte = val_range.get("gte")
+        lte = val_range.get("lte")
+        matching_values_pk = []
+
+        for value, pk in attr_values.items():
+            if is_date:
+                value = value.date()
+
+            if gte and lte and gte <= value <= lte:
+                matching_values_pk.append(pk)
+            elif gte and gte <= value:
+                matching_values_pk.append(pk)
+            elif lte and value >= lte:
+                matching_values_pk.append(pk)
+
+        queries[attr_pk] += matching_values_pk
+
+
 def _clean_product_attributes_boolean_filter_input(
     filter_value, queries: T_PRODUCT_FILTER_QUERIES
 ):
@@ -168,7 +212,12 @@ def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
 
 
 def filter_products_by_attributes(
-    qs, filter_values, filter_range_values, filter_boolean_values
+    qs,
+    filter_values,
+    filter_range_values,
+    filter_boolean_values,
+    date_range_list,
+    date_time_range_list,
 ):
     queries: Dict[int, List[Optional[int]]] = defaultdict(list)
     try:
@@ -176,6 +225,14 @@ def filter_products_by_attributes(
             _clean_product_attributes_filter_input(filter_values, queries)
         if filter_range_values:
             _clean_product_attributes_range_filter_input(filter_range_values, queries)
+        if date_range_list:
+            _clean_product_attributes_date_time_range_filter_input(
+                date_range_list, queries, is_date=True
+            )
+        if date_time_range_list:
+            _clean_product_attributes_date_time_range_filter_input(
+                date_time_range_list, queries
+            )
         if filter_boolean_values:
             _clean_product_attributes_boolean_filter_input(
                 filter_boolean_values, queries
@@ -269,8 +326,10 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
 def _filter_attributes(qs, _, value):
     if value:
         value_list = []
-        value_range_list = []
         boolean_list = []
+        value_range_list = []
+        date_range_list = []
+        date_time_range_list = []
 
         for v in value:
             slug = v["slug"]
@@ -278,10 +337,20 @@ def _filter_attributes(qs, _, value):
                 value_list.append((slug, v["values"]))
             elif "values_range" in v:
                 value_range_list.append((slug, v["values_range"]))
+            elif "date" in v:
+                date_range_list.append((slug, v["date"]))
+            elif "date_time" in v:
+                date_time_range_list.append((slug, v["date_time"]))
             elif "boolean" in v:
                 boolean_list.append((slug, v["boolean"]))
+
         qs = filter_products_by_attributes(
-            qs, value_list, value_range_list, boolean_list
+            qs,
+            value_list,
+            value_range_list,
+            boolean_list,
+            date_range_list,
+            date_time_range_list,
         )
     return qs
 

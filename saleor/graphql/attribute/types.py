@@ -11,7 +11,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import FilterInputConnectionField
 from ..core.types import File
-from ..core.types.common import IntRangeInput
+from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
@@ -215,6 +215,16 @@ class AttributeInput(graphene.InputObjectType):
         IntRangeInput,
         required=False,
         description=AttributeValueDescriptions.VALUES_RANGE,
+    )
+    date_time = graphene.Field(
+        DateTimeRangeInput,
+        required=False,
+        description=AttributeValueDescriptions.DATE_TIME_RANGE,
+    )
+    date = graphene.Field(
+        DateRangeInput,
+        required=False,
+        description=AttributeValueDescriptions.DATE_RANGE,
     )
     boolean = graphene.Boolean(
         required=False, description=AttributeDescriptions.BOOLEAN

@@ -1,7 +1,6 @@
 import re
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union, cast
 from urllib.parse import urlparse
 
@@ -208,10 +207,10 @@ class AttributeAssignmentMixin:
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
     ):
-        value = cast(datetime, attr_values.date)
+        value = attr_values.date
         defaults = {
             "date_time": value,
-            "name": f"{attribute.name}: {value.date()}",
+            "name": f"{attribute.name}: {value}",
         }
         return (
             cls._update_or_create_value(instance, attribute, defaults) if value else ()
@@ -224,7 +223,7 @@ class AttributeAssignmentMixin:
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
     ):
-        value = cast(datetime, attr_values.date_time)
+        value = attr_values.date_time
         defaults = {
             "date_time": value,
             "name": f"{attribute.name}: {value}",
