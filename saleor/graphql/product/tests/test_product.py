@@ -52,6 +52,9 @@ from ...tests.utils import (
     get_graphql_content_from_response,
     get_multipart_request_body,
 )
+from ....webhook.payloads import generate_product_variant_payload
+from ....plugins.manager import get_plugins_manager
+
 from ..bulk_mutations.products import ProductVariantStocksUpdate
 from ..enums import VariantAttributeScope
 from ..utils import create_stocks
@@ -9983,7 +9986,7 @@ def test_create_stocks(variant, warehouse):
     }
 
 
-def test_update_or_create_variant_stocks(variant, warehouses):
+def test_update_or_create_variant_stocks(variant, warehouses, info):
     Stock.objects.create(
         product_variant=variant,
         warehouse=warehouses[0],
@@ -9995,7 +9998,7 @@ def test_update_or_create_variant_stocks(variant, warehouses):
     ]
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses
+        variant, stocks_data, warehouses, info
     )
 
     variant.refresh_from_db()
@@ -10008,20 +10011,81 @@ def test_update_or_create_variant_stocks(variant, warehouses):
     }
 
 
-def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
+def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses, info):
     Stock.objects.create(
         product_variant=variant,
         warehouse=warehouses[0],
         quantity=5,
     )
 
-    ProductVariantStocksUpdate.update_or_create_variant_stocks(variant, [], warehouses)
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, [], warehouses, info
+    )
 
     variant.refresh_from_db()
     assert variant.stocks.count() == 1
     stock = variant.stocks.first()
     assert stock.warehouse == warehouses[0]
     assert stock.quantity == 5
+
+
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_update_or_create_variant_stocks_empty_stocks_data_with_variant_stocks_webhooks(
+    mocked_webhook_trigger, settings, variant, warehouses, info
+):
+    Stock.objects.create(
+        product_variant=variant,
+        warehouse=warehouses[0],
+    )
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    info.context.plugins = get_plugins_manager()
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+    ]
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses, info
+    )
+
+    assert (
+        mocked_webhook_trigger.call_args_list[0][0][0] == "product_variant_stock_exists"
+    )
+    assert (
+        mocked_webhook_trigger.call_args_list[1][0][0]
+        == "product_variant_stock_changed"
+    )
+    assert mocked_webhook_trigger.call_count == 2
+
+
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_update_or_create_variant_stocks_with_stock_changed_webhook_only(
+    mocked_webhook_trigger, settings, variant, warehouses, info
+):
+    Stock.objects.create(product_variant=variant, warehouse=warehouses[0], quantity=5)
+    from saleor.plugins.manager import get_plugins_manager
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    info.context.plugins = get_plugins_manager()
+
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+    ]
+
+    from saleor.webhook.payloads import generate_product_variant_payload
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses, info
+    )
+
+    assert mocked_webhook_trigger.call_count == 1
+
+    expected_data = generate_product_variant_payload([variant])
+
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_VARIANT_STOCK_CHANGED, expected_data
+    )
 
 
 # Because we use Scalars for Weight this test query tests only a scenario when weight

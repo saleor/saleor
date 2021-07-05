@@ -205,6 +205,26 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.PRODUCT_VARIANT_DELETED, product_variant_data
         )
 
+    def product_variant_stock_changed(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        product_variant_data = generate_product_variant_payload([product_variant])
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.PRODUCT_VARIANT_STOCK_CHANGED, product_variant_data
+        )
+
+    def product_variant_stock_exists(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        product_variant_data = generate_product_variant_payload([product_variant])
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.PRODUCT_VARIANT_STOCK_EXISTS, product_variant_data
+        )
+
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
             return previous_value

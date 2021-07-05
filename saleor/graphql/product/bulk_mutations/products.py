@@ -716,22 +716,54 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             warehouses = cls.get_nodes_or_error(
                 warehouse_ids, "warehouse", only_type=Warehouse
             )
-            cls.update_or_create_variant_stocks(variant, stocks, warehouses)
+            cls.update_or_create_variant_stocks(variant, stocks, warehouses, info)
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
     @traced_atomic_transaction()
-    def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses):
+    def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses, info):
         stocks = []
         for stock_data, warehouse in zip(stocks_data, warehouses):
-            stock, _ = warehouse_models.Stock.objects.get_or_create(
+            stock, created = warehouse_models.Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
             )
+            stocks.append(
+                {
+                    "stock": stock,
+                    "created": created,
+                    "prev_quantity": stock.quantity,
+                    "current_quantity": stock_data["quantity"],
+                }
+            )
             stock.quantity = stock_data["quantity"]
-            stocks.append(stock)
-        warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])
+        stocks_to_update = [s["stock"] for s in stocks]
+        warehouse_models.Stock.objects.bulk_update(stocks_to_update, ["quantity"])
+        cls._run_product_variant_stock_exists_webhook(info, stocks)
+        cls._run_product_variant_stock_changed_webhook(info, stocks_to_update)
+
+    @classmethod
+    def _run_product_variant_stock_exists_webhook(cls, info, updated_stocks):
+        for stock in (
+            s["stock"]
+            for s in updated_stocks
+            if cls._product_variant_webhook_conditions(s)
+        ):
+            info.context.plugins.product_variant_stock_exists(stock.product_variant)
+
+    @classmethod
+    def _run_product_variant_stock_changed_webhook(cls, info, updated_stocks):
+        for stock in updated_stocks:
+            info.context.plugins.product_variant_stock_changed(stock.product_variant)
+
+    @classmethod
+    def _product_variant_webhook_conditions(cls, updated_stock):
+        return (
+            not updated_stock["created"]
+            and updated_stock["prev_quantity"] == 0
+            and updated_stock["current_quantity"] > 0
+        )
 
 
 class ProductVariantStocksDelete(BaseMutation):

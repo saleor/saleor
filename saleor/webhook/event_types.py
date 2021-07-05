@@ -36,6 +36,9 @@ class WebhookEventType:
     PRODUCT_VARIANT_UPDATED = "product_variant_updated"
     PRODUCT_VARIANT_DELETED = "product_variant_deleted"
 
+    PRODUCT_VARIANT_STOCK_CHANGED = "product_variant_stock_changed"
+    PRODUCT_VARIANT_STOCK_EXISTS = "product_variant_stock_exists"
+
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPDATED = "checkout_updated"
 
@@ -75,6 +78,8 @@ class WebhookEventType:
         PRODUCT_VARIANT_CREATED: "Product variant created",
         PRODUCT_VARIANT_UPDATED: "Product variant updated",
         PRODUCT_VARIANT_DELETED: "Product variant deleted",
+        PRODUCT_VARIANT_STOCK_CHANGED: "Product variant stock changed",
+        PRODUCT_VARIANT_STOCK_EXISTS: "Product variant stock exists",
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPDATED: "Checkout updated",
         FULFILLMENT_CREATED: "Fulfillment_created",
@@ -113,6 +118,8 @@ class WebhookEventType:
         (PRODUCT_VARIANT_CREATED, DISPLAY_LABELS[PRODUCT_VARIANT_CREATED]),
         (PRODUCT_VARIANT_UPDATED, DISPLAY_LABELS[PRODUCT_VARIANT_UPDATED]),
         (PRODUCT_VARIANT_DELETED, DISPLAY_LABELS[PRODUCT_VARIANT_DELETED]),
+        (PRODUCT_VARIANT_STOCK_CHANGED, DISPLAY_LABELS[PRODUCT_VARIANT_STOCK_CHANGED]),
+        (PRODUCT_VARIANT_STOCK_EXISTS, DISPLAY_LABELS[PRODUCT_VARIANT_STOCK_EXISTS]),
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
         (CHECKOUT_UPDATED, DISPLAY_LABELS[CHECKOUT_UPDATED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
