@@ -1,5 +1,7 @@
 import decimal
+from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
@@ -104,3 +106,9 @@ def parse_payment_action_response(
             "transaction_already_processed", False
         ),
     )
+
+
+@contextmanager
+def _catch_duration_time():
+    start = datetime.now()
+    yield lambda: datetime.now() - start

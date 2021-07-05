@@ -127,3 +127,20 @@ class Job(models.Model):
 
     class Meta:
         abstract = True
+
+
+class EventPayload(models.Model):
+    payload = JSONField(default=dict, encoder=CustomJsonEncoder)
+
+
+class EventPayloadReference(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    event_payload = models.ForeignKey(
+        EventPayload, null=True, on_delete=models.SET_NULL
+    )
+    task_id = models.CharField(max_length=254)
+    status = models.CharField(max_length=50, choices=JobStatus.CHOICES)
+    error = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
+    duration = models.CharField(max_length=254)
+    webhook = models.ForeignKey("webhook.Webhook", null=True, on_delete=models.SET_NULL)
+    event_type = models.CharField(max_length=254)
