@@ -140,7 +140,6 @@ class Order(ModelWithMetadata):
     shipping_method_name = models.CharField(
         max_length=255, null=True, default=None, blank=True, editable=False
     )
-    is_click_and_collect = models.BooleanField(default=False)
 
     channel = models.ForeignKey(
         Channel,

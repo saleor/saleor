@@ -1001,6 +1001,7 @@ type Checkout implements Node & ObjectWithMetadata {
   availablePaymentGateways: [PaymentGateway!]!
   email: String!
   isShippingRequired: Boolean!
+  isClickAndCollect: Boolean
   quantity: Int!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
