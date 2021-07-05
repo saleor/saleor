@@ -72,6 +72,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use GraphQL IDs instead of database IDs in export - #7240 by @IKarbowiak
 - Fix draft order tax mismatch - #7226 by @IKarbowiak
   - Introduce `calculate_order_line_total` plugin method
+- Update core logging for better Celery tasks handling - #7251 by @tomaszszymanski129
 - Raise ValidationError when refund cannot be performed - #7260 by @IKarbowiak
 - Extend order with origin and original order values - #7326 by @IKarbowiak
 - Fix customer addresses missing after customer creation - #7327 by @tomaszszymanski129
@@ -117,6 +118,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add file format validation for uploaded images - #7447 by @IKarbowiak
 - Add boolean attributes - #7454 by @piotrgrundas
 - Fix attaching params for address form errors - #7485 by @IKarbowiak
+- Update draft order validation - #7253 by @IKarbowiak
+  - Extend Order type with errors: [OrderError!]! field
+  - Create tasks for deleting order lines by deleting products or variants
+- Fix doubled checkout total price for one line and zero shipping price - #7532 by @IKarbowiak
+- Deprecate nested objects in TranslatableContent types - #7522 by @IKarbowiak
+- Fix failing account mutations for app - #7569 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -214,6 +221,9 @@ All notable, unreleased changes to this project will be documented in this file.
   - `values` for attributes without choices from now are empty list.
   - attributes with choices - `DROPDOWN` and `MULTISELECT`
   - attributes without choices - `FILE`, `REFERENCE`, `NUMERIC` and `RICH_TEXT`
+- Unify checkout identifier in checkout mutations and queries - #7511 by @IKarbowiak
+- Use root level channel argument for filtering and sorting - #7374 by @IKarbowiak
+  - drop `channel` field from filters and sorters
 
 ### Other
 

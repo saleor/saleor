@@ -1432,10 +1432,7 @@ def test_customer_update(
     assert name_changed_event.parameters == {"message": customer.get_full_name()}
 
 
-def test_customer_update_generates_event_when_changing_email(
-    staff_api_client, staff_user, customer_user, address, permission_manage_users
-):
-    query = """
+UPDATE_CUSTOMER_EMAIL_MUTATION = """
     mutation UpdateCustomer(
             $id: ID!, $firstName: String, $lastName: String, $email: String) {
         customerUpdate(id: $id, input: {
@@ -1449,7 +1446,13 @@ def test_customer_update_generates_event_when_changing_email(
             }
         }
     }
-    """
+"""
+
+
+def test_customer_update_generates_event_when_changing_email(
+    staff_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    query = UPDATE_CUSTOMER_EMAIL_MUTATION
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     address_data = convert_dict_keys_to_camel_case(address.as_data())
@@ -1477,21 +1480,7 @@ def test_customer_update_generates_event_when_changing_email(
 def test_customer_update_without_any_changes_generates_no_event(
     staff_api_client, customer_user, address, permission_manage_users
 ):
-    query = """
-    mutation UpdateCustomer(
-            $id: ID!, $firstName: String, $lastName: String, $email: String) {
-        customerUpdate(id: $id, input: {
-            firstName: $firstName,
-            lastName: $lastName,
-            email: $email
-        }) {
-            errors {
-                field
-                message
-            }
-        }
-    }
-    """
+    query = UPDATE_CUSTOMER_EMAIL_MUTATION
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     address_data = convert_dict_keys_to_camel_case(address.as_data())
@@ -1511,6 +1500,32 @@ def test_customer_update_without_any_changes_generates_no_event(
 
     # No event should have been generated
     assert not account_events.CustomerEvent.objects.exists()
+
+
+def test_customer_update_generates_event_when_changing_email_by_app(
+    app_api_client, staff_user, customer_user, address, permission_manage_users
+):
+    query = UPDATE_CUSTOMER_EMAIL_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
+
+    new_street_address = "Updated street address"
+    address_data["streetAddress1"] = new_street_address
+
+    variables = {
+        "id": user_id,
+        "firstName": customer_user.first_name,
+        "lastName": customer_user.last_name,
+        "email": "mirumee@example.com",
+    }
+    app_api_client.post_graphql(query, variables, permissions=[permission_manage_users])
+
+    # The email was changed, an event should have been triggered
+    email_changed_event = account_events.CustomerEvent.objects.get()
+    assert email_changed_event.type == account_events.CustomerEvents.EMAIL_ASSIGNED
+    assert email_changed_event.user is None
+    assert email_changed_event.parameters == {"message": "mirumee@example.com"}
 
 
 ACCOUNT_UPDATE_QUERY = """
@@ -1963,6 +1978,45 @@ def test_customer_delete(
     mocked_deletion_event.assert_called_once_with(
         staff_user=staff_user, deleted_count=1
     )
+    delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
+
+
+@patch("saleor.account.signals.delete_versatile_image")
+@patch(
+    "saleor.graphql.account.utils.account_events.staff_user_deleted_a_customer_event"
+)
+def test_customer_delete_by_app(
+    mocked_deletion_event,
+    delete_versatile_image_mock,
+    app_api_client,
+    staff_user,
+    customer_user,
+    image,
+    permission_manage_users,
+    media_root,
+):
+    """Ensure deleting a customer actually deletes the customer and creates proper
+    related events"""
+
+    query = CUSTOMER_DELETE_MUTATION
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    customer_user.avatar = image
+    customer_user.save(update_fields=["avatar"])
+    variables = {"id": customer_id}
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["customerDelete"]
+    assert data["errors"] == []
+    assert data["user"]["id"] == customer_id
+
+    # Ensure the customer was properly deleted
+    # and any related event was properly triggered
+    assert mocked_deletion_event.call_count == 1
+    args, kwargs = mocked_deletion_event.call_args
+    assert kwargs["deleted_count"] == 1
+    assert kwargs["staff_user"].is_anonymous
     delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
 
 
@@ -3438,8 +3492,7 @@ def test_set_default_address(
     assert data["user"]["defaultShippingAddress"]["id"] == address_id
 
 
-def test_address_validation_rules(user_api_client):
-    query = """
+GET_ADDRESS_VALIDATION_RULES_QUERY = """
     query getValidator(
         $country_code: CountryCode!, $country_area: String, $city_area: String) {
         addressValidationRules(
@@ -3450,33 +3503,9 @@ def test_address_validation_rules(user_api_client):
             countryName
             addressFormat
             addressLatinFormat
-            postalCodeMatchers
-        }
-    }
-    """
-    variables = {"country_code": "PL", "country_area": None, "city_area": None}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["addressValidationRules"]
-    assert data["countryCode"] == "PL"
-    assert data["countryName"] == "POLAND"
-    assert data["addressFormat"] is not None
-    assert data["addressLatinFormat"] is not None
-    matcher = data["postalCodeMatchers"][0]
-    matcher = re.compile(matcher)
-    assert matcher.match("00-123")
-
-
-def test_address_validation_rules_with_country_area(user_api_client):
-    query = """
-    query getValidator(
-        $country_code: CountryCode!, $country_area: String, $city_area: String) {
-        addressValidationRules(
-                countryCode: $country_code,
-                countryArea: $country_area,
-                cityArea: $city_area) {
-            countryCode
-            countryName
+            allowedFields
+            requiredFields
+            upperFields
             countryAreaType
             countryAreaChoices {
                 verbose
@@ -3492,9 +3521,49 @@ def test_address_validation_rules_with_country_area(user_api_client):
                 raw
                 verbose
             }
+            postalCodeType
+            postalCodeMatchers
+            postalCodeExamples
+            postalCodePrefix
         }
     }
-    """
+"""
+
+
+def test_address_validation_rules(user_api_client):
+    query = GET_ADDRESS_VALIDATION_RULES_QUERY
+    variables = {"country_code": "PL", "country_area": None, "city_area": None}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["addressValidationRules"]
+    assert data["countryCode"] == "PL"
+    assert data["countryName"] == "POLAND"
+    assert data["addressFormat"] is not None
+    assert data["addressLatinFormat"] is not None
+    assert data["cityType"] == "city"
+    assert data["cityAreaType"] == "suburb"
+    matcher = data["postalCodeMatchers"][0]
+    matcher = re.compile(matcher)
+    assert matcher.match("00-123")
+    assert not data["cityAreaChoices"]
+    assert not data["cityChoices"]
+    assert not data["countryAreaChoices"]
+    assert data["postalCodeExamples"]
+    assert data["postalCodeType"] == "postal"
+    assert set(data["allowedFields"]) == {
+        "companyName",
+        "city",
+        "postalCode",
+        "streetAddress1",
+        "name",
+        "streetAddress2",
+    }
+    assert set(data["requiredFields"]) == {"postalCode", "streetAddress1", "city"}
+    assert set(data["upperFields"]) == {"city"}
+
+
+def test_address_validation_rules_with_country_area(user_api_client):
+    query = GET_ADDRESS_VALIDATION_RULES_QUERY
     variables = {
         "country_code": "CN",
         "country_area": "Fujian Sheng",
@@ -3509,8 +3578,29 @@ def test_address_validation_rules_with_country_area(user_api_client):
     assert data["countryAreaChoices"]
     assert data["cityType"] == "city"
     assert data["cityChoices"]
-    assert data["cityAreaType"] == "city"
+    assert data["cityAreaType"] == "district"
     assert not data["cityAreaChoices"]
+    assert data["cityChoices"]
+    assert data["countryAreaChoices"]
+    assert data["postalCodeExamples"]
+    assert data["postalCodeType"] == "postal"
+    assert set(data["allowedFields"]) == {
+        "city",
+        "postalCode",
+        "streetAddress1",
+        "name",
+        "streetAddress2",
+        "countryArea",
+        "companyName",
+        "cityArea",
+    }
+    assert set(data["requiredFields"]) == {
+        "postalCode",
+        "streetAddress1",
+        "city",
+        "countryArea",
+    }
+    assert set(data["upperFields"]) == {"countryArea"}
 
 
 def test_address_validation_rules_fields_in_camel_case(user_api_client):
@@ -4273,6 +4363,24 @@ def test_query_customers_with_filter_metadata(
     user = users[0]
     _, user_id = graphene.Node.from_global_id(user["node"]["id"])
     assert second_customer.id == int(user_id)
+
+
+def test_query_customers_search_without_duplications(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+):
+    customer = User.objects.create(email="david@example.com")
+    customer.addresses.create(first_name="David")
+    customer.addresses.create(first_name="David")
+
+    variables = {"filter": {"search": "David"}}
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    users = content["data"]["customers"]["edges"]
+    assert len(users) == 1
 
 
 QUERY_CUSTOMERS_WITH_SORT = """

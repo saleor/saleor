@@ -50,7 +50,7 @@ class App(ModelWithMetadata):
     app_url = models.URLField(blank=True, null=True)
     version = models.CharField(max_length=60, blank=True, null=True)
 
-    objects = AppQueryset.as_manager()
+    objects = models.Manager.from_queryset(AppQueryset)()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("name", "pk")

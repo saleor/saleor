@@ -12,8 +12,8 @@ from ....attribute import AttributeInputType
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.units import WeightUnits
-from ....order import OrderStatus
-from ....order.models import OrderLine
+from ....order import OrderEvents, OrderStatus
+from ....order.models import OrderEvent, OrderLine
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Product, ProductChannelListing, ProductVariant
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
@@ -330,7 +330,7 @@ CREATE_VARIANT_MUTATION = """
             $productId: ID!,
             $sku: String,
             $stocks: [StockInput!],
-            $attributes: [AttributeValueInput]!,
+            $attributes: [AttributeValueInput!]!,
             $weight: WeightScalar,
             $trackInventory: Boolean) {
                 productVariantCreate(
@@ -1267,7 +1267,7 @@ def test_create_variant_invalid_variant_attributes(
         "weight": weight,
         "attributes": [
             {"id": color_attr_id, "values": [" "]},
-            {"id": weight_attr_id, "values": [None]},
+            {"id": weight_attr_id, "values": [" "]},
             {"id": size_attr_id, "values": [non_existent_attr_value, size_value_slug]},
             {"id": rich_text_attr_id, "richText": json.dumps(dummy_editorjs(" "))},
         ],
@@ -1366,7 +1366,7 @@ def test_product_variant_update_with_new_attributes(
     query = """
         mutation VariantUpdate(
           $id: ID!
-          $attributes: [AttributeValueInput]
+          $attributes: [AttributeValueInput!]
           $sku: String
           $trackInventory: Boolean!
         ) {
@@ -1448,7 +1448,7 @@ def test_update_product_variant(
             $id: ID!,
             $sku: String!,
             $trackInventory: Boolean!,
-            $attributes: [AttributeValueInput]) {
+            $attributes: [AttributeValueInput!]) {
                 productVariantUpdate(
                     id: $id,
                     input: {
@@ -1540,7 +1540,7 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
     mutation updateVariant (
         $id: ID!,
         $sku: String,
-        $attributes: [AttributeValueInput]!) {
+        $attributes: [AttributeValueInput!]!) {
             productVariantUpdate(
                 id: $id,
                 input: {
@@ -1750,6 +1750,50 @@ def test_update_variant_with_rich_text_attribute(
     assert data["attributes"][-1]["attribute"]["slug"] == rich_text_attribute.slug
     assert data["attributes"][-1]["values"][0]["richText"] == rich_text
     assert rich_text_attribute.values.count() == values_count
+    product_variant_updated.assert_called_once_with(product.variants.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_with_numeric_attribute(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    numeric_attribute,
+    warehouse,
+):
+    product_type.variant_attributes.add(numeric_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    attr_id = graphene.Node.to_global_id("Attribute", numeric_attribute.id)
+    attribute_value = numeric_attribute.values.first()
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": attr_id, "values": []},
+        ],
+    }
+    attribute_value.slug = f"{variant.id}_{numeric_attribute.id}"
+    attribute_value.save()
+    values_count = numeric_attribute.values.count()
+    associate_attribute_values_to_instance(variant, numeric_attribute, attribute_value)
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["attribute"]["slug"] == numeric_attribute.slug
+    assert not data["attributes"][-1]["values"]
+    assert numeric_attribute.values.count() == values_count
     product_variant_updated.assert_called_once_with(product.variants.last())
 
 
@@ -2240,7 +2284,6 @@ def test_update_product_variant_change_attribute_values_ordering(
         ([], "Attribute expects a value but none were given.", "REQUIRED"),
         (["one", "two"], "Attribute must take only one value.", "INVALID"),
         (["   "], "Attribute values cannot be blank.", "REQUIRED"),
-        ([None], "Attribute values cannot be blank.", "REQUIRED"),
     ),
 )
 def test_update_product_variant_requires_values(
@@ -2294,7 +2337,7 @@ def test_update_product_variant_with_price_does_not_raise_price_validation_error
     staff_api_client, variant, size_attribute, permission_manage_products
 ):
     mutation = """
-    mutation updateVariant ($id: ID!, $attributes: [AttributeValueInput]) {
+    mutation updateVariant ($id: ID!, $attributes: [AttributeValueInput!]) {
         productVariantUpdate(
             id: $id,
             input: {
@@ -2531,6 +2574,31 @@ def test_delete_variant_in_draft_order(
     result_call_args = sorted(mocked_recalculate_orders_task.mock_calls[0].args[0])
 
     assert result_call_args == expected_call_args
+
+    events = OrderEvent.objects.filter(type=OrderEvents.ORDER_LINE_VARIANT_DELETED)
+    assert events
+    assert {event.order for event in events} == {draft_order, second_draft_order}
+    assert {event.user for event in events} == {staff_api_client.user}
+    expected_params = [
+        {
+            "item": str(line),
+            "line_pk": line.pk,
+            "quantity": line.quantity,
+        }
+        for line in draft_order.lines.all()
+    ]
+    for param in expected_params:
+        assert param in events.get(order=draft_order).parameters
+    expected_params = [
+        {
+            "item": str(line),
+            "line_pk": line.pk,
+            "quantity": line.quantity,
+        }
+        for line in second_draft_order.lines.all()
+    ]
+    for param in expected_params:
+        assert param in events.get(order=second_draft_order).parameters
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")

@@ -1,10 +1,10 @@
-import logging
 import os
 import socket
 from typing import TYPE_CHECKING, Optional, Type, Union
 from urllib.parse import urljoin
 
 from babel.numbers import get_territory_currencies
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db.models import Model
@@ -14,7 +14,7 @@ from django_prices_openexchangerates import exchange_currency
 from prices import MoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
-logger = logging.getLogger(__name__)
+task_logger = get_task_logger(__name__)
 
 
 if TYPE_CHECKING:
@@ -105,12 +105,14 @@ def create_thumbnails(pk, model, size_set, image_attr=None):
     warmer = VersatileImageFieldWarmer(
         instance_or_queryset=instance, rendition_key_set=size_set, image_attr=image_attr
     )
-    logger.info("Creating thumbnails for  %s", pk)
+    task_logger.info("Creating thumbnails for %s", pk)
     num_created, failed_to_create = warmer.warm()
     if num_created:
-        logger.info("Created %d thumbnails", num_created)
+        task_logger.info("Created %d thumbnails", num_created)
     if failed_to_create:
-        logger.error("Failed to generate thumbnails", extra={"paths": failed_to_create})
+        task_logger.error(
+            "Failed to generate thumbnails", extra={"paths": failed_to_create}
+        )
 
 
 def generate_unique_slug(

@@ -235,7 +235,8 @@ class Order(ModelWithMetadata):
         default=zero_weight,
     )
     redirect_url = models.URLField(blank=True, null=True)
-    objects = OrderQueryset.as_manager()
+
+    objects = models.Manager.from_queryset(OrderQueryset)()
 
     class Meta:
         ordering = ("-pk",)
@@ -519,7 +520,7 @@ class OrderLine(models.Model):
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
 
-    objects = OrderLineQueryset.as_manager()
+    objects = models.Manager.from_queryset(OrderLineQueryset)()
 
     class Meta:
         ordering = ("pk",)

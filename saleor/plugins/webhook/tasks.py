@@ -6,6 +6,7 @@ from urllib.parse import urlparse, urlunparse
 
 import boto3
 import requests
+from celery.utils.log import get_task_logger
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from ...app.models import App
 
 logger = logging.getLogger(__name__)
+task_logger = get_task_logger(__name__)
 
 WEBHOOK_TIMEOUT = 10
 
@@ -175,7 +177,7 @@ def send_webhook_request(
     try:
         data = EventPayload.objects.get(id=event_payload_id)
     except EventPayload.DoesNotExist:
-        logger.error(
+        task_logger.error(
             "Cannot find payload related to webhook.",
             extra={
                 "webhook_id": webhook_id,
@@ -214,7 +216,7 @@ def send_webhook_request(
             event_type=event_type,
             webhook_id=webhook_id,
         )
-    logger.debug(
+    task_logger.debug(
         "[Webhook ID:%r] Payload sent to %r for event %r",
         webhook_id,
         target_url,

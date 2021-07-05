@@ -1,5 +1,6 @@
 from decimal import Decimal
 from functools import partial
+from typing import TYPE_CHECKING, Optional
 
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
@@ -16,6 +17,9 @@ from ..core.permissions import DiscountPermissions
 from ..core.taxes import display_gross_prices
 from ..core.utils.translations import TranslationProxy
 from . import DiscountValueType, OrderDiscountType, VoucherType
+
+if TYPE_CHECKING:
+    from ..account.models import User
 
 
 class NotApplicable(ValueError):
@@ -68,6 +72,8 @@ class Voucher(models.Model):
     apply_once_per_order = models.BooleanField(default=False)
     apply_once_per_customer = models.BooleanField(default=False)
 
+    only_for_staff = models.BooleanField(default=False)
+
     discount_value_type = models.CharField(
         max_length=10,
         choices=DiscountValueType.CHOICES,
@@ -81,7 +87,7 @@ class Voucher(models.Model):
     collections = models.ManyToManyField("product.Collection", blank=True)
     categories = models.ManyToManyField("product.Category", blank=True)
 
-    objects = VoucherQueryset.as_manager()
+    objects = models.Manager.from_queryset(VoucherQueryset)()
     translated = TranslationProxy()
 
     class Meta:
@@ -144,6 +150,14 @@ class Voucher(models.Model):
         )
         if voucher_customer:
             msg = "This offer is valid only once per customer."
+            raise NotApplicable(msg)
+
+    def validate_only_for_staff(self, customer: Optional["User"]):
+        if not self.only_for_staff:
+            return
+
+        if not customer or not customer.is_staff:
+            msg = "This offer is valid only for staff customers."
             raise NotApplicable(msg)
 
 
@@ -233,7 +247,7 @@ class Sale(models.Model):
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
 
-    objects = SaleQueryset.as_manager()
+    objects = models.Manager.from_queryset(SaleQueryset)()
     translated = TranslationProxy()
 
     class Meta:

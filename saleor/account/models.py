@@ -68,7 +68,7 @@ class Address(models.Model):
     country_area = models.CharField(max_length=128, blank=True)
     phone = PossiblePhoneNumberField(blank=True, default="")
 
-    objects = AddressQueryset.as_manager()
+    objects = models.Manager.from_queryset(AddressQueryset)()
 
     class Meta:
         ordering = ("pk",)
@@ -276,7 +276,9 @@ class CustomerEvent(models.Model):
     )
     order = models.ForeignKey("order.Order", on_delete=models.SET_NULL, null=True)
     parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
-    user = models.ForeignKey(User, related_name="events", on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, related_name="events", on_delete=models.CASCADE, null=True
+    )
 
     class Meta:
         ordering = ("date",)

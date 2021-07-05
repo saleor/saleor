@@ -158,6 +158,8 @@ class AttributeAssignmentMixin:
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
     ):
+        if not attr_values.values:
+            return tuple()
         defaults = {
             "name": attr_values.values[0],
         }

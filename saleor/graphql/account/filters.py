@@ -31,18 +31,22 @@ def filter_staff_status(qs, _, value):
 
 def filter_user_search(qs, _, value):
     if value:
-        matching = Address.objects.filter(
+        UserAddress = User.addresses.through
+        addresses = Address.objects.filter(
             Q(first_name__trigram_similar=value)
             | Q(last_name__trigram_similar=value)
             | Q(city__trigram_similar=value)
             | Q(country__trigram_similar=value)
             | Q(phone=value)
         ).values("id")
+        user_addresses = UserAddress.objects.filter(
+            Exists(addresses.filter(pk=OuterRef("address_id")))
+        ).values("user_id")
         qs = qs.filter(
             Q(email__trigram_similar=value)
             | Q(first_name__trigram_similar=value)
             | Q(last_name__trigram_similar=value)
-            | Q(Exists(matching.filter(pk=OuterRef("addresses"))))
+            | Q(Exists(user_addresses.filter(user_id=OuterRef("pk"))))
         )
     return qs
 
