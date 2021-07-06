@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.0.0 [Unreleased]
 
+- Product variant channel listing webhooks (stocks) - #SALEOR-2993 by @mstrumeck
 - Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
