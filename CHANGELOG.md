@@ -124,6 +124,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix doubled checkout total price for one line and zero shipping price - #7532 by @IKarbowiak
 - Deprecate nested objects in TranslatableContent types - #7522 by @IKarbowiak
 - Fix failing account mutations for app - #7569 by @IKarbowiak
+- Modify order of auth middleware calls - #7572 by @tomaszszymanski129
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
