@@ -215,14 +215,14 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.PRODUCT_VARIANT_STOCK_CHANGED, product_variant_data
         )
 
-    def product_variant_stock_exists(
+    def product_variant_back_in_stock(
         self, product_variant: "ProductVariant", previous_value: Any
     ) -> Any:
         if not self.active:
             return previous_value
         product_variant_data = generate_product_variant_payload([product_variant])
         trigger_webhooks_for_event.delay(
-            WebhookEventType.PRODUCT_VARIANT_STOCK_EXISTS, product_variant_data
+            WebhookEventType.PRODUCT_VARIANT_BACK_IN_STOCK, product_variant_data
         )
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:

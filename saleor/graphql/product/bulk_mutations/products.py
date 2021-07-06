@@ -741,19 +741,19 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         stocks_to_update = [data["stock"] for data in stocks_data]
         warehouse_models.Stock.objects.bulk_update(stocks_to_update, ["quantity"])
         plugins_manager = info.context.plugins
-        cls._run_product_variant_stock_exists_webhook(plugins_manager, stocks_data)
+        cls._run_product_variant_back_in_stock_webhook(plugins_manager, stocks_data)
         cls._run_product_variant_stock_changed_webhook(
             plugins_manager, stocks_to_update
         )
 
     @classmethod
-    def _run_product_variant_stock_exists_webhook(cls, plugins_manager, stocks_data):
+    def _run_product_variant_back_in_stock_webhook(cls, plugins_manager, stocks_data):
         for stock in (
             data["stock"]
             for data in stocks_data
             if cls._product_variant_webhook_conditions(data)
         ):
-            plugins_manager.product_variant_stock_exists(stock.product_variant)
+            plugins_manager.product_variant_back_in_stock(stock.product_variant)
 
     @classmethod
     def _run_product_variant_stock_changed_webhook(
