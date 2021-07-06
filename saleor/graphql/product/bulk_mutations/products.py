@@ -704,32 +704,32 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         errors = defaultdict(list)
-        stocks = data["stocks"]
+        stocks_input = data["stocks"]
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant
         )
-        if stocks:
-            warehouse_ids = [stock["warehouse"] for stock in stocks]
+        if stocks_input:
+            warehouse_ids = [stock["warehouse"] for stock in stocks_input]
             cls.check_for_duplicates(warehouse_ids, errors)
             if errors:
                 raise ValidationError(errors)
             warehouses = cls.get_nodes_or_error(
                 warehouse_ids, "warehouse", only_type=Warehouse
             )
-            cls.update_or_create_variant_stocks(variant, stocks, warehouses, info)
+            cls.update_or_create_variant_stocks(variant, stocks_input, warehouses, info)
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
     @traced_atomic_transaction()
-    def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses, info):
-        stocks = []
-        for stock_data, warehouse in zip(stocks_data, warehouses):
+    def update_or_create_variant_stocks(cls, variant, stocks_input, warehouses, info):
+        stocks_data = []
+        for stock_data, warehouse in zip(stocks_input, warehouses):
             stock, created = warehouse_models.Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
             )
-            stocks.append(
+            stocks_data.append(
                 {
                     "stock": stock,
                     "created": created,
@@ -738,24 +738,29 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 }
             )
             stock.quantity = stock_data["quantity"]
-        stocks_to_update = [s["stock"] for s in stocks]
+        stocks_to_update = [data["stock"] for data in stocks_data]
         warehouse_models.Stock.objects.bulk_update(stocks_to_update, ["quantity"])
-        cls._run_product_variant_stock_exists_webhook(info, stocks)
-        cls._run_product_variant_stock_changed_webhook(info, stocks_to_update)
+        plugins_manager = info.context.plugins
+        cls._run_product_variant_stock_exists_webhook(plugins_manager, stocks_data)
+        cls._run_product_variant_stock_changed_webhook(
+            plugins_manager, stocks_to_update
+        )
 
     @classmethod
-    def _run_product_variant_stock_exists_webhook(cls, info, updated_stocks):
+    def _run_product_variant_stock_exists_webhook(cls, plugins_manager, stocks_data):
         for stock in (
-            s["stock"]
-            for s in updated_stocks
-            if cls._product_variant_webhook_conditions(s)
+            data["stock"]
+            for data in stocks_data
+            if cls._product_variant_webhook_conditions(data)
         ):
-            info.context.plugins.product_variant_stock_exists(stock.product_variant)
+            plugins_manager.product_variant_stock_exists(stock.product_variant)
 
     @classmethod
-    def _run_product_variant_stock_changed_webhook(cls, info, updated_stocks):
+    def _run_product_variant_stock_changed_webhook(
+        cls, plugins_manager, updated_stocks
+    ):
         for stock in updated_stocks:
-            info.context.plugins.product_variant_stock_changed(stock.product_variant)
+            plugins_manager.product_variant_stock_changed(stock.product_variant)
 
     @classmethod
     def _product_variant_webhook_conditions(cls, updated_stock):
