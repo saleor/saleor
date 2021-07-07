@@ -5,16 +5,7 @@ from typing import Dict, Iterable, List, Optional
 import django_filters
 import graphene
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import (
-    DateTimeField,
-    Exists,
-    F,
-    FloatField,
-    OuterRef,
-    Q,
-    Subquery,
-    Sum,
-)
+from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
 from django.db.models.fields import IntegerField
 from django.db.models.functions import Cast, Coalesce
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
@@ -120,7 +111,7 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
 
 
 def _clean_product_attributes_date_time_range_filter_input(
-    filter_value, queries: T_PRODUCT_FILTER_QUERIES, *, is_date=False
+    filter_value, queries, *, is_date=False
 ):
     attribute_slugs = [slug for slug, _ in filter_value]
     attributes = Attribute.objects.filter(slug__in=attribute_slugs).prefetch_related(
