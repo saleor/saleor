@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from ...core.exceptions import InsufficientStock
 from ...order.error_codes import OrderErrorCode
 from ...product.models import Product, ProductChannelListing, ProductVariant
-from ...warehouse.availability import check_stock_quantity
+from ...warehouse.availability import check_stock_and_preorder_quantity
 from ..core.validators import validate_variants_available_in_channel
 
 if TYPE_CHECKING:
@@ -83,7 +83,7 @@ def validate_order_lines(order: "Order", country: str, errors: T_ERRORS):
             )
         elif line.variant.track_inventory:
             try:
-                check_stock_quantity(
+                check_stock_and_preorder_quantity(
                     line.variant, country, order.channel.slug, line.quantity
                 )
             except InsufficientStock as exc:
