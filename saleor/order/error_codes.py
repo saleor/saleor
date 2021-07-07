@@ -31,3 +31,16 @@ class OrderErrorCode(Enum):
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"
     CHANNEL_INACTIVE = "channel_inactive"
+
+
+class SubscriptionErrorCode(Enum):
+    CANNOT_CANCEL_SUBSCRIPTION = "cannot_cancel_subscription"
+    CANNOT_DELETE = "cannot_delete"
+    NOT_EDITABLE = "not_editable"
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+    UNIQUE = "unique"
+    NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"
+    CHANNEL_INACTIVE = "channel_inactive"

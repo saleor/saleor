@@ -22,6 +22,7 @@ from ..enums import (
     MenuErrorCode,
     MetadataErrorCode,
     OrderErrorCode,
+    SubscriptionErrorCode,
     OrderSettingsErrorCode,
     PageErrorCode,
     PaymentErrorCode,
@@ -187,6 +188,15 @@ class OrderError(Error):
     )
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
+    )
+
+
+class SubscriptionError(Error):
+    code = SubscriptionErrorCode(description="The error code.", required=True)
+    orders = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of orders that are associated with the error",
+        required=False,
     )
 
 

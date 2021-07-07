@@ -22,6 +22,7 @@ from ...giftcard import error_codes as giftcard_error_codes
 from ...invoice import error_codes as invoice_error_codes
 from ...menu import error_codes as menu_error_codes
 from ...order import error_codes as order_error_codes
+from ...order import SubscriptionStatus, SubscriptionPeriod, SubscriptionLimit
 from ...page import error_codes as page_error_codes
 from ...payment import error_codes as payment_error_codes
 from ...plugins import error_codes as plugin_error_codes
@@ -89,6 +90,9 @@ LanguageCodeEnum = graphene.Enum(
 
 JobStatusEnum = to_enum(JobStatus)
 PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
+SubscriptionStatusEnum = to_enum(SubscriptionStatus)
+SubscriptionPeriodEnum = to_enum(SubscriptionPeriod)
+SubscriptionLimitEnum = to_enum(SubscriptionLimit)
 
 # unit enums
 MeasurementUnitsEnum = to_enum(MeasurementUnits)
@@ -113,6 +117,7 @@ OrderSettingsErrorCode = graphene.Enum.from_enum(
 )
 MetadataErrorCode = graphene.Enum.from_enum(core_error_codes.MetadataErrorCode)
 OrderErrorCode = graphene.Enum.from_enum(order_error_codes.OrderErrorCode)
+SubscriptionErrorCode = graphene.Enum.from_enum(order_error_codes.SubscriptionErrorCode)
 InvoiceErrorCode = graphene.Enum.from_enum(invoice_error_codes.InvoiceErrorCode)
 PageErrorCode = graphene.Enum.from_enum(page_error_codes.PageErrorCode)
 PaymentErrorCode = graphene.Enum.from_enum(payment_error_codes.PaymentErrorCode)

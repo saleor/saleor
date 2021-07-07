@@ -47,6 +47,50 @@ class OrderOrigin:
     ]
 
 
+class SubscriptionStatus:
+    PENDING = "pending"  # subscription pending
+    ACTIVE = "active"  # subscription active
+    ON_HOLD = "on_hold"  # subscription marked as on hold
+    CANCELED = "canceled"  # permanently canceled subscription
+    EXPIRED = "expired"  # subscription expired
+    PENDING_CANCEL = "pending_cancel"  # subscription canceled by user but currently user have subscription
+
+    CHOICES = [
+        (PENDING, "Pending"),
+        (ACTIVE, "Active"),
+        (ON_HOLD, "On hold"),
+        (CANCELED, "Canceled"),
+        (EXPIRED, "Expired"),
+        (PENDING_CANCEL, "Pending cancel"),
+    ]
+
+
+class SubscriptionPeriod:
+    DAY = "day"  # subscription period in days
+    WEEK = "week"  # subscription period in weeks
+    MONTH = "month"  # subscription period in months
+    YEAR = "year"  # subscription period in years
+
+    CHOICES = [
+        (DAY, "Day"),
+        (WEEK, "Week"),
+        (MONTH, "Month"),
+        (YEAR, "Year"),
+    ]
+
+
+class SubscriptionLimit:
+    NO = "no"  # user does not have any limit for subscription
+    ACTIVE = "active"  # user can have only one active subscription
+    ANY = "any"  # user can have only one subscription
+
+    CHOICES = [
+        (NO, "No"),
+        (ACTIVE, "Active"),
+        (ANY, "Any"),
+    ]
+
+
 class FulfillmentStatus:
     FULFILLED = "fulfilled"  # group of products in an order marked as fulfilled
     REFUNDED = "refunded"  # group of refunded products
