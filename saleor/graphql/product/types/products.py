@@ -170,6 +170,21 @@ class ProductPricingInfo(BasePricingInfo):
 
 
 @key(fields="id")
+class ProductVariantSubscription(CountableDjangoObjectType):
+    number = graphene.String(description="User-friendly number of a product variant subscription.")
+
+    class Meta:
+        description = "Represents a product variant subscription."
+        fields = ["id", "billing_interval", "billing_period", "trial_interval", "trial_period", "length", "limit"]
+        interfaces = [relay.Node]
+        model = models.ProductVariantSubscription
+
+    @staticmethod
+    def resolve_number(root: models.ProductVariantSubscription, _info):
+        return str(root.pk)
+
+
+@key(fields="id")
 class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     channel_listings = graphene.List(
         graphene.NonNull(ProductVariantChannelListing),
@@ -247,6 +262,13 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 "country will be returned. Otherwise, it will return the maximum "
                 "quantity from all shipping zones."
             ),
+        ),
+    )
+    subscription = graphene.Field(
+        ProductVariantSubscription,
+        required=False,
+        description=(
+            "Subscription of the product variant."
         ),
     )
 

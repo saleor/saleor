@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import (
@@ -49,6 +50,7 @@ from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
+from ..order import SubscriptionPeriod, SubscriptionLimit
 from . import ProductMediaTypes
 
 if TYPE_CHECKING:
@@ -551,6 +553,10 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         is_digital = self.product.product_type.is_digital
         return not self.is_shipping_required() and is_digital
 
+    def is_subscription(self) -> bool:
+        is_subscription = hasattr(self, "subscription")
+        return is_subscription
+
     def display_product(self, translated: bool = False) -> str:
         if translated:
             product = self.product.translated
@@ -565,6 +571,38 @@ class ProductVariant(SortableModel, ModelWithMetadata):
 
     def get_ordering_queryset(self):
         return self.product.variants.all()
+
+
+class ProductVariantSubscription(models.Model):
+    variant = models.OneToOneField(
+        "ProductVariant",
+        on_delete=models.CASCADE,
+        related_name="subscription",
+    )
+    billing_interval = models.IntegerField(
+        default=1,
+        validators=[MaxValueValidator(6), MinValueValidator(1)]
+    )
+    billing_period = models.CharField(
+        max_length=128,
+        default=SubscriptionPeriod.DAY,
+        choices=SubscriptionPeriod.CHOICES
+    )
+    trial_interval = models.IntegerField(default=0)
+    trial_period = models.CharField(
+        max_length=128,
+        default=SubscriptionPeriod.DAY,
+        choices=SubscriptionPeriod.CHOICES
+    )
+    length = models.IntegerField(default=0)
+    limit = models.CharField(
+        max_length=128,
+        default=SubscriptionLimit.NO,
+        choices=SubscriptionLimit.CHOICES
+    )
+
+    class Meta:
+        ordering = ("pk",)
 
 
 class ProductVariantTranslation(models.Model):

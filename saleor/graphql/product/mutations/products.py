@@ -35,6 +35,7 @@ from ....product.utils.variants import generate_and_set_variant_name
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
+from ...core.enums import SubscriptionPeriodEnum, SubscriptionLimitEnum
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
@@ -731,6 +732,33 @@ class ProductDelete(ModelDeleteMutation):
         ).delete()
 
 
+class ProductVariantSubscriptionInput(graphene.InputObjectType):
+    billing_interval = graphene.Int(
+        description="Subscription billing interval.",
+        required=True
+    )
+    billing_period = SubscriptionPeriodEnum(
+        description="Subscription billing period.",
+        required=True
+    )
+    trial_interval = graphene.Int(
+        description="Subscription trial interval.",
+        required=False
+    )
+    trial_period = SubscriptionPeriodEnum(
+        description="Subscription trial period.",
+        required=False
+    )
+    length = graphene.Int(
+        description="Subscription length.",
+        required=False
+    )
+    limit = SubscriptionLimitEnum(
+        description="Subscription limit.",
+        required=True
+    )
+
+
 class ProductVariantInput(graphene.InputObjectType):
     attributes = graphene.List(
         AttributeValueInput,
@@ -745,6 +773,9 @@ class ProductVariantInput(graphene.InputObjectType):
         )
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
+    subscription = graphene.Field(
+        ProductVariantSubscriptionInput, description="Subscription specific to this variant."
+    )
 
 
 class ProductVariantCreateInput(ProductVariantInput):
@@ -926,6 +957,10 @@ class ProductVariantCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
             generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
+        subscription = cleaned_input.get("subscription")
+        if subscription:
+            cls.create_or_update_variant_subscription(instance, subscription)
+
         event_to_call = (
             info.context.plugins.product_variant_created
             if new_variant
@@ -940,6 +975,13 @@ class ProductVariantCreate(ModelMutation):
             warehouse_ids, "warehouse", only_type=Warehouse
         )
         create_stocks(variant, stocks, warehouses)
+
+    @classmethod
+    def create_or_update_variant_subscription(cls, variant, subscription_data):
+        subscription = models.ProductVariantSubscription.objects.get(pk=variant.subscription.pk) if hasattr(variant, 'subscription') else models.ProductVariantSubscription(variant=variant)
+        for k, v in subscription_data.items():
+            setattr(subscription, k, v)
+        subscription.save()
 
     @classmethod
     def success_response(cls, instance):
