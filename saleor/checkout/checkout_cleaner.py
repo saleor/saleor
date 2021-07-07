@@ -63,7 +63,7 @@ def clean_checkout_shipping(
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
-                        "Shipping method is not valid for your shipping address",
+                        "Delivery method is not valid for your shipping address",
                         code=error_code.INVALID_SHIPPING_METHOD.value,
                     )
                 }

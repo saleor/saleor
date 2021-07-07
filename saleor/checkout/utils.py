@@ -623,7 +623,7 @@ def is_valid_shipping_method(checkout_info: "CheckoutInfo"):
 
     valid_methods = checkout_info.valid_shipping_methods
     if valid_methods is None or checkout_info.shipping_method not in valid_methods:
-        clear_shipping_method(checkout_info)  # TODO: Derid
+        clear_shipping_method(checkout_info)  # TODO: Derides command query separation
         return False
     return True
 
@@ -641,7 +641,8 @@ def is_valid_delivery_method(checkout_info: "CheckoutInfo") -> bool:
 def is_delivery_method_in_valid_delivery_methods(checkout_info: "CheckoutInfo") -> bool:
     valid_delivery_methods = checkout_info.valid_delivery_methods
     return bool(
-        valid_delivery_methods
+        checkout_info.delivery_method_info.is_click_and_collect
+        or valid_delivery_methods
         and checkout_info.delivery_method_info.delivery_method in valid_delivery_methods
     )
 
