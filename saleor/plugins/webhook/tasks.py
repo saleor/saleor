@@ -11,13 +11,13 @@ from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
 from ...celeryconf import app
-from ...core.models import EventPayload, EventPayloadReference, JobStatus
+from ...core.models import EventPayload, EventTask, JobStatus
 from ...payment import PaymentError
 from ...site.models import Site
 from ...webhook.event_types import WebhookEventType
 from ...webhook.models import Webhook
 from . import signature_for_payload
-from .utils import _catch_duration_time
+from .utils import catch_duration_time
 
 if TYPE_CHECKING:
     from ...app.models import App
@@ -60,7 +60,6 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     return webhooks
 
 
-@app.task(compression="zlib")
 def trigger_webhooks_for_event(event_type, event_payload_id):
     """Send a webhook request for an event as an async task."""
     webhooks = _get_webhooks_for_event(event_type)
@@ -169,7 +168,6 @@ def _send_webhook_to_target(parts, target_url, message, domain, signature, event
     autoretry_for=(RequestException,),
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
-    compression="zlib",
 )
 def send_webhook_request(
     self, webhook_id, target_url, secret, event_type, event_payload_id
@@ -192,23 +190,23 @@ def send_webhook_request(
     domain = Site.objects.get_current().domain
     message = data.payload.encode("utf-8")
     signature = signature_for_payload(message, secret)
-    with _catch_duration_time() as duration:
+    with catch_duration_time() as duration:
         try:
             _send_webhook_to_target(
                 parts, target_url, message, domain, signature, event_type
             )
         except Exception as exc:
-            EventPayloadReference.objects.create(
+            EventTask.objects.create(
                 task_id=self.request.id,
                 event_payload_id=event_payload_id,
-                error={"error_type": str(exc.__class__.__name__), "message": str(exc)},
+                error=str(exc),
                 duration=duration().total_seconds(),
                 status=JobStatus.FAILED,
                 event_type=event_type,
                 webhook_id=webhook_id,
             )
             raise exc
-        EventPayloadReference.objects.create(
+        EventTask.objects.create(
             task_id=self.request.id,
             event_payload_id=event_payload_id,
             status=JobStatus.SUCCESS,

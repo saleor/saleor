@@ -532,10 +532,7 @@ def test_create_event_payload_reference_with_error(
 
     assert event_payload_reference.webhook == webhook
     assert event_payload_reference.event_type == WebhookEventType.ORDER_CREATED
-    assert event_payload_reference.error == {
-        "message": "Unknown webhook scheme: ''",
-        "error_type": "ValueError",
-    }
+    assert event_payload_reference.error == "Unknown webhook scheme: ''"
     assert event_payload_reference.status == "failed"
     assert event_payload_reference.task_id == ANY
     assert event_payload_reference.duration == ANY

@@ -109,6 +109,6 @@ def parse_payment_action_response(
 
 
 @contextmanager
-def _catch_duration_time():
+def catch_duration_time():
     start = datetime.now()
     yield lambda: datetime.now() - start
