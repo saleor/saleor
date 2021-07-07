@@ -746,12 +746,10 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
 
     @classmethod
     def _run_product_variant_back_in_stock_webhook(cls, plugins_manager, stocks_data):
-        for stock in (
-            data["stock"]
-            for data in stocks_data
-            if cls._product_variant_webhook_conditions(data)
-        ):
-            plugins_manager.product_variant_back_in_stock(stock.product_variant)
+        for data in stocks_data:
+            if cls._is_variant_back_to_stock(data):
+                stock = data["stock"]
+                plugins_manager.product_variant_back_in_stock(stock.product_variant)
 
     @classmethod
     def _run_product_variant_out_of_stock_webhook(cls, plugins_manager, stocks_data):
@@ -761,7 +759,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 plugins_manager.product_variant_out_of_stock(stock.product_variant)
 
     @classmethod
-    def _product_variant_webhook_conditions(cls, updated_stock):
+    def _is_variant_back_to_stock(cls, updated_stock):
         return (
             not updated_stock["created"]
             and updated_stock["prev_quantity"] <= 0

@@ -79,7 +79,7 @@ class WebhookEventType:
         PRODUCT_VARIANT_UPDATED: "Product variant updated",
         PRODUCT_VARIANT_DELETED: "Product variant deleted",
         PRODUCT_VARIANT_OUT_OF_STOCK: "Product variant stock changed",
-        PRODUCT_VARIANT_BACK_IN_STOCK: "Product variant stock exists",
+        PRODUCT_VARIANT_BACK_IN_STOCK: "Product variant back in stock",
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPDATED: "Checkout updated",
         FULFILLMENT_CREATED: "Fulfillment_created",
