@@ -2,8 +2,8 @@ adyen==4.0.0
 amqp==5.0.6; python_version >= "3.6"
 aniso8601==7.0.0
 appdirs==1.4.4; python_full_version >= "3.6.2"
-asgiref==3.4.0; python_version >= "3.6"
-astroid==2.5.6; python_version >= "3.6" and python_version < "4.0"
+asgiref==3.4.1; python_version >= "3.6"
+astroid==2.6.2; python_version >= "3.6" and python_version < "4.0"
 atomicwrites==1.4.0; python_version >= "3.6" and python_full_version < "3.0.0" and sys_platform == "win32" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6") or sys_platform == "win32" and python_version >= "3.6" and python_full_version >= "3.4.0" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6")
 attrs==21.2.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 authorizenet==1.1.4
@@ -12,8 +12,8 @@ beautifulsoup4==4.7.1
 beautifultable==0.7.0
 billiard==3.6.4.0; python_version >= "3.6"
 black==21.6b0; python_full_version >= "3.6.2"
-boto3==1.17.102; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
-botocore==1.20.102; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0"
+boto3==1.17.105; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
+botocore==1.20.105; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0"
 braintree==4.10.0
 cachetools==4.2.2; python_version >= "3.5" and python_version < "4.0" and (python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0")
 cairocffi==1.2.0; python_version >= "3.6"
@@ -60,19 +60,19 @@ draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
 execnet==1.9.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
-faker==8.8.2; python_version >= "3.6"
+faker==8.9.1; python_version >= "3.6"
 filelock==3.0.12; python_full_version >= "3.6.1"
 flake8==3.9.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
 freezegun==1.1.0; python_version >= "3.5"
 gitdb==4.0.7; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.6"
 gitpython==3.1.18; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.6"
 google-api-core==1.30.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-google-auth==1.32.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+google-auth==1.32.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-core==1.7.1; python_version >= "3.5" and python_full_version < "3.0.0" or python_version >= "3.5" and python_full_version >= "3.6.0"
 google-cloud-pubsub==2.6.0; python_version >= "3.6"
-google-cloud-storage==1.39.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
+google-cloud-storage==1.40.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
 google-crc32c==1.1.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-google-i18n-address==2.4.0
+google-i18n-address==2.5.0
 google-measurement-protocol==1.1.0
 google-resumable-media==1.3.1; python_version >= "3.5" and python_full_version < "3.0.0" or python_version >= "3.5" and python_full_version >= "3.6.0"
 googleapis-common-protos==1.53.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
@@ -115,17 +115,17 @@ nodeenv==1.6.0; python_full_version >= "3.6.1"
 oauthlib==3.1.1; python_version >= "3.6"
 openpyxl==3.0.7; python_version >= "3.6"
 opentracing==2.4.0
-packaging==20.9; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+packaging==21.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 pathspec==0.8.1; python_full_version >= "3.6.2"
 petl==1.7.4; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 phonenumberslite==8.12.26
-pillow==8.2.0; python_version >= "3.6"
+pillow==8.3.0; python_version >= "3.6"
 pluggy==0.13.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 pre-commit==2.13.0; python_full_version >= "3.6.1"
 prices==1.1.0
 promise==2.3
 prompt-toolkit==3.0.19; python_full_version >= "3.6.1" and python_version >= "3.6"
-proto-plus==1.18.1; python_version >= "3.6"
+proto-plus==1.19.0; python_version >= "3.6"
 protobuf==3.17.3; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 psycopg2-binary==2.9.1; python_version >= "3.6"
 py==1.10.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
@@ -140,9 +140,9 @@ pyjwt==2.1.0; python_version >= "3.6"
 pylint-celery==0.3
 pylint-django==2.4.4
 pylint-plugin-utils==0.6
-pylint==2.8.3; python_version >= "3.6" and python_version < "4.0"
+pylint==2.9.3; python_version >= "3.6" and python_version < "4.0"
 pymeta3==0.5.1
-pyparsing==2.4.7; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.6"
+pyparsing==2.4.7; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" and python_version >= "3.6"
 pyphen==0.11.0; python_version >= "3.6"
 pytest-celery==0.0.0
 pytest-cov==2.12.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
@@ -167,7 +167,7 @@ pyxb==1.2.5
 pyyaml==5.4.1; python_full_version >= "3.6.1" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6") and (python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.5")
 razorpay==1.2.0
 redis==3.5.3; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
-regex==2021.4.4; python_full_version >= "3.6.2"
+regex==2021.7.1; python_full_version >= "3.6.2"
 requests==2.25.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
 rsa==4.7.2; python_version >= "3.5" and python_version < "4" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6")
 rx==1.6.1
