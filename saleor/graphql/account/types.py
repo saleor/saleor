@@ -23,7 +23,7 @@ from ..decorators import one_of_permissions_required, permission_required
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrdersByUserLoader
-from ..utils import format_permissions_for_display
+from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from .dataloaders import CustomerEventsByUserLoader
 from .enums import CountryCodeEnum, CustomerEventsEnum
@@ -345,7 +345,7 @@ class User(CountableDjangoObjectType):
     @traced_resolver
     def resolve_orders(root: models.User, info, **_kwargs):
         def _resolve_orders(orders):
-            requester = info.context.user
+            requester = get_user_or_app_from_context(info.context)
             if requester.has_perm(OrderPermissions.MANAGE_ORDERS):
                 return orders
             return list(filter(lambda order: order.status != OrderStatus.DRAFT, orders))
