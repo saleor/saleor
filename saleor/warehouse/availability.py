@@ -23,6 +23,20 @@ def _get_available_quantity(stocks: StockQuerySet) -> int:
     return max(total_quantity - quantity_allocated, 0)
 
 
+def check_stock_and_preorder_quantity(
+    variant: "ProductVariant", country_code: str, channel_slug: str, quantity: int
+):
+    """Validate if there is stock/preorder available for given variant.
+
+    :raises InsufficientStock: when there is not enough items in stock for a variant
+    or there is not enough available preorder items for a variant.
+    """
+    if variant.is_preorder:
+        check_preorder_threshold_bulk([variant], [quantity], channel_slug)
+    else:
+        check_stock_quantity(variant, country_code, channel_slug, quantity)
+
+
 def check_stock_quantity(
     variant: "ProductVariant", country_code: str, channel_slug: str, quantity: int
 ):

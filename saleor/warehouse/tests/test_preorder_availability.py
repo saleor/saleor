@@ -7,8 +7,31 @@ from django.db.models.functions import Coalesce
 from ...core.exceptions import InsufficientStock
 from ..availability import (
     check_preorder_threshold_bulk,
+    check_stock_and_preorder_quantity,
     check_stock_and_preorder_quantity_bulk,
 )
+
+
+@patch("saleor.warehouse.availability.check_preorder_threshold_bulk")
+@patch("saleor.warehouse.availability.check_stock_quantity")
+def test_check_stock_and_preorder_quantity(
+    mock_check_stock_quantity,
+    mock_check_preorder_threshold_bulk,
+    variant,
+    preorder_variant_channel_threshold,
+    channel_USD,
+):
+    check_stock_and_preorder_quantity(variant, "US", channel_USD.slug, 1)
+    mock_check_stock_quantity.assert_called_once()
+
+    check_stock_and_preorder_quantity(
+        preorder_variant_channel_threshold, "US", channel_USD.slug, 1
+    )
+    mock_check_preorder_threshold_bulk.assert_called_once()
+    assert mock_check_preorder_threshold_bulk.call_args[0][0] == [
+        preorder_variant_channel_threshold
+    ]
+    assert mock_check_preorder_threshold_bulk.call_args[0][1] == [1]
 
 
 @patch("saleor.warehouse.availability.check_preorder_threshold_bulk")
