@@ -273,7 +273,7 @@ def checkout(db, channel_USD):
 
 @pytest.fixture
 def checkout_with_item(checkout, product):
-    variant = product.variants.get()
+    variant = product.variants.first()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
@@ -4236,8 +4236,8 @@ def warehouses(address, address_usa):
 
 
 @pytest.fixture()
-def warehouses_for_cc(address):
-    return Warehouse.objects.bulk_create(
+def warehouses_for_cc(address, shipping_zones):
+    warehouses = Warehouse.objects.bulk_create(
         [
             Warehouse(
                 address=address.get_copy(),
@@ -4268,17 +4268,41 @@ def warehouses_for_cc(address):
             ),
         ]
     )
+    for warehouse in warehouses:
+        warehouse.shipping_zones.add(shipping_zones[0])
+        warehouse.shipping_zones.add(shipping_zones[1])
+        warehouse.save()
+    return warehouses
 
 
 @pytest.fixture
-def warehouse_for_cc(address):
-    return Warehouse.objects.create(
+def warehouse_for_cc(address, product_variant_list, shipping_zones):
+    warehouse = Warehouse.objects.create(
         address=address.get_copy(),
         name="Local Warehouse",
         slug="local-warehouse",
         email="local@example.com",
         click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
     )
+    warehouse.shipping_zones.add(
+        shipping_zones[0]
+    )  # Discrepancy between available, and possible
+    warehouse.shipping_zones.add(shipping_zones[1])
+
+    Stock.objects.bulk_create(
+        [
+            Stock(
+                warehouse=warehouse, product_variant=product_variant_list[0], quantity=1
+            ),
+            Stock(
+                warehouse=warehouse, product_variant=product_variant_list[1], quantity=2
+            ),
+            Stock(
+                warehouse=warehouse, product_variant=product_variant_list[2], quantity=2
+            ),
+        ]
+    )
+    return warehouse
 
 
 @pytest.fixture(params=["warehouse_for_cc", "shipping_method"])

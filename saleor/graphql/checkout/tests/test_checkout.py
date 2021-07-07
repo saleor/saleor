@@ -3353,7 +3353,7 @@ def test_clean_checkout_invalid_shipping_method(
     with pytest.raises(ValidationError) as e:
         clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
 
-    msg = "Shipping method is not valid for your shipping address"
+    msg = "Delivery method is not valid for your shipping address"
 
     assert e.value.error_dict["shipping_method"][0].message == msg
 

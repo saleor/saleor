@@ -10,14 +10,14 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.exceptions import InsufficientStock, InsufficientStockData
-from ....core.taxes import zero_money
+from ....core.taxes import zero_money, zero_taxed_money
 from ....order import OrderOrigin, OrderStatus
 from ....order.models import Order
 from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager, get_plugins_manager
-from ....warehouse.models import Stock
+from ....warehouse.models import Stock, WarehouseClickAndCollectOption
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
 
@@ -1188,3 +1188,147 @@ def test_checkout_complete_0_total_value(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+
+
+def test_complete_checkout_for_click_and_collect_allow_unset_shipping_address(
+    api_client, checkout_for_cc, payment_dummy, address, warehouse_for_cc
+):
+    order_count = Order.objects.count()
+    checkout = checkout_for_cc
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+
+    checkout.shipping_address = None
+    checkout.billing_address = address
+    checkout.collection_point = warehouse_for_cc
+
+    checkout.save(
+        update_fields=["shipping_address", "billing_address", "collection_point"]
+    )
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    assert not payment.transactions.exists()
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+
+    assert not content["errors"]
+    assert Order.objects.count() == order_count + 1
+
+    order = Order.objects.first()
+
+    assert order.collection_point == warehouse_for_cc
+    assert order.shipping_method is None
+    assert order.shipping_address == warehouse_for_cc.address
+    assert order.shipping_price == zero_taxed_money(payment.currency)
+
+
+def test_complete_checkout_raises_ValidationError_for_local_stock(
+    api_client, checkout_with_lines, payment_dummy, address, warehouse_for_cc
+):
+    initial_order_count = Order.objects.count()
+    checkout = checkout_with_lines
+    checkout_line = checkout.lines.first()
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    quantity_available = get_available_quantity_for_stock(stock)
+    checkout_line.quantity = quantity_available + 1
+    checkout_line.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "rediirectUrl": "https://www.example.com"}
+
+    checkout.collection_point = warehouse_for_cc
+    checkout.billing_address = address
+    checkout.shipping_address = None
+    checkout.save(
+        update_fields=["collection_point", "shipping_address", "billing_address"]
+    )
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    assert not payment.transactions.exists()
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert content["errors"][0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert Order.objects.count() == initial_order_count
+
+
+def test_comp_checkout_builds_order_for_ALL_warehouse_even_if_not_available_locally(
+    stocks_for_cc,
+    warehouse_for_cc,
+    checkout_with_lines,
+    address,
+    api_client,
+    payment_dummy,
+):
+    initial_order_count = Order.objects.count()
+    checkout = checkout_with_lines
+    checkout_line = checkout.lines.first()
+    stock = Stock.objects.get(
+        product_variant=checkout_line.variant, warehouse=warehouse_for_cc
+    )
+    quantity_available = get_available_quantity_for_stock(stock)
+    checkout_line.quantity = quantity_available + 1
+    checkout_line.save()
+
+    warehouse_for_cc.click_and_collect_option = (
+        WarehouseClickAndCollectOption.ALL_WAREHOUSES
+    )
+    warehouse_for_cc.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "rediirectUrl": "https://www.example.com"}
+
+    checkout.collection_point = warehouse_for_cc
+    checkout.billing_address = address
+    checkout.shipping_address = None
+    checkout.save(
+        update_fields=["collection_point", "shipping_address", "billing_address"]
+    )
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    assert not payment.transactions.exists()
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert not content["errors"]
+    assert Order.objects.count() == initial_order_count + 1

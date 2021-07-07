@@ -43,7 +43,7 @@ class WarehouseQueryset(models.QuerySet):
             .annotate(line_quantity=F("available_quantity") - Subquery(lines_quantity))
             .filter(
                 product_variant__id__in=lines.values("variant_id"),
-                line_quantity__gt=0,
+                line_quantity__gte=0,
             )
             .select_related("product_variant")
         )
