@@ -36,7 +36,7 @@ from ...order import models as order_models
 from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import models as shipping_models
-from ...warehouse.availability import check_stock_quantity_bulk
+from ...warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..channel.utils import clean_channel
@@ -159,7 +159,9 @@ def check_lines_quantity(
                 }
             )
     try:
-        check_stock_quantity_bulk(variants, country, quantities, channel_slug)
+        check_stock_and_preorder_quantity_bulk(
+            variants, country, quantities, channel_slug
+        )
     except InsufficientStock as e:
         errors = [
             ValidationError(
