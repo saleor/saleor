@@ -176,16 +176,25 @@ class StripeGatewayPlugin(BasePlugin):
         data = payment_information.data
 
         payment_method_id = data.get("payment_method_id") if data else None
-        setup_future_usage = data.get("setup_future_usage") if data else None
+
+        setup_future_usage = None
+        if payment_information.reuse_source:
+            setup_future_usage = data.get("setup_future_usage") if data else None
+
         off_session = data.get("off_session") if data else None
 
         payment_method_types = data.get("payment_method_types") if data else None
 
-        customer = get_or_create_customer(
-            api_key=api_key,
-            customer_email=payment_information.customer_email,
-            customer_id=payment_information.customer_id,
-        )
+        customer = None
+        # confirm that we creates customer on stripe side only for log-in customers
+        # Stripe doesn't allow to search users by email, so each create customer
+        # call creates new customer on Stripe side.
+        if payment_information.graphql_customer_id:
+            customer = get_or_create_customer(
+                api_key=api_key,
+                customer_email=payment_information.customer_email,
+                customer_id=payment_information.customer_id,
+            )
         intent, error = create_payment_intent(
             api_key=api_key,
             amount=payment_information.amount,
@@ -200,6 +209,7 @@ class StripeGatewayPlugin(BasePlugin):
             setup_future_usage=setup_future_usage,
             off_session=off_session,
             payment_method_types=payment_method_types,
+            customer_email=payment_information.customer_email,
         )
 
         if error and payment_method_id and not intent:

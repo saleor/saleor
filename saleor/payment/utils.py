@@ -44,18 +44,24 @@ def create_payment_information(
         billing = checkout.billing_address
         shipping = checkout.shipping_address
         email = checkout.get_customer_email()
+        user_id = checkout.user_id
     elif payment.order:
         billing = payment.order.billing_address
         shipping = payment.order.shipping_address
         email = payment.order.user_email
+        user_id = payment.order.user_id
     else:
-        billing, shipping, email = None, None, payment.billing_email
+        billing, shipping, email, user_id = None, None, payment.billing_email, None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
 
     order_id = payment.order.pk if payment.order else None
     graphql_payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    graphql_customer_id = None
+    if user_id:
+        graphql_customer_id = graphene.Node.to_global_id("User", user_id)
 
     return PaymentData(
         gateway=payment.gateway,
@@ -72,6 +78,7 @@ def create_payment_information(
         customer_email=email,
         reuse_source=store_source,
         data=additional_data or {},
+        graphql_customer_id=graphql_customer_id,
     )
 
 
