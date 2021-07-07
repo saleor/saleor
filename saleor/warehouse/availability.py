@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, Iterable, List
+from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple
 
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
@@ -40,6 +40,57 @@ def check_stock_quantity(
 
         if quantity > _get_available_quantity(stocks):
             raise InsufficientStock([InsufficientStockData(variant=variant)])
+
+
+def check_stock_and_preorder_quantity_bulk(
+    variants: Iterable["ProductVariant"],
+    country_code: str,
+    quantities: Iterable[int],
+    channel_slug: str,
+):
+    """Validate if products are available for stocks/preorder.
+
+    :raises InsufficientStock: when there is not enough items in stock for a variant
+    or there is not enough available preorder items for a variant.
+    """
+    (
+        stock_variants,
+        stock_quantities,
+        preorder_variants,
+        preorder_quantities,
+    ) = _split_lines_for_trackable_and_preorder(variants, quantities)
+    if stock_variants:
+        check_stock_quantity_bulk(
+            stock_variants, country_code, stock_quantities, channel_slug
+        )
+    if preorder_variants:
+        check_preorder_threshold_bulk(
+            preorder_variants, preorder_quantities, channel_slug
+        )
+
+
+def _split_lines_for_trackable_and_preorder(
+    variants: Iterable["ProductVariant"], quantities: Iterable[int]
+) -> Tuple[
+    Iterable["ProductVariant"], Iterable[int], Iterable["ProductVariant"], Iterable[int]
+]:
+    """Return variants and quantities splitted by "is_preorder" flag."""
+    stock_variants, stock_quantities = [], []
+    preorder_variants, preorder_quantities = [], []
+
+    for variant, quantity in zip(variants, quantities):
+        if variant.is_preorder:
+            preorder_variants.append(variant)
+            preorder_quantities.append(quantity)
+        else:
+            stock_variants.append(variant)
+            stock_quantities.append(quantity)
+    return (
+        stock_variants,
+        stock_quantities,
+        preorder_variants,
+        preorder_quantities,
+    )
 
 
 def check_stock_quantity_bulk(

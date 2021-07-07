@@ -1,9 +1,43 @@
+from unittest.mock import patch
+
 import pytest
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 
 from ...core.exceptions import InsufficientStock
-from ..availability import check_preorder_threshold_bulk
+from ..availability import (
+    check_preorder_threshold_bulk,
+    check_stock_and_preorder_quantity_bulk,
+)
+
+
+@patch("saleor.warehouse.availability.check_preorder_threshold_bulk")
+@patch("saleor.warehouse.availability.check_stock_quantity_bulk")
+def test_check_stock_and_preorder_quantity_bulk(
+    mock_check_stock_quantity_bulk,
+    mock_check_preorder_threshold_bulk,
+    variant,
+    preorder_variant_channel_threshold,
+    channel_USD,
+):
+    stock_variant_quantity = 2
+    preorder_quantity = 1
+    check_stock_and_preorder_quantity_bulk(
+        [variant, preorder_variant_channel_threshold],
+        "US",
+        [stock_variant_quantity, preorder_quantity],
+        channel_USD.slug,
+    )
+
+    mock_check_stock_quantity_bulk.assert_called_once()
+    assert mock_check_stock_quantity_bulk.call_args[0][0] == [variant]
+    assert mock_check_stock_quantity_bulk.call_args[0][2] == [stock_variant_quantity]
+
+    mock_check_preorder_threshold_bulk.assert_called_once()
+    assert mock_check_preorder_threshold_bulk.call_args[0][0] == [
+        preorder_variant_channel_threshold
+    ]
+    assert mock_check_preorder_threshold_bulk.call_args[0][1] == [preorder_quantity]
 
 
 def test_check_preorder_threshold_bulk_channel_threshold(
