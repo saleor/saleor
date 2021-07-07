@@ -123,8 +123,10 @@ All notable, unreleased changes to this project will be documented in this file.
   - Create tasks for deleting order lines by deleting products or variants
 - Fix doubled checkout total price for one line and zero shipping price - #7532 by @IKarbowiak
 - Deprecate nested objects in TranslatableContent types - #7522 by @IKarbowiak
+- Fix performance for User type on resolvers: orders, gift cards, events - #7574 by @tomaszszymanski129
 - Fix failing account mutations for app - #7569 by @IKarbowiak
 - Introduce `event_payload` to webhook tasks - #7521 by @d-wysocki
+- Modify order of auth middleware calls - #7572 by @tomaszszymanski129
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki

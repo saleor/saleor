@@ -60,6 +60,7 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     return webhooks
 
 
+@app.task
 def trigger_webhooks_for_event(event_type, event_payload_id):
     """Send a webhook request for an event as an async task."""
     webhooks = _get_webhooks_for_event(event_type)
