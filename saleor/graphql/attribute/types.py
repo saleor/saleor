@@ -150,7 +150,7 @@ class Attribute(CountableDjangoObjectType):
     def resolve_choices(root: models.Attribute, info, **_kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
             return root.values.all()
-        return []
+        return models.AttributeValue.objects.none()
 
     @staticmethod
     @check_attribute_required_permissions()
