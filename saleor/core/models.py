@@ -143,7 +143,7 @@ class EventTask(models.Model):
     )
     task_id = models.CharField(max_length=254)
     status = models.CharField(max_length=50, choices=JobStatus.CHOICES)
-    error = models.CharField(max_length=254)
+    error = models.CharField(null=True, blank=True, max_length=254)
     duration = models.FloatField()
     webhook = models.ForeignKey("webhook.Webhook", null=True, on_delete=models.SET_NULL)
     event_type = models.CharField(max_length=254)

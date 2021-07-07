@@ -176,6 +176,7 @@ def send_webhook_request(
     try:
         data = EventPayload.objects.get(id=event_payload_id)
     except EventPayload.DoesNotExist:
+
         task_logger.error(
             "Cannot find payload related to webhook.",
             extra={
@@ -191,30 +192,25 @@ def send_webhook_request(
     domain = Site.objects.get_current().domain
     message = data.payload.encode("utf-8")
     signature = signature_for_payload(message, secret)
+    error = None
     with catch_duration_time() as duration:
         try:
             _send_webhook_to_target(
                 parts, target_url, message, domain, signature, event_type
             )
         except Exception as exc:
+            error = exc
+            raise exc
+        finally:
             EventTask.objects.create(
                 task_id=self.request.id,
                 event_payload_id=event_payload_id,
-                error=str(exc),
+                status=JobStatus.FAILED if error else JobStatus.SUCCESS,
+                error=str(error) if error else None,
                 duration=duration().total_seconds(),
-                status=JobStatus.FAILED,
                 event_type=event_type,
                 webhook_id=webhook_id,
             )
-            raise exc
-        EventTask.objects.create(
-            task_id=self.request.id,
-            event_payload_id=event_payload_id,
-            status=JobStatus.SUCCESS,
-            duration=duration().total_seconds(),
-            event_type=event_type,
-            webhook_id=webhook_id,
-        )
     task_logger.debug(
         "[Webhook ID:%r] Payload sent to %r for event %r",
         webhook_id,
