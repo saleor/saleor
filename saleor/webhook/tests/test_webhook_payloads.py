@@ -14,6 +14,7 @@ from ...order.actions import fulfill_order_lines
 from ...order.models import Order
 from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
+from ...warehouse.models import Stock
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
@@ -234,7 +235,7 @@ def test_generate_product_variant_payload(
     payload = json.loads(generate_product_variant_payload([variant]))[0]
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "stocks"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -256,6 +257,7 @@ def test_generate_product_variant_payload(
         "price_amount": "10.000",
         "type": "ProductVariantChannelListing",
     }
+    assert payload["stocks"] == 0
     assert len(payload.keys()) == len(payload_fields)
 
 
@@ -266,7 +268,7 @@ def test_generate_product_variant_with_external_media_payload(
     payload = json.loads(generate_product_variant_payload([variant]))[0]
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "stocks"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -290,6 +292,7 @@ def test_generate_product_variant_with_external_media_payload(
         "channel_slug": channel_USD.slug,
         "type": "ProductVariantChannelListing",
     }
+    assert payload["stocks"] == 0
     assert len(payload.keys()) == len(payload_fields)
 
 
@@ -305,7 +308,7 @@ def test_generate_product_variant_deleted_payload(
     payload = json.loads(generate_product_variant_payload([variant]))[0]
     [_, payload_variant_id] = graphene.Node.from_global_id(payload["id"])
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "stocks"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -318,7 +321,18 @@ def test_generate_product_variant_deleted_payload(
     assert payload["sku"] == "prodVar1"
     assert len(payload["attributes"]) == 2
     assert len(payload["channel_listings"]) == 1
+    assert payload["stocks"] == 0
     assert len(payload.keys()) == len(payload_fields)
+
+
+def test_generate_product_variant_with_stocks(
+    product_with_variant_with_two_attributes, warehouse
+):
+    variant = product_with_variant_with_two_attributes.variants.first()
+    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=8)
+
+    payload = json.loads(generate_product_variant_payload([variant]))[0]
+    assert payload["stocks"] == 8
 
 
 def test_generate_invoice_payload(fulfilled_order):

@@ -10031,7 +10031,7 @@ def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses, 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
-def test_update_or_create_variant_stocks_empty_stocks_data_with_variant_stocks_webhooks(
+def test_update_or_create_variant_with_back_in_stock_webhooks_only(
     product_variant_stock_out_of_stock_webhook,
     product_variant_back_in_stock_webhook,
     settings,
@@ -10060,7 +10060,7 @@ def test_update_or_create_variant_stocks_empty_stocks_data_with_variant_stocks_w
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
-def test_update_or_create_variant_stocks_with_stock_changed_webhook_only(
+def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     product_variant_stock_out_of_stock_webhook,
     product_variant_back_in_stock_webhook,
     settings,

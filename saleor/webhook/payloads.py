@@ -4,7 +4,7 @@ from dataclasses import asdict
 from typing import TYPE_CHECKING, Iterable, Optional
 
 import graphene
-from django.db.models import F, QuerySet
+from django.db.models import F, QuerySet, Sum
 
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
@@ -408,9 +408,14 @@ def generate_product_variant_payload(product_variants: Iterable["ProductVariant"
             "channel_listings": lambda v: json.loads(
                 generate_product_variant_listings_payload(v.channel_listings.all())
             ),
+            "stocks": lambda v: generate_product_variant_stocks_payload(v),
         },
     )
     return payload
+
+
+def generate_product_variant_stocks_payload(product_variant: "ProductVariant"):
+    return product_variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] or 0
 
 
 def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
