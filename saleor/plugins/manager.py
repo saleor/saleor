@@ -520,10 +520,10 @@ class PluginsManager(PaymentInterface):
             "product_variant_deleted", default_value, product_variant
         )
 
-    def product_variant_stock_changed(self, product_variant: "ProductVariant"):
+    def product_variant_out_of_stock(self, product_variant: "ProductVariant"):
         default_value = None
         self.__run_method_on_plugins(
-            "product_variant_stock_changed", default_value, product_variant
+            "product_variant_out_of_stock", default_value, product_variant
         )
 
     def product_variant_back_in_stock(self, product_variant: "ProductVariant"):

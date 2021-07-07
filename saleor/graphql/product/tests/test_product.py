@@ -10030,9 +10030,14 @@ def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses, 
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
-@patch("saleor.plugins.manager.PluginsManager.product_variant_stock_changed")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_update_or_create_variant_stocks_empty_stocks_data_with_variant_stocks_webhooks(
-    product_variant_stock_changed_webhook, product_variant_back_in_stock_webhook, settings, variant, warehouses, info
+    product_variant_stock_out_of_stock_webhook,
+    product_variant_back_in_stock_webhook,
+    settings,
+    variant,
+    warehouses,
+    info,
 ):
     Stock.objects.create(
         product_variant=variant,
@@ -10050,13 +10055,18 @@ def test_update_or_create_variant_stocks_empty_stocks_data_with_variant_stocks_w
     )
 
     product_variant_back_in_stock_webhook.assert_called_once()
-    product_variant_stock_changed_webhook.assert_called_once()
+    assert product_variant_stock_out_of_stock_webhook.call_count == 0
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
-@patch("saleor.plugins.manager.PluginsManager.product_variant_stock_changed")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_update_or_create_variant_stocks_with_stock_changed_webhook_only(
-    product_variant_stock_changed_webhook, product_variant_back_in_stock_webhook, settings, variant, warehouses, info
+    product_variant_stock_out_of_stock_webhook,
+    product_variant_back_in_stock_webhook,
+    settings,
+    variant,
+    warehouses,
+    info,
 ):
     Stock.objects.create(product_variant=variant, warehouse=warehouses[0], quantity=5)
 
@@ -10065,14 +10075,14 @@ def test_update_or_create_variant_stocks_with_stock_changed_webhook_only(
     info.context.plugins = get_plugins_manager()
 
     stocks_data = [
-        {"quantity": 10, "warehouse": "123"},
+        {"quantity": 0, "warehouse": "123"},
     ]
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
         variant, stocks_data, warehouses, info
     )
 
-    product_variant_stock_changed_webhook.assert_called_once()
+    product_variant_stock_out_of_stock_webhook.assert_called_once()
     assert product_variant_back_in_stock_webhook.call_count == 0
 
 

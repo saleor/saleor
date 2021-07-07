@@ -742,9 +742,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         warehouse_models.Stock.objects.bulk_update(stocks_to_update, ["quantity"])
         plugins_manager = info.context.plugins
         cls._run_product_variant_back_in_stock_webhook(plugins_manager, stocks_data)
-        cls._run_product_variant_stock_changed_webhook(
-            plugins_manager, stocks_to_update
-        )
+        cls._run_product_variant_out_of_stock_webhook(plugins_manager, stocks_data)
 
     @classmethod
     def _run_product_variant_back_in_stock_webhook(cls, plugins_manager, stocks_data):
@@ -756,17 +754,17 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             plugins_manager.product_variant_back_in_stock(stock.product_variant)
 
     @classmethod
-    def _run_product_variant_stock_changed_webhook(
-        cls, plugins_manager, updated_stocks
-    ):
-        for stock in updated_stocks:
-            plugins_manager.product_variant_stock_changed(stock.product_variant)
+    def _run_product_variant_out_of_stock_webhook(cls, plugins_manager, stocks_data):
+        for data in stocks_data:
+            if data["current_quantity"] <= 0:
+                stock = data["stock"]
+                plugins_manager.product_variant_out_of_stock(stock.product_variant)
 
     @classmethod
     def _product_variant_webhook_conditions(cls, updated_stock):
         return (
             not updated_stock["created"]
-            and updated_stock["prev_quantity"] == 0
+            and updated_stock["prev_quantity"] <= 0
             and updated_stock["current_quantity"] > 0
         )
 
