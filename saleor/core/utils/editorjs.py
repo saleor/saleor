@@ -39,7 +39,7 @@ def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
                     continue
                 new_text = clean_text_data(item)
                 if to_string:
-                    string += strip_tags(new_text)
+                    string += " %s" % strip_tags(new_text)
                 else:
                     blocks[index]["data"]["items"][item_index] = new_text
         else:
@@ -48,11 +48,11 @@ def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
                 continue
             new_text = clean_text_data(text)
             if to_string:
-                string += strip_tags(new_text)
+                string += " %s" % strip_tags(new_text)
             else:
                 blocks[index]["data"]["text"] = new_text
 
-    return string if to_string else definitions
+    return string.lstrip() if to_string else definitions
 
 
 def clean_text_data(text: str):
