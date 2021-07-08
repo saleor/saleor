@@ -107,7 +107,7 @@ def test_clean_editor_js_for_list():
         "blocks": [
             {
                 "data": {
-                    "text": "The Saleor Winter Sale is snowed "
+                    "text": "The Saleor Winter Sale is snowed"
                     '<a href="https://docs.saleor.io/docs/">. Test.'
                 },
                 "type": "paragraph",
@@ -117,11 +117,10 @@ def test_clean_editor_js_for_list():
                 "data": {
                     "style": "unordered",
                     "items": [
-                        "It is a block-styled editor "
+                        "It is a block-styled editor"
                         '<a href="https://docs.saleor.io/docs/">.',
                         "It returns clean data output in JSON",
                         "Designed to be extendable and pluggable with a simple API",
-                        "",
                     ],
                 },
             },
@@ -139,12 +138,12 @@ def test_clean_editor_js_for_list():
 
     # then
     assert result == strip_tags(
-        "The Saleor Winter Sale is snowed "
+        "The Saleor Winter Sale is snowed"
         '<a href="https://docs.saleor.io/docs/">. Test.'
-        "It is a block-styled editor "
+        " It is a block-styled editor"
         '<a href="https://docs.saleor.io/docs/">.'
-        "It returns clean data output in JSON"
-        "Designed to be extendable and pluggable with a simple API"
+        " It returns clean data output in JSON"
+        " Designed to be extendable and pluggable with a simple API"
     )
 
 
