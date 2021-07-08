@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 
-from ....app.models import App
+from ....app.models import App, AppToken
 from ....payment import PaymentError, TransactionKind
 from ....payment.utils import create_payment_information
 from ....webhook.event_types import WebhookEventType
@@ -126,7 +126,7 @@ def test_get_payment_gateways(
 ):
     # Create second app to test results from multiple apps.
     app_2 = App.objects.create(name="Payment App 2", is_active=True)
-    app_2.tokens.create(name="Default")
+    AppToken.objects.create_app_token(app=app_2, name="Default")
     app_2.permissions.add(permission_manage_payments)
     webhook = Webhook.objects.create(
         name="payment-webhook-2",

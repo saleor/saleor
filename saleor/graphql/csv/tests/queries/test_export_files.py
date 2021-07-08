@@ -5,7 +5,7 @@ import pytest
 from django.utils import timezone
 
 from .....account.models import User
-from .....app.models import App
+from .....app.models import App, AppToken
 from .....core import JobStatus
 from .....csv.models import ExportFile
 from ....tests.utils import get_graphql_content
@@ -184,7 +184,7 @@ def test_filter_export_files_by_app(
     app,
 ):
     app2 = App.objects.create(name="Another app", is_active=True)
-    app2.tokens.create(name="Default")
+    AppToken.objects.create_app_token(app=app2, name="Default")
 
     export_file_list[0].user = None
     export_file_list[0].app = app
