@@ -24,12 +24,11 @@ def base_checkout_shipping_price(
     checkout_info: "CheckoutInfo", lines=None
 ) -> TaxedMoney:
     """Return checkout shipping price."""
-    # FIXME: Optimize checkout.is_shipping_required
+    # FIXME: Optimize checkout.is_shipping_required (can be removed)
     shipping_method = checkout_info.shipping_method
 
-    if lines is not None:
-        # and all(isinstance(line, CheckoutLineInfo) for line in lines):
-        # why is this needed here?
+    # all(isinstance  ... is not needed...)
+    if lines is not None and all(isinstance(line, CheckoutLineInfo) for line in lines):
         from .utils import is_shipping_required
 
         shipping_required = is_shipping_required(lines)

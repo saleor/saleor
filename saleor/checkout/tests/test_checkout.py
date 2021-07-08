@@ -20,7 +20,7 @@ from .. import AddressType, calculations
 from ..fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
-    DeliveryMethodInfo,
+    build_delivery_method,
     fetch_checkout_info,
     fetch_checkout_lines,
 )
@@ -150,7 +150,7 @@ def test_get_discount_for_checkout_value_voucher(
         shipping_method_channel_listings=None,
         valid_shipping_methods=[],
         valid_pick_up_points=[],
-        delivery_method_info=DeliveryMethodInfo.from_delivery_method(None, None),
+        delivery_method_info=build_delivery_method(None, None),
     )
     lines = [
         CheckoutLineInfo(
@@ -429,9 +429,7 @@ def test_get_discount_for_checkout_shipping_voucher(
         checkout=checkout,
         shipping_method=shipping_method,
         shipping_address=shipping_address,
-        delivery_method_info=DeliveryMethodInfo.from_delivery_method(
-            shipping_method, shipping_address
-        ),
+        delivery_method_info=build_delivery_method(shipping_method, shipping_address),
         billing_address=None,
         channel=channel_USD,
         user=None,

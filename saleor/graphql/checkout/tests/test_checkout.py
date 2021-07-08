@@ -22,7 +22,7 @@ from ....checkout.checkout_cleaner import (
 )
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
-    DeliveryMethodInfo,
+    build_delivery_method,
     fetch_checkout_info,
     fetch_checkout_lines,
 )
@@ -2839,8 +2839,8 @@ def test_checkout_shipping_method_update(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     checkout_info.shipping_method = old_shipping_method
-    checkout_info.delivery_method_info = DeliveryMethodInfo.from_delivery_method(
-        None, checkout_info.shipping_method
+    checkout_info.delivery_method_info = build_delivery_method(
+        checkout_info.shipping_method, None
     )
     checkout_info.shipping_method_channel_listings = None
     mock_clean_shipping.assert_called_once_with(
@@ -2897,7 +2897,7 @@ def test_checkout_delivery_method_update(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    checkout_info.delivery_method_info = DeliveryMethodInfo.from_delivery_method(
+    checkout_info.delivery_method_info = build_delivery_method(
         old_delivery_method, checkout_info.shipping_address
     )
     checkout_info.shipping_method = None

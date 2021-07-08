@@ -608,7 +608,7 @@ def get_valid_shipping_methods_for_checkout(
 def get_valid_collection_points_for_checkout(
     lines: Iterable["CheckoutLineInfo"],
 ):
-    line_ids = [line_info.line.id for line_info in lines]  # For now
+    line_ids = [line_info.line.id for line_info in lines]
     lines = CheckoutLine.objects.filter(id__in=line_ids)
 
     return Warehouse.objects.applicable_for_click_and_collect(lines)
@@ -628,29 +628,10 @@ def is_valid_shipping_method(checkout_info: "CheckoutInfo"):
     return True
 
 
-def is_valid_delivery_method(checkout_info: "CheckoutInfo") -> bool:
-    delivery_method_info = checkout_info.delivery_method_info
-    delivery_method = delivery_method_info.delivery_method
-    if not delivery_method:
-        return False
-    if not delivery_method_info.shipping_address:
-        return False
-    return True
-
-
-def is_delivery_method_in_valid_delivery_methods(checkout_info: "CheckoutInfo") -> bool:
-    valid_delivery_methods = checkout_info.valid_delivery_methods
-    return bool(
-        checkout_info.delivery_method_info.is_click_and_collect
-        or valid_delivery_methods
-        and checkout_info.delivery_method_info.delivery_method in valid_delivery_methods
-    )
-
-
 def clear_delivery_method(checkout_info: "CheckoutInfo"):
     checkout = checkout_info.checkout
     checkout.collection_point = None
-    checkout.shipping_method = None  # TODO: Think about it
+    checkout.shipping_method = None
     update_checkout_info_delivery_method(checkout_info, None)
     checkout.save(update_fields=["shipping_method", "collection_point", "last_change"])
 
