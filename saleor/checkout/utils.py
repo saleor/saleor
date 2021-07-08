@@ -130,8 +130,8 @@ def add_variants_to_checkout(
     """Add variants to checkout.
 
     If a variant is not placed in checkout, a new checkout line will be created.
-    Otherwise, its quantity will be replaced (if greater than 0).
     If quantity is set to 0, checkout line will be deleted.
+    Otherwise, quantity will be added or replaced (if replace argument is True).
     """
 
     # check quantities
