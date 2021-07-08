@@ -40,7 +40,6 @@ def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
                 new_text = clean_text_data(item)
                 if to_string:
                     string.append(strip_tags(new_text))
-                    # string += " %s" % strip_tags(new_text)
                 else:
                     blocks[index]["data"]["items"][item_index] = new_text
         else:
@@ -50,7 +49,6 @@ def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
             new_text = clean_text_data(text)
             if to_string:
                 string.append(strip_tags(new_text))
-                # string += " %s" % strip_tags(new_text)
             else:
                 blocks[index]["data"]["text"] = new_text
 
