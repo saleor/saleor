@@ -22,8 +22,6 @@ from sentry_sdk.integrations.logging import ignore_logger
 from . import patched_print_object
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 
-PATTERNS_IGNORED_IN_QUERY_CAPTURES = ""
-
 
 def get_list(text):
     return [item.strip() for item in text.split(",")]

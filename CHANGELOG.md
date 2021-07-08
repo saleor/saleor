@@ -7,7 +7,6 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.0.0 [Unreleased]
 
-- Add webhooks for stock changes: `PRODUCT_VARIANT_OUT_OF_STOCK` and `PRODUCT_VARIANT_BACK_IN_STOCK`  - #7590 by @mstrumeck
 - Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
@@ -141,6 +140,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `page_type_id` when it's possible for `AttributeValue` translations webhook. - #7825 by @fowczarek
 - Optimize available quantity loader. - #7802 by @fowczarek
 
+- Add webhooks for stock changes: `PRODUCT_VARIANT_OUT_OF_STOCK` and `PRODUCT_VARIANT_BACK_IN_STOCK`  - #7590 by @mstrumeck
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
