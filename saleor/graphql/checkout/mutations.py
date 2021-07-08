@@ -112,7 +112,7 @@ def clean_delivery_method(
 
     if (
         not checkout_info.shipping_address
-        and not checkout_info.delivery_method_info.is_click_and_collect
+        and not checkout_info.delivery_method_info.is_valid_delivery_method()
     ):
         raise ValidationError(
             "Cannot choose a shipping method for a checkout without the "

@@ -55,6 +55,7 @@ def check_stock_quantity_bulk(
     filter_lookup = {"product_variant__in": variants}
     if additional_filter_lookup is not None:
         filter_lookup.update(additional_filter_lookup)
+
     all_variants_stocks = (
         Stock.objects.for_country_and_channel(country_code, channel_slug)
         .filter(**filter_lookup)

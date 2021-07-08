@@ -81,15 +81,13 @@ def _process_shipping_data_for_order(
     lines: Iterable["CheckoutLineInfo"],
 ) -> Dict[str, Any]:
     """Fetch, process and return shipping data from checkout."""
-    shipping_address = checkout_info.delivery_method_info.shipping_address
-    delivery_method = checkout_info.delivery_method_info.delivery_method
-    is_click_and_collect = checkout_info.delivery_method_info.is_click_and_collect
+    delivery_method_info = checkout_info.delivery_method_info
+    shipping_address = delivery_method_info.shipping_address
 
-    delivery_method_dict = (
-        {"collection_point": delivery_method}
-        if is_click_and_collect
-        else {"shipping_method": delivery_method}
-    )  # generate method in delivery_info
+    delivery_method_dict = {
+        delivery_method_info.order_key: delivery_method_info.delivery_method
+    }
+
     if checkout_info.user and shipping_address:
         store_user_address(
             checkout_info.user, shipping_address, AddressType.SHIPPING, manager=manager
@@ -206,18 +204,11 @@ def _create_line_for_order(
         total_price=total_line_price,
         tax_rate=tax_rate,
     )
-    is_click_and_collect = checkout_info.delivery_method_info.is_click_and_collect
-    warehouse_pk = (
-        checkout_info.delivery_method_info.delivery_method.pk
-        if checkout_info.delivery_method_info.delivery_method is not None
-        and is_click_and_collect
-        else None
-    )
     line_info = OrderLineData(
         line=line,
         quantity=quantity,
         variant=variant,
-        warehouse_pk=warehouse_pk if is_click_and_collect else None,
+        warehouse_pk=checkout_info.delivery_method_info.warehouse_pk,
     )
 
     return line_info

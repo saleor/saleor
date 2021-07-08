@@ -3927,9 +3927,7 @@ def warehouse_for_cc(address, product_variant_list, shipping_zones):
         email="local@example.com",
         click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
     )
-    warehouse.shipping_zones.add(
-        shipping_zones[0]
-    )  # Discrepancy between available, and possible
+    warehouse.shipping_zones.add(shipping_zones[0])
     warehouse.shipping_zones.add(shipping_zones[1])
 
     Stock.objects.bulk_create(

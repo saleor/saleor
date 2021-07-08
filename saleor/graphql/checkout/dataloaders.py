@@ -5,7 +5,7 @@ from promise import Promise
 
 from saleor.graphql.warehouse.dataloaders import WarehouseByIdLoader
 
-from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo, DeliveryMethodInfo
+from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo, build_delivery_method
 from ...checkout.models import Checkout, CheckoutLine
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
@@ -231,7 +231,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         shipping_address = (
                             address_map.get(checkout.shipping_address_id),
                         )
-                        delivery_method_info = DeliveryMethodInfo.from_delivery_method(
+                        delivery_method_info = build_delivery_method(
                             delivery_method, shipping_address
                         )
 
