@@ -430,6 +430,76 @@ def test_process_payment_with_customer_and_payment_method(
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
+def test_process_payment_with_payment_method_types(
+    mocked_payment_intent,
+    mocked_customer_create,
+    stripe_plugin,
+    payment_stripe_for_checkout,
+    channel_USD,
+):
+    customer = Mock()
+    mocked_customer_create.return_value = customer
+
+    payment_intent = Mock()
+    mocked_payment_intent.return_value = payment_intent
+
+    client_secret = "client-secret"
+    dummy_response = {
+        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
+    }
+    payment_intent_id = "payment-intent-id"
+    payment_intent.id = payment_intent_id
+    payment_intent.client_secret = client_secret
+    payment_intent.last_response.data = dummy_response
+    payment_intent.status = SUCCESS_STATUS
+
+    plugin = stripe_plugin(auto_capture=True)
+
+    payment_stripe_for_checkout.checkout.email = "admin@example.com"
+    payment_info = create_payment_information(
+        payment_stripe_for_checkout,
+        customer_id=None,
+        store_source=True,
+        additional_data={"payment_method_types": ["p24", "card"]},
+    )
+
+    response = plugin.process_payment(payment_info, None)
+
+    assert response.is_success is True
+    assert response.action_required is False
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.amount == payment_info.amount
+    assert response.currency == payment_info.currency
+    assert response.transaction_id == payment_intent_id
+    assert response.error is None
+    assert response.raw_response == dummy_response
+    assert response.action_required_data == {
+        "client_secret": client_secret,
+        "id": payment_intent_id,
+    }
+
+    api_key = plugin.config.connection_params["secret_api_key"]
+    mocked_payment_intent.assert_called_once_with(
+        api_key=api_key,
+        amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
+        currency=payment_info.currency,
+        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        customer=customer,
+        metadata={
+            "channel": channel_USD.slug,
+            "payment_id": payment_info.graphql_payment_id,
+        },
+        payment_method_types=["p24", "card"],
+    )
+
+    mocked_customer_create.assert_called_once_with(
+        api_key="secret_key",
+        email="admin@example.com",
+    )
+
+
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
 def test_process_payment_offline(
     mocked_payment_intent,
     mocked_customer_create,
