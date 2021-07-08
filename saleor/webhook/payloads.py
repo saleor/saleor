@@ -408,7 +408,7 @@ def generate_product_variant_payload(product_variants: Iterable["ProductVariant"
             "channel_listings": lambda v: json.loads(
                 generate_product_variant_listings_payload(v.channel_listings.all())
             ),
-            "stocks": lambda v: generate_product_variant_stocks_payload(v),
+            "quantity_in_stocks": lambda v: generate_product_variant_stocks_payload(v),
         },
     )
     return payload

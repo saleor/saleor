@@ -24,7 +24,7 @@ from ....core.taxes import TaxType
 from ....core.units import WeightUnits
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
-from ....plugins.manager import PluginsManager
+from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product import ProductMediaTypes
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
@@ -52,9 +52,6 @@ from ...tests.utils import (
     get_graphql_content_from_response,
     get_multipart_request_body,
 )
-from ....webhook.payloads import generate_product_variant_payload
-from ....plugins.manager import get_plugins_manager
-
 from ..bulk_mutations.products import ProductVariantStocksUpdate
 from ..enums import VariantAttributeScope
 from ..utils import create_stocks
