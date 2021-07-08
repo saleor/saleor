@@ -1,7 +1,8 @@
-from unittest.mock import ANY, Mock
+from unittest.mock import Mock
 
 import pytest
 import requests
+from django.contrib.auth.hashers import check_password
 from django.core.management import call_command
 
 from ...core import JobStatus
@@ -56,13 +57,18 @@ def test_creates_app_from_manifest_sends_token(monkeypatch):
     call_command("install_app", manifest_url)
 
     app = App.objects.get()
-    token = app.tokens.all()[0].auth_token
-    mocked_post.assert_called_once_with(
-        "http://localhost:3000/register",
-        headers={"Content-Type": "application/json", "x-saleor-domain": "mirumee.com"},
-        json={"auth_token": token},
-        timeout=ANY,
-    )
+    auth_token = app.tokens.first().auth_token
+
+    assert mocked_post.call_count == 1
+    args, kwargs = mocked_post.call_args
+    assert len(args) == 1
+    assert args[0] == "http://localhost:3000/register"
+    assert kwargs["headers"] == {
+        "Content-Type": "application/json",
+        "x-saleor-domain": "mirumee.com",
+    }
+    token = kwargs["json"]["auth_token"]
+    assert check_password(token, auth_token)
 
 
 @pytest.mark.vcr
@@ -116,10 +122,12 @@ def test_sends_data_to_target_url(monkeypatch):
     call_command("create_app", name, permission=permissions, target_url=target_url)
 
     app = App.objects.filter(name=name)[0]
-    token = app.tokens.all()[0].auth_token
-    mocked_post.assert_called_once_with(
-        target_url,
-        headers={"x-saleor-domain": "mirumee.com"},
-        json={"auth_token": token},
-        timeout=ANY,
-    )
+    auth_token = app.tokens.first().auth_token
+
+    assert mocked_post.call_count == 1
+    args, kwargs = mocked_post.call_args
+    assert len(args) == 1
+    assert args[0] == target_url
+    assert kwargs["headers"] == {"x-saleor-domain": "mirumee.com"}
+    token = kwargs["json"]["auth_token"]
+    assert check_password(token, auth_token)

@@ -26,7 +26,7 @@ from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App, AppInstallation
+from ..app.models import App, AppInstallation, AppToken
 from ..app.types import AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
@@ -3689,15 +3689,19 @@ def other_description_json():
 
 @pytest.fixture
 def app(db):
-    app = App.objects.create(name="Sample app objects", is_active=True)
-    app.tokens.create(name="Default")
+    return App.objects.create(name="Sample app objects", is_active=True)
+
+
+@pytest.fixture
+def app_with_token(app):
+    AppToken.objects.create_app_token(app=app, name="Default")
     return app
 
 
 @pytest.fixture
 def payment_app(db, permission_manage_payments):
     app = App.objects.create(name="Payment App", is_active=True)
-    app.tokens.create(name="Default")
+    AppToken.objects.create_app_token(app=app, name="Default")
     app.permissions.add(permission_manage_payments)
 
     webhook = Webhook.objects.create(
@@ -3729,7 +3733,7 @@ def external_app(db):
         configuration_url="http://www.example.com/app-configuration/",
         app_url="http://www.example.com/app/",
     )
-    app.tokens.create(name="Default")
+    AppToken.objects.create_app_token(app=app, name="Default")
     return app
 
 

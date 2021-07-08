@@ -45,7 +45,7 @@ class AppToken(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_auth_token(root: models.AppToken, _info, **_kwargs):
-        return root.auth_token[-4:]
+        return root.raw_auth_token_last_4_chars
 
 
 @key(fields="id")
