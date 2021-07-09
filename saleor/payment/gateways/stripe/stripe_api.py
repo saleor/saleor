@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
 from decimal import Decimal
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 from urllib.parse import urljoin
 
 import stripe
@@ -119,6 +119,7 @@ def create_payment_intent(
     metadata: Optional[dict] = None,
     setup_future_usage: Optional[str] = None,
     off_session: Optional[bool] = None,
+    payment_method_types: Optional[List[str]] = None,
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
 
     capture_method = AUTOMATIC_CAPTURE_METHOD if auto_capture else MANUAL_CAPTURE_METHOD
@@ -139,6 +140,9 @@ def create_payment_intent(
 
     if metadata:
         additional_params["metadata"] = metadata
+
+    if payment_method_types and isinstance(payment_method_types, list):
+        additional_params["payment_method_types"] = payment_method_types
 
     try:
         with stripe_opentracing_trace("stripe.PaymentIntent.create"):
