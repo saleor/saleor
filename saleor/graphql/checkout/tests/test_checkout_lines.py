@@ -72,6 +72,25 @@ def test_checkout_lines_add(
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
 
 
+def test_checkout_lines_add_existing_variant(user_api_client, checkout_with_item):
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+
+    variables = {
+        "token": checkout.token,
+        "lines": [{"variantId": variant_id, "quantity": 7}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    line = checkout.lines.latest("pk")
+    assert line.quantity == 10
+
+
 def test_checkout_lines_add_with_unavailable_variant(
     user_api_client, checkout_with_item, stock
 ):
