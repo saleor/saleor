@@ -3,7 +3,7 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 
 from ..app.validators import AppURLValidator
-from .models import App, AppInstallation, AppToken
+from .models import App, AppInstallation
 from .types import AppType
 
 REQUEST_TIMEOUT = 25
@@ -53,11 +53,13 @@ def install_app(
         type=AppType.THIRDPARTY,
     )
     app.permissions.set(app_installation.permissions.all())
-    _token_obj, token = AppToken.objects.create_app_token(app=app, name="Default token")
+    token = app.tokens.create(name="Default token")
 
     try:
-        send_app_token(target_url=manifest_data.get("tokenTargetUrl"), token=token)
+        send_app_token(
+            target_url=manifest_data.get("tokenTargetUrl"), token=token.auth_token
+        )
     except requests.RequestException as e:
         app.delete()
         raise e
-    return app, token
+    return app

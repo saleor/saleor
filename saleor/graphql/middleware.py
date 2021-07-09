@@ -2,7 +2,6 @@ from typing import Optional
 
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Exists, OuterRef
 from django.utils.functional import SimpleLazyObject
@@ -29,13 +28,11 @@ class JWTMiddleware:
         return next(root, info, **kwargs)
 
 
-def get_app(token) -> Optional[App]:
-    apps = App.objects.filter(is_active=True)
-    app_tokens = AppToken.objects.filter(Exists(apps.filter(pk=OuterRef("app_id"))))
-    for app_token in app_tokens:
-        if check_password(token, app_token.auth_token):
-            return app_token.app
-    return None
+def get_app(auth_token) -> Optional[App]:
+    tokens = AppToken.objects.filter(auth_token=auth_token).values("pk")
+    return App.objects.filter(
+        Exists(tokens.filter(app_id=OuterRef("pk"))), is_active=True
+    ).first()
 
 
 def app_middleware(next, root, info, **kwargs):
