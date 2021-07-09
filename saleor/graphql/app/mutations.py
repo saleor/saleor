@@ -68,12 +68,11 @@ class AppTokenCreate(ModelMutation):
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(info, instance, input_data)
         instance = cls.construct_instance(instance, cleaned_input)
-        token = instance.create_auth_token()
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         response = cls.success_response(instance)
-        response.auth_token = token
+        response.auth_token = instance.auth_token
         return response
 
     @classmethod
@@ -131,8 +130,10 @@ class AppTokenVerify(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         token = data.get("token")
-        valid = models.AppToken.objects.validate_app_token(token)
-        return AppTokenVerify(valid=valid)
+        app_token = models.AppToken.objects.filter(
+            auth_token=token, app__is_active=True
+        ).first()
+        return AppTokenVerify(valid=bool(app_token))
 
 
 class AppCreate(ModelMutation):
@@ -169,12 +170,14 @@ class AppCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        instance.tokens.create(name="Default")
+
+    @classmethod
     def success_response(cls, instance):
         response = super().success_response(instance)
-        _token_inst, token = models.AppToken.objects.create_app_token(
-            app=instance, name="Default"
-        )
-        response.auth_token = token
+        response.auth_token = instance.tokens.get().auth_token
         return response
 
 

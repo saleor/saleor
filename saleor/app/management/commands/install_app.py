@@ -53,9 +53,10 @@ class Command(BaseCommand):
             app_job.permissions.set(permissions)
 
         try:
-            _app, token = install_app(app_job, activate)
+            app = install_app(app_job, activate)
         except Exception as e:
             app_job.status = JobStatus.FAILED
             app_job.save()
             raise e
-        return json.dumps({"auth_token": token})
+        token = app.tokens.first()
+        return json.dumps({"auth_token": token.auth_token})
