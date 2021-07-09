@@ -432,7 +432,10 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
     class Meta:
-        description = "Adds a checkout line to the existing checkout."
+        description = (
+            "Adds a checkout line to the existing checkout."
+            "If line was already in checkout, its quantity will be increased."
+        )
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
