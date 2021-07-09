@@ -851,6 +851,66 @@ def color_attribute(db):
 
 
 @pytest.fixture
+def date_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="release-date",
+        name="Release date",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.DATE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+
+    value = datetime.datetime(2020, 10, 5)
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=f"{attribute.name}: {value.date()}",
+        slug=f"{value.date()}_{attribute.id}",
+        date_time=value,
+    )
+
+    value = datetime.datetime(2020, 11, 5)
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=f"{attribute.name}: {value.date()}",
+        slug=f"{value.date()}_{attribute.id}",
+        date_time=value,
+    )
+    return attribute
+
+
+@pytest.fixture
+def date_time_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="release-date-time",
+        name="Release date time",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.DATE_TIME,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+
+    value = datetime.datetime(2020, 10, 5)
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=f"{attribute.name}: {value}",
+        slug=f"{value}_{attribute.id}",
+        date_time=value,
+    )
+
+    value = datetime.datetime(2020, 11, 5)
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=f"{attribute.name}: {value}",
+        slug=f"{value}_{attribute.id}",
+        date_time=value,
+    )
+    return attribute
+
+
+@pytest.fixture
 def attribute_choices_for_sorting(db):
     attribute = Attribute.objects.create(
         slug="sorting",

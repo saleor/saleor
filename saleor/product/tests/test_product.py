@@ -99,6 +99,18 @@ def test_filtering_by_attribute(
     assert product_a.pk in list(filtered)
 
 
+def test_filtering_by_date_attributes(
+    db,
+    color_attribute,
+    date_attribute,
+    date_time_attribute,
+    category,
+    channel_USD,
+    settings,
+):
+    ...
+
+
 @pytest.mark.parametrize(
     "expected_price, include_discounts",
     [(Decimal("10.00"), True), (Decimal("15.0"), False)],
