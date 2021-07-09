@@ -432,7 +432,10 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
     class Meta:
-        description = "Adds a checkout line to the existing checkout."
+        description = (
+            "Adds a checkout line to the existing checkout."
+            "If line was already in checkout, its quantity will be increased."
+        )
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
@@ -442,7 +445,7 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def clean_input(
-        cls, checkout, variants, quantities, checkout_info, manager, discounts
+        cls, checkout, variants, quantities, checkout_info, manager, discounts, replace
     ):
         channel_slug = checkout_info.channel.slug
         cls.validate_checkout_lines(
@@ -464,6 +467,7 @@ class CheckoutLinesAdd(BaseMutation):
                     quantities,
                     channel_slug,
                     skip_stock_check=True,  # already checked by validate_checkout_lines
+                    replace=replace,
                 )
             except ProductNotPublished as exc:
                 raise ValidationError(
@@ -479,7 +483,9 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, lines, checkout_id=None, token=None):
+    def perform_mutation(
+        cls, _root, info, lines, checkout_id=None, token=None, replace=False
+    ):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
             CheckoutErrorCode, "checkout_id", checkout_id, "token", token
@@ -502,7 +508,7 @@ class CheckoutLinesAdd(BaseMutation):
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
         cls.clean_input(
-            checkout, variants, quantities, checkout_info, manager, discounts
+            checkout, variants, quantities, checkout_info, manager, discounts, replace
         )
 
         lines = fetch_checkout_lines(checkout)
@@ -536,7 +542,9 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
 
     @classmethod
     def perform_mutation(cls, root, info, lines, checkout_id=None, token=None):
-        return super().perform_mutation(root, info, lines, checkout_id, token)
+        return super().perform_mutation(
+            root, info, lines, checkout_id, token, replace=True
+        )
 
 
 class CheckoutLineDelete(BaseMutation):
