@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
@@ -345,6 +347,21 @@ def test_increase_allocation_insufficient_stock(allocation):
     )
 
 
+@mock.patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+def test_increase_stock_and_trigger_webhook(
+    product_variant_back_in_stock_webhook, allocation
+):
+    stock = allocation.stock
+    stock.quantity = 0
+    stock.save(update_fields=["quantity"])
+
+    increase_stock(allocation.order_line, stock.warehouse, 50, allocate=False)
+
+    stock.refresh_from_db()
+    assert stock.quantity == 50
+    product_variant_back_in_stock_webhook.assert_called_once()
+
+
 def test_decrease_stock(allocation):
     stock = allocation.stock
     stock.quantity = 100
@@ -368,6 +385,29 @@ def test_decrease_stock(allocation):
     assert stock.quantity == 50
     allocation.refresh_from_db()
     assert allocation.quantity_allocated == 30
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_decrease_stock_and_trigger_webhook(product_variant_out_of_stock, allocation):
+    stock = allocation.stock
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+    warehouse_pk = allocation.stock.warehouse.pk
+
+    decrease_stock(
+        [
+            OrderLineData(
+                line=allocation.order_line,
+                quantity=100,
+                variant=stock.product_variant,
+                warehouse_pk=warehouse_pk,
+            )
+        ],
+    )
+
+    stock.refresh_from_db()
+    assert stock.quantity == 0
+    product_variant_out_of_stock.assert_called_once()
 
 
 @pytest.mark.parametrize("quantity, expected_allocated", ((50, 30), (200, 0)))

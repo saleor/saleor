@@ -9983,7 +9983,7 @@ def test_create_stocks(variant, warehouse):
     }
 
 
-def test_update_or_create_variant_stocks(variant, warehouses, info):
+def test_update_or_create_variant_stocks(variant, warehouses):
     Stock.objects.create(
         product_variant=variant,
         warehouse=warehouses[0],
@@ -9995,7 +9995,7 @@ def test_update_or_create_variant_stocks(variant, warehouses, info):
     ]
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses, info
+        variant, stocks_data, warehouses
     )
 
     variant.refresh_from_db()
@@ -10008,16 +10008,14 @@ def test_update_or_create_variant_stocks(variant, warehouses, info):
     }
 
 
-def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses, info):
+def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
     Stock.objects.create(
         product_variant=variant,
         warehouse=warehouses[0],
         quantity=5,
     )
 
-    ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, [], warehouses, info
-    )
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(variant, [], warehouses)
 
     variant.refresh_from_db()
     assert variant.stocks.count() == 1
@@ -10048,7 +10046,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only(
     ]
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses, info
+        variant, stocks_data, warehouses
     )
 
     product_variant_back_in_stock_webhook.assert_called_once()
@@ -10076,7 +10074,7 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     ]
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses, info
+        variant, stocks_data, warehouses
     )
 
     product_variant_stock_out_of_stock_webhook.assert_called_once()

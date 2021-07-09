@@ -20,6 +20,7 @@ from ....product.utils import delete_categories
 from ....product.utils.variants import generate_and_set_variant_name
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
+from ....warehouse.utils import ProductVariantStockWebhookTrigger
 from ...channel import ChannelContext
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelBulkDeleteMutation, ModelMutation
@@ -704,67 +705,40 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         errors = defaultdict(list)
-        stocks_input = data["stocks"]
+        stocks = data["stocks"]
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant
         )
-        if stocks_input:
-            warehouse_ids = [stock["warehouse"] for stock in stocks_input]
+        if stocks:
+            warehouse_ids = [stock["warehouse"] for stock in stocks]
             cls.check_for_duplicates(warehouse_ids, errors)
             if errors:
                 raise ValidationError(errors)
             warehouses = cls.get_nodes_or_error(
                 warehouse_ids, "warehouse", only_type=Warehouse
             )
-            cls.update_or_create_variant_stocks(variant, stocks_input, warehouses, info)
+            cls.update_or_create_variant_stocks(variant, stocks, warehouses)
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
     @traced_atomic_transaction()
-    def update_or_create_variant_stocks(cls, variant, stocks_input, warehouses, info):
-        stocks_data = []
-        for stock_data, warehouse in zip(stocks_input, warehouses):
-            stock, created = warehouse_models.Stock.objects.get_or_create(
+    def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses):
+        product_variant_stock_trigger = ProductVariantStockWebhookTrigger()
+        stocks = []
+        for stock_data, warehouse in zip(stocks_data, warehouses):
+            stock, is_created = warehouse_models.Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
             )
-            stocks_data.append(
-                {
-                    "stock": stock,
-                    "created": created,
-                    "prev_quantity": stock.quantity,
-                    "current_quantity": stock_data["quantity"],
-                }
+            product_variant_stock_trigger.append_stock_data(
+                stock, is_created, stock.quantity, stock_data["quantity"]
             )
             stock.quantity = stock_data["quantity"]
-        stocks_to_update = [data["stock"] for data in stocks_data]
-        warehouse_models.Stock.objects.bulk_update(stocks_to_update, ["quantity"])
-        plugins_manager = info.context.plugins
-        cls._run_product_variant_back_in_stock_webhook(plugins_manager, stocks_data)
-        cls._run_product_variant_out_of_stock_webhook(plugins_manager, stocks_data)
-
-    @classmethod
-    def _run_product_variant_back_in_stock_webhook(cls, plugins_manager, stocks_data):
-        for data in stocks_data:
-            if cls._is_variant_back_to_stock(data):
-                stock = data["stock"]
-                plugins_manager.product_variant_back_in_stock(stock.product_variant)
-
-    @classmethod
-    def _run_product_variant_out_of_stock_webhook(cls, plugins_manager, stocks_data):
-        for data in stocks_data:
-            if data["current_quantity"] <= 0:
-                stock = data["stock"]
-                plugins_manager.product_variant_out_of_stock(stock.product_variant)
-
-    @classmethod
-    def _is_variant_back_to_stock(cls, updated_stock):
-        return (
-            not updated_stock["created"]
-            and updated_stock["prev_quantity"] <= 0
-            and updated_stock["current_quantity"] > 0
-        )
+            stocks.append(stock)
+        warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])
+        product_variant_stock_trigger.trigger_product_variant_back_in_stock_webhook()
+        product_variant_stock_trigger.trigger_product_variant_out_of_stock_webhook()
 
 
 class ProductVariantStocksDelete(BaseMutation):

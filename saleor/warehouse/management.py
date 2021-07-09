@@ -7,6 +7,7 @@ from ..core.exceptions import AllocationError, InsufficientStock, InsufficientSt
 from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
 from ..product.models import ProductVariant
+from ..warehouse.utils import ProductVariantStockWebhookTrigger
 from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
@@ -198,12 +199,17 @@ def increase_stock(
     function increase `quantity_allocated`. If allocation does not exist function
     create a new allocation for this order line in this stock.
     """
+    product_variant_stock_trigger = ProductVariantStockWebhookTrigger()
     stock = (
         Stock.objects.select_for_update(of=("self",))
         .filter(warehouse=warehouse, product_variant=order_line.variant)
         .first()
     )
     if stock:
+        product_variant_stock_trigger.append_stock_data(
+            stock, False, stock.quantity, quantity
+        )
+        product_variant_stock_trigger.trigger_product_variant_back_in_stock_webhook()
         stock.increase_stock(quantity, commit=True)
     else:
         stock = Stock.objects.create(
@@ -323,6 +329,7 @@ def _decrease_stocks_quantity(
 ):
     insufficient_stocks: List[InsufficientStockData] = []
     stocks_to_update = []
+    product_variant_stock_trigger = ProductVariantStockWebhookTrigger()
     for line_info in order_lines_info:
         variant = line_info.variant
         warehouse_pk = str(line_info.warehouse_pk)
@@ -348,7 +355,9 @@ def _decrease_stocks_quantity(
                 )
             )
             continue
-
+        product_variant_stock_trigger.append_stock_data(
+            stock, False, stock.quantity, stock.quantity - line_info.quantity
+        )
         stock.quantity = stock.quantity - line_info.quantity
         stocks_to_update.append(stock)
 
@@ -356,6 +365,7 @@ def _decrease_stocks_quantity(
         raise InsufficientStock(insufficient_stocks)
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity"])
+    product_variant_stock_trigger.trigger_product_variant_out_of_stock_webhook()
 
 
 def get_order_lines_with_track_inventory(
