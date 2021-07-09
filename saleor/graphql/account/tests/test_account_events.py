@@ -316,26 +316,3 @@ def test_account_event_staff_user_assigned_email_to_customer_event_resolves_prop
     )
 
     assert expected_data == received_data
-
-
-def test_account_event_staff_user_added_note_to_customer_event_resolves_properly(
-    staff_api_client, staff_user, permission_manage_staff
-):
-    event = account_events.staff_user_added_note_to_a_customer_event(
-        staff_user=staff_user, note="New note's content!"
-    )
-    expected_data = {
-        "id": _model_to_node_id(event),
-        "user": {"id": _model_to_node_id(staff_user)},
-        "count": None,
-        "message": "New note's content!",
-        "order": None,
-        "orderLine": None,
-        "type": account_events.CustomerEvents.NOTE_ADDED.upper(),
-    }
-
-    received_data = _get_event_from_graphql(
-        staff_api_client, staff_user, permission_manage_staff
-    )
-
-    assert expected_data == received_data

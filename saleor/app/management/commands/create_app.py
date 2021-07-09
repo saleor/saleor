@@ -7,7 +7,7 @@ from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
 from requests.exceptions import RequestException
 
-from ...models import App
+from ...models import App, AppToken
 from .utils import clean_permissions
 
 
@@ -55,9 +55,9 @@ class Command(BaseCommand):
         permissions = clean_permissions(permissions)
         app = App.objects.create(name=name, is_active=is_active)
         app.permissions.set(permissions)
-        token_obj = app.tokens.create()
+        _token_obj, token = AppToken.objects.create_app_token(app=app)
         data = {
-            "auth_token": token_obj.auth_token,
+            "auth_token": token,
         }
         if target_url:
             self.send_app_data(target_url, data)

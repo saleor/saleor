@@ -2,10 +2,12 @@ from typing import Optional
 
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import AnonymousUser
+from django.db.models import Exists, OuterRef
 from django.utils.functional import SimpleLazyObject
 
-from ..app.models import App
+from ..app.models import App, AppToken
 from ..core.exceptions import ReadOnlyException
 from .views import API_PATH, GraphQLView
 
@@ -27,9 +29,13 @@ class JWTMiddleware:
         return next(root, info, **kwargs)
 
 
-def get_app(auth_token) -> Optional[App]:
-    qs = App.objects.filter(tokens__auth_token=auth_token, is_active=True)
-    return qs.first()
+def get_app(token) -> Optional[App]:
+    apps = App.objects.filter(is_active=True)
+    app_tokens = AppToken.objects.filter(Exists(apps.filter(pk=OuterRef("app_id"))))
+    for app_token in app_tokens:
+        if check_password(token, app_token.auth_token):
+            return app_token.app
+    return None
 
 
 def app_middleware(next, root, info, **kwargs):
@@ -44,7 +50,7 @@ def app_middleware(next, root, info, **kwargs):
             auth = request.META.get(app_auth_header, "").split()
             if len(auth) == 2:
                 auth_prefix, auth_token = auth
-                if auth_prefix.lower() == prefix:
+                if len(auth_token) == 30 and auth_prefix.lower() == prefix:
                     request.app = SimpleLazyObject(lambda: get_app(auth_token))
     return next(root, info, **kwargs)
 
