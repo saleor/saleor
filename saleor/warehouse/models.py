@@ -30,6 +30,32 @@ class WarehouseQueryset(models.QuerySet):
             .order_by("pk")
         )
 
+    def applicable_for_click_and_collect_no_quantity_check(
+        self, lines: QuerySet[CheckoutLine]
+    ):
+        stock_qs = Stock.objects.filter(
+            product_variant__id__in=lines.values("variant_id"),
+        ).select_related("product_variant")
+        local_warehouses_qs = (
+            self.prefetch_related(Prefetch("stock_set", queryset=stock_qs))
+            .filter(stock__in=stock_qs)
+            .annotate(stock_num=Count("stock__id"))
+            .filter(
+                stock_num=lines.count(),
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+            )
+        )
+
+        all_warehouses_qs = self.filter(
+            click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES
+        )
+        ids = [
+            warehouse.id
+            for warehouse in itertools.chain(local_warehouses_qs, all_warehouses_qs)
+        ]
+
+        return self.filter(pk__in=ids)
+
     def applicable_for_click_and_collect(self, lines: QuerySet[CheckoutLine]):
 
         lines_quantity = (

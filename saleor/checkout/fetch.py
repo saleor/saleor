@@ -91,7 +91,7 @@ class EmptyDeliveryMethod:
     def is_valid_delivery_method(self) -> bool:
         return False
 
-    def is_method_in_valid_methods(self, _) -> bool:
+    def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
         return False
 
     def update_channel_listings(self, checkout_info: "CheckoutInfo") -> None:
@@ -187,12 +187,11 @@ class CollectionPointInfo(EmptyDeliveryMethod):
             else True
         )
 
-    def is_method_in_valid_methods(self, _) -> bool:
-        # TODO: We "pass" this requirement, due to the fact,
-        # that in valid collection_points we check quantity.
-        # We want to raise "Insufficient Stock" later
-        # (or made up weaker requirement, without quantity check)
-        return True
+    def is_method_in_valid_methods(self, checkout_info) -> bool:
+        valid_delivery_methods = checkout_info.valid_delivery_methods
+        return bool(
+            valid_delivery_methods and self.delivery_method in valid_delivery_methods
+        )
 
 
 @singledispatch
@@ -342,7 +341,9 @@ def get_valid_collection_points_for_checkout_info(
 ):
     from .utils import get_valid_collection_points_for_checkout
 
-    valid_collection_points = get_valid_collection_points_for_checkout(lines)
+    valid_collection_points = get_valid_collection_points_for_checkout(
+        lines, strict=False
+    )
     return list(valid_collection_points) if valid_collection_points is not None else []
 
 

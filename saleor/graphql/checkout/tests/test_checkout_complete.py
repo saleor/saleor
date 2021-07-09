@@ -4,6 +4,7 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+from django.db.models.aggregates import Sum
 
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
@@ -1332,3 +1333,112 @@ def test_comp_checkout_builds_order_for_ALL_warehouse_even_if_not_available_loca
     content = get_graphql_content(response)["data"]["checkoutComplete"]
     assert not content["errors"]
     assert Order.objects.count() == initial_order_count + 1
+
+
+def test_checkout_complete_raises_InsufficientStock_when_quantity_above_stock_sum(
+    stocks_for_cc,
+    warehouse_for_cc,
+    checkout_with_lines,
+    address,
+    api_client,
+    payment_dummy,
+):
+    initial_order_count = Order.objects.count()
+    checkout = checkout_with_lines
+    checkout_line = checkout.lines.first()
+    overall_stock_quantity = (
+        Stock.objects.filter(product_variant=checkout_line.variant).aggregate(
+            Sum("quantity")
+        )
+    ).pop("quantity__sum")
+    checkout_line.quantity = overall_stock_quantity + 1
+    checkout_line.save()
+    warehouse_for_cc.click_and_collect_option = (
+        WarehouseClickAndCollectOption.ALL_WAREHOUSES
+    )
+    warehouse_for_cc.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "rediirectUrl": "https://www.example.com"}
+
+    checkout.collection_point = warehouse_for_cc
+    checkout.billing_address = address
+    checkout.shipping_address = None
+    checkout.save(
+        update_fields=["collection_point", "shipping_address", "billing_address"]
+    )
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    assert not payment.transactions.exists()
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert content["errors"][0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert Order.objects.count() == initial_order_count
+
+
+def test_checkout_complete_raises_InvalidShippingMethod_when_warehouse_disabled(
+    warehouse_for_cc,
+    checkout_with_lines,
+    address,
+    api_client,
+    payment_dummy,
+):
+    initial_order_count = Order.objects.count()
+    checkout = checkout_with_lines
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+
+    checkout.shipping_address = None
+    checkout.billing_address = address
+    checkout.collection_point = warehouse_for_cc
+
+    checkout.save(
+        update_fields=["shipping_address", "billing_address", "collection_point"]
+    )
+
+    warehouse_for_cc.click_and_collect_option = WarehouseClickAndCollectOption.DISABLED
+    warehouse_for_cc.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    assert not checkout_info.valid_delivery_methods
+    assert not checkout_info.delivery_method_info.is_method_in_valid_methods(
+        checkout_info
+    )
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    assert not payment.transactions.exists()
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+
+    assert (
+        content["errors"][0]["code"] == CheckoutErrorCode.INVALID_SHIPPING_METHOD.name
+    )
+    assert Order.objects.count() == initial_order_count
