@@ -142,7 +142,6 @@ def create_payment_intent(
     if metadata:
         additional_params["metadata"] = metadata
 
-
     if payment_method_types and isinstance(payment_method_types, list):
         additional_params["payment_method_types"] = payment_method_types
 

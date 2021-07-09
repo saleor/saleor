@@ -440,6 +440,7 @@ def test_process_payment_with_payment_method_types(
     stripe_plugin,
     payment_stripe_for_checkout,
     channel_USD,
+    customer_user,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
@@ -459,7 +460,9 @@ def test_process_payment_with_payment_method_types(
 
     plugin = stripe_plugin(auto_capture=True)
 
-    payment_stripe_for_checkout.checkout.email = "admin@example.com"
+    payment_stripe_for_checkout.checkout.user = customer_user
+    payment_stripe_for_checkout.checkout.email = customer_user.email
+    payment_stripe_for_checkout.save()
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
         customer_id=None,
@@ -494,11 +497,12 @@ def test_process_payment_with_payment_method_types(
             "payment_id": payment_info.graphql_payment_id,
         },
         payment_method_types=["p24", "card"],
+        receipt_email=payment_stripe_for_checkout.checkout.email,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
-        email="admin@example.com",
+        email=customer_user.email,
     )
 
 
