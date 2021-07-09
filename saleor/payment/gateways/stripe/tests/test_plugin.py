@@ -166,8 +166,6 @@ def test_process_payment(
     payment_stripe_for_checkout,
     channel_USD,
 ):
-    customer = StripeObject(id="cus_id")
-    mocked_customer.return_value = customer
     payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
     client_secret = "client-secret"
@@ -207,16 +205,13 @@ def test_process_payment(
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
         capture_method=AUTOMATIC_CAPTURE_METHOD,
-        customer=customer,
         metadata={
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
         },
+        receipt_email=payment_stripe_for_checkout.checkout.email,
     )
-
-    mocked_customer.assert_called_once_with(
-        api_key=api_key, email=payment_info.customer_email
-    )
+    assert not mocked_customer.called
 
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")
@@ -227,6 +222,7 @@ def test_process_payment_with_customer(
     stripe_plugin,
     payment_stripe_for_checkout,
     channel_USD,
+    customer_user,
 ):
     customer = StripeObject(id="cus_id")
     mocked_customer_create.return_value = customer
@@ -246,7 +242,8 @@ def test_process_payment_with_customer(
 
     plugin = stripe_plugin(auto_capture=True)
 
-    payment_stripe_for_checkout.checkout.email = "admin@example.com"
+    payment_stripe_for_checkout.checkout.user = customer_user
+    payment_stripe_for_checkout.checkout.email = customer_user.email
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
         customer_id=None,
@@ -279,11 +276,12 @@ def test_process_payment_with_customer(
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
         },
+        receipt_email=customer_user.email,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
-        email="admin@example.com",
+        email=customer_user.email,
     )
 
 
@@ -295,6 +293,7 @@ def test_process_payment_with_customer_and_future_usage(
     stripe_plugin,
     payment_stripe_for_checkout,
     channel_USD,
+    customer_user,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
@@ -314,7 +313,8 @@ def test_process_payment_with_customer_and_future_usage(
 
     plugin = stripe_plugin(auto_capture=True)
 
-    payment_stripe_for_checkout.checkout.email = "admin@example.com"
+    payment_stripe_for_checkout.checkout.user = customer_user
+    payment_stripe_for_checkout.checkout.email = customer_user.email
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
         customer_id=None,
@@ -349,11 +349,12 @@ def test_process_payment_with_customer_and_future_usage(
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
         },
+        receipt_email=payment_stripe_for_checkout.checkout.email,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
-        email="admin@example.com",
+        email=customer_user.email,
     )
 
 
@@ -365,6 +366,7 @@ def test_process_payment_with_customer_and_payment_method(
     stripe_plugin,
     payment_stripe_for_checkout,
     channel_USD,
+    customer_user,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
@@ -384,7 +386,8 @@ def test_process_payment_with_customer_and_payment_method(
 
     plugin = stripe_plugin(auto_capture=True)
 
-    payment_stripe_for_checkout.checkout.email = "admin@example.com"
+    payment_stripe_for_checkout.checkout.user = customer_user
+    payment_stripe_for_checkout.checkout.email = customer_user.email
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
         customer_id=None,
@@ -420,11 +423,12 @@ def test_process_payment_with_customer_and_payment_method(
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
         },
+        receipt_email=payment_stripe_for_checkout.checkout.email,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
-        email="admin@example.com",
+        email=customer_user.email,
     )
 
 
@@ -436,6 +440,7 @@ def test_process_payment_with_payment_method_types(
     stripe_plugin,
     payment_stripe_for_checkout,
     channel_USD,
+    customer_user,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
@@ -455,7 +460,9 @@ def test_process_payment_with_payment_method_types(
 
     plugin = stripe_plugin(auto_capture=True)
 
-    payment_stripe_for_checkout.checkout.email = "admin@example.com"
+    payment_stripe_for_checkout.checkout.user = customer_user
+    payment_stripe_for_checkout.checkout.email = customer_user.email
+    payment_stripe_for_checkout.save()
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
         customer_id=None,
@@ -490,11 +497,12 @@ def test_process_payment_with_payment_method_types(
             "payment_id": payment_info.graphql_payment_id,
         },
         payment_method_types=["p24", "card"],
+        receipt_email=payment_stripe_for_checkout.checkout.email,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
-        email="admin@example.com",
+        email=customer_user.email,
     )
 
 
@@ -506,6 +514,7 @@ def test_process_payment_offline(
     stripe_plugin,
     payment_stripe_for_checkout,
     channel_USD,
+    customer_user,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
@@ -525,7 +534,8 @@ def test_process_payment_offline(
 
     plugin = stripe_plugin(auto_capture=True)
 
-    payment_stripe_for_checkout.checkout.email = "admin@example.com"
+    payment_stripe_for_checkout.checkout.user = customer_user
+    payment_stripe_for_checkout.checkout.email = customer_user.email
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
         customer_id=None,
@@ -562,11 +572,12 @@ def test_process_payment_offline(
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
         },
+        receipt_email=payment_stripe_for_checkout.checkout.email,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
-        email="admin@example.com",
+        email=customer_user.email,
     )
 
 
@@ -578,6 +589,7 @@ def test_process_payment_with_customer_and_payment_method_raises_card_error(
     stripe_plugin,
     payment_stripe_for_checkout,
     channel_USD,
+    customer_user,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
@@ -600,7 +612,9 @@ def test_process_payment_with_customer_and_payment_method_raises_card_error(
 
     plugin = stripe_plugin(auto_capture=True)
 
-    payment_stripe_for_checkout.checkout.email = "admin@example.com"
+    payment_stripe_for_checkout.checkout.user = customer_user
+    payment_stripe_for_checkout.checkout.email = customer_user.email
+
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
         customer_id=None,
@@ -637,11 +651,12 @@ def test_process_payment_with_customer_and_payment_method_raises_card_error(
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
         },
+        receipt_email=payment_stripe_for_checkout.checkout.email,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
-        email="admin@example.com",
+        email=customer_user.email,
     )
 
 
@@ -697,6 +712,7 @@ def test_process_payment_with_disabled_order_auto_confirmation(
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
         },
+        receipt_email=payment_stripe_for_checkout.checkout.email,
     )
 
 
@@ -733,6 +749,7 @@ def test_process_payment_with_manual_capture(
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
         },
+        receipt_email=payment_stripe_for_checkout.checkout.email,
     )
 
 
@@ -770,6 +787,7 @@ def test_process_payment_with_error(
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
         },
+        receipt_email=payment_stripe_for_checkout.checkout.email,
     )
 
 

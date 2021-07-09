@@ -120,6 +120,7 @@ def create_payment_intent(
     setup_future_usage: Optional[str] = None,
     off_session: Optional[bool] = None,
     payment_method_types: Optional[List[str]] = None,
+    customer_email: Optional[str] = None,
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
 
     capture_method = AUTOMATIC_CAPTURE_METHOD if auto_capture else MANUAL_CAPTURE_METHOD
@@ -143,6 +144,9 @@ def create_payment_intent(
 
     if payment_method_types and isinstance(payment_method_types, list):
         additional_params["payment_method_types"] = payment_method_types
+
+    if customer_email:
+        additional_params["receipt_email"] = customer_email
 
     try:
         with stripe_opentracing_trace("stripe.PaymentIntent.create"):
