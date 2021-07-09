@@ -29,6 +29,7 @@ from ....order.notifications import get_default_order_payload
 from ....payment import ChargeStatus, PaymentError
 from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
+from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
@@ -5824,6 +5825,94 @@ def test_orders_query_with_filter_search_by_id_with_hash(
     orders_query_with_filter, order, staff_api_client, permission_manage_orders
 ):
     variables = {"filter": {"search": f"#{order.pk}"}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
+
+
+def test_orders_query_with_filter_search_by_product_sku_with_allocation(
+    orders_query_with_filter, staff_api_client, permission_manage_orders, allocations
+):
+    variables = {"filter": {"search": allocations[0].order_line.product_sku}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 3
+
+
+def test_order_query_with_filter_search_by_product_sku_order_line(
+    orders_query_with_filter, staff_api_client, permission_manage_orders, order_line
+):
+    variables = {"filter": {"search": order_line.product_sku}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
+
+
+def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    product,
+    channel_USD,
+    order,
+):
+    first_variant = ProductVariant.objects.create(product=product, sku="Var1")
+    second_variant = ProductVariant.objects.create(product=product, sku="Var2")
+    ProductVariantChannelListing.objects.create(
+        variant=first_variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=second_variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+
+    product = product
+    channel = order.channel
+    channel_listening = first_variant.channel_listings.get(channel=channel)
+    net = first_variant.get_price(product, [], channel, channel_listening)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+
+    first_order_line = order.lines.create(
+        product_name=str(product),
+        variant_name=str(second_variant),
+        product_sku=first_variant.sku,
+        is_shipping_required=first_variant.is_shipping_required(),
+        quantity=quantity,
+        variant=first_variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+
+    order.lines.create(
+        product_name=str(product),
+        variant_name=str(second_variant),
+        product_sku=second_variant.sku,
+        is_shipping_required=second_variant.is_shipping_required(),
+        quantity=quantity,
+        variant=second_variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+    variables = {"filter": {"search": first_order_line.product_sku}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
     content = get_graphql_content(response)
