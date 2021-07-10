@@ -4,6 +4,7 @@ from re import match
 from typing import Optional
 from uuid import uuid4
 
+from _datetime import timedelta
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator
@@ -30,7 +31,7 @@ from ..payment import ChargeStatus, TransactionKind
 from ..payment.model_helpers import get_subtotal, get_total_authorized
 from ..payment.models import Payment
 from ..shipping.models import ShippingMethod
-from . import FulfillmentStatus, OrderEvents, OrderOrigin, OrderStatus
+from . import FulfillmentStatus, SubscriptionPeriod, SubscriptionStatus, OrderEvents, OrderOrigin, OrderStatus
 
 
 class OrderQueryset(models.QuerySet):
@@ -295,6 +296,14 @@ class Order(ModelWithMetadata):
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self.lines.all())
 
+    def is_subscription(self):
+        return any(line.is_subscription for line in self.lines.all())
+
+    def get_subscription_lines(self):
+        for line in self.lines.all():
+            if line.is_subscription:
+                yield line
+
     def get_subtotal(self):
         return get_subtotal(self.lines.all(), self.currency)
 
@@ -537,6 +546,24 @@ class OrderLine(models.Model):
         has_digital = hasattr(self.variant, "digital_content")
         return is_digital and has_digital
 
+    @property
+    def is_subscription(self) -> Optional[bool]:
+        """Check if a variant is subscription."""
+        if not self.variant:
+            return None
+        is_subscription = hasattr(self.variant, "subscription")
+        return is_subscription
+
+    @property
+    def subscription(self) -> Optional["Subscription"]:
+        subscription = None
+        if self.is_subscription and hasattr(self.order, "subscriptions"):
+            for sub in self.order.subscriptions.all():
+                if self.variant.pk == sub.variant.pk:
+                    subscription = sub
+                    break
+        return subscription
+
 
 class Fulfillment(ModelWithMetadata):
     fulfillment_order = models.PositiveIntegerField(editable=False)
@@ -645,3 +672,185 @@ class OrderEvent(models.Model):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(type={self.type!r}, user={self.user!r})"
+
+
+class SubscriptionQueryset(models.QuerySet):
+    def active(self):
+        """Return active subscriptions."""
+        return self.filter(status=SubscriptionStatus.ACTIVE)
+
+    def get_by_user(self, user):
+        """Return subscriptions by user."""
+        return self.filter(user=user)
+
+    def get_by_variant(self, variant):
+        """Return subscriptions with matched variant."""
+        return self.filter(variant=variant)
+
+    def get_active_by_variant(self, variant):
+        """Return active subscriptions with matched variant."""
+        return self.get_by_variant(variant=variant).active()
+
+
+class Subscription(ModelWithMetadata):
+    created = models.DateTimeField(
+        default=now,
+        editable=False,
+    )
+    renewed = models.DateTimeField(
+        blank=True,
+        null=True,
+    )
+    cancelled = models.DateTimeField(
+        blank=True,
+        null=True,
+    )
+    status = models.CharField(
+        max_length=32, default=SubscriptionStatus.PENDING, choices=SubscriptionStatus.CHOICES
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="subscriptions",
+        on_delete=models.CASCADE,
+    )
+    variant = models.ForeignKey(
+        "product.ProductVariant",
+        related_name="subscriptions",
+        on_delete=models.CASCADE,
+    )
+    quantity = models.IntegerField(validators=[MinValueValidator(1)])
+    orders = models.ManyToManyField(Order, blank=True, related_name="subscriptions")
+    customer_note = models.TextField(blank=True, default="")
+    channel = models.ForeignKey(
+        Channel,
+        related_name="subscriptions",
+        on_delete=models.PROTECT,
+    )
+    language_code = models.CharField(max_length=35, default=settings.LANGUAGE_CODE)
+
+    objects = SubscriptionQueryset.as_manager()
+
+    class Meta(ModelWithMetadata.Meta):
+        ordering = ("-pk",)
+        permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
+
+    def save(self, *args, **kwargs):
+        return super().save(*args, **kwargs)
+
+    def __repr__(self):
+        return "<Subscription #%r>" % (self.id,)
+
+    def __str__(self):
+        return "#%d" % (self.id,)
+
+    def get_last_order(self):
+        return max(self.orders.all(), default=None, key=attrgetter("pk"))
+
+    def get_last_order_line(self):
+        last_order = self.get_last_order()
+        for line in last_order.get_subscription_lines():
+            if self.pk == line.subscription.pk:
+                last_order_line = line
+                break
+        return last_order_line
+
+    @property
+    def start_date(self):
+        return self.created
+
+    @property
+    def trial_end_date(self):
+        trial_interval = self.variant.subscription.trial_interval
+        if trial_interval:
+            trial_period = self.variant.subscription.trial_period
+            if trial_period == SubscriptionPeriod.DAY:
+                days = trial_interval
+            if trial_period == SubscriptionPeriod.WEEK:
+                days = trial_interval * 7
+            if trial_period == SubscriptionPeriod.MONTH:
+                days = trial_interval * 30
+            if trial_period == SubscriptionPeriod.YEAR:
+                days = trial_interval * 365
+
+            return self.created + timedelta(days=days)
+        return self.created
+
+    @property
+    def next_payment_date(self):
+        minutes = 60
+        return self.end_date - timedelta(minutes=minutes)
+
+    @property
+    def last_order_date(self):
+        return self.renewed if self.renewed else self.start_date
+
+    @property
+    def end_date(self):
+        billing_period = self.variant.subscription.billing_period
+        billing_interval = self.variant.subscription.billing_interval
+        if billing_period == SubscriptionPeriod.DAY:
+            days = billing_interval
+        if billing_period == SubscriptionPeriod.WEEK:
+            days = billing_interval * 7
+        if billing_period == SubscriptionPeriod.MONTH:
+            days = billing_interval * 30
+        if billing_period == SubscriptionPeriod.YEAR:
+            days = billing_interval * 365
+
+        if self.renewed:
+            return self.renewed + timedelta(days=days)
+
+        return self.trial_end_date + timedelta(days=days)
+
+    @property
+    def expiry_date(self):
+        length = self.variant.subscription.length
+        if length > 0:
+            billing_period = self.variant.subscription.billing_period
+            if billing_period == SubscriptionPeriod.DAY:
+                days = length
+            if billing_period == SubscriptionPeriod.WEEK:
+                days = length * 7
+            if billing_period == SubscriptionPeriod.MONTH:
+                days = length * 30
+            if billing_period == SubscriptionPeriod.YEAR:
+                days = length * 365
+
+            return self.trial_end_date + timedelta(days=days)
+        return None
+
+    def can_renew(self) -> bool:
+        if self.status in [SubscriptionStatus.PENDING, SubscriptionStatus.ACTIVE, SubscriptionStatus.ON_HOLD]:
+            if self.expiry_date and self.expiry_date < now():
+                return False
+            if self.next_payment_date > now():
+                return False
+            return True
+        return False
+
+    def can_update_status(self, status: str) -> bool:
+        if status == SubscriptionStatus.PENDING:
+            if (
+                self.status in [SubscriptionStatus.ACTIVE, SubscriptionStatus.ON_HOLD]
+                and self.end_date <= now()
+            ):
+                return True
+
+        elif status == SubscriptionStatus.ACTIVE:
+            if self.status in [SubscriptionStatus.PENDING, SubscriptionStatus.ON_HOLD]:
+                return True
+
+        elif status == SubscriptionStatus.ON_HOLD:
+            if self.status in [SubscriptionStatus.ACTIVE]:
+                return True
+
+        elif status == SubscriptionStatus.CANCELED:
+            return True
+
+        elif status == SubscriptionStatus.EXPIRED:
+            return True
+
+        elif status == SubscriptionStatus.PENDING_CANCEL:
+            return True
+
+        return False

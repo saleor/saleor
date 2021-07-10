@@ -8,7 +8,7 @@ from ...order.models import OrderEvent
 from ...order.utils import sum_order_totals
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..utils.filters import filter_by_period
-from .types import Order
+from .types import Order, Subscription
 
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
 
@@ -64,3 +64,16 @@ def resolve_order_by_token(token):
         .filter(token=token)
         .first()
     )
+
+
+@traced_resolver
+def resolve_subscription(info, subscription_id):
+    return graphene.Node.get_node_from_global_id(info, subscription_id, Subscription)
+
+
+@traced_resolver
+def resolve_subscriptions(_info, channel_slug, **_kwargs):
+    qs = models.Subscription.objects.all()
+    if channel_slug:
+        qs = qs.filter(channel__slug=str(channel_slug))
+    return qs

@@ -4,9 +4,11 @@ from copy import deepcopy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
+from _datetime import timedelta
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 
 from ..account.models import User
 from ..core import analytics
@@ -21,8 +23,10 @@ from ..payment import (
     gateway,
 )
 from ..payment.models import Payment, Transaction
-from ..payment.utils import create_payment
+from ..payment.utils import create_payment, fetch_customer_id
+from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import (
+    allocate_stocks,
     deallocate_stock,
     deallocate_stock_for_order,
     decrease_stock,
@@ -32,6 +36,8 @@ from ..warehouse.models import Stock
 from . import (
     FulfillmentLineData,
     FulfillmentStatus,
+    SubscriptionPeriod,
+    SubscriptionStatus,
     OrderLineData,
     OrderOrigin,
     OrderStatus,
@@ -46,7 +52,11 @@ from .events import (
     order_replacement_created,
     order_returned_event,
 )
-from .models import Fulfillment, FulfillmentLine, Order, OrderLine
+from .models import Fulfillment, FulfillmentLine, Order, OrderLine, Subscription
+from .tasks import (
+    subscription_renew_task,
+    subscription_update_status_task,
+)
 from .notifications import (
     send_fulfillment_confirmation_to_customer,
     send_order_canceled_confirmation,
@@ -55,6 +65,7 @@ from .notifications import (
     send_payment_confirmation,
 )
 from .utils import (
+    add_variant_to_order,
     order_line_needs_automatic_fulfillment,
     recalculate_order,
     restock_fulfillment_lines,
@@ -122,6 +133,9 @@ def handle_fully_paid_order(
     events.order_fully_paid_event(order=order, user=user)
     if order.get_customer_email():
         send_payment_confirmation(order, manager)
+
+        if order.is_subscription():
+            handle_subscription_lines(order=order, user=user)
 
         if utils.order_needs_automatic_fulfillment(order):
             automatically_fulfill_digital_lines(order, manager)
@@ -351,6 +365,59 @@ def fulfill_order_lines(order_lines_info: Iterable["OrderLineData"]):
         order_lines.append(line)
 
     OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
+
+
+@traced_atomic_transaction()
+def handle_subscription_lines(order: "Order", user: "User"):
+    """Create or renew subscription.
+    Send confirmation email afterward.
+    """
+    subscription_lines = order.get_subscription_lines()
+
+    if not subscription_lines:
+        return
+
+    for order_line in subscription_lines:
+        variant = order_line.variant
+        quantity = order_line.quantity
+
+        if order_line.subscription:
+            subscription = order_line.subscription
+            subscription.renewed = timezone.now() if subscription.end_date < timezone.now() else subscription.end_date
+            subscription.status = SubscriptionStatus.ACTIVE
+            subscription.save()
+        else:
+            subscription = Subscription(
+                status=SubscriptionStatus.ACTIVE,
+                user=user,
+                variant=variant,
+                quantity=quantity,
+                customer_note="",
+                channel=order.channel,
+                language_code=order.language_code,
+            )
+            subscription.save()
+            subscription.orders.add(order)
+            subscription.save()
+
+        if subscription.expiry_date and subscription.expiry_date < subscription.end_date:
+            subscription_update_status_eta = subscription.end_date + timedelta(minutes=1)
+            subscription_update_status_task.apply_async(
+                kwargs={"subscription_pk": subscription.pk, "status": SubscriptionStatus.EXPIRED},
+                eta=subscription_update_status_eta,
+            )
+        else:
+            subscription_renew_task_eta = subscription.next_payment_date + timedelta(minutes=1)
+            subscription_renew_task.apply_async(
+                kwargs={"subscription_pk": subscription.pk},
+                eta=subscription_renew_task_eta,
+            )
+
+            subscription_update_status_eta = subscription.end_date + timedelta(minutes=1)
+            subscription_update_status_task.apply_async(
+                kwargs={"subscription_pk": subscription.pk, "status": SubscriptionStatus.PENDING},
+                eta=subscription_update_status_eta,
+            )
 
 
 @traced_atomic_transaction()
@@ -1192,3 +1259,110 @@ def _process_refund(
         )
     )
     return amount
+
+
+@traced_atomic_transaction()
+def subscription_renew(subscription: "Subscription"):
+    """Renew subscription."""
+    if subscription.can_renew():
+        manager = get_plugins_manager()
+        last_order = subscription.get_last_order()
+        last_order_payment = last_order.get_last_payment()
+
+        txn_customer_id = fetch_customer_id(last_order.user, last_order_payment.gateway)
+
+        order = Order()
+        order.status = OrderStatus.UNFULFILLED
+        order.user_id = last_order.user_id
+        order.language_code = last_order.language_code
+        order.user_email = last_order.user_email
+        order.currency = last_order.currency
+        order.channel = last_order.channel
+        order.display_gross_prices = last_order.display_gross_prices
+        order.redirect_url = last_order.redirect_url
+        order.origin = OrderOrigin.DRAFT
+        order.metadata = last_order.metadata
+        order.private_metadata = last_order.private_metadata
+
+        if last_order.billing_address:
+            last_order.billing_address.pk = None
+            order.billing_address = last_order.billing_address
+            order.billing_address.save()
+        if last_order.shipping_address:
+            last_order.shipping_address.pk = None
+            order.shipping_address = last_order.shipping_address
+            order.shipping_address.save()
+        order.save()
+        order.refresh_from_db()
+
+        add_variant_to_order(
+            order=order,
+            variant=subscription.variant,
+            quantity=subscription.quantity,
+            user=subscription.user,
+            manager=manager
+        )
+
+        recalculate_order(order)
+        if ( address := order.shipping_address or order.billing_address ) and address.country:
+            order_lines_info = [OrderLineData(line=line, quantity=line.quantity, variant=line.variant) for line in order.lines.all()]
+            allocate_stocks(order_lines_info, address.country.code, order.channel.slug)
+        order.save()
+
+        subscription.orders.add(order)
+        subscription.save()
+
+        payment = create_payment(
+            gateway=last_order_payment.gateway,
+            payment_token=last_order_payment.token,
+            total=order.total_gross_amount,
+            currency=order.currency,
+            email=order.user_email,
+            order=order,
+            checkout=None,
+            customer_ip_address=None,
+            extra_data={"subscription_id": subscription.pk},
+            return_url=None,
+        )
+
+        txn = gateway.process_payment(
+            payment=payment,
+            token=payment.token,
+            manager=manager,
+            channel_slug=order.channel.slug,
+            customer_id=txn_customer_id,
+            store_source=True,
+            additional_data={"subscription_id": subscription.pk},
+        )
+
+        payment.refresh_from_db()
+
+        order.update_total_paid()
+        order.save()
+
+        transaction.on_commit(
+            lambda: order_created(order=order, user=subscription.user, manager=manager)
+        )
+
+
+def subscription_update_status(subscription: "Subscription", status: str):
+    """Update subscription Status."""
+    if subscription.can_update_status(status=status):
+        subscription.status = status
+        subscription.save()
+
+
+def subscription_cancel(subscription: "Subscription"):
+    """Cancel subscription."""
+    subscription.cancelled = timezone.now()
+    subscription.save()
+    if subscription.end_date < subscription.cancelled:
+        subscription_update_status(subscription=subscription, status=SubscriptionStatus.CANCELED)
+    else:
+        subscription_update_status(subscription=subscription, status=SubscriptionStatus.PENDING_CANCEL)
+
+        subscription_update_status_eta = subscription.end_date + timedelta(minutes=1)
+        subscription_update_status_task.apply_async(
+            kwargs={"subscription_pk": subscription.pk, "status": SubscriptionStatus.CANCELED},
+            eta=subscription_update_status_eta,
+        )

@@ -9,7 +9,7 @@ from ..core.types import FilterInputObjectType, TaxedMoney
 from ..decorators import permission_required
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.orders import OrderBulkCancel
-from .filters import DraftOrderFilter, OrderFilter
+from .filters import DraftOrderFilter, OrderFilter, SubscriptionFilter
 from .mutations.discount_order import (
     OrderDiscountAdd,
     OrderDiscountDelete,
@@ -44,6 +44,11 @@ from .mutations.orders import (
     OrderUpdateShipping,
     OrderVoid,
 )
+from .mutations.subscriptions import (
+    SubscriptionCancel,
+    SubscriptionRenew,
+    SubscriptionUpdateStatus,
+)
 from .resolvers import (
     resolve_draft_orders,
     resolve_homepage_events,
@@ -51,9 +56,11 @@ from .resolvers import (
     resolve_order_by_token,
     resolve_orders,
     resolve_orders_total,
+    resolve_subscription,
+    resolve_subscriptions,
 )
-from .sorters import OrderSortingInput
-from .types import Order, OrderEvent
+from .sorters import OrderSortingInput, SubscriptionSortingInput
+from .types import Order, OrderEvent, Subscription
 
 
 class OrderFilterInput(FilterInputObjectType):
@@ -64,6 +71,11 @@ class OrderFilterInput(FilterInputObjectType):
 class OrderDraftFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = DraftOrderFilter
+
+
+class SubscriptionFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = SubscriptionFilter
 
 
 class OrderQueries(graphene.ObjectType):
@@ -108,6 +120,24 @@ class OrderQueries(graphene.ObjectType):
         description="Look up an order by token.",
         token=graphene.Argument(UUID, description="The order's token.", required=True),
     )
+    subscription = graphene.Field(
+        Subscription,
+        description="Look up an subscription by ID.",
+        id=graphene.Argument(
+            graphene.ID, description="ID of an subscription.", required=True
+        ),
+    )
+    subscriptions = FilterInputConnectionField(
+        Subscription,
+        sort_by=SubscriptionSortingInput(description="Sort subscriptions."),
+        filter=SubscriptionFilterInput(
+            description="Filtering options for subscriptions."
+        ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        description="List of subscriptions.",
+    )
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     @traced_resolver
@@ -133,6 +163,14 @@ class OrderQueries(graphene.ObjectType):
     @traced_resolver
     def resolve_order_by_token(self, _info, token):
         return resolve_order_by_token(token)
+
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    def resolve_subscription(self, info, **data):
+        return resolve_subscription(info, data.get("id"))
+
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    def resolve_subscriptions(self, info, channel=None, **_kwargs):
+        return resolve_subscriptions(info, channel)
 
 
 class OrderMutations(graphene.ObjectType):
@@ -171,3 +209,7 @@ class OrderMutations(graphene.ObjectType):
     order_update_shipping = OrderUpdateShipping.Field()
     order_void = OrderVoid.Field()
     order_bulk_cancel = OrderBulkCancel.Field()
+
+    subscription_renew = SubscriptionRenew.Field()
+    subscription_update_status = SubscriptionUpdateStatus.Field()
+    subscription_cancel = SubscriptionCancel.Field()

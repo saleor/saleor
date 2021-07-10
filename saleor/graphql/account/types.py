@@ -223,6 +223,9 @@ class User(CountableDjangoObjectType):
     orders = PrefetchingConnectionField(
         "saleor.graphql.order.types.Order", description="List of user's orders."
     )
+    subscriptions = PrefetchingConnectionField(
+        "saleor.graphql.order.types.Subscription", description="List of user's subscriptions."
+    )
     user_permissions = graphene.List(
         UserPermission, description="List of user's permissions."
     )
@@ -344,6 +347,14 @@ class User(CountableDjangoObjectType):
         if viewer.has_perm(OrderPermissions.MANAGE_ORDERS):
             return root.orders.all()
         return root.orders.non_draft()
+
+    @staticmethod
+    @traced_resolver
+    def resolve_subscriptions(root: models.User, info, **_kwargs):
+        viewer = info.context.user
+        if viewer.has_perm(OrderPermissions.MANAGE_ORDERS):
+            return root.subscriptions.all()
+        return root.subscriptions.active()
 
     @staticmethod
     @traced_resolver

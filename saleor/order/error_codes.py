@@ -36,6 +36,8 @@ class OrderErrorCode(Enum):
 class SubscriptionErrorCode(Enum):
     CANNOT_CANCEL_SUBSCRIPTION = "cannot_cancel_subscription"
     CANNOT_DELETE = "cannot_delete"
+    CANNOT_RENEW = "cannot_renew"
+    CANNOT_UPDATE_STATUS = "cannot_update_status"
     NOT_EDITABLE = "not_editable"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"

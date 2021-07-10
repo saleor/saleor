@@ -3,7 +3,7 @@ from django.db.models import Exists, OuterRef, Q, Sum
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...discount.models import OrderDiscount
-from ...order.models import Order
+from ...order.models import Order, Subscription
 from ...payment.models import Payment
 from ..channel.types import Channel
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
@@ -124,3 +124,13 @@ class OrderFilter(DraftOrderFilter):
     class Meta:
         model = Order
         fields = ["payment_status", "status", "customer", "created", "search"]
+
+class SubscriptionFilter(django_filters.FilterSet):
+    created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
+    renewed = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
+    cancelled = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
+    channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
+
+    class Meta:
+        model = Subscription
+        fields = ["created", "renewed", "cancelled"]

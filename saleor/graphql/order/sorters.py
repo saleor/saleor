@@ -35,3 +35,27 @@ class OrderSortingInput(SortInputObjectType):
     class Meta:
         sort_enum = OrderSortField
         type_name = "orders"
+
+class SubscriptionSortField(graphene.Enum):
+    CREATED = ["created"]
+    RENEWED = ["renewed", "created"]
+    CANCELLED = ["cancelled", "renewed", "created"]
+    STATUS = ["status", "created"]
+
+    @property
+    def description(self):
+        if self in [
+            SubscriptionSortField.CREATED,
+            SubscriptionSortField.RENEWED,
+            SubscriptionSortField.CANCELLED,
+            SubscriptionSortField.STATUS,
+        ]:
+            sort_name = self.name.lower().replace("_", " ")
+            return f"Sort subscriptions by {sort_name}."
+        raise ValueError("Unsupported enum value: %s" % self.value)
+
+
+class SubscriptionSortingInput(SortInputObjectType):
+    class Meta:
+        sort_enum = SubscriptionSortField
+        type_name = "subscriptions"

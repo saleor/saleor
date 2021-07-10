@@ -369,6 +369,141 @@ class Fulfillment(CountableDjangoObjectType):
         return line.stock.warehouse if line and line.stock else None
 
 
+class Subscription(CountableDjangoObjectType):
+    number = graphene.String(description="User-friendly number of an subscription.")
+    user_email = graphene.String(
+        required=False, description="Email address of the customer."
+    )
+    start_date = graphene.types.datetime.DateTime(
+        description="Date when subscription start at in ISO 8601 format."
+    )
+    trial_end_date = graphene.types.datetime.DateTime(
+        description="Date when subscription trial end at in ISO 8601 format."
+    )
+    next_payment_date = graphene.types.datetime.DateTime(
+        description="Date when subscription next payment at in ISO 8601 format."
+    )
+    last_order_date = graphene.types.datetime.DateTime(
+        description="Date when subscription last order placed at in ISO 8601 format."
+    )
+    end_date = graphene.types.datetime.DateTime(
+        description="Date when subscription end at in ISO 8601 format."
+    )
+    expiry_date = graphene.types.datetime.DateTime(
+        description="Date when subscription expiry at in ISO 8601 format."
+    )
+
+    class Meta:
+        description = "Represents an subscription in the shop."
+        interfaces = [relay.Node, ObjectWithMetadata]
+        model = models.Subscription
+        only_fields = [
+            "id",
+            "created",
+            "renewed",
+            "cancelled",
+            "status",
+            "user",
+            "variant",
+            "quantity",
+            "orders",
+            "customer_note",
+            "channel",
+            "language_code",
+        ]
+
+    @staticmethod
+    def resolve_number(root: models.Subscription, _info):
+        return str(root.pk)
+
+    @staticmethod
+    def resolve_start_date(root: models.Subscription, _info):
+        return root.start_date
+
+    @staticmethod
+    def resolve_trial_end_date(root: models.Subscription, _info):
+        return root.trial_end_date
+
+    @staticmethod
+    def resolve_next_payment_date(root: models.Subscription, _info):
+        return root.next_payment_date
+
+    @staticmethod
+    def resolve_last_order_date(root: models.Subscription, _info):
+        return root.last_order_date
+
+    @staticmethod
+    def resolve_end_date(root: models.Subscription, _info):
+        return root.end_date
+
+    @staticmethod
+    def resolve_expiry_date(root: models.Subscription, _info):
+        return root.expiry_date
+
+    @staticmethod
+    @traced_resolver
+    def resolve_user_email(root: models.Subscription, info):
+        def _resolve_user_email(user):
+            requester = get_user_or_app_from_context(info.context)
+            if requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
+                return user.email
+            return obfuscate_email(user.email)
+
+        if not root.user_id:
+            return _resolve_user_email(None)
+
+        return (
+            UserByUserIdLoader(info.context)
+            .load(root.user_id)
+            .then(_resolve_user_email)
+        )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_user(root: models.Subscription, info):
+        def _resolve_user(user):
+            requester = get_user_or_app_from_context(info.context)
+            if requestor_has_access(requester, user, AccountPermissions.MANAGE_USERS):
+                return user
+            raise PermissionDenied()
+
+        if not root.user_id:
+            return None
+
+        return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_variant(root: models.Subscription, info):
+        context = info.context
+        if not root.variant_id:
+            return None
+
+        def requestor_has_access_to_variant(data):
+            variant, channel = data
+
+            requester = get_user_or_app_from_context(context)
+            is_staff = requestor_is_staff_member_or_app(requester)
+            if is_staff:
+                return ChannelContext(node=variant, channel_slug=channel.slug)
+
+            def product_is_available(product_channel_listing):
+                if product_channel_listing and product_channel_listing.is_visible:
+                    return ChannelContext(node=variant, channel_slug=channel.slug)
+                return None
+
+            return (
+                ProductChannelListingByProductIdAndChannelSlugLoader(context)
+                .load((variant.product_id, channel.slug))
+                .then(product_is_available)
+            )
+
+        variant = ProductVariantByIdLoader(context).load(root.variant_id)
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+
+        return Promise.all([variant, channel]).then(requestor_has_access_to_variant)
+
+
 class OrderLine(CountableDjangoObjectType):
     thumbnail = graphene.Field(
         Image,
@@ -422,6 +557,14 @@ class OrderLine(CountableDjangoObjectType):
     unit_discount_type = graphene.Field(
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
+    )
+    subscription = graphene.Field(
+        Subscription,
+        required=False,
+        description=(
+            "Subscription of the order line. Note: this field may be null if the line "
+            "does not have a subscription."
+        ),
     )
 
     class Meta:
@@ -671,6 +814,10 @@ class Order(CountableDjangoObjectType):
         graphene.NonNull("saleor.graphql.discount.types.OrderDiscount"),
         description="List of all discounts assigned to the order.",
         required=False,
+    )
+
+    subscriptions = graphene.List(
+        Subscription, required=False, description="List of order subscriptions."
     )
 
     class Meta:
