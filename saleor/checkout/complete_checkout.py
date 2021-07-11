@@ -585,6 +585,9 @@ def complete_checkout(
         gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
         raise exc
 
+    # Force enable store_source for subscription
+    store_source = True if checkout.is_subscription() else store_source
+
     customer_id = None
     if store_source and payment:
         customer_id = fetch_customer_id(user=user, gateway=payment.gateway)

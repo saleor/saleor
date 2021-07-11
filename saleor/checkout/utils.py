@@ -9,7 +9,7 @@ from django.utils import timezone
 from prices import Money
 
 from ..account.models import User
-from ..core.exceptions import ProductNotPublished
+from ..core.exceptions import PermissionDenied, ProductNotPublished
 from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -28,6 +28,8 @@ from ..giftcard.utils import (
 )
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
+from ..order import SubscriptionLimit
+from ..order.models import Subscription
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from . import AddressType, calculations
@@ -79,6 +81,30 @@ def check_variant_in_stock(
     return new_quantity, line
 
 
+def check_variant_is_subscription(
+    checkout: Checkout,
+    variant: product_models.ProductVariant,
+    quantity: int,
+):
+    """Check if a given variant is subscription and has any limit."""
+    user = checkout.user
+    if variant.is_subscription():
+        if not user or not user.is_authenticated:
+            raise PermissionDenied()
+
+        if variant.subscription.limit in [SubscriptionLimit.ACTIVE, SubscriptionLimit.ANY]:
+            if quantity > 1:
+                raise ValueError(
+                    "%r is not a valid quantity for this variant" % (quantity)
+                )
+            user_subscriptions = Subscription.objects.get_by_user(user=user)
+            user_subscriptions = user_subscriptions.get_active_by_variant(variant=variant) if variant.subscription.limit == SubscriptionLimit.ACTIVE else user_subscriptions.get_by_variant(variant=variant)
+            if user_subscriptions and user_subscriptions.count():
+                raise ValueError(
+                    "User(%s) already have subscription for this variant" % (user.email)
+                )
+
+
 def add_variant_to_checkout(
     checkout_info: "CheckoutInfo",
     variant: product_models.ProductVariant,
@@ -97,6 +123,9 @@ def add_variant_to_checkout(
     ).first()
     if not product_channel_listing or not product_channel_listing.is_published:
         raise ProductNotPublished()
+
+    # check if variant is subscription
+    check_variant_is_subscription(checkout=checkout, variant=variant, quantity=quantity)
 
     new_quantity, line = check_variant_in_stock(
         checkout,
@@ -144,10 +173,13 @@ def add_variants_to_checkout(checkout, variants, quantities, channel_slug):
     channel_listings_by_product_id = {cl.product_id: cl for cl in channel_listings}
 
     # check if variants are published
-    for variant in variants:
+    for variant, quantity in zip(variants, quantities):
         product_channel_listing = channel_listings_by_product_id[variant.product_id]
         if not product_channel_listing or not product_channel_listing.is_published:
             raise ProductNotPublished()
+
+        # check if variant is subscription
+        check_variant_is_subscription(checkout=checkout, variant=variant, quantity=quantity)
 
     # create checkout lines
     lines = []

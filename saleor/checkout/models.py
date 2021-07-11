@@ -107,6 +107,10 @@ class Checkout(ModelWithMetadata):
         """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self)
 
+    def is_subscription(self) -> bool:
+        """Return `True` if any of the lines has subscription."""
+        return any(line.is_subscription() for line in self)
+
     def get_total_gift_cards_balance(self) -> Money:
         """Return the total balance of the gift cards assigned to the checkout."""
         balance = self.gift_cards.aggregate(models.Sum("current_balance_amount"))[
@@ -198,3 +202,7 @@ class CheckoutLine(models.Model):
     def is_shipping_required(self) -> bool:
         """Return `True` if the related product variant requires shipping."""
         return self.variant.is_shipping_required()
+
+    def is_subscription(self) -> bool:
+        """Return `True` if the related product variant is subscription."""
+        return self.variant.is_subscription()
