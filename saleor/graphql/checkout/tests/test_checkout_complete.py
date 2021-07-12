@@ -1196,8 +1196,7 @@ def test_complete_checkout_for_click_and_collect_allow_unset_shipping_address(
 ):
     order_count = Order.objects.count()
     checkout = checkout_for_cc
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
 
     checkout.shipping_address = None
     checkout.billing_address = address
@@ -1248,8 +1247,7 @@ def test_complete_checkout_raises_ValidationError_for_local_stock(
     checkout_line.quantity = quantity_available + 1
     checkout_line.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "rediirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "rediirectUrl": "https://www.example.com"}
 
     checkout.collection_point = warehouse_for_cc
     checkout.billing_address = address
@@ -1303,8 +1301,7 @@ def test_comp_checkout_builds_order_for_ALL_warehouse_even_if_not_available_loca
     )
     warehouse_for_cc.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "rediirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "rediirectUrl": "https://www.example.com"}
 
     checkout.collection_point = warehouse_for_cc
     checkout.billing_address = address
@@ -1358,8 +1355,7 @@ def test_checkout_complete_raises_InsufficientStock_when_quantity_above_stock_su
     )
     warehouse_for_cc.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "rediirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "rediirectUrl": "https://www.example.com"}
 
     checkout.collection_point = warehouse_for_cc
     checkout.billing_address = address
@@ -1399,8 +1395,7 @@ def test_checkout_complete_raises_InvalidShippingMethod_when_warehouse_disabled(
 ):
     initial_order_count = Order.objects.count()
     checkout = checkout_with_lines
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
 
     checkout.shipping_address = None
     checkout.billing_address = address

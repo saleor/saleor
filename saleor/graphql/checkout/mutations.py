@@ -1071,7 +1071,14 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout")
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.")
+        checkout_id = graphene.ID(
+            description=(
+                "Checkout ID. "
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         shipping_method_id = graphene.ID(description="Shipping Method.")
         collection_point_id = graphene.ID(description="Collection Point Id")
 
@@ -1159,14 +1166,25 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         cls,
         root,
         info,
-        checkout_id,
+        checkout_id=None,
+        token=None,
         shipping_method_id=None,
         collection_point_id=None,
     ):
-        manager = info.context.plugins
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
+        manager = info.context.plugins
         lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
             checkout, lines, info.context.discounts, manager
