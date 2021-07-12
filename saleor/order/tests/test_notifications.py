@@ -276,6 +276,7 @@ def test_send_confirmation_emails_without_addresses_for_payment(
         digital_content.product_variant,
         quantity=1,
         user=info.context.user,
+        app=info.context.app,
         manager=info.context.plugins,
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
@@ -320,6 +321,7 @@ def test_send_confirmation_emails_without_addresses_for_order(
         digital_content.product_variant,
         quantity=1,
         user=info.context.user,
+        app=info.context.app,
         manager=info.context.plugins,
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
@@ -348,7 +350,7 @@ def test_send_confirmation_emails_without_addresses_for_order(
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_send_fulfillment_confirmation(
+def test_send_fulfillment_confirmation_by_user(
     mocked_notify, fulfilled_order, site_settings, staff_user
 ):
     fulfillment = fulfilled_order.fulfillments.first()
@@ -360,11 +362,40 @@ def test_send_fulfillment_confirmation(
         order=fulfilled_order,
         fulfillment=fulfillment,
         user=staff_user,
+        app=None,
         manager=manager,
     )
 
     expected_payload = get_default_fulfillment_payload(fulfilled_order, fulfillment)
     expected_payload["requester_user_id"] = staff_user.id
+    expected_payload["requester_app_id"] = None
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ORDER_FULFILLMENT_CONFIRMATION,
+        payload=expected_payload,
+        channel_slug=fulfilled_order.channel.slug,
+    )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_fulfillment_confirmation_by_app(
+    mocked_notify, fulfilled_order, site_settings, app
+):
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment.tracking_number = "https://www.example.com"
+    fulfillment.save()
+    manager = get_plugins_manager()
+
+    notifications.send_fulfillment_confirmation_to_customer(
+        order=fulfilled_order,
+        fulfillment=fulfillment,
+        user=None,
+        app=app,
+        manager=manager,
+    )
+
+    expected_payload = get_default_fulfillment_payload(fulfilled_order, fulfillment)
+    expected_payload["requester_user_id"] = None
+    expected_payload["requester_app_id"] = app.id
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_FULFILLMENT_CONFIRMATION,
         payload=expected_payload,
@@ -393,12 +424,14 @@ def test_send_fulfillment_update(mocked_notify, fulfilled_order, site_settings):
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_send_email_order_canceled(mocked_notify, order, site_settings, staff_user):
+def test_send_email_order_canceled_by_user(
+    mocked_notify, order, site_settings, staff_user
+):
     # given
     manager = get_plugins_manager()
 
     # when
-    notifications.send_order_canceled_confirmation(order, staff_user, manager)
+    notifications.send_order_canceled_confirmation(order, staff_user, None, manager)
 
     # then
     expected_payload = {
@@ -407,6 +440,7 @@ def test_send_email_order_canceled(mocked_notify, order, site_settings, staff_us
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
         "requester_user_id": staff_user.id,
+        "requester_app_id": None,
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CANCELED,
@@ -416,19 +450,76 @@ def test_send_email_order_canceled(mocked_notify, order, site_settings, staff_us
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_send_email_order_refunded(mocked_notify, order, site_settings, staff_user):
+def test_send_email_order_canceled_by_app(mocked_notify, order, site_settings, app):
+    # given
+    manager = get_plugins_manager()
+
+    # when
+    notifications.send_order_canceled_confirmation(order, None, app, manager)
+
+    # then
+    expected_payload = {
+        "order": get_default_order_payload(order),
+        "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
+        "requester_user_id": None,
+        "requester_app_id": app.id,
+    }
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ORDER_CANCELED,
+        expected_payload,
+        channel_slug=order.channel.slug,
+    )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_email_order_refunded_by_user(
+    mocked_notify, order, site_settings, staff_user
+):
     # given
     manager = get_plugins_manager()
     amount = order.total.gross.amount
 
     # when
     notifications.send_order_refunded_confirmation(
-        order, staff_user, amount, order.currency, manager
+        order, staff_user, None, amount, order.currency, manager
     )
 
     # then
     expected_payload = {
         "requester_user_id": staff_user.id,
+        "requester_app_id": None,
+        "order": get_default_order_payload(order),
+        "amount": amount,
+        "currency": order.currency,
+        "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
+    }
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ORDER_REFUND_CONFIRMATION,
+        expected_payload,
+        channel_slug=order.channel.slug,
+    )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_email_order_refunded_by_app(mocked_notify, order, site_settings, app):
+    # given
+    manager = get_plugins_manager()
+    amount = order.total.gross.amount
+
+    # when
+    notifications.send_order_refunded_confirmation(
+        order, None, app, amount, order.currency, manager
+    )
+
+    # then
+    expected_payload = {
+        "requester_user_id": None,
+        "requester_app_id": app.id,
         "order": get_default_order_payload(order),
         "amount": amount,
         "currency": order.currency,

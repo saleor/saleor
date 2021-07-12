@@ -156,6 +156,7 @@ def send_invoice_email_task(payload: dict, configuration: dict):
     order_events.event_invoice_sent_notification(
         order_id=payload["invoice"]["order_id"],
         user_id=payload["requester_user_id"],
+        app_id=payload["requester_app_id"],
         email=payload["recipient_email"],
     )
 
@@ -197,6 +198,7 @@ def send_fulfillment_confirmation_email_task(payload: dict, configuration: dict)
     order_events.event_fulfillment_confirmed_notification(
         order_id=payload["order"]["id"],
         user_id=payload["requester_user_id"],
+        app_id=payload["requester_app_id"],
         customer_email=payload["recipient_email"],
     )
 
@@ -204,6 +206,7 @@ def send_fulfillment_confirmation_email_task(payload: dict, configuration: dict)
         order_events.event_fulfillment_digital_links_notification(
             order_id=payload["order"]["id"],
             user_id=payload["requester_user_id"],
+            app_id=payload["requester_app_id"],
             customer_email=payload["recipient_email"],
         )
 
@@ -259,6 +262,7 @@ def send_order_canceled_email_task(payload: dict, configuration: dict):
     order_events.event_order_cancelled_notification(
         order_id=payload["order"]["id"],
         user_id=payload["requester_user_id"],
+        app_id=payload["requester_app_id"],
         customer_email=payload["recipient_email"],
     )
 
@@ -279,6 +283,7 @@ def send_order_refund_email_task(payload: dict, configuration: dict):
     order_events.event_order_refunded_notification(
         order_id=payload["order"]["id"],
         user_id=payload["requester_user_id"],
+        app_id=payload["requester_app_id"],
         customer_email=payload["recipient_email"],
     )
 
@@ -299,5 +304,6 @@ def send_order_confirmed_email_task(payload: dict, configuration: dict):
     order_events.event_order_confirmed_notification(
         order_id=payload.get("order", {}).get("id"),
         user_id=payload.get("requester_user_id"),
+        app_id=payload["requester_app_id"],
         customer_email=payload["recipient_email"],
     )

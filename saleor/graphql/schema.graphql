@@ -3184,6 +3184,7 @@ type OrderEvent implements Node {
   date: DateTime
   type: OrderEventsEnum
   user: User
+  app: App
   message: String
   email: String
   emailType: OrderEventsEmailsEnum

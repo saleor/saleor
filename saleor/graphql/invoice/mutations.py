@@ -73,10 +73,13 @@ class InvoiceRequest(ModelMutation):
             order_events.invoice_generated_event(
                 order=order,
                 user=info.context.user,
+                app=info.context.app,
                 invoice_number=invoice.number,
             )
         else:
-            order_events.invoice_requested_event(user=info.context.user, order=order)
+            order_events.invoice_requested_event(
+                user=info.context.user, app=info.context.app, order=order
+            )
 
         events.invoice_requested_event(
             user=info.context.user, order=order, number=data.get("number")
@@ -160,6 +163,7 @@ class InvoiceCreate(ModelMutation):
         order_events.invoice_generated_event(
             order=order,
             user=info.context.user,
+            app=info.context.app,
             invoice_number=cleaned_input["number"],
         )
         return InvoiceCreate(invoice=invoice)
@@ -260,6 +264,7 @@ class InvoiceUpdate(ModelMutation):
         order_events.invoice_updated_event(
             order=instance.order,
             user=info.context.user,
+            app=info.context.app,
             invoice_number=instance.number,
             url=instance.url,
             status=instance.status,
@@ -309,5 +314,7 @@ class InvoiceSendNotification(ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
-        send_invoice(instance, info.context.user, info.context.plugins)
+        send_invoice(
+            instance, info.context.user, info.context.app, info.context.plugins
+        )
         return InvoiceSendNotification(invoice=instance)

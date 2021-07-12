@@ -138,6 +138,7 @@ def _finalize_checkout(
         store_source=False,
         discounts=discounts,
         user=checkout.user or AnonymousUser(),  # type: ignore
+        app=None,
     )
 
 
@@ -232,7 +233,7 @@ def handle_failed_payment_intent(
         payment_intent.currency,
     )
     if payment.order:
-        order_voided(payment.order, None, payment, get_plugins_manager())
+        order_voided(payment.order, None, None, payment, get_plugins_manager())
 
 
 def handle_processing_payment_intent(
@@ -282,6 +283,7 @@ def handle_successful_payment_intent(
             )
             order_captured(
                 payment.order,  # type: ignore
+                None,
                 None,
                 capture_transaction.amount,
                 payment,
@@ -336,6 +338,7 @@ def handle_refund(charge: StripeObject, gateway_config: "GatewayConfig"):
     if payment.order:
         order_refunded(
             payment.order,
+            None,
             None,
             refund_transaction.amount,
             payment,
