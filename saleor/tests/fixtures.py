@@ -548,6 +548,20 @@ def user_checkout(customer_user, channel_USD):
 
 
 @pytest.fixture
+def user_checkout_cc(customer_user, channel_USD, warehouse_for_cc):
+    checkout = Checkout.objects.create(
+        user=customer_user,
+        channel=channel_USD,
+        billing_address=customer_user.default_billing_address,
+        shipping_address=warehouse_for_cc.address,
+        collection_point=warehouse_for_cc,
+        note="Test notes",
+        currency="USD",
+    )
+    return checkout
+
+
+@pytest.fixture
 def user_checkout_PLN(customer_user, channel_PLN):
     checkout = Checkout.objects.create(
         user=customer_user,
@@ -568,6 +582,26 @@ def user_checkout_with_items(user_checkout, product_list):
         add_variant_to_checkout(checkout_info, variant, 1)
     user_checkout.refresh_from_db()
     return user_checkout
+
+
+@pytest.fixture
+def user_checkout_with_items_cc(user_checkout_cc, product_list):
+    checkout_info = fetch_checkout_info(user_checkout_cc, [], [], get_plugins_manager())
+    for product in product_list:
+        variant = product.variants.get()
+        add_variant_to_checkout(checkout_info, variant, 1)
+    user_checkout_cc.refresh_from_db()
+    return user_checkout_cc
+
+
+@pytest.fixture
+def user_checkouts(request, user_checkout_with_items, user_checkout_with_items_cc):
+    if request.param == "regular":
+        return user_checkout_with_items
+    elif request.param == "click_and_collect":
+        return user_checkout_with_items_cc
+    else:
+        raise ValueError("Internal test error")
 
 
 @pytest.fixture
@@ -2564,6 +2598,120 @@ def order_with_lines(
 
     order.refresh_from_db()
     return order
+
+
+@pytest.fixture
+def order_with_lines_cc(
+    warehouse_for_cc,
+    warehouse,
+    channel_USD,
+    customer_user,
+    order_with_lines,
+    shipping_zone,
+):
+    address = customer_user.default_billing_address.get_copy()
+
+    order = Order.objects.create(
+        billing_address=address,
+        channel=channel_USD,
+        currency=channel_USD.currency_code,
+        shipping_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
+        origin=OrderOrigin.CHECKOUT,
+    )
+
+    product = Product.objects.get(slug="test-product-8")
+    ProductChannelListing.objects.get(
+        product_id=product.id,
+        channel_id=channel_USD.id,
+    )
+    variant = ProductVariant.objects.get(sku="SKU_AA")
+    channel_listing = ProductVariantChannelListing.objects.get(
+        variant_id=variant.id,
+        channel_id=channel_USD.id,
+    )
+    stock = Stock.objects.get(warehouse=warehouse, product_variant=variant)
+    net = variant.get_price(product, [], channel_USD, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+    line = order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+    Allocation.objects.create(
+        order_line=line, stock=stock, quantity_allocated=line.quantity
+    )
+
+    product = Product.objects.get(slug="test-product-9")
+    ProductChannelListing.objects.get(product_id=product.id, channel_id=channel_USD.id)
+    variant = ProductVariant.objects.get(sku="SKU_B")
+    channel_listing = ProductVariantChannelListing.objects.get(
+        variant_id=variant.id,
+        channel_id=channel_USD.id,
+    )
+    stock = Stock.objects.get(product_variant=variant, warehouse=warehouse)
+
+    net = variant.get_price(product, [], channel_USD, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 2
+    line = order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+    Allocation.objects.create(
+        order_line=line, stock=stock, quantity_allocated=line.quantity
+    )
+
+    order.shipping_address = order.billing_address.get_copy()
+    order.channel = channel_USD
+
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_price = shipping_method.channel_listings.get(channel_id=channel_USD.id)
+    order.shipping_method_name = shipping_method.name
+    order.shipping_method = shipping_method
+    order.collection_point = warehouse_for_cc
+    net = shipping_price.get_total()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order.shipping_price = TaxedMoney(net=net, gross=gross)
+    order.save()
+
+    recalculate_order(order)
+
+    order.refresh_from_db()
+    return order
+
+
+@pytest.fixture(params=["regular", "click_and_collect"])
+def order_param(request, order_with_lines, order_with_lines_cc):
+    if request.param == "regular":
+        return order_with_lines, request.param
+    elif request.param == "click_and_collect":
+        return order_with_lines_cc, request.param
+    else:
+        raise ValueError("Internal test error")
 
 
 @pytest.fixture
