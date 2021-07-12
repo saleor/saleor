@@ -39,6 +39,11 @@ def digital_content_url_is_valid(content_url: DigitalContentUrl) -> bool:
 
     if max_downloads is not None and max_downloads <= content_url.download_num:
         return False
+
+    if content_url.line.subscription is not None:
+        if now() > content_url.line.subscription.end_date:
+            return False
+
     return True
 
 
