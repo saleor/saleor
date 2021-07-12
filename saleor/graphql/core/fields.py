@@ -175,6 +175,10 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
             cls.resolve_connection, connection, args, max_limit=max_limit
         )
 
+        # for nested filters get channel from ChannelContext object
+        if "channel" not in args and hasattr(root, "channel_slug"):
+            args["channel"] = root.channel_slug
+
         iterable = cls.filter_iterable(
             iterable, filterset_class, filters_name, info, **args
         )
