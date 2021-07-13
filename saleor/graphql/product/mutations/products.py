@@ -982,6 +982,7 @@ class ProductVariantCreate(ModelMutation):
         for k, v in subscription_data.items():
             setattr(subscription, k, v)
         subscription.save()
+        variant.subscription.refresh_from_db()
 
     @classmethod
     def success_response(cls, instance):
