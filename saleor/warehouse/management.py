@@ -3,11 +3,13 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, cast
 
 from django.db.models import F, Sum
 
+from saleor.plugins.manager import get_plugins_manager
+
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
+from ..product.actions import ProductVariantStockWebhookTrigger
 from ..product.models import ProductVariant
-from ..warehouse.utils import ProductVariantStockWebhookTrigger
 from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
@@ -32,6 +34,7 @@ def allocate_stocks(
     """
     # allocation only applied to order lines with variants with track inventory
     # set to True
+    product_variant_stock_trigger = ProductVariantStockWebhookTrigger()
     order_lines_info = get_order_lines_with_track_inventory(order_lines_info)
     if not order_lines_info:
         return
@@ -83,7 +86,16 @@ def allocate_stocks(
         raise InsufficientStock(insufficient_stock)
 
     if allocations:
+        product_variant_stock_trigger.append_stock_data_from_allocations(allocations)
         Allocation.objects.bulk_create(allocations)
+
+    plugins_manager = get_plugins_manager()
+    product_variant_stock_trigger.trigger_product_variant_out_of_stock_webhook(
+        plugins_manager
+    )
+    product_variant_stock_trigger.trigger_product_variant_back_in_stock_webhook(
+        plugins_manager
+    )
 
 
 def _create_allocations(
@@ -199,6 +211,7 @@ def increase_stock(
     function increase `quantity_allocated`. If allocation does not exist function
     create a new allocation for this order line in this stock.
     """
+    plugins_manager = get_plugins_manager()
     product_variant_stock_trigger = ProductVariantStockWebhookTrigger()
     stock = (
         Stock.objects.select_for_update(of=("self",))
@@ -209,7 +222,9 @@ def increase_stock(
         product_variant_stock_trigger.append_stock_data(
             stock, False, stock.quantity, quantity
         )
-        product_variant_stock_trigger.trigger_product_variant_back_in_stock_webhook()
+        product_variant_stock_trigger.trigger_product_variant_back_in_stock_webhook(
+            plugins_manager
+        )
         stock.increase_stock(quantity, commit=True)
     else:
         stock = Stock.objects.create(
@@ -365,7 +380,10 @@ def _decrease_stocks_quantity(
         raise InsufficientStock(insufficient_stocks)
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity"])
-    product_variant_stock_trigger.trigger_product_variant_out_of_stock_webhook()
+    plugins_manager = get_plugins_manager()
+    product_variant_stock_trigger.trigger_product_variant_out_of_stock_webhook(
+        plugins_manager
+    )
 
 
 def get_order_lines_with_track_inventory(

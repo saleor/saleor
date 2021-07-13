@@ -7,6 +7,7 @@ from django.db.models.functions import Coalesce
 from ...core.exceptions import InsufficientStock
 from ...order import OrderLineData
 from ...order.models import OrderLine
+from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Stock
 from ..management import (
     allocate_stocks,
@@ -33,6 +34,20 @@ def test_allocate_stocks(order_line, stock, channel_USD):
     assert stock.quantity == 100
     allocation = Allocation.objects.get(order_line=order_line, stock=stock)
     assert allocation.quantity_allocated == 50
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_allocate_stocks_with_out_of_stock_webhook(
+    product_variant_out_of_stock_webhook, order_line, stock, channel_USD
+):
+    stock.quantity = 50
+    stock.save(update_fields=["quantity"])
+
+    line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=50)
+
+    allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
+    flush_post_commit_hooks()
+    product_variant_out_of_stock_webhook.assert_called_once()
 
 
 def test_allocate_stocks_multiple_lines(order_line, order, product, stock, channel_USD):
@@ -356,6 +371,7 @@ def test_increase_stock_and_trigger_webhook(
     stock.save(update_fields=["quantity"])
 
     increase_stock(allocation.order_line, stock.warehouse, 50, allocate=False)
+    flush_post_commit_hooks()
 
     stock.refresh_from_db()
     assert stock.quantity == 50
@@ -404,7 +420,7 @@ def test_decrease_stock_and_trigger_webhook(product_variant_out_of_stock, alloca
             )
         ],
     )
-
+    flush_post_commit_hooks()
     stock.refresh_from_db()
     assert stock.quantity == 0
     product_variant_out_of_stock.assert_called_once()

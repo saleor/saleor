@@ -41,7 +41,7 @@ from ....product.models import (
 from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.costs import get_product_costs_data
-from ....tests.utils import dummy_editorjs
+from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import generate_product_deleted_payload
@@ -10048,7 +10048,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only(
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
         variant, stocks_data, warehouses
     )
-
+    flush_post_commit_hooks()
     product_variant_back_in_stock_webhook.assert_called_once()
     assert product_variant_stock_out_of_stock_webhook.call_count == 0
 
@@ -10076,6 +10076,7 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
         variant, stocks_data, warehouses
     )
+    flush_post_commit_hooks()
 
     product_variant_stock_out_of_stock_webhook.assert_called_once()
     assert product_variant_back_in_stock_webhook.call_count == 0

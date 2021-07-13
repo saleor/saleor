@@ -6,6 +6,8 @@ from django.db import transaction
 from django.db.models import Q
 from graphene.types import InputObjectType
 
+from saleor.plugins.manager import get_plugins_manager
+
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.permissions import ProductPermissions, ProductTypePermissions
@@ -14,13 +16,13 @@ from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import models
+from ....product.actions import ProductVariantStockWebhookTrigger
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
 from ....product.utils.variants import generate_and_set_variant_name
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
-from ....warehouse.utils import ProductVariantStockWebhookTrigger
 from ...channel import ChannelContext
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelBulkDeleteMutation, ModelMutation
@@ -725,20 +727,25 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
     @classmethod
     @traced_atomic_transaction()
     def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses):
-        product_variant_stock_trigger = ProductVariantStockWebhookTrigger()
+        product_variant_stock_webhooks = ProductVariantStockWebhookTrigger()
         stocks = []
         for stock_data, warehouse in zip(stocks_data, warehouses):
             stock, is_created = warehouse_models.Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
             )
-            product_variant_stock_trigger.append_stock_data(
+            product_variant_stock_webhooks.append_stock_data(
                 stock, is_created, stock.quantity, stock_data["quantity"]
             )
             stock.quantity = stock_data["quantity"]
             stocks.append(stock)
         warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])
-        product_variant_stock_trigger.trigger_product_variant_back_in_stock_webhook()
-        product_variant_stock_trigger.trigger_product_variant_out_of_stock_webhook()
+        plugins_manager = get_plugins_manager()
+        product_variant_stock_webhooks.trigger_product_variant_back_in_stock_webhook(
+            plugins_manager
+        )
+        product_variant_stock_webhooks.trigger_product_variant_out_of_stock_webhook(
+            plugins_manager
+        )
 
 
 class ProductVariantStocksDelete(BaseMutation):
