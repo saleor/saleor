@@ -13,7 +13,7 @@ from ..channel.models import Channel
 from ..checkout.models import CheckoutLine
 from ..core.models import ModelWithMetadata
 from ..order.models import OrderLine
-from ..product.models import Product, ProductVariant
+from ..product.models import Product, ProductVariant, ProductVariantChannelListing
 from ..shipping.models import ShippingZone
 from . import WarehouseClickAndCollectOption
 
@@ -257,4 +257,26 @@ class Allocation(models.Model):
 
     class Meta:
         unique_together = [["order_line", "stock"]]
+        ordering = ("pk",)
+
+
+class PreorderAllocation(models.Model):
+    order_line = models.ForeignKey(
+        OrderLine,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="preorder_allocations",
+    )
+    quantity = models.PositiveIntegerField(default=0)
+    product_variant_channel_listing = models.ForeignKey(
+        ProductVariantChannelListing,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="preorder_allocations",
+    )
+
+    class Meta:
+        unique_together = [["order_line", "product_variant_channel_listing"]]
         ordering = ("pk",)
