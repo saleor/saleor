@@ -27,8 +27,11 @@ from ..giftcard.utils import (
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
 from ..shipping.models import ShippingMethod
-from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from ..warehouse.models import Warehouse
+from ..warehouse.availability import (
+    check_stock_and_preorder_quantity,
+    check_stock_and_preorder_quantity_bulk,
+)
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
 from .fetch import (
@@ -71,7 +74,7 @@ def check_variant_in_stock(
         )
 
     if new_quantity > 0 and check_quantity:
-        check_stock_quantity(
+        check_stock_and_preorder_quantity(
             variant, checkout.get_country(), channel_slug, new_quantity
         )
 
@@ -138,7 +141,9 @@ def add_variants_to_checkout(
     # check quantities
     country_code = checkout.get_country()
     if not skip_stock_check:
-        check_stock_quantity_bulk(variants, country_code, quantities, channel_slug)
+        check_stock_and_preorder_quantity_bulk(
+            variants, country_code, quantities, channel_slug
+        )
 
     channel_listings = product_models.ProductChannelListing.objects.filter(
         channel_id=checkout.channel.id,
