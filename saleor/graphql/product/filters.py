@@ -135,19 +135,19 @@ def _clean_product_attributes_date_time_range_filter_input(
             if is_date:
                 value = value.date()
 
-            if gte and lte and gte <= value <= lte:
-                matching_values_pk.append(pk)
-            elif gte and gte <= value:
-                matching_values_pk.append(pk)
-            elif lte and value >= lte:
+            if gte and lte:
+                if gte <= value <= lte:
+                    matching_values_pk.append(pk)
+            elif gte:
+                if gte <= value:
+                    matching_values_pk.append(pk)
+            elif lte >= value:
                 matching_values_pk.append(pk)
 
         queries[attr_pk] += matching_values_pk
 
 
-def _clean_product_attributes_boolean_filter_input(
-    filter_value, queries: T_PRODUCT_FILTER_QUERIES
-):
+def _clean_product_attributes_boolean_filter_input(filter_value, queries):
     attribute_slugs = [slug for slug, _ in filter_value]
     attributes = Attribute.objects.filter(
         input_type=AttributeInputType.BOOLEAN, slug__in=attribute_slugs
@@ -164,7 +164,7 @@ def _clean_product_attributes_boolean_filter_input(
         attr_pk = values_map[attr_slug]["pk"]
         value_pk = values_map[attr_slug]["values"].get(val)
         if value_pk:
-            queries[attr_pk] = [value_pk]
+            queries[attr_pk] += [value_pk]
 
 
 def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):

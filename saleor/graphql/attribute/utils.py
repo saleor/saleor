@@ -1,7 +1,7 @@
 import re
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union, cast
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import graphene
@@ -190,31 +190,16 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         get_or_create = attribute.values.get_or_create
+        boolean = bool(attr_values.boolean)
         value, _ = get_or_create(
             attribute=attribute,
-            slug=slugify(f"{attribute.id}_{attr_values.boolean}", allow_unicode=True),
+            slug=slugify(f"{attribute.id}_{boolean}", allow_unicode=True),
             defaults={
-                "name": f"{attribute.name}: {'Yes' if attr_values.boolean else 'No'}",
-                "boolean": attr_values.boolean,
+                "name": f"{attribute.name}: {'Yes' if boolean else 'No'}",
+                "boolean": boolean,
             },
         )
         return (value,)
-
-    @classmethod
-    def _pre_save_date_values(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        value = attr_values.date
-        defaults = {
-            "date_time": value,
-            "name": f"{attribute.name}: {value}",
-        }
-        return (
-            cls._update_or_create_value(instance, attribute, defaults) if value else ()
-        )
 
     @classmethod
     def _pre_save_date_time_values(
@@ -223,10 +208,15 @@ class AttributeAssignmentMixin:
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
     ):
-        value = attr_values.date_time
+        value = (
+            attr_values.date
+            if attribute.input_type == AttributeInputType.DATE
+            else attr_values.date_time
+        )
+
         defaults = {
             "date_time": value,
-            "name": f"{attribute.name}: {value}",
+            "name": value,
         }
         return (
             cls._update_or_create_value(instance, attribute, defaults) if value else ()
@@ -498,7 +488,7 @@ class AttributeAssignmentMixin:
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
             AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
             AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
-            AttributeInputType.DATE: cls._pre_save_date_values,
+            AttributeInputType.DATE: cls._pre_save_date_time_values,
             AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
         }
         clean_assignment = []

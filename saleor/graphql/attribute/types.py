@@ -99,8 +99,16 @@ class AttributeValue(CountableDjangoObjectType):
         )
 
     @staticmethod
+    def resolve_date_time(root: models.AttributeValue, info, **_kwargs):
+        if root.attribute.input_type == AttributeInputType.DATE_TIME:
+            return root.date_time
+        return None
+
+    @staticmethod
     def resolve_date(root: models.AttributeValue, info, **_kwargs):
-        return root.date_time
+        if root.attribute.input_type == AttributeInputType.DATE:
+            return root.date_time
+        return None
 
 
 class Attribute(CountableDjangoObjectType):

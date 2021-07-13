@@ -12,7 +12,6 @@ import pytest
 import pytz
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
-from django.contrib.postgres.search import SearchVector
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -862,7 +861,7 @@ def date_attribute(db):
         available_in_grid=True,
     )
 
-    value = datetime.datetime(2020, 10, 5)
+    value = datetime.datetime(2020, 10, 5, tzinfo=pytz.utc)
     AttributeValue.objects.create(
         attribute=attribute,
         name=f"{attribute.name}: {value.date()}",
@@ -870,7 +869,7 @@ def date_attribute(db):
         date_time=value,
     )
 
-    value = datetime.datetime(2020, 11, 5)
+    value = datetime.datetime(2020, 11, 5, tzinfo=pytz.utc)
     AttributeValue.objects.create(
         attribute=attribute,
         name=f"{attribute.name}: {value.date()}",
@@ -892,18 +891,18 @@ def date_time_attribute(db):
         available_in_grid=True,
     )
 
-    value = datetime.datetime(2020, 10, 5)
+    value = datetime.datetime(2020, 10, 5, tzinfo=pytz.utc)
     AttributeValue.objects.create(
         attribute=attribute,
-        name=f"{attribute.name}: {value}",
+        name=value,
         slug=f"{value}_{attribute.id}",
         date_time=value,
     )
 
-    value = datetime.datetime(2020, 11, 5)
+    value = datetime.datetime(2020, 11, 5, tzinfo=pytz.utc)
     AttributeValue.objects.create(
         attribute=attribute,
-        name=f"{attribute.name}: {value}",
+        name=value,
         slug=f"{value}_{attribute.id}",
         date_time=value,
     )
