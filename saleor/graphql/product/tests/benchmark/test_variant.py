@@ -184,7 +184,7 @@ def test_product_variant_create(
             $productId: ID!,
             $sku: String,
             $stocks: [StockInput!],
-            $attributes: [AttributeValueInput]!,
+            $attributes: [AttributeValueInput!]!,
             $weight: WeightScalar,
             $trackInventory: Boolean
         ) {
@@ -221,10 +221,6 @@ def test_product_variant_create(
                                 contentType
                             }
                         }
-                    }
-                    costPrice {
-                        currency
-                        amount
                     }
                     weight {
                         value
@@ -287,7 +283,7 @@ def test_update_product_variant(
     query = """
         mutation VariantUpdate(
             $id: ID!
-            $attributes: [AttributeValueInput]
+            $attributes: [AttributeValueInput!]
             $sku: String
             $trackInventory: Boolean!
         ) {
@@ -310,11 +306,15 @@ def test_update_product_variant(
                         id
                         name
                         slug
-                        values {
-                            id
-                            name
-                            slug
-                            __typename
+                        choices(first: 10) {
+                            edges {
+                                node {
+                                    id
+                                    name
+                                    slug
+                                    __typename
+                                }
+                            }
                         }
                     __typename
                     }

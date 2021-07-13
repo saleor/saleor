@@ -6,7 +6,6 @@ from django.conf import settings
 from django_countries.fields import Country
 from graphene import relay
 from graphene_federation import key
-from graphql.error import GraphQLError
 
 from ....account.utils import requestor_is_staff_member_or_app
 from ....attribute import models as attribute_models
@@ -39,7 +38,7 @@ from ...core.fields import (
     FilterInputConnectionField,
     PrefetchingConnectionField,
 )
-from ...core.types import Image, Money, TaxedMoney, TaxedMoneyRange, TaxType
+from ...core.types import Image, TaxedMoney, TaxedMoneyRange, TaxType
 from ...core.utils import from_global_id_or_error
 from ...decorators import (
     one_of_permissions_required,
@@ -192,7 +191,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             description="Define scope of returned attributes.",
         ),
     )
-    cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
     quantity_ordered = graphene.Int(description="Total quantity ordered.")
     revenue = graphene.Field(
@@ -297,7 +295,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
         return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             info.context
-        ).load((root.node.id, country_code, root.channel_slug))
+        ).load((root.node.id, country_code, str(root.channel_slug)))
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -540,7 +538,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description="List of availability in channels for the product.",
     )
     media_by_id = graphene.Field(
-        graphene.NonNull(lambda: ProductMedia),
+        lambda: ProductMedia,
         id=graphene.Argument(graphene.ID, description="ID of a product media."),
         description="Get a single product media by ID.",
     )
@@ -769,20 +767,14 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_media_by_id(root: ChannelContext[models.Product], info, id):
-        _type, pk = from_global_id_or_error(id, only_type="ProductMedia")
-        try:
-            return root.node.media.get(pk=pk)
-        except models.ProductMedia.DoesNotExist:
-            raise GraphQLError("Product media not found.")
+        _type, pk = from_global_id_or_error(id, ProductMedia)
+        return root.node.media.filter(pk=pk).first()
 
     @staticmethod
     @traced_resolver
     def resolve_image_by_id(root: ChannelContext[models.Product], info, id):
-        _type, pk = from_global_id_or_error(id, only_type="ProductMedia")
-        try:
-            return root.node.media.get(pk=pk)
-        except models.ProductMedia.DoesNotExist:
-            raise GraphQLError("Product image not found.")
+        _type, pk = from_global_id_or_error(id, ProductImage)
+        return root.node.media.filter(pk=pk).first()
 
     @staticmethod
     @traced_resolver
@@ -1011,7 +1003,7 @@ class ProductType(CountableDjangoObjectType):
         requestor = get_user_or_app_from_context(info.context)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        qs = root.products.visible_to_user(requestor, channel)
+        qs = root.products.visible_to_user(requestor, channel)  # type: ignore
         return ChannelQsContext(qs=qs, channel_slug=channel)
 
     @staticmethod
@@ -1093,7 +1085,9 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @traced_resolver
     def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        qs = root.node.products.visible_to_user(requestor, root.channel_slug)
+        qs = root.node.products.visible_to_user(  # type: ignore
+            requestor, root.channel_slug
+        )
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod

@@ -119,7 +119,9 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
                 company_address = account_models.Address()
             else:
                 company_address = site_settings.company_address
-            company_address = cls.validate_address(data, company_address, info=info)
+            company_address = cls.validate_address(
+                data, instance=company_address, info=info
+            )
             company_address.save()
             site_settings.company_address = company_address
             site_settings.save(update_fields=["company_address"])

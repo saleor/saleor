@@ -2,8 +2,7 @@ import logging
 from decimal import Decimal
 from typing import TYPE_CHECKING, Callable, List, Optional
 
-from django.db import transaction
-
+from ..core.tracing import traced_atomic_transaction
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
 from .utils import (
@@ -13,7 +12,7 @@ from .utils import (
     create_transaction,
     gateway_postprocess,
     get_already_processed_transaction_or_create_new_transaction,
-    update_payment_method_details,
+    update_payment,
     validate_gateway_response,
 )
 
@@ -60,7 +59,7 @@ def with_locked_payment(fn: Callable) -> Callable:
     """Lock payment to protect from asynchronous modification."""
 
     def wrapped(payment: Payment, *args, **kwargs):
-        with transaction.atomic():
+        with traced_atomic_transaction():
             payment = Payment.objects.select_for_update().get(id=payment.id)
             return fn(payment, *args, **kwargs)
 
@@ -75,22 +74,28 @@ def process_payment(
     payment: Payment,
     token: str,
     manager: "PluginsManager",
+    channel_slug: str,
+    customer_id: str = None,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
 ) -> Transaction:
     payment_data = create_payment_information(
         payment=payment,
         payment_token=token,
+        customer_id=customer_id,
         store_source=store_source,
         additional_data=additional_data,
     )
 
     response, error = _fetch_gateway_response(
-        manager.process_payment, payment.gateway, payment_data
+        manager.process_payment,
+        payment.gateway,
+        payment_data,
+        channel_slug=channel_slug,
     )
     action_required = response is not None and response.action_required
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
@@ -109,17 +114,25 @@ def authorize(
     payment: Payment,
     token: str,
     manager: "PluginsManager",
+    channel_slug: str,
+    customer_id: str = None,
     store_source: bool = False,
 ) -> Transaction:
     clean_authorize(payment)
     payment_data = create_payment_information(
-        payment=payment, payment_token=token, store_source=store_source
+        payment=payment,
+        payment_token=token,
+        customer_id=customer_id,
+        store_source=store_source,
     )
     response, error = _fetch_gateway_response(
-        manager.authorize_payment, payment.gateway, payment_data
+        manager.authorize_payment,
+        payment.gateway,
+        payment_data,
+        channel_slug=channel_slug,
     )
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.AUTH,
@@ -137,7 +150,9 @@ def authorize(
 def capture(
     payment: Payment,
     manager: "PluginsManager",
+    channel_slug: str,
     amount: Decimal = None,
+    customer_id: str = None,
     store_source: bool = False,
 ) -> Transaction:
     if amount is None:
@@ -145,13 +160,20 @@ def capture(
     clean_capture(payment, Decimal(amount))
     token = _get_past_transaction_token(payment, TransactionKind.AUTH)
     payment_data = create_payment_information(
-        payment=payment, payment_token=token, amount=amount, store_source=store_source
+        payment=payment,
+        payment_token=token,
+        amount=amount,
+        customer_id=customer_id,
+        store_source=store_source,
     )
     response, error = _fetch_gateway_response(
-        manager.capture_payment, payment.gateway, payment_data
+        manager.capture_payment,
+        payment.gateway,
+        payment_data,
+        channel_slug=channel_slug,
     )
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
@@ -166,7 +188,10 @@ def capture(
 @with_locked_payment
 @payment_postprocess
 def refund(
-    payment: Payment, manager: "PluginsManager", amount: Decimal = None
+    payment: Payment,
+    manager: "PluginsManager",
+    channel_slug: str,
+    amount: Decimal = None,
 ) -> Transaction:
     if amount is None:
         amount = payment.captured_amount
@@ -190,7 +215,7 @@ def refund(
         )
 
     response, error = _fetch_gateway_response(
-        manager.refund_payment, payment.gateway, payment_data
+        manager.refund_payment, payment.gateway, payment_data, channel_slug=channel_slug
     )
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
@@ -205,11 +230,15 @@ def refund(
 @require_active_payment
 @with_locked_payment
 @payment_postprocess
-def void(payment: Payment, manager: "PluginsManager") -> Transaction:
+def void(
+    payment: Payment,
+    manager: "PluginsManager",
+    channel_slug: str,
+) -> Transaction:
     token = _get_past_transaction_token(payment, TransactionKind.AUTH)
     payment_data = create_payment_information(payment=payment, payment_token=token)
     response, error = _fetch_gateway_response(
-        manager.void_payment, payment.gateway, payment_data
+        manager.void_payment, payment.gateway, payment_data, channel_slug=channel_slug
     )
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
@@ -227,6 +256,7 @@ def void(payment: Payment, manager: "PluginsManager") -> Transaction:
 def confirm(
     payment: Payment,
     manager: "PluginsManager",
+    channel_slug: str,
     additional_data: Optional[dict] = None,
 ) -> Transaction:
     txn = payment.transactions.filter(
@@ -237,11 +267,14 @@ def confirm(
         payment=payment, payment_token=token, additional_data=additional_data
     )
     response, error = _fetch_gateway_response(
-        manager.confirm_payment, payment.gateway, payment_data
+        manager.confirm_payment,
+        payment.gateway,
+        payment_data,
+        channel_slug=channel_slug,
     )
     action_required = response is not None and response.action_required
-    if response and response.payment_method_info:
-        update_payment_method_details(payment, response)
+    if response:
+        update_payment(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CONFIRM,
@@ -253,13 +286,18 @@ def confirm(
 
 
 def list_payment_sources(
-    gateway: str, customer_id: str, manager: "PluginsManager"
+    gateway: str,
+    customer_id: str,
+    manager: "PluginsManager",
+    channel_slug: str,
 ) -> List["CustomerSource"]:
-    return manager.list_payment_sources(gateway, customer_id)
+    return manager.list_payment_sources(gateway, customer_id, channel_slug=channel_slug)
 
 
-def list_gateways(manager: "PluginsManager") -> List["PaymentGateway"]:
-    return manager.list_payment_gateways()
+def list_gateways(
+    manager: "PluginsManager", channel_slug: Optional[str] = None
+) -> List["PaymentGateway"]:
+    return manager.list_payment_gateways(channel_slug=channel_slug)
 
 
 def _fetch_gateway_response(fn, *args, **kwargs):
@@ -294,10 +332,12 @@ def _validate_refund_amount(payment: Payment, amount: Decimal):
         raise PaymentError("Cannot refund more than captured.")
 
 
-def payment_refund_or_void(payment: Optional[Payment], manager: "PluginsManager"):
+def payment_refund_or_void(
+    payment: Optional[Payment], manager: "PluginsManager", channel_slug: str
+):
     if payment is None:
         return
     if payment.can_refund():
-        refund(payment, manager)
+        refund(payment, manager, channel_slug=channel_slug)
     elif payment.can_void():
-        void(payment, manager)
+        void(payment, manager, channel_slug=channel_slug)

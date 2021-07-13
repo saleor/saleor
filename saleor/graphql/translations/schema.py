@@ -92,9 +92,9 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.COLLECTION:
             return resolve_collections(info)
         elif kind == TranslatableKinds.CATEGORY:
-            return resolve_categories(info, query=None)
+            return resolve_categories(info)
         elif kind == TranslatableKinds.PAGE:
-            return resolve_pages(info, query=None)
+            return resolve_pages(info)
         elif kind == TranslatableKinds.SHIPPING_METHOD:
             return resolve_shipping_methods(info)
         elif kind == TranslatableKinds.VOUCHER:
@@ -106,7 +106,7 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.VARIANT:
             return resolve_product_variants(info)
         elif kind == TranslatableKinds.MENU_ITEM:
-            return resolve_menu_items(info, query=None)
+            return resolve_menu_items(info)
         elif kind == TranslatableKinds.SALE:
             return resolve_sales(info)
 

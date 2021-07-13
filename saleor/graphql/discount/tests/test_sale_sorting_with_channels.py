@@ -2,7 +2,6 @@ import pytest
 
 from ....discount import DiscountValueType
 from ....discount.models import Sale, SaleChannelListing
-from ...channel.sorters import LACK_OF_CHANNEL_IN_SORTING_MSG
 from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 
@@ -81,10 +80,10 @@ def sales_for_sorting_with_channels(db, channel_USD, channel_PLN):
 
 QUERY_SALES_WITH_SORTING_AND_FILTERING = """
     query (
-        $sortBy: SaleSortingInput, $filter: SaleFilterInput
+        $sortBy: SaleSortingInput, $filter: SaleFilterInput, $channel: String
     ){
         sales (
-            first: 10, sortBy: $sortBy, filter: $filter
+            first: 10, sortBy: $sortBy, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -112,7 +111,7 @@ def test_sales_with_sorting_and_without_channel(
     )
 
     # then
-    assert_graphql_error_with_message(response, LACK_OF_CHANNEL_IN_SORTING_MSG)
+    assert_graphql_error_with_message(response, "A default channel does not exist.")
 
 
 @pytest.mark.parametrize(
@@ -120,11 +119,11 @@ def test_sales_with_sorting_and_without_channel(
     [
         (
             {"field": "VALUE", "direction": "ASC"},
-            ["Sale1", "Sale15", "Sale3", "Sale2", "Sale4"],
+            ["Sale1", "Sale15", "Sale3", "Sale2"],
         ),
         (
             {"field": "VALUE", "direction": "DESC"},
-            ["Sale4", "Sale2", "Sale3", "Sale15", "Sale1"],
+            ["Sale2", "Sale3", "Sale15", "Sale1"],
         ),
     ],
 )
@@ -137,8 +136,7 @@ def test_sales_with_sorting_and_channel_USD(
     channel_USD,
 ):
     # given
-    sort_by["channel"] = channel_USD.slug
-    variables = {"sortBy": sort_by}
+    variables = {"sortBy": sort_by, "channel": channel_USD.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -160,11 +158,11 @@ def test_sales_with_sorting_and_channel_USD(
     [
         (
             {"field": "VALUE", "direction": "ASC"},
-            ["Sale2", "Sale4", "Sale15", "Sale1", "Sale3"],
+            ["Sale2", "Sale4", "Sale15", "Sale1"],
         ),
         (
             {"field": "VALUE", "direction": "DESC"},
-            ["Sale3", "Sale1", "Sale15", "Sale4", "Sale2"],
+            ["Sale1", "Sale15", "Sale4", "Sale2"],
         ),
     ],
 )
@@ -177,8 +175,7 @@ def test_sales_with_sorting_and_channel_PLN(
     channel_PLN,
 ):
     # given
-    sort_by["channel"] = channel_PLN.slug
-    variables = {"sortBy": sort_by}
+    variables = {"sortBy": sort_by, "channel": channel_PLN.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -202,15 +199,9 @@ def test_vouchers_with_sorting_and_not_existing_channel_asc(
     channel_USD,
 ):
     # given
-    sales_order = [
-        "Sale1",
-        "Sale15",
-        "Sale2",
-        "Sale3",
-        "Sale4",
-    ]
     variables = {
-        "sortBy": {"field": "VALUE", "direction": "ASC", "channel": "Not-existing"}
+        "sortBy": {"field": "VALUE", "direction": "ASC"},
+        "channel": "Not-existing",
     }
 
     # when
@@ -223,6 +214,4 @@ def test_vouchers_with_sorting_and_not_existing_channel_asc(
 
     # then
     content = get_graphql_content(response)
-    sales_nodes = content["data"]["sales"]["edges"]
-    for index, sale_name in enumerate(sales_order):
-        assert sale_name == sales_nodes[index]["node"]["name"]
+    assert not content["data"]["sales"]["edges"]

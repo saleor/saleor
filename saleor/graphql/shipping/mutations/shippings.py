@@ -2,10 +2,10 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.utils import IntegrityError
 
 from ....core.permissions import ShippingPermissions
+from ....core.tracing import traced_atomic_transaction
 from ....product import models as product_models
 from ....shipping import models
 from ....shipping.error_codes import ShippingErrorCode
@@ -160,7 +160,7 @@ class ShippingZoneMixin:
         return data
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
 
@@ -381,7 +381,7 @@ class ShippingPriceMixin:
             )
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
 
@@ -541,8 +541,8 @@ class ShippingPriceExcludeProducts(BaseMutation):
         input = data.get("input")
         product_ids = input.get("products", [])
 
-        _, product_db_ids = resolve_global_ids_to_primary_keys(
-            product_ids, product_types.Product
+        product_db_ids = cls.get_global_ids_or_error(
+            product_ids, product_types.Product, field="products"
         )
 
         product_to_exclude = product_models.Product.objects.filter(
@@ -585,8 +585,8 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
         )
         product_ids = data.get("products")
         if product_ids:
-            _, product_db_ids = resolve_global_ids_to_primary_keys(
-                product_ids, product_types.Product
+            product_db_ids = cls.get_global_ids_or_error(
+                product_ids, product_types.Product, field="products"
             )
             shipping_method.excluded_products.set(
                 shipping_method.excluded_products.exclude(id__in=product_db_ids)

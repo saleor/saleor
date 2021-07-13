@@ -3,8 +3,10 @@ from django.core.exceptions import ValidationError
 
 from ...core.permissions import PluginsPermissions
 from ...plugins.error_codes import PluginErrorCode
+from ..channel.types import Channel
 from ..core.mutations import BaseMutation
 from ..core.types.common import PluginError
+from .resolvers import resolve_plugin
 from .types import Plugin
 
 
@@ -31,6 +33,10 @@ class PluginUpdate(BaseMutation):
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of plugin to update.")
+        channel_id = graphene.ID(
+            required=False,
+            description="ID of a channel for which the data should be modified.",
+        )
         input = PluginUpdateInput(
             description="Fields required to update a plugin configuration.",
             required=True,
@@ -43,18 +49,53 @@ class PluginUpdate(BaseMutation):
         error_type_field = "plugins_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def clean_input(cls, info, data):
         plugin_id = data.get("id")
-        data = data.get("input")
+        channel_id = data.get("channel_id")
+        channel = None
+        if channel_id:
+            channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
+
+        channel_slug = channel.slug if channel_id else None
+        input_data = data.get("input")
+
         manager = info.context.plugins
-        plugin = manager.get_plugin(plugin_id)
+        plugin = manager.get_plugin(plugin_id, channel_slug)
         if not plugin:
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        "Plugin doesn't exist", code=PluginErrorCode.NOT_FOUND
+                        "Plugin doesn't exist.", code=PluginErrorCode.NOT_FOUND.value
                     )
                 }
             )
-        instance = manager.save_plugin_configuration(plugin_id, data)
-        return PluginUpdate(plugin=instance)
+
+        if plugin in manager.global_plugins and channel_id:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Plugin doesn't support configuration per channel.",
+                        code=PluginErrorCode.INVALID.value,
+                    )
+                }
+            )
+        elif plugin not in manager.global_plugins and not channel_id:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Plugin requires to specify channel slug.",
+                        code=PluginErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+        return {"plugin": plugin, "data": input_data, "channel_slug": channel_slug}
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        cleaned_data = cls.clean_input(info, data)
+        plugin_id = cleaned_data["plugin"].PLUGIN_ID
+        channel_slug = cleaned_data["channel_slug"]
+        input_data = cleaned_data["data"]
+        manager = info.context.plugins
+        manager.save_plugin_configuration(plugin_id, channel_slug, input_data)
+        return PluginUpdate(plugin=resolve_plugin(plugin_id, manager))

@@ -11,7 +11,6 @@ from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField
 from prices import Money
 
-from ..account.models import Address
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions import CheckoutPermissions
@@ -47,17 +46,24 @@ class Checkout(ModelWithMetadata):
     )
     email = models.EmailField()
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    quantity = models.PositiveIntegerField(default=0)
     channel = models.ForeignKey(
         Channel,
         related_name="checkouts",
         on_delete=models.PROTECT,
     )
     billing_address = models.ForeignKey(
-        Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
+        "account.Address",
+        related_name="+",
+        editable=False,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     shipping_address = models.ForeignKey(
-        Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
+        "account.Address",
+        related_name="+",
+        editable=False,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     shipping_method = models.ForeignKey(
         ShippingMethod,
@@ -97,9 +103,6 @@ class Checkout(ModelWithMetadata):
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
         )
-
-    def __repr__(self):
-        return "Checkout(quantity=%s)" % (self.quantity,)
 
     def __iter__(self):
         return iter(self.lines.all())

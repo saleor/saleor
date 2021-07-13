@@ -104,9 +104,10 @@ class GraphQLView(View):
                         "HTTP_ORIGIN"
                     ]
                     response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-                    response[
-                        "Access-Control-Allow-Headers"
-                    ] = "Origin, Content-Type, Accept, Authorization"
+                    response["Access-Control-Allow-Headers"] = (
+                        "Origin, Content-Type, Accept, Authorization, "
+                        "Authorization-Bearer"
+                    )
                     response["Access-Control-Allow-Credentials"] = "true"
                     break
         return response
@@ -295,7 +296,7 @@ class GraphQLView(View):
                 # In the graphql-core version that we are using,
                 # the Exception is raised for too big integers value.
                 # As it's a validation error we want to raise GraphQLError instead.
-                if str(e).startswith(INT_ERROR_MSG):
+                if str(e).startswith(INT_ERROR_MSG) or isinstance(e, ValueError):
                     e = GraphQLError(str(e))
                 return ExecutionResult(errors=[e], invalid=True)
 
@@ -341,7 +342,8 @@ class GraphQLView(View):
         exc = error
         while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
             exc = exc.original_error
-
+        if isinstance(exc, AssertionError):
+            exc = GraphQLError(str(exc))
         if isinstance(exc, cls.HANDLED_EXCEPTIONS):
             handled_errors_logger.info("A query had an error", exc_info=exc)
         else:

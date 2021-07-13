@@ -1,4 +1,4 @@
-from copy import copy
+from copy import copy, deepcopy
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Tuple, Union
@@ -20,6 +20,7 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
+    from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.notify_events import NotifyEventType
@@ -40,6 +41,7 @@ class ConfigurationTypeField:
     SECRET = "Secret"
     SECRET_MULTILINE = "SecretMultiline"
     PASSWORD = "Password"
+    OUTPUT = "OUTPUT"
     CHOICES = [
         (STRING, "Field is a String"),
         (MULTILINE, "Field is a Multiline"),
@@ -47,6 +49,7 @@ class ConfigurationTypeField:
         (SECRET, "Field is a Secret"),
         (PASSWORD, "Field is a Password"),
         (SECRET_MULTILINE, "Field is a Secret multiline"),
+        (OUTPUT, "Field is a read only"),
     ]
 
 
@@ -70,12 +73,25 @@ class BasePlugin:
     PLUGIN_ID = ""
     PLUGIN_DESCRIPTION = ""
     CONFIG_STRUCTURE = None
+    CONFIGURATION_PER_CHANNEL = True
     DEFAULT_CONFIGURATION = []
     DEFAULT_ACTIVE = False
 
-    def __init__(self, *, configuration: PluginConfigurationType, active: bool):
+    @classmethod
+    def check_plugin_id(cls, plugin_id: str) -> bool:
+        """Check if given plugin_id matches with the PLUGIN_ID of this plugin."""
+        return cls.PLUGIN_ID == plugin_id
+
+    def __init__(
+        self,
+        *,
+        configuration: PluginConfigurationType,
+        active: bool,
+        channel: Optional["Channel"] = None
+    ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
+        self.channel = channel
 
     def __str__(self):
         return self.PLUGIN_NAME
@@ -658,6 +674,9 @@ class BasePlugin:
                         and not isinstance(new_value, bool)
                     ):
                         new_value = new_value.lower() == "true"
+                    if item_type == ConfigurationTypeField.OUTPUT:
+                        # OUTPUT field is read only. No need to update it
+                        continue
                     config_item.update([("value", new_value)])
 
         # Get new keys that don't exist in current_config and extend it.
@@ -724,7 +743,7 @@ class BasePlugin:
         for config_field in configuration:
             if config_field["name"] not in desired_config_keys:
                 continue
-            updated_configuration.append(config_field)
+            updated_configuration.append(copy(config_field))
 
         configured_keys = set(d["name"] for d in updated_configuration)
         missing_keys = desired_config_keys - configured_keys

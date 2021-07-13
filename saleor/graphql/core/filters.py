@@ -1,4 +1,5 @@
 import django_filters
+import graphene
 from django.core.exceptions import ValidationError
 from django_filters.fields import MultipleChoiceField
 
@@ -72,8 +73,10 @@ def filter_status(qs, _, value):
 
 def filter_metadata(qs, _, value):
     for metadata_item in value:
-        qs = qs.filter(metadata__contains={metadata_item.key: metadata_item.value})
-
+        if metadata_item.value:
+            qs = qs.filter(metadata__contains={metadata_item.key: metadata_item.value})
+        else:
+            qs = qs.filter(metadata__has_key=metadata_item.key)
     return qs
 
 
@@ -87,14 +90,13 @@ class BaseJobFilter(django_filters.FilterSet):
     status = EnumFilter(input_class=JobStatusEnum, method=filter_status)
 
 
-class MetadataFilter(ListObjectTypeFilter):
-    def __init__(self, *args, **kwargs):
-        input_class = "saleor.graphql.meta.mutations.MetadataInput"
-        super().__init__(input_class, method=filter_metadata, *args, **kwargs)
+class MetadataFilter(graphene.InputObjectType):
+    key = graphene.String(required=True, description="Key of a metadata item.")
+    value = graphene.String(required=False, description="Value of a metadata item.")
 
 
 class MetadataFilterBase(django_filters.FilterSet):
-    metadata = MetadataFilter()
+    metadata = ListObjectTypeFilter(input_class=MetadataFilter, method=filter_metadata)
 
     class Meta:
         abstract = True

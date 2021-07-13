@@ -1,8 +1,11 @@
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import truncatechars
@@ -35,6 +38,7 @@ class AttrValuesInput:
     file_url: Optional[str] = None
     content_type: Optional[str] = None
     rich_text: Optional[dict] = None
+    boolean: Optional[bool] = None
 
 
 T_INSTANCE = Union[
@@ -118,9 +122,12 @@ class AttributeAssignmentMixin:
     @classmethod
     def _resolve_attribute_global_id(cls, error_class, global_id: str) -> int:
         """Resolve an Attribute global ID into an internal ID (int)."""
-        graphene_type, internal_id = from_global_id_or_error(
-            global_id, only_type="Attribute"
-        )
+        try:
+            graphene_type, internal_id = from_global_id_or_error(
+                global_id, only_type="Attribute"
+            )
+        except GraphQLError as e:
+            raise ValidationError(str(e), code=error_class.GRAPHQL_ERROR.value)
         if not internal_id.isnumeric():
             raise ValidationError(
                 f"An invalid ID value was passed: {global_id}",
@@ -151,6 +158,8 @@ class AttributeAssignmentMixin:
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
     ):
+        if not attr_values.values:
+            return tuple()
         defaults = {
             "name": attr_values.values[0],
         }
@@ -166,10 +175,28 @@ class AttributeAssignmentMixin:
         defaults = {
             "rich_text": attr_values.rich_text,
             "name": truncatechars(
-                clean_editor_js(attr_values.rich_text, to_string=True), 50
+                clean_editor_js(attr_values.rich_text, to_string=True), 200
             ),
         }
         return cls._update_or_create_value(instance, attribute, defaults)
+
+    @classmethod
+    def _pre_save_boolean_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        get_or_create = attribute.values.get_or_create
+        value, _ = get_or_create(
+            attribute=attribute,
+            slug=slugify(f"{attribute.id}_{attr_values.boolean}", allow_unicode=True),
+            defaults={
+                "name": f"{attribute.name}: {'Yes' if attr_values.boolean else 'No'}",
+                "boolean": attr_values.boolean,
+            },
+        )
+        return (value,)
 
     @classmethod
     def _update_or_create_value(
@@ -335,10 +362,11 @@ class AttributeAssignmentMixin:
             values = AttrValuesInput(
                 global_id=global_id,
                 values=attribute_input.get("values", []),
-                file_url=attribute_input.get("file"),
+                file_url=cls._clean_file_url(attribute_input.get("file")),
                 content_type=attribute_input.get("content_type"),
                 references=attribute_input.get("references", []),
                 rich_text=attribute_input.get("rich_text"),
+                boolean=attribute_input.get("boolean"),
             )
 
             if global_id:
@@ -395,6 +423,15 @@ class AttributeAssignmentMixin:
 
         return cleaned_input
 
+    @staticmethod
+    def _clean_file_url(file_url: Optional[str]):
+        # extract storage path from file URL
+        return (
+            re.sub(f"^{settings.MEDIA_URL}", "", urlparse(file_url).path)
+            if file_url is not None
+            else file_url
+        )
+
     @classmethod
     def _validate_references(
         cls, error_class, attribute: attribute_models.Attribute, values: AttrValuesInput
@@ -424,6 +461,7 @@ class AttributeAssignmentMixin:
             AttributeInputType.REFERENCE: cls._pre_save_reference_values,
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
             AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
+            AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
         }
         clean_assignment = []
         for attribute, attr_values in cleaned_input:
@@ -529,6 +567,8 @@ def validate_attributes_input(
             validate_reference_attributes_input(*attrs)
         elif attribute.input_type == AttributeInputType.RICH_TEXT:
             validate_rich_text_attributes_input(*attrs)
+        elif attribute.input_type == AttributeInputType.BOOLEAN:
+            validate_boolean_input(*attrs)
         # validation for other input types
         else:
             validate_standard_attributes_input(*attrs)
@@ -576,6 +616,19 @@ def validate_reference_attributes_input(
             attribute_errors[AttributeInputErrors.ERROR_NO_REFERENCE_GIVEN].append(
                 attribute_id
             )
+
+
+def validate_boolean_input(
+    attribute: "Attribute",
+    attr_values: "AttrValuesInput",
+    attribute_errors: T_ERROR_DICT,
+    variant_validation: bool,
+):
+    attribute_id = attr_values.global_id
+    value = attr_values.boolean
+
+    if attribute.value_required and value is None:
+        attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(attribute_id)
 
 
 def validate_rich_text_attributes_input(

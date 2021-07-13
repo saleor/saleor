@@ -8,7 +8,11 @@ from ....menu.error_codes import MenuErrorCode
 from ....menu.models import Menu, MenuItem
 from ....product.models import Category
 from ...menu.mutations import NavigationType, _validate_menu_item_instance
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 
 def test_validate_menu_item_instance(category, page):
@@ -47,6 +51,23 @@ def test_menu_query_by_id(
     menu_data = content["data"]["menu"]
     assert menu_data is not None
     assert menu_data["name"] == menu.name
+
+
+def test_staff_query_menu_by_invalid_id(staff_api_client, menu):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(QUERY_MENU, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["menu"] is None
+
+
+def test_staff_query_menu_with_invalid_object_type(staff_api_client, menu):
+    variables = {"id": graphene.Node.to_global_id("Order", menu.pk)}
+    response = staff_api_client.post_graphql(QUERY_MENU, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["menu"] is None
 
 
 def test_menu_query_by_name(
@@ -302,6 +323,23 @@ def test_menu_item_query_with_invalid_channel(
     assert not data["category"]
     assert not data["page"]
     assert data["url"] is None
+
+
+def test_staff_query_menu_item_by_invalid_id(staff_api_client, menu_item):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(QUERY_MENU_ITEM_BY_ID, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["menuItem"] is None
+
+
+def test_staff_query_menu_item_with_invalid_object_type(staff_api_client, menu_item):
+    variables = {"id": graphene.Node.to_global_id("Order", menu_item.pk)}
+    response = staff_api_client.post_graphql(QUERY_MENU_ITEM_BY_ID, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["menuItem"] is None
 
 
 def test_menu_items_query(

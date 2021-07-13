@@ -4,6 +4,9 @@ from unittest.mock import patch
 import graphene
 from freezegun import freeze_time
 
+from ....checkout.fetch import fetch_checkout_info
+from ....checkout.utils import add_variant_to_checkout
+from ....plugins.manager import get_plugins_manager
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....product.utils.costs import get_product_costs_data
@@ -929,6 +932,42 @@ def test_product_channel_listing_update_remove_channel(
     assert variant.channel_listings.get() == variant_channel_listing_pln
 
 
+def test_product_channel_listing_update_remove_channel_removes_checkout_lines(
+    staff_api_client,
+    product_available_in_many_channels,
+    permission_manage_products,
+    checkout,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    product = product_available_in_many_channels
+    variant = product.variants.get()
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
+
+    assert checkout.lines.all().exists()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": product_id,
+        "input": {"removeChannels": [channel_id]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productChannelListingUpdate"]
+    assert not data["errors"]
+    assert not checkout.lines.all().exists()
+
+
 def test_product_channel_listing_update_remove_not_assigned_channel(
     staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
 ):
@@ -974,6 +1013,43 @@ def test_product_channel_listing_update_publish_product_without_category(
             "updateChannels": [
                 {"channelId": channel_usd_id, "isPublished": True},
                 {"channelId": channel_pln_id, "isPublished": False},
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productChannelListingUpdate"]
+    errors = data["errors"]
+    assert errors[0]["field"] == "isPublished"
+    assert errors[0]["code"] == ProductErrorCode.PRODUCT_WITHOUT_CATEGORY.name
+    assert errors[0]["channels"] == [channel_usd_id]
+    assert len(errors) == 1
+
+
+def test_product_channel_listing_update_available_for_purchase_product_without_category(
+    staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
+):
+    # given
+    product.channel_listings.all().delete()
+    product.category = None
+    product.save()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    variables = {
+        "id": product_id,
+        "input": {
+            "updateChannels": [
+                {"channelId": channel_usd_id, "isAvailableForPurchase": True},
+                {"channelId": channel_pln_id, "isAvailableForPurchase": False},
             ]
         },
     }
@@ -1137,6 +1213,53 @@ def test_product_channel_listing_remove_variant_as_app(
     assert not data["errors"]
 
     assert len(variant.channel_listings.all()) == 1
+
+
+def test_product_channel_listing_remove_variant_removes_checkout_lines(
+    staff_api_client,
+    product,
+    permission_manage_products,
+    checkout,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    variant = product.variants.first()
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
+
+    assert checkout.lines.all().exists()
+
+    ProductVariantChannelListing.objects.create(channel=channel_PLN, variant=variant)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": product_id,
+        "input": {
+            "updateChannels": [
+                {"channelId": channel_id, "removeVariants": [variant_id]}
+            ]
+        },
+    }
+
+    assert len(variant.channel_listings.all()) == 2
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productChannelListingUpdate"]
+    assert not data["errors"]
+
+    assert len(variant.channel_listings.all()) == 1
+
+    assert not checkout.lines.all().exists()
 
 
 def test_product_channel_listing_add_variant_duplicated_ids_in_add_and_remove(

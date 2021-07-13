@@ -20,7 +20,7 @@ from ....order.notifications import send_fulfillment_update
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
-from ...core.utils import from_global_id_or_error, get_duplicated_values
+from ...core.utils import get_duplicated_values
 from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
@@ -116,7 +116,7 @@ class OrderFulfill(BaseMutation):
                         "order_line_id": ValidationError(
                             msg,
                             code=OrderErrorCode.FULFILL_ORDER_LINE,
-                            params={"order_line": order_line_global_id},
+                            params={"order_lines": [order_line_global_id]},
                         )
                     }
                 )
@@ -145,7 +145,7 @@ class OrderFulfill(BaseMutation):
                     "orderLineId": ValidationError(
                         "Duplicated order line ID.",
                         code=OrderErrorCode.DUPLICATED_INPUT_ITEM,
-                        params={"order_line": duplicates.pop()},
+                        params={"order_lines": [duplicates.pop()]},
                     )
                 }
             )
@@ -190,7 +190,7 @@ class OrderFulfill(BaseMutation):
         for line, order_line in zip(lines, order_lines):
             for stock in line["stocks"]:
                 if stock["quantity"] > 0:
-                    _type, warehouse_pk = from_global_id_or_error(
+                    warehouse_pk = cls.get_global_id_or_error(
                         stock["warehouse"], only_type=Warehouse, field="warehouse"
                     )
                     lines_for_warehouses[warehouse_pk].append(
@@ -343,7 +343,7 @@ class OrderRefundProductsInput(graphene.InputObjectType):
     )
     amount_to_refund = PositiveDecimal(
         required=False,
-        description=("The total amount of refund when the value is provided manually."),
+        description="The total amount of refund when the value is provided manually.",
     )
     include_shipping_costs = graphene.Boolean(
         description=(

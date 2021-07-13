@@ -9,6 +9,7 @@ from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...core.tracing import traced_resolver
+from ...order import OrderStatus
 from ...order import models as order_models
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
@@ -19,9 +20,12 @@ from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, Permission
 from ..core.utils import from_global_id_or_error, str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
+from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
-from ..utils import format_permissions_for_display
+from ..order.dataloaders import OrdersByUserLoader
+from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
+from .dataloaders import CustomerEventsByUserLoader
 from .enums import CountryCodeEnum, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
 
@@ -189,7 +193,7 @@ class UserPermission(Permission):
 
     @traced_resolver
     def resolve_source_permission_groups(root: Permission, _info, user_id, **_kwargs):
-        _type, user_id = from_global_id_or_error(user_id, only_type="User", field="pk")
+        _type, user_id = from_global_id_or_error(user_id, only_type="User")
         groups = auth_models.Group.objects.filter(
             user__pk=user_id, permissions__name=root.name
         )
@@ -241,6 +245,9 @@ class User(CountableDjangoObjectType):
     stored_payment_sources = graphene.List(
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources.",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
     )
     language_code = graphene.Field(
         LanguageCodeEnum, description="User language code.", required=True
@@ -267,7 +274,7 @@ class User(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_addresses(root: models.User, _info, **_kwargs):
-        return root.addresses.annotate_default(root).all()
+        return root.addresses.annotate_default(root).all()  # type: ignore
 
     @staticmethod
     @traced_resolver
@@ -300,7 +307,7 @@ class User(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_gift_cards(root: models.User, info, **_kwargs):
-        return root.gift_cards.all()
+        return GiftCardsByUserLoader(info.context).load(root.id)
 
     @staticmethod
     @traced_resolver
@@ -332,15 +339,18 @@ class User(CountableDjangoObjectType):
     )
     @traced_resolver
     def resolve_events(root: models.User, info):
-        return root.events.all()
+        return CustomerEventsByUserLoader(info.context).load(root.id)
 
     @staticmethod
     @traced_resolver
     def resolve_orders(root: models.User, info, **_kwargs):
-        viewer = info.context.user
-        if viewer.has_perm(OrderPermissions.MANAGE_ORDERS):
-            return root.orders.all()
-        return root.orders.non_draft()
+        def _resolve_orders(orders):
+            requester = get_user_or_app_from_context(info.context)
+            if requester.has_perm(OrderPermissions.MANAGE_ORDERS):
+                return orders
+            return list(filter(lambda order: order.status != OrderStatus.DRAFT, orders))
+
+        return OrdersByUserLoader(info.context).load(root.id).then(_resolve_orders)
 
     @staticmethod
     @traced_resolver
@@ -356,11 +366,11 @@ class User(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_stored_payment_sources(root: models.User, info):
+    def resolve_stored_payment_sources(root: models.User, info, channel=None):
         from .resolvers import resolve_payment_sources
 
         if root == info.context.user:
-            return resolve_payment_sources(info, root)
+            return resolve_payment_sources(info, root, channel_slug=channel)
         raise PermissionDenied()
 
     @staticmethod

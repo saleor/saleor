@@ -6,7 +6,7 @@ import pytest
 from prices import Money, TaxedMoney
 
 from .....account.models import User
-from .....order import OrderEvents
+from .....order import OrderEvents, OrderStatus
 from .....order.models import Fulfillment, Order, OrderEvent, OrderLine
 from .....payment import ChargeStatus
 from .....payment.models import Payment
@@ -66,7 +66,7 @@ def _prepare_lines_for_order(order, variant_with_image):
 
 
 @pytest.fixture
-def users_for_benchmarks(address):
+def users_for_order_benchmarks(address):
     users = [
         User(
             email=f"john.doe.{i}@exmaple.com",
@@ -86,7 +86,7 @@ def orders_for_benchmarks(
     channel_USD,
     address,
     payment_dummy,
-    users_for_benchmarks,
+    users_for_order_benchmarks,
     variant_with_image,
     shipping_method,
 ):
@@ -97,7 +97,7 @@ def orders_for_benchmarks(
             billing_address=address.get_copy(),
             shipping_address=address.get_copy(),
             shipping_method=shipping_method,
-            user=users_for_benchmarks[i],
+            user=users_for_order_benchmarks[i],
             total=TaxedMoney(net=Money(i, "USD"), gross=Money(i, "USD")),
         )
         for i in range(ORDER_COUNT_IN_BENCHMARKS)
@@ -124,3 +124,13 @@ def orders_for_benchmarks(
     OrderLine.objects.bulk_create(lines)
 
     return created_orders
+
+
+@pytest.fixture
+def draft_orders_for_benchmarks(orders_for_benchmarks):
+    for order in orders_for_benchmarks:
+        order.status = OrderStatus.DRAFT
+
+    Order.objects.bulk_update(orders_for_benchmarks, ["status"])
+
+    return orders_for_benchmarks

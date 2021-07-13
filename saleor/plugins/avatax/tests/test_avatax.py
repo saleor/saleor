@@ -134,7 +134,7 @@ def test_calculate_order_line_total(
     order_line.unit_price = unit_price
     total_price = unit_price * order_line.quantity
     order_line.total_price = total_price
-    order_line.save(update_fields=["unit_price", "total_price"])
+    order_line.save()
 
     total = manager.calculate_order_line_total(
         order_line.order,
@@ -176,7 +176,7 @@ def test_calculate_order_line_total_order_not_valid(
     order_line.unit_price = unit_price
     total_price = unit_price * order_line.quantity
     order_line.total_price = total_price
-    order_line.save(update_fields=["unit_price", "total_price"])
+    order_line.save()
 
     total = manager.calculate_order_line_total(
         order_line.order,
@@ -320,6 +320,65 @@ def test_calculate_checkout_total(
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_total_not_charged_product_and_shipping_with_0_price(
+    checkout_with_item,
+    shipping_zone,
+    address,
+    ship_to_pl_address,
+    site_settings,
+    monkeypatch,
+    plugin_configuration,
+):
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PS081282": "desc"},
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
+    )
+    manager = get_plugins_manager()
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.save()
+    site_settings.company_address = address
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    channel = checkout_with_item.channel
+    shipping_method = shipping_zone.shipping_methods.get()
+    shipping_channel_listing = shipping_method.channel_listings.get(channel=channel)
+    shipping_channel_listing.price = Money(0, "USD")
+    shipping_channel_listing.save()
+
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.save()
+
+    line = checkout_with_item.lines.first()
+    variant = line.variant
+    product = variant.product
+    product.charge_taxes = False
+    product.metadata = {}
+    manager.assign_tax_code_to_object_meta(product.product_type, "PS081282")
+    product.save()
+    product.product_type.save()
+
+    discounts = None
+    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
+    lines = fetch_checkout_lines(checkout_with_item)
+    total = manager.calculate_checkout_total(
+        checkout_info, lines, ship_to_pl_address, discounts
+    )
+    total = quantize_price(total, total.currency)
+
+    channel_listing = variant.channel_listings.get(channel=channel)
+    expected_amount = (line.quantity * channel_listing.price).amount
+    assert total == TaxedMoney(
+        net=Money(expected_amount, "USD"), gross=Money(expected_amount, "USD")
     )
 
 
@@ -674,7 +733,14 @@ def test_preprocess_order_creation_wrong_data(
 def test_get_cached_tax_codes_or_fetch(monkeypatch):
     monkeypatch.setattr("saleor.plugins.avatax.cache.get", lambda x, y: {})
     config = AvataxConfiguration(
-        username_or_account="test", password_or_license="test", use_sandbox=False
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
     tax_codes = get_cached_tax_codes_or_fetch(config)
     assert len(tax_codes) > 0
@@ -684,7 +750,13 @@ def test_get_cached_tax_codes_or_fetch(monkeypatch):
 def test_get_cached_tax_codes_or_fetch_wrong_response(monkeypatch):
     monkeypatch.setattr("saleor.plugins.avatax.cache.get", lambda x, y: {})
     config = AvataxConfiguration(
-        username_or_account="wrong_data", password_or_license="wrong_data"
+        username_or_account="wrong_data",
+        password_or_license="wrong_data",
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
     tax_codes = get_cached_tax_codes_or_fetch(config)
     assert len(tax_codes) == 0
@@ -697,7 +769,13 @@ def test_checkout_needs_new_fetch(
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_method
     config = AvataxConfiguration(
-        username_or_account="wrong_data", password_or_license="wrong_data"
+        username_or_account="wrong_data",
+        password_or_license="wrong_data",
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
@@ -712,7 +790,13 @@ def test_taxes_need_new_fetch_uses_cached_data(
 
     checkout_with_item.shipping_address = address
     config = AvataxConfiguration(
-        username_or_account="wrong_data", password_or_license="wrong_data"
+        username_or_account="wrong_data",
+        password_or_license="wrong_data",
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
@@ -1315,7 +1399,7 @@ def test_get_order_shipping_tax_rate_skip_plugin(
     assert tax_rate == Decimal("0.25")
 
 
-def test_get_plugin_configuration(settings):
+def test_get_plugin_configuration(settings, channel_USD):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID)
@@ -1331,12 +1415,16 @@ def test_get_plugin_configuration(settings):
 
 
 @patch("saleor.plugins.avatax.plugin.api_get_request")
-def test_save_plugin_configuration(api_get_request_mock, settings):
+def test_save_plugin_configuration(
+    api_get_request_mock, settings, channel_USD, plugin_configuration
+):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration()
     api_get_request_mock.return_value = {"authenticated": True}
     manager = get_plugins_manager()
     manager.save_plugin_configuration(
         AvataxPlugin.PLUGIN_ID,
+        channel_USD.slug,
         {
             "active": True,
             "configuration": [
@@ -1345,7 +1433,9 @@ def test_save_plugin_configuration(api_get_request_mock, settings):
             ],
         },
     )
-    manager.save_plugin_configuration(AvataxPlugin.PLUGIN_ID, {"active": True})
+    manager.save_plugin_configuration(
+        AvataxPlugin.PLUGIN_ID, channel_USD.slug, {"active": True}
+    )
     plugin_configuration = PluginConfiguration.objects.get(
         identifier=AvataxPlugin.PLUGIN_ID
     )
@@ -1354,10 +1444,11 @@ def test_save_plugin_configuration(api_get_request_mock, settings):
 
 @patch("saleor.plugins.avatax.plugin.api_get_request")
 def test_save_plugin_configuration_authentication_failed(
-    api_get_request_mock, settings
+    api_get_request_mock, settings, channel_USD, plugin_configuration
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(active=False)
     api_get_request_mock.return_value = {"authenticated": False}
     manager = get_plugins_manager()
 
@@ -1365,6 +1456,7 @@ def test_save_plugin_configuration_authentication_failed(
     with pytest.raises(ValidationError) as e:
         manager.save_plugin_configuration(
             AvataxPlugin.PLUGIN_ID,
+            channel_USD.slug,
             {
                 "active": True,
                 "configuration": [
@@ -1383,13 +1475,15 @@ def test_save_plugin_configuration_authentication_failed(
 
 
 def test_save_plugin_configuration_cannot_be_enabled_without_config(
-    settings, plugin_configuration
+    settings, plugin_configuration, channel_USD
 ):
     plugin_configuration(None, None)
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager()
     with pytest.raises(ValidationError):
-        manager.save_plugin_configuration(AvataxPlugin.PLUGIN_ID, {"active": True})
+        manager.save_plugin_configuration(
+            AvataxPlugin.PLUGIN_ID, channel_USD.slug, {"active": True}
+        )
 
 
 def test_show_taxes_on_storefront(plugin_configuration):
@@ -1402,7 +1496,12 @@ def test_show_taxes_on_storefront(plugin_configuration):
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_order_created(api_post_request_task_mock, order, plugin_configuration):
     # given
-    plugin_conf = plugin_configuration()
+    plugin_conf = plugin_configuration(
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_postal_code="53-601",
+        from_country="PL",
+    )
     conf = {data["name"]: data["value"] for data in plugin_conf.configuration}
 
     manager = get_plugins_manager()
@@ -1422,19 +1521,19 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
             "customerCode": 0,
             "addresses": {
                 "shipFrom": {
-                    "line1": None,
+                    "line1": "Tęczowa 7",
                     "line2": None,
-                    "city": None,
-                    "region": None,
-                    "country": None,
-                    "postalCode": None,
+                    "city": "WROCŁAW",
+                    "region": "",
+                    "country": "PL",
+                    "postalCode": "53-601",
                 },
                 "shipTo": {
                     "line1": address.street_address_1,
                     "line2": address.street_address_2,
                     "city": address.city,
                     "region": address.city_area or "",
-                    "country": address.country,
+                    "country": address.country.code,
                     "postalCode": address.postal_code,
                 },
             },
@@ -1450,6 +1549,11 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
         "use_sandbox": conf["Use sandbox"],
         "company_name": conf["Company name"],
         "autocommit": conf["Autocommit"],
+        "from_street_address": conf["from_street_address"],
+        "from_city": conf["from_city"],
+        "from_postal_code": conf["from_postal_code"],
+        "from_country": conf["from_country"],
+        "from_country_area": conf["from_country_area"],
     }
 
     api_post_request_task_mock.assert_called_once_with(
@@ -1541,6 +1645,11 @@ def test_api_get_request_handles_request_errors(product, monkeypatch):
         username_or_account="test",
         password_or_license="test",
         use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
     url = "https://www.avatax.api.com/some-get-path"
 
@@ -1560,6 +1669,11 @@ def test_api_get_request_handles_json_errors(product, monkeypatch):
         username_or_account="test",
         password_or_license="test",
         use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
     url = "https://www.avatax.api.com/some-get-path"
 
@@ -1579,6 +1693,11 @@ def test_api_post_request_handles_request_errors(product, monkeypatch):
         username_or_account="test",
         password_or_license="test",
         use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
     url = "https://www.avatax.api.com/some-get-path"
 
@@ -1596,6 +1715,11 @@ def test_api_post_request_handles_json_errors(product, monkeypatch):
         username_or_account="test",
         password_or_license="test",
         use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
     url = "https://www.avatax.api.com/some-get-path"
 
@@ -1625,6 +1749,11 @@ def test_get_order_request_data_checks_when_taxes_are_included_to_price(
         username_or_account="",
         password_or_license="",
         use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
     request_data = get_order_request_data(order_with_lines, config)
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -1653,6 +1782,11 @@ def test_get_order_request_data_checks_when_taxes_are_not_included_to_price(
         username_or_account="",
         password_or_license="",
         use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
 
     request_data = get_order_request_data(order_with_lines, config)

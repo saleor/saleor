@@ -4,10 +4,10 @@ from typing import Dict, List, Optional, Type
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import Model, QuerySet
 
 from ...core.permissions import MenuPermissions, SitePermissions
+from ...core.tracing import traced_atomic_transaction
 from ...menu import models
 from ...menu.error_codes import MenuErrorCode
 from ...page import models as page_models
@@ -15,7 +15,7 @@ from ...product import models as product_models
 from ..channel import ChannelContext
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import MenuError
-from ..core.utils import from_global_id_or_error, validate_slug_and_generate_if_needed
+from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from ..page.types import Page
 from ..product.types import Category, Collection
@@ -357,7 +357,7 @@ class MenuItemMove(BaseMutation):
         new_parent, parent_changed = None, False
 
         if move.parent_id is not None:
-            _type, parent_pk = from_global_id_or_error(
+            parent_pk = cls.get_global_id_or_error(
                 move.parent_id, only_type=MenuItem, field="parent_id"
             )
             if int(parent_pk) != menu_item.parent_id:
@@ -405,7 +405,7 @@ class MenuItemMove(BaseMutation):
         menu_item.save()
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         menu: str = data["menu"]
         moves: List[MenuItemMoveInput] = data["moves"]

@@ -26,9 +26,13 @@ def test_query_page_type(
                     name
                     type
                     inputType
-                    values {
-                        name
-                        slug
+                    choices(first: 10) {
+                        edges {
+                            node {
+                                name
+                                slug
+                            }
+                        }
                     }
                     valueRequired
                     visibleInStorefront
@@ -41,9 +45,13 @@ def test_query_page_type(
                             name
                             type
                             inputType
-                            values {
-                                name
-                                slug
+                            choices(first: 10) {
+                                edges {
+                                    node {
+                                        name
+                                        slug
+                                    }
+                                }
                             }
                             valueRequired
                             visibleInStorefront
@@ -89,9 +97,13 @@ def test_query_page_types(
                             name
                             type
                             inputType
-                            values {
-                                name
-                                slug
+                            choices(first: 10) {
+                                edges {
+                                    node {
+                                        name
+                                        slug
+                                    }
+                                }
                             }
                             valueRequired
                             visibleInStorefront
@@ -104,9 +116,13 @@ def test_query_page_types(
                                     name
                                     type
                                     inputType
-                                    values {
-                                        name
-                                        slug
+                                    choices(first: 10) {
+                                        edges {
+                                            node {
+                                                name
+                                                slug
+                                            }
+                                        }
                                     }
                                     valueRequired
                                     visibleInStorefront

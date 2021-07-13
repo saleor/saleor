@@ -11,6 +11,7 @@ class AttributeInputType:
     NUMERIC = "numeric"
     RICH_TEXT = "rich-text"
     SWATCH = "swatch"
+    BOOLEAN = "boolean"
 
     CHOICES = [
         (DROPDOWN, "Dropdown"),
@@ -20,8 +21,25 @@ class AttributeInputType:
         (NUMERIC, "Numeric"),
         (RICH_TEXT, "Rich Text"),
         (SWATCH, "Swatch"),
+        (BOOLEAN, "Boolean"),
     ]
-    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, SWATCH]
+
+    # list of the input types that can be used in variant selection
+    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, BOOLEAN, SWATCH]
+
+    TYPES_WITH_CHOICES = [
+        DROPDOWN,
+        MULTISELECT,
+        SWATCH,
+    ]
+
+    # list of the input types that are unique per instances
+    TYPES_WITH_UNIQUE_VALUES = [
+        FILE,
+        REFERENCE,
+        RICH_TEXT,
+        NUMERIC,
+    ]
 
 
 ATTRIBUTE_PROPERTIES_CONFIGURATION = {
@@ -30,22 +48,26 @@ ATTRIBUTE_PROPERTIES_CONFIGURATION = {
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
         AttributeInputType.SWATCH,
+        AttributeInputType.BOOLEAN,
     ],
     "filterable_in_dashboard": [
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
         AttributeInputType.SWATCH,
+        AttributeInputType.BOOLEAN,
     ],
     "available_in_grid": [
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
         AttributeInputType.SWATCH,
+        AttributeInputType.BOOLEAN,
     ],
     "storefront_search_position": [
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
+        AttributeInputType.BOOLEAN,
     ],
 }
 

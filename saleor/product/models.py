@@ -13,6 +13,7 @@ from django.db.models import (
     Case,
     Count,
     DateField,
+    Exists,
     ExpressionWrapper,
     F,
     FilteredRelation,
@@ -84,14 +85,14 @@ class CategoryTranslation(SeoModelTranslation):
     category = models.ForeignKey(
         Category, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, blank=True, null=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "category"),)
 
     def __str__(self) -> str:
-        return self.name
+        return self.name if self.name else str(self.pk)
 
     def __repr__(self) -> str:
         class_ = type(self)
@@ -141,13 +142,15 @@ class ProductType(ModelWithMetadata):
 class ProductsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
         today = datetime.date.today()
-        return self.filter(
-            Q(channel_listings__publication_date__lte=today)
-            | Q(channel_listings__publication_date__isnull=True),
-            channel_listings__channel__slug=str(channel_slug),
-            channel_listings__channel__is_active=True,
-            channel_listings__is_published=True,
-        )
+        channels = Channel.objects.filter(
+            slug=str(channel_slug), is_active=True
+        ).values("id")
+        channel_listings = ProductChannelListing.objects.filter(
+            Q(publication_date__lte=today) | Q(publication_date__isnull=True),
+            Exists(channels.filter(pk=OuterRef("channel_id"))),
+            is_published=True,
+        ).values("id")
+        return self.filter(Exists(channel_listings.filter(product_id=OuterRef("pk"))))
 
     def not_published(self, channel_slug: str):
         today = datetime.date.today()
@@ -159,17 +162,28 @@ class ProductsQueryset(models.QuerySet):
 
     def published_with_variants(self, channel_slug: str):
         published = self.published(channel_slug)
-        query = ProductVariantChannelListing.objects.filter(
-            variant_id=OuterRef("variants__id"),
-            channel__slug=str(channel_slug),
+        channels = Channel.objects.filter(
+            slug=str(channel_slug), is_active=True
+        ).values("id")
+        variant_channel_listings = ProductVariantChannelListing.objects.filter(
+            Exists(channels.filter(pk=OuterRef("channel_id"))),
             price_amount__isnull=False,
-        ).values_list("variant", flat=True)
-        return published.filter(variants__in=query).distinct()
+        ).values("id")
+        variants = ProductVariant.objects.filter(
+            Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
+        )
+        return published.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
     def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
         if requestor_is_staff_member_or_app(requestor):
             if channel_slug:
-                return self.filter(channel_listings__channel__slug=str(channel_slug))
+                channels = Channel.objects.filter(slug=str(channel_slug)).values("id")
+                channel_listings = ProductChannelListing.objects.filter(
+                    Exists(channels.filter(pk=OuterRef("channel_id")))
+                ).values("id")
+                return self.filter(
+                    Exists(channel_listings.filter(product_id=OuterRef("pk")))
+                )
             return self.all()
         return self.published_with_variants(channel_slug)
 
@@ -305,20 +319,18 @@ class ProductsQueryset(models.QuerySet):
         )
 
     def prefetched_for_webhook(self, single_object=True):
-        if single_object:
-            return self.prefetch_related(
-                "attributes__values",
-                "attributes__assignment__attribute",
-                "media",
-            )
-        return self.prefetch_related(
+        common_fields = (
             "attributes__values",
             "attributes__assignment__attribute",
-            "collections",
-            "variants__stocks__allocations",
             "media",
-            "category",
+            "variants__attributes__values",
+            "variants__attributes__assignment__attribute",
+            "variants__variant_media__media",
+            "variants__stocks__allocations",
         )
+        if single_object:
+            return self.prefetch_related(*common_fields)
+        return self.prefetch_related("collections", "category", *common_fields)
 
 
 class Product(SeoModel, ModelWithMetadata):
@@ -355,7 +367,7 @@ class Product(SeoModel, ModelWithMetadata):
     )
     rating = models.FloatField(null=True, blank=True)
 
-    objects = ProductsQueryset.as_manager()
+    objects = models.Manager.from_queryset(ProductsQueryset)()
     translated = TranslationProxy()
 
     class Meta:
@@ -403,14 +415,14 @@ class ProductTranslation(SeoModelTranslation):
     product = models.ForeignKey(
         Product, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=250)
+    name = models.CharField(max_length=250, blank=True, null=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "product"),)
 
     def __str__(self) -> str:
-        return self.name
+        return self.name if self.name else str(self.pk)
 
     def __repr__(self) -> str:
         class_ = type(self)
@@ -434,7 +446,7 @@ class ProductVariantQueryset(models.QuerySet):
     def available_in_channel(self, channel_slug):
         return self.filter(
             channel_listings__price_amount__isnull=False,
-            channel_listings__channel__slug=channel_slug,
+            channel_listings__channel__slug=str(channel_slug),
         )
 
     def prefetched_for_webhook(self):
@@ -476,6 +488,9 @@ class ProductChannelListing(PublishableModel):
     class Meta:
         unique_together = [["product", "channel"]]
         ordering = ("pk",)
+        indexes = [
+            models.Index(fields=["publication_date"]),
+        ]
 
     def is_available_for_purchase(self):
         return (
@@ -500,7 +515,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         null=True,
     )
 
-    objects = ProductVariantQueryset.as_manager()
+    objects = models.Manager.from_queryset(ProductVariantQueryset)()
     translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):
@@ -743,7 +758,7 @@ class Collection(SeoModel, ModelWithMetadata):
     background_image_alt = models.CharField(max_length=128, blank=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
-    objects = CollectionsQueryset.as_manager()
+    objects = models.Manager.from_queryset(CollectionsQueryset)()
 
     translated = TranslationProxy()
 
@@ -780,7 +795,7 @@ class CollectionTranslation(SeoModelTranslation):
     collection = models.ForeignKey(
         Collection, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, blank=True, null=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
@@ -796,4 +811,4 @@ class CollectionTranslation(SeoModelTranslation):
         )
 
     def __str__(self) -> str:
-        return self.name
+        return self.name if self.name else str(self.pk)

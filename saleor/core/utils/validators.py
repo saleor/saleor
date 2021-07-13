@@ -1,8 +1,9 @@
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import micawber
 from django.core.exceptions import ValidationError
 
+from ...account.models import User
 from ...product import ProductMediaTypes
 from ...product.error_codes import ProductErrorCode
 
@@ -32,3 +33,8 @@ def get_oembed_data(url: str, field_name: str) -> Tuple[Dict[str, Any], str]:
                 )
             }
         )
+
+
+def user_is_valid(user: Optional[User]) -> bool:
+    """Return True when user is provided and is not anonymous."""
+    return bool(user and not user.is_anonymous)

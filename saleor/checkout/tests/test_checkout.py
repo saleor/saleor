@@ -17,10 +17,16 @@ from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingZone
 from .. import AddressType, calculations
-from ..fetch import CheckoutInfo, fetch_checkout_info, fetch_checkout_lines
+from ..fetch import (
+    CheckoutInfo,
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ..models import Checkout
 from ..utils import (
     add_voucher_to_checkout,
+    calculate_checkout_quantity,
     cancel_active_payments,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
@@ -91,25 +97,25 @@ def test_last_change_update_foregin_key(checkout, shipping_method):
 
 
 @pytest.mark.parametrize(
-    "total, min_spent_amount, total_quantity, min_checkout_items_quantity, "
+    "total, min_spent_amount, min_checkout_items_quantity, "
     "discount_value, discount_value_type, expected_value",
     [
-        (20, 20, 2, 2, 50, DiscountValueType.PERCENTAGE, 10),
-        (20, None, 2, None, 50, DiscountValueType.PERCENTAGE, 10),
-        (20, 20, 2, 2, 5, DiscountValueType.FIXED, 5),
-        (20, None, 2, None, 5, DiscountValueType.FIXED, 5),
+        (20, 20, 2, 50, DiscountValueType.PERCENTAGE, 10),
+        (20, None, None, 50, DiscountValueType.PERCENTAGE, 10),
+        (20, 20, 2, 5, DiscountValueType.FIXED, 5),
+        (20, None, None, 5, DiscountValueType.FIXED, 5),
     ],
 )
 def test_get_discount_for_checkout_value_voucher(
     total,
     min_spent_amount,
-    total_quantity,
     min_checkout_items_quantity,
     discount_value,
     discount_value_type,
     expected_value,
     monkeypatch,
     channel_USD,
+    checkout_with_items,
 ):
     voucher = Voucher.objects.create(
         code="unique",
@@ -123,7 +129,7 @@ def test_get_discount_for_checkout_value_voucher(
         discount=Money(discount_value, channel_USD.currency_code),
         min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
     )
-    checkout = Mock(spec=Checkout, quantity=total_quantity, channel=channel_USD)
+    checkout = Mock(spec=checkout_with_items, channel=channel_USD)
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
@@ -143,9 +149,20 @@ def test_get_discount_for_checkout_value_voucher(
         shipping_method_channel_listings=None,
         valid_shipping_methods=[],
     )
+    lines = [
+        CheckoutLineInfo(
+            line=line,
+            channel_listing=line.variant.product.channel_listings.first(),
+            collections=[],
+            product=line.variant.product,
+            variant=line.variant,
+            product_type=line.variant.product.product_type,
+        )
+        for line in checkout_with_items.lines.all()
+    ]
     manager = get_plugins_manager()
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout_info, [], None, []
+        manager, voucher, checkout_info, lines, None, []
     )
     assert discount == Money(expected_value, "USD")
 
@@ -156,15 +173,20 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
 ):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_voucher)
+    quantity = calculate_checkout_quantity(lines)
     checkout_info = fetch_checkout_info(checkout_with_voucher, lines, [], manager)
     manager = get_plugins_manager()
     address = checkout_with_voucher.shipping_address
     get_voucher_discount_for_checkout(manager, voucher, checkout_info, lines, address)
     subtotal = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
-    quantity = checkout_with_voucher.quantity
     customer_email = checkout_with_voucher.get_customer_email()
     mock_validate_voucher.assert_called_once_with(
-        voucher, subtotal.gross, quantity, customer_email, checkout_with_voucher.channel
+        voucher,
+        subtotal,
+        quantity,
+        customer_email,
+        checkout_with_voucher.channel,
+        checkout_info.user,
     )
 
 
@@ -201,7 +223,7 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         discount=Money(discount_value, channel_USD.currency_code),
         min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
     )
-    checkout = Mock(spec=Checkout, quantity=total_quantity, channel=channel_USD)
+    checkout = Mock(spec=Checkout, channel=channel_USD)
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
@@ -966,6 +988,48 @@ def test_add_voucher_to_checkout(checkout_with_item, voucher):
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     assert checkout_with_item.voucher_code == voucher.code
+
+
+def test_add_staff_voucher_to_anonymous_checkout(checkout_with_item, voucher):
+    voucher.only_for_staff = True
+    voucher.save()
+
+    assert checkout_with_item.voucher_code is None
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    with pytest.raises(NotApplicable):
+        add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+
+
+def test_add_staff_voucher_to_customer_checkout(
+    checkout_with_item, voucher, customer_user
+):
+    checkout_with_item.user = customer_user
+    checkout_with_item.save()
+    voucher.only_for_staff = True
+    voucher.save()
+
+    assert checkout_with_item.voucher_code is None
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    with pytest.raises(NotApplicable):
+        add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+
+
+def test_add_staff_voucher_to_staff_checkout(checkout_with_item, voucher, staff_user):
+    checkout_with_item.user = staff_user
+    checkout_with_item.save()
+    voucher.only_for_staff = True
+    voucher.save()
+
+    assert checkout_with_item.voucher_code is None
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
 
 
 def test_add_voucher_to_checkout_fail(

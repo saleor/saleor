@@ -3,6 +3,8 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+
+- Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
 - Refactor plugins manager(add missing tracing, optimize imports, drop plugins manager from settings) - #6890 by @fowczarek
@@ -29,7 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support setting value for AttributeValue mutations - #7037 by @piotrgrundas
 - Validate discount value for percentage vouchers and sales - #7033 by @d-wysocki
 - Optimize children field on Category type - #7045 by @IKarbowiak
-- Added support for querying objects by metadata fields - #6683 by @LeOndaz
+- Added support for querying objects by metadata fields - #6683 by @LeOndaz, #7421 by @korycins
 - Add rich text attribute input - #7059 by @piotrgrundas
 - Avoid using `get_plugins_manager` method - #7052 by @IKarbowiak
 - Add field `languageCode` to types: `AccountInput`, `AccountRegisterInput`, `CheckoutCreateInput`, `CustomerInput`, `Order`, `User`. Add field `languageCodeEnum` to `Order` type. Add new mutation `CheckoutLanguageCodeUpdate`. Deprecate field `Order.languageCode`.  - #6609 by @korycins
@@ -38,6 +40,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid tax rates for lines - #7058 by @IKarbowiak
 - Allow seeing unconfirmed orders - #7072 by @IKarbowiak
 - Raise GraphQLError when too big integer value is provided - #7076 by @IKarbowiak
+- Do not update draft order addresses when user is changing - #7088 by @IKarbowiak
 - Recalculate draft order when product/variant was deleted - #7085 by @d-wysocki
 - Added validation for `DraftOrderCreate` with negative quantity line - #7085 by @d-wysocki
 - Remove html tags from product description_plaintext - #7094 by @d-wysocki
@@ -70,6 +73,60 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix draft order tax mismatch - #7226 by @IKarbowiak
   - Introduce `calculate_order_line_total` plugin method
 - Introduce swatch attributes - #7261 by @IKarbowiak
+- Update core logging for better Celery tasks handling - #7251 by @tomaszszymanski129
+- Raise ValidationError when refund cannot be performed - #7260 by @IKarbowiak
+- Extend order with origin and original order values - #7326 by @IKarbowiak
+- Fix customer addresses missing after customer creation - #7327 by @tomaszszymanski129
+- Extend order webhook payload with fulfillment fields - #7364, #7347 by @korycins
+  - fulfillments extended with:
+    - total_refund_amount
+    - shipping_refund_amount
+    - lines
+  - fulfillment lines extended with:
+    - total_price_net_amount
+    - total_price_gross_amount
+    - undiscounted_unit_price_net
+    - undiscounted_unit_price_gross
+    - unit_price_net
+- Extend order payload with undiscounted prices and add psp_reference to payment model - #7339 by @IKarbowiak
+  - order payload extended with the following fields:
+    - `undiscounted_total_net_amount`
+    - `undiscounted_total_gross_amount`
+    - `psp_reference` on `payment`
+  - order lines extended with:
+    - `undiscounted_unit_price_net_amount`
+    - `undiscounted_unit_price_gross_amount`
+    - `undiscounted_total_price_net_amount`
+    - `undiscounted_total_price_gross_amount`
+- Copy metadata fields when creating reissue - #7358 by @IKarbowiak
+- Add payment webhooks - #7044 by @maarcingebala
+- Fix invoice generation - #7376 by @tomaszszymanski129
+- Allow defining only one field in translations - #7363 by @IKarbowiak
+- Trigger `checkout_updated` hook for checkout meta mutations - #7392 by @maarcingebala
+- Optimize `inputType` resolver on `AttributeValue` type - 7396 by @tomaszszymanski129
+- Allow filtering pages by ids - #7393 by @IKarbowiak
+- Refactor account filters - 7419 by @tomaszszymanski129
+- Fix validate `min_spent` on vouchers to use net or gross value depends on `settings.display_gross_prices` - #7408 by @d-wysocki
+- Fix invoice generation - #7376 by tomaszszymanski129
+- Unify channel ID params #7378
+  - targetChannel from ChannelDeleteInput changed to channelId
+  - `channel` from `DraftOrderCreateInput` changed to channelId
+  - `channel` from `DraftOrderInput` changed to channelId
+  - `channel` from `pluginUpdate` changed to channelId
+- Compress celery tasks related with `user_emails` and `webhooks`  - #7445 by d-wysocki
+- Order events performance - #7424 by tomaszszymanski129
+- Add hash to uploading images #7453 by @IKarbowiak
+- Add file format validation for uploaded images - #7447 by @IKarbowiak
+- Add boolean attributes - #7454 by @piotrgrundas
+- Fix attaching params for address form errors - #7485 by @IKarbowiak
+- Update draft order validation - #7253 by @IKarbowiak
+  - Extend Order type with errors: [OrderError!]! field
+  - Create tasks for deleting order lines by deleting products or variants
+- Fix doubled checkout total price for one line and zero shipping price - #7532 by @IKarbowiak
+- Deprecate nested objects in TranslatableContent types - #7522 by @IKarbowiak
+- Fix performance for User type on resolvers: orders, gift cards, events - #7574 by @tomaszszymanski129
+- Fix failing account mutations for app - #7569 by @IKarbowiak
+- Modify order of auth middleware calls - #7572 by @tomaszszymanski129
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -117,6 +174,29 @@ All notable, unreleased changes to this project will be documented in this file.
 - Make `order` property of invoice webhook payload contain order instead of order lines - #7081 by @pdblaszczyk
   - Affected webhook events: `INVOICE_REQUESTED`, `INVOICE_SENT`, `INVOICE_DELETED`
 - Make quantity field on `StockInput` required - #7082 by @IKarbowiak
+- Extend plugins manager to configure plugins for each plugins - #7198 by @korycins:
+  - Introduce changes in API:
+    - `paymentInitialize` - add `channel` parameter. Optional when only one  channel exists.
+    - `pluginUpdate` - add `channel` parameter.
+    - `availablePaymentGateways` - add `channel` parameter.
+    - `storedPaymentSources` - add `channel` parameter.
+    - `requestPasswordReset` - add `channel` parameter.
+    - `requestEmailChange` - add `channel` parameter.
+    - `confirmEmailChange` - add `channel` parameter.
+    - `accountRequestDeletion` - add `channel` parameter.
+    - change structure of type `Plugin`:
+      - add `globalConfiguration` field for storing configuration when a plugin is globally configured
+      - add `channelConfigurations` field for storing plugin configuration for each channel
+      - removed `configuration` field, use `globalConfiguration` and `channelConfigurations` instead
+    - change structure of input `PluginFilterInput`:
+      - add `statusInChannels` field
+      - add `type` field
+      - removed `active` field. Use `statusInChannels` instead
+  - Change plugin webhook endpoint - #7332 by @korycins.
+    - Use /plugins/channel/<channel_slug>/<plugin_id> for plugins with channel configuration
+    - Use /plugins/global/<plugin_id> for plugins with global configuration
+    - Remove /plugin/<plugin_id> endpoint
+
 - Add description to shipping method - #7116 by @IKarbowiak
   - `ShippingMethod` was extended with `description` field.
   - `ShippingPriceInput` was extended with `description` field
@@ -137,6 +217,16 @@ All notable, unreleased changes to this project will be documented in this file.
   - drop `created` argument from `draftOrders` query
   - drop `productType` from `ProductFilter`
   - deprecate mutations' `<name>Errors`, typed `errors` fields and remove deprecation
+- Add channel data to Order webhook - #7299 by @krzysztofwolski
+- Always create new checkout in `checkoutCreate` mutation - #7318 by @IKarbowiak
+  - deprecate `created` return field on `checkoutCreate` mutation
+- Return empty values list for attribute without choices - #7394 by @fowczarek
+  - `values` for attributes without choices from now are empty list.
+  - attributes with choices - `DROPDOWN` and `MULTISELECT`
+  - attributes without choices - `FILE`, `REFERENCE`, `NUMERIC` and `RICH_TEXT`
+- Unify checkout identifier in checkout mutations and queries - #7511 by @IKarbowiak
+- Use root level channel argument for filtering and sorting - #7374 by @IKarbowiak
+  - drop `channel` field from filters and sorters
 
 ### Other
 
@@ -186,6 +276,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Return empty results when filtering by non-existing attribute - #7025 by @maarcingebala
 - Add new authorization header `Authorization-Bearer` - #6998 by @korycins
 - Add field `paymentMethodType` to `Payment` object - #7073 by @korycins
+- Unify Warehouse Address API - #7481 by @d-wysocki
+    - deprecate `companyName` on `Warehouse` type
+    - remove `companyName` on `WarehouseInput` type
+    - remove `WarehouseAddressInput` on `WarehouseUpdateInput` and `WarehouseCreateInput`, and change it to `AddressInput`
+- Fix passing incorrect customer email to payment gateways - #7486 by @korycins
 
 # 2.11.1
 

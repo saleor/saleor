@@ -110,18 +110,3 @@ def check_attribute_required_permissions():
         return _permission_required((ProductPermissions.MANAGE_PRODUCTS,), context)
 
     return account_passes_test_for_attribute(check_perms)
-
-
-def check_attribute_value_required_permissions():
-    """Check attribute value permissions depending on the corresponding attribute type.
-
-    As an value's attribute can belong to the product or to the page,
-    different permissions need to be checked.
-    """
-
-    def check_perms(context, attribute_value):
-        if attribute_value.attribute.type == AttributeType.PAGE_TYPE:
-            return _permission_required((PagePermissions.MANAGE_PAGES,), context)
-        return _permission_required((ProductPermissions.MANAGE_PRODUCTS,), context)
-
-    return account_passes_test_for_attribute(check_perms)

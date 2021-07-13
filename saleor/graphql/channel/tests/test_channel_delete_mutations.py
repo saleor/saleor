@@ -41,7 +41,7 @@ def test_channel_delete_mutation_as_staff_user(
 
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     channel_target_id = graphene.Node.to_global_id("Channel", other_channel_USD.id)
-    variables = {"id": channel_id, "input": {"targetChannel": channel_target_id}}
+    variables = {"id": channel_id, "input": {"channelId": channel_target_id}}
     assert Checkout.objects.first() is not None
     # when
     response = staff_api_client.post_graphql(
@@ -62,7 +62,7 @@ def test_channel_delete_mutation_with_the_same_channel_and_target_channel_id(
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    variables = {"id": channel_id, "input": {"targetChannel": channel_id}}
+    variables = {"id": channel_id, "input": {"channelId": channel_id}}
 
     # when
     response = staff_api_client.post_graphql(
@@ -73,8 +73,8 @@ def test_channel_delete_mutation_with_the_same_channel_and_target_channel_id(
     content = get_graphql_content(response)
     error = content["data"]["channelDelete"]["errors"][0]
 
-    assert error["field"] == "targetChannel"
-    assert error["code"] == ChannelErrorCode.CHANNEL_TARGET_ID_MUST_BE_DIFFERENT.name
+    assert error["field"] == "channelId"
+    assert error["code"] == ChannelErrorCode.INVALID.name
 
 
 def test_channel_delete_mutation_without_migration_channel_with_orders(
@@ -139,7 +139,7 @@ def test_channel_delete_mutation_with_different_currency(
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     target_channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    variables = {"id": channel_id, "input": {"targetChannel": target_channel_id}}
+    variables = {"id": channel_id, "input": {"channelId": target_channel_id}}
 
     # when
     response = staff_api_client.post_graphql(
@@ -150,7 +150,7 @@ def test_channel_delete_mutation_with_different_currency(
     content = get_graphql_content(response)
     error = content["data"]["channelDelete"]["errors"][0]
 
-    assert error["field"] == "targetChannel"
+    assert error["field"] == "channelId"
     assert error["code"] == ChannelErrorCode.CHANNELS_CURRENCY_MUST_BE_THE_SAME.name
 
 
@@ -168,7 +168,7 @@ def test_channel_delete_mutation_as_app(
     order.save()
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     channel_target_id = graphene.Node.to_global_id("Channel", other_channel_USD.id)
-    variables = {"id": channel_id, "input": {"targetChannel": channel_target_id}}
+    variables = {"id": channel_id, "input": {"channelId": channel_target_id}}
     assert Checkout.objects.first() is not None
 
     # when
@@ -193,7 +193,7 @@ def test_channel_delete_mutation_as_customer(
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     channel_target_id = graphene.Node.to_global_id("Channel", other_channel_USD.id)
-    variables = {"id": channel_id, "input": {"targetChannel": channel_target_id}}
+    variables = {"id": channel_id, "input": {"channelId": channel_target_id}}
 
     # when
     response = user_api_client.post_graphql(
@@ -213,7 +213,7 @@ def test_channel_delete_mutation_as_anonymous(
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     channel_target_id = graphene.Node.to_global_id("Channel", other_channel_USD.id)
-    variables = {"id": channel_id, "input": {"targetChannel": channel_target_id}}
+    variables = {"id": channel_id, "input": {"channelId": channel_target_id}}
 
     # when
     response = api_client.post_graphql(

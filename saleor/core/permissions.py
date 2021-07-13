@@ -47,6 +47,10 @@ class OrderPermissions(BasePermissionEnum):
     MANAGE_ORDERS = "order.manage_orders"
 
 
+class PaymentPermissions(BasePermissionEnum):
+    HANDLE_PAYMENTS = "payment.handle_payments"
+
+
 class PagePermissions(BasePermissionEnum):
     MANAGE_PAGES = "page.manage_pages"
 
@@ -83,6 +87,7 @@ PERMISSIONS_ENUMS = [
     OrderPermissions,
     PagePermissions,
     PageTypePermissions,
+    PaymentPermissions,
     ProductPermissions,
     ProductTypePermissions,
     ShippingPermissions,

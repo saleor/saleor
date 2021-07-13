@@ -1,15 +1,16 @@
 import django_filters
-from django.db.models import Sum
+from django.db.models import Exists, OuterRef, Q, Sum
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
+from ...discount.models import OrderDiscount
 from ...order.models import Order
-from ..channel.types import Channel
+from ...payment.models import Payment
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_or_error
 from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_by_query_param, filter_range_field
+from ..utils.filters import filter_range_field
 from .enums import OrderStatusFilter
 
 
@@ -21,9 +22,15 @@ def filter_payment_status(qs, _, value):
 
 def get_payment_id_from_query(value):
     try:
-        return from_global_id_or_error(value, only_type="Payment", field="pk")[1]
+        return from_global_id_or_error(value, only_type="Payment")[1]
     except Exception:
         return None
+
+
+def get_order_id_from_query(value):
+    if value.startswith("#"):
+        value = value[1:]
+    return value if value.isnumeric() else None
 
 
 def filter_order_by_payment(qs, payment_id):
@@ -45,21 +52,18 @@ def filter_status(qs, _, value):
         query_objects |= qs.ready_to_fulfill()
 
     if OrderStatusFilter.READY_TO_CAPTURE in value:
-        qs = qs.distinct()
-        query_objects = query_objects.distinct()
         query_objects |= qs.ready_to_capture()
 
     return qs & query_objects
 
 
 def filter_customer(qs, _, value):
-    customer_fields = [
-        "user_email",
-        "user__first_name",
-        "user__last_name",
-        "user__email",
-    ]
-    qs = filter_by_query_param(qs, value, customer_fields)
+    qs = qs.filter(
+        Q(user_email__trigram_similar=value)
+        | Q(user__email__trigram_similar=value)
+        | Q(user__first_name__trigram_similar=value)
+        | Q(user__last_name__trigram_similar=value)
+    )
     return qs
 
 
@@ -68,26 +72,29 @@ def filter_created_range(qs, _, value):
 
 
 def filter_order_search(qs, _, value):
-    order_fields = [
-        "pk",
-        "discounts__name",
-        "discounts__translated_name",
-        "user_email",
-        "user__first_name",
-        "user__last_name",
-        "payments__transactions__searchable_key",
-    ]
-    payment_id = get_payment_id_from_query(value)
-    if payment_id:
+    if payment_id := get_payment_id_from_query(value):
         return filter_order_by_payment(qs, payment_id)
 
-    qs = filter_by_query_param(qs, value, order_fields)
-    return qs
+    if order_id := get_order_id_from_query(value):
+        return qs.filter(pk=order_id)
+
+    payments = Payment.objects.filter(psp_reference=value).values("id")
+    discounts = OrderDiscount.objects.filter(
+        Q(name__trigram_similar=value) | Q(translated_name__trigram_similar=value)
+    ).values("id")
+    return qs.filter(
+        Q(user_email__trigram_similar=value)
+        | Q(Exists(discounts.filter(order_id=OuterRef("id"))))
+        | Q(user__email__trigram_similar=value)
+        | Q(user__first_name__trigram_similar=value)
+        | Q(user__last_name__trigram_similar=value)
+        | Q(Exists(payments.filter(order_id=OuterRef("id"))))
+    )
 
 
 def filter_channels(qs, _, values):
     if values:
-        _, channels_ids = resolve_global_ids_to_primary_keys(values, Channel)
+        _, channels_ids = resolve_global_ids_to_primary_keys(values, "Channel")
         qs = qs.filter(channel_id__in=channels_ids)
     return qs
 

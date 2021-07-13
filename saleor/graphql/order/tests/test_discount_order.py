@@ -500,6 +500,10 @@ def test_update_order_line_discount(
     line_to_discount = order.lines.first()
     unit_price = Money(Decimal(7.3), currency="USD")
     line_to_discount.unit_price = TaxedMoney(unit_price, unit_price)
+    line_to_discount.undiscounted_unit_price = line_to_discount.unit_price
+    total_price = line_to_discount.unit_price * line_to_discount.quantity
+    line_to_discount.total_price = total_price
+    line_to_discount.undiscounted_total_price = total_price
     line_to_discount.save()
 
     line_price_before_discount = line_to_discount.unit_price
@@ -566,6 +570,19 @@ def test_update_order_line_discount_line_with_discount(
     line_to_discount.unit_discount_amount = Decimal("2.500")
     line_to_discount.unit_discount_type = DiscountValueType.FIXED
     line_to_discount.unit_discount_value = Decimal("2.500")
+    line_to_discount.undiscounted_unit_price_gross_amount = (
+        line_to_discount.unit_price_gross_amount + line_to_discount.unit_discount_amount
+    )
+    line_to_discount.undiscounted_unit_price_net_amount = (
+        line_to_discount.unit_price_net_amount + line_to_discount.unit_discount_amount
+    )
+    line_to_discount.undiscounted_total_price_gross_amount = (
+        line_to_discount.undiscounted_unit_price_gross_amount
+        * line_to_discount.quantity
+    )
+    line_to_discount.undiscounted_total_price_net_amount = (
+        line_to_discount.undiscounted_unit_price_net_amount * line_to_discount.quantity
+    )
     line_to_discount.save()
 
     line_discount_amount_before_update = line_to_discount.unit_discount_amount
@@ -674,7 +691,9 @@ mutation OrderLineDiscountRemove($orderLineId: ID!){
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_total")
 def test_delete_discount_from_order_line(
+    mocked_calculate_order_line_total,
     mocked_calculate_order_line_unit,
     status,
     draft_order_with_fixed_discount_order,
@@ -687,8 +706,10 @@ def test_delete_discount_from_order_line(
     line = order.lines.first()
 
     line_undiscounted_price = line.undiscounted_unit_price
+    line_undiscounted_total_price = line.undiscounted_total_price
 
     mocked_calculate_order_line_unit.return_value = line_undiscounted_price
+    mocked_calculate_order_line_total.return_value = line_undiscounted_total_price
 
     line.unit_discount_amount = Decimal("2.5")
     line.unit_discount_type = DiscountValueType.FIXED
@@ -709,6 +730,7 @@ def test_delete_discount_from_order_line(
     line.refresh_from_db()
 
     assert line.unit_price == line_undiscounted_price
+    assert line.total_price == line_undiscounted_total_price
     unit_discount = line.unit_discount
     currency = order.currency
     assert unit_discount == Money(Decimal(0), currency=currency)
