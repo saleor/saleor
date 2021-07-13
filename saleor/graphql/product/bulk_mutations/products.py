@@ -165,7 +165,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         products = [product for product in queryset]
         queryset.delete()
         for product in products:
-            variants = product_variant_map.get(product.id)
+            variants = product_variant_map.get(product.id, [])
             info.context.plugins.product_deleted(product, variants)
 
 
