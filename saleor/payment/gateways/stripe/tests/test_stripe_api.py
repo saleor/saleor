@@ -11,6 +11,7 @@ from ..consts import (
     AUTOMATIC_CAPTURE_METHOD,
     MANUAL_CAPTURE_METHOD,
     METADATA_IDENTIFIER,
+    STRIPE_API_VERSION,
     WEBHOOK_EVENTS,
 )
 from ..stripe_api import (
@@ -44,7 +45,7 @@ def test_is_secret_api_key_valid_correct_key(mocked_webhook):
     api_key = "correct_key"
     assert is_secret_api_key_valid(api_key) is True
 
-    mocked_webhook.list.assert_called_with(api_key)
+    mocked_webhook.list.assert_called_with(api_key, stripe_version=STRIPE_API_VERSION)
 
 
 @patch(
@@ -63,6 +64,7 @@ def test_subscribe_webhook_returns_webhook_object(mocked_webhook, channel_USD):
         url=expected_url,
         enabled_events=WEBHOOK_EVENTS,
         metadata={METADATA_IDENTIFIER: "mirumee.com"},
+        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -75,8 +77,7 @@ def test_delete_webhook(mocked_webhook):
     delete_webhook(api_key, "webhook_id")
 
     mocked_webhook.delete.assert_called_with(
-        "webhook_id",
-        api_key=api_key,
+        "webhook_id", api_key=api_key, stripe_version=STRIPE_API_VERSION
     )
 
 
@@ -96,6 +97,7 @@ def test_create_payment_intent_returns_intent_object(mocked_payment_intent):
         amount="1000",
         currency="USD",
         capture_method=AUTOMATIC_CAPTURE_METHOD,
+        stripe_version=STRIPE_API_VERSION,
     )
 
     assert isinstance(intent, StripeObject)
@@ -120,6 +122,7 @@ def test_create_payment_intent_with_customer(mocked_payment_intent):
         currency="USD",
         capture_method=AUTOMATIC_CAPTURE_METHOD,
         customer=customer,
+        stripe_version=STRIPE_API_VERSION,
     )
 
     assert isinstance(intent, StripeObject)
@@ -142,6 +145,7 @@ def test_create_payment_intent_manual_auto_capture(mocked_payment_intent):
         amount="1000",
         currency="USD",
         capture_method=MANUAL_CAPTURE_METHOD,
+        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -161,6 +165,7 @@ def test_create_payment_intent_returns_error(mocked_payment_intent):
         amount="1000",
         currency="USD",
         capture_method=AUTOMATIC_CAPTURE_METHOD,
+        stripe_version=STRIPE_API_VERSION,
     )
     assert intent is None
     assert error
@@ -178,7 +183,7 @@ def test_retrieve_payment_intent(mocked_payment_intent):
     intent, _ = retrieve_payment_intent(api_key, payment_intent_id)
 
     mocked_payment_intent.retrieve.assert_called_with(
-        payment_intent_id, api_key=api_key
+        payment_intent_id, api_key=api_key, stripe_version=STRIPE_API_VERSION
     )
     assert isinstance(intent, StripeObject)
 
@@ -196,7 +201,7 @@ def test_retrieve_payment_intent_stripe_returns_error(mocked_payment_intent):
     _, error = retrieve_payment_intent(api_key, payment_intent_id)
 
     mocked_payment_intent.retrieve.assert_called_with(
-        payment_intent_id, api_key=api_key
+        payment_intent_id, api_key=api_key, stripe_version=STRIPE_API_VERSION
     )
 
     assert error == expected_error
@@ -217,7 +222,10 @@ def test_capture_payment_intent(mocked_payment_intent):
     )
 
     mocked_payment_intent.capture.assert_called_with(
-        payment_intent_id, amount_to_capture=amount, api_key=api_key
+        payment_intent_id,
+        amount_to_capture=amount,
+        api_key=api_key,
+        stripe_version=STRIPE_API_VERSION,
     )
     assert isinstance(intent, StripeObject)
 
@@ -238,7 +246,10 @@ def test_capture_payment_intent_stripe_returns_error(mocked_payment_intent):
     )
 
     mocked_payment_intent.capture.assert_called_with(
-        payment_intent_id, amount_to_capture=amount, api_key=api_key
+        payment_intent_id,
+        amount_to_capture=amount,
+        api_key=api_key,
+        stripe_version=STRIPE_API_VERSION,
     )
 
     assert error == expected_error
@@ -259,7 +270,10 @@ def test_refund_payment_intent(mocked_refund):
     )
 
     mocked_refund.create.assert_called_with(
-        payment_intent=payment_intent_id, amount=amount, api_key=api_key
+        payment_intent=payment_intent_id,
+        amount=amount,
+        api_key=api_key,
+        stripe_version=STRIPE_API_VERSION,
     )
     assert isinstance(intent, StripeObject)
 
@@ -280,7 +294,10 @@ def test_refund_payment_intent_returns_error(mocked_refund):
     )
 
     mocked_refund.create.assert_called_with(
-        payment_intent=payment_intent_id, amount=amount, api_key=api_key
+        payment_intent=payment_intent_id,
+        amount=amount,
+        api_key=api_key,
+        stripe_version=STRIPE_API_VERSION,
     )
     assert error == expected_error
 
@@ -298,7 +315,9 @@ def test_cancel_payment_intent(mocked_payment_intent):
         api_key=api_key, payment_intent_id=payment_intent_id
     )
 
-    mocked_payment_intent.cancel.assert_called_with(payment_intent_id, api_key=api_key)
+    mocked_payment_intent.cancel.assert_called_with(
+        payment_intent_id, api_key=api_key, stripe_version=STRIPE_API_VERSION
+    )
     assert isinstance(intent, StripeObject)
 
 
@@ -316,7 +335,9 @@ def test_cancel_payment_intent_stripe_returns_error(mocked_payment_intent):
         api_key=api_key, payment_intent_id=payment_intent_id
     )
 
-    mocked_payment_intent.cancel.assert_called_with(payment_intent_id, api_key=api_key)
+    mocked_payment_intent.cancel.assert_called_with(
+        payment_intent_id, api_key=api_key, stripe_version=STRIPE_API_VERSION
+    )
 
     assert error == expected_error
 
@@ -337,7 +358,9 @@ def test_get_or_create_customer_retrieve(mocked_customer):
     )
 
     assert isinstance(customer, StripeObject)
-    mocked_customer.retrieve.assert_called_with(customer_id, api_key=api_key)
+    mocked_customer.retrieve.assert_called_with(
+        customer_id, api_key=api_key, stripe_version=STRIPE_API_VERSION
+    )
 
 
 @patch(
@@ -359,7 +382,9 @@ def test_get_or_create_customer_failed_retrieve(mocked_customer):
     )
 
     assert customer is None
-    mocked_customer.retrieve.assert_called_with(customer_id, api_key=api_key)
+    mocked_customer.retrieve.assert_called_with(
+        customer_id, api_key=api_key, stripe_version=STRIPE_API_VERSION
+    )
 
 
 @patch(
@@ -376,7 +401,9 @@ def test_get_or_create_customer_create(mocked_customer):
     )
 
     assert isinstance(customer, StripeObject)
-    mocked_customer.create.assert_called_with(email=customer_email, api_key=api_key)
+    mocked_customer.create.assert_called_with(
+        email=customer_email, api_key=api_key, stripe_version=STRIPE_API_VERSION
+    )
 
 
 @patch(
@@ -395,7 +422,9 @@ def test_get_or_create_customer_failed_create(mocked_customer):
     )
 
     assert customer is None
-    mocked_customer.create.assert_called_with(email=customer_email, api_key=api_key)
+    mocked_customer.create.assert_called_with(
+        email=customer_email, api_key=api_key, stripe_version=STRIPE_API_VERSION
+    )
 
 
 @patch(
@@ -413,7 +442,10 @@ def test_list_customer_payment_methods(mocked_payment_method):
     assert error is None
     assert isinstance(payment_method, StripeObject)
     mocked_payment_method.list.assert_called_with(
-        api_key=api_key, customer=customer_id, type="card"
+        api_key=api_key,
+        customer=customer_id,
+        type="card",
+        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -435,7 +467,10 @@ def test_list_customer_payment_methods_failed_to_fetch(mocked_payment_method):
     assert isinstance(error, StripeError)
 
     mocked_payment_method.list.assert_called_with(
-        api_key=api_key, customer=customer_id, type="card"
+        api_key=api_key,
+        customer=customer_id,
+        type="card",
+        stripe_version=STRIPE_API_VERSION,
     )
 
 
