@@ -225,6 +225,7 @@ def send_invoice_email_task(recipient_email, payload, config):
     )
     invoice_events.notification_invoice_sent_event(
         user_id=payload["requester_user_id"],
+        app_id=payload["requester_app_id"],
         invoice_id=payload["invoice"]["id"],
         customer_email=payload["recipient_email"],
     )

@@ -235,7 +235,7 @@ def test_cancel_order(
 
 
 @patch("saleor.order.actions.send_order_refunded_confirmation")
-def test_order_refunded(
+def test_order_refunded_by_user(
     send_order_refunded_confirmation_mock,
     order,
     checkout_with_item,
@@ -257,6 +257,32 @@ def test_order_refunded(
 
     send_order_refunded_confirmation_mock.assert_called_once_with(
         order, order.user, None, amount, payment.currency, manager
+    )
+
+
+@patch("saleor.order.actions.send_order_refunded_confirmation")
+def test_order_refunded_by_app(
+    send_order_refunded_confirmation_mock,
+    order,
+    checkout_with_item,
+    app,
+):
+    # given
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout_with_item
+    )
+    amount = order.total.gross.amount
+
+    # when
+    manager = get_plugins_manager()
+    order_refunded(order, None, app, amount, payment, manager)
+
+    # then
+    order_event = order.events.last()
+    assert order_event.type == OrderEvents.PAYMENT_REFUNDED
+
+    send_order_refunded_confirmation_mock.assert_called_once_with(
+        order, None, app, amount, payment.currency, manager
     )
 
 

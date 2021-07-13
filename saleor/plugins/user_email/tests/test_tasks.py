@@ -439,7 +439,7 @@ def test_send_invoice_email_task_default_template_by_app(
     assert mocked_send_mail.called
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.SENT,
-        user=None,
+        app=app.id,
         invoice=invoice,
         parameters__email=recipient_email,
     ).exists()

@@ -325,6 +325,7 @@ def test_send_invoice_email_task_by_user(
     )
     invoice_event = InvoiceEvent.objects.get()
     assert invoice_event.type == InvoiceEvents.SENT
+    assert not invoice_event.app
     assert invoice_event.user == staff_user
 
     order_event = OrderEvent.objects.get()
@@ -371,6 +372,7 @@ def test_send_invoice_email_task_by_app(
     )
     invoice_event = InvoiceEvent.objects.get()
     assert invoice_event.type == InvoiceEvents.SENT
+    assert invoice_event.app == app
     assert not invoice_event.user
 
     order_event = OrderEvent.objects.get()
