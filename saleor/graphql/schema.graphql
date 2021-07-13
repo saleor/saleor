@@ -5682,6 +5682,7 @@ enum UserSortField {
   LAST_NAME
   EMAIL
   ORDER_COUNT
+  RANK
 }
 
 input UserSortingInput {

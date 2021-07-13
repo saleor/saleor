@@ -1,11 +1,15 @@
 import django_filters
-from django.db.models import Count, Exists, OuterRef, Q
+from django.contrib.postgres.search import TrigramSimilarity
+from django.db.models import Case, Count, OuterRef, Q, Subquery, When
+from django.db.models.functions import Coalesce, Greatest
 
 from ...account.models import Address, User
 from ..core.filters import EnumFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput
 from ..utils.filters import filter_range_field
 from .enums import StaffMemberStatus
+
+SEARCH_RESULT_TRESHOLD = 0.3
 
 
 def filter_date_joined(qs, _, value):
@@ -32,21 +36,42 @@ def filter_staff_status(qs, _, value):
 def filter_user_search(qs, _, value):
     if value:
         UserAddress = User.addresses.through
-        addresses = Address.objects.filter(
-            Q(first_name__trigram_similar=value)
-            | Q(last_name__trigram_similar=value)
-            | Q(city__trigram_similar=value)
-            | Q(country__trigram_similar=value)
-            | Q(phone=value)
-        ).values("id")
-        user_addresses = UserAddress.objects.filter(
-            Exists(addresses.filter(pk=OuterRef("address_id")))
-        ).values("user_id")
-        qs = qs.filter(
-            Q(email__trigram_similar=value)
-            | Q(first_name__trigram_similar=value)
-            | Q(last_name__trigram_similar=value)
-            | Q(Exists(user_addresses.filter(user_id=OuterRef("pk"))))
+        addresses = (
+            Address.objects.annotate(
+                addresses_rank=Greatest(
+                    TrigramSimilarity("first_name", value),
+                    TrigramSimilarity("last_name", value),
+                    TrigramSimilarity("city", value),
+                    TrigramSimilarity("country", value),
+                    Case(
+                        When(phone=value, then=1.0),
+                        default=0.0,
+                    ),
+                )
+            )
+            .filter(Q(addresses_rank__gte=SEARCH_RESULT_TRESHOLD))
+            .values("addresses_rank")
+        )
+        user_addresses = (
+            UserAddress.objects.annotate(
+                user_addresses_rank=Coalesce(
+                    Subquery(addresses.filter(pk=OuterRef("address_id"))), 0.0
+                )
+            )
+            .order_by("-user_addresses_rank")
+            .values("user_addresses_rank")
+        )
+        qs = (
+            qs.annotate(
+                rank=Greatest(
+                    TrigramSimilarity("email", value),
+                    TrigramSimilarity("first_name", value),
+                    TrigramSimilarity("last_name", value),
+                    Subquery(user_addresses.filter(user_id=OuterRef("pk"))[:1]),
+                )
+            )
+            .filter(Q(rank__gte=SEARCH_RESULT_TRESHOLD))
+            .order_by("-rank", "id")
         )
     return qs
 
