@@ -391,16 +391,15 @@ def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug
         ProductVariantChannelListing.objects.filter(variant__in=variants)
         .select_for_update(of=("self",))
         .select_related("channel")
+        .values("id", "channel__slug", "preorder_quantity_threshold", "variant_id")
     )
-
-    all_variants_channel_listings_data = {
-        channel_listing.id: channel_listing
-        for channel_listing in all_variants_channel_listings
-    }
+    all_variants_channel_listings_id = (
+        channel_listing["id"] for channel_listing in all_variants_channel_listings
+    )
 
     quantity_allocation_list = list(
         PreorderAllocation.objects.filter(
-            product_variant_channel_listing_id__in=all_variants_channel_listings_data.keys(),  # noqa: E501
+            product_variant_channel_listing_id__in=all_variants_channel_listings_id,  # noqa: E501
             quantity__gt=0,
         )
         .values("product_variant_channel_listing")
@@ -413,22 +412,19 @@ def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug
         ] = allocation.preorder_quantity_allocated
 
     variants_to_channel_listings = {
-        data.variant_id: (
-            channel_listing_id,
-            data.preorder_quantity_threshold,
+        channel_listing["variant_id"]: (
+            channel_listing["id"],
+            channel_listing["preorder_quantity_threshold"],
         )
-        for channel_listing_id, data in all_variants_channel_listings_data.items()
-        if data.channel.slug == channel_slug
+        for channel_listing in all_variants_channel_listings
+        if channel_listing["channel__slug"] == channel_slug
     }
 
     variants_global_allocations: Dict[int, int] = defaultdict(int)
-    for (
-        channel_listing_id,
-        channel_listing,
-    ) in all_variants_channel_listings_data.items():
+    for channel_listing in all_variants_channel_listings:
         variants_global_allocations[
-            channel_listing.variant_id
-        ] += quantity_allocation_for_channel[channel_listing_id]
+            channel_listing["variant_id"]
+        ] += quantity_allocation_for_channel[channel_listing["id"]]
 
     insufficient_stocks: List[InsufficientStockData] = []
     allocations: List[PreorderAllocation] = []
