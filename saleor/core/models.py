@@ -137,7 +137,7 @@ class EventTask(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     event_payload = models.ForeignKey(
         EventPayload,
-        related_name="event_payloads",
+        related_name="event_tasks",
         null=True,
         on_delete=models.SET_NULL,
     )

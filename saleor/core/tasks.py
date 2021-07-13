@@ -3,6 +3,7 @@ import datetime
 from django.core.files.storage import default_storage
 
 from ..celeryconf import app
+from ..settings import EVENT_PAYLOAD_DELETE_PERIOD
 from .models import EventPayload, EventTask
 
 
@@ -12,9 +13,11 @@ def delete_from_storage_task(path):
 
 
 @app.task
-def delete_event_payloads():
-    seven_days_ago = datetime.date.today() - datetime.timedelta(days=7)
+def delete_event_payloads_task():
+    event_payload_delete_period = (
+        datetime.datetime.today() - EVENT_PAYLOAD_DELETE_PERIOD
+    )
 
-    EventTask.objects.filter(created_at__lte=seven_days_ago).detele()
+    EventTask.objects.filter(created_at__lte=event_payload_delete_period).delete()
 
-    EventPayload.objects.filter(event_payloads__isnull=True).delete()
+    EventPayload.objects.filter(event_tasks__isnull=True).delete()

@@ -27,6 +27,7 @@ dj-database-url==0.5.0
 dj-email-url==1.0.2
 django-appconf==1.0.4
 django-cache-url==3.2.3
+django-celery-beat==2.2.1
 django-countries==7.2.1
 django-filter==2.4.0; python_version >= "3.5"
 django-js-asset==1.2.2; python_version >= "3.6"

@@ -164,19 +164,19 @@ def _send_webhook_to_target(parts, target_url, message, domain, signature, event
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
 
 
-@app.task(
-    bind=True,
-    autoretry_for=(RequestException,),
-    retry_backoff=10,
-    retry_kwargs={"max_retries": 5},
-)
-def send_webhook_request(
-    self, webhook_id, target_url, secret, event_type, event_payload_id
-):
+def _get_event_payload(task_id, event_payload_id, event_type, webhook_id, target_url):
     try:
-        data = EventPayload.objects.get(id=event_payload_id)
-    except EventPayload.DoesNotExist:
-
+        return EventPayload.objects.get(id=event_payload_id)
+    except EventPayload.DoesNotExist as exc:
+        EventTask.objects.create(
+            task_id=task_id,
+            event_payload_id=event_payload_id,
+            status=JobStatus.FAILED,
+            error=str(exc),
+            duration=0,
+            event_type=event_type,
+            webhook_id=webhook_id,
+        )
         task_logger.error(
             "Cannot find payload related to webhook.",
             extra={
@@ -186,8 +186,23 @@ def send_webhook_request(
                 "event_type": event_type,
             },
         )
-        return
+        return None
 
+
+@app.task(
+    bind=True,
+    autoretry_for=(RequestException,),
+    retry_backoff=10,
+    retry_kwargs={"max_retries": 5},
+)
+def send_webhook_request(
+    self, webhook_id, target_url, secret, event_type, event_payload_id
+):
+    data = _get_event_payload(
+        self.request.id, event_payload_id, event_type, webhook_id, target_url
+    )
+    if not data:
+        return
     parts = urlparse(target_url)
     domain = Site.objects.get_current().domain
     message = data.payload.encode("utf-8")
