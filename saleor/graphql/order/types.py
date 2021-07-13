@@ -27,7 +27,6 @@ from ...payment.model_helpers import (
     get_last_payment,
     get_subtotal,
     get_total_authorized,
-    get_total_captured,
 )
 from ...product import ProductMediaTypes
 from ...product.product_images import get_product_image_thumbnail
@@ -38,8 +37,9 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import LanguageCodeEnum
+from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
-from ..core.types.common import Image
+from ..core.types.common import Image, OrderError
 from ..core.types.money import Money, TaxedMoney
 from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
@@ -62,13 +62,14 @@ from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
     OrderEventsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
 )
-from .enums import OrderEventsEmailsEnum, OrderEventsEnum
+from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
 from .utils import validate_draft_order
 
 
@@ -185,14 +186,20 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_user(root: models.OrderEvent, info):
-        user = info.context.user
-        if (
-            user == root.user
-            or user.has_perm(AccountPermissions.MANAGE_USERS)
-            or user.has_perm(AccountPermissions.MANAGE_STAFF)
-        ):
-            return root.user
-        raise PermissionDenied()
+        def _resolve_user(event_user):
+            requester = get_user_or_app_from_context(info.context)
+            if (
+                requester == event_user
+                or requester.has_perm(AccountPermissions.MANAGE_USERS)
+                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
+            ):
+                return event_user
+            return None
+
+        if not root.user_id:
+            return None
+
+        return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
     @staticmethod
     def resolve_email(root: models.OrderEvent, _info):
@@ -280,9 +287,13 @@ class OrderEvent(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_fulfilled_items(root: models.OrderEvent, _info):
-        lines = root.parameters.get("fulfilled_items", [])
-        return models.FulfillmentLine.objects.filter(pk__in=lines)
+    def resolve_fulfilled_items(root: models.OrderEvent, info):
+        fulfillment_lines_ids = root.parameters.get("fulfilled_items", [])
+
+        if not fulfillment_lines_ids:
+            return None
+
+        return FulfillmentLinesByIdLoader(info.context).load_many(fulfillment_lines_ids)
 
     @staticmethod
     @traced_resolver
@@ -326,8 +337,8 @@ class FulfillmentLine(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_order_line(root: models.FulfillmentLine, _info):
-        return root.order_line
+    def resolve_order_line(root: models.FulfillmentLine, info):
+        return OrderLineByIdLoader(info.context).load(root.order_line_id)
 
 
 class Fulfillment(CountableDjangoObjectType):
@@ -580,6 +591,10 @@ class Order(CountableDjangoObjectType):
         Invoice, required=False, description="List of order invoices."
     )
     number = graphene.String(description="User-friendly number of an order.")
+    original = graphene.ID(
+        description="The ID of the order that was the base for this order."
+    )
+    origin = OrderOriginEnum(description="The order origin.", required=True)
     is_paid = graphene.Boolean(
         description="Informs if an order is fully paid.", required=True
     )
@@ -668,6 +683,12 @@ class Order(CountableDjangoObjectType):
         graphene.NonNull("saleor.graphql.discount.types.OrderDiscount"),
         description="List of all discounts assigned to the order.",
         required=False,
+    )
+    errors = graphene.List(
+        graphene.NonNull(OrderError),
+        description="List of errors that occurred during order validation.",
+        default_value=[],
+        required=True,
     )
 
     class Meta:
@@ -867,14 +888,7 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_captured(root: models.Order, info):
-        def _resolve_total_captured(payments):
-            return get_total_captured(payments, root.currency)
-
-        return (
-            PaymentsByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_total_captured)
-        )
+        return root.total_paid
 
     @staticmethod
     def resolve_total_balance(root: models.Order, _info):
@@ -1028,6 +1042,7 @@ class Order(CountableDjangoObjectType):
         available_shipping_methods = []
         manager = info.context.plugins
         display_gross = display_gross_prices()
+        channel_slug = root.channel.slug
         for shipping_method in available:
             # Ignore typing check because it is checked in
             # get_valid_shipping_methods_for_order
@@ -1038,13 +1053,13 @@ class Order(CountableDjangoObjectType):
                 taxed_price = manager.apply_taxes_to_shipping(
                     shipping_channel_listing.price,
                     root.shipping_address,  # type: ignore
+                    channel_slug,
                 )
                 if display_gross:
                     shipping_method.price = taxed_price.gross
                 else:
                     shipping_method.price = taxed_price.net
                 available_shipping_methods.append(shipping_method)
-        channel_slug = root.channel.slug
         instances = [
             ChannelContext(node=shipping, channel_slug=channel_slug)
             for shipping in available_shipping_methods
@@ -1089,3 +1104,20 @@ class Order(CountableDjangoObjectType):
     @traced_resolver
     def resolve_language_code_enum(root, _info, **_kwargs):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
+
+    @staticmethod
+    @traced_resolver
+    def resolve_original(root, info, **_kwargs):
+        if not root.original_id:
+            return None
+        return graphene.Node.to_global_id("Order", root.original_id)
+
+    @traced_resolver
+    def resolve_errors(root, _info, **_kwargs):
+        if root.status == OrderStatus.DRAFT:
+            country = get_order_country(root)
+            try:
+                validate_draft_order(root, country)
+            except ValidationError as e:
+                return validation_error_to_error_type(e, OrderError)
+        return []

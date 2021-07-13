@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING, DefaultDict, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ...core.permissions import DiscountPermissions
+from ...core.tracing import traced_atomic_transaction
 from ...core.utils.promo_code import generate_promo_code, is_available_promo_code
 from ...discount import DiscountValueType, models
 from ...discount.error_codes import DiscountErrorCode
@@ -20,7 +20,7 @@ from ..channel.mutations import BaseChannelListingMutation
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import DiscountError
-from ..core.validators import validate_price_precision
+from ..core.validators import validate_end_is_after_start, validate_price_precision
 from ..product.types import Category, Collection, Product
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 from .types import Sale, Voucher
@@ -150,6 +150,9 @@ class VoucherInput(graphene.InputObjectType):
     apply_once_per_customer = graphene.Boolean(
         description="Voucher should be applied once per customer."
     )
+    only_for_staff = graphene.Boolean(
+        description="Voucher can be used only by staff user."
+    )
     usage_limit = graphene.Int(
         description="Limit number of times this voucher can be used in total."
     )
@@ -190,6 +193,17 @@ class VoucherCreate(ModelMutation):
     def success_response(cls, instance):
         instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        super().clean_instance(info, instance)
+        start_date = instance.start_date
+        end_date = instance.end_date
+        try:
+            validate_end_is_after_start(start_date, end_date)
+        except ValidationError as error:
+            error.code = DiscountErrorCode.INVALID.value
+            raise ValidationError({"end_date": error})
 
 
 class VoucherUpdate(VoucherCreate):
@@ -442,7 +456,7 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
         voucher.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, voucher, cleaned_input):
         cls.add_channels(voucher, cleaned_input.get("add_channels", []))
         cls.remove_channels(voucher, cleaned_input.get("remove_channels", []))
@@ -513,6 +527,17 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        super().clean_instance(info, instance)
+        start_date = instance.start_date
+        end_date = instance.end_date
+        try:
+            validate_end_is_after_start(start_date, end_date)
+        except ValidationError as error:
+            error.code = DiscountErrorCode.INVALID.value
+            raise ValidationError({"end_date": error})
 
 
 class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
@@ -686,7 +711,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         sale.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, sale: "SaleModel", cleaned_input: Dict):
         cls.add_channels(sale, cleaned_input.get("add_channels", []))
         cls.remove_channels(sale, cleaned_input.get("remove_channels", []))

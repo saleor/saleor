@@ -549,19 +549,19 @@ def create_fake_payment(mock_notify, order):
     manager = get_plugins_manager()
 
     # Create authorization transaction
-    gateway.authorize(payment, payment.token, manager)
+    gateway.authorize(payment, payment.token, manager, order.channel.slug)
     # 20% chance to void the transaction at this stage
     if random.choice([0, 0, 0, 0, 1]):
-        gateway.void(payment, manager)
+        gateway.void(payment, manager, order.channel.slug)
         return payment
     # 25% to end the payment at the authorization stage
     if not random.choice([1, 1, 1, 0]):
         return payment
     # Create capture transaction
-    gateway.capture(payment, manager)
+    gateway.capture(payment, manager, order.channel.slug)
     # 25% to refund the payment
     if random.choice([0, 0, 0, 1]):
-        gateway.refund(payment, manager)
+        gateway.refund(payment, manager, order.channel.slug)
     return payment
 
 
@@ -602,6 +602,8 @@ def create_order_lines(order, discounts, how_many=10):
                 variant=variant,
                 unit_price=unit_price,
                 total_price=total_price,
+                undiscounted_unit_price=unit_price,
+                undiscounted_total_price=total_price,
                 tax_rate=0,
             )
         )
@@ -617,13 +619,28 @@ def create_order_lines(order, discounts, how_many=10):
         unit_price = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
+        total_price = manager.calculate_order_line_total(
+            order, line, variant, variant.product
+        )
         line.unit_price = unit_price
+        line.total_price = total_price
+        line.undiscounted_unit_price = unit_price
+        line.undiscounted_total_price = total_price
         line.tax_rate = unit_price.tax / unit_price.net
         warehouse = next(warehouse_iter)
         increase_stock(line, warehouse, line.quantity, allocate=True)
     OrderLine.objects.bulk_update(
         lines,
-        ["unit_price_net_amount", "unit_price_gross_amount", "currency", "tax_rate"],
+        [
+            "unit_price_net_amount",
+            "unit_price_gross_amount",
+            "undiscounted_unit_price_gross_amount",
+            "undiscounted_unit_price_net_amount",
+            "undiscounted_total_price_gross_amount",
+            "undiscounted_total_price_net_amount",
+            "currency",
+            "tax_rate",
+        ],
     )
     return lines
 
@@ -681,7 +698,9 @@ def create_fake_order(discounts, max_order_lines=5):
     )
     shipping_method = shipping_method_chanel_listing.shipping_method
     shipping_price = shipping_method_chanel_listing.price
-    shipping_price = manager.apply_taxes_to_shipping(shipping_price, address)
+    shipping_price = manager.apply_taxes_to_shipping(
+        shipping_price, address, channel_slug=channel.slug
+    )
     order_data.update(
         {
             "channel": channel,
@@ -1188,7 +1207,7 @@ def create_warehouses():
         warehouse, _ = Warehouse.objects.update_or_create(
             name=shipping_zone_name,
             slug=slugify(shipping_zone_name),
-            defaults={"company_name": fake.company(), "address": create_address()},
+            defaults={"address": create_address()},
         )
         warehouse.shipping_zones.add(shipping_zone)
 

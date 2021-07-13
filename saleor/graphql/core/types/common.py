@@ -5,6 +5,7 @@ from django.conf import settings
 
 from ....core.tracing import traced_resolver
 from ....product.product_images import get_thumbnail
+from ...account.enums import AddressTypeEnum
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -80,6 +81,9 @@ class Error(graphene.ObjectType):
 
 class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
+    address_type = AddressTypeEnum(
+        description="A type of address that causes the error.", required=False
+    )
 
 
 class AppError(Error):
@@ -129,6 +133,9 @@ class CheckoutError(Error):
         description="List of varint IDs which causes the error.",
         required=False,
     )
+    address_type = AddressTypeEnum(
+        description="A type of address that causes the error.", required=False
+    )
 
 
 class ProductWithoutVariantError(Error):
@@ -169,14 +176,18 @@ class OrderError(Error):
         description="Warehouse ID which causes the error.",
         required=False,
     )
-    order_line = graphene.ID(
-        description="Order line ID which causes the error.",
+    order_lines = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of order line IDs that cause the error.",
         required=False,
     )
     variants = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of product variants that are associated with the error",
         required=False,
+    )
+    address_type = AddressTypeEnum(
+        description="A type of address that causes the error.", required=False
     )
 
 

@@ -606,7 +606,7 @@ AVAILABLE_PAYMENT_GATEWAYS_QUERY = """
 """
 
 
-def test_query_available_payment_gateways(user_api_client, sample_gateway):
+def test_query_available_payment_gateways(user_api_client, sample_gateway, channel_USD):
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
@@ -622,7 +622,7 @@ def test_query_available_payment_gateways(user_api_client, sample_gateway):
 
 
 def test_query_available_payment_gateways_specified_currency_USD(
-    user_api_client, sample_gateway
+    user_api_client, sample_gateway, channel_USD
 ):
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
     response = user_api_client.post_graphql(query, {"currency": "USD"})
@@ -639,7 +639,7 @@ def test_query_available_payment_gateways_specified_currency_USD(
 
 
 def test_query_available_payment_gateways_specified_currency_EUR(
-    user_api_client, sample_gateway
+    user_api_client, sample_gateway, channel_USD
 ):
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
     response = user_api_client.post_graphql(query, {"currency": "EUR"})

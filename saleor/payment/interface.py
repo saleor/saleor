@@ -40,7 +40,7 @@ class GatewayResponse:
     # Some gateway can process transaction asynchronously. This value define if we
     # should create new transaction based on this response
     transaction_already_processed: bool = False
-    searchable_key: Optional[str] = None
+    psp_reference: Optional[str] = None
 
 
 @dataclass
@@ -66,6 +66,7 @@ class PaymentData:
     It is required to communicate between Saleor and given payment gateway.
     """
 
+    gateway: str
     amount: Decimal
     currency: str
     billing: Optional[AddressData]

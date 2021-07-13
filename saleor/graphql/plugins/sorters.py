@@ -1,30 +1,43 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 
 import graphene
 
+from ..core.enums import OrderDirection
 from ..core.types import SortInputObjectType
-
-if TYPE_CHECKING:
-    # flake8: noqa
-    from ...plugins.base_plugin import BasePlugin
+from .types import Plugin
 
 
-def sort_plugins(
-    plugins: List["BasePlugin"], sort_by: Optional[dict]
-) -> List["BasePlugin"]:
-    sort_reverse = sort_by.get("direction", False) if sort_by else False
+def sort_active_key(plugin: Plugin, sort_reverse: bool):
+    if plugin.global_configuration:
+        active = plugin.global_configuration.active
+        name = plugin.name
+    else:
+        active = False
+        if any(
+            [configuration.active for configuration in plugin.channel_configurations]
+        ):
+            active = True
+        name = plugin.name
+    return not active if sort_reverse else active, name
+
+
+def sort_plugins(plugins: List["Plugin"], sort_by: Optional[dict]) -> List["Plugin"]:
+    sort_reverse = False
+    direction = sort_by.get("direction", OrderDirection.ASC) if sort_by else None
+    if direction == OrderDirection.DESC:
+        sort_reverse = True
+
     sort_field = (
         sort_by.get("field", PluginSortField.NAME) if sort_by else PluginSortField.NAME
     )
+
     if sort_field == PluginSortField.IS_ACTIVE:
         plugins = sorted(
             plugins,
-            key=lambda p: (not p.active if sort_reverse else p.active, p.PLUGIN_ID),
+            key=lambda p: sort_active_key(p, sort_reverse),
         )
     else:
-        plugins = sorted(plugins, key=lambda p: p.PLUGIN_ID)
-        if sort_reverse:
-            plugins = list(reversed(plugins))
+        plugins = sorted(plugins, key=lambda p: p.name, reverse=sort_reverse)
     return plugins
 
 

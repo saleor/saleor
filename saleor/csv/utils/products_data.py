@@ -303,6 +303,7 @@ AttributeData = namedtuple(
         "value",
         "file_url",
         "rich_text",
+        "boolean",
     ],
 )
 
@@ -326,6 +327,7 @@ def handle_attribute_data(
         entity_type=data.pop(attribute_fields["entity_type"], None),
         unit=data.pop(attribute_fields["unit"], None),
         rich_text=data.pop(attribute_fields["rich_text"], None),
+        boolean=data.pop(attribute_fields["boolean"], None),
     )
 
     if attribute_ids and attribute_pk in attribute_ids:
@@ -432,6 +434,10 @@ def prepare_attribute_value(attribute_data: AttributeData):
             value += f" {attribute_data.unit}"
     elif input_type == AttributeInputType.RICH_TEXT:
         value = clean_editor_js(attribute_data.rich_text, to_string=True)
+    elif (
+        input_type == AttributeInputType.BOOLEAN and attribute_data.boolean is not None
+    ):
+        value = str(attribute_data.boolean)
     elif input_type == AttributeInputType.SWATCH:
         if attribute_data.file_url:
             value = build_absolute_uri(

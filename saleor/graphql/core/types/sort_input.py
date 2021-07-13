@@ -35,13 +35,3 @@ class SortInputObjectType(graphene.InputObjectType):
                 description=f"Sort {type_name} by the selected field.",
             )
             cls._meta.fields.update({"field": field})
-
-
-class ChannelSortInputObjectType(SortInputObjectType):
-    channel = graphene.Argument(
-        graphene.String,
-        description="Specifies the channel in which to sort the data.",
-    )
-
-    class Meta:
-        abstract = True

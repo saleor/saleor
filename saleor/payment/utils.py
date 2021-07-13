@@ -1,14 +1,14 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import graphene
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import transaction
 
 from ..account.models import User
 from ..checkout.models import Checkout
+from ..core.tracing import traced_atomic_transaction
 from ..order.models import Order
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
@@ -37,14 +37,17 @@ def create_payment_information(
     Returns information required to process payment and additional
     billing/shipping addresses for optional fraud-prevention mechanisms.
     """
-    if payment.checkout:
-        billing = payment.checkout.billing_address
-        shipping = payment.checkout.shipping_address
+    checkout = payment.checkout
+    if checkout:
+        billing = checkout.billing_address
+        shipping = checkout.shipping_address
+        email = checkout.get_customer_email()
     elif payment.order:
         billing = payment.order.billing_address
         shipping = payment.order.shipping_address
+        email = payment.order.user_email
     else:
-        billing, shipping = None, None
+        billing, shipping, email = None, None, payment.billing_email
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
@@ -53,6 +56,7 @@ def create_payment_information(
     graphql_payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     return PaymentData(
+        gateway=payment.gateway,
         token=payment_token,
         amount=amount or payment.total,
         currency=payment.currency,
@@ -63,7 +67,7 @@ def create_payment_information(
         graphql_payment_id=graphql_payment_id,
         customer_ip_address=payment.customer_ip_address,
         customer_id=customer_id,
-        customer_email=payment.billing_email,
+        customer_email=email,
         reuse_source=store_source,
         data=additional_data or {},
     )
@@ -80,6 +84,7 @@ def create_payment(
     checkout: Checkout = None,
     order: Order = None,
     return_url: str = None,
+    external_reference: Optional[str] = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -127,6 +132,7 @@ def create_payment(
         "gateway": gateway,
         "total": total,
         "return_url": return_url,
+        "psp_reference": external_reference or "",
     }
 
     payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
@@ -183,7 +189,6 @@ def create_transaction(
         customer_id=gateway_response.customer_id,
         gateway_response=gateway_response.raw_response or {},
         action_required_data=gateway_response.action_required_data or {},
-        searchable_key=gateway_response.searchable_key or "",
     )
     return txn
 
@@ -244,17 +249,21 @@ def validate_gateway_response(response: GatewayResponse):
         raise GatewayError("Gateway response needs to be json serializable")
 
 
-@transaction.atomic
+@traced_atomic_transaction()
 def gateway_postprocess(transaction, payment):
-    if not transaction.is_success:
+    changed_fields = []
+
+    if not transaction.is_success or transaction.already_processed:
+        if changed_fields:
+            payment.save(update_fields=changed_fields)
         return
+
     if transaction.action_required:
         payment.to_confirm = True
-        payment.save(update_fields=["to_confirm"])
+        changed_fields.append("to_confirm")
+        payment.save(update_fields=changed_fields)
         return
-    if transaction.already_processed:
-        return
-    changed_fields = []
+
     # to_confirm is defined by the transaction.action_required. Payment doesn't
     # require confirmation when we got action_required == False
     if payment.to_confirm:
@@ -308,6 +317,8 @@ def gateway_postprocess(transaction, payment):
         payment.save(update_fields=changed_fields)
     transaction.already_processed = True
     transaction.save(update_fields=["already_processed"])
+    if "captured_amount" in changed_fields and payment.order:
+        payment.order.update_total_paid()
 
 
 def fetch_customer_id(user: User, gateway: str):
@@ -327,10 +338,22 @@ def prepare_key_for_gateway_customer_id(gateway_name: str) -> str:
     return (gateway_name.strip().upper()) + ".customer_id"
 
 
-def update_payment_method_details(
-    payment: "Payment", gateway_response: "GatewayResponse"
-):
+def update_payment(payment: "Payment", gateway_response: "GatewayResponse"):
     changed_fields = []
+    if psp_reference := gateway_response.psp_reference:
+        payment.psp_reference = psp_reference
+        changed_fields.append("psp_reference")
+
+    if gateway_response.payment_method_info:
+        _update_payment_method_details(payment, gateway_response, changed_fields)
+
+    if changed_fields:
+        payment.save(update_fields=changed_fields)
+
+
+def _update_payment_method_details(
+    payment: "Payment", gateway_response: "GatewayResponse", changed_fields: List[str]
+):
     if not gateway_response.payment_method_info:
         return
     if gateway_response.payment_method_info.brand:
@@ -348,8 +371,6 @@ def update_payment_method_details(
     if gateway_response.payment_method_info.type:
         payment.payment_method_type = gateway_response.payment_method_info.type
         changed_fields.append("payment_method_type")
-    if changed_fields:
-        payment.save(update_fields=changed_fields)
 
 
 def get_payment_token(payment: Payment):

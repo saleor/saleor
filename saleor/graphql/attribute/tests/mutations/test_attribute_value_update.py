@@ -25,8 +25,12 @@ mutation AttributeValueUpdate(
             }
         }
         attribute {
-            values {
-                name
+            choices(first: 10) {
+                edges {
+                    node {
+                        name
+                    }
+                }
             }
         }
     }
@@ -57,7 +61,9 @@ def test_update_attribute_value(
     value.refresh_from_db()
     assert data["attributeValue"]["name"] == name == value.name
     assert data["attributeValue"]["slug"] == slugify(name)
-    assert name in [value["name"] for value in data["attribute"]["values"]]
+    assert name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
 
 
 def test_update_attribute_value_name_not_unique(
@@ -112,7 +118,9 @@ def test_update_swatch_attribute_value(
     assert data["attributeValue"]["slug"] == value.slug
     assert data["attributeValue"]["value"] == ""
     assert data["attributeValue"]["file"] is None
-    assert value.name in [value["name"] for value in data["attribute"]["values"]]
+    assert value.name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
 
 
 @pytest.mark.parametrize("additional_field", [{"value": ""}, {"value": None}, {}])
@@ -142,7 +150,9 @@ def test_update_swatch_attribute_value_clear_value(
     assert data["attributeValue"]["slug"] == value.slug
     assert data["attributeValue"]["value"] == ""
     assert data["attributeValue"]["file"]["url"] == file_url
-    assert value.name in [value["name"] for value in data["attribute"]["values"]]
+    assert value.name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
 
 
 @pytest.mark.parametrize("additional_field", [{"fileUrl": ""}, {"fileUrl": None}, {}])
@@ -172,7 +182,9 @@ def test_update_swatch_attribute_value_clear_file_value(
     assert data["attributeValue"]["slug"] == value.slug
     assert data["attributeValue"]["value"] == input_value
     assert data["attributeValue"]["file"] is None
-    assert value.name in [value["name"] for value in data["attribute"]["values"]]
+    assert value.name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
 
 
 @pytest.mark.parametrize(

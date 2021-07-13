@@ -6,6 +6,7 @@ import pytest
 from .....attribute.models import Attribute
 from .....channel.models import Channel
 from .....csv import ExportEvents
+from .....csv.error_codes import ExportErrorCode
 from .....csv.models import ExportEvent
 from .....warehouse.models import Warehouse
 from ....tests.utils import get_graphql_content
@@ -204,6 +205,51 @@ def test_export_products_mutation_ids_scope(
 
 
 @patch("saleor.graphql.csv.mutations.export_products_task.delay")
+def test_export_products_mutation_ids_scope_invalid_object_type(
+    export_products_mock,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    permission_manage_apps,
+):
+    query = EXPORT_PRODUCTS_MUTATION
+
+    products = product_list[:2]
+
+    ids = []
+    for product in products:
+        ids.append(graphene.Node.to_global_id("ProductVariant", product.pk))
+
+    variables = {
+        "input": {
+            "scope": ExportScope.IDS.name,
+            "ids": ids,
+            "exportInfo": {
+                "fields": [ProductFieldEnum.NAME.name],
+                "warehouses": [],
+                "attributes": [],
+            },
+            "fileType": FileTypeEnum.XLSX.name,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_products, permission_manage_apps],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["exportProducts"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert not data["exportFile"]
+    assert errors[0]["field"] == "ids"
+    assert errors[0]["code"] == ExportErrorCode.GRAPHQL_ERROR.name
+
+    export_products_mock.assert_not_called()
+
+
+@patch("saleor.graphql.csv.mutations.export_products_task.delay")
 def test_export_products_mutation_with_warehouse_and_attribute_ids(
     export_products_mock,
     staff_api_client,
@@ -282,6 +328,174 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
     assert ExportEvent.objects.filter(
         user=user, app=None, type=ExportEvents.EXPORT_PENDING
     ).exists()
+
+
+@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+def test_export_products_mutation_with_warehouse_ids_invalid_object_type(
+    export_products_mock,
+    staff_api_client,
+    product_list,
+    channel_USD,
+    channel_PLN,
+    permission_manage_products,
+    permission_manage_apps,
+):
+    query = EXPORT_PRODUCTS_MUTATION
+
+    products = product_list[:2]
+
+    ids = []
+    for product in products:
+        ids.append(graphene.Node.to_global_id("Product", product.pk))
+
+    warehouse_pks = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
+    channel_pks = [str(channel.pk) for channel in Channel.objects.all()]
+
+    warehouse_ids = [
+        graphene.Node.to_global_id("Attribute", pk) for pk in warehouse_pks
+    ]
+    channel_ids = [graphene.Node.to_global_id("Channel", pk) for pk in channel_pks]
+
+    variables = {
+        "input": {
+            "scope": ExportScope.IDS.name,
+            "ids": ids,
+            "exportInfo": {
+                "fields": [ProductFieldEnum.NAME.name],
+                "warehouses": warehouse_ids,
+                "attributes": [],
+                "channels": channel_ids,
+            },
+            "fileType": FileTypeEnum.CSV.name,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_products, permission_manage_apps],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["exportProducts"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert not data["exportFile"]
+    assert errors[0]["field"] == "warehouses"
+    assert errors[0]["code"] == ExportErrorCode.GRAPHQL_ERROR.name
+
+    export_products_mock.assert_not_called()
+
+
+@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+def test_export_products_mutation_with_attribute_ids_invalid_object_type(
+    export_products_mock,
+    staff_api_client,
+    product_list,
+    channel_USD,
+    channel_PLN,
+    permission_manage_products,
+    permission_manage_apps,
+):
+    query = EXPORT_PRODUCTS_MUTATION
+
+    products = product_list[:2]
+
+    ids = []
+    for product in products:
+        ids.append(graphene.Node.to_global_id("Product", product.pk))
+
+    attribute_pks = [str(attr.pk) for attr in Attribute.objects.all()]
+    channel_pks = [str(channel.pk) for channel in Channel.objects.all()]
+
+    attribute_ids = [
+        graphene.Node.to_global_id("Warehouse", pk) for pk in attribute_pks
+    ]
+    channel_ids = [graphene.Node.to_global_id("Channel", pk) for pk in channel_pks]
+
+    variables = {
+        "input": {
+            "scope": ExportScope.IDS.name,
+            "ids": ids,
+            "exportInfo": {
+                "fields": [ProductFieldEnum.NAME.name],
+                "warehouses": [],
+                "attributes": attribute_ids,
+                "channels": channel_ids,
+            },
+            "fileType": FileTypeEnum.CSV.name,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_products, permission_manage_apps],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["exportProducts"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert not data["exportFile"]
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == ExportErrorCode.GRAPHQL_ERROR.name
+
+    export_products_mock.assert_not_called()
+
+
+@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+def test_export_products_mutation_with_channel_ids_invalid_object_type(
+    export_products_mock,
+    staff_api_client,
+    product_list,
+    channel_USD,
+    channel_PLN,
+    permission_manage_products,
+    permission_manage_apps,
+):
+    query = EXPORT_PRODUCTS_MUTATION
+
+    products = product_list[:2]
+
+    ids = []
+    for product in products:
+        ids.append(graphene.Node.to_global_id("Product", product.pk))
+
+    attribute_pks = [str(attr.pk) for attr in Attribute.objects.all()]
+    channel_pks = [str(channel.pk) for channel in Channel.objects.all()]
+
+    attribute_ids = [
+        graphene.Node.to_global_id("Attribute", pk) for pk in attribute_pks
+    ]
+    channel_ids = [graphene.Node.to_global_id("Warehouse", pk) for pk in channel_pks]
+
+    variables = {
+        "input": {
+            "scope": ExportScope.IDS.name,
+            "ids": ids,
+            "exportInfo": {
+                "fields": [ProductFieldEnum.NAME.name],
+                "warehouses": [],
+                "attributes": attribute_ids,
+                "channels": channel_ids,
+            },
+            "fileType": FileTypeEnum.CSV.name,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_products, permission_manage_apps],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["exportProducts"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert not data["exportFile"]
+    assert errors[0]["field"] == "channels"
+    assert errors[0]["code"] == ExportErrorCode.GRAPHQL_ERROR.name
+
+    export_products_mock.assert_not_called()
 
 
 @pytest.mark.parametrize(

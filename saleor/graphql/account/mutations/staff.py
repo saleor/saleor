@@ -3,7 +3,6 @@ from copy import copy
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models, utils
@@ -14,13 +13,14 @@ from ....account.utils import remove_staff_member
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Upload
 from ...core.types.common import AccountError, StaffError
-from ...core.utils import validate_image_file
+from ...core.utils import add_hash_to_file_name, validate_image_file
 from ...decorators import staff_member_required
 from ...utils.validators import check_for_duplicates
 from ..utils import (
@@ -246,11 +246,12 @@ class StaffCreate(ModelMutation):
                 redirect_url=cleaned_input.get("redirect_url"),
                 user=user,
                 manager=info.context.plugins,
+                channel_slug=None,
                 staff=True,
             )
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         groups = cleaned_data.get("add_groups")
@@ -373,7 +374,7 @@ class StaffUpdate(StaffCreate):
             errors["is_active"].append(error)
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         add_groups = cleaned_data.get("add_groups")
@@ -532,8 +533,8 @@ class UserAvatarUpdate(BaseMutation):
     def perform_mutation(cls, _root, info, image):
         user = info.context.user
         image_data = info.context.FILES.get(image)
-        validate_image_file(image_data, "image")
-
+        validate_image_file(image_data, "image", AccountErrorCode)
+        add_hash_to_file_name(image_data)
         if user.avatar:
             user.avatar.delete_sized_images()
             user.avatar.delete()

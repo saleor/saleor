@@ -18,6 +18,7 @@ from ..utils import (
     create_payment_information,
     create_transaction,
     is_currency_supported,
+    update_payment,
     validate_gateway_response,
 )
 
@@ -28,7 +29,12 @@ EXAMPLE_ERROR = "Example dummy error"
 @pytest.fixture
 def payment_method_details():
     return PaymentMethodInfo(
-        last_4="1234", exp_year=2020, exp_month=8, brand="visa", name="Joe Doe"
+        last_4="1234",
+        exp_year=2020,
+        exp_month=8,
+        brand="visa",
+        name="Joe Doe",
+        type="test",
     )
 
 
@@ -47,6 +53,7 @@ def gateway_response(settings, payment_method_details):
             "transaction-id": "transaction-token",
         },
         payment_method_info=payment_method_details,
+        psp_reference="test_reference",
     )
 
 
@@ -280,38 +287,73 @@ def test_gateway_charge_failed(
 
 def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
     payment = payment_dummy
-    gateway.authorize(payment, transaction_token, get_plugins_manager())
+    gateway.authorize(
+        payment,
+        transaction_token,
+        get_plugins_manager(),
+        channel_slug=payment_dummy.order.channel.slug,
+    )
     with pytest.raises(PaymentError) as exc:
-        gateway.capture(payment, get_plugins_manager(), Decimal("0"))
+        gateway.capture(
+            payment,
+            get_plugins_manager(),
+            amount=Decimal("0"),
+            channel_slug=payment_dummy.order.channel.slug,
+        )
     assert exc.value.message == "Amount should be a positive number."
 
     payment.charge_status = ChargeStatus.FULLY_REFUNDED
     payment.save()
     with pytest.raises(PaymentError) as exc:
-        gateway.capture(payment, get_plugins_manager(), Decimal("10"))
+        gateway.capture(
+            payment,
+            get_plugins_manager(),
+            amount=Decimal("10"),
+            channel_slug=payment_dummy.order.channel.slug,
+        )
     assert exc.value.message == "This payment cannot be captured."
 
     payment.charge_status = ChargeStatus.NOT_CHARGED
     payment.save()
     with pytest.raises(PaymentError) as exc:
-        gateway.capture(payment, get_plugins_manager(), Decimal("1000000"))
+        gateway.capture(
+            payment,
+            get_plugins_manager(),
+            amount=Decimal("1000000"),
+            channel_slug=payment_dummy.order.channel.slug,
+        )
     assert exc.value.message == ("Unable to charge more than un-captured amount.")
 
 
 def test_gateway_refund_errors(payment_txn_captured):
     payment = payment_txn_captured
     with pytest.raises(PaymentError) as exc:
-        gateway.refund(payment, get_plugins_manager(), Decimal("1000000"))
+        gateway.refund(
+            payment,
+            get_plugins_manager(),
+            amount=Decimal("1000000"),
+            channel_slug=payment_txn_captured.order.channel.slug,
+        )
     assert exc.value.message == "Cannot refund more than captured."
 
     with pytest.raises(PaymentError) as exc:
-        gateway.refund(payment, get_plugins_manager(), Decimal("0"))
+        gateway.refund(
+            payment,
+            get_plugins_manager(),
+            amount=Decimal("0"),
+            channel_slug=payment_txn_captured.order.channel.slug,
+        )
     assert exc.value.message == "Amount should be a positive number."
 
     payment.charge_status = ChargeStatus.NOT_CHARGED
     payment.save()
     with pytest.raises(PaymentError) as exc:
-        gateway.refund(payment, get_plugins_manager(), Decimal("1"))
+        gateway.refund(
+            payment,
+            get_plugins_manager(),
+            amount=Decimal("1"),
+            channel_slug=payment_txn_captured.order.channel.slug,
+        )
     assert exc.value.message == "This payment cannot be refunded."
 
 
@@ -479,7 +521,7 @@ def test_validate_gateway_response_not_json_serializable(gateway_response):
     [("EUR", True), ("USD", True), ("PLN", False)],
 )
 def test_is_currency_supported(
-    currency, exp_response, dummy_gateway_config, monkeypatch
+    currency, exp_response, dummy_gateway_config, monkeypatch, channel_USD
 ):
     # given
     manager = get_plugins_manager()
@@ -494,3 +536,17 @@ def test_is_currency_supported(
 
     # then
     assert response == exp_response
+
+
+def test_update_payment(gateway_response, payment_txn_captured):
+    payment = payment_txn_captured
+
+    update_payment(payment_txn_captured, gateway_response)
+
+    payment.refresh_from_db()
+    assert payment.psp_reference == gateway_response.psp_reference
+    assert payment.cc_brand == gateway_response.payment_method_info.brand
+    assert payment.cc_last_digits == gateway_response.payment_method_info.last_4
+    assert payment.cc_exp_year == gateway_response.payment_method_info.exp_year
+    assert payment.cc_exp_month == gateway_response.payment_method_info.exp_month
+    assert payment.payment_method_type == gateway_response.payment_method_info.type

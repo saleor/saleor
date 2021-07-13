@@ -11,6 +11,13 @@ if TYPE_CHECKING:
     from decimal import Decimal
 
 
+def validate_one_of_args_is_in_mutation(error_class, *args):
+    try:
+        validate_one_of_args_is_in_query(*args)
+    except GraphQLError as e:
+        raise ValidationError(str(e), code=error_class.GRAPHQL_ERROR)
+
+
 def validate_one_of_args_is_in_query(*args):
     # split args into a list with 2-element tuples:
     # [(arg1_name, arg1_value), (arg2_name, arg2_value), ...]
@@ -72,3 +79,14 @@ def validate_variants_available_in_channel(
                 )
             }
         )
+
+
+def validate_end_is_after_start(start_date, end_date):
+    """Validate if the end date provided is after start date."""
+
+    # check is not needed if no end date
+    if end_date is None:
+        return
+
+    if start_date > end_date:
+        raise ValidationError("End date cannot be before the start date.")

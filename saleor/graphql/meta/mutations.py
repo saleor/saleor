@@ -2,6 +2,7 @@ from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
+from graphql.error.base import GraphQLError
 
 from ...core import models
 from ...core.error_codes import MetadataErrorCode
@@ -102,13 +103,21 @@ class BaseMetadataMutation(BaseMutation):
     def mutate(cls, root, info, **data):
         try:
             permissions = cls.get_permissions(info, **data)
+        except GraphQLError as e:
+            error = ValidationError(
+                {"id": ValidationError(str(e), code="graphql_error")}
+            )
+            return cls.handle_errors(error)
         except ValidationError as e:
             return cls.handle_errors(e)
         if not cls.check_permissions(info.context, permissions):
             raise PermissionDenied()
-        result = super().mutate(root, info, **data)
-        if not result.errors:
-            cls.perform_model_extra_actions(root, info, **data)
+        try:
+            result = super().mutate(root, info, **data)
+            if not result.errors:
+                cls.perform_model_extra_actions(root, info, **data)
+        except ValidationError as e:
+            return cls.handle_errors(e)
         return result
 
     @classmethod

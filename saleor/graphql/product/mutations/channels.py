@@ -7,7 +7,9 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.utils import IntegrityError
 
+from ....checkout.models import CheckoutLine
 from ....core.permissions import ProductPermissions
+from ....core.tracing import traced_atomic_transaction
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import CollectionChannelListing
 from ....product.models import Product as ProductModel
@@ -135,7 +137,11 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     def validate_product_without_category(cls, cleaned_input, errors: ErrorType):
         channels_with_published_product_without_category = []
         for update_channel in cleaned_input.get("update_channels", []):
-            if update_channel.get("is_published") is True:
+            is_published = update_channel.get("is_published") is True
+            is_available_for_purchase = (
+                update_channel.get("is_available_for_purchase") is True
+            )
+            if is_published or is_available_for_purchase:
                 channels_with_published_product_without_category.append(
                     update_channel["channel_id"]
                 )
@@ -235,6 +241,19 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         ).exists():
             product_channel_listing.delete()
 
+        cls.perform_checkout_lines_delete(variants, [channel.id])
+
+    @classmethod
+    def perform_checkout_lines_delete(cls, variants, channel_id):
+        lines_id_and_checkout_id = list(
+            CheckoutLine.objects.filter(
+                variant__in=variants, checkout__channel__id__in=channel_id
+            ).values("id", "checkout__pk")
+        )
+        lines_ids = {line["id"] for line in lines_id_and_checkout_id}
+
+        CheckoutLine.objects.filter(id__in=lines_ids).delete()
+
     @classmethod
     def remove_channels(cls, product: "ProductModel", remove_channels: List[Dict]):
         ProductChannelListing.objects.filter(
@@ -243,9 +262,11 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         ProductVariantChannelListing.objects.filter(
             variant__product_id=product.pk, channel_id__in=remove_channels
         ).delete()
+        variant_ids = product.variants.all().values_list("id", flat=True)
+        cls.perform_checkout_lines_delete(variant_ids, remove_channels)
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, product: "ProductModel", cleaned_input: Dict):
         cls.update_channels(product, cleaned_input.get("update_channels", []))
         cls.remove_channels(product, cleaned_input.get("remove_channels", []))
@@ -393,7 +414,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, variant: "ProductVariantModel", cleaned_input: List):
         for channel_listing_data in cleaned_input:
             channel = channel_listing_data["channel"]
@@ -488,7 +509,7 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
         ).delete()
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, collection: "CollectionModel", cleaned_input: Dict):
         cls.add_channels(collection, cleaned_input.get("add_channels", []))
         cls.remove_channels(collection, cleaned_input.get("remove_channels", []))

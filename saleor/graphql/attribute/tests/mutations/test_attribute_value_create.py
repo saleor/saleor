@@ -40,12 +40,16 @@ CREATE_ATTRIBUTE_VALUE_MUTATION = """
             code
         }
         attribute {
-            values {
-                name
-                value
-                file {
-                    url
-                    contentType
+            choices(first: 10) {
+                edges {
+                    node {
+                        name
+                        value
+                        file {
+                            url
+                            contentType
+                        }
+                    }
                 }
             }
         }
@@ -81,7 +85,9 @@ def test_create_attribute_value(
     attr_data = data["attributeValue"]
     assert attr_data["name"] == name
     assert attr_data["slug"] == slugify(name)
-    assert name in [value["name"] for value in data["attribute"]["values"]]
+    assert name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
 
 
 def test_create_swatch_attribute_value_with_value(
@@ -108,8 +114,12 @@ def test_create_swatch_attribute_value_with_value(
     attr_data = data["attributeValue"]
     assert attr_data["name"] == name
     assert attr_data["slug"] == slugify(name)
-    assert name in [value["name"] for value in data["attribute"]["values"]]
-    assert value in [value["value"] for value in data["attribute"]["values"]]
+    assert name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
+    assert value in [
+        value["node"]["value"] for value in data["attribute"]["choices"]["edges"]
+    ]
 
 
 def test_create_swatch_attribute_value_with_file(
@@ -142,9 +152,11 @@ def test_create_swatch_attribute_value_with_file(
     attr_data = data["attributeValue"]
     assert attr_data["name"] == name
     assert attr_data["slug"] == slugify(name)
-    assert name in [value["name"] for value in data["attribute"]["values"]]
+    assert name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
     assert {"url": file, "contentType": content_type} in [
-        value["file"] for value in data["attribute"]["values"]
+        value["node"]["file"] for value in data["attribute"]["choices"]["edges"]
     ]
 
 

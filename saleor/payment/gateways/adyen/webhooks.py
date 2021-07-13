@@ -127,7 +127,7 @@ def create_new_transaction(notification, payment, kind):
         currency=currency,
         error="",
         raw_response={},
-        searchable_key=transaction_id,
+        psp_reference=transaction_id,
     )
     return create_transaction(
         payment,
@@ -169,7 +169,7 @@ def create_order(payment, checkout, manager):
             user=checkout.user or AnonymousUser(),
         )
     except ValidationError:
-        payment_refund_or_void(payment, manager)
+        payment_refund_or_void(payment, manager, checkout_info.channel.slug)
         return None
     # Refresh the payment to assign the newly created order
     payment.refresh_from_db()
@@ -785,7 +785,7 @@ def handle_api_response(
         error=error_message,
         raw_response=response.message,
         action_required_data=response.message.get("action"),
-        searchable_key=response.message.get("pspReference", ""),
+        psp_reference=response.message.get("pspReference", ""),
     )
 
     create_transaction(

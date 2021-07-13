@@ -802,6 +802,7 @@ def test_add_attribute_info_to_data(product):
         entity_type=None,
         unit=None,
         rich_text=None,
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -832,6 +833,7 @@ def test_add_attribute_info_to_data_update_attribute_data(product):
         entity_type=None,
         unit=None,
         rich_text=None,
+        boolean=None,
     )
     input_data = {pk: {expected_header: {"value1"}}}
 
@@ -857,6 +859,7 @@ def test_add_attribute_info_to_data_no_slug(product):
         entity_type=None,
         unit=None,
         rich_text=None,
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -883,6 +886,7 @@ def test_add_attribute_info_when_no_value(product):
         entity_type=None,
         rich_text=None,
         unit=None,
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -911,6 +915,7 @@ def test_add_file_attribute_info_to_data(product):
         entity_type=None,
         unit=None,
         rich_text=None,
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -938,6 +943,7 @@ def test_add_rich_text_attribute_info_to_data(product):
         entity_type=None,
         unit=None,
         rich_text=dummy_editorjs("Dummy"),
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -949,6 +955,34 @@ def test_add_rich_text_attribute_info_to_data(product):
     # then
     expected_header = f"{slug} (product attribute)"
     assert result[pk][expected_header] == {"Dummy"}
+
+
+def test_add_boolean_attribute_info_to_data(product):
+    # given
+    pk = product.pk
+    slug = "xx_false"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=None,
+        value_slug=None,
+        value_name=None,
+        file_url=None,
+        input_type="boolean",
+        entity_type=None,
+        unit=None,
+        rich_text=None,
+        boolean=False,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {"False"}
 
 
 def test_add_reference_attribute_info_to_data(product, page):
@@ -966,6 +1000,7 @@ def test_add_reference_attribute_info_to_data(product, page):
         entity_type="Page",
         unit=None,
         rich_text="None",
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -997,6 +1032,7 @@ def test_add_reference_info_to_data_update_attribute_data(product, page):
         entity_type="Page",
         unit=None,
         rich_text=None,
+        boolean=None,
     )
     input_data = {pk: {expected_header: values}}
 
@@ -1025,6 +1061,7 @@ def test_add_numeric_attribute_info_to_data(product, numeric_attribute):
         entity_type=None,
         unit=numeric_attribute.unit,
         rich_text=None,
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -1053,6 +1090,7 @@ def test_add_numeric_attribute_info_to_data_no_unit(product, numeric_attribute):
         entity_type=None,
         unit=None,
         rich_text=None,
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -1081,6 +1119,7 @@ def test_add_swatch_attribute_file_info_to_data(product, swatch_attribute):
         entity_type=None,
         unit=None,
         rich_text=None,
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -1109,6 +1148,7 @@ def test_add_attribute_info_to_data_no_file_url_for_file_attribute(product):
         entity_type=None,
         rich_text=None,
         unit=None,
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -1137,6 +1177,35 @@ def test_add_attribute_info_to_data_no_rich_text_for_rich_text_attribute(product
         entity_type=None,
         rich_text=None,
         unit=None,
+        boolean=None,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {""}
+
+
+def test_add_attribute_info_to_data_no_boolean_for_boolean_attribute(product):
+    # given
+    pk = product.pk
+    slug = "xxx_None"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=None,
+        value_slug=None,
+        value_name=None,
+        file_url=None,
+        input_type="boolean",
+        entity_type=None,
+        rich_text=None,
+        unit=None,
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -1164,6 +1233,7 @@ def test_add_attribute_info_to_data_no_value_for_reference_attribute(product):
         entity_type=None,
         rich_text=None,
         unit=None,
+        boolean=None,
     )
     input_data = {pk: {}}
 
@@ -1192,6 +1262,7 @@ def test_add_swatch_attribute_value_info_to_data(product, numeric_attribute):
         entity_type=None,
         unit=None,
         rich_text=None,
+        boolean=None,
     )
     input_data = {pk: {}}
 

@@ -152,6 +152,8 @@ def get_product_availability(
 ) -> ProductAvailability:
     country = country or Country(settings.DEFAULT_COUNTRY)
     with opentracing.global_tracer().start_active_span("get_product_availability"):
+        channel_slug = channel.slug
+
         discounted = None
         discounted_net_range = get_product_price_range(
             product=product,
@@ -164,10 +166,16 @@ def get_product_availability(
         if discounted_net_range is not None:
             discounted = TaxedMoneyRange(
                 start=manager.apply_taxes_to_product(
-                    product, discounted_net_range.start, country
+                    product,
+                    discounted_net_range.start,
+                    country,
+                    channel_slug=channel_slug,
                 ),
                 stop=manager.apply_taxes_to_product(
-                    product, discounted_net_range.stop, country
+                    product,
+                    discounted_net_range.stop,
+                    country,
+                    channel_slug=channel_slug,
                 ),
             )
 
@@ -183,10 +191,16 @@ def get_product_availability(
         if undiscounted_net_range is not None:
             undiscounted = TaxedMoneyRange(
                 start=manager.apply_taxes_to_product(
-                    product, undiscounted_net_range.start, country
+                    product,
+                    undiscounted_net_range.start,
+                    country,
+                    channel_slug=channel_slug,
                 ),
                 stop=manager.apply_taxes_to_product(
-                    product, undiscounted_net_range.stop, country
+                    product,
+                    undiscounted_net_range.stop,
+                    country,
+                    channel_slug=channel_slug,
                 ),
             )
 
@@ -228,6 +242,7 @@ def get_variant_availability(
 ) -> VariantAvailability:
     country = country or Country(settings.DEFAULT_COUNTRY)
     with opentracing.global_tracer().start_active_span("get_variant_availability"):
+        channel_slug = channel.slug
         discounted = plugins.apply_taxes_to_product(
             product,
             get_variant_price(
@@ -239,6 +254,7 @@ def get_variant_availability(
                 channel=channel,
             ),
             country,
+            channel_slug=channel_slug,
         )
         undiscounted = plugins.apply_taxes_to_product(
             product,
@@ -251,6 +267,7 @@ def get_variant_availability(
                 channel=channel,
             ),
             country,
+            channel_slug=channel_slug,
         )
 
         discount = _get_total_discount(undiscounted, discounted)

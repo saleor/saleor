@@ -678,7 +678,12 @@ def test_get_voucher_discount_for_order_voucher_validation(
     validate_voucher_in_order(order_with_lines)
 
     mock_validate_voucher.assert_called_once_with(
-        voucher, subtotal.gross, quantity, customer_email, order_with_lines.channel
+        voucher,
+        subtotal,
+        quantity,
+        customer_email,
+        order_with_lines.channel,
+        order_with_lines.user,
     )
 
 
@@ -985,7 +990,9 @@ def test_send_fulfillment_order_lines_mails(
     expected_payload = get_default_fulfillment_payload(order, fulfillment)
     expected_payload["requester_user_id"] = staff_user.id
     mocked_notify.assert_called_once_with(
-        "order_fulfillment_confirmation", payload=expected_payload
+        "order_fulfillment_confirmation",
+        payload=expected_payload,
+        channel_slug=fulfilled_order.channel.slug,
     )
 
 

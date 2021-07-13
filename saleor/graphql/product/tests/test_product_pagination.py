@@ -185,12 +185,12 @@ def collections_for_pagination(product, product_with_single_variant, channel_USD
 
 QUERY_COLLECTIONS_PAGINATION = """
     query (
-        $first: Int, $last: Int, $after: String, $before: String,
+        $first: Int, $last: Int, $after: String, $before: String, $channel: String,
         $sortBy: CollectionSortingInput, $filter: CollectionFilterInput
     ){
         collections (
             first: $first, last: $last, after: $after, before: $before,
-            sortBy: $sortBy, filter: $filter
+            sortBy: $sortBy, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -241,8 +241,12 @@ def test_collections_pagination_with_sorting(
     channel_USD,
 ):
     page_size = 3
-    sort_by["channel"] = channel_USD.slug
-    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "sortBy": sort_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_COLLECTIONS_PAGINATION,
         variables,
@@ -278,8 +282,12 @@ def test_collections_pagination_with_filtering(
     channel_USD,
 ):
     page_size = 2
-    filter_by["channel"] = channel_USD.slug
-    variables = {"first": page_size, "after": None, "filter": filter_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": filter_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_COLLECTIONS_PAGINATION,
         variables,
@@ -442,12 +450,12 @@ def products_for_pagination(
 
 QUERY_PRODUCTS_PAGINATION = """
     query (
-        $first: Int, $last: Int, $after: String, $before: String,
+        $first: Int, $last: Int, $after: String, $before: String, $channel: String,
         $sortBy: ProductOrder, $filter: ProductFilterInput
     ){
         products (
             first: $first, last: $last, after: $after, before: $before,
-            sortBy: $sortBy, filter: $filter
+            sortBy: $sortBy, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -531,8 +539,12 @@ def test_products_pagination_with_sorting_and_channel(
 ):
     page_size = 3
 
-    sort_by["channel"] = channel_USD.slug
-    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "sortBy": sort_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_PRODUCTS_PAGINATION,
         variables,
@@ -687,8 +699,8 @@ def test_products_pagination_for_products_with_the_same_names_one_page(
     [
         ({"hasCategory": True}, ["Product1", "Product2"]),
         (
-            {"stockAvailability": "OUT_OF_STOCK", "channel": "main"},
-            ["ProductProduct1", "ProductProduct2"],
+            {"stockAvailability": "OUT_OF_STOCK"},
+            ["Product2", "ProductProduct1"],
         ),
     ],
 )
@@ -702,8 +714,12 @@ def test_products_pagination_with_filtering(
 ):
     page_size = 2
 
-    filter_by["channel"] = channel_USD.slug
-    variables = {"first": page_size, "after": None, "filter": filter_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": filter_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_PRODUCTS_PAGINATION,
         variables,
@@ -712,9 +728,9 @@ def test_products_pagination_with_filtering(
     )
     content = get_graphql_content(response)
     products_nodes = content["data"]["products"]["edges"]
+    assert len(products_nodes) == page_size
     assert products_order[0] == products_nodes[0]["node"]["name"]
     assert products_order[1] == products_nodes[1]["node"]["name"]
-    assert len(products_nodes) == page_size
 
 
 @pytest.mark.parametrize(
@@ -734,8 +750,12 @@ def test_products_pagination_with_filtering_and_channel(
 ):
     page_size = 2
 
-    filter_by["channel"] = channel_USD.slug
-    variables = {"first": page_size, "after": None, "filter": filter_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": filter_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_PRODUCTS_PAGINATION,
         variables,
@@ -756,10 +776,14 @@ def test_products_pagination_with_filtering_by_attribute(
     products_order = ["Product2", "ProductProduct1"]
     filter_by = {
         "attributes": [{"slug": "color", "values": ["red", "blue"]}],
-        "channel": channel_USD.slug,
     }
 
-    variables = {"first": page_size, "after": None, "filter": filter_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": filter_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_PRODUCTS_PAGINATION,
         variables,

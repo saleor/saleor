@@ -1,3 +1,4 @@
+import uuid
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -5,15 +6,15 @@ import graphene
 from prices import Money
 
 from ....checkout import calculations
+from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_voucher_to_checkout
+from ....core.taxes import TaxedMoney
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
 from ...tests.utils import get_graphql_content
-from .test_checkout import (
-    MUTATION_CHECKOUT_LINES_DELETE,
-    MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
-)
+from .test_checkout import MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE
+from .test_checkout_lines import MUTATION_CHECKOUT_LINES_DELETE
 
 
 def test_checkout_lines_delete_with_not_applicable_voucher(
@@ -38,9 +39,8 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
 
     line = checkout_with_item.lines.first()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
-    variables = {"checkoutId": checkout_id, "lineId": line_id}
+    variables = {"token": checkout_with_item.token, "lineId": line_id}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
     content = get_graphql_content(response)
 
@@ -76,9 +76,8 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     assert checkout_with_item.voucher_code == voucher.code
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     new_address = graphql_address_data
-    variables = {"checkoutId": checkout_id, "shippingAddress": new_address}
+    variables = {"token": checkout_with_item.token, "shippingAddress": new_address}
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
     )
@@ -223,15 +222,17 @@ def test_checkout_get_gift_card_code_without_gift_card(user_api_client, checkout
 
 
 MUTATION_CHECKOUT_ADD_PROMO_CODE = """
-    mutation($checkoutId: ID!, $promoCode: String!) {
+    mutation($token: UUID, $promoCode: String!) {
         checkoutAddPromoCode(
-            checkoutId: $checkoutId, promoCode: $promoCode) {
+            token: $token, promoCode: $promoCode) {
             errors {
                 field
                 message
+                code
             }
             checkout {
-                id,
+                id
+                token
                 voucherCode
                 giftCards {
                     id
@@ -254,14 +255,64 @@ def _mutate_checkout_add_promo_code(client, variables):
     return content["data"]["checkoutAddPromoCode"]
 
 
-def test_checkout_add_voucher_code(api_client, checkout_with_item, voucher):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+def test_checkout_add_voucher_code_by_token(api_client, checkout_with_item, voucher):
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert data["checkout"]["voucherCode"] == voucher.code
+
+
+def test_checkout_add_voucher_code_with_display_gross_prices(
+    api_client, checkout_with_item, voucher, site_settings, monkeypatch
+):
+    site_settings.display_gross_prices = True
+    site_settings.save()
+
+    voucher = voucher
+    voucher_channel_listing = voucher.channel_listings.first()
+    voucher_channel_listing.min_spent_amount = 100
+    voucher_channel_listing.save()
+
+    monkeypatch.setattr(
+        "saleor.discount.utils.calculations.checkout_subtotal",
+        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
+            Money(95, "USD"), Money(100, "USD")
+        ),
+    )
+
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
+    assert data["checkout"]["voucherCode"] == voucher.code
+
+
+def test_checkout_add_voucher_code_without_display_gross_prices(
+    api_client, checkout_with_item, voucher, site_settings, monkeypatch
+):
+    site_settings.display_gross_prices = False
+    site_settings.save()
+
+    voucher = voucher
+    voucher_channel_listing = voucher.channel_listings.first()
+    voucher_channel_listing.min_spent_amount = 100
+    voucher_channel_listing.save()
+
+    monkeypatch.setattr(
+        "saleor.discount.utils.calculations.checkout_subtotal",
+        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
+            Money(95, "USD"), Money(100, "USD")
+        ),
+    )
+
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"][0]["code"] == CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.name
+    assert data["errors"][0]["field"] == "promoCode"
 
 
 def test_checkout_add_voucher_code_checkout_with_sale(
@@ -282,8 +333,10 @@ def test_checkout_add_voucher_code_checkout_with_sale(
         discounts=[discount_info],
     )
     assert subtotal > subtotal_discounted
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": voucher_percentage.code}
+    variables = {
+        "token": checkout_with_item.token,
+        "promoCode": voucher_percentage.code,
+    }
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     checkout_with_item.refresh_from_db()
@@ -318,8 +371,7 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
     )
 
     assert subtotal > subtotal_discounted
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     checkout.refresh_from_db()
@@ -359,8 +411,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
         discounts=[discount_info],
     )
     assert subtotal > subtotal_discounted
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     checkout.refresh_from_db()
@@ -398,8 +449,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
         discounts=[discount_info],
     )
     assert subtotal > subtotal_discounted
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     checkout.refresh_from_db()
@@ -437,8 +487,7 @@ def test_checkout_add_category_code_checkout_with_sale(
         discounts=[discount_info],
     )
     assert subtotal > subtotal_discounted
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     checkout.refresh_from_db()
@@ -450,9 +499,8 @@ def test_checkout_add_category_code_checkout_with_sale(
 def test_checkout_add_voucher_code_not_applicable_voucher(
     api_client, checkout_with_item, voucher_with_high_min_spent_amount
 ):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     variables = {
-        "checkoutId": checkout_id,
+        "token": checkout_with_item.token,
         "promoCode": voucher_with_high_min_spent_amount.code,
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
@@ -464,9 +512,8 @@ def test_checkout_add_voucher_code_not_applicable_voucher(
 def test_checkout_add_voucher_code_not_assigned_to_channel(
     api_client, checkout_with_item, voucher_without_channel
 ):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     variables = {
-        "checkoutId": checkout_id,
+        "token": checkout_with_item.token,
         "promoCode": voucher_without_channel.code,
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
@@ -476,13 +523,12 @@ def test_checkout_add_voucher_code_not_assigned_to_channel(
 
 
 def test_checkout_add_gift_card_code(api_client, checkout_with_item, gift_card):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": gift_card.code}
+    variables = {"token": checkout_with_item.token, "promoCode": gift_card.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert data["checkout"]["giftCards"][0]["id"] == gift_card_id
     assert data["checkout"]["giftCards"][0]["displayCode"] == gift_card.display_code
 
@@ -491,16 +537,15 @@ def test_checkout_add_many_gift_card_code(
     api_client, checkout_with_gift_card, gift_card_created_by_staff
 ):
     assert checkout_with_gift_card.gift_cards.count() > 0
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_gift_card.pk)
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card_created_by_staff.pk)
     variables = {
-        "checkoutId": checkout_id,
+        "token": checkout_with_gift_card.token,
         "promoCode": gift_card_created_by_staff.code,
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_gift_card.token)
     gift_card_data = data["checkout"]["giftCards"][-1]
     assert gift_card_data["id"] == gift_card_id
     assert gift_card_data["displayCode"] == gift_card_created_by_staff.display_code
@@ -518,12 +563,11 @@ def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_
     )
     total_with_gift_card = taxed_total.gross.amount - gift_card.current_balance_amount
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": gift_card.code}
+    variables = {"token": checkout_with_item.token, "promoCode": gift_card.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert not data["checkout"]["giftCards"] == []
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == total_with_gift_card
 
@@ -547,27 +591,25 @@ def test_checkout_get_total_with_many_gift_card(
     )
 
     assert checkout_with_gift_card.gift_cards.count() > 0
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_gift_card.pk)
     variables = {
-        "checkoutId": checkout_id,
+        "token": checkout_with_gift_card.token,
         "promoCode": gift_card_created_by_staff.code,
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_gift_card.token)
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == total_with_gift_card
 
 
 def test_checkout_get_total_with_more_money_on_gift_card(
     api_client, checkout_with_item, gift_card_used
 ):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": gift_card_used.code}
+    variables = {"token": checkout_with_item.token, "promoCode": gift_card_used.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert not data["checkout"]["giftCards"] == []
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == 0
 
@@ -576,12 +618,11 @@ def test_checkout_add_same_gift_card_code(api_client, checkout_with_gift_card):
     gift_card = checkout_with_gift_card.gift_cards.first()
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     gift_card_count = checkout_with_gift_card.gift_cards.count()
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_gift_card.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": gift_card.code}
+    variables = {"token": checkout_with_gift_card.token, "promoCode": gift_card.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_gift_card.token)
     assert data["checkout"]["giftCards"][0]["id"] == gift_card_id
     assert data["checkout"]["giftCards"][0]["displayCode"] == gift_card.display_code
     assert len(data["checkout"]["giftCards"]) == gift_card_count
@@ -593,8 +634,7 @@ def test_checkout_add_gift_card_code_in_active_gift_card(
     gift_card.is_active = False
     gift_card.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": gift_card.code}
+    variables = {"token": checkout_with_item.token, "promoCode": gift_card.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert data["errors"]
@@ -607,8 +647,7 @@ def test_checkout_add_gift_card_code_in_expired_gift_card(
     gift_card.end_date = date.today() - timedelta(days=1)
     gift_card.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": gift_card.code}
+    variables = {"token": checkout_with_item.token, "promoCode": gift_card.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert data["errors"]
@@ -616,16 +655,15 @@ def test_checkout_add_gift_card_code_in_expired_gift_card(
 
 
 def test_checkout_add_promo_code_invalid_checkout(api_client, voucher):
-    variables = {"checkoutId": "unexisting_checkout", "promoCode": voucher.code}
+    variables = {"token": uuid.uuid4(), "promoCode": voucher.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert data["errors"]
-    assert data["errors"][0]["field"] == "checkoutId"
+    assert data["errors"][0]["field"] == "token"
 
 
 def test_checkout_add_promo_code_invalid_promo_code(api_client, checkout_with_item):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": "unexisting_code"}
+    variables = {"token": checkout_with_item.token, "promoCode": "unexisting_code"}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert data["errors"]
@@ -633,15 +671,15 @@ def test_checkout_add_promo_code_invalid_promo_code(api_client, checkout_with_it
 
 
 MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
-    mutation($checkoutId: ID!, $promoCode: String!) {
+    mutation($token: UUID, $promoCode: String!) {
         checkoutRemovePromoCode(
-            checkoutId: $checkoutId, promoCode: $promoCode) {
+            token: $token, promoCode: $promoCode) {
             errors {
                 field
                 message
             }
             checkout {
-                id,
+                token,
                 voucherCode
                 giftCards {
                     id
@@ -662,9 +700,8 @@ def _mutate_checkout_remove_promo_code(client, variables):
 def test_checkout_remove_voucher_code(api_client, checkout_with_voucher):
     assert checkout_with_voucher.voucher_code is not None
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_voucher.pk)
     variables = {
-        "checkoutId": checkout_id,
+        "token": checkout_with_voucher.token,
         "promoCode": checkout_with_voucher.voucher_code,
     }
 
@@ -672,7 +709,7 @@ def test_checkout_remove_voucher_code(api_client, checkout_with_voucher):
 
     checkout_with_voucher.refresh_from_db()
     assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
     assert data["checkout"]["voucherCode"] is None
     assert checkout_with_voucher.voucher_code is None
 
@@ -684,9 +721,8 @@ def test_checkout_remove_voucher_code_with_inactive_channel(
     channel.is_active = False
     channel.save()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_voucher.pk)
     variables = {
-        "checkoutId": checkout_id,
+        "token": checkout_with_voucher.token,
         "promoCode": checkout_with_voucher.voucher_code,
     }
 
@@ -694,22 +730,21 @@ def test_checkout_remove_voucher_code_with_inactive_channel(
 
     checkout_with_voucher.refresh_from_db()
     assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
     assert data["checkout"]["voucherCode"] == checkout_with_voucher.voucher_code
 
 
 def test_checkout_remove_gift_card_code(api_client, checkout_with_gift_card):
     assert checkout_with_gift_card.gift_cards.count() == 1
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_gift_card.pk)
     variables = {
-        "checkoutId": checkout_id,
+        "token": checkout_with_gift_card.token,
         "promoCode": checkout_with_gift_card.gift_cards.first().code,
     }
 
     data = _mutate_checkout_remove_promo_code(api_client, variables)
 
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_gift_card.token)
     assert data["checkout"]["giftCards"] == []
     assert not checkout_with_gift_card.gift_cards.all().exists()
 
@@ -722,31 +757,32 @@ def test_checkout_remove_one_of_gift_cards(
     gift_card_first = checkout_with_gift_card.gift_cards.first()
     gift_card_last = checkout_with_gift_card.gift_cards.last()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_gift_card.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": gift_card_first.code}
+    variables = {
+        "token": checkout_with_gift_card.token,
+        "promoCode": gift_card_first.code,
+    }
 
     data = _mutate_checkout_remove_promo_code(api_client, variables)
 
     checkout_gift_cards = checkout_with_gift_card.gift_cards
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_gift_card.token)
     assert checkout_gift_cards.filter(code=gift_card_last.code).exists()
     assert not checkout_gift_cards.filter(code=gift_card_first.code).exists()
 
 
 def test_checkout_remove_promo_code_invalid_promo_code(api_client, checkout_with_item):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
-    variables = {"checkoutId": checkout_id, "promoCode": "unexisting_code"}
+    variables = {"token": checkout_with_item.token, "promoCode": "unexisting_code"}
 
     data = _mutate_checkout_remove_promo_code(api_client, variables)
 
     assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
 
 
 def test_checkout_remove_promo_code_invalid_checkout(api_client, voucher):
-    variables = {"checkoutId": "unexisting_checkout", "promoCode": voucher.code}
+    variables = {"token": uuid.uuid4(), "promoCode": voucher.code}
 
     data = _mutate_checkout_remove_promo_code(api_client, variables)
 
     assert data["errors"]
-    assert data["errors"][0]["field"] == "checkoutId"
+    assert data["errors"][0]["field"] == "token"

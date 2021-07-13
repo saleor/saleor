@@ -10,10 +10,12 @@ from ....account import models, notifications, utils
 from ....account.error_codes import AccountErrorCode
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
+from ...channel.utils import clean_channel
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
@@ -43,6 +45,12 @@ class AccountRegisterInput(graphene.InputObjectType):
         graphene.NonNull(MetadataInput),
         description="User public metadata.",
         required=False,
+    )
+    channel = graphene.String(
+        description=(
+            "Slug of a channel which will be used to notify users. Optional when "
+            "only one channel exists."
+        )
     )
 
 
@@ -96,15 +104,21 @@ class AccountRegister(ModelMutation):
                 }
             )
 
+        data["channel"] = clean_channel(
+            data.get("channel"), error_class=AccountErrorCode
+        ).slug
+
         password = data["password"]
         try:
             password_validation.validate_password(password, instance)
         except ValidationError as error:
             raise ValidationError({"password": error})
+
         data["language_code"] = data.get("language_code", settings.LANGUAGE_CODE)
         return super().clean_input(info, instance, data, input_cls=None)
 
     @classmethod
+    @traced_atomic_transaction()
     def save(cls, info, user, cleaned_input):
         password = cleaned_input["password"]
         user.set_password(password)
@@ -112,7 +126,10 @@ class AccountRegister(ModelMutation):
             user.is_active = False
             user.save()
             notifications.send_account_confirmation(
-                user, cleaned_input["redirect_url"], info.context.plugins
+                user,
+                cleaned_input["redirect_url"],
+                info.context.plugins,
+                channel_slug=cleaned_input["channel"],
             )
         else:
             user.save()
@@ -168,6 +185,12 @@ class AccountRequestDeletion(BaseMutation):
                 "delete their account. URL in RFC 1808 format."
             ),
         )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used to notify users. Optional when "
+                "only one channel exists."
+            )
+        )
 
     class Meta:
         description = (
@@ -190,8 +213,11 @@ class AccountRequestDeletion(BaseMutation):
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
+        channel_slug = clean_channel(
+            data.get("channel"), error_class=AccountErrorCode
+        ).slug
         notifications.send_account_delete_confirmation_notification(
-            redirect_url, user, info.context.plugins
+            redirect_url, user, info.context.plugins, channel_slug=channel_slug
         )
         return AccountRequestDeletion()
 
@@ -280,7 +306,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         cleaned_input = cls.clean_input(
             info=info, instance=Address(), data=data.get("input")
         )
-        address = cls.validate_address(cleaned_input)
+        address = cls.validate_address(cleaned_input, address_type=address_type)
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
         cls._save_m2m(info, address, cleaned_input)
@@ -372,6 +398,12 @@ class RequestEmailChange(BaseMutation):
                 "update the email address. URL in RFC 1808 format."
             ),
         )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used to notify users. Optional when "
+                "only one channel exists."
+            )
+        )
 
     class Meta:
         description = "Request email change of the logged in user."
@@ -412,6 +444,11 @@ class RequestEmailChange(BaseMutation):
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
+        channel_slug = clean_channel(
+            data.get("channel"),
+            error_class=AccountErrorCode,
+        ).slug
+
         token_payload = {
             "old_email": user.email,
             "new_email": new_email,
@@ -419,7 +456,12 @@ class RequestEmailChange(BaseMutation):
         }
         token = create_token(token_payload, JWT_TTL_REQUEST_EMAIL_CHANGE)
         notifications.send_request_user_change_email_notification(
-            redirect_url, user, new_email, token, info.context.plugins
+            redirect_url,
+            user,
+            new_email,
+            token,
+            info.context.plugins,
+            channel_slug=channel_slug,
         )
         return RequestEmailChange(user=user)
 
@@ -430,6 +472,12 @@ class ConfirmEmailChange(BaseMutation):
     class Arguments:
         token = graphene.String(
             description="A one-time token required to change the email.", required=True
+        )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used to notify users. Optional when "
+                "only one channel exists."
+            )
         )
 
     class Meta:
@@ -476,8 +524,13 @@ class ConfirmEmailChange(BaseMutation):
 
         user.email = new_email
         user.save(update_fields=["email"])
+
+        channel_slug = clean_channel(
+            data.get("channel"), error_class=AccountErrorCode
+        ).slug
+
         notifications.send_user_change_email_notification(
-            old_email, user, info.context.plugins
+            old_email, user, info.context.plugins, channel_slug=channel_slug
         )
         info.context.plugins.customer_updated(user)
         return ConfirmEmailChange(user=user)

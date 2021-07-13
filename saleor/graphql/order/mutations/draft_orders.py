@@ -1,14 +1,15 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....account.models import User
+from ....checkout import AddressType
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
-from ....order import OrderLineData, OrderStatus, events, models
+from ....order import OrderLineData, OrderOrigin, OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
@@ -63,9 +64,7 @@ class DraftOrderInput(InputObjectType):
     customer_note = graphene.String(
         description="A note from a customer. Visible by customers in the order summary."
     )
-    channel = graphene.ID(
-        description="ID of the channel associated with the order.", name="channel"
-    )
+    channel_id = graphene.ID(description="ID of the channel associated with the order.")
     redirect_url = graphene.String(
         required=False,
         description=(
@@ -98,16 +97,60 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_channel_id(cls, instance, channel_id):
-        if channel_id and hasattr(instance, "channel"):
-            raise ValidationError(
-                {
-                    "channel": ValidationError(
-                        "Can't update existing order channel id.",
-                        code=OrderErrorCode.NOT_EDITABLE.value,
-                    )
-                }
-            )
+    def clean_input(cls, info, instance, data):
+        shipping_address = data.pop("shipping_address", None)
+        billing_address = data.pop("billing_address", None)
+        redirect_url = data.pop("redirect_url", None)
+        channel_id = data.pop("channel_id", None)
+
+        cleaned_input = super().clean_input(info, instance, data)
+
+        channel = cls.clean_channel_id(info, instance, cleaned_input, channel_id)
+
+        voucher = cleaned_input.get("voucher", None)
+        if voucher:
+            cls.clean_voucher(voucher, channel)
+
+        if channel:
+            cleaned_input["currency"] = channel.currency_code
+
+        lines = data.pop("lines", None)
+        cls.clean_lines(cleaned_input, lines, channel)
+
+        cleaned_input["status"] = OrderStatus.DRAFT
+        cleaned_input["origin"] = OrderOrigin.DRAFT
+        display_gross_prices = info.context.site.settings.display_gross_prices
+        cleaned_input["display_gross_prices"] = display_gross_prices
+
+        cls.clean_addresses(
+            info, instance, cleaned_input, shipping_address, billing_address
+        )
+
+        if redirect_url:
+            cls.clean_redirect_url(redirect_url)
+            cleaned_input["redirect_url"] = redirect_url
+
+        return cleaned_input
+
+    @classmethod
+    def clean_channel_id(cls, info, instance, cleaned_input, channel_id):
+        if channel_id:
+            if hasattr(instance, "channel"):
+                raise ValidationError(
+                    {
+                        "channel_id": ValidationError(
+                            "Can't update existing order channel id.",
+                            code=OrderErrorCode.NOT_EDITABLE.value,
+                        )
+                    }
+                )
+            else:
+                channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
+                cleaned_input["channel"] = channel
+                return channel
+
+        else:
+            return instance.channel if hasattr(instance, "channel") else None
 
     @classmethod
     def clean_voucher(cls, voucher, channel):
@@ -122,35 +165,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    def clean_redirect_url(cls, redirect_url):
-        try:
-            validate_storefront_url(redirect_url)
-        except ValidationError as error:
-            error.code = OrderErrorCode.INVALID.value
-            raise ValidationError({"redirect_url": error})
-
-    @classmethod
-    def clean_input(cls, info, instance, data):
-        shipping_address = data.pop("shipping_address", None)
-        redirect_url = data.pop("redirect_url", None)
-        billing_address = data.pop("billing_address", None)
-        cleaned_input = super().clean_input(info, instance, data)
-        lines = data.pop("lines", None)
-        channel_id = data.get("channel", None)
-        if "channel" in cleaned_input and channel_id is None:
-            del cleaned_input["channel"]
-        cls.clean_channel_id(instance, channel_id)
-        voucher = cleaned_input.get("voucher", None)
-        if voucher:
-            channel = cleaned_input.get("channel") or instance.channel
-            cls.clean_voucher(voucher, channel)
-
-        channel = instance.channel if hasattr(instance, "channel") else None
-        if not channel and channel_id:
-            channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
-        if channel:
-            cleaned_input["currency"] = channel.currency_code
-
+    def clean_lines(cls, cleaned_input, lines, channel):
         if lines:
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
@@ -169,20 +184,16 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             cleaned_input["variants"] = variants
             cleaned_input["quantities"] = quantities
 
-        cleaned_input["status"] = OrderStatus.DRAFT
-        display_gross_prices = info.context.site.settings.display_gross_prices
-        cleaned_input["display_gross_prices"] = display_gross_prices
-
-        # Set up default addresses if possible
-        user = cleaned_input.get("user")
-        if user and not shipping_address:
-            cleaned_input["shipping_address"] = user.default_shipping_address
-        if user and not billing_address:
-            cleaned_input["billing_address"] = user.default_billing_address
-
+    @classmethod
+    def clean_addresses(
+        cls, info, instance, cleaned_input, shipping_address, billing_address
+    ):
         if shipping_address:
             shipping_address = cls.validate_address(
-                shipping_address, instance=instance.shipping_address, info=info
+                shipping_address,
+                address_type=AddressType.SHIPPING,
+                instance=instance.shipping_address,
+                info=info,
             )
             shipping_address = info.context.plugins.change_user_address(
                 shipping_address, "shipping", user=instance
@@ -190,17 +201,23 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             cleaned_input["shipping_address"] = shipping_address
         if billing_address:
             billing_address = cls.validate_address(
-                billing_address, instance=instance.billing_address, info=info
+                billing_address,
+                address_type=AddressType.BILLING,
+                instance=instance.billing_address,
+                info=info,
             )
             billing_address = info.context.plugins.change_user_address(
                 billing_address, "billing", user=instance
             )
             cleaned_input["billing_address"] = billing_address
-        if redirect_url:
-            cls.clean_redirect_url(redirect_url)
-            cleaned_input["redirect_url"] = redirect_url
 
-        return cleaned_input
+    @classmethod
+    def clean_redirect_url(cls, redirect_url):
+        try:
+            validate_storefront_url(redirect_url)
+        except ValidationError as error:
+            error.code = OrderErrorCode.INVALID.value
+            raise ValidationError({"redirect_url": error})
 
     @staticmethod
     def _save_addresses(info, instance: models.Order, cleaned_input):
@@ -260,7 +277,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         new_instance = not bool(instance.pk)
 

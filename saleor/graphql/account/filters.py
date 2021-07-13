@@ -1,10 +1,10 @@
 import django_filters
-from django.db.models import Count
+from django.db.models import Count, Exists, OuterRef, Q
 
-from ...account.models import User
-from ..core.filters import EnumFilter, ObjectTypeFilter
+from ...account.models import Address, User
+from ..core.filters import EnumFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput
-from ..utils.filters import filter_by_query_param, filter_range_field
+from ..utils.filters import filter_range_field
 from .enums import StaffMemberStatus
 
 
@@ -21,38 +21,43 @@ def filter_placed_orders(qs, _, value):
     return filter_range_field(qs, "orders__created__date", value)
 
 
-def filter_status(qs, _, value):
+def filter_staff_status(qs, _, value):
     if value == StaffMemberStatus.ACTIVE:
-        qs = qs.filter(is_staff=True, is_active=True)
-    elif value == StaffMemberStatus.DEACTIVATED:
-        qs = qs.filter(is_staff=True, is_active=False)
+        return qs.filter(is_staff=True, is_active=True)
+    if value == StaffMemberStatus.DEACTIVATED:
+        return qs.filter(is_staff=True, is_active=False)
     return qs
 
 
-def filter_staff_search(qs, _, value):
-    search_fields = (
-        "email",
-        "first_name",
-        "last_name",
-        "default_shipping_address__first_name",
-        "default_shipping_address__last_name",
-        "default_shipping_address__city",
-        "default_shipping_address__country",
-        "default_shipping_address__phone",
-    )
+def filter_user_search(qs, _, value):
     if value:
-        qs = filter_by_query_param(qs, value, search_fields)
+        UserAddress = User.addresses.through
+        addresses = Address.objects.filter(
+            Q(first_name__trigram_similar=value)
+            | Q(last_name__trigram_similar=value)
+            | Q(city__trigram_similar=value)
+            | Q(country__trigram_similar=value)
+            | Q(phone=value)
+        ).values("id")
+        user_addresses = UserAddress.objects.filter(
+            Exists(addresses.filter(pk=OuterRef("address_id")))
+        ).values("user_id")
+        qs = qs.filter(
+            Q(email__trigram_similar=value)
+            | Q(first_name__trigram_similar=value)
+            | Q(last_name__trigram_similar=value)
+            | Q(Exists(user_addresses.filter(user_id=OuterRef("pk"))))
+        )
     return qs
 
 
 def filter_search(qs, _, value):
-    search_fields = ("name",)
     if value:
-        qs = filter_by_query_param(qs, value, search_fields)
+        qs = qs.filter(name__trigram_similar=value)
     return qs
 
 
-class CustomerFilter(django_filters.FilterSet):
+class CustomerFilter(MetadataFilterBase):
     date_joined = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_date_joined
     )
@@ -62,7 +67,7 @@ class CustomerFilter(django_filters.FilterSet):
     placed_orders = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_placed_orders
     )
-    search = django_filters.CharFilter(method=filter_staff_search)
+    search = django_filters.CharFilter(method=filter_user_search)
 
     class Meta:
         model = User
@@ -79,8 +84,8 @@ class PermissionGroupFilter(django_filters.FilterSet):
 
 
 class StaffUserFilter(django_filters.FilterSet):
-    status = EnumFilter(input_class=StaffMemberStatus, method=filter_status)
-    search = django_filters.CharFilter(method=filter_staff_search)
+    status = EnumFilter(input_class=StaffMemberStatus, method=filter_staff_status)
+    search = django_filters.CharFilter(method=filter_user_search)
 
     # TODO - Figure out after permision types
     # department = ObjectTypeFilter

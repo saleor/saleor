@@ -2,7 +2,7 @@ import graphene
 
 from .....core import JobStatus
 from .....csv import ExportEvents
-from ....tests.utils import get_graphql_content
+from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 EXPORT_FILE_QUERY = """
     query($id: ID!){
@@ -196,3 +196,28 @@ def test_query_export_file_as_app(
     assert event["type"] == ExportEvents.EXPORT_FAILED.upper()
     assert event["user"]["email"] == user_export_event.user.email
     assert event["app"] is None
+
+
+def test_query_export_file_by_invalid_id(
+    staff_api_client, user_export_file, permission_manage_products
+):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        EXPORT_FILE_QUERY, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["exportFile"] is None
+
+
+def test_query_export_file_with_invalid_object_type(
+    staff_api_client, user_export_file, permission_manage_products
+):
+    variables = {"id": graphene.Node.to_global_id("Order", user_export_file.pk)}
+    response = staff_api_client.post_graphql(
+        EXPORT_FILE_QUERY, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["exportFile"] is None

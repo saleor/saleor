@@ -7,7 +7,7 @@ from ..plugin import VatlayerPlugin
 
 
 @pytest.fixture
-def vatlayer_plugin(settings, vatlayer):
+def vatlayer_plugin(settings, vatlayer, channel_USD):
     def fun(
         active=True,
         access_key="key",
@@ -20,6 +20,7 @@ def vatlayer_plugin(settings, vatlayer):
         with patch("saleor.plugins.vatlayer.plugin.fetch_rate_types"):
             manager.save_plugin_configuration(
                 VatlayerPlugin.PLUGIN_ID,
+                channel_USD.slug,
                 {
                     "active": active,
                     "configuration": [
@@ -34,6 +35,6 @@ def vatlayer_plugin(settings, vatlayer):
                 },
             )
         manager = get_plugins_manager()
-        return manager.plugins[0]
+        return manager.plugins_per_channel[channel_USD.slug][0]
 
     return fun
