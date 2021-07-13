@@ -6,7 +6,8 @@ from unittest import mock
 from unittest.mock import ANY
 
 import graphene
-import pytest
+
+from saleor.warehouse import WarehouseClickAndCollectOption
 
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
@@ -28,33 +29,31 @@ from ..payloads import (
 )
 
 
-@pytest.mark.parametrize("order_param", ["regular", "click_and_collect"], indirect=True)
 @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
 def test_generate_order_payload(
-    mocked_fulfillment_lines, order_param, fulfilled_order, payment_txn_captured
+    mocked_fulfillment_lines, order_with_lines, fulfilled_order, payment_txn_captured
 ):
     mocked_fulfillment_lines.return_value = "{}"
 
     payment_txn_captured.psp_reference = "123"
     payment_txn_captured.save(update_fields=["psp_reference"])
 
-    order_param, order_type = order_param
     new_order = Order.objects.create(
-        channel=order_param.channel,
-        billing_address=order_param.billing_address,
+        channel=order_with_lines.channel,
+        billing_address=order_with_lines.billing_address,
     )
-    order_param.origin = OrderOrigin.REISSUE
-    order_param.original = new_order
-    order_param.save(update_fields=["origin", "original"])
+    order_with_lines.origin = OrderOrigin.REISSUE
+    order_with_lines.original = new_order
+    order_with_lines.save(update_fields=["origin", "original"])
 
-    order_param.discounts.create(
+    order_with_lines.discounts.create(
         type=OrderDiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("20"),
         amount_value=Decimal("33.0"),
         reason="Discount from staff",
     )
-    order_param.discounts.create(
+    order_with_lines.discounts.create(
         type=OrderDiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("10"),
@@ -65,65 +64,52 @@ def test_generate_order_payload(
     assert fulfilled_order.fulfillments.count() == 1
     fulfillment = fulfilled_order.fulfillments.first()
 
-    order_id = graphene.Node.to_global_id("Order", order_param.id)
-    payload = json.loads(generate_order_payload(order_param))[0]
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    payload = json.loads(generate_order_payload(order_with_lines))[0]
 
     assert order_id == payload["id"]
     for field in ORDER_FIELDS:
         assert payload.get(field) is not None
-    assert order_type in ("regular", "click_and_collect")
 
-    if order_type == "regular":
-        assert payload.get("shipping_method")
-    else:
-        collection_point = payload.get("collection_point")
-        assert collection_point
-        assert collection_point.get("address")
-        assert collection_point.get("name")
-        assert collection_point.get("id")
-        assert collection_point.get("email")
-
+    assert payload.get("shipping_method")
     assert payload.get("shipping_tax_rate")
     assert payload.get("lines")
     assert payload.get("shipping_address")
     assert payload.get("billing_address")
-    if order_type == "regular":
-        assert payload.get("fulfillments")
-        assert payload.get("discounts")
-        assert payload.get("original") == graphene.Node.to_global_id(
-            "Order", new_order.pk
-        )
-        assert payload.get("payments")
-        assert len(payload.get("payments")) == 1
-        payments_data = payload.get("payments")[0]
-        assert payments_data == {
-            "id": graphene.Node.to_global_id("Payment", payment_txn_captured.pk),
-            "gateway": payment_txn_captured.gateway,
-            "payment_method_type": payment_txn_captured.payment_method_type,
-            "cc_brand": payment_txn_captured.cc_brand,
-            "is_active": payment_txn_captured.is_active,
-            "created": ANY,
-            "modified": ANY,
-            "charge_status": payment_txn_captured.charge_status,
-            "psp_reference": payment_txn_captured.psp_reference,
-            "total": str(payment_txn_captured.total),
-            "type": "Payment",
-            "captured_amount": str(payment_txn_captured.captured_amount),
-            "currency": payment_txn_captured.currency,
-            "billing_email": payment_txn_captured.billing_email,
-            "billing_first_name": payment_txn_captured.billing_first_name,
-            "billing_last_name": payment_txn_captured.billing_last_name,
-            "billing_company_name": payment_txn_captured.billing_company_name,
-            "billing_address_1": payment_txn_captured.billing_address_1,
-            "billing_address_2": payment_txn_captured.billing_address_2,
-            "billing_city": payment_txn_captured.billing_city,
-            "billing_city_area": payment_txn_captured.billing_city_area,
-            "billing_postal_code": payment_txn_captured.billing_postal_code,
-            "billing_country_code": payment_txn_captured.billing_country_code,
-            "billing_country_area": payment_txn_captured.billing_country_area,
-        }
+    assert payload.get("fulfillments")
+    assert payload.get("discounts")
+    assert payload.get("original") == graphene.Node.to_global_id("Order", new_order.pk)
+    assert payload.get("payments")
+    assert len(payload.get("payments")) == 1
+    payments_data = payload.get("payments")[0]
+    assert payments_data == {
+        "id": graphene.Node.to_global_id("Payment", payment_txn_captured.pk),
+        "gateway": payment_txn_captured.gateway,
+        "payment_method_type": payment_txn_captured.payment_method_type,
+        "cc_brand": payment_txn_captured.cc_brand,
+        "is_active": payment_txn_captured.is_active,
+        "created": ANY,
+        "modified": ANY,
+        "charge_status": payment_txn_captured.charge_status,
+        "psp_reference": payment_txn_captured.psp_reference,
+        "total": str(payment_txn_captured.total),
+        "type": "Payment",
+        "captured_amount": str(payment_txn_captured.captured_amount),
+        "currency": payment_txn_captured.currency,
+        "billing_email": payment_txn_captured.billing_email,
+        "billing_first_name": payment_txn_captured.billing_first_name,
+        "billing_last_name": payment_txn_captured.billing_last_name,
+        "billing_company_name": payment_txn_captured.billing_company_name,
+        "billing_address_1": payment_txn_captured.billing_address_1,
+        "billing_address_2": payment_txn_captured.billing_address_2,
+        "billing_city": payment_txn_captured.billing_city,
+        "billing_city_area": payment_txn_captured.billing_city_area,
+        "billing_postal_code": payment_txn_captured.billing_postal_code,
+        "billing_country_code": payment_txn_captured.billing_country_code,
+        "billing_country_area": payment_txn_captured.billing_country_area,
+    }
 
-        mocked_fulfillment_lines.assert_called_with(fulfillment)
+    mocked_fulfillment_lines.assert_called_with(fulfillment)
 
 
 def test_generate_fulfillment_lines_payload(order_with_lines):
@@ -388,3 +374,19 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data):
         dummy_webhook_app_payment_data.gateway
     ).name
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
+
+
+def test_generate_collection_point_payload(order_with_lines_cc):
+    payload = json.loads(generate_order_payload(order_with_lines_cc))[0]
+
+    payload_collection_point = payload.get("collection_point")
+
+    assert payload_collection_point
+    assert payload_collection_point.get("address")
+    assert payload_collection_point.get("email") == "local@example.com"
+    assert payload_collection_point.get("name") == "Local Warehouse"
+    assert not payload_collection_point.get("is_private")
+    assert (
+        payload_collection_point.get("click_and_collect_option")
+        == WarehouseClickAndCollectOption.LOCAL_STOCK
+    )
