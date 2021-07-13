@@ -545,6 +545,9 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     )
     media = models.ManyToManyField("ProductMedia", through="VariantMedia")
     track_inventory = models.BooleanField(default=True)
+    is_preorder = models.BooleanField(default=False)
+    preorder_end_date = models.DateTimeField(null=True, blank=True)
+    preorder_global_threshold = models.IntegerField(blank=True, null=True)
 
     weight = MeasurementField(
         measurement=Weight,
@@ -669,6 +672,8 @@ class ProductVariantChannelListing(models.Model):
         null=True,
     )
     cost_price = MoneyField(amount_field="cost_price_amount", currency_field="currency")
+
+    preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
 
     class Meta:
         unique_together = [["variant", "channel"]]

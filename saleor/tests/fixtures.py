@@ -109,7 +109,7 @@ from ..shipping.models import (
 )
 from ..site.models import SiteSettings
 from ..warehouse import WarehouseClickAndCollectOption
-from ..warehouse.models import Allocation, Stock, Warehouse
+from ..warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
 from ..webhook.models import Webhook, WebhookEvent
 from ..wishlist.models import Wishlist
@@ -2094,6 +2094,65 @@ def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
         ]
     )
     return variant
+
+
+@pytest.fixture
+def preorder_variant_global_threshold(product, channel_USD):
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_A", is_preorder=True, preorder_global_threshold=10
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=product_variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    return product_variant
+
+
+@pytest.fixture
+def preorder_variant_channel_threshold(product, channel_USD):
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_B", is_preorder=True, preorder_global_threshold=None
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=product_variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+        preorder_quantity_threshold=10,
+    )
+    return product_variant
+
+
+@pytest.fixture
+def preorder_variant_global_and_channel_threshold(product, channel_USD, channel_PLN):
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_C", is_preorder=True, preorder_global_threshold=10
+    )
+    ProductVariantChannelListing.objects.bulk_create(
+        [
+            ProductVariantChannelListing(
+                variant=product_variant,
+                channel=channel_USD,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+                preorder_quantity_threshold=8,
+            ),
+            ProductVariantChannelListing(
+                variant=product_variant,
+                channel=channel_PLN,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(10),
+                currency=channel_PLN.currency_code,
+                preorder_quantity_threshold=4,
+            ),
+        ]
+    )
+    return product_variant
 
 
 @pytest.fixture
@@ -4833,6 +4892,19 @@ def allocations(order_list, stock, channel_USD):
                 order_line=lines[2], stock=stock, quantity_allocated=lines[2].quantity
             ),
         ]
+    )
+
+
+@pytest.fixture
+def preorder_allocation(
+    order_line, preorder_variant_global_and_channel_threshold, channel_PLN
+):
+    variant = preorder_variant_global_and_channel_threshold
+    product_variant_channel_listing = variant.channel_listings.get(channel=channel_PLN)
+    return PreorderAllocation.objects.create(
+        order_line=order_line,
+        product_variant_channel_listing=product_variant_channel_listing,
+        quantity=order_line.quantity,
     )
 
 

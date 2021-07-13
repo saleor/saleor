@@ -36,7 +36,7 @@ from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
-from ..warehouse.availability import check_stock_quantity_bulk
+from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_stocks
 from . import AddressType
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
@@ -255,7 +255,7 @@ def _create_lines_for_order(
     additional_warehouse_lookup = (
         checkout_info.delivery_method_info.get_warehouse_filter_lookup()
     )
-    check_stock_quantity_bulk(
+    check_stock_and_preorder_quantity_bulk(
         variants,
         country_code,
         quantities,
