@@ -1701,7 +1701,7 @@ def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
 @pytest.fixture
 def preorder_variant_global_threshold(product, channel_USD):
     product_variant = ProductVariant.objects.create(
-        product=product, sku="SKU_A", is_preorder=True, preorder_global_threshold=10
+        product=product, sku="SKU_A_P", is_preorder=True, preorder_global_threshold=10
     )
     ProductVariantChannelListing.objects.create(
         variant=product_variant,
@@ -1716,7 +1716,7 @@ def preorder_variant_global_threshold(product, channel_USD):
 @pytest.fixture
 def preorder_variant_channel_threshold(product, channel_USD):
     product_variant = ProductVariant.objects.create(
-        product=product, sku="SKU_B", is_preorder=True, preorder_global_threshold=None
+        product=product, sku="SKU_B_P", is_preorder=True, preorder_global_threshold=None
     )
     ProductVariantChannelListing.objects.create(
         variant=product_variant,
@@ -1732,7 +1732,7 @@ def preorder_variant_channel_threshold(product, channel_USD):
 @pytest.fixture
 def preorder_variant_global_and_channel_threshold(product, channel_USD, channel_PLN):
     product_variant = ProductVariant.objects.create(
-        product=product, sku="SKU_C", is_preorder=True, preorder_global_threshold=10
+        product=product, sku="SKU_C_P", is_preorder=True, preorder_global_threshold=10
     )
     ProductVariantChannelListing.objects.bulk_create(
         [
