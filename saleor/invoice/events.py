@@ -1,20 +1,17 @@
 from typing import Optional
 
 from ..account.models import User
+from ..core.utils.validators import user_is_valid
 from ..order.models import Order
 from .models import Invoice, InvoiceEvent, InvoiceEvents
 
 UserType = Optional[User]
 
 
-def _user_is_valid(user: UserType) -> bool:
-    return bool(user and not user.is_anonymous)
-
-
 def invoice_requested_event(
     *, user: UserType, order: Order, number: str
 ) -> InvoiceEvent:
-    if not _user_is_valid(user):
+    if not user_is_valid(user):
         user = None
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.REQUESTED,
@@ -27,7 +24,7 @@ def invoice_requested_event(
 def invoice_requested_deletion_event(
     *, user: UserType, invoice: Invoice
 ) -> InvoiceEvent:
-    if not _user_is_valid(user):
+    if not user_is_valid(user):
         user = None
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.REQUESTED_DELETION,
@@ -40,7 +37,7 @@ def invoice_requested_deletion_event(
 def invoice_created_event(
     *, user: UserType, invoice: Invoice, number: str, url: str
 ) -> InvoiceEvent:
-    if not _user_is_valid(user):
+    if not user_is_valid(user):
         user = None
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.CREATED,
@@ -52,7 +49,7 @@ def invoice_created_event(
 
 
 def invoice_deleted_event(*, user: UserType, invoice_id: int) -> InvoiceEvent:
-    if not _user_is_valid(user):
+    if not user_is_valid(user):
         user = None
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.DELETED, user=user, parameters={"invoice_id": invoice_id}

@@ -32,6 +32,17 @@ class OrderByIdLoader(DataLoader):
         return [orders.get(order_id) for order_id in keys]
 
 
+class OrdersByUserLoader(DataLoader):
+    context_key = "order_by_user"
+
+    def batch_load(self, keys):
+        orders = Order.objects.filter(user_id__in=keys)
+        orders_by_user_map = defaultdict(list)
+        for order in orders:
+            orders_by_user_map[order.user_id].append(order)
+        return [orders_by_user_map.get(user_id, []) for user_id in keys]
+
+
 class OrderLineByIdLoader(DataLoader):
     context_key = "orderline_by_id"
 

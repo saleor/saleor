@@ -328,3 +328,33 @@ def test_delete_staff_members(
     assert not User.objects.filter(
         id__in=[user.id for user in [staff_user1, staff_user2]]
     ).exists()
+
+
+CUSTOMERS_QUERY = """
+    query accounts {
+        customers(first: 10) {
+            edges {
+                node {
+                    events { id }
+                    orders(first: 10) { edges { node { id } } }
+                    addresses { id }
+                    giftCards(first: 10) { edges { node { id } } }
+                    permissionGroups { id }
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_customers_query(
+    staff_api_client,
+    permission_manage_users,
+    users_for_customers_benchmarks,
+    count_queries,
+):
+    staff_api_client.user.user_permissions.set([permission_manage_users])
+    content = get_graphql_content(staff_api_client.post_graphql(CUSTOMERS_QUERY))
+    assert content["data"]["customers"] is not None
