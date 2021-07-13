@@ -2,8 +2,9 @@ import django_filters
 from django.db.models import Exists, OuterRef, Q, Sum
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
+from ...account.models import User
 from ...discount.models import OrderDiscount
-from ...order.models import Order
+from ...order.models import Order, OrderLine
 from ...payment.models import Payment
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
@@ -75,21 +76,30 @@ def filter_order_search(qs, _, value):
     if payment_id := get_payment_id_from_query(value):
         return filter_order_by_payment(qs, payment_id)
 
+    users = User.objects.filter(
+        Q(email__trigram_similar=value)
+        | Q(first_name__trigram_similar=value)
+        | Q(last_name__trigram_similar=value)
+    ).values("pk")
+
+    filter_option = Q(user_email__trigram_similar=value) | Q(
+        Exists(users.filter(pk=OuterRef("user_id")))
+    )
+
     if order_id := get_order_id_from_query(value):
-        return qs.filter(pk=order_id)
+        filter_option |= Q(pk=order_id)
 
     payments = Payment.objects.filter(psp_reference=value).values("id")
+    filter_option |= Q(Exists(payments.filter(order_id=OuterRef("id"))))
+
     discounts = OrderDiscount.objects.filter(
         Q(name__trigram_similar=value) | Q(translated_name__trigram_similar=value)
     ).values("id")
-    return qs.filter(
-        Q(user_email__trigram_similar=value)
-        | Q(Exists(discounts.filter(order_id=OuterRef("id"))))
-        | Q(user__email__trigram_similar=value)
-        | Q(user__first_name__trigram_similar=value)
-        | Q(user__last_name__trigram_similar=value)
-        | Q(Exists(payments.filter(order_id=OuterRef("id"))))
-    )
+    filter_option |= Q(Exists(discounts.filter(order_id=OuterRef("id"))))
+
+    lines = OrderLine.objects.filter(product_sku=value).values("id")
+    filter_option |= Q(Exists(lines.filter(order_id=OuterRef("id"))))
+    return qs.filter(filter_option)
 
 
 def filter_channels(qs, _, values):

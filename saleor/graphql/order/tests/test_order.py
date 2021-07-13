@@ -24,11 +24,12 @@ from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
-from ....order.models import Order, OrderEvent
+from ....order.models import Order, OrderEvent, OrderLine
 from ....order.notifications import get_default_order_payload
 from ....payment import ChargeStatus, PaymentError
 from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
+from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
@@ -5706,6 +5707,7 @@ def test_query_draft_orders_with_sort(
         ({"search": "Wade"}, 1),
         ({"search": ""}, 3),
         ({"search": "ExternalID"}, 1),
+        ({"search": "SKU_A"}, 1),
     ],
 )
 def test_orders_query_with_filter_search(
@@ -5716,6 +5718,8 @@ def test_orders_query_with_filter_search(
     permission_manage_orders,
     customer_user,
     channel_USD,
+    product,
+    variant,
 ):
     orders = Order.objects.bulk_create(
         [
@@ -5761,6 +5765,27 @@ def test_orders_query_with_filter_search(
         order=order_with_payment, psp_reference="ExternalID"
     )
     payment.transactions.create(gateway_response={}, is_success=True)
+
+    order_with_orderline = orders[2]
+    channel = order_with_orderline.channel
+    channel_listening = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listening)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    order_with_orderline.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=3,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * 3,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * 3,
+        tax_rate=Decimal("0.23"),
+    )
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
@@ -5826,6 +5851,128 @@ def test_orders_query_with_filter_search_by_id_with_hash(
     variables = {"filter": {"search": f"#{order.pk}"}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
+
+
+def test_orders_query_with_filter_search_by_product_sku_with_multiple_identic_sku(
+    orders_query_with_filter, staff_api_client, permission_manage_orders, allocations
+):
+    variables = {"filter": {"search": allocations[0].order_line.product_sku}}
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 3
+
+
+def test_order_query_with_filter_search_by_product_sku_order_line(
+    orders_query_with_filter, staff_api_client, permission_manage_orders, order_line
+):
+    query = """
+      query ($filter: OrderFilterInput!, ) {
+        orders(first: 5, filter:$filter) {
+          totalCount
+          edges {
+            node {
+              id
+              lines{
+                   productSku
+              }
+            }
+          }
+        }
+      }
+    """
+
+    variables = {"filter": {"search": order_line.product_sku}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"][0]
+    lines = orders["node"]["lines"][0]["productSku"]
+    assert content["data"]["orders"]["totalCount"] == 1
+    assert order_line.product_sku in lines
+
+
+def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    product,
+    channel_USD,
+    order,
+):
+    variants = ProductVariant.objects.bulk_create(
+        [
+            ProductVariant(product=product, sku="Var1"),
+            ProductVariant(product=product, sku="Var2"),
+        ]
+    )
+    ProductVariantChannelListing.objects.bulk_create(
+        [
+            ProductVariantChannelListing(
+                variant=variants[0],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                cost_price_amount=Decimal(1),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[1],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                cost_price_amount=Decimal(1),
+                currency=channel_USD.currency_code,
+            ),
+        ]
+    )
+    product = product
+    channel = order.channel
+    channel_listening = variants[0].channel_listings.get(channel=channel)
+    net = variants[0].get_price(product, [], channel, channel_listening)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+
+    lines = order.lines.bulk_create(
+        [
+            OrderLine(
+                order_id=order.id,
+                product_name=str(product),
+                variant_name=str(variants[0]),
+                product_sku=variants[0].sku,
+                is_shipping_required=variants[0].is_shipping_required(),
+                quantity=quantity,
+                variant=variants[0],
+                unit_price=unit_price,
+                total_price=unit_price * quantity,
+                undiscounted_unit_price=unit_price,
+                undiscounted_total_price=unit_price * quantity,
+                tax_rate=Decimal("0.23"),
+            ),
+            OrderLine(
+                order_id=order.id,
+                product_name=str(product),
+                variant_name=str(variants[1]),
+                product_sku=variants[1].sku,
+                is_shipping_required=variants[1].is_shipping_required(),
+                quantity=quantity,
+                variant=variants[1],
+                unit_price=unit_price,
+                total_price=unit_price * quantity,
+                undiscounted_unit_price=unit_price,
+                undiscounted_total_price=unit_price * quantity,
+                tax_rate=Decimal("0.23"),
+            ),
+        ]
+    )
+    variables = {"filter": {"search": lines[0].product_sku}}
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == 1
 
