@@ -2823,11 +2823,8 @@ def order_with_lines(
 @pytest.fixture
 def order_with_lines_cc(
     warehouse_for_cc,
-    warehouse,
     channel_USD,
     customer_user,
-    order_with_lines,
-    shipping_zone,
 ):
     address = customer_user.default_billing_address.get_copy()
 
@@ -2841,97 +2838,13 @@ def order_with_lines_cc(
         origin=OrderOrigin.CHECKOUT,
     )
 
-    product = Product.objects.get(slug="test-product-8")
-    ProductChannelListing.objects.get(
-        product_id=product.id,
-        channel_id=channel_USD.id,
-    )
-    variant = ProductVariant.objects.get(sku="SKU_AA")
-    channel_listing = ProductVariantChannelListing.objects.get(
-        variant_id=variant.id,
-        channel_id=channel_USD.id,
-    )
-    stock = Stock.objects.get(warehouse=warehouse, product_variant=variant)
-    net = variant.get_price(product, [], channel_USD, channel_listing)
-    currency = net.currency
-    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
-    quantity = 3
-    unit_price = TaxedMoney(net=net, gross=gross)
-    line = order.lines.create(
-        product_name=str(variant.product),
-        variant_name=str(variant),
-        product_sku=variant.sku,
-        is_shipping_required=variant.is_shipping_required(),
-        quantity=quantity,
-        variant=variant,
-        unit_price=unit_price,
-        total_price=unit_price * quantity,
-        undiscounted_unit_price=unit_price,
-        undiscounted_total_price=unit_price * quantity,
-        tax_rate=Decimal("0.23"),
-    )
-    Allocation.objects.create(
-        order_line=line, stock=stock, quantity_allocated=line.quantity
-    )
-
-    product = Product.objects.get(slug="test-product-9")
-    ProductChannelListing.objects.get(product_id=product.id, channel_id=channel_USD.id)
-    variant = ProductVariant.objects.get(sku="SKU_B")
-    channel_listing = ProductVariantChannelListing.objects.get(
-        variant_id=variant.id,
-        channel_id=channel_USD.id,
-    )
-    stock = Stock.objects.get(product_variant=variant, warehouse=warehouse)
-
-    net = variant.get_price(product, [], channel_USD, channel_listing)
-    currency = net.currency
-    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
-    unit_price = TaxedMoney(net=net, gross=gross)
-    quantity = 2
-    line = order.lines.create(
-        product_name=str(variant.product),
-        variant_name=str(variant),
-        product_sku=variant.sku,
-        is_shipping_required=variant.is_shipping_required(),
-        quantity=quantity,
-        variant=variant,
-        unit_price=unit_price,
-        total_price=unit_price * quantity,
-        undiscounted_unit_price=unit_price,
-        undiscounted_total_price=unit_price * quantity,
-        tax_rate=Decimal("0.23"),
-    )
-    Allocation.objects.create(
-        order_line=line, stock=stock, quantity_allocated=line.quantity
-    )
-
-    order.shipping_address = order.billing_address.get_copy()
-    order.channel = channel_USD
-
-    shipping_method = shipping_zone.shipping_methods.first()
-    shipping_price = shipping_method.channel_listings.get(channel_id=channel_USD.id)
-    order.shipping_method_name = shipping_method.name
-    order.shipping_method = shipping_method
     order.collection_point = warehouse_for_cc
-    net = shipping_price.get_total()
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
-    order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.save()
 
     recalculate_order(order)
 
     order.refresh_from_db()
     return order
-
-
-@pytest.fixture(params=["regular", "click_and_collect"])
-def order_param(request, order_with_lines, order_with_lines_cc):
-    if request.param == "regular":
-        return order_with_lines, request.param
-    elif request.param == "click_and_collect":
-        return order_with_lines_cc, request.param
-    else:
-        raise ValueError("Internal test error")
 
 
 @pytest.fixture
@@ -4430,6 +4343,7 @@ def warehouse_for_cc(address, product_variant_list, shipping_zones):
         name="Local Warehouse",
         slug="local-warehouse",
         email="local@example.com",
+        is_private=False,
         click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
     )
     warehouse.shipping_zones.add(shipping_zones[0])
