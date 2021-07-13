@@ -62,7 +62,7 @@ def test_get_single_attribute_by_slug_as_customer(
 
 
 QUERY_ATTRIBUTE = """
-    query($id: ID!) {
+    query($id: ID!, $query: String) {
         attribute(id: $id) {
             id
             slug
@@ -71,7 +71,7 @@ QUERY_ATTRIBUTE = """
             entityType
             type
             unit
-            choices(first: 10) {
+            choices(first: 10, filter: {search: $query}) {
                 edges {
                     node {
                         slug
@@ -280,7 +280,7 @@ def test_get_single_reference_attribute_by_staff(
     )
     query = QUERY_ATTRIBUTE
     content = get_graphql_content(
-        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id, "query": ""})
     )
 
     assert content["data"]["attribute"], "Should have found an attribute"
@@ -317,6 +317,7 @@ def test_get_single_reference_attribute_by_staff(
         content["data"]["attribute"]["entityType"]
         == product_type_page_reference_attribute.entity_type.upper()
     )
+    assert not content["data"]["attribute"]["choices"]["edges"]
 
 
 def test_get_single_numeric_attribute_by_staff(
