@@ -553,8 +553,8 @@ GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
     "MIDDLEWARE": [
-        "saleor.graphql.middleware.JWTMiddleware",
         "saleor.graphql.middleware.app_middleware",
+        "saleor.graphql.middleware.JWTMiddleware",
     ],
 }
 
