@@ -226,6 +226,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unify checkout identifier in checkout mutations and queries - #7511 by @IKarbowiak
 - Use root level channel argument for filtering and sorting - #7374 by @IKarbowiak
   - drop `channel` field from filters and sorters
+- Drop top-level `checkoutLine` query from the schema with related resolver - #3832 by @dexon44
 
 ### Other
 
