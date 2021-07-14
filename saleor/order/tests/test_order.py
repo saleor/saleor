@@ -678,7 +678,12 @@ def test_get_voucher_discount_for_order_voucher_validation(
     validate_voucher_in_order(order_with_lines)
 
     mock_validate_voucher.assert_called_once_with(
-        voucher, subtotal.gross, quantity, customer_email, order_with_lines.channel
+        voucher,
+        subtotal,
+        quantity,
+        customer_email,
+        order_with_lines.channel,
+        order_with_lines.user,
     )
 
 

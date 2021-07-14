@@ -1,3 +1,5 @@
+import os
+from io import BytesIO
 from unittest.mock import patch
 
 import django_filters
@@ -5,11 +7,14 @@ import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from graphene import InputField
+from PIL import Image
 
 from ....core.utils.validators import get_oembed_data
 from ....product import ProductMediaTypes
+from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 from ...utils import requestor_is_superuser
@@ -19,9 +24,11 @@ from ..filters import EnumFilter
 from ..mutations import BaseMutation
 from ..types import FilterInputObjectType
 from ..utils import (
+    add_hash_to_file_name,
     clean_seo_fields,
     get_duplicated_values,
     snake_to_camel_case,
+    validate_image_file,
     validate_slug_and_generate_if_needed,
 )
 from . import ErrorTest
@@ -225,6 +232,84 @@ def test_validate_slug_and_generate_if_needed_generate_slug(cleaned_input):
     validate_slug_and_generate_if_needed(category, "name", cleaned_input)
 
 
+def test_validate_image_file():
+    # given
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="JPEG")
+    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
+    field = "image"
+
+    # when
+    result = validate_image_file(img, field, ProductErrorCode)
+
+    # then
+    assert not result
+
+
+def test_validate_image_file_invalid_content_type():
+    # given
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="JPEG")
+    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "text/plain")
+    field = "image"
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        validate_image_file(img, field, ProductErrorCode)
+
+    # then
+    assert exc.value.args[0][field].message == "Invalid file type."
+
+
+def test_validate_image_file_no_file():
+    # given
+    field = "image"
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        validate_image_file(None, field, ProductErrorCode)
+
+    # then
+    assert exc.value.args[0][field].message == "File is required."
+
+
+def test_validate_image_file_no_file_extension():
+    # given
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="JPEG")
+    img = SimpleUploadedFile("product", img_data.getvalue(), "image/jpeg")
+    field = "image"
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        validate_image_file(img, field, ProductErrorCode)
+
+    # then
+    assert exc.value.args[0][field].message == "Lack of file extension."
+
+
+def test_validate_image_file_invalid_file_extension():
+    # given
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="JPEG")
+    img = SimpleUploadedFile("product.txt", img_data.getvalue(), "image/jpeg")
+    field = "image"
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        validate_image_file(img, field, ProductErrorCode)
+
+    # then
+    assert (
+        exc.value.args[0][field].message
+        == "Invalid file extension. Image file required."
+    )
+
+
 @pytest.mark.parametrize(
     "value, count, product_indexes",
     [
@@ -322,3 +407,14 @@ def test_get_oembed_data_unsupported_media_provider(url):
         ValidationError, match="Unsupported media provider or incorrect URL."
     ):
         get_oembed_data(url, "media_url")
+
+
+def test_add_hash_to_file_name(image, media_root):
+    previous_file_name = image._name
+
+    add_hash_to_file_name(image)
+
+    assert previous_file_name != image._name
+    file_name, format = os.path.splitext(image._name)
+    assert image._name.startswith(file_name)
+    assert image._name.endswith(format)

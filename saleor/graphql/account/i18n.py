@@ -54,7 +54,10 @@ class I18nMixin:
         errors_dict = address_form.errors.as_data()
         for errors in errors_dict.values():
             for error in errors:
-                error.params = params
+                if not error.params:
+                    error.params = params
+                else:
+                    error.params.update(params)
         return errors_dict
 
     @classmethod

@@ -73,6 +73,7 @@ from ..payment.models import Payment
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
+from ..plugins.webhook.utils import to_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import (
     Category,
@@ -103,7 +104,7 @@ from ..shipping.models import (
 from ..site.models import SiteSettings
 from ..warehouse.models import Allocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
-from ..webhook.models import Webhook
+from ..webhook.models import Webhook, WebhookEvent
 from ..wishlist.models import Wishlist
 from .utils import dummy_editorjs
 
@@ -795,6 +796,48 @@ def color_attribute(db):
 
 
 @pytest.fixture
+def attribute_choices_for_sorting(db):
+    attribute = Attribute.objects.create(
+        slug="sorting",
+        name="Sorting",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(attribute=attribute, name="Global", slug="summer")
+    AttributeValue.objects.create(attribute=attribute, name="Apex", slug="zet")
+    AttributeValue.objects.create(attribute=attribute, name="Police", slug="absorb")
+    return attribute
+
+
+@pytest.fixture
+def boolean_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="boolean",
+        name="Boolean",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.BOOLEAN,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=f"{attribute.name}: Yes",
+        slug=f"{attribute.id}_true",
+        boolean=True,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=f"{attribute.name}: No",
+        slug=f"{attribute.id}_false",
+        boolean=False,
+    )
+    return attribute
+
+
+@pytest.fixture
 def rich_text_attribute(db):
     attribute = Attribute.objects.create(
         slug="text",
@@ -813,6 +856,26 @@ def rich_text_attribute(db):
         rich_text=dummy_editorjs(text),
     )
     return attribute
+
+
+@pytest.fixture
+def rich_text_attribute_with_many_values(rich_text_attribute):
+    attribute = rich_text_attribute
+    values = []
+    for i in range(5):
+        text = f"Rich text attribute content{i}."
+        values.append(
+            AttributeValue(
+                attribute=attribute,
+                name=truncatechars(
+                    clean_editor_js(dummy_editorjs(text), to_string=True), 50
+                ),
+                slug=f"instance_{attribute.id}_{i}",
+                rich_text=dummy_editorjs(text),
+            )
+        )
+    AttributeValue.objects.bulk_create(values)
+    return rich_text_attribute
 
 
 @pytest.fixture
@@ -2876,6 +2939,7 @@ def dummy_gateway_config():
 @pytest.fixture
 def dummy_payment_data(payment_dummy):
     return PaymentData(
+        gateway=payment_dummy.gateway,
         amount=Decimal(10),
         currency="USD",
         graphql_payment_id=graphene.Node.to_global_id("Payment", payment_dummy.pk),
@@ -2886,6 +2950,12 @@ def dummy_payment_data(payment_dummy):
         customer_ip_address=None,
         customer_email="example@test.com",
     )
+
+
+@pytest.fixture
+def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
+    dummy_payment_data.gateway = to_payment_app_id(payment_app, "credit-card")
+    return dummy_payment_data
 
 
 @pytest.fixture
@@ -3007,6 +3077,11 @@ def permission_manage_webhooks():
 @pytest.fixture
 def permission_manage_channels():
     return Permission.objects.get(codename="manage_channels")
+
+
+@pytest.fixture
+def permission_manage_payments():
+    return Permission.objects.get(codename="handle_payments")
 
 
 @pytest.fixture
@@ -3616,6 +3691,26 @@ def other_description_json():
 def app(db):
     app = App.objects.create(name="Sample app objects", is_active=True)
     app.tokens.create(name="Default")
+    return app
+
+
+@pytest.fixture
+def payment_app(db, permission_manage_payments):
+    app = App.objects.create(name="Payment App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment-webhook-1",
+        app=app,
+        target_url="https://payment-gateway.com/api/",
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in WebhookEventType.PAYMENT_EVENTS
+        ]
+    )
     return app
 
 

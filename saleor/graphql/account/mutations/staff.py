@@ -20,7 +20,7 @@ from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Upload
 from ...core.types.common import AccountError, StaffError
-from ...core.utils import validate_image_file
+from ...core.utils import add_hash_to_file_name, validate_image_file
 from ...decorators import staff_member_required
 from ...utils.validators import check_for_duplicates
 from ..utils import (
@@ -533,8 +533,8 @@ class UserAvatarUpdate(BaseMutation):
     def perform_mutation(cls, _root, info, image):
         user = info.context.user
         image_data = info.context.FILES.get(image)
-        validate_image_file(image_data, "image")
-
+        validate_image_file(image_data, "image", AccountErrorCode)
+        add_hash_to_file_name(image_data)
         if user.avatar:
             user.avatar.delete_sized_images()
             user.avatar.delete()

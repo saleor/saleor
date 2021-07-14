@@ -17,7 +17,6 @@ from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
 
-from ..account.models import Address
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions import OrderPermissions
@@ -37,7 +36,7 @@ from . import FulfillmentStatus, SubscriptionPeriod, SubscriptionStatus, OrderEv
 class OrderQueryset(models.QuerySet):
     def get_by_checkout_token(self, token):
         """Return non-draft order with matched checkout token."""
-        return self.confirmed().filter(checkout_token=token).first()
+        return self.non_draft().filter(checkout_token=token).first()
 
     def confirmed(self):
         """Return orders that aren't draft or unconfirmed."""
@@ -101,10 +100,18 @@ class Order(ModelWithMetadata):
     )
     tracking_client_id = models.CharField(max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
-        Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
+        "account.Address",
+        related_name="+",
+        editable=False,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     shipping_address = models.ForeignKey(
-        Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
+        "account.Address",
+        related_name="+",
+        editable=False,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     user_email = models.EmailField(blank=True, default="")
     original = models.ForeignKey(
@@ -229,7 +236,8 @@ class Order(ModelWithMetadata):
         default=zero_weight,
     )
     redirect_url = models.URLField(blank=True, null=True)
-    objects = OrderQueryset.as_manager()
+
+    objects = models.Manager.from_queryset(OrderQueryset)()
 
     class Meta:
         ordering = ("-pk",)
@@ -521,7 +529,7 @@ class OrderLine(models.Model):
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
 
-    objects = OrderLineQueryset.as_manager()
+    objects = models.Manager.from_queryset(OrderLineQueryset)()
 
     class Meta:
         ordering = ("pk",)

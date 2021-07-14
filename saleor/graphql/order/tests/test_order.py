@@ -24,11 +24,12 @@ from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
-from ....order.models import Order, OrderEvent
+from ....order.models import Order, OrderEvent, OrderLine
 from ....order.notifications import get_default_order_payload
 from ....payment import ChargeStatus, PaymentError
 from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
+from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
@@ -39,7 +40,11 @@ from ...order.mutations.orders import (
     try_payment_action,
 )
 from ...payment.types import PaymentChargeStatusEnum
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ..utils import validate_draft_order
 
 
@@ -1166,6 +1171,40 @@ def test_related_order_events_query(
             assert events_data[0]["relatedOrder"]["id"] == related_order_id
 
 
+def test_order_events_without_permission(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines_and_events,
+    customer_user,
+):
+    query = """
+        query OrdersQuery {
+            orders(first: 2) {
+                edges {
+                    node {
+                        id
+                        events {
+                            user {
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    last_event = order_with_lines_and_events.events.last()
+    last_event.user = customer_user
+    last_event.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    response_events = content["data"]["orders"]["edges"][0]["node"]["events"]
+    assert response_events[-1]["user"] is None
+
+
 def test_payment_information_order_events_query(
     staff_api_client, permission_manage_orders, order, payment_dummy, staff_user
 ):
@@ -1252,6 +1291,40 @@ def test_query_order_as_app(app_api_client, permission_manage_orders, order):
     content = get_graphql_content(response)
     order_data = content["data"]["order"]
     assert order_data["token"] == order.token
+
+
+QUERY_ORDER_BY_ID = """
+    query OrderQuery($id: ID!) {
+        order(id: $id) {
+            number
+        }
+    }
+"""
+
+
+def test_staff_query_page_type_by_invalid_id(
+    staff_api_client, order, permission_manage_orders
+):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["order"] is None
+
+
+def test_staff_query_page_type_with_invalid_object_type(
+    staff_api_client, order, permission_manage_orders
+):
+    variables = {"id": graphene.Node.to_global_id("Page", order.pk)}
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["order"] is None
 
 
 DRAFT_ORDER_CREATE_MUTATION = """
@@ -2286,6 +2359,41 @@ def test_draft_order_update_tax_error(
     assert not order.customer_note
 
 
+def test_draft_order_update_invalid_address(
+    staff_api_client,
+    permission_manage_orders,
+    draft_order,
+    voucher,
+    graphql_address_data,
+):
+    order = draft_order
+    assert not order.voucher
+    assert not order.customer_note
+    graphql_address_data["postalCode"] = "TEST TEST invalid postal code 12345"
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+
+    variables = {
+        "id": order_id,
+        "voucher": voucher_id,
+        "shippingAddress": graphql_address_data,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert len(data["errors"]) == 2
+    assert not data["order"]
+    assert {error["code"] for error in data["errors"]} == {
+        OrderErrorCode.INVALID.name,
+        OrderErrorCode.REQUIRED.name,
+    }
+    assert {error["field"] for error in data["errors"]} == {"postalCode"}
+
+
 def test_draft_order_update_doing_nothing_generates_no_events(
     staff_api_client, permission_manage_orders, order_with_lines
 ):
@@ -2337,6 +2445,14 @@ ORDER_CAN_FINALIZE_QUERY = """
     query OrderQuery($id: ID!){
         order(id: $id){
             canFinalize
+            errors {
+                code
+                field
+                message
+                warehouse
+                orderLines
+                variants
+            }
         }
     }
 """
@@ -2349,6 +2465,7 @@ def test_can_finalize_order(staff_api_client, permission_manage_orders, draft_or
     response = staff_api_client.post_graphql(ORDER_CAN_FINALIZE_QUERY, variables)
     content = get_graphql_content(response)
     assert content["data"]["order"]["canFinalize"] is True
+    assert not content["data"]["order"]["errors"]
 
 
 def test_can_finalize_order_invalid_shipping_method_set(
@@ -2361,6 +2478,13 @@ def test_can_finalize_order_invalid_shipping_method_set(
     response = staff_api_client.post_graphql(ORDER_CAN_FINALIZE_QUERY, variables)
     content = get_graphql_content(response)
     assert content["data"]["order"]["canFinalize"] is False
+    errors = content["data"]["order"]["errors"]
+    assert len(errors) == 3
+    assert {error["code"] for error in errors} == {
+        OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name,
+        OrderErrorCode.INSUFFICIENT_STOCK.name,
+    }
+    assert {error["field"] for error in errors} == {"shipping", "lines"}
 
 
 def test_can_finalize_order_no_order_lines(
@@ -2374,6 +2498,10 @@ def test_can_finalize_order_no_order_lines(
     response = staff_api_client.post_graphql(ORDER_CAN_FINALIZE_QUERY, variables)
     content = get_graphql_content(response)
     assert content["data"]["order"]["canFinalize"] is False
+    errors = content["data"]["order"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "lines"
 
 
 def test_can_finalize_order_product_unavailable_for_purchase(
@@ -2385,7 +2513,8 @@ def test_can_finalize_order_product_unavailable_for_purchase(
     order.status = OrderStatus.DRAFT
     order.save(update_fields=["status"])
 
-    product = order.lines.first().variant.product
+    line = order.lines.first()
+    product = line.variant.product
     product.channel_listings.update(available_for_purchase=None)
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -2398,6 +2527,11 @@ def test_can_finalize_order_product_unavailable_for_purchase(
     # then
     content = get_graphql_content(response)
     assert content["data"]["order"]["canFinalize"] is False
+    errors = content["data"]["order"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["orderLines"] == [graphene.Node.to_global_id("OrderLine", line.pk)]
 
 
 def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
@@ -2409,7 +2543,8 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     order.status = OrderStatus.DRAFT
     order.save(update_fields=["status"])
 
-    product = order.lines.first().variant.product
+    line = order.lines.first()
+    product = line.variant.product
     product.channel_listings.update(
         available_for_purchase=date.today() + timedelta(days=1)
     )
@@ -2424,6 +2559,11 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     # then
     content = get_graphql_content(response)
     assert content["data"]["order"]["canFinalize"] is False
+    errors = content["data"]["order"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["orderLines"] == [graphene.Node.to_global_id("OrderLine", line.pk)]
 
 
 def test_validate_draft_order(draft_order):
@@ -2480,7 +2620,7 @@ def test_validate_draft_order_with_unpublished_product(draft_order):
     error = e.value.error_dict["lines"][0]
 
     assert error.message == msg
-    assert error.code == OrderErrorCode.PRODUCT_NOT_PUBLISHED
+    assert error.code == OrderErrorCode.PRODUCT_NOT_PUBLISHED.value
 
 
 def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order):
@@ -2496,7 +2636,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     error = e.value.error_dict["lines"][0]
 
     assert error.message == msg
-    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE
+    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.value
 
 
 def test_validate_draft_order_with_product_available_for_purchase_in_future(
@@ -2516,7 +2656,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     error = e.value.error_dict["lines"][0]
 
     assert error.message == msg
-    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE
+    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.value
 
 
 def test_validate_draft_order_out_of_stock_variant(draft_order):
@@ -2542,7 +2682,7 @@ def test_validate_draft_order_no_shipping_address(draft_order):
         validate_draft_order(order, "US")
     error = e.value.error_dict["order"][0]
     assert error.message == "Can't finalize draft with no shipping address."
-    assert error.code.value == OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value
+    assert error.code == OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value
 
 
 def test_validate_draft_order_no_billing_address(draft_order):
@@ -2553,7 +2693,7 @@ def test_validate_draft_order_no_billing_address(draft_order):
         validate_draft_order(order, "US")
     error = e.value.error_dict["order"][0]
     assert error.message == "Can't finalize draft with no billing address."
-    assert error.code.value == OrderErrorCode.BILLING_ADDRESS_NOT_SET.value
+    assert error.code == OrderErrorCode.BILLING_ADDRESS_NOT_SET.value
 
 
 def test_validate_draft_order_no_shipping_method(draft_order):
@@ -2564,7 +2704,7 @@ def test_validate_draft_order_no_shipping_method(draft_order):
         validate_draft_order(order, "US")
     error = e.value.error_dict["shipping"][0]
     assert error.message == "Shipping method is required."
-    assert error.code.value == OrderErrorCode.SHIPPING_METHOD_REQUIRED.value
+    assert error.code == OrderErrorCode.SHIPPING_METHOD_REQUIRED.value
 
 
 def test_validate_draft_order_no_shipping_method_shipping_not_required(draft_order):
@@ -2763,11 +2903,13 @@ def test_draft_order_complete_channel_without_shipping_zones(
     )
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
-    assert len(data["errors"]) == 1
-    assert (
-        data["errors"][0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
-    )
-    assert data["errors"][0]["field"] == "shipping"
+
+    assert len(data["errors"]) == 3
+    assert {error["code"] for error in data["errors"]} == {
+        OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name,
+        OrderErrorCode.INSUFFICIENT_STOCK.name,
+    }
+    assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
 
 
 def test_draft_order_complete_product_without_inventory_tracking(
@@ -2847,11 +2989,13 @@ def test_draft_order_complete_not_available_shipping_method(
     data = content["data"]["draftOrderComplete"]["order"]
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
-    assert len(data["errors"]) == 1
-    assert (
-        data["errors"][0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
-    )
-    assert data["errors"][0]["field"] == "shipping"
+
+    assert len(data["errors"]) == 3
+    assert {error["code"] for error in data["errors"]} == {
+        OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name,
+        OrderErrorCode.INSUFFICIENT_STOCK.name,
+    }
+    assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
 
 
 def test_draft_order_complete_out_of_stock_variant(
@@ -5563,6 +5707,7 @@ def test_query_draft_orders_with_sort(
         ({"search": "Wade"}, 1),
         ({"search": ""}, 3),
         ({"search": "ExternalID"}, 1),
+        ({"search": "SKU_A"}, 1),
     ],
 )
 def test_orders_query_with_filter_search(
@@ -5573,6 +5718,8 @@ def test_orders_query_with_filter_search(
     permission_manage_orders,
     customer_user,
     channel_USD,
+    product,
+    variant,
 ):
     orders = Order.objects.bulk_create(
         [
@@ -5618,6 +5765,27 @@ def test_orders_query_with_filter_search(
         order=order_with_payment, psp_reference="ExternalID"
     )
     payment.transactions.create(gateway_response={}, is_success=True)
+
+    order_with_orderline = orders[2]
+    channel = order_with_orderline.channel
+    channel_listening = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listening)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    order_with_orderline.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=3,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * 3,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * 3,
+        tax_rate=Decimal("0.23"),
+    )
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
@@ -5683,6 +5851,128 @@ def test_orders_query_with_filter_search_by_id_with_hash(
     variables = {"filter": {"search": f"#{order.pk}"}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
+
+
+def test_orders_query_with_filter_search_by_product_sku_with_multiple_identic_sku(
+    orders_query_with_filter, staff_api_client, permission_manage_orders, allocations
+):
+    variables = {"filter": {"search": allocations[0].order_line.product_sku}}
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 3
+
+
+def test_order_query_with_filter_search_by_product_sku_order_line(
+    orders_query_with_filter, staff_api_client, permission_manage_orders, order_line
+):
+    query = """
+      query ($filter: OrderFilterInput!, ) {
+        orders(first: 5, filter:$filter) {
+          totalCount
+          edges {
+            node {
+              id
+              lines{
+                   productSku
+              }
+            }
+          }
+        }
+      }
+    """
+
+    variables = {"filter": {"search": order_line.product_sku}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"][0]
+    lines = orders["node"]["lines"][0]["productSku"]
+    assert content["data"]["orders"]["totalCount"] == 1
+    assert order_line.product_sku in lines
+
+
+def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    product,
+    channel_USD,
+    order,
+):
+    variants = ProductVariant.objects.bulk_create(
+        [
+            ProductVariant(product=product, sku="Var1"),
+            ProductVariant(product=product, sku="Var2"),
+        ]
+    )
+    ProductVariantChannelListing.objects.bulk_create(
+        [
+            ProductVariantChannelListing(
+                variant=variants[0],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                cost_price_amount=Decimal(1),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[1],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                cost_price_amount=Decimal(1),
+                currency=channel_USD.currency_code,
+            ),
+        ]
+    )
+    product = product
+    channel = order.channel
+    channel_listening = variants[0].channel_listings.get(channel=channel)
+    net = variants[0].get_price(product, [], channel, channel_listening)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+
+    lines = order.lines.bulk_create(
+        [
+            OrderLine(
+                order_id=order.id,
+                product_name=str(product),
+                variant_name=str(variants[0]),
+                product_sku=variants[0].sku,
+                is_shipping_required=variants[0].is_shipping_required(),
+                quantity=quantity,
+                variant=variants[0],
+                unit_price=unit_price,
+                total_price=unit_price * quantity,
+                undiscounted_unit_price=unit_price,
+                undiscounted_total_price=unit_price * quantity,
+                tax_rate=Decimal("0.23"),
+            ),
+            OrderLine(
+                order_id=order.id,
+                product_name=str(product),
+                variant_name=str(variants[1]),
+                product_sku=variants[1].sku,
+                is_shipping_required=variants[1].is_shipping_required(),
+                quantity=quantity,
+                variant=variants[1],
+                unit_price=unit_price,
+                total_price=unit_price * quantity,
+                undiscounted_unit_price=unit_price,
+                undiscounted_total_price=unit_price * quantity,
+                tax_rate=Decimal("0.23"),
+            ),
+        ]
+    )
+    variables = {"filter": {"search": lines[0].product_sku}}
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == 1
 

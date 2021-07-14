@@ -15,6 +15,7 @@ from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
+from ....graphql.utils import get_user_or_app_from_context
 from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
@@ -34,17 +35,19 @@ SHIPPING_ADDRESS_FIELD = "default_shipping_address"
 INVALID_TOKEN = "Invalid or expired token."
 
 
-def can_edit_address(user, address):
-    """Determine whether the user can edit the given address.
+def can_edit_address(context, address):
+    """Determine whether the user or app can edit the given address.
 
     This method assumes that an address can be edited by:
-    - users with proper permissions (staff)
+    - apps with manage users permission
+    - staff with manage users permission
     - customers associated to the given address.
     """
-    return (
-        user.has_perm(AccountPermissions.MANAGE_USERS)
-        or user.addresses.filter(pk=address.pk).exists()
-    )
+    requester = get_user_or_app_from_context(context)
+    if requester.has_perm(AccountPermissions.MANAGE_USERS):
+        return True
+    if not context.app:
+        return requester.addresses.filter(pk=address.pk).exists()
 
 
 class SetPassword(CreateToken):
@@ -72,7 +75,7 @@ class SetPassword(CreateToken):
         try:
             cls._set_password_for_user(email, password, token)
         except ValidationError as e:
-            errors = validation_error_to_error_type(e)
+            errors = validation_error_to_error_type(e, AccountError)
             return cls.handle_typed_errors(errors)
         return super().mutate(root, info, **data)
 
@@ -293,7 +296,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
     def clean_input(cls, info, instance, data):
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
-        if not can_edit_address(info.context.user, instance):
+        if not can_edit_address(info.context, instance):
             raise PermissionDenied()
         return super().clean_input(info, instance, data)
 
@@ -333,7 +336,7 @@ class BaseAddressDelete(ModelDeleteMutation):
     def clean_instance(cls, info, instance):
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
-        if not can_edit_address(info.context.user, instance):
+        if not can_edit_address(info.context, instance):
             raise PermissionDenied()
         return super().clean_instance(info, instance)
 

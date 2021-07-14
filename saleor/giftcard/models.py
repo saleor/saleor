@@ -54,7 +54,7 @@ class GiftCard(models.Model):
         amount_field="current_balance_amount", currency_field="currency"
     )
 
-    objects = GiftCardQueryset.as_manager()
+    objects = models.Manager.from_queryset(GiftCardQueryset)()
 
     class Meta:
         ordering = ("code",)

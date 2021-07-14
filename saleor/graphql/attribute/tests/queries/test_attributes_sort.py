@@ -146,3 +146,50 @@ def test_attributes_of_products_are_sorted(
 
     # Compare the received data against our expectations
     assert actual_order == expected_order
+
+
+ATTRIBUTE_CHOICES_SORT_QUERY = """
+query($sortBy: AttributeChoicesSortingInput) {
+    attributes(first: 10) {
+        edges {
+            node {
+                slug
+                choices(first: 10, sortBy: $sortBy) {
+                    edges {
+                        node {
+                            name
+                            slug
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+"""
+
+
+def test_sort_attribute_choices_by_slug(api_client, attribute_choices_for_sorting):
+    variables = {"sortBy": {"field": "SLUG", "direction": "ASC"}}
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTE_CHOICES_SORT_QUERY, variables)
+    )["data"]["attributes"]
+    choices = attributes["edges"][0]["node"]["choices"]["edges"]
+
+    assert len(choices) == 3
+    assert choices[0]["node"]["slug"] == "absorb"
+    assert choices[1]["node"]["slug"] == "summer"
+    assert choices[2]["node"]["slug"] == "zet"
+
+
+def test_sort_attribute_choices_by_name(api_client, attribute_choices_for_sorting):
+    variables = {"sortBy": {"field": "NAME", "direction": "ASC"}}
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTE_CHOICES_SORT_QUERY, variables)
+    )["data"]["attributes"]
+    choices = attributes["edges"][0]["node"]["choices"]["edges"]
+
+    assert len(choices) == 3
+    assert choices[0]["node"]["name"] == "Apex"
+    assert choices[1]["node"]["name"] == "Global"
+    assert choices[2]["node"]["name"] == "Police"

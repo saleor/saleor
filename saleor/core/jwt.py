@@ -167,11 +167,15 @@ def get_user_from_access_payload(payload: dict) -> Optional[User]:
         )
     permissions = payload.get(PERMISSIONS_FIELD, None)
     user = get_user_from_payload(payload)
-    if user and permissions is not None:
-        token_permissions = get_permissions_from_names(permissions)
-        token_codenames = [perm.codename for perm in token_permissions]
-        user.effective_permissions = get_permissions_from_codenames(token_codenames)
-        user.is_staff = True if user.effective_permissions else False
+    if user:
+        if permissions is not None:
+            token_permissions = get_permissions_from_names(permissions)
+            token_codenames = [perm.codename for perm in token_permissions]
+            user.effective_permissions = get_permissions_from_codenames(token_codenames)
+            user.is_staff = True if user.effective_permissions else False
+
+        if payload.get("is_staff"):
+            user.is_staff = True
     return user
 
 

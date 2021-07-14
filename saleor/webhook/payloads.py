@@ -1,11 +1,11 @@
 import json
 import uuid
+from dataclasses import asdict
 from typing import TYPE_CHECKING, Iterable, Optional
 
 import graphene
 from django.db.models import F, QuerySet
 
-from ..account.models import User
 from ..checkout.models import Checkout
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
@@ -13,12 +13,13 @@ from ..core.utils.anonymization import (
     anonymize_order,
     generate_fake_user,
 )
-from ..invoice.models import Invoice
+from ..core.utils.json_serializer import CustomJsonEncoder
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
+from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
 from ..warehouse.models import Warehouse
@@ -32,6 +33,12 @@ from .serializers import (
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from ..product.models import ProductVariant
+
+
+if TYPE_CHECKING:
+    from ..account.models import User
+    from ..invoice.models import Invoice
+    from ..payment.interface import PaymentData
 
 
 ADDRESS_FIELDS = (
@@ -326,7 +333,7 @@ def generate_product_payload(product: "Product"):
             ],
             "channel_listings": json.loads(
                 serialize_product_channel_listing_payload(
-                    product.channel_listings.all()
+                    product.channel_listings.all()  # type: ignore
                 )
             ),
             "variants": lambda x: json.loads((generate_product_variant_payload(x))),
@@ -496,6 +503,27 @@ def generate_page_payload(page: Page):
         fields=page_fields,
     )
     return page_payload
+
+
+def generate_payment_payload(payment_data: "PaymentData"):
+    data = asdict(payment_data)
+    payment_app_data = from_payment_app_id(data["gateway"])
+    if payment_app_data:
+        data["payment_method"] = payment_app_data.name
+    return json.dumps(data, cls=CustomJsonEncoder)
+
+
+def generate_list_gateways_payload(
+    currency: Optional[str], checkout: Optional["Checkout"]
+):
+    if checkout:
+        # Deserialize checkout payload to dict and generate a new payload including
+        # currency.
+        checkout_data = json.loads(generate_checkout_payload(checkout))[0]
+    else:
+        checkout_data = None
+    payload = {"checkout": checkout_data, "currency": currency}
+    return json.dumps(payload)
 
 
 def _get_sample_object(qs: QuerySet):

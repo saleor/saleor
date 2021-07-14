@@ -79,11 +79,8 @@ def test_graphql_view_query_with_invalid_object_type(
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query, variables=variables)
-
-    assert response.status_code == 200
-    assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[INFO].GraphQLError"
-    ]
+    content = get_graphql_content(response)
+    assert content["data"]["order"] is None
 
 
 @pytest.mark.parametrize("playground_on, status", [(True, 200), (False, 405)])
@@ -114,7 +111,7 @@ def test_graphql_view_access_control_header(client, settings):
     assert response[ACCESS_CONTROL_ALLOW_METHODS] == "POST, OPTIONS"
     assert (
         response[ACCESS_CONTROL_ALLOW_HEADERS]
-        == "Origin, Content-Type, Accept, Authorization"
+        == "Origin, Content-Type, Accept, Authorization, Authorization-Bearer"
     )
 
     response = client.options(API_PATH)

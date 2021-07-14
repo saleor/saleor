@@ -37,8 +37,9 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import LanguageCodeEnum
+from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
-from ..core.types.common import Image
+from ..core.types.common import Image, OrderError
 from ..core.types.money import Money, TaxedMoney
 from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
@@ -61,6 +62,7 @@ from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
     OrderEventsByOrderIdLoader,
@@ -184,14 +186,20 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_user(root: models.OrderEvent, info):
-        user = info.context.user
-        if (
-            user == root.user
-            or user.has_perm(AccountPermissions.MANAGE_USERS)
-            or user.has_perm(AccountPermissions.MANAGE_STAFF)
-        ):
-            return root.user
-        raise PermissionDenied()
+        def _resolve_user(event_user):
+            requester = get_user_or_app_from_context(info.context)
+            if (
+                requester == event_user
+                or requester.has_perm(AccountPermissions.MANAGE_USERS)
+                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
+            ):
+                return event_user
+            return None
+
+        if not root.user_id:
+            return None
+
+        return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
     @staticmethod
     def resolve_email(root: models.OrderEvent, _info):
@@ -279,9 +287,13 @@ class OrderEvent(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_fulfilled_items(root: models.OrderEvent, _info):
-        lines = root.parameters.get("fulfilled_items", [])
-        return models.FulfillmentLine.objects.filter(pk__in=lines)
+    def resolve_fulfilled_items(root: models.OrderEvent, info):
+        fulfillment_lines_ids = root.parameters.get("fulfilled_items", [])
+
+        if not fulfillment_lines_ids:
+            return None
+
+        return FulfillmentLinesByIdLoader(info.context).load_many(fulfillment_lines_ids)
 
     @staticmethod
     @traced_resolver
@@ -325,8 +337,8 @@ class FulfillmentLine(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_order_line(root: models.FulfillmentLine, _info):
-        return root.order_line
+    def resolve_order_line(root: models.FulfillmentLine, info):
+        return OrderLineByIdLoader(info.context).load(root.order_line_id)
 
 
 class Fulfillment(CountableDjangoObjectType):
@@ -815,6 +827,12 @@ class Order(CountableDjangoObjectType):
         description="List of all discounts assigned to the order.",
         required=False,
     )
+    errors = graphene.List(
+        graphene.NonNull(OrderError),
+        description="List of errors that occurred during order validation.",
+        default_value=[],
+        required=True,
+    )
 
     subscriptions = graphene.List(
         Subscription, required=False, description="List of order subscriptions."
@@ -1240,3 +1258,13 @@ class Order(CountableDjangoObjectType):
         if not root.original_id:
             return None
         return graphene.Node.to_global_id("Order", root.original_id)
+
+    @traced_resolver
+    def resolve_errors(root, _info, **_kwargs):
+        if root.status == OrderStatus.DRAFT:
+            country = get_order_country(root)
+            try:
+                validate_draft_order(root, country)
+            except ValidationError as e:
+                return validation_error_to_error_type(e, OrderError)
+        return []

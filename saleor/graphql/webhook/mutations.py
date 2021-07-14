@@ -6,7 +6,6 @@ from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import WebhookError
-from ..core.utils import from_global_id_or_error
 from .enums import WebhookEventTypeEnum
 
 
@@ -183,7 +182,7 @@ class WebhookDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id = data["id"]
-        _, object_id = from_global_id_or_error(node_id)
+        object_id = cls.get_global_id_or_error(node_id)
 
         app = info.context.app
         if app:

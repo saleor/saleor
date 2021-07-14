@@ -1,3 +1,4 @@
+import uuid
 from urllib.parse import urlencode
 
 import i18naddress
@@ -7,6 +8,7 @@ from django.http import QueryDict
 from django.template import Context, Template
 from django_countries.fields import Country
 
+from ...order.models import Order
 from .. import forms, i18n
 from ..models import User
 from ..templatetags.i18n_address_tags import format_address
@@ -334,3 +336,31 @@ def test_requestor_is_staff_member_or_app_superuser(superuser):
 
 def test_requestor_is_staff_member_or_app_customer_user(customer_user):
     assert requestor_is_staff_member_or_app(customer_user) is False
+
+
+def test_customers_doesnt_return_duplicates(customer_user, channel_USD):
+    Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user,
+                channel=channel_USD,
+                token=str(uuid.uuid4()),
+            ),
+            Order(
+                user=customer_user,
+                channel=channel_USD,
+                token=str(uuid.uuid4()),
+            ),
+        ]
+    )
+    assert User.objects.customers().count() == 1
+
+
+def test_customers_show_staff_with_order(admin_user, channel_USD):
+    assert User.objects.customers().count() == 0
+    Order.objects.create(
+        user=admin_user,
+        channel=channel_USD,
+        token=str(uuid.uuid4()),
+    )
+    assert User.objects.customers().count() == 1

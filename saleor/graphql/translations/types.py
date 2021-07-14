@@ -66,6 +66,9 @@ class AttributeValueTranslatableContent(CountableDjangoObjectType):
     attribute_value = graphene.Field(
         "saleor.graphql.attribute.types.AttributeValue",
         description="Represents a value of an attribute.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. " "Get model fields from the root level."
+        ),
     )
 
     class Meta:
@@ -90,6 +93,9 @@ class AttributeTranslatableContent(CountableDjangoObjectType):
     attribute = graphene.Field(
         "saleor.graphql.attribute.types.Attribute",
         description="Custom attribute of a product.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. " "Get model fields from the root level."
+        ),
     )
 
     class Meta:
@@ -117,6 +123,9 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
         "saleor.graphql.product.types.products.ProductVariant",
         description=(
             "Represents a version of a product such as different size or color."
+        ),
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. " "Get model fields from the root level."
         ),
     )
 
@@ -160,6 +169,9 @@ class ProductTranslatableContent(CountableDjangoObjectType):
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
         description="Represents an individual item for sale in the storefront.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. " "Get model fields from the root level."
+        ),
     )
 
     class Meta:
@@ -207,6 +219,9 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
     collection = graphene.Field(
         "saleor.graphql.product.types.products.Collection",
         description="Represents a collection of products.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. " "Get model fields from the root level."
+        ),
     )
 
     class Meta:
@@ -258,6 +273,9 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
     category = graphene.Field(
         "saleor.graphql.product.types.products.Category",
         description="Represents a single category of products.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. " "Get model fields from the root level."
+        ),
     )
 
     class Meta:
@@ -314,6 +332,9 @@ class PageTranslatableContent(CountableDjangoObjectType):
             "A static page that can be manually added by a shop operator ",
             "through the dashboard.",
         ),
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. " "Get model fields from the root level."
+        ),
     )
 
     class Meta:
@@ -358,6 +379,9 @@ class VoucherTranslatableContent(CountableDjangoObjectType):
             "collections or specific products. They can be used during checkout by "
             "providing valid voucher codes."
         ),
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. " "Get model fields from the root level."
+        ),
     )
 
     class Meta:
@@ -385,6 +409,9 @@ class SaleTranslatableContent(CountableDjangoObjectType):
         description=(
             "Sales allow creating discounts for categories, collections "
             "or products and are visible to all the customers."
+        ),
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. " "Get model fields from the root level."
         ),
     )
 
@@ -421,6 +448,9 @@ class MenuItemTranslatableContent(CountableDjangoObjectType):
             "Represents a single item of the related menu. Can store categories, "
             "collection or pages."
         ),
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. " "Get model fields from the root level."
+        ),
     )
 
     class Meta:
@@ -449,6 +479,9 @@ class ShippingMethodTranslatableContent(CountableDjangoObjectType):
         description=(
             "Shipping method are the methods you'll use to get customer's orders "
             " to them. They are directly exposed to the customers."
+        ),
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. " "Get model fields from the root level."
         ),
     )
 

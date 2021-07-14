@@ -4,11 +4,16 @@ from ...account.utils import requestor_is_staff_member_or_app
 from ...channel.models import Channel
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
+from ...order.models import Order
 from ...product import models
 from ..channel import ChannelQsContext
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
+
+
+def resolve_category_by_id(id):
+    return models.Category.objects.filter(pk=id).first()
 
 
 def resolve_category_by_slug(slug):
@@ -47,6 +52,10 @@ def resolve_collections(info, channel_slug):
     qs = models.Collection.objects.visible_to_user(requestor, channel_slug)
 
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
+
+
+def resolve_digital_content_by_id(id):
+    return models.DigitalContent.objects.filter(pk=id).first()
 
 
 @traced_resolver
@@ -100,6 +109,10 @@ def resolve_variant_by_id(
     return qs.filter(pk=id).first()
 
 
+def resolve_product_type_by_id(id):
+    return models.ProductType.objects.filter(pk=id).first()
+
+
 @traced_resolver
 def resolve_product_types(_info, **_kwargs):
     return models.ProductType.objects.all()
@@ -133,8 +146,7 @@ def resolve_product_variants(
         qs = qs.filter(product__in=visible_products).available_in_channel(channel_slug)
     if ids:
         db_ids = [
-            from_global_id_or_error(node_id, only_type="ProductVariant")[1]
-            for node_id in ids
+            from_global_id_or_error(node_id, "ProductVariant")[1] for node_id in ids
         ]
         qs = qs.filter(pk__in=db_ids)
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
@@ -143,16 +155,24 @@ def resolve_product_variants(
 def resolve_report_product_sales(period, channel_slug) -> ChannelQsContext:
     qs = models.ProductVariant.objects.all()
 
-    # exclude draft and canceled orders
-    exclude_status = [OrderStatus.DRAFT, OrderStatus.CANCELED]
-    qs = qs.exclude(order_lines__order__status__in=exclude_status)
-
     # filter by period
     qs = filter_by_period(qs, period, "order_lines__order__created")
 
+    # annotate quantity
     qs = qs.annotate(quantity_ordered=Sum("order_lines__quantity"))
-    qs = qs.filter(
-        quantity_ordered__isnull=False, order_lines__order__channel__slug=channel_slug
+
+    # filter by channel and order status
+    channels = Channel.objects.filter(slug=channel_slug).values("pk")
+    exclude_status = [OrderStatus.DRAFT, OrderStatus.CANCELED]
+    orders = Order.objects.exclude(status__in=exclude_status).filter(
+        Exists(channels.filter(pk=OuterRef("channel_id")).values("pk"))
     )
+    qs = qs.filter(
+        Exists(orders.filter(pk=OuterRef("order_lines__order_id"))),
+        quantity_ordered__isnull=False,
+    )
+
+    # order by quantity ordered
     qs = qs.order_by("-quantity_ordered")
+
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)

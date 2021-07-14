@@ -12,8 +12,6 @@ from ....product.models import (
     ProductVariantChannelListing,
 )
 from ....tests.utils import dummy_editorjs
-from ...channel.filters import LACK_OF_CHANNEL_IN_FILTERING_MSG
-from ...channel.sorters import LACK_OF_CHANNEL_IN_SORTING_MSG
 from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 
@@ -204,9 +202,9 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
 
 
 QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING = """
-    query ($sortBy: ProductOrder, $filter: ProductFilterInput){
+    query ($sortBy: ProductOrder, $filter: ProductFilterInput, $channel: String){
         products (
-            first: 10, sortBy: $sortBy, filter: $filter
+            first: 10, sortBy: $sortBy, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -245,7 +243,7 @@ def test_products_with_sorting_and_without_channel(
     )
 
     # then
-    assert_graphql_error_with_message(response, LACK_OF_CHANNEL_IN_SORTING_MSG)
+    assert_graphql_error_with_message(response, "A default channel does not exist.")
 
 
 @pytest.mark.parametrize(
@@ -253,35 +251,35 @@ def test_products_with_sorting_and_without_channel(
     [
         (
             {"field": "PUBLISHED", "direction": "ASC"},
-            ["ProductProduct2", "Product1", "Product2", "ProductProduct1", "Product3"],
+            ["ProductProduct2", "Product1", "Product2", "ProductProduct1"],
         ),
         (
             {"field": "PUBLISHED", "direction": "DESC"},
-            ["Product3", "ProductProduct1", "Product2", "Product1", "ProductProduct2"],
+            ["ProductProduct1", "Product2", "Product1", "ProductProduct2"],
         ),
         (
             {"field": "PRICE", "direction": "ASC"},
-            ["Product2", "ProductProduct2", "Product1", "ProductProduct1", "Product3"],
+            ["Product2", "ProductProduct2", "Product1", "ProductProduct1"],
         ),
         (
             {"field": "PRICE", "direction": "DESC"},
-            ["Product3", "ProductProduct1", "Product1", "ProductProduct2", "Product2"],
+            ["ProductProduct1", "Product1", "ProductProduct2", "Product2"],
         ),
         (
             {"field": "MINIMAL_PRICE", "direction": "ASC"},
-            ["ProductProduct2", "Product1", "Product2", "ProductProduct1", "Product3"],
+            ["ProductProduct2", "Product1", "Product2", "ProductProduct1"],
         ),
         (
             {"field": "MINIMAL_PRICE", "direction": "DESC"},
-            ["Product3", "ProductProduct1", "Product2", "Product1", "ProductProduct2"],
+            ["ProductProduct1", "Product2", "Product1", "ProductProduct2"],
         ),
         (
             {"field": "PUBLICATION_DATE", "direction": "ASC"},
-            ["ProductProduct2", "ProductProduct1", "Product2", "Product1", "Product3"],
+            ["ProductProduct2", "ProductProduct1", "Product2", "Product1"],
         ),
         (
             {"field": "PUBLICATION_DATE", "direction": "DESC"},
-            ["Product3", "Product1", "Product2", "ProductProduct1", "ProductProduct2"],
+            ["Product1", "Product2", "ProductProduct1", "ProductProduct2"],
         ),
     ],
 )
@@ -294,8 +292,7 @@ def test_products_with_sorting_and_channel_USD(
     channel_USD,
 ):
     # given
-    sort_by["channel"] = channel_USD.slug
-    variables = {"sortBy": sort_by}
+    variables = {"sortBy": sort_by, "channel": channel_USD.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -317,27 +314,27 @@ def test_products_with_sorting_and_channel_USD(
     [
         (
             {"field": "PUBLISHED", "direction": "ASC"},
-            ["Product1", "Product3", "ProductProduct1", "ProductProduct2", "Product2"],
+            ["Product1", "Product3", "ProductProduct1", "ProductProduct2"],
         ),
         (
             {"field": "PUBLISHED", "direction": "DESC"},
-            ["Product2", "ProductProduct2", "ProductProduct1", "Product3", "Product1"],
+            ["ProductProduct2", "ProductProduct1", "Product3", "Product1"],
         ),
         (
             {"field": "PRICE", "direction": "ASC"},
-            ["Product3", "ProductProduct1", "ProductProduct2", "Product1", "Product2"],
+            ["Product3", "ProductProduct1", "ProductProduct2", "Product1"],
         ),
         (
             {"field": "PRICE", "direction": "DESC"},
-            ["Product2", "Product1", "ProductProduct2", "ProductProduct1", "Product3"],
+            ["Product1", "ProductProduct2", "ProductProduct1", "Product3"],
         ),
         (
             {"field": "MINIMAL_PRICE", "direction": "ASC"},
-            ["ProductProduct1", "ProductProduct2", "Product3", "Product1", "Product2"],
+            ["ProductProduct1", "ProductProduct2", "Product3", "Product1"],
         ),
         (
             {"field": "MINIMAL_PRICE", "direction": "DESC"},
-            ["Product2", "Product1", "Product3", "ProductProduct2", "ProductProduct1"],
+            ["Product1", "Product3", "ProductProduct2", "ProductProduct1"],
         ),
     ],
 )
@@ -350,8 +347,7 @@ def test_products_with_sorting_and_channel_PLN(
     channel_PLN,
 ):
     # given
-    sort_by["channel"] = channel_PLN.slug
-    variables = {"sortBy": sort_by}
+    variables = {"sortBy": sort_by, "channel": channel_PLN.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -384,15 +380,7 @@ def test_products_with_sorting_and_not_existing_channel_asc(
     channel_USD,
 ):
     # given
-    products_order = [
-        "Product1",
-        "Product2",
-        "Product3",
-        "ProductProduct1",
-        "ProductProduct2",
-    ]
-    sort_by["channel"] = "Not-existing"
-    variables = {"sortBy": sort_by}
+    variables = {"sortBy": sort_by, "channel": "Not-existing"}
 
     # when
     response = staff_api_client.post_graphql(
@@ -404,9 +392,7 @@ def test_products_with_sorting_and_not_existing_channel_asc(
 
     # then
     content = get_graphql_content(response)
-    products_nodes = content["data"]["products"]["edges"]
-    for index, product_name in enumerate(products_order):
-        assert product_name == products_nodes[index]["node"]["name"]
+    assert not content["data"]["products"]["edges"]
 
 
 @pytest.mark.parametrize(
@@ -424,16 +410,8 @@ def test_products_with_sorting_and_not_existing_channel_desc(
     products_for_sorting_with_channels,
     channel_USD,
 ):
-    products_order = [
-        "ProductProduct2",
-        "ProductProduct1",
-        "Product3",
-        "Product2",
-        "Product1",
-    ]
     # given
-    sort_by["channel"] = "Not-existing"
-    variables = {"sortBy": sort_by}
+    variables = {"sortBy": sort_by, "channel": "Not-existing"}
 
     # when
     response = staff_api_client.post_graphql(
@@ -445,9 +423,7 @@ def test_products_with_sorting_and_not_existing_channel_desc(
 
     # then
     content = get_graphql_content(response)
-    products_nodes = content["data"]["products"]["edges"]
-    for index, product_name in enumerate(products_order):
-        assert product_name == products_nodes[index]["node"]["name"]
+    assert not content["data"]["products"]["edges"]
 
 
 @pytest.mark.parametrize(
@@ -469,7 +445,7 @@ def test_products_with_filtering_without_channel(
     )
 
     # then
-    assert_graphql_error_with_message(response, LACK_OF_CHANNEL_IN_FILTERING_MSG)
+    assert_graphql_error_with_message(response, "A default channel does not exist.")
 
 
 @pytest.mark.parametrize(
@@ -492,8 +468,7 @@ def test_products_with_filtering_with_channel_USD(
     channel_USD,
 ):
     # given
-    filter_by["channel"] = channel_USD.slug
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": channel_USD.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -529,8 +504,7 @@ def test_products_with_filtering_with_channel_PLN(
     channel_PLN,
 ):
     # given
-    filter_by["channel"] = channel_PLN.slug
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": channel_PLN.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -565,8 +539,7 @@ def test_products_with_filtering_and_not_existing_channel(
     channel_USD,
 ):
     # given
-    filter_by["channel"] = "Not-existing"
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": "Not-existing"}
 
     # when
     response = staff_api_client.post_graphql(

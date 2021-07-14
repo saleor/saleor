@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set
 
 from django.db.models import F
 from django.utils import timezone
-from prices import Money
+from prices import Money, TaxedMoney
 
 from ..channel.models import Channel
 from ..checkout import calculations
@@ -14,6 +14,7 @@ from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ..account.models import User
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..order.models import Order
     from ..plugins.manager import PluginsManager
@@ -131,10 +132,11 @@ def validate_voucher_for_checkout(
     customer_email = checkout_info.get_customer_email()
     validate_voucher(
         voucher,
-        subtotal.gross,
+        subtotal,
         quantity,
         customer_email,
         checkout_info.channel,
+        checkout_info.user,
     )
 
 
@@ -145,21 +147,24 @@ def validate_voucher_in_order(order: "Order"):
     if not order.voucher:
         return
     validate_voucher(
-        order.voucher, subtotal.gross, quantity, customer_email, order.channel
+        order.voucher, subtotal, quantity, customer_email, order.channel, order.user
     )
 
 
 def validate_voucher(
     voucher: "Voucher",
-    total_price: Money,
+    total_price: TaxedMoney,
     quantity: int,
     customer_email: str,
     channel: Channel,
+    customer: Optional["User"],
 ) -> None:
     voucher.validate_min_spent(total_price, channel)
     voucher.validate_min_checkout_items_quantity(quantity)
     if voucher.apply_once_per_customer:
         voucher.validate_once_per_customer(customer_email)
+    if voucher.only_for_staff:
+        voucher.validate_only_for_staff(customer)
 
 
 def get_products_voucher_discount(

@@ -181,7 +181,12 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
     subtotal = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
     customer_email = checkout_with_voucher.get_customer_email()
     mock_validate_voucher.assert_called_once_with(
-        voucher, subtotal.gross, quantity, customer_email, checkout_with_voucher.channel
+        voucher,
+        subtotal,
+        quantity,
+        customer_email,
+        checkout_with_voucher.channel,
+        checkout_info.user,
     )
 
 
@@ -983,6 +988,48 @@ def test_add_voucher_to_checkout(checkout_with_item, voucher):
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     assert checkout_with_item.voucher_code == voucher.code
+
+
+def test_add_staff_voucher_to_anonymous_checkout(checkout_with_item, voucher):
+    voucher.only_for_staff = True
+    voucher.save()
+
+    assert checkout_with_item.voucher_code is None
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    with pytest.raises(NotApplicable):
+        add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+
+
+def test_add_staff_voucher_to_customer_checkout(
+    checkout_with_item, voucher, customer_user
+):
+    checkout_with_item.user = customer_user
+    checkout_with_item.save()
+    voucher.only_for_staff = True
+    voucher.save()
+
+    assert checkout_with_item.voucher_code is None
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    with pytest.raises(NotApplicable):
+        add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+
+
+def test_add_staff_voucher_to_staff_checkout(checkout_with_item, voucher, staff_user):
+    checkout_with_item.user = staff_user
+    checkout_with_item.save()
+    voucher.only_for_staff = True
+    voucher.save()
+
+    assert checkout_with_item.voucher_code is None
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
 
 
 def test_add_voucher_to_checkout_fail(

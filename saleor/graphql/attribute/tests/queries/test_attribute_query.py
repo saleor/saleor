@@ -6,7 +6,11 @@ from graphene.utils.str_converters import to_camel_case
 from .....attribute.models import Attribute
 from .....product.models import Category, Collection, Product, ProductType
 from .....tests.utils import dummy_editorjs
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 
 def test_get_single_attribute_by_id_as_customer(
@@ -58,31 +62,36 @@ def test_get_single_attribute_by_slug_as_customer(
 
 
 QUERY_ATTRIBUTE = """
-query($id: ID!) {
-    attribute(id: $id) {
-        id
-        slug
-        name
-        inputType
-        entityType
-        type
-        unit
-        values {
+    query($id: ID!, $query: String) {
+        attribute(id: $id) {
+            id
             slug
+            name
             inputType
-            file {
-                url
-                contentType
+            entityType
+            type
+            unit
+            choices(first: 10, filter: {search: $query}) {
+                edges {
+                    node {
+                        slug
+                        inputType
+                        file {
+                            url
+                            contentType
+                        }
+                    }
+                }
+
             }
+            valueRequired
+            visibleInStorefront
+            filterableInStorefront
+            filterableInDashboard
+            availableInGrid
+            storefrontSearchPosition
         }
-        valueRequired
-        visibleInStorefront
-        filterableInStorefront
-        filterableInDashboard
-        availableInGrid
-        storefrontSearchPosition
     }
-}
 """
 
 
@@ -168,6 +177,29 @@ def test_get_single_product_attribute_by_app(
     )
 
 
+def test_query_attribute_by_invalid_id(
+    staff_api_client, color_attribute_without_values
+):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(QUERY_ATTRIBUTE, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["attribute"] is None
+
+
+def test_query_attribute_with_invalid_object_type(
+    staff_api_client, color_attribute_without_values
+):
+    variables = {
+        "id": graphene.Node.to_global_id("Order", color_attribute_without_values.pk)
+    }
+    response = staff_api_client.post_graphql(QUERY_ATTRIBUTE, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["attribute"] is None
+
+
 def test_get_single_product_attribute_by_staff_no_perm(
     staff_api_client, color_attribute_without_values, permission_manage_pages
 ):
@@ -236,7 +268,7 @@ def test_get_single_product_attribute_with_file_value(
         attribute_data["storefrontSearchPosition"]
         == file_attribute.storefront_search_position
     )
-    assert attribute_data["values"] == []
+    assert attribute_data["choices"]["edges"] == []
 
 
 def test_get_single_reference_attribute_by_staff(
@@ -248,7 +280,7 @@ def test_get_single_reference_attribute_by_staff(
     )
     query = QUERY_ATTRIBUTE
     content = get_graphql_content(
-        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id, "query": ""})
     )
 
     assert content["data"]["attribute"], "Should have found an attribute"
@@ -285,6 +317,7 @@ def test_get_single_reference_attribute_by_staff(
         content["data"]["attribute"]["entityType"]
         == product_type_page_reference_attribute.entity_type.upper()
     )
+    assert not content["data"]["attribute"]["choices"]["edges"]
 
 
 def test_get_single_numeric_attribute_by_staff(
@@ -339,10 +372,14 @@ QUERY_ATTRIBUTES = """
                     id
                     name
                     slug
-                    values {
-                        id
-                        name
-                        slug
+                    choices(first: 10) {
+                        edges {
+                            node {
+                                id
+                                name
+                                slug
+                            }
+                        }
                     }
                 }
             }
@@ -525,7 +562,7 @@ def test_attributes_in_collection_query(
     """
 
     query = query % {
-        "filter_input": "filter: { %s: $nodeID, channel: $channel }" % tested_field
+        "filter_input": "filter: { %s: $nodeID } channel: $channel" % tested_field
     }
 
     variables = {"nodeID": filtered_by_node_id, "channel": channel_USD.slug}

@@ -369,7 +369,7 @@ class Product(SeoModel, ModelWithMetadata):
     )
     rating = models.FloatField(null=True, blank=True)
 
-    objects = ProductsQueryset.as_manager()
+    objects = models.Manager.from_queryset(ProductsQueryset)()
     translated = TranslationProxy()
 
     class Meta:
@@ -448,7 +448,7 @@ class ProductVariantQueryset(models.QuerySet):
     def available_in_channel(self, channel_slug):
         return self.filter(
             channel_listings__price_amount__isnull=False,
-            channel_listings__channel__slug=channel_slug,
+            channel_listings__channel__slug=str(channel_slug),
         )
 
     def prefetched_for_webhook(self):
@@ -517,7 +517,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         null=True,
     )
 
-    objects = ProductVariantQueryset.as_manager()
+    objects = models.Manager.from_queryset(ProductVariantQueryset)()
     translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):
@@ -796,7 +796,7 @@ class Collection(SeoModel, ModelWithMetadata):
     background_image_alt = models.CharField(max_length=128, blank=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
-    objects = CollectionsQueryset.as_manager()
+    objects = models.Manager.from_queryset(CollectionsQueryset)()
 
     translated = TranslationProxy()
 

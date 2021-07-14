@@ -42,7 +42,7 @@ def test_fulfillment_refund_products_order_lines(
                     code
                     message
                     warehouse
-                    orderLine
+                    orderLines
                 }
             }
         }
@@ -121,7 +121,7 @@ def test_fulfillment_return_products_order_lines(
                 code
                 message
                 warehouse
-                orderLine
+                orderLines
             }
         }
     }

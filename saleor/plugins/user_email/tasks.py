@@ -18,7 +18,7 @@ def get_plugin_configuration() -> Optional[PluginConfiguration]:
     return PluginConfiguration.objects.filter(identifier=constants.PLUGIN_ID).first()
 
 
-@app.task
+@app.task(compression="zlib")
 def send_account_confirmation_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
 
@@ -44,7 +44,7 @@ def send_account_confirmation_email_task(recipient_email, payload, config):
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_password_reset_email_task(recipient_email, payload, config):
     user_id = payload.get("user", {}).get("id")
     email_config = EmailConfig(**config)
@@ -72,7 +72,7 @@ def send_password_reset_email_task(recipient_email, payload, config):
     account_events.customer_password_reset_link_sent_event(user_id=user_id)
 
 
-@app.task
+@app.task(compression="zlib")
 def send_request_email_change_email_task(recipient_email, payload, config):
     user_id = payload.get("user", {}).get("id")
     email_config = EmailConfig(**config)
@@ -107,7 +107,7 @@ def send_request_email_change_email_task(recipient_email, payload, config):
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_user_change_email_notification_task(recipient_email, payload, config):
     user_id = payload.get("user", {}).get("id")
     email_config = EmailConfig(**config)
@@ -143,7 +143,7 @@ def send_user_change_email_notification_task(recipient_email, payload, config):
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_account_delete_confirmation_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
 
@@ -170,7 +170,7 @@ def send_account_delete_confirmation_email_task(recipient_email, payload, config
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_set_user_password_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
 
@@ -197,7 +197,7 @@ def send_set_user_password_email_task(recipient_email, payload, config):
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_invoice_email_task(recipient_email, payload, config):
     """Send an invoice to user of related order with URL to download it."""
     email_config = EmailConfig(**config)
@@ -235,7 +235,7 @@ def send_invoice_email_task(recipient_email, payload, config):
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_order_confirmation_email_task(recipient_email, payload, config):
     """Send order confirmation email."""
     email_config = EmailConfig(**config)
@@ -268,7 +268,7 @@ def send_order_confirmation_email_task(recipient_email, payload, config):
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_fulfillment_confirmation_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
 
@@ -307,7 +307,7 @@ def send_fulfillment_confirmation_email_task(recipient_email, payload, config):
         )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_fulfillment_update_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
     plugin_configuration = get_plugin_configuration()
@@ -332,7 +332,7 @@ def send_fulfillment_update_email_task(recipient_email, payload, config):
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_payment_confirmation_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
 
@@ -364,7 +364,7 @@ def send_payment_confirmation_email_task(recipient_email, payload, config):
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_order_canceled_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
 
@@ -396,7 +396,7 @@ def send_order_canceled_email_task(recipient_email, payload, config):
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_order_refund_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
 
@@ -428,7 +428,7 @@ def send_order_refund_email_task(recipient_email, payload, config):
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_order_confirmed_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
 

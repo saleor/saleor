@@ -44,6 +44,8 @@ def get_attribute_value(assigned_attribute):
             value += f" {attribute.unit}"
     elif attribute.input_type == AttributeInputType.RICH_TEXT:
         value = clean_editor_js(value_instance.rich_text, to_string=True)
+    elif attribute.input_type == AttributeInputType.BOOLEAN:
+        value = str(value_instance.boolean)
     else:
         value = value_instance.slug
     return value

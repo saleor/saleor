@@ -22,7 +22,6 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...discount.enums import DiscountValueTypeEnum
-from ...utils import get_user_or_app_from_context
 from ..types import Order, OrderLine
 
 
@@ -132,7 +131,6 @@ class OrderDiscountAdd(OrderDiscountCommon):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
-        requester = get_user_or_app_from_context(info.context)
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
         input = data.get("input", {})
         cls.validate(info, order, input)
@@ -147,7 +145,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
 
         events.order_discount_added_event(
             order=order,
-            user=requester,
+            user=info.context.user,
             order_discount=order_discount,
         )
         return OrderDiscountAdd(order=order)
@@ -182,7 +180,6 @@ class OrderDiscountUpdate(OrderDiscountCommon):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
-        requester = get_user_or_app_from_context(info.context)
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
@@ -211,7 +208,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
             order_discount.refresh_from_db()
             events.order_discount_updated_event(
                 order=order,
-                user=requester,
+                user=info.context.user,
                 order_discount=order_discount,
                 old_order_discount=order_discount_before_update,
             )
@@ -235,7 +232,6 @@ class OrderDiscountDelete(OrderDiscountCommon):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
-        requester = get_user_or_app_from_context(info.context)
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
@@ -245,7 +241,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
         remove_order_discount_from_order(order, order_discount)
         events.order_discount_deleted_event(
             order=order,
-            user=requester,
+            user=info.context.user,
             order_discount=order_discount,
         )
 
@@ -293,7 +289,6 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
     @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
 
-        requester = get_user_or_app_from_context(info.context)
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine
         )
@@ -323,7 +318,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
             # Create event only when we change type or value of the discount
             events.order_line_discount_updated_event(
                 order=order,
-                user=requester,
+                user=info.context.user,
                 line=order_line,
                 line_before_update=order_line_before_update,
             )
@@ -358,7 +353,6 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
     @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         tax_included = info.context.site.settings.include_taxes_in_prices
-        requester = get_user_or_app_from_context(info.context)
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine
         )
@@ -371,7 +365,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
 
         events.order_line_discount_removed_event(
             order=order,
-            user=requester,
+            user=info.context.user,
             line=order_line,
         )
 

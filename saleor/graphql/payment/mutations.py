@@ -13,10 +13,12 @@ from ...payment import PaymentError, gateway
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
+from ..checkout.mutations import get_checkout_by_token
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
-from ..core.scalars import PositiveDecimal
+from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
+from ..core.validators import validate_one_of_args_is_in_mutation
 from .types import Payment, PaymentInitialized
 
 
@@ -56,7 +58,14 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     payment = graphene.Field(Payment, description="A newly created payment.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.", required=True)
+        checkout_id = graphene.ID(
+            description=(
+                "Checkout ID."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         input = PaymentInput(
             description="Data required to create a new payment.", required=True
         )
@@ -81,11 +90,17 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def validate_gateway(cls, manager, gateway_id, currency):
+        """Validate if given gateway can be used for this checkout.
+
+        Check if provided gateway_id is on the list of available payment gateways.
+        Gateway will be rejected if gateway_id is invalid or a gateway doesn't support
+        checkout's currency.
+        """
         if not is_currency_supported(currency, gateway_id, manager):
             raise ValidationError(
                 {
                     "gateway": ValidationError(
-                        f"The gateway {gateway_id} does not support checkout currency.",
+                        f"The gateway {gateway_id} is not available for this checkout.",
                         code=PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value,
                     )
                 }
@@ -118,10 +133,20 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, **data):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(cls, _root, info, checkout_id=None, token=None, **data):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            PaymentErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
         data = data["input"]
         gateway = data["gateway"]
 
@@ -163,7 +188,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             payment_token=data.get("token", ""),
             total=amount,
             currency=checkout.currency,
-            email=checkout.email,
+            email=checkout.get_customer_email(),
             extra_data=extra_data,
             # FIXME this is not a customer IP address. It is a client storefront ip
             customer_ip_address=get_client_ip(info.context),

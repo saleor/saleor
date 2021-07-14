@@ -143,6 +143,70 @@ def test_assign_attributes_to_page_type_by_app_no_perm(
     assert_no_permission(response)
 
 
+def test_assign_attributes_to_page_type_invalid_object_type_as_page_type_id(
+    staff_api_client,
+    permission_manage_page_types_and_attributes,
+    page_type,
+    author_page_attribute,
+):
+    # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+
+    author_page_attr_id = graphene.Node.to_global_id(
+        "Attribute", author_page_attribute.pk
+    )
+
+    variables = {
+        "pageTypeId": graphene.Node.to_global_id("ProductType", page_type.pk),
+        "attributeIds": [author_page_attr_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PAGE_ASSIGN_ATTR_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageAttributeAssign"]
+    errors = data["errors"]
+
+    assert len(errors) == 1
+    assert not data["pageType"]
+    assert errors[0]["field"] == "pageTypeId"
+    assert errors[0]["code"] == PageErrorCode.GRAPHQL_ERROR.name
+
+
+def test_assign_attributes_to_page_type_invalid_object_for_attributes(
+    staff_api_client,
+    permission_manage_page_types_and_attributes,
+    page_type,
+    author_page_attribute,
+):
+    # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+
+    author_page_attr_id = graphene.Node.to_global_id("Page", author_page_attribute.pk)
+
+    variables = {
+        "pageTypeId": graphene.Node.to_global_id("PageType", page_type.pk),
+        "attributeIds": [author_page_attr_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PAGE_ASSIGN_ATTR_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageAttributeAssign"]
+    errors = data["errors"]
+
+    assert len(errors) == 1
+    assert not data["pageType"]
+    assert errors[0]["field"] == "attributeIds"
+    assert errors[0]["code"] == PageErrorCode.GRAPHQL_ERROR.name
+
+
 def test_assign_attributes_to_page_type_not_page_attribute(
     staff_api_client,
     permission_manage_page_types_and_attributes,

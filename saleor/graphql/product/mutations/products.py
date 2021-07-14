@@ -16,6 +16,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
 from ....order import OrderStatus
+from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import ProductMediaTypes, models
@@ -42,13 +43,14 @@ from ...core.scalars import WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.types.common import CollectionError, ProductError
 from ...core.utils import (
+    add_hash_to_file_name,
     clean_seo_fields,
-    from_global_id_or_error,
     get_duplicated_values,
     validate_image_file,
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
+from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
 from ..types import (
     Category,
@@ -60,6 +62,7 @@ from ..types import (
 )
 from ..utils import (
     create_stocks,
+    get_draft_order_lines_data_for_variants,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
 )
@@ -112,7 +115,8 @@ class CategoryCreate(ModelMutation):
             cleaned_input["parent"] = parent
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
-            validate_image_file(image_data, "background_image")
+            validate_image_file(image_data, "background_image", ProductErrorCode)
+            add_hash_to_file_name(image_data)
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -218,7 +222,8 @@ class CollectionCreate(ModelMutation):
             raise ValidationError({"slug": error})
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
-            validate_image_file(image_data, "background_image")
+            validate_image_file(image_data, "background_image", CollectionErrorCode)
+            add_hash_to_file_name(image_data)
         is_published = cleaned_input.get("is_published")
         publication_date = cleaned_input.get("publication_date")
         if is_published and not publication_date:
@@ -335,7 +340,7 @@ class CollectionReorderProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, collection_id, moves):
-        _type, pk = from_global_id_or_error(
+        pk = cls.get_global_id_or_error(
             collection_id, only_type=Collection, field="collection_id"
         )
 
@@ -359,7 +364,7 @@ class CollectionReorderProducts(BaseMutation):
 
         # Resolve the products
         for move_info in moves:
-            _type, product_pk = from_global_id_or_error(
+            product_pk = cls.get_global_id_or_error(
                 move_info.product_id, only_type=Product, field="moves"
             )
 
@@ -707,19 +712,27 @@ class ProductDelete(ModelDeleteMutation):
 
         instance = cls.get_node_or_error(info, node_id, only_type=Product)
         variants_id = list(instance.variants.all().values_list("id", flat=True))
-        # get draft order lines for variant
-        lines_id_and_orders_id = order_models.OrderLine.objects.filter(
-            variant__id__in=variants_id, order__status=OrderStatus.DRAFT
-        ).values("pk", "order_id")
-        line_pks = {line["pk"] for line in lines_id_and_orders_id}
-        orders_id = {line["order_id"] for line in lines_id_and_orders_id}
 
         cls.delete_assigned_attribute_values(instance)
+
+        requester = get_user_or_app_from_context(info.context)
+        draft_order_lines_data = get_draft_order_lines_data_for_variants(variants_id)
+
         response = super().perform_mutation(_root, info, **data)
+
         # delete order lines for deleted variant
-        order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
-        if orders_id:
-            recalculate_orders_task.delay(list(orders_id))
+        order_models.OrderLine.objects.filter(
+            pk__in=draft_order_lines_data.line_pks
+        ).delete()
+
+        # run order event for deleted lines
+        for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
+            lines_data = [(line.quantity, line) for line in order_lines]
+            order_events.order_line_product_removed_event(order, requester, lines_data)
+
+        order_pks = draft_order_lines_data.order_pks
+        if order_pks:
+            recalculate_orders_task.delay(list(order_pks))
         info.context.plugins.product_deleted(instance, variants_id)
 
         return response
@@ -761,7 +774,7 @@ class ProductVariantSubscriptionInput(graphene.InputObjectType):
 
 class ProductVariantInput(graphene.InputObjectType):
     attributes = graphene.List(
-        AttributeValueInput,
+        graphene.NonNull(AttributeValueInput),
         required=False,
         description="List of attributes specific to this variant.",
     )
@@ -780,7 +793,7 @@ class ProductVariantInput(graphene.InputObjectType):
 
 class ProductVariantCreateInput(ProductVariantInput):
     attributes = graphene.List(
-        AttributeValueInput,
+        graphene.NonNull(AttributeValueInput),
         required=True,
         description="List of attributes specific to this variant.",
     )
@@ -838,7 +851,8 @@ class ProductVariantCreate(ModelMutation):
         if attribute_values in used_attribute_values:
             raise ValidationError(
                 "Duplicated attribute values for product variant.",
-                ProductErrorCode.DUPLICATED_INPUT_ITEM,
+                code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                params={"attributes": attribute_values.keys()},
             )
         else:
             used_attribute_values.append(attribute_values)
@@ -1065,12 +1079,8 @@ class ProductVariantDelete(ModelDeleteMutation):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
 
-        # get draft order lines for variant
-        lines_id_and_orders_id = order_models.OrderLine.objects.filter(
-            variant__pk=instance.pk, order__status=OrderStatus.DRAFT
-        ).values("pk", "order_id")
-        line_pks = {line["pk"] for line in lines_id_and_orders_id}
-        orders_id = {line["order_id"] for line in lines_id_and_orders_id}
+        requester = get_user_or_app_from_context(info.context)
+        draft_order_lines_data = get_draft_order_lines_data_for_variants([instance.pk])
 
         # Get cached variant with related fields to fully populate webhook payload.
         variant = (
@@ -1083,9 +1093,18 @@ class ProductVariantDelete(ModelDeleteMutation):
         response = super().perform_mutation(_root, info, **data)
 
         # delete order lines for deleted variant
-        order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
-        if orders_id:
-            recalculate_orders_task.delay(list(orders_id))
+        order_models.OrderLine.objects.filter(
+            pk__in=draft_order_lines_data.line_pks
+        ).delete()
+
+        # run order event for deleted lines
+        for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
+            lines_data = [(line.quantity, line) for line in order_lines]
+            order_events.order_line_variant_removed_event(order, requester, lines_data)
+
+        order_pks = draft_order_lines_data.order_pks
+        if order_pks:
+            recalculate_orders_task.delay(list(order_pks))
 
         transaction.on_commit(
             lambda: info.context.plugins.product_variant_deleted(variant)
@@ -1249,7 +1268,7 @@ class ProductTypeDelete(ModelDeleteMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
-        _type, product_type_pk = from_global_id_or_error(
+        product_type_pk = cls.get_global_id_or_error(
             node_id, only_type=ProductType, field="pk"
         )
         variants_pks = models.Product.objects.filter(
@@ -1351,7 +1370,8 @@ class ProductMediaCreate(BaseMutation):
         media_url = data.get("media_url")
         if image:
             image_data = info.context.FILES.get(image)
-            validate_image_file(image_data, "image")
+            validate_image_file(image_data, "image", ProductErrorCode)
+            add_hash_to_file_name(image_data)
             media = product.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
@@ -1542,7 +1562,7 @@ class ProductVariantReorder(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, product_id, moves):
-        _type, pk = from_global_id_or_error(product_id, only_type=Product)
+        pk = cls.get_global_id_or_error(product_id, only_type=Product)
 
         try:
             product = models.Product.objects.prefetched_for_webhook().get(pk=pk)
@@ -1560,7 +1580,7 @@ class ProductVariantReorder(BaseMutation):
         operations = {}
 
         for move_info in moves:
-            _type, variant_pk = from_global_id_or_error(
+            variant_pk = cls.get_global_id_or_error(
                 move_info.id, only_type=ProductVariant, field="moves"
             )
 
