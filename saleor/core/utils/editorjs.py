@@ -17,15 +17,15 @@ def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
     `to_string` flag is used for returning concatenated string from all blocks
      instead of returning json object.
     """
-    string = ""
-
     if definitions is None:
-        return string if to_string else definitions
+        return "" if to_string else definitions
 
     blocks = definitions.get("blocks")
 
     if not blocks or not isinstance(blocks, list):
-        return string if to_string else definitions
+        return "" if to_string else definitions
+
+    plain_text_list = []
 
     for index, block in enumerate(blocks):
         block_type = block["type"]
@@ -39,7 +39,7 @@ def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
                     continue
                 new_text = clean_text_data(item)
                 if to_string:
-                    string += strip_tags(new_text)
+                    plain_text_list.append(strip_tags(new_text))
                 else:
                     blocks[index]["data"]["items"][item_index] = new_text
         else:
@@ -48,11 +48,11 @@ def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
                 continue
             new_text = clean_text_data(text)
             if to_string:
-                string += strip_tags(new_text)
+                plain_text_list.append(strip_tags(new_text))
             else:
                 blocks[index]["data"]["text"] = new_text
 
-    return string if to_string else definitions
+    return " ".join(plain_text_list) if to_string else definitions
 
 
 def clean_text_data(text: str):

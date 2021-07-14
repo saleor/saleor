@@ -125,13 +125,13 @@ def calculate_checkout_quantity(lines: Iterable["CheckoutLineInfo"]):
 
 
 def add_variants_to_checkout(
-    checkout, variants, quantities, channel_slug, skip_stock_check=False
+    checkout, variants, quantities, channel_slug, skip_stock_check=False, replace=False
 ):
     """Add variants to checkout.
 
     If a variant is not placed in checkout, a new checkout line will be created.
-    Otherwise, its quantity will be replaced (if greater than 0).
     If quantity is set to 0, checkout line will be deleted.
+    Otherwise, quantity will be added or replaced (if replace argument is True).
     """
 
     # check quantities
@@ -159,7 +159,10 @@ def add_variants_to_checkout(
         if variant.pk in variant_ids_in_lines:
             line = variant_ids_in_lines[variant.pk]
             if quantity > 0:
-                line.quantity = quantity
+                if replace:
+                    line.quantity = quantity
+                else:
+                    line.quantity += quantity
                 to_update.append(line)
             else:
                 to_delete.append(line)

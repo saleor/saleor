@@ -141,10 +141,10 @@ def test_clean_editor_js_for_list():
     assert result == strip_tags(
         "The Saleor Winter Sale is snowed "
         '<a href="https://docs.saleor.io/docs/">. Test.'
-        "It is a block-styled editor "
+        " It is a block-styled editor "
         '<a href="https://docs.saleor.io/docs/">.'
-        "It returns clean data output in JSON"
-        "Designed to be extendable and pluggable with a simple API"
+        " It returns clean data output in JSON"
+        " Designed to be extendable and pluggable with a simple API"
     )
 
 
@@ -196,4 +196,73 @@ def test_clean_editor_js_for_list_invalid_url(parse_url_mock):
     )
     assert (
         result["blocks"][1]["data"]["items"][2] == data["blocks"][1]["data"]["items"][2]
+    )
+
+
+def test_clean_editor_js_for_complex_description():
+    # given
+    data = {
+        "blocks": [
+            {
+                "data": {
+                    "text": "The Saleor Winter Sale is snowed"
+                    '<a href="https://docs.saleor.io/docs/">. Test.'
+                },
+                "type": "paragraph",
+            },
+            {
+                "data": {
+                    "text": "The one thing you be sure of is: Polish winters are quite"
+                    " unpredictable. The coldest months are January and February"
+                    " with temperatures around -3.0 °C (on average), but the"
+                    " weather might change from mild days with over 5 °C and"
+                    " days where temperatures may drop to −20 °C (−4 °F)."
+                },
+                "type": "paragraph",
+            },
+            {
+                "type": "list",
+                "data": {
+                    "style": "ordered",
+                    "items": [
+                        "Bring your coat",
+                        "warm clothes",
+                    ],
+                },
+            },
+            {
+                "type": "list",
+                "data": {
+                    "style": "unordered",
+                    "items": [
+                        "test item",
+                        "item test",
+                    ],
+                },
+            },
+        ]
+    }
+
+    # when
+    result = clean_editor_js(data)
+
+    # then
+    assert result == data
+
+    # when
+    result = clean_editor_js(data, to_string=True)
+
+    # then
+    assert result == strip_tags(
+        "The Saleor Winter Sale is snowed"
+        '<a href="https://docs.saleor.io/docs/">. Test.'
+        " The one thing you be sure of is: Polish winters are quite"
+        " unpredictable. The coldest months are January and February"
+        " with temperatures around -3.0 °C (on average), but the"
+        " weather might change from mild days with over 5 °C and"
+        " days where temperatures may drop to −20 °C (−4 °F)."
+        " Bring your coat"
+        " warm clothes"
+        " test item"
+        " item test"
     )
