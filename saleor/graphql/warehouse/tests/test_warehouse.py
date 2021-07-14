@@ -483,6 +483,54 @@ def test_query_warehouse_with_filters_by_id(
     assert content_exists["data"]["warehouses"]["totalCount"] == 1
 
 
+@pytest.mark.parametrize(
+    "graphql_filter, db_filter", [("true", True), ("false", False)]
+)
+def test_query_warehouse_with_filters_by_is_private(
+    staff_api_client,
+    permission_manage_products,
+    warehouses_for_cc,
+    graphql_filter,
+    db_filter,
+):
+    db_count = Warehouse.objects.filter(is_private=db_filter).count()
+    variables_exists = {"filters": {"isPrivate": graphql_filter}}
+    response_exists = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS,
+        variables=variables_exists,
+        permissions=[permission_manage_products],
+    )
+    content_exists = get_graphql_content(response_exists)
+
+    assert content_exists["data"]["warehouses"]["totalCount"] == db_count
+
+
+@pytest.mark.parametrize(
+    "db_option, graphql_option",
+    [
+        (WarehouseClickAndCollectOption.DISABLED, "DISABLED"),
+        (WarehouseClickAndCollectOption.ALL_WAREHOUSES, "ALL"),
+        (WarehouseClickAndCollectOption.LOCAL_STOCK, "LOCAL"),
+    ],
+)
+def test_query_warehouse_with_filters_by_click_and_collect_option(
+    staff_api_client,
+    permission_manage_products,
+    warehouses_for_cc,
+    db_option,
+    graphql_option,
+):
+    db_count = Warehouse.objects.filter(click_and_collect_option=db_option).count()
+    variables_exists = {"filters": {"clickAndCollectOption": graphql_option}}
+    response_exists = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS,
+        variables=variables_exists,
+        permissions=[permission_manage_products],
+    )
+    content_exists = get_graphql_content(response_exists)
+    assert content_exists["data"]["warehouses"]["totalCount"] == db_count
+
+
 def test_query_warehouses_with_filters_and_no_id(
     staff_api_client, permission_manage_products, warehouse
 ):
