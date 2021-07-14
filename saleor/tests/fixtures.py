@@ -460,6 +460,18 @@ def checkout_with_payments(checkout):
 
 
 @pytest.fixture
+def checkout_with_item_and_preorder_item(
+    checkout_with_item, product, preorder_variant_channel_threshold
+):
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, [], [], get_plugins_manager()
+    )
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
+    checkout_with_item.save()
+    return checkout_with_item
+
+
+@pytest.fixture
 def address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name="John",
