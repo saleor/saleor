@@ -909,15 +909,27 @@ def test_list_payment_sources(
         me {
             storedPaymentSources {
                 gateway
+                paymentMethodId
                 creditCardInfo {
                     lastDigits
+                    brand
+                    firstDigits
                 }
             }
         }
     }
     """
-    card = PaymentMethodInfo(last_4="5678", exp_year=2020, exp_month=12, name="JohnDoe")
-    source = CustomerSource(id="test1", gateway=gateway, credit_card_info=card)
+    card = PaymentMethodInfo(
+        last_4="5678",
+        first_4="1234",
+        exp_year=2020,
+        exp_month=12,
+        name="JohnDoe",
+        brand="cardBrand",
+    )
+    source = CustomerSource(
+        id="payment-method-id", gateway=gateway, credit_card_info=card
+    )
     mock_get_source_list = mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_payment_sources",
         return_value=[source],
@@ -928,7 +940,15 @@ def test_list_payment_sources(
     mock_get_source_list.assert_called_once_with(gateway, dummy_customer_id, ANY, None)
     content = get_graphql_content(response)["data"]["me"]["storedPaymentSources"]
     assert content is not None and len(content) == 1
-    assert content[0] == {"gateway": gateway, "creditCardInfo": {"lastDigits": "5678"}}
+    assert content[0] == {
+        "gateway": gateway,
+        "paymentMethodId": "payment-method-id",
+        "creditCardInfo": {
+            "firstDigits": "1234",
+            "lastDigits": "5678",
+            "brand": "cardBrand",
+        },
+    }
 
 
 def test_stored_payment_sources_restriction(

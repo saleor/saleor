@@ -141,12 +141,13 @@ def prepare_graphql_payment_sources_type(payment_sources):
         sources.append(
             {
                 "gateway": src.gateway,
+                "payment_method_id": src.id,
                 "credit_card_info": {
                     "last_digits": src.credit_card_info.last_4,
                     "exp_year": src.credit_card_info.exp_year,
                     "exp_month": src.credit_card_info.exp_month,
-                    "brand": "",
-                    "first_digits": "",
+                    "brand": src.credit_card_info.brand,
+                    "first_digits": src.credit_card_info.first_4,
                 },
             }
         )
