@@ -467,7 +467,7 @@ def _prepare_checkout(
         checkout.redirect_url = redirect_url
         to_update.append("redirect_url")
 
-    if tracking_code and tracking_code != checkout.tracking_code:
+    if tracking_code and str(tracking_code) != checkout.tracking_code:
         checkout.tracking_code = tracking_code
         to_update.append("tracking_code")
 
@@ -589,7 +589,7 @@ def complete_checkout(
         raise exc
 
     customer_id = None
-    if store_source and payment:
+    if payment and user.is_authenticated:
         customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
 
     txn = _process_payment(

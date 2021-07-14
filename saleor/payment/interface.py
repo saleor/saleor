@@ -77,9 +77,10 @@ class PaymentData:
     customer_ip_address: Optional[str]
     customer_email: str
     token: Optional[str] = None
-    customer_id: Optional[str] = None
+    customer_id: Optional[str] = None  # stores payment gateway customer ID
     reuse_source: bool = False
     data: Optional[dict] = None
+    graphql_customer_id: Optional[str] = None
 
 
 @dataclass
