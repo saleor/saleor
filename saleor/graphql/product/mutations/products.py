@@ -36,7 +36,7 @@ from ....product.utils.variants import generate_and_set_variant_name
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
-from ...core.enums import SubscriptionPeriodEnum, SubscriptionLimitEnum
+from ...core.enums import SubscriptionLimitEnum, SubscriptionPeriodEnum
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar

@@ -21,8 +21,8 @@ from ...discount import error_codes as discount_error_codes
 from ...giftcard import error_codes as giftcard_error_codes
 from ...invoice import error_codes as invoice_error_codes
 from ...menu import error_codes as menu_error_codes
+from ...order import SubscriptionLimit, SubscriptionPeriod, SubscriptionStatus
 from ...order import error_codes as order_error_codes
-from ...order import SubscriptionStatus, SubscriptionPeriod, SubscriptionLimit
 from ...page import error_codes as page_error_codes
 from ...payment import error_codes as payment_error_codes
 from ...plugins import error_codes as plugin_error_codes

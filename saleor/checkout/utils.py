@@ -24,10 +24,10 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
-from ..plugins.manager import PluginsManager
-from ..product import models as product_models
 from ..order import SubscriptionLimit
 from ..order.models import Subscription
+from ..plugins.manager import PluginsManager
+from ..product import models as product_models
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from . import AddressType, calculations

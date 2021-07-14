@@ -5,13 +5,11 @@ from django.utils import timezone
 
 from ....account.models import User
 from ....core.permissions import OrderPermissions
-from ....order import (
-    SubscriptionStatus,
-)
+from ....order import SubscriptionStatus
 from ....order.actions import (
+    subscription_cancel,
     subscription_renew,
     subscription_update_status,
-    subscription_cancel,
 )
 from ....order.error_codes import SubscriptionErrorCode
 from ...core.enums import SubscriptionStatusEnum

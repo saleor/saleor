@@ -36,11 +36,11 @@ from ..warehouse.models import Stock
 from . import (
     FulfillmentLineData,
     FulfillmentStatus,
-    SubscriptionPeriod,
-    SubscriptionStatus,
     OrderLineData,
     OrderOrigin,
     OrderStatus,
+    SubscriptionPeriod,
+    SubscriptionStatus,
     events,
     utils,
 )
@@ -53,10 +53,6 @@ from .events import (
     order_returned_event,
 )
 from .models import Fulfillment, FulfillmentLine, Order, OrderLine, Subscription
-from .tasks import (
-    subscription_renew_task,
-    subscription_update_status_task,
-)
 from .notifications import (
     send_fulfillment_confirmation_to_customer,
     send_order_canceled_confirmation,
@@ -64,6 +60,7 @@ from .notifications import (
     send_order_refunded_confirmation,
     send_payment_confirmation,
 )
+from .tasks import subscription_renew_task, subscription_update_status_task
 from .utils import (
     add_variant_to_order,
     order_line_needs_automatic_fulfillment,

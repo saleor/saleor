@@ -1,9 +1,9 @@
 from typing import List
 
 from ..celeryconf import app
+from . import actions
 from .models import Order, Subscription
 from .utils import recalculate_order
-from . import actions
 
 
 @app.task

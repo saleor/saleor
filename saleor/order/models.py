@@ -32,11 +32,11 @@ from ..payment.models import Payment
 from ..shipping.models import ShippingMethod
 from . import (
     FulfillmentStatus,
-    SubscriptionPeriod,
-    SubscriptionStatus,
     OrderEvents,
     OrderOrigin,
     OrderStatus,
+    SubscriptionPeriod,
+    SubscriptionStatus,
 )
 
 

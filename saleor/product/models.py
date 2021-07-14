@@ -49,8 +49,8 @@ from ..core.utils.translations import TranslationProxy
 from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
+from ..order import SubscriptionLimit, SubscriptionPeriod
 from ..seo.models import SeoModel, SeoModelTranslation
-from ..order import SubscriptionPeriod, SubscriptionLimit
 from . import ProductMediaTypes
 
 if TYPE_CHECKING:
