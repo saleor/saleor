@@ -2765,6 +2765,77 @@ def order_with_line_without_inventory_tracking(
 
 
 @pytest.fixture
+def order_with_preorder_lines(
+    order, product_type, category, shipping_zone, warehouse, channel_USD
+):
+    product = Product.objects.create(
+        name="Test product",
+        slug="test-product-8",
+        product_type=product_type,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date.today(),
+    )
+    variant = ProductVariant.objects.create(
+        product=product, sku="SKU_AA_P", is_preorder=True
+    )
+    channel_listing = ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+        preorder_quantity_threshold=10,
+    )
+
+    net = variant.get_price(product, [], channel_USD, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+    line = order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+    PreorderAllocation.objects.create(
+        order_line=line,
+        product_variant_channel_listing=channel_listing,
+        quantity=line.quantity,
+    )
+
+    order.shipping_address = order.billing_address.get_copy()
+    order.channel = channel_USD
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_price = shipping_method.channel_listings.get(channel_id=channel_USD.id)
+    order.shipping_method_name = shipping_method.name
+    order.shipping_method = shipping_method
+
+    net = shipping_price.get_total()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order.shipping_price = TaxedMoney(net=net, gross=gross)
+    order.save()
+
+    recalculate_order(order)
+
+    order.refresh_from_db()
+    return order
+
+
+@pytest.fixture
 def order_events(order):
     for event_type, _ in OrderEvents.CHOICES:
         OrderEvent.objects.create(type=event_type, order=order)
@@ -2878,6 +2949,17 @@ def draft_order_without_inventory_tracking(order_with_line_without_inventory_tra
     order_with_line_without_inventory_tracking.origin = OrderStatus.DRAFT
     order_with_line_without_inventory_tracking.save(update_fields=["status", "origin"])
     return order_with_line_without_inventory_tracking
+
+
+@pytest.fixture
+def draft_order_with_preorder_lines(order_with_preorder_lines):
+    PreorderAllocation.objects.filter(
+        order_line__order=order_with_preorder_lines
+    ).delete()
+    order_with_preorder_lines.status = OrderStatus.DRAFT
+    order_with_preorder_lines.origin = OrderOrigin.DRAFT
+    order_with_preorder_lines.save(update_fields=["status", "origin"])
+    return order_with_preorder_lines
 
 
 @pytest.fixture
