@@ -426,6 +426,7 @@ class StripeGatewayPlugin(BasePlugin):
                         exp_month=c.card.exp_month,
                         last_4=c.card.last4,
                         name=None,
+                        brand=c.card.brand,
                     ),
                 )
                 for c in payment_methods
