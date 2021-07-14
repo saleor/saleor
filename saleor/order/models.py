@@ -30,7 +30,14 @@ from ..payment import ChargeStatus, TransactionKind
 from ..payment.model_helpers import get_subtotal, get_total_authorized
 from ..payment.models import Payment
 from ..shipping.models import ShippingMethod
-from . import FulfillmentStatus, SubscriptionPeriod, SubscriptionStatus, OrderEvents, OrderOrigin, OrderStatus
+from . import (
+    FulfillmentStatus,
+    SubscriptionPeriod,
+    SubscriptionStatus,
+    OrderEvents,
+    OrderOrigin,
+    OrderStatus,
+)
 
 
 class OrderQueryset(models.QuerySet):
@@ -714,7 +721,9 @@ class Subscription(ModelWithMetadata):
         null=True,
     )
     status = models.CharField(
-        max_length=32, default=SubscriptionStatus.PENDING, choices=SubscriptionStatus.CHOICES
+        max_length=32,
+        default=SubscriptionStatus.PENDING,
+        choices=SubscriptionStatus.CHOICES,
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -828,7 +837,11 @@ class Subscription(ModelWithMetadata):
         return None
 
     def can_renew(self) -> bool:
-        if self.status in [SubscriptionStatus.PENDING, SubscriptionStatus.ACTIVE, SubscriptionStatus.ON_HOLD]:
+        if self.status in [
+            SubscriptionStatus.PENDING,
+            SubscriptionStatus.ACTIVE,
+            SubscriptionStatus.ON_HOLD,
+        ]:
             if self.expiry_date and self.expiry_date < now():
                 return False
             if self.next_payment_date > now():

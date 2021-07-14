@@ -170,11 +170,21 @@ class ProductPricingInfo(BasePricingInfo):
 
 @key(fields="id")
 class ProductVariantSubscription(CountableDjangoObjectType):
-    number = graphene.String(description="User-friendly number of a product variant subscription.")
+    number = graphene.String(
+        description="User-friendly number of a product variant subscription."
+    )
 
     class Meta:
         description = "Represents a product variant subscription."
-        fields = ["id", "billing_interval", "billing_period", "trial_interval", "trial_period", "length", "limit"]
+        fields = [
+            "id",
+            "billing_interval",
+            "billing_period",
+            "trial_interval",
+            "trial_period",
+            "length",
+            "limit",
+        ]
         interfaces = [relay.Node]
         model = models.ProductVariantSubscription
 
@@ -265,9 +275,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     subscription = graphene.Field(
         ProductVariantSubscription,
         required=False,
-        description=(
-            "Subscription of the product variant."
-        ),
+        description=("Subscription of the product variant."),
     )
 
     class Meta:

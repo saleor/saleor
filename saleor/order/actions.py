@@ -383,7 +383,11 @@ def handle_subscription_lines(order: "Order", user: "User"):
 
         if order_line.subscription:
             subscription = order_line.subscription
-            subscription.renewed = timezone.now() if subscription.end_date < timezone.now() else subscription.end_date
+            subscription.renewed = (
+                timezone.now()
+                if subscription.end_date < timezone.now()
+                else subscription.end_date
+            )
             subscription.status = SubscriptionStatus.ACTIVE
             subscription.save()
         else:
@@ -400,22 +404,37 @@ def handle_subscription_lines(order: "Order", user: "User"):
             subscription.orders.add(order)
             subscription.save()
 
-        if subscription.expiry_date and subscription.expiry_date < subscription.end_date:
-            subscription_update_status_eta = subscription.end_date + timedelta(minutes=1)
+        if (
+            subscription.expiry_date
+            and subscription.expiry_date < subscription.end_date
+        ):
+            subscription_update_status_eta = subscription.end_date + timedelta(
+                minutes=1
+            )
             subscription_update_status_task.apply_async(
-                kwargs={"subscription_pk": subscription.pk, "status": SubscriptionStatus.EXPIRED},
+                kwargs={
+                    "subscription_pk": subscription.pk,
+                    "status": SubscriptionStatus.EXPIRED,
+                },
                 eta=subscription_update_status_eta,
             )
         else:
-            subscription_renew_task_eta = subscription.next_payment_date + timedelta(minutes=1)
+            subscription_renew_task_eta = subscription.next_payment_date + timedelta(
+                minutes=1
+            )
             subscription_renew_task.apply_async(
                 kwargs={"subscription_pk": subscription.pk},
                 eta=subscription_renew_task_eta,
             )
 
-            subscription_update_status_eta = subscription.end_date + timedelta(minutes=1)
+            subscription_update_status_eta = subscription.end_date + timedelta(
+                minutes=1
+            )
             subscription_update_status_task.apply_async(
-                kwargs={"subscription_pk": subscription.pk, "status": SubscriptionStatus.PENDING},
+                kwargs={
+                    "subscription_pk": subscription.pk,
+                    "status": SubscriptionStatus.PENDING,
+                },
                 eta=subscription_update_status_eta,
             )
 
@@ -1301,12 +1320,17 @@ def subscription_renew(subscription: "Subscription"):
             variant=subscription.variant,
             quantity=subscription.quantity,
             user=subscription.user,
-            manager=manager
+            manager=manager,
         )
 
         recalculate_order(order)
-        if ( address := order.shipping_address or order.billing_address ) and address.country:
-            order_lines_info = [OrderLineData(line=line, quantity=line.quantity, variant=line.variant) for line in order.lines.all()]
+        if (
+            address := order.shipping_address or order.billing_address
+        ) and address.country:
+            order_lines_info = [
+                OrderLineData(line=line, quantity=line.quantity, variant=line.variant)
+                for line in order.lines.all()
+            ]
             allocate_stocks(order_lines_info, address.country.code, order.channel.slug)
         order.save()
 
@@ -1358,12 +1382,19 @@ def subscription_cancel(subscription: "Subscription"):
     subscription.cancelled = timezone.now()
     subscription.save()
     if subscription.end_date < subscription.cancelled:
-        subscription_update_status(subscription=subscription, status=SubscriptionStatus.CANCELED)
+        subscription_update_status(
+            subscription=subscription, status=SubscriptionStatus.CANCELED
+        )
     else:
-        subscription_update_status(subscription=subscription, status=SubscriptionStatus.PENDING_CANCEL)
+        subscription_update_status(
+            subscription=subscription, status=SubscriptionStatus.PENDING_CANCEL
+        )
 
         subscription_update_status_eta = subscription.end_date + timedelta(minutes=1)
         subscription_update_status_task.apply_async(
-            kwargs={"subscription_pk": subscription.pk, "status": SubscriptionStatus.CANCELED},
+            kwargs={
+                "subscription_pk": subscription.pk,
+                "status": SubscriptionStatus.CANCELED,
+            },
             eta=subscription_update_status_eta,
         )

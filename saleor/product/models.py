@@ -580,25 +580,22 @@ class ProductVariantSubscription(models.Model):
         related_name="subscription",
     )
     billing_interval = models.IntegerField(
-        default=1,
-        validators=[MaxValueValidator(6), MinValueValidator(1)]
+        default=1, validators=[MaxValueValidator(6), MinValueValidator(1)]
     )
     billing_period = models.CharField(
         max_length=128,
         default=SubscriptionPeriod.DAY,
-        choices=SubscriptionPeriod.CHOICES
+        choices=SubscriptionPeriod.CHOICES,
     )
     trial_interval = models.IntegerField(default=0)
     trial_period = models.CharField(
         max_length=128,
         default=SubscriptionPeriod.DAY,
-        choices=SubscriptionPeriod.CHOICES
+        choices=SubscriptionPeriod.CHOICES,
     )
     length = models.IntegerField(default=0)
     limit = models.CharField(
-        max_length=128,
-        default=SubscriptionLimit.NO,
-        choices=SubscriptionLimit.CHOICES
+        max_length=128, default=SubscriptionLimit.NO, choices=SubscriptionLimit.CHOICES
     )
 
     class Meta:

@@ -747,29 +747,19 @@ class ProductDelete(ModelDeleteMutation):
 
 class ProductVariantSubscriptionInput(graphene.InputObjectType):
     billing_interval = graphene.Int(
-        description="Subscription billing interval.",
-        required=True
+        description="Subscription billing interval.", required=True
     )
     billing_period = SubscriptionPeriodEnum(
-        description="Subscription billing period.",
-        required=True
+        description="Subscription billing period.", required=True
     )
     trial_interval = graphene.Int(
-        description="Subscription trial interval.",
-        required=False
+        description="Subscription trial interval.", required=False
     )
     trial_period = SubscriptionPeriodEnum(
-        description="Subscription trial period.",
-        required=False
+        description="Subscription trial period.", required=False
     )
-    length = graphene.Int(
-        description="Subscription length.",
-        required=False
-    )
-    limit = SubscriptionLimitEnum(
-        description="Subscription limit.",
-        required=True
-    )
+    length = graphene.Int(description="Subscription length.", required=False)
+    limit = SubscriptionLimitEnum(description="Subscription limit.", required=True)
 
 
 class ProductVariantInput(graphene.InputObjectType):
@@ -787,7 +777,8 @@ class ProductVariantInput(graphene.InputObjectType):
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     subscription = graphene.Field(
-        ProductVariantSubscriptionInput, description="Subscription specific to this variant."
+        ProductVariantSubscriptionInput,
+        description="Subscription specific to this variant.",
     )
 
 
@@ -992,7 +983,11 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def create_or_update_variant_subscription(cls, variant, subscription_data):
-        subscription = models.ProductVariantSubscription.objects.get(pk=variant.subscription.pk) if hasattr(variant, 'subscription') else models.ProductVariantSubscription(variant=variant)
+        subscription = (
+            models.ProductVariantSubscription.objects.get(pk=variant.subscription.pk)
+            if hasattr(variant, "subscription")
+            else models.ProductVariantSubscription(variant=variant)
+        )
         for k, v in subscription_data.items():
             setattr(subscription, k, v)
         subscription.save()

@@ -228,7 +228,8 @@ class User(CountableDjangoObjectType):
         "saleor.graphql.order.types.Order", description="List of user's orders."
     )
     subscriptions = PrefetchingConnectionField(
-        "saleor.graphql.order.types.Subscription", description="List of user's subscriptions."
+        "saleor.graphql.order.types.Subscription",
+        description="List of user's subscriptions.",
     )
     user_permissions = graphene.List(
         UserPermission, description="List of user's permissions."

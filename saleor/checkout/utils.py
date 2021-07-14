@@ -90,13 +90,20 @@ def check_variant_is_subscription(
         if not user or not user.is_authenticated:
             raise PermissionDenied()
 
-        if variant.subscription.limit in [SubscriptionLimit.ACTIVE, SubscriptionLimit.ANY]:
+        if variant.subscription.limit in [
+            SubscriptionLimit.ACTIVE,
+            SubscriptionLimit.ANY,
+        ]:
             if quantity > 1:
                 raise ValueError(
                     "%r is not a valid quantity for this variant" % (quantity)
                 )
             user_subscriptions = Subscription.objects.get_by_user(user=user)
-            user_subscriptions = user_subscriptions.get_active_by_variant(variant=variant) if variant.subscription.limit == SubscriptionLimit.ACTIVE else user_subscriptions.get_by_variant(variant=variant)
+            user_subscriptions = (
+                user_subscriptions.get_active_by_variant(variant=variant)
+                if variant.subscription.limit == SubscriptionLimit.ACTIVE
+                else user_subscriptions.get_by_variant(variant=variant)
+            )
             if user_subscriptions and user_subscriptions.count():
                 raise ValueError(
                     "User(%s) already have subscription for this variant" % (user.email)
@@ -181,7 +188,9 @@ def add_variants_to_checkout(
             raise ProductNotPublished()
 
         # check if variant is subscription
-        check_variant_is_subscription(checkout=checkout, variant=variant, quantity=quantity)
+        check_variant_is_subscription(
+            checkout=checkout, variant=variant, quantity=quantity
+        )
 
     variant_ids_in_lines = {line.variant_id: line for line in checkout.lines.all()}
     to_create = []

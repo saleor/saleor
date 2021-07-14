@@ -134,10 +134,13 @@ class OrderFilter(DraftOrderFilter):
         model = Order
         fields = ["payment_status", "status", "customer", "created", "search"]
 
+
 class SubscriptionFilter(django_filters.FilterSet):
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
     renewed = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
-    cancelled = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
+    cancelled = ObjectTypeFilter(
+        input_class=DateRangeInput, method=filter_created_range
+    )
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
 
     class Meta:

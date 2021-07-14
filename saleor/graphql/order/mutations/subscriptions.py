@@ -40,7 +40,11 @@ class SubscriptionRenew(BaseMutation):
         if subscription.can_renew():
             subscription_renew(subscription=subscription)
         else:
-            if subscription.status not in [SubscriptionStatus.PENDING, SubscriptionStatus.ACTIVE, SubscriptionStatus.ON_HOLD]:
+            if subscription.status not in [
+                SubscriptionStatus.PENDING,
+                SubscriptionStatus.ACTIVE,
+                SubscriptionStatus.ON_HOLD,
+            ]:
                 raise ValidationError(
                     {
                         "status": ValidationError(
@@ -78,13 +82,9 @@ class SubscriptionUpdateStatus(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="ID of the subscription to update status.",
-            required=True
+            description="ID of the subscription to update status.", required=True
         )
-        status = SubscriptionStatusEnum(
-            description="Status to update.",
-            required=True
-        )
+        status = SubscriptionStatusEnum(description="Status to update.", required=True)
 
     class Meta:
         description = "Update subscription status."
@@ -101,7 +101,11 @@ class SubscriptionUpdateStatus(BaseMutation):
         if subscription.can_update_status(status=status):
             subscription_update_status(subscription, status)
         else:
-            if status == SubscriptionStatus.PENDING and not ( subscription.status in [SubscriptionStatus.ACTIVE, SubscriptionStatus.ON_HOLD] and subscription.end_date <= timezone.now() ):
+            if status == SubscriptionStatus.PENDING and not (
+                subscription.status
+                in [SubscriptionStatus.ACTIVE, SubscriptionStatus.ON_HOLD]
+                and subscription.end_date <= timezone.now()
+            ):
                 raise ValidationError(
                     {
                         "status": ValidationError(
@@ -111,7 +115,10 @@ class SubscriptionUpdateStatus(BaseMutation):
                     }
                 )
 
-            elif status == SubscriptionStatus.ACTIVE and not ( subscription.status in [SubscriptionStatus.PENDING, SubscriptionStatus.ON_HOLD] ):
+            elif status == SubscriptionStatus.ACTIVE and not (
+                subscription.status
+                in [SubscriptionStatus.PENDING, SubscriptionStatus.ON_HOLD]
+            ):
                 raise ValidationError(
                     {
                         "status": ValidationError(
@@ -121,7 +128,9 @@ class SubscriptionUpdateStatus(BaseMutation):
                     }
                 )
 
-            elif status == SubscriptionStatus.ON_HOLD and not ( subscription.status in [SubscriptionStatus.ACTIVE] ):
+            elif status == SubscriptionStatus.ON_HOLD and not (
+                subscription.status in [SubscriptionStatus.ACTIVE]
+            ):
                 raise ValidationError(
                     {
                         "status": ValidationError(

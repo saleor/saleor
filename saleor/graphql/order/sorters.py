@@ -36,6 +36,7 @@ class OrderSortingInput(SortInputObjectType):
         sort_enum = OrderSortField
         type_name = "orders"
 
+
 class SubscriptionSortField(graphene.Enum):
     CREATED = ["created"]
     RENEWED = ["renewed", "created"]
