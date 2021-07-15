@@ -39,7 +39,6 @@ from . import (
     OrderLineData,
     OrderOrigin,
     OrderStatus,
-    SubscriptionPeriod,
     SubscriptionStatus,
     events,
     utils,
@@ -366,9 +365,7 @@ def fulfill_order_lines(order_lines_info: Iterable["OrderLineData"]):
 
 @traced_atomic_transaction()
 def handle_subscription_lines(order: "Order", user: "User"):
-    """Create or renew subscription.
-    Send confirmation email afterward.
-    """
+    """Create or renew subscription."""
     subscription_lines = order.get_subscription_lines()
 
     if not subscription_lines:
@@ -1358,6 +1355,8 @@ def subscription_renew(subscription: "Subscription"):
         )
 
         payment.refresh_from_db()
+        if not txn.is_success:
+            raise PaymentError(txn.error)
 
         order.update_total_paid()
         order.save()

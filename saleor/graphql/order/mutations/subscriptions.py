@@ -1,9 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.utils import timezone
 
-from ....account.models import User
 from ....core.permissions import OrderPermissions
 from ....order import SubscriptionStatus
 from ....order.actions import (
@@ -64,7 +62,8 @@ class SubscriptionRenew(BaseMutation):
                 raise ValidationError(
                     {
                         "next_payment_date": ValidationError(
-                            "Provided subscription cannot renew before next payment data. ",
+                            "Provided subscription cannot renew before "
+                            "next payment data.",
                             code=SubscriptionErrorCode.CANNOT_RENEW,
                         )
                     }

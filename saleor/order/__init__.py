@@ -53,7 +53,7 @@ class SubscriptionStatus:
     ON_HOLD = "on_hold"  # subscription marked as on hold
     CANCELED = "canceled"  # permanently canceled subscription
     EXPIRED = "expired"  # subscription expired
-    PENDING_CANCEL = "pending_cancel"  # subscription canceled by user but currently user have subscription
+    PENDING_CANCEL = "pending_cancel"  # subscription canceled but it works like active
 
     CHOICES = [
         (PENDING, "Pending"),
