@@ -12,19 +12,19 @@ from prices import TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo
+from .fetch import CheckoutLineInfo
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
     from ..order.models import OrderLine
-    from .fetch import CheckoutLineInfo
 
 
 def base_checkout_shipping_price(
     checkout_info: "CheckoutInfo", lines=None
 ) -> TaxedMoney:
     """Return checkout shipping price."""
-    # FIXME: Optimize checkout.is_shipping_required (can be removed)
+    # FIXME: Optimize checkout.is_shipping_required
     shipping_method = checkout_info.shipping_method
 
     # all(isinstance  ... is not needed...)
