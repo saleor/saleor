@@ -217,6 +217,10 @@ All notable, unreleased changes to this project will be documented in this file.
   - drop `productType` from `ProductFilter`
   - deprecate mutations' `<name>Errors`, typed `errors` fields and remove deprecation
 - Add channel data to Order webhook - #7299 by @krzysztofwolski
+- Deprecated Stripe plugin - will be removed in Saleor 4.0
+  - rename `StripeGatewayPlugin` to `DeprecatedStripeGatewayPlugin`.
+  - introduce new `StripeGatewayPlugin` plugin.
+
 - Always create new checkout in `checkoutCreate` mutation - #7318 by @IKarbowiak
   - deprecate `created` return field on `checkoutCreate` mutation
 - Return empty values list for attribute without choices - #7394 by @fowczarek
@@ -226,6 +230,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unify checkout identifier in checkout mutations and queries - #7511 by @IKarbowiak
 - Use root level channel argument for filtering and sorting - #7374 by @IKarbowiak
   - drop `channel` field from filters and sorters
+- Drop top-level `checkoutLine` query from the schema with related resolver, use `checkout` query instead - #7623 by @dexon44
 
 ### Other
 
