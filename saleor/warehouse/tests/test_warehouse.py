@@ -1,4 +1,5 @@
 import pytest
+from django.db.models import Sum
 
 from saleor.warehouse import WarehouseClickAndCollectOption
 
@@ -6,11 +7,11 @@ from ..models import Stock, Warehouse
 
 
 def test_applicable_for_click_and_collect_finds_warehouse_with_all_and_local(
-    stocks_for_cc, checkout_with_lines
+    stocks_for_cc, checkout_with_items_for_cc
 ):
     expected_number_of_warehouses = 2
 
-    lines = checkout_with_lines.lines.all()
+    lines = checkout_with_items_for_cc.lines.all()
     result = Warehouse.objects.applicable_for_click_and_collect(lines)
     result.get(click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES)
     warehouse2 = result.get(
@@ -22,16 +23,24 @@ def test_applicable_for_click_and_collect_finds_warehouse_with_all_and_local(
 
 
 def test_applicable_for_click_and_collect_quantity_exceeded_for_local(
-    stocks_for_cc, checkout_with_lines
+    stocks_for_cc, checkout_with_items_for_cc
 ):
-    expected_number_of_warehouses = 1
-    quantity_above_available_in_stock = 20
+    expected_number_of_warehouses = Warehouse.objects.filter(
+        click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES
+    ).count()
 
-    lines = checkout_with_lines.lines.all()
+    lines = checkout_with_items_for_cc.lines.all()
     line = lines[2]
+    quantity_above_available_in_stock = (
+        Stock.objects.filter(product_variant=line.variant)
+        .aggregate(total_quantity=Sum("quantity"))
+        .get("total_quantity")
+        + 1
+    )
+
     line.quantity = quantity_above_available_in_stock
     line.save(update_fields=["quantity"])
-    checkout_with_lines.refresh_from_db()
+    checkout_with_items_for_cc.refresh_from_db()
 
     result = Warehouse.objects.applicable_for_click_and_collect(lines)
     assert result.count() == expected_number_of_warehouses
@@ -40,15 +49,19 @@ def test_applicable_for_click_and_collect_quantity_exceeded_for_local(
 
 
 def test_applicable_for_click_and_collect_for_one_line_two_local_warehouses(
-    stocks_for_cc, checkout_for_cc_one_line
+    stocks_for_cc, checkout_with_item_for_cc
 ):
-    expected_total_number_of_warehouses = 3
-    expected_total_number_of_local_warehouses = 2
+    expected_total_number_of_warehouses = Warehouse.objects.exclude(
+        click_and_collect_option=WarehouseClickAndCollectOption.DISABLED
+    ).count()
+    expected_total_number_of_local_warehouses = Warehouse.objects.filter(
+        click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK
+    ).count()
     expected_total_number_of_all_warehouses = (
         expected_total_number_of_warehouses - expected_total_number_of_local_warehouses
     )
 
-    lines = checkout_for_cc_one_line.lines.all()
+    lines = checkout_with_item_for_cc.lines.all()
     result = Warehouse.objects.applicable_for_click_and_collect(lines)
     assert result.count() == expected_total_number_of_warehouses
     assert (
@@ -66,12 +79,12 @@ def test_applicable_for_click_and_collect_for_one_line_two_local_warehouses(
 
 
 def test_applicable_for_click_and_collect_does_not_show_warehouses_with_empty_stocks(
-    stocks_for_cc, checkout_with_lines
+    stocks_for_cc, checkout_with_items_for_cc
 ):
     expected_total_number_of_warehouses = 1
     reduced_stock_quantity = 0
 
-    lines = checkout_with_lines.lines.all()
+    lines = checkout_with_items_for_cc.lines.all()
     stock = Stock.objects.filter(
         warehouse__click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK
     ).last()
@@ -87,7 +100,7 @@ def test_applicable_for_click_and_collect_does_not_show_warehouses_with_empty_st
 
 
 def test_applicable_for_click_and_collect_additional_stock_does_not_change_availbility(
-    stocks_for_cc, checkout_with_lines, warehouses_for_cc, product_variant_list
+    stocks_for_cc, checkout_with_items_for_cc, warehouses_for_cc, product_variant_list
 ):
     expected_total_number_of_stocks = 4
     expected_total_number_of_warehouses = 2
@@ -96,7 +109,7 @@ def test_applicable_for_click_and_collect_additional_stock_does_not_change_avail
     Stock.objects.create(
         warehouse=warehouses_for_cc[3], product_variant=product_variant_list[3]
     )
-    lines = checkout_with_lines.lines.all()
+    lines = checkout_with_items_for_cc.lines.all()
 
     result = Warehouse.objects.applicable_for_click_and_collect(lines)
 

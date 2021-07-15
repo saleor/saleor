@@ -8,6 +8,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.db.models import Sum
 from django.test import override_settings
 from django_countries.fields import Country
 from measurement.measures import Weight
@@ -1452,11 +1453,11 @@ query getCheckout($token: UUID!) {
 
 
 def test_checkout_available_collection_points_with_lines_avail_in_1_local_and_1_all(
-    api_client, checkout_with_lines, stocks_for_cc
+    api_client, checkout_with_items_for_cc, stocks_for_cc
 ):
     query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
 
-    variables = {"token": checkout_with_lines.token}
+    variables = {"token": checkout_with_items_for_cc.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
@@ -1467,10 +1468,10 @@ def test_checkout_available_collection_points_with_lines_avail_in_1_local_and_1_
 
 
 def test_checkout_available_collection_points_with_line_avail_in_2_local_and_1_all(
-    api_client, checkout_for_cc_one_line, stocks_for_cc
+    api_client, checkout_with_item_for_cc, stocks_for_cc
 ):
     query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
-    variables = {"token": checkout_for_cc_one_line.token}
+    variables = {"token": checkout_with_item_for_cc.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
@@ -1481,17 +1482,21 @@ def test_checkout_available_collection_points_with_line_avail_in_2_local_and_1_a
     ]
 
 
-def test_checkout_available_collection_points_with_exceeded_quantity(
-    api_client, checkout_with_lines, stocks_for_cc
+def test_checkout_avail_collect_points_exceeded_quantity_shows_only_all_warehouse(
+    api_client, checkout_with_items_for_cc, stocks_for_cc
 ):
     query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
-    line = checkout_with_lines.lines.last()
-
-    line.quantity = 20
+    line = checkout_with_items_for_cc.lines.last()
+    line.quantity = (
+        Stock.objects.filter(product_variant=line.variant)
+        .aggregate(total_quantity=Sum("quantity"))
+        .get("total_quantity")
+        + 1
+    )
     line.save(update_fields=["quantity"])
-    checkout_with_lines.refresh_from_db()
+    checkout_with_items_for_cc.refresh_from_db()
 
-    variables = {"token": checkout_with_lines.token}
+    variables = {"token": checkout_with_items_for_cc.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]

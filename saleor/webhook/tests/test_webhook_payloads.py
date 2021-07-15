@@ -376,8 +376,8 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data):
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
 
 
-def test_generate_collection_point_payload(order_with_lines_cc):
-    payload = json.loads(generate_order_payload(order_with_lines_cc))[0]
+def test_generate_collection_point_payload(order_with_lines_for_cc):
+    payload = json.loads(generate_order_payload(order_with_lines_for_cc))[0]
 
     payload_collection_point = payload.get("collection_point")
 
