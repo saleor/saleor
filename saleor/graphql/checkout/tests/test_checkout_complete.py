@@ -1191,7 +1191,7 @@ def test_checkout_complete_0_total_value(
     ).exists(), "Checkout should have been deleted"
 
 
-def test_complete_checkout_for_click_and_collect_allow_unset_shipping_address(
+def test_complete_checkout_for_click_and_collect_allows_unset_shipping_address(
     api_client, checkout_for_cc, payment_dummy, address, warehouse_for_cc
 ):
     order_count = Order.objects.count()
@@ -1237,10 +1237,10 @@ def test_complete_checkout_for_click_and_collect_allow_unset_shipping_address(
 
 
 def test_complete_checkout_raises_ValidationError_for_local_stock(
-    api_client, checkout_with_lines, payment_dummy, address, warehouse_for_cc
+    api_client, checkout_with_items_for_cc, payment_dummy, address, warehouse_for_cc
 ):
     initial_order_count = Order.objects.count()
-    checkout = checkout_with_lines
+    checkout = checkout_with_items_for_cc
     checkout_line = checkout.lines.first()
     stock = Stock.objects.get(product_variant=checkout_line.variant)
     quantity_available = get_available_quantity_for_stock(stock)
@@ -1281,13 +1281,13 @@ def test_complete_checkout_raises_ValidationError_for_local_stock(
 def test_comp_checkout_builds_order_for_ALL_warehouse_even_if_not_available_locally(
     stocks_for_cc,
     warehouse_for_cc,
-    checkout_with_lines,
+    checkout_with_items_for_cc,
     address,
     api_client,
     payment_dummy,
 ):
     initial_order_count = Order.objects.count()
-    checkout = checkout_with_lines
+    checkout = checkout_with_items_for_cc
     checkout_line = checkout.lines.first()
     stock = Stock.objects.get(
         product_variant=checkout_line.variant, warehouse=warehouse_for_cc
@@ -1335,13 +1335,13 @@ def test_comp_checkout_builds_order_for_ALL_warehouse_even_if_not_available_loca
 def test_checkout_complete_raises_InsufficientStock_when_quantity_above_stock_sum(
     stocks_for_cc,
     warehouse_for_cc,
-    checkout_with_lines,
+    checkout_with_items_for_cc,
     address,
     api_client,
     payment_dummy,
 ):
     initial_order_count = Order.objects.count()
-    checkout = checkout_with_lines
+    checkout = checkout_with_items_for_cc
     checkout_line = checkout.lines.first()
     overall_stock_quantity = (
         Stock.objects.filter(product_variant=checkout_line.variant).aggregate(
@@ -1388,13 +1388,13 @@ def test_checkout_complete_raises_InsufficientStock_when_quantity_above_stock_su
 
 def test_checkout_complete_raises_InvalidShippingMethod_when_warehouse_disabled(
     warehouse_for_cc,
-    checkout_with_lines,
+    checkout_with_items_for_cc,
     address,
     api_client,
     payment_dummy,
 ):
     initial_order_count = Order.objects.count()
-    checkout = checkout_with_lines
+    checkout = checkout_with_items_for_cc
     variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
 
     checkout.shipping_address = None

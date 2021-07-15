@@ -554,7 +554,7 @@ def user_checkout(customer_user, channel_USD):
 
 
 @pytest.fixture
-def user_checkout_cc(customer_user, channel_USD, warehouse_for_cc):
+def user_checkout_for_cc(customer_user, channel_USD, warehouse_for_cc):
     checkout = Checkout.objects.create(
         user=customer_user,
         channel=channel_USD,
@@ -591,21 +591,23 @@ def user_checkout_with_items(user_checkout, product_list):
 
 
 @pytest.fixture
-def user_checkout_with_items_cc(user_checkout_cc, product_list):
-    checkout_info = fetch_checkout_info(user_checkout_cc, [], [], get_plugins_manager())
+def user_checkout_with_items_for_cc(user_checkout_for_cc, product_list):
+    checkout_info = fetch_checkout_info(
+        user_checkout_for_cc, [], [], get_plugins_manager()
+    )
     for product in product_list:
         variant = product.variants.get()
         add_variant_to_checkout(checkout_info, variant, 1)
-    user_checkout_cc.refresh_from_db()
-    return user_checkout_cc
+    user_checkout_for_cc.refresh_from_db()
+    return user_checkout_for_cc
 
 
 @pytest.fixture
-def user_checkouts(request, user_checkout_with_items, user_checkout_with_items_cc):
+def user_checkouts(request, user_checkout_with_items, user_checkout_with_items_for_cc):
     if request.param == "regular":
         return user_checkout_with_items
     elif request.param == "click_and_collect":
-        return user_checkout_with_items_cc
+        return user_checkout_with_items_for_cc
     else:
         raise ValueError("Internal test error")
 
@@ -2821,7 +2823,7 @@ def order_with_lines(
 
 
 @pytest.fixture
-def order_with_lines_cc(
+def order_with_lines_for_cc(
     warehouse_for_cc,
     channel_USD,
     customer_user,
@@ -4435,7 +4437,7 @@ def checkout_for_cc(channel_USD, customer_user, product_variant_list):
 
 
 @pytest.fixture
-def checkout_with_lines(checkout_for_cc, product_variant_list):
+def checkout_with_items_for_cc(checkout_for_cc, product_variant_list):
     CheckoutLine.objects.bulk_create(
         [
             CheckoutLine(
@@ -4455,7 +4457,7 @@ def checkout_with_lines(checkout_for_cc, product_variant_list):
 
 
 @pytest.fixture
-def checkout_for_cc_one_line(checkout_for_cc, product_variant_list):
+def checkout_with_item_for_cc(checkout_for_cc, product_variant_list):
     CheckoutLine.objects.create(
         checkout=checkout_for_cc, variant=product_variant_list[0], quantity=1
     )
