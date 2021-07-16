@@ -448,7 +448,9 @@ class ProductVariantBulkCreate(BaseMutation):
             cleaned_inputs.append(cleaned_input if cleaned_input else None)
 
             if cleaned_input["sku"]:
-                cls.validate_duplicated_sku(cleaned_input["sku"], index, sku_list, errors)
+                cls.validate_duplicated_sku(
+                    cleaned_input["sku"], index, sku_list, errors
+                )
         return cleaned_inputs
 
     @classmethod

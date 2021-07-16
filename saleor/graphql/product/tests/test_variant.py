@@ -3521,9 +3521,7 @@ def test_fetch_variant_without_sku_staff_user(
     )
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    product_id = graphene.Node.to_global_id(
-        "Product", product.pk
-    )
+    product_id = graphene.Node.to_global_id("Product", product.pk)
 
     assert data["id"] == variant_id
     assert data["product"]["id"] == product_id
@@ -3544,9 +3542,7 @@ def test_fetch_variant_without_sku_customer(
     assert data is None
 
 
-def test_fetch_variant_without_sku_anonymous(
-    api_client, product, variant, channel_USD
-):
+def test_fetch_variant_without_sku_anonymous(api_client, product, variant, channel_USD):
     variant.sku = None
     variant.save()
 

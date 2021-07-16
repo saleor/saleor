@@ -511,6 +511,39 @@ def test_checkout_complete_with_variant_without_price(
     assert errors[0]["variants"] == [variant_id]
 
 
+def test_checkout_complete_with_variant_without_sku(
+    site_settings,
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_variant = checkout_line.variant
+    checkout_line_variant.sku = None
+    checkout_line_variant.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", checkout_line_variant.pk)
+    redirect_url = "https://www.example.com"
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutComplete"]["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["variants"] == [variant_id]
+
+
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete_requires_confirmation(
     order_confirmed_mock,
