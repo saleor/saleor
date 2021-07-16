@@ -1455,31 +1455,42 @@ query getCheckout($token: UUID!) {
 def test_checkout_available_collection_points_with_lines_avail_in_1_local_and_1_all(
     api_client, checkout_with_items_for_cc, stocks_for_cc
 ):
-    query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
-
-    variables = {"token": checkout_with_items_for_cc.token}
-    response = api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["checkout"]
-    assert data["availableCollectionPoints"] == [
+    expected_collection_points = [
         {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse4"},
         {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse2"},
     ]
+
+    query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
+    variables = {"token": checkout_with_items_for_cc.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    received_collection_points = content["data"]["checkout"][
+        "availableCollectionPoints"
+    ]
+
+    assert len(received_collection_points) == len(expected_collection_points)
+    assert all(c in expected_collection_points for c in received_collection_points)
 
 
 def test_checkout_available_collection_points_with_line_avail_in_2_local_and_1_all(
     api_client, checkout_with_item_for_cc, stocks_for_cc
 ):
-    query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
-    variables = {"token": checkout_with_item_for_cc.token}
-    response = api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["checkout"]
-    assert data["availableCollectionPoints"] == [
+    expected_collection_points = [
         {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse4"},
         {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse3"},
         {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse2"},
     ]
+
+    query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
+    variables = {"token": checkout_with_item_for_cc.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    received_collection_points = content["data"]["checkout"][
+        "availableCollectionPoints"
+    ]
+
+    assert len(received_collection_points) == len(expected_collection_points)
+    assert all(c in expected_collection_points for c in received_collection_points)
 
 
 def test_checkout_avail_collect_points_exceeded_quantity_shows_only_all_warehouse(
@@ -1500,6 +1511,7 @@ def test_checkout_avail_collect_points_exceeded_quantity_shows_only_all_warehous
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
+
     assert data["availableCollectionPoints"] == [
         {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse2"}
     ]

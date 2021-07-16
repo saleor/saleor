@@ -4,7 +4,7 @@ from typing import Set
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Count, Exists, F, OuterRef, Prefetch, Sum
+from django.db.models import Count, Exists, F, OuterRef, Prefetch, Q, Sum
 from django.db.models.expressions import Subquery
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
@@ -33,40 +33,36 @@ class WarehouseQueryset(models.QuerySet):
     def applicable_for_click_and_collect_no_quantity_check(
         self, lines: QuerySet[CheckoutLine]
     ):
-        stock_qs = Stock.objects.filter(
+
+        warehouse_cc_option_enum = WarehouseClickAndCollectOption
+        stocks_qs = Stock.objects.filter(
             product_variant__id__in=lines.values("variant_id"),
         ).select_related("product_variant")
-        local_warehouses_qs = (
-            self.prefetch_related(Prefetch("stock_set", queryset=stock_qs))
-            .filter(stock__in=stock_qs)
+
+        warehouses_qs = (
+            self.prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
+            .filter(stock__in=stocks_qs)
             .annotate(stock_num=Count("stock__id"))
             .filter(
-                stock_num=lines.count(),
-                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+                Q(stock_num=lines.count())
+                & Q(click_and_collect_option=warehouse_cc_option_enum.LOCAL_STOCK)
+                | Q(click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES)
             )
         )
-
-        all_warehouses_qs = self.filter(
-            click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES
-        )
-        ids = [
-            warehouse.id
-            for warehouse in itertools.chain(local_warehouses_qs, all_warehouses_qs)
-        ]
-
-        return self.filter(pk__in=ids)
+        return warehouses_qs
 
     def applicable_for_click_and_collect(self, lines: QuerySet[CheckoutLine]):
-
+        warehouse_cc_option_enum = WarehouseClickAndCollectOption
         lines_quantity = (
             lines.filter(variant_id=OuterRef("product_variant_id"))
             .annotate(prod_sum=Sum("quantity"))
-            .values("prod_sum")
+            .values_list("prod_sum")
         )
 
-        stock_qs = (
+        stocks_qs = (
             Stock.objects.annotate_available_quantity()
             .annotate(line_quantity=F("available_quantity") - Subquery(lines_quantity))
+            .order_by("line_quantity")
             .filter(
                 product_variant__id__in=lines.values("variant_id"),
                 line_quantity__gte=0,
@@ -74,25 +70,18 @@ class WarehouseQueryset(models.QuerySet):
             .select_related("product_variant")
         )
 
-        local_warehouses_qs = (
-            self.prefetch_related(Prefetch("stock_set", queryset=stock_qs))
-            .filter(stock__in=stock_qs)
+        warehouses_qs = (
+            self.prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
+            .filter(stock__in=stocks_qs)
             .annotate(stock_num=Count("stock__id"))
             .filter(
-                stock_num=lines.count(),
-                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+                Q(stock_num=lines.count())
+                & Q(click_and_collect_option=warehouse_cc_option_enum.LOCAL_STOCK)
+                | Q(click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES)
             )
         )
 
-        all_warehouses_qs = self.filter(
-            click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES
-        )
-        ids = [
-            warehouse.id
-            for warehouse in itertools.chain(local_warehouses_qs, all_warehouses_qs)
-        ]
-
-        return self.filter(pk__in=ids)
+        return warehouses_qs
 
 
 class Warehouse(ModelWithMetadata):
