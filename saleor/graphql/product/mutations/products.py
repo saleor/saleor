@@ -60,6 +60,7 @@ from ..types import (
     ProductVariant,
 )
 from ..utils import (
+    clean_variant_sku,
     create_stocks,
     get_draft_order_lines_data_for_variants,
     get_used_attribute_values_for_variant,
@@ -847,6 +848,8 @@ class ProductVariantCreate(ModelMutation):
         stocks = cleaned_input.get("stocks")
         if stocks:
             cls.check_for_duplicates_in_stocks(stocks)
+
+        cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
 
         if instance.pk:
             # If the variant is getting updated,

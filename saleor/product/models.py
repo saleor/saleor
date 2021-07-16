@@ -483,6 +483,7 @@ class ProductVariantQueryset(models.QuerySet):
 
     def available_in_channel(self, channel_slug):
         return self.filter(
+            sku__isnull=False,
             channel_listings__price_amount__isnull=False,
             channel_listings__channel__slug=str(channel_slug),
         )
@@ -538,7 +539,7 @@ class ProductChannelListing(PublishableModel):
 
 
 class ProductVariant(SortableModel, ModelWithMetadata):
-    sku = models.CharField(max_length=255, unique=True)
+    sku = models.CharField(max_length=255, unique=True, null=True, blank=True)
     name = models.CharField(max_length=255, blank=True)
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
@@ -561,7 +562,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         app_label = "product"
 
     def __str__(self) -> str:
-        return self.name or self.sku
+        return self.name or self.sku or f"ID:{self.pk}"
 
     def get_price(
         self,
