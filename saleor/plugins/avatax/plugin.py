@@ -399,10 +399,10 @@ class AvataxPlugin(BasePlugin):
     @staticmethod
     def _calculate_line_total_price(
         taxes_data: Dict[str, Any],
-        item_code: str,
+        item_code: Optional[str],
         base_value: TaxedMoney,
     ):
-        if not taxes_data or "error" in taxes_data:
+        if not taxes_data or "error" in taxes_data or not item_code:
             return base_value
 
         tax_included = (
