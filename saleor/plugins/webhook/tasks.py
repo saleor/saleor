@@ -1,3 +1,4 @@
+import json
 import logging
 from enum import Enum
 from json import JSONDecodeError
@@ -166,7 +167,8 @@ def _send_webhook_to_target(parts, target_url, message, domain, signature, event
 
 def _get_event_payload(task_id, event_payload_id, event_type, webhook_id, target_url):
     try:
-        return EventPayload.objects.get(id=event_payload_id)
+        event_payload = EventPayload.objects.get(id=event_payload_id)
+        return json.loads(event_payload.payload)
     except EventPayload.DoesNotExist as exc:
         EventTask.objects.create(
             task_id=task_id,
@@ -205,7 +207,7 @@ def send_webhook_request(
         return
     parts = urlparse(target_url)
     domain = Site.objects.get_current().domain
-    message = data.payload.encode("utf-8")
+    message = data.encode("utf-8")
     signature = signature_for_payload(message, secret)
     error = None
     with catch_duration_time() as duration:

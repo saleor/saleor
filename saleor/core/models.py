@@ -130,7 +130,7 @@ class Job(models.Model):
 
 
 class EventPayload(models.Model):
-    payload = JSONField(default=dict, encoder=CustomJsonEncoder)
+    payload = models.TextField()
 
 
 class EventTask(models.Model):
