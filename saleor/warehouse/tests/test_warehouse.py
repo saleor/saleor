@@ -118,5 +118,7 @@ def test_applicable_for_click_and_collect_additional_stock_does_not_change_avail
     warehouse = result.get(
         click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK
     )
-    assert warehouse.stock_set.count() == expected_total_number_of_stocks
+    assert warehouse == warehouses_for_cc[3]
+    # Taken from warehouses fixture, due to the prefetch_related on stocks qs for lines
+    assert warehouses_for_cc[3].stock_set.count() == expected_total_number_of_stocks
     assert lines.count() == expected_number_of_checkout_lines
