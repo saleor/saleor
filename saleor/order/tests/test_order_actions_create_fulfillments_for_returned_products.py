@@ -40,7 +40,8 @@ def test_create_return_fulfillment_only_order_lines(
     lines_count = order_with_lines.lines.count()
 
     response = create_fulfillments_for_returned_products(
-        requester=staff_user,
+        user=staff_user,
+        app=None,
         order=order_with_lines,
         payment=payment,
         order_lines=[
@@ -113,7 +114,8 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
     lines_count = order_with_lines.lines.count()
 
     response = create_fulfillments_for_returned_products(
-        requester=staff_user,
+        user=staff_user,
+        app=None,
         order=order_with_lines,
         payment=payment,
         order_lines=[
@@ -184,7 +186,8 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
     lines_count = order_with_lines.lines.count()
 
     response = create_fulfillments_for_returned_products(
-        requester=staff_user,
+        user=staff_user,
+        app=None,
         order=order_with_lines,
         payment=payment,
         order_lines=[
@@ -274,7 +277,8 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     order_with_lines.save(update_fields=["metadata", "private_metadata"])
 
     response = create_fulfillments_for_returned_products(
-        requester=staff_user,
+        user=staff_user,
+        app=None,
         order=order_with_lines,
         payment=payment,
         order_lines=order_lines_data,
@@ -382,7 +386,8 @@ def test_create_return_fulfillment_only_fulfillment_lines(
     original_quantity = {line.id: line.quantity for line in fulfillment_lines}
 
     response = create_fulfillments_for_returned_products(
-        requester=staff_user,
+        user=staff_user,
+        app=None,
         order=fulfilled_order,
         payment=payment,
         order_lines=[],
@@ -439,7 +444,8 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
     fulfillment_lines_to_return[0].quantity = replace_quantity
 
     response = create_fulfillments_for_returned_products(
-        requester=staff_user,
+        user=staff_user,
+        app=None,
         order=fulfilled_order,
         payment=payment,
         order_lines=[],
@@ -576,7 +582,8 @@ def test_create_return_fulfillment_with_lines_already_refunded(
         FulfillmentLineData(line=refunded_fulfillment_line, quantity=2)
     )
     create_fulfillments_for_returned_products(
-        requester=staff_user,
+        user=staff_user,
+        app=None,
         order=fulfilled_order,
         payment=payment,
         order_lines=[],

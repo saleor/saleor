@@ -44,6 +44,7 @@ from .models import Checkout
 from .utils import get_voucher_for_checkout
 
 if TYPE_CHECKING:
+    from ..app.models import App
     from ..plugins.manager import PluginsManager
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
@@ -335,6 +336,7 @@ def _create_order(
     checkout_info: "CheckoutInfo",
     order_data: dict,
     user: User,
+    app: Optional["App"],
     manager: "PluginsManager",
     site_settings=None
 ) -> Order:
@@ -414,7 +416,7 @@ def _create_order(
     order.save()
 
     transaction.on_commit(
-        lambda: order_created(order=order, user=user, manager=manager)
+        lambda: order_created(order=order, user=user, app=app, manager=manager)
     )
 
     # Send the order confirmation email
@@ -559,6 +561,7 @@ def complete_checkout(
     store_source,
     discounts,
     user,
+    app,
     site_settings=None,
     tracking_code=None,
     redirect_url=None,
@@ -615,6 +618,7 @@ def complete_checkout(
                 checkout_info=checkout_info,
                 order_data=order_data,
                 user=user,  # type: ignore
+                app=app,
                 manager=manager,
                 site_settings=site_settings,
             )
