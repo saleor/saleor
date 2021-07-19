@@ -36,7 +36,7 @@ from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
-from ..warehouse.management import allocate_stocks
+from ..warehouse.management import allocate_preorders, allocate_stocks
 from . import AddressType
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
@@ -426,6 +426,7 @@ def _create_order(
         manager,
         additional_warehouse_lookup,
     )
+    allocate_preorders(order_lines_info, checkout_info.channel.slug)
 
     # Add gift cards to the order
     for gift_card in checkout.gift_cards.select_for_update():

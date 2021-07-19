@@ -194,3 +194,46 @@ def checkout_with_charged_payment_for_cc(checkout_with_billing_address_for_cc):
     )
 
     return checkout
+
+
+@pytest.fixture()
+def checkout_preorder_with_charged_payment(
+    checkout_with_billing_address,
+    preorder_variant_channel_threshold,
+    preorder_variant_global_threshold,
+):
+    checkout = checkout_with_billing_address
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
+    add_variant_to_checkout(checkout_info, preorder_variant_global_threshold, 1)
+
+    lines = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
+    taxed_total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy",
+        is_active=True,
+        total=taxed_total.gross.amount,
+        currency="USD",
+    )
+
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.captured_amount = payment.total
+    payment.checkout = checkout
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+
+    return checkout
