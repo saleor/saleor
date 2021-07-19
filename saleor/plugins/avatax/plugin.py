@@ -615,7 +615,7 @@ class AvataxPlugin(BasePlugin):
     @staticmethod
     def _get_unit_tax_rate(
         response: Dict[str, Any],
-        item_code: Optional[str],
+        item_code: str,
         base_rate: Decimal,
     ):
         if response is None:
