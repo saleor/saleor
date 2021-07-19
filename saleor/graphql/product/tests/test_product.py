@@ -5551,24 +5551,24 @@ def test_update_product_with_empty_input_collections(
 ):
     # given
     query = """
-mutation updateProduct($productId: ID!, $input: ProductInput!) {
-  productUpdate(id: $productId, input: $input) {
-    productErrors {
-      field
-      message
-      code
+    mutation updateProduct($productId: ID!, $input: ProductInput!) {
+      productUpdate(id: $productId, input: $input) {
+        productErrors {
+          field
+          message
+          code
+        }
+        product {
+          id
+        }
+      }
     }
-    product {
-      id
-    }
-  }
-}
 
     """
     product_id = graphene.Node.to_global_id("Product", product.pk)
     variables = {
         "productId": product_id,
-        "input": {"collections": ""},
+        "input": {"collections": [""]},
     }
     # when
     response = staff_api_client.post_graphql(
@@ -5578,8 +5578,8 @@ mutation updateProduct($productId: ID!, $input: ProductInput!) {
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
     assert len(data["productErrors"]) == 1
-    productErrors = data["productErrors"][0]
-    assert productErrors["code"] == "GRAPHQL_ERROR"
+    product_errors = data["productErrors"][0]
+    assert product_errors["code"] == ProductErrorCode.GRAPHQL_ERROR.name
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
