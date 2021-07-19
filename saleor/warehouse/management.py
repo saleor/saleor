@@ -382,7 +382,7 @@ def deallocate_stock_for_order(order: "Order"):
 
 @traced_atomic_transaction()
 def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug: str):
-    """Allocate preorder variant for given `order_lines` in give channel."""
+    """Allocate preorder variant for given `order_lines` in given channel."""
     order_lines_info = get_order_lines_with_preorder(order_lines_info)
     if not order_lines_info:
         return
