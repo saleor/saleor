@@ -7,10 +7,13 @@ from graphene_federation import key
 from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, OrderPermissions
+from ...core.permissions import AccountPermissions, AppPermission, OrderPermissions
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ...order import models as order_models
+from ..account.utils import requestor_has_access
+from ..app.dataloaders import AppByIdLoader
+from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
@@ -131,6 +134,7 @@ class CustomerEvent(CountableDjangoObjectType):
     )
     type = CustomerEventsEnum(description="Customer event type.")
     user = graphene.Field(lambda: User, description="User who performed the action.")
+    app = graphene.Field(App, description="App that performed the action.")
     message = graphene.String(description="Content of the event.")
     count = graphene.Int(description="Number of objects concerned by the event.")
     order = graphene.Field(
@@ -156,6 +160,16 @@ class CustomerEvent(CountableDjangoObjectType):
             or user.has_perm(AccountPermissions.MANAGE_STAFF)
         ):
             return root.user
+        raise PermissionDenied()
+
+    @staticmethod
+    @traced_resolver
+    def resolve_app(root: models.CustomerEvent, info):
+        requestor = get_user_or_app_from_context(info.context)
+        if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
+            return (
+                AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
+            )
         raise PermissionDenied()
 
     @staticmethod

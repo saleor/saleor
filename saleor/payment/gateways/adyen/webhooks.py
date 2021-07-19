@@ -156,6 +156,7 @@ def create_payment_notification_for_order(
     external_notification_event(
         order=payment.order,
         user=None,
+        app=None,
         message=msg,
         parameters={"service": payment.gateway, "id": payment.token},
     )
@@ -174,6 +175,7 @@ def create_order(payment, checkout, manager):
             store_source=False,
             discounts=discounts,
             user=checkout.user or AnonymousUser(),
+            app=None,
         )
     except ValidationError:
         payment_refund_or_void(payment, manager, checkout_info.channel.slug)
@@ -243,11 +245,21 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                 gateway_postprocess(new_transaction, payment)
                 if adyen_auto_capture:
                     order_captured(
-                        payment.order, None, new_transaction.amount, payment, manager
+                        payment.order,
+                        None,
+                        None,
+                        new_transaction.amount,
+                        payment,
+                        manager,
                     )
                 else:
                     order_authorized(
-                        payment.order, None, new_transaction.amount, payment, manager
+                        payment.order,
+                        None,
+                        None,
+                        new_transaction.amount,
+                        payment,
+                        manager,
                     )
     reason = notification.get("reason", "-")
     is_success = True if notification.get("success") == "true" else False
@@ -289,7 +301,7 @@ def handle_cancellation(
         payment, success_msg, failed_msg, new_transaction.is_success
     )
     if payment.order and new_transaction.is_success:
-        cancel_order(payment.order, None, manager)
+        cancel_order(payment.order, None, None, manager)
 
 
 def handle_cancel_or_refund(
@@ -332,7 +344,7 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         if new_transaction.is_success and not capture_transaction:
             gateway_postprocess(new_transaction, payment)
             order_captured(
-                payment.order, None, new_transaction.amount, payment, manager
+                payment.order, None, None, new_transaction.amount, payment, manager
             )
 
     reason = notification.get("reason", "-")
@@ -414,7 +426,12 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     )
     if payment.order and new_transaction.is_success:
         order_refunded(
-            payment.order, None, new_transaction.amount, payment, get_plugins_manager()
+            payment.order,
+            None,
+            None,
+            new_transaction.amount,
+            payment,
+            get_plugins_manager(),
         )
 
 

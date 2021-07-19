@@ -2529,6 +2529,7 @@ def order_with_lines_and_events(order_with_lines, staff_user):
     fulfillment_refunded_event(
         order=order_with_lines,
         user=staff_user,
+        app=None,
         refunded_lines=[(1, order_with_lines.lines.first())],
         amount=Decimal("10.0"),
         shipping_costs_included=False,
@@ -2536,6 +2537,7 @@ def order_with_lines_and_events(order_with_lines, staff_user):
     order_added_products_event(
         order=order_with_lines,
         user=staff_user,
+        app=None,
         order_lines=[(1, order_with_lines.lines.first())],
     )
     return order_with_lines
@@ -2779,7 +2781,7 @@ def fulfilled_order_with_all_cancelled_fulfillments(
     fulfilled_order, staff_user, warehouse
 ):
     fulfillment = fulfilled_order.fulfillments.get()
-    cancel_fulfillment(fulfillment, staff_user, warehouse, get_plugins_manager())
+    cancel_fulfillment(fulfillment, staff_user, None, warehouse, get_plugins_manager())
     return fulfilled_order
 
 
