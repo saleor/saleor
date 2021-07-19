@@ -2115,6 +2115,7 @@ enum FulfillmentStatus {
   REPLACED
   REFUNDED_AND_RETURNED
   CANCELED
+  WAITING_FOR_ACCEPTANCE
 }
 
 type FulfillmentUpdateTracking {

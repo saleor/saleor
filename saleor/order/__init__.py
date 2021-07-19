@@ -56,6 +56,9 @@ class FulfillmentStatus:
     )
     REPLACED = "replaced"  # group of replaced products
     CANCELED = "canceled"  # fulfilled group of products in an order marked as canceled
+    WAITING_FOR_ACCEPTANCE = (
+        "waiting_for_acceptance"  # group of products waiting for acceptance
+    )
 
     CHOICES = [
         (FULFILLED, "Fulfilled"),
@@ -64,6 +67,7 @@ class FulfillmentStatus:
         (REPLACED, "Replaced"),
         (REFUNDED_AND_RETURNED, "Refunded and returned"),
         (CANCELED, "Canceled"),
+        (WAITING_FOR_ACCEPTANCE, "Waiting for acceptance"),
     ]
 
 
