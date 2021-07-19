@@ -262,7 +262,8 @@ def get_checkout_lines_data(
                 discounts,
             ).gross.amount,
             tax_code=tax_code,
-            item_code=line_info.variant.sku,
+            # SKU presence is asserted on checkout validation
+            item_code=line_info.variant.sku,  # type: ignore
             name=name,
         )
 
@@ -304,7 +305,8 @@ def get_order_lines_data(
             quantity=line.quantity,
             amount=line.unit_price_gross_amount * line.quantity,
             tax_code=tax_code,
-            item_code=line.variant.sku,
+            # SKU presence is asserted on checkout validation
+            item_code=line.variant.sku,  # type: ignore
             name=line.variant.product.name,
             tax_included=tax_included,
         )
