@@ -125,7 +125,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate nested objects in TranslatableContent types - #7522 by @IKarbowiak
 - Fix performance for User type on resolvers: orders, gift cards, events - #7574 by @tomaszszymanski129
 - Fix failing account mutations for app - #7569 by @IKarbowiak
-- Introduce `event_payload` to webhook tasks - #7521 by @d-wysocki
 - Modify order of auth middleware calls - #7572 by @tomaszszymanski129
 - Add app support for events - #7622 by @IKarbowiak
 

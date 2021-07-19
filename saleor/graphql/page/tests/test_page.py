@@ -1,3 +1,4 @@
+import datetime
 from unittest import mock
 
 import graphene
@@ -8,11 +9,11 @@ from freezegun import freeze_time
 
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
-from ....core.models import EventPayload
 from ....page.error_codes import PageErrorCode
 from ....page.models import Page, PageType
 from ....tests.utils import dummy_editorjs
 from ....webhook.event_types import WebhookEventType
+from ....webhook.payloads import generate_page_payload
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 
 PAGE_QUERY = """
@@ -327,10 +328,11 @@ def test_page_create_trigger_page_webhook(
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
-    event_payload = EventPayload.objects.first()
+    page = Page.objects.first()
+    expected_data = generate_page_payload(page)
 
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.PAGE_CREATED, event_payload.id
+        WebhookEventType.PAGE_CREATED, expected_data
     )
 
 
@@ -1073,9 +1075,10 @@ def test_page_delete_trigger_webhook(
     with pytest.raises(page._meta.model.DoesNotExist):
         page.refresh_from_db()
 
-    event_payload = EventPayload.objects.first()
+    expected_data = generate_page_payload(page)
+
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.PAGE_DELETED, event_payload.id
+        WebhookEventType.PAGE_DELETED, expected_data
     )
 
 
@@ -1252,10 +1255,11 @@ def test_update_page_trigger_webhook(
     assert not data["errors"]
     assert data["page"]["title"] == page_title
     assert data["page"]["slug"] == new_slug
+    page.publication_date = datetime.date(2020, 3, 18)
+    expected_data = generate_page_payload(page)
 
-    event_payload = EventPayload.objects.first()
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.PAGE_UPDATED, event_payload.id
+        WebhookEventType.PAGE_UPDATED, expected_data
     )
 
 
