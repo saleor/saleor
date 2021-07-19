@@ -849,8 +849,6 @@ class ProductVariantCreate(ModelMutation):
         if stocks:
             cls.check_for_duplicates_in_stocks(stocks)
 
-        cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
-
         if instance.pk:
             # If the variant is getting updated,
             # simply retrieve the associated product type
@@ -886,6 +884,18 @@ class ProductVariantCreate(ModelMutation):
                     )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
+
+        if "sku" in cleaned_input:
+            cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
+            if instance.pk and not cleaned_input["sku"]:
+                raise ValidationError(
+                    {
+                        "sku": ValidationError(
+                            "Product variant SKU can't be removed.",
+                            code=ProductErrorCode.REQUIRED.value,
+                        )
+                    }
+                )
 
         return cleaned_input
 

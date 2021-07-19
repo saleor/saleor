@@ -1835,68 +1835,82 @@ def test_update_product_variant_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
-def test_update_product_variant_normalize_empty_string_sku_to_none(
-    staff_api_client, product, permission_manage_products
-):
-    query = """
-        mutation updateVariant (
-            $id: ID!,
-            $sku: String
-        ) {
-            productVariantUpdate(
-                id: $id,
-                input: {
-                    sku: $sku
-                }
-            ){
-                productVariant {
-                    sku
-                }
+QUERY_UPDATE_VARIANT_SKU = """
+    mutation updateVariant (
+        $id: ID!,
+        $sku: String
+    ) {
+        productVariantUpdate(
+            id: $id,
+            input: {
+                sku: $sku
+            }
+        ){
+            productVariant {
+                sku
+            }
+            errors {
+                field
+                code
             }
         }
-    """
+    }
+"""
+
+
+def test_update_product_variant_change_sku(
+    staff_api_client, product, permission_manage_products
+):
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    variables = {"id": variant_id, "sku": ""}
+    variables = {"id": variant_id, "sku": "n3wSKU"}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        QUERY_UPDATE_VARIANT_SKU, variables, permissions=[permission_manage_products]
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]["productVariant"]
-    assert data["sku"] is None
+    assert data["sku"] == "n3wSKU"
+    variant.refresh_from_db()
+    assert variant.sku == "n3wSKU"
+
+
+def test_update_product_variant_change_sku_to_empty_string(
+    staff_api_client, product, permission_manage_products
+):
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "sku": ""}
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_SKU, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]
+    error = data["errors"][0]
+    assert error["field"] == "sku"
+    assert error["code"] == ProductErrorCode.REQUIRED.name
+    variant.refresh_from_db()
+    assert variant.sku
 
 
 def test_update_product_variant_remove_sku(
     staff_api_client, product, permission_manage_products
 ):
-    query = """
-        mutation updateVariant (
-            $id: ID!,
-            $sku: String
-        ) {
-            productVariantUpdate(
-                id: $id,
-                input: {
-                    sku: $sku
-                }
-            ){
-                productVariant {
-                    sku
-                }
-            }
-        }
-    """
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id, "sku": None}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        QUERY_UPDATE_VARIANT_SKU, variables, permissions=[permission_manage_products]
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]["productVariant"]
-    assert data["sku"] is None
+    data = content["data"]["productVariantUpdate"]
+    error = data["errors"][0]
+    assert error["field"] == "sku"
+    assert error["code"] == ProductErrorCode.REQUIRED.name
+    variant.refresh_from_db()
+    assert variant.sku
 
 
 QUERY_UPDATE_VARIANT_ATTRIBUTES = """
