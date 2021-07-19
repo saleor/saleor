@@ -9,6 +9,7 @@ from ...core.permissions import (
     AppPermission,
     BasePermissionEnum,
     CheckoutPermissions,
+    DiscountPermissions,
     MenuPermissions,
     OrderPermissions,
     PagePermissions,
@@ -97,6 +98,10 @@ def shipping_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [ShippingPermissions.MANAGE_SHIPPING]
 
 
+def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [DiscountPermissions.MANAGE_DISCOUNTS]
+
+
 PUBLIC_META_PERMISSION_MAP = {
     "Attribute": attribute_permissions,
     "Category": product_permissions,
@@ -118,6 +123,8 @@ PUBLIC_META_PERMISSION_MAP = {
     "App": app_permissions,
     "User": public_user_permissions,
     "Warehouse": product_permissions,
+    "Sale": discount_permissions,
+    "Voucher": discount_permissions,
 }
 
 
@@ -142,4 +149,6 @@ PRIVATE_META_PERMISSION_MAP = {
     "App": app_permissions,
     "User": private_user_permissions,
     "Warehouse": product_permissions,
+    "Sale": discount_permissions,
+    "Voucher": discount_permissions,
 }
