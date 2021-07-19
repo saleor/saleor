@@ -1,3 +1,4 @@
+import json
 import logging
 from enum import Enum
 from json import JSONDecodeError
@@ -11,11 +12,13 @@ from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
 from ...celeryconf import app
+from ...core.models import EventPayload, EventTask, JobStatus
 from ...payment import PaymentError
 from ...site.models import Site
 from ...webhook.event_types import WebhookEventType
 from ...webhook.models import Webhook
 from . import signature_for_payload
+from .utils import catch_duration_time
 
 if TYPE_CHECKING:
     from ...app.models import App
@@ -58,13 +61,17 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     return webhooks
 
 
-@app.task(compression="zlib")
-def trigger_webhooks_for_event(event_type, data):
+@app.task
+def trigger_webhooks_for_event(event_type, event_payload_id):
     """Send a webhook request for an event as an async task."""
     webhooks = _get_webhooks_for_event(event_type)
     for webhook in webhooks:
         send_webhook_request.delay(
-            webhook.pk, webhook.target_url, webhook.secret_key, event_type, data
+            webhook.pk,
+            webhook.target_url,
+            webhook.secret_key,
+            event_type,
+            event_payload_id,
         )
 
 
@@ -144,27 +151,83 @@ def send_webhook_using_google_cloud_pubsub(
     )
 
 
-@app.task(
-    autoretry_for=(RequestException,),
-    retry_backoff=10,
-    retry_kwargs={"max_retries": 5},
-    compression="zlib",
-)
-def send_webhook_request(webhook_id, target_url, secret, event_type, data):
-    parts = urlparse(target_url)
-    domain = Site.objects.get_current().domain
-    message = data.encode("utf-8")
-    signature = signature_for_payload(message, secret)
-    if parts.scheme.lower() in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
+def _send_webhook_to_target(parts, target_url, message, domain, signature, event_type):
+    scheme = parts.scheme.lower()
+    if scheme in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
         send_webhook_using_http(target_url, message, domain, signature, event_type)
-    elif parts.scheme.lower() == WebhookSchemes.AWS_SQS:
+    elif scheme == WebhookSchemes.AWS_SQS:
         send_webhook_using_aws_sqs(target_url, message, domain, signature, event_type)
-    elif parts.scheme.lower() == WebhookSchemes.GOOGLE_CLOUD_PUBSUB:
+    elif scheme == WebhookSchemes.GOOGLE_CLOUD_PUBSUB:
         send_webhook_using_google_cloud_pubsub(
             target_url, message, domain, signature, event_type
         )
     else:
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
+
+
+def _get_event_payload(task_id, event_payload_id, event_type, webhook_id, target_url):
+    try:
+        event_payload = EventPayload.objects.get(id=event_payload_id)
+        return json.loads(event_payload.payload)
+    except EventPayload.DoesNotExist as exc:
+        EventTask.objects.create(
+            task_id=task_id,
+            event_payload_id=event_payload_id,
+            status=JobStatus.FAILED,
+            error=str(exc),
+            duration=0,
+            event_type=event_type,
+            webhook_id=webhook_id,
+        )
+        task_logger.error(
+            "Cannot find payload related to webhook.",
+            extra={
+                "webhook_id": webhook_id,
+                "event_payload_id": event_payload_id,
+                "target_url": target_url,
+                "event_type": event_type,
+            },
+        )
+        return None
+
+
+@app.task(
+    bind=True,
+    autoretry_for=(RequestException,),
+    retry_backoff=10,
+    retry_kwargs={"max_retries": 5},
+)
+def send_webhook_request(
+    self, webhook_id, target_url, secret, event_type, event_payload_id
+):
+    data = _get_event_payload(
+        self.request.id, event_payload_id, event_type, webhook_id, target_url
+    )
+    if not data:
+        return
+    parts = urlparse(target_url)
+    domain = Site.objects.get_current().domain
+    message = data.encode("utf-8")
+    signature = signature_for_payload(message, secret)
+    error = None
+    with catch_duration_time() as duration:
+        try:
+            _send_webhook_to_target(
+                parts, target_url, message, domain, signature, event_type
+            )
+        except Exception as exc:
+            error = exc
+            raise exc
+        finally:
+            EventTask.objects.create(
+                task_id=self.request.id,
+                event_payload_id=event_payload_id,
+                status=JobStatus.FAILED if error else JobStatus.SUCCESS,
+                error=str(error) if error else None,
+                duration=duration().total_seconds(),
+                event_type=event_type,
+                webhook_id=webhook_id,
+            )
     task_logger.debug(
         "[Webhook ID:%r] Payload sent to %r for event %r",
         webhook_id,

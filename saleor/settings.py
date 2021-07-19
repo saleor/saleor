@@ -233,6 +233,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.auth",
     "django.contrib.postgres",
+    "django_celery_beat",
     # Local apps
     "saleor.plugins",
     "saleor.account",
@@ -528,6 +529,17 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
+
+CELERY_BEAT_SCHEDULE = {
+    "delete-event-payloads": {
+        "task": "saleor.core.tasks.delete_event_payloads_task",
+        "schedule": timedelta(days=1),
+    },
+}
+EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
+    seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "7 days"))
+)
+
 
 # Change this value if your application is running behind a proxy,
 # e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR
