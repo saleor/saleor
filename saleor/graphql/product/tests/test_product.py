@@ -18,6 +18,7 @@ from prices import Money, TaxedMoney
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import Attribute, AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....core.models import EventPayload
 from ....core.taxes import TaxType
 from ....core.units import WeightUnits
 from ....order import OrderEvents, OrderStatus
@@ -42,7 +43,6 @@ from ....product.utils.costs import get_product_costs_data
 from ....tests.utils import dummy_editorjs
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ....webhook.event_types import WebhookEventType
-from ....webhook.payloads import generate_product_deleted_payload
 from ...core.enums import AttributeErrorCode, ReportingPeriod
 from ...tests.utils import (
     assert_no_permission,
@@ -6480,7 +6480,6 @@ def test_delete_product_trigger_webhook(
 
     query = DELETE_PRODUCT_MUTATION
     node_id = graphene.Node.to_global_id("Product", product.id)
-    variants_id = list(product.variants.all().values_list("id", flat=True))
     variables = {"id": node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -6492,10 +6491,9 @@ def test_delete_product_trigger_webhook(
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
 
-    expected_data = generate_product_deleted_payload(product, variants_id)
-
+    event_payload = EventPayload.objects.first()
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.PRODUCT_DELETED, expected_data
+        WebhookEventType.PRODUCT_DELETED, event_payload.id
     )
     mocked_recalculate_orders_task.assert_not_called()
 
