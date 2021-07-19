@@ -127,23 +127,3 @@ class Job(models.Model):
 
     class Meta:
         abstract = True
-
-
-class EventPayload(models.Model):
-    payload = models.TextField()
-
-
-class EventTask(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    event_payload = models.ForeignKey(
-        EventPayload,
-        related_name="event_tasks",
-        null=True,
-        on_delete=models.SET_NULL,
-    )
-    task_id = models.CharField(max_length=254)
-    status = models.CharField(max_length=50, choices=JobStatus.CHOICES)
-    error = models.CharField(null=True, blank=True, max_length=254)
-    duration = models.FloatField()
-    webhook = models.ForeignKey("webhook.Webhook", null=True, on_delete=models.SET_NULL)
-    event_type = models.CharField(max_length=254)
