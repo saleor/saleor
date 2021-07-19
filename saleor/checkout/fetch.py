@@ -182,9 +182,8 @@ class CollectionPointInfo(EmptyDeliveryMethod):
 
     def is_valid_delivery_method(self) -> bool:
         return (
-            self.shipping_address == self.delivery_method.address
-            if self.shipping_address is not None
-            else True
+            self.shipping_address is not None
+            and self.shipping_address == self.delivery_method.address
         )
 
     def is_method_in_valid_methods(self, checkout_info) -> bool:
@@ -288,7 +287,7 @@ def fetch_checkout_info(
         checkout_info, shipping_address, lines, discounts, manager
     )
     valid_pick_up_points = get_valid_collection_points_for_checkout_info(
-        checkout_info, lines
+        checkout_info, shipping_address, lines
     )
     checkout_info.valid_shipping_methods = valid_shipping_methods
     checkout_info.valid_pick_up_points = valid_pick_up_points
@@ -337,12 +336,14 @@ def get_valid_shipping_method_list_for_checkout_info(
 
 def get_valid_collection_points_for_checkout_info(
     checkout_info: "CheckoutInfo",
+    shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
 ):
     from .utils import get_valid_collection_points_for_checkout
 
+    country_code = shipping_address.country.code if shipping_address else None
     valid_collection_points = get_valid_collection_points_for_checkout(
-        lines, strict=False
+        lines, checkout_info, country_code=country_code, quantity_check=False
     )
     return list(valid_collection_points) if valid_collection_points is not None else []
 
