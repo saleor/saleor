@@ -410,7 +410,10 @@ class ProductVariantBulkCreate(BaseMutation):
     ):
         attribute_values = defaultdict(list)
         for attr in attributes_data:
-            attribute_values[attr.id].extend(attr.get("values", []))
+            if "boolean" in attr:
+                attribute_values[attr.id] = attr["boolean"]
+            else:
+                attribute_values[attr.id].extend(attr.get("values", []))
         if attribute_values in used_attribute_values:
             raise ValidationError(
                 "Duplicated attribute values for product variant.",

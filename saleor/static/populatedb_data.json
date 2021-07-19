@@ -9138,7 +9138,7 @@
     "fields": {
         "private_metadata": {},
         "metadata": {},
-        "slug": "release-date ",
+        "slug": "release-date",
         "name": "Release Date",
         "type": "product-type",
         "input_type": "date-time",
@@ -9893,29 +9893,29 @@
     "pk": 103,
     "fields": {
         "sort_order": 1,
-        "name": "Release Date: 03 Jun 2021 00:15:00",
+        "name": "2021-06-03 00:15:00+00:00",
         "value": "",
         "slug": "320_35",
         "file_url": null,
         "content_type": null,
         "boolean": true,
         "date_time": "2021-06-03 00:15:00+00:00",
-        "attribute": 34
+        "attribute": 35
     }
   },
   {
     "model": "attribute.attributevalue",
     "pk": 104,
     "fields": {
-        "sort_order": 1,
-        "name": "Release Date: '01 Jun 2021 14:15:00'",
+        "sort_order": 2,
+        "name": "2021-06-01 14:15:00+00:00",
         "value": "",
         "slug": "317_35",
         "file_url": null,
         "content_type": null,
         "boolean": false,
         "date_time": "2021-06-01 14:15:00+00:00",
-        "attribute": 34
+        "attribute": 35
     }
   },
   {

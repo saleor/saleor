@@ -860,22 +860,21 @@ def date_attribute(db):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-
-    value = datetime.datetime(2020, 10, 5, tzinfo=pytz.utc)
-    AttributeValue.objects.create(
-        attribute=attribute,
-        name=f"{attribute.name}: {value.date()}",
-        slug=f"{value.date()}_{attribute.id}",
-        date_time=value,
+    AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=attribute,
+                name=f"{attribute.name}: {value.date()}",
+                slug=f"{value.date()}_{attribute.id}",
+                date_time=value,
+            )
+            for value in [
+                datetime.datetime(2020, 10, 5, tzinfo=pytz.utc),
+                datetime.datetime(2020, 11, 5, tzinfo=pytz.utc),
+            ]
+        ]
     )
 
-    value = datetime.datetime(2020, 11, 5, tzinfo=pytz.utc)
-    AttributeValue.objects.create(
-        attribute=attribute,
-        name=f"{attribute.name}: {value.date()}",
-        slug=f"{value.date()}_{attribute.id}",
-        date_time=value,
-    )
     return attribute
 
 
@@ -891,21 +890,21 @@ def date_time_attribute(db):
         available_in_grid=True,
     )
 
-    value = datetime.datetime(2020, 10, 5, tzinfo=pytz.utc)
-    AttributeValue.objects.create(
-        attribute=attribute,
-        name=value,
-        slug=f"{value}_{attribute.id}",
-        date_time=value,
+    AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=attribute,
+                name=f"{attribute.name}: {value.date()}",
+                slug=f"{value.date()}_{attribute.id}",
+                date_time=value,
+            )
+            for value in [
+                datetime.datetime(2020, 10, 5, tzinfo=pytz.utc),
+                datetime.datetime(2020, 11, 5, tzinfo=pytz.utc),
+            ]
+        ]
     )
 
-    value = datetime.datetime(2020, 11, 5, tzinfo=pytz.utc)
-    AttributeValue.objects.create(
-        attribute=attribute,
-        name=value,
-        slug=f"{value}_{attribute.id}",
-        date_time=value,
-    )
     return attribute
 
 
