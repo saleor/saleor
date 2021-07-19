@@ -392,17 +392,15 @@ class AvataxPlugin(BasePlugin):
             return zero_taxed_money(order.total.currency)
 
         taxes_data = self._get_order_tax_data(order, previous_value)
-        return self._calculate_line_total_price(
-            taxes_data, order_line.product_sku, previous_value
-        )
+        return self._calculate_line_total_price(taxes_data, variant.sku, previous_value)
 
     @staticmethod
     def _calculate_line_total_price(
         taxes_data: Dict[str, Any],
-        item_code: Optional[str],
+        item_code: str,
         base_value: TaxedMoney,
     ):
-        if not taxes_data or "error" in taxes_data or not item_code:
+        if not taxes_data or "error" in taxes_data:
             return base_value
 
         tax_included = (
@@ -456,17 +454,17 @@ class AvataxPlugin(BasePlugin):
             return previous_value
         taxes_data = self._get_order_tax_data(order, previous_value)
         return self._calculate_unit_price(
-            taxes_data, order_line, order_line.product_sku, previous_value
+            taxes_data, order_line, variant.sku, previous_value
         )
 
     @staticmethod
     def _calculate_unit_price(
         taxes_data: Dict[str, Any],
         line: Union["CheckoutLine", "OrderLine"],
-        item_code: Optional[str],
+        item_code: str,
         base_value: TaxedMoney,
     ):
-        if taxes_data is None or not item_code:
+        if taxes_data is None:
             return base_value
 
         tax_included = (
@@ -620,7 +618,7 @@ class AvataxPlugin(BasePlugin):
         item_code: Optional[str],
         base_rate: Decimal,
     ):
-        if response is None or not item_code:
+        if response is None:
             return base_rate
         lines_data = response.get("lines", [])
         for line in lines_data:
