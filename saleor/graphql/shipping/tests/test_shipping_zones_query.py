@@ -310,7 +310,7 @@ def test_query_shipping_zone_search_by_channels(
     assert data[0]["node"]["id"] == shipping_zone_usd_id
 
 
-def test_query_shipping_zones_search_by_channels_no_matter_of_input(
+def test_query_shipping_zone_search_by_channels_no_matter_of_input(
     staff_api_client,
     shipping_zones_with_different_channels,
     permission_manage_shipping,
