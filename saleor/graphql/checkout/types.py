@@ -499,8 +499,10 @@ class Checkout(CountableDjangoObjectType):
     @traced_resolver
     def resolve_available_collection_points(root: models.Checkout, info):
         def get_available_collection_points(data):
-            lines, *rest = data
-            available = get_valid_collection_points_for_checkout(lines)
+            address, lines, checkout_info = data
+            available = get_valid_collection_points_for_checkout(
+                lines, checkout_info, country_code=address.country.code
+            )
             if not available:
                 return []
 
@@ -509,8 +511,15 @@ class Checkout(CountableDjangoObjectType):
 
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
+        address = (
+            AddressByIdLoader(info.context).load(root.shipping_address_id)
+            if root.shipping_address_id
+            else None
+        )
 
-        return Promise.all([lines, checkout_info]).then(get_available_collection_points)
+        return Promise.all([address, lines, checkout_info]).then(
+            get_available_collection_points
+        )
 
     @staticmethod
     def resolve_available_payment_gateways(root: models.Checkout, info):

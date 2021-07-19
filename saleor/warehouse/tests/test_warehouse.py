@@ -12,7 +12,9 @@ def test_applicable_for_click_and_collect_finds_warehouse_with_all_and_local(
     expected_number_of_warehouses = 2
 
     lines = checkout_with_items_for_cc.lines.all()
-    result = Warehouse.objects.applicable_for_click_and_collect(lines)
+    result = Warehouse.objects.applicable_for_click_and_collect(
+        lines, checkout_with_items_for_cc.shipping_address.country.code
+    )
     result.get(click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES)
     warehouse2 = result.get(
         click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK
@@ -42,7 +44,9 @@ def test_applicable_for_click_and_collect_quantity_exceeded_for_local(
     line.save(update_fields=["quantity"])
     checkout_with_items_for_cc.refresh_from_db()
 
-    result = Warehouse.objects.applicable_for_click_and_collect(lines)
+    result = Warehouse.objects.applicable_for_click_and_collect(
+        lines, checkout_with_items_for_cc.shipping_address.country.code
+    )
     assert result.count() == expected_number_of_warehouses
     with pytest.raises(Warehouse.DoesNotExist):
         result.get(click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK)
@@ -62,7 +66,9 @@ def test_applicable_for_click_and_collect_for_one_line_two_local_warehouses(
     )
 
     lines = checkout_with_item_for_cc.lines.all()
-    result = Warehouse.objects.applicable_for_click_and_collect(lines)
+    result = Warehouse.objects.applicable_for_click_and_collect(
+        lines, checkout_with_item_for_cc.shipping_address.country.code
+    )
     assert result.count() == expected_total_number_of_warehouses
     assert (
         result.filter(
@@ -91,7 +97,9 @@ def test_applicable_for_click_and_collect_does_not_show_warehouses_with_empty_st
     stock.quantity = reduced_stock_quantity
     stock.save(update_fields=["quantity"])
 
-    result = Warehouse.objects.applicable_for_click_and_collect(lines)
+    result = Warehouse.objects.applicable_for_click_and_collect(
+        lines, checkout_with_items_for_cc.shipping_address.country.code
+    )
     assert result.count() == expected_total_number_of_warehouses
     assert (
         result.first().click_and_collect_option
@@ -111,7 +119,9 @@ def test_applicable_for_click_and_collect_additional_stock_does_not_change_avail
     )
     lines = checkout_with_items_for_cc.lines.all()
 
-    result = Warehouse.objects.applicable_for_click_and_collect(lines)
+    result = Warehouse.objects.applicable_for_click_and_collect(
+        lines, checkout_with_items_for_cc.shipping_address.country.code
+    )
 
     assert result.count() == expected_total_number_of_warehouses
     result.get(click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES)
@@ -122,3 +132,33 @@ def test_applicable_for_click_and_collect_additional_stock_does_not_change_avail
     # Taken from warehouses fixture, due to the prefetch_related on stocks qs for lines
     assert warehouses_for_cc[3].stock_set.count() == expected_total_number_of_stocks
     assert lines.count() == expected_number_of_checkout_lines
+
+
+def test_applicable_for_click_and_collect_returns_empty_collection_if_no_shipping_zone(
+    warehouse_for_cc, checkout_with_items_for_cc
+):
+    lines = checkout_with_items_for_cc.lines.all()
+    result = Warehouse.objects.applicable_for_click_and_collect(
+        lines, checkout_with_items_for_cc.shipping_address.country.code
+    )
+    assert result.count() == 1
+
+    warehouse_for_cc.shipping_zones.clear()
+    result = Warehouse.objects.applicable_for_click_and_collect(
+        lines, checkout_with_items_for_cc.shipping_address.country.code
+    )
+
+    assert not result
+
+
+def test_applicable_for_click_and_collect_returns_empty_collection_if_different_zone(
+    warehouse_for_cc, checkout_with_items_for_cc
+):
+    lines = checkout_with_items_for_cc.lines.all()
+    warehouse_for_cc.shipping_zones.filter(name="Poland").delete()
+
+    result = Warehouse.objects.applicable_for_click_and_collect(
+        lines, checkout_with_items_for_cc.shipping_address.country.code
+    )
+
+    assert not result

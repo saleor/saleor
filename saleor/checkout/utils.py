@@ -606,15 +606,24 @@ def get_valid_shipping_methods_for_checkout(
 
 
 def get_valid_collection_points_for_checkout(
-    lines: Iterable["CheckoutLineInfo"], strict: bool = True
+    lines: Iterable["CheckoutLineInfo"],
+    checkout_info: "CheckoutInfo",
+    country_code: Optional[str] = None,
+    quantity_check: bool = True,
 ):
+    if not is_shipping_required(lines):
+        return None
+    if not checkout_info.shipping_address:
+        return None
     line_ids = [line_info.line.id for line_info in lines]
     lines = CheckoutLine.objects.filter(id__in=line_ids)
 
     return (
-        Warehouse.objects.applicable_for_click_and_collect(lines)
-        if strict
-        else Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(lines)
+        Warehouse.objects.applicable_for_click_and_collect(lines, country_code)
+        if quantity_check
+        else Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(
+            lines, country_code
+        )
     )
 
 

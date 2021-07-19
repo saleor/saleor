@@ -1191,14 +1191,13 @@ def test_checkout_complete_0_total_value(
     ).exists(), "Checkout should have been deleted"
 
 
-def test_complete_checkout_for_click_and_collect_allows_unset_shipping_address(
+def test_complete_checkout_for_click_and_collect(
     api_client, checkout_for_cc, payment_dummy, address, warehouse_for_cc
 ):
     order_count = Order.objects.count()
     checkout = checkout_for_cc
     variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
 
-    checkout.shipping_address = None
     checkout.billing_address = address
     checkout.collection_point = warehouse_for_cc
 
@@ -1251,7 +1250,6 @@ def test_complete_checkout_raises_ValidationError_for_local_stock(
 
     checkout.collection_point = warehouse_for_cc
     checkout.billing_address = address
-    checkout.shipping_address = None
     checkout.save(
         update_fields=["collection_point", "shipping_address", "billing_address"]
     )
@@ -1304,11 +1302,7 @@ def test_comp_checkout_builds_order_for_ALL_warehouse_even_if_not_available_loca
     variables = {"token": checkout.token, "rediirectUrl": "https://www.example.com"}
 
     checkout.collection_point = warehouse_for_cc
-    checkout.billing_address = address
-    checkout.shipping_address = None
-    checkout.save(
-        update_fields=["collection_point", "shipping_address", "billing_address"]
-    )
+    checkout.save(update_fields=["collection_point"])
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
@@ -1359,10 +1353,7 @@ def test_checkout_complete_raises_InsufficientStock_when_quantity_above_stock_su
 
     checkout.collection_point = warehouse_for_cc
     checkout.billing_address = address
-    checkout.shipping_address = None
-    checkout.save(
-        update_fields=["collection_point", "shipping_address", "billing_address"]
-    )
+    checkout.save(update_fields=["collection_point", "billing_address"])
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
@@ -1397,7 +1388,6 @@ def test_checkout_complete_raises_InvalidShippingMethod_when_warehouse_disabled(
     checkout = checkout_with_items_for_cc
     variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
 
-    checkout.shipping_address = None
     checkout.billing_address = address
     checkout.collection_point = warehouse_for_cc
 
@@ -1415,7 +1405,7 @@ def test_checkout_complete_raises_InvalidShippingMethod_when_warehouse_disabled(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
-    assert not checkout_info.valid_delivery_methods
+    assert not checkout_info.valid_pick_up_points
     assert not checkout_info.delivery_method_info.is_method_in_valid_methods(
         checkout_info
     )
