@@ -18,7 +18,7 @@ class AppExtensionType:
     CHOICES = [(OVERVIEW, "overview"), (DETAILS, "details")]
 
 
-class AppExtensionMountingPlace:
+class AppExtensionTarget:
     MORE_ACTIONS = "more_actions"
     CREATE = "create"
 
