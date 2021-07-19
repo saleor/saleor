@@ -467,7 +467,6 @@ def checkout_with_item_and_preorder_item(
         checkout_with_item, [], [], get_plugins_manager()
     )
     add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
-    checkout_with_item.save()
     return checkout_with_item
 
 
