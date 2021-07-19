@@ -1,5 +1,5 @@
 from collections import defaultdict, namedtuple
-from typing import TYPE_CHECKING, Dict, Iterable, List, cast
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, cast
 
 from django.db.models import F, Sum
 
@@ -432,41 +432,15 @@ def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug
     allocations: List[PreorderAllocation] = []
     for line_info in order_lines_info:
         variant = cast(ProductVariant, line_info.variant)
-        quantity = line_info.quantity
-        insufficient_stock = None
-
-        if variants_to_channel_listings[variant.id][1] is not None:
-            channel_listing_id = variants_to_channel_listings[variant.id][0]
-            channel_availability = (
-                variants_to_channel_listings[variant.id][1]
-                - quantity_allocation_for_channel[channel_listing_id]
-            )
-            if quantity > channel_availability:
-                insufficient_stock = InsufficientStockData(
-                    variant=variant,
-                    available_quantity=channel_availability,
-                )
-
-        if variant.preorder_global_threshold is not None:
-            global_availability = (
-                variant.preorder_global_threshold
-                - variants_global_allocations[variant.id]
-            )
-            if quantity > global_availability:
-                insufficient_stock = InsufficientStockData(
-                    variant=variant, available_quantity=global_availability
-                )
-
-        if not insufficient_stock:
-            channel_listing_id = variants_to_channel_listings[variant.id][0]
-            allocations.append(
-                PreorderAllocation(
-                    order_line=line_info.line,
-                    product_variant_channel_listing_id=channel_listing_id,
-                    quantity=quantity,
-                )
-            )
-        else:
+        allocation_item, insufficient_stock = _create_preorder_allocation(
+            line_info,
+            variants_to_channel_listings[variant.id],
+            variants_global_allocations[variant.id],
+            quantity_allocation_for_channel,
+        )
+        if allocation_item:
+            allocations.append(allocation_item)
+        if insufficient_stock:
             insufficient_stocks.append(insufficient_stock)
 
     if insufficient_stocks:
@@ -485,3 +459,43 @@ def get_order_lines_with_preorder(
         for line_info in order_lines_info
         if line_info.variant and line_info.variant.is_preorder
     ]
+
+
+def _create_preorder_allocation(
+    line_info: "OrderLineData",
+    variant_channel_data: Tuple[int, Optional[int]],
+    variant_global_allocation: int,
+    quantity_allocation_for_channel: Dict[int, int],
+) -> Tuple[Optional[PreorderAllocation], Optional[InsufficientStockData]]:
+    variant = cast(ProductVariant, line_info.variant)
+    quantity = line_info.quantity
+    channel_listing_id, channel_quantity_threshold = variant_channel_data
+
+    if channel_quantity_threshold is not None:
+        channel_availability = (
+            channel_quantity_threshold
+            - quantity_allocation_for_channel[channel_listing_id]
+        )
+        if quantity > channel_availability:
+            return None, InsufficientStockData(
+                variant=variant,
+                available_quantity=channel_availability,
+            )
+
+    if variant.preorder_global_threshold is not None:
+        global_availability = (
+            variant.preorder_global_threshold - variant_global_allocation
+        )
+        if quantity > global_availability:
+            return None, InsufficientStockData(
+                variant=variant, available_quantity=global_availability
+            )
+
+    return (
+        PreorderAllocation(
+            order_line=line_info.line,
+            product_variant_channel_listing_id=channel_listing_id,
+            quantity=quantity,
+        ),
+        None,
+    )
