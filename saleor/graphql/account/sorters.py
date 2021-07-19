@@ -1,6 +1,5 @@
 import graphene
 from django.db.models import Count, QuerySet
-from graphql.error import GraphQLError
 
 from ..core.types import SortInputObjectType
 
@@ -10,33 +9,17 @@ class UserSortField(graphene.Enum):
     LAST_NAME = ["last_name", "first_name", "pk"]
     EMAIL = ["email"]
     ORDER_COUNT = ["order_count", "email"]
-    RANK = ["rank"]
 
     @property
     def description(self):
-        descriptions = {
-            UserSortField.RANK.name: (
-                "rank. Note: This option is available only with the `search` filter."
-            ),
-        }
-        sort_name = None
-        if self.name in descriptions:
-            sort_name = {descriptions[self.name]}
         if self.name in UserSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
-        if sort_name:
             return f"Sort users by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
     def qs_with_order_count(queryset: QuerySet, **_kwargs) -> QuerySet:
         return queryset.annotate(order_count=Count("orders__id"))
-
-    @staticmethod
-    def qs_with_rank(queryset: QuerySet, **_kwargs) -> QuerySet:
-        if "rank" in queryset.query.annotations.keys():
-            return queryset
-        raise GraphQLError("Sorting by Rank is available only with searching.")
 
 
 class UserSortingInput(SortInputObjectType):

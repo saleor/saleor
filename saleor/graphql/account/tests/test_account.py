@@ -4447,46 +4447,10 @@ def test_query_customers_with_sort(
         assert users[order]["node"]["firstName"] == user_first_name
 
 
-def test_customers_sort_by_rank_without_search(
-    staff_api_client, permission_manage_users
-):
-    variables = {"sort_by": {"field": "RANK", "direction": "DESC"}}
-    response = staff_api_client.post_graphql(
-        QUERY_CUSTOMERS_WITH_SORT, variables, permissions=[permission_manage_users]
-    )
-    data = get_graphql_content(response, ignore_errors=True)
-    assert len(data["errors"]) == 1
-    assert (
-        data["errors"][0]["message"]
-        == "Sorting by Rank is available only with searching."
-    )
-
-
-@pytest.mark.parametrize("search_value", ["", "  ", None])
-def test_customers_sort_by_rank_with_empty_search_value(
-    search_value, staff_api_client, permission_manage_users
-):
-    variables = {
-        "filters": {
-            "search": search_value,
-        },
-        "sort_by": {"field": "RANK", "direction": "DESC"},
-    }
-    response = staff_api_client.post_graphql(
-        QUERY_CUSTOMERS_WITH_SORT, variables, permissions=[permission_manage_users]
-    )
-    data = get_graphql_content(response, ignore_errors=True)
-    assert len(data["errors"]) == 1
-    assert (
-        data["errors"][0]["message"]
-        == "Sorting by Rank is available only with searching."
-    )
-
-
 @pytest.mark.parametrize(
     "customer_filter, count",
     [
-        ({"search": "example.com"}, 2),
+        ({"search": "mirumee.com"}, 2),
         ({"search": "Alice"}, 1),
         ({"search": "Kowalski"}, 1),
         ({"search": "John"}, 1),  # first_name
@@ -4508,13 +4472,13 @@ def test_query_customer_members_with_filter_search(
     users = User.objects.bulk_create(
         [
             User(
-                email="second@example.com",
+                email="second@mirumee.com",
                 first_name="Alice",
                 last_name="Kowalski",
                 is_active=False,
             ),
             User(
-                email="third@example.com",
+                email="third@mirumee.com",
                 is_active=True,
             ),
         ]
@@ -4585,13 +4549,13 @@ def test_query_staff_members_app_no_permission(
 @pytest.mark.parametrize(
     "staff_member_filter, count",
     [
-        ({"search": "example.com"}, 3),
+        ({"search": "mirumee.com"}, 2),
         ({"search": "Alice"}, 1),
         ({"search": "Kowalski"}, 1),
         ({"search": "John"}, 1),  # first_name
         ({"search": "Doe"}, 1),  # last_name
         ({"search": "wroc"}, 1),  # city
-        ({"search": "pl"}, 1),  # country
+        ({"search": "pl"}, 2),  # country
     ],
 )
 def test_query_staff_members_with_filter_search(
@@ -4606,19 +4570,19 @@ def test_query_staff_members_with_filter_search(
     users = User.objects.bulk_create(
         [
             User(
-                email="second@example.com",
+                email="second@mirumee.com",
                 first_name="Alice",
                 last_name="Kowalski",
                 is_staff=True,
                 is_active=False,
             ),
             User(
-                email="third@example.com",
+                email="third@mirumee.com",
                 is_staff=True,
                 is_active=True,
             ),
             User(
-                email="customer@example.com",
+                email="customer@mirumee.com",
                 first_name="Alice",
                 last_name="Kowalski",
                 is_staff=False,

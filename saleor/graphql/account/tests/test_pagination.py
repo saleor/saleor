@@ -223,8 +223,8 @@ def test_query_customers_pagination_with_sort(
         ({"search": "example.com"}, ["Alan", "Harry"]),  # email
         ({"search": "davis@test.com"}, ["Robert", "Xavier"]),  # email
         ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
-        ({"search": "wroc"}, ["Alan", "Xavier"]),  # city
-        ({"search": "pl"}, ["Alan", "Xavier"]),  # country
+        ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
+        ({"search": "pl"}, ["Anthony", "Alan"]),  # country
     ],
 )
 def test_query_customer_members_pagination_with_filter_search(
@@ -237,12 +237,7 @@ def test_query_customer_members_pagination_with_filter_search(
     customers_for_search,
 ):
     page_size = 2
-    variables = {
-        "first": page_size,
-        "after": None,
-        "filter": customer_filter,
-        "sortBy": {"field": "RANK", "direction": "DESC"},
-    }
+    variables = {"first": page_size, "after": None, "filter": customer_filter}
     staff_api_client.user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post_graphql(
         QUERY_CUSTOMERS_WITH_PAGINATION,
@@ -261,8 +256,8 @@ def test_query_customer_members_pagination_with_filter_search(
     [
         ({"search": "davis@example.com"}, ["Robert", "Xavier"]),  # email
         ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
-        ({"search": "wroc"}, ["Alan", "Xavier"]),  # city
-        ({"search": "pl"}, ["Alan", "Xavier"]),  # country
+        ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
+        ({"search": "pl"}, ["Anthony", "Alan"]),  # country
         ({"status": "DEACTIVATED"}, ["Alan", "Robert"]),  # status
         ({"status": "ACTIVE"}, ["Anthony", "Harry"]),  # status
     ],
