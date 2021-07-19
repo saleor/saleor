@@ -705,7 +705,7 @@ def shipping_zones(db, channel_USD, channel_PLN):
 
 
 @pytest.fixture
-def shipping_zone_with_different_channels(db, channel_USD, channel_PLN):
+def shipping_zones_with_different_channels(db, channel_USD, channel_PLN):
     shipping_zone_poland, shipping_zone_usa = ShippingZone.objects.bulk_create(
         [
             ShippingZone(name="Poland", countries=["PL"]),
