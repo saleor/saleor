@@ -145,6 +145,8 @@ def invoice_generated_event(
     user: Optional[UserType],
     invoice_number: str,
 ) -> OrderEvent:
+    if not user_is_valid(user):
+        user = None
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.INVOICE_GENERATED,

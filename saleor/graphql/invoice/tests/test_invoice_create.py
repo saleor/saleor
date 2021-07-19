@@ -64,6 +64,42 @@ def test_create_invoice(staff_api_client, permission_manage_orders, order):
     ).exists()
 
 
+def test_create_invoice_using_app_api_client(
+    app_api_client, permission_manage_orders, order
+):
+    number = "01/12/2020/TEST"
+    url = "http://www.example.com"
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", order.pk),
+        "number": number,
+        "url": url,
+    }
+    response = app_api_client.post_graphql(
+        INVOICE_CREATE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    content = get_graphql_content(response)
+    invoice_data = content["data"]["invoiceCreate"]["invoice"]
+    invoice = Invoice.objects.get(order=order, status=JobStatus.SUCCESS)
+    assert invoice.url == invoice_data["url"]
+    assert invoice.number == invoice_data["number"]
+    assert invoice.status.upper() == invoice_data["status"]
+    assert InvoiceEvent.objects.filter(
+        type=InvoiceEvents.CREATED,
+        user=None,
+        invoice=invoice,
+        order=invoice.order,
+        parameters__number=number,
+        parameters__url=url,
+    ).exists()
+    assert order.events.filter(
+        type=OrderEvents.INVOICE_GENERATED,
+        order=order,
+        user=None,
+        parameters__invoice_number=number,
+    ).exists()
+
+
 def test_create_invoice_no_billing_address(
     staff_api_client, permission_manage_orders, order
 ):
