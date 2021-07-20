@@ -3,14 +3,16 @@ from datetime import date
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Q
+from django.db.models import JSONField, Q
+from django.utils import timezone
 from django_prices.models import MoneyField
 
 from ..app.models import App
 from ..core import TimePeriodType
 from ..core.models import ModelWithMetadata
 from ..core.permissions import GiftcardPermissions
-from . import GiftCardExpiryType
+from ..core.utils.json_serializer import CustomJsonEncoder
+from . import GiftCardEvents, GiftCardExpiryType
 
 
 class GiftCardQueryset(models.QuerySet):
@@ -107,3 +109,21 @@ class GiftCard(ModelWithMetadata):
     @property
     def display_code(self):
         return "****%s" % self.code[-4:]
+
+
+class GiftCardEvent(models.Model):
+    date = models.DateTimeField(default=timezone.now, editable=False)
+    type = models.CharField(max_length=255, choices=GiftCardEvents.CHOICES)
+    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="gift_card_events",
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    app = models.ForeignKey(
+        App, related_name="gift_card_events", on_delete=models.SET_NULL, null=True
+    )
+    gift_card = models.ForeignKey(
+        GiftCard, related_name="events", on_delete=models.CASCADE
+    )
