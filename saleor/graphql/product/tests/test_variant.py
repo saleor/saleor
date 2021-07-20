@@ -147,6 +147,10 @@ QUERY_PRODUCT_VARIANT_CHANNEL_LISTING = """
                     currency
                     amount
                 }
+                preorderThreshold {
+                    quantity
+                    soldUnits
+                }
             }
         }
     }
@@ -184,6 +188,10 @@ def test_get_product_variant_channel_listing_as_staff_user(
                 "currency": channel_listing.currency,
                 "amount": channel_listing.cost_price_amount,
             },
+            "preorderThreshold": {
+                "quantity": channel_listing.preorder_quantity_threshold,
+                "soldUnits": 0,
+            },
         } in data["channelListings"]
     assert len(data["channelListings"]) == variant.channel_listings.count()
 
@@ -218,6 +226,10 @@ def test_get_product_variant_channel_listing_as_app(
             "costPrice": {
                 "currency": channel_listing.currency,
                 "amount": channel_listing.cost_price_amount,
+            },
+            "preorderThreshold": {
+                "quantity": channel_listing.preorder_quantity_threshold,
+                "soldUnits": 0,
             },
         } in data["channelListings"]
     assert len(data["channelListings"]) == variant.channel_listings.count()

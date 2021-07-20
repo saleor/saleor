@@ -4090,6 +4090,11 @@ type PreorderData {
   endDate: DateTime
 }
 
+type PreorderThreshold {
+  quantity: Int
+  soldUnits: Int!
+}
+
 input PriceRangeInput {
   gte: Float
   lte: Float
@@ -4602,6 +4607,7 @@ type ProductVariantChannelListing implements Node {
   price: Money
   costPrice: Money
   margin: Int
+  preorderThreshold: PreorderThreshold
 }
 
 input ProductVariantChannelListingAddInput {
