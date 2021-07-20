@@ -168,6 +168,34 @@ class ProductPricingInfo(BasePricingInfo):
         description = "Represents availability of a product in the storefront."
 
 
+class PreorderData(graphene.ObjectType):
+    is_preorder = graphene.Boolean(
+        required=True,
+        description="Indicates whether the product variant is in preorder.",
+    )
+    global_threshold = graphene.Int(
+        required=False, description="The global preorder threshold for product variant."
+    )
+    global_sold_units = graphene.Int(
+        required=False,
+        description="Total number of sold product variant during preorder.",
+    )
+    end_date = graphene.DateTime(required=False, description="Preorder end date.")
+
+    class Meta:
+        description = "Represents preorder settings for product variant."
+
+    @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    def resolve_global_threshold(root, *_args):
+        return root.global_threshold
+
+    @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    def resolve_global_sold_units(root, *_args):
+        return root.global_sold_units
+
+
 @key(fields="id")
 class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     channel_listings = graphene.List(
@@ -246,6 +274,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 "quantity from all shipping zones."
             ),
         ),
+    )
+    preorder = graphene.Field(
+        PreorderData, required=True, description="Preorder data for product variant."
     )
 
     class Meta:
@@ -498,6 +529,29 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @traced_resolver
     def resolve_weight(root: ChannelContext[models.ProductVariant], _info, **_kwargs):
         return convert_weight_to_default_weight_unit(root.node.weight)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_preorder(root: ChannelContext[models.ProductVariant], _info, **_kwargs):
+        variant = root.node
+
+        variant_channel_listings = VariantChannelListingByVariantIdLoader(
+            _info.context
+        ).load(variant.id)
+
+        def calculate_global_sold_units(variant_channel_listings):
+            global_sold_units = sum(
+                channel_listing.preorder_quantity_allocated
+                for channel_listing in variant_channel_listings
+            )
+            return PreorderData(
+                is_preorder=variant.is_preorder,
+                global_threshold=variant.preorder_global_threshold,
+                global_sold_units=global_sold_units,
+                end_date=variant.preorder_end_date,
+            )
+
+        return variant_channel_listings.then(calculate_global_sold_units)
 
 
 @key(fields="id")

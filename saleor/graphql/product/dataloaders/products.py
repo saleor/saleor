@@ -234,7 +234,8 @@ class VariantChannelListingByVariantIdLoader(DataLoader):
     def batch_load(self, keys):
         variant_channel_listings = ProductVariantChannelListing.objects.filter(
             variant_id__in=keys
-        )
+        ).annotate_available_preorder_quantities()
+
         variant_id_variant_channel_listings_map = defaultdict(list)
         for variant_channel_listing in variant_channel_listings:
             variant_id_variant_channel_listings_map[
