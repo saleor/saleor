@@ -126,11 +126,7 @@ def test_check_preorder_threshold_bulk_global_and_channel_threshold(
     variant = preorder_variant_global_and_channel_threshold
 
     channel_listings = variant.channel_listings.all()
-    channel_listings = channel_listings.annotate(
-        available_preorder_quantity=F("preorder_quantity_threshold")
-        - Coalesce(Sum("preorder_allocations__quantity"), 0),
-        preorder_quantity_allocated=Coalesce(Sum("preorder_allocations__quantity"), 0),
-    )
+    channel_listings = channel_listings.annotate_available_preorder_quantities()
     channel_listing_USD = channel_listings.get(channel=channel_USD)
     channel_listing_PLN = channel_listings.get(channel=channel_PLN)
 
