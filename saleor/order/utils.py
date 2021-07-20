@@ -308,7 +308,7 @@ def update_order_status(order):
 
 @traced_atomic_transaction()
 def add_variant_to_order(
-    order, variant, quantity, user, manager, discounts=None, allocate_stock=False
+    order, variant, quantity, user, app, manager, discounts=None, allocate_stock=False
 ):
     """Add total_quantity of variant to order.
 
@@ -321,7 +321,13 @@ def add_variant_to_order(
         new_quantity = old_quantity + quantity
         line_info = OrderLineData(line=line, quantity=old_quantity)
         change_order_line_quantity(
-            user, line_info, old_quantity, new_quantity, channel.slug, send_event=False
+            user,
+            app,
+            line_info,
+            old_quantity,
+            new_quantity,
+            channel.slug,
+            send_event=False,
         )
     except OrderLine.DoesNotExist:
         product = variant.product
@@ -429,6 +435,7 @@ def _update_allocations_for_line(
 
 def change_order_line_quantity(
     user,
+    app,
     line_info,
     old_quantity: int,
     new_quantity: int,
@@ -476,17 +483,20 @@ def change_order_line_quantity(
     quantity_diff = old_quantity - new_quantity
 
     if send_event:
-        create_order_event(line, user, quantity_diff)
+        create_order_event(line, user, app, quantity_diff)
 
 
-def create_order_event(line, user, quantity_diff):
+def create_order_event(line, user, app, quantity_diff):
     if quantity_diff > 0:
         events.order_removed_products_event(
-            order=line.order, user=user, order_lines=[(quantity_diff, line)]
+            order=line.order, user=user, app=app, order_lines=[(quantity_diff, line)]
         )
     elif quantity_diff < 0:
         events.order_added_products_event(
-            order=line.order, user=user, order_lines=[(quantity_diff * -1, line)]
+            order=line.order,
+            user=user,
+            app=app,
+            order_lines=[(quantity_diff * -1, line)],
         )
 
 

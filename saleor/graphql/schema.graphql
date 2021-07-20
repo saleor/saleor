@@ -1639,6 +1639,7 @@ type CustomerEvent implements Node {
   date: DateTime
   type: CustomerEventsEnum
   user: User
+  app: App
   message: String
   count: Int
   order: Order
@@ -3184,6 +3185,7 @@ type OrderEvent implements Node {
   date: DateTime
   type: OrderEventsEnum
   user: User
+  app: App
   message: String
   email: String
   emailType: OrderEventsEmailsEnum
@@ -3900,6 +3902,7 @@ type PaymentRefund {
 
 type PaymentSource {
   gateway: String!
+  paymentMethodId: String
   creditCardInfo: CreditCard
 }
 
@@ -4776,7 +4779,6 @@ type Query {
   taxTypes: [TaxType]
   checkout(token: UUID): Checkout
   checkouts(channel: String, before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
-  checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   channel(id: ID): Channel
   channels: [Channel!]
@@ -6165,7 +6167,7 @@ enum WeightUnitsEnum {
 
 scalar _Any
 
-union _Entity = Address | User | Group | App | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | ProductImage | PageType
+union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | ProductImage | PageType
 
 type _Service {
   sdl: String

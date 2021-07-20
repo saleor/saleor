@@ -21,6 +21,7 @@ from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 from versatileimagefield.fields import VersatileImageField
 
+from ..app.models import App
 from ..core.models import ModelWithMetadata
 from ..core.permissions import AccountPermissions, BasePermissionEnum, get_permissions
 from ..core.utils.json_serializer import CustomJsonEncoder
@@ -279,6 +280,7 @@ class CustomerEvent(models.Model):
     user = models.ForeignKey(
         User, related_name="events", on_delete=models.CASCADE, null=True
     )
+    app = models.ForeignKey(App, related_name="+", on_delete=models.SET_NULL, null=True)
 
     class Meta:
         ordering = ("date",)

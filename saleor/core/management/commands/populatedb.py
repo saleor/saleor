@@ -38,6 +38,9 @@ class Command(BaseCommand):
             default=False,
             help="Create admin account",
         )
+        parser.add_argument("--user_password", type=str, default="password")
+        parser.add_argument("--staff_password", type=str, default="password")
+        parser.add_argument("--superuser_password", type=str, default="admin")
         parser.add_argument(
             "--withoutimages",
             action="store_true",
@@ -72,6 +75,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # set only our custom plugin to not call external API when preparing
         # example database
+        user_password = options["user_password"]
+        staff_password = options["staff_password"]
+        superuser_password = options["superuser_password"]
         settings.PLUGINS = [
             "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
             "saleor.payment.gateways.dummy_credit_card.plugin."
@@ -96,7 +102,7 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in create_gift_card():
             self.stdout.write(msg)
-        for msg in create_users(20):
+        for msg in create_users(user_password, 20):
             self.stdout.write(msg)
         for msg in create_orders(20):
             self.stdout.write(msg)
@@ -104,14 +110,17 @@ class Command(BaseCommand):
             self.stdout.write(msg)
 
         if options["createsuperuser"]:
-            credentials = {"email": "admin@example.com", "password": "admin"}
+            credentials = {
+                "email": "admin@example.com",
+                "password": superuser_password,
+            }
             msg = create_superuser(credentials)
             self.stdout.write(msg)
             add_address_to_admin(credentials["email"])
         if not options["skipsequencereset"]:
             self.sequence_reset()
 
-        for msg in create_permission_groups():
+        for msg in create_permission_groups(staff_password):
             self.stdout.write(msg)
-        for msg in create_staffs():
+        for msg in create_staffs(staff_password):
             self.stdout.write(msg)
