@@ -70,7 +70,7 @@ class GiftCardCreate(ModelMutation):
         user_email = data.get("user_email", None)
         if user_email:
             try:
-                cleaned_input["user"] = User.objects.get(email=user_email)
+                cleaned_input["created_by"] = User.objects.get(email=user_email)
             except ObjectDoesNotExist:
                 raise ValidationError(
                     {
@@ -80,13 +80,14 @@ class GiftCardCreate(ModelMutation):
                         )
                     }
                 )
+        cleaned_input["expiry_date"] = cleaned_input.get("end_date")
         return cleaned_input
 
     @classmethod
     def clean_instance(cls, info, instance):
         super().clean_instance(info, instance)
         start_date = instance.start_date
-        end_date = instance.end_date
+        end_date = instance.expiry_date
         try:
             validate_end_is_after_start(start_date, end_date)
         except ValidationError as error:
