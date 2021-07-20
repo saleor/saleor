@@ -2404,10 +2404,10 @@ def test_checkout_delivery_method_update(
     key_name,
     node_name,
     attribute_name,
-    checkout_with_item,
+    checkout_with_item_for_cc,
     is_valid_delivery_method,
 ):
-    checkout = checkout_with_item
+    checkout = checkout_with_item_for_cc
     old_delivery_method = getattr(checkout, attribute_name)
     query = MUTATION_UPDATE_DELIVERY_METHOD
     mock_clean_delivery.return_value = is_valid_delivery_method
@@ -2415,7 +2415,7 @@ def test_checkout_delivery_method_update(
     method_id = graphene.Node.to_global_id(node_name, delivery_method.id)
 
     response = api_client.post_graphql(
-        query, {"token": checkout_with_item.token, key_name: method_id}
+        query, {"token": checkout.token, key_name: method_id}
     )
     data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
     checkout.refresh_from_db()
