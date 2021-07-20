@@ -1517,6 +1517,20 @@ def test_checkout_avail_collect_points_exceeded_quantity_shows_only_all_warehous
     ]
 
 
+def test_checkout_avail_collect_points_returns_empty_list_when_not_in_shipping_zone(
+    api_client, warehouse_for_cc, checkout_with_items_for_cc
+):
+    query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
+    warehouse_for_cc.shipping_zones.filter(name="Poland").delete()
+
+    variables = {"token": checkout_with_items_for_cc.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    assert not data["availableCollectionPoints"]
+
+
 def test_create_checkout_with_unpublished_product(
     user_api_client, checkout_with_item, stock, channel_USD
 ):
@@ -2317,6 +2331,7 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
             shippingMethodId: $shippingMethodId) {
             checkout {
             id
+            isClickAndCollect
             deliveryMethod {
                 __typename
                 ... on ShippingMethod {
@@ -2389,10 +2404,16 @@ def test_checkout_shipping_method_update(
 
 @pytest.mark.parametrize("is_valid_delivery_method", (True, False))
 @pytest.mark.parametrize(
-    "delivery_method, node_name, attribute_name, key_name",
+    "delivery_method, node_name, attribute_name, key_name, is_click_and_collect",
     [
-        ("warehouse", "Warehouse", "collection_point", "collectionPointId"),
-        ("shipping_method", "ShippingMethod", "shipping_method", "shippingMethodId"),
+        ("warehouse", "Warehouse", "collection_point", "collectionPointId", True),
+        (
+            "shipping_method",
+            "ShippingMethod",
+            "shipping_method",
+            "shippingMethodId",
+            False,
+        ),
     ],
     indirect=("delivery_method",),
 )
@@ -2404,6 +2425,7 @@ def test_checkout_delivery_method_update(
     key_name,
     node_name,
     attribute_name,
+    is_click_and_collect,
     checkout_with_item_for_cc,
     is_valid_delivery_method,
 ):
@@ -2432,9 +2454,11 @@ def test_checkout_delivery_method_update(
         checkout_info=checkout_info, lines=lines, method=delivery_method
     )
     errors = data["errors"]
+    checkout_data = data["checkout"]
     if is_valid_delivery_method:
         assert not errors
         assert getattr(checkout, attribute_name) == delivery_method
+        assert checkout_data["isClickAndCollect"] == is_click_and_collect
     else:
         assert len(errors) == 1
         assert errors[0]["field"] == "deliveryMethod"
