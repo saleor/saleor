@@ -25,6 +25,10 @@ class GiftCard(CountableDjangoObjectType):
         # TODO: Add info about using expiry_date instead, when updating gift card type
         deprecation_reason=("Will be removed in Saleor 4.0."),
     )
+    start_date = graphene.types.datetime.DateTime(
+        description="Start date of gift card.",
+        deprecation_reason=("Will be removed in Saleor 4.0."),
+    )
 
     class Meta:
         description = (
@@ -34,7 +38,6 @@ class GiftCard(CountableDjangoObjectType):
         only_fields = [
             "code",
             "created",
-            "start_date",
             "last_used_on",
             "is_active",
             "initial_balance",
@@ -69,6 +72,9 @@ class GiftCard(CountableDjangoObjectType):
         return None
 
     @staticmethod
-    @traced_resolver
     def resolve_end_date(root: models.GiftCard, *_args, **_kwargs):
         return root.expiry_date
+
+    @staticmethod
+    def resolve_start_date(root: models.GiftCard, *_args, **_kwargs):
+        return None
