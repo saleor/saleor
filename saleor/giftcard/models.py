@@ -1,5 +1,4 @@
 import os
-from datetime import date
 
 from django.conf import settings
 from django.db import models
@@ -19,7 +18,6 @@ class GiftCardQueryset(models.QuerySet):
     def active(self, date):
         return self.filter(
             Q(expiry_date__isnull=True) | Q(expiry_date__gte=date),
-            start_date__lte=date,
             is_active=True,
         )
 
@@ -66,9 +64,6 @@ class GiftCard(ModelWithMetadata):
     tag = models.CharField(max_length=255, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     last_used_on = models.DateTimeField(null=True, blank=True)
-    start_date = models.DateField(
-        default=date.today
-    )  # DEPRECATED: to remove in Saleor 4.0
     product = models.ForeignKey(
         "product.Product",
         null=True,
