@@ -705,6 +705,61 @@ def shipping_zones(db, channel_USD, channel_PLN):
 
 
 @pytest.fixture
+def shipping_zones_with_different_channels(db, channel_USD, channel_PLN):
+    shipping_zone_poland, shipping_zone_usa = ShippingZone.objects.bulk_create(
+        [
+            ShippingZone(name="Poland", countries=["PL"]),
+            ShippingZone(name="USA", countries=["US"]),
+        ]
+    )
+
+    shipping_zone_poland.channels.add(channel_PLN, channel_USD)
+    shipping_zone_usa.channels.add(channel_USD)
+
+    method = shipping_zone_poland.shipping_methods.create(
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
+    )
+    second_method = shipping_zone_usa.shipping_methods.create(
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
+    )
+    ShippingMethodChannelListing.objects.bulk_create(
+        [
+            ShippingMethodChannelListing(
+                channel=channel_USD,
+                shipping_method=method,
+                minimum_order_price=Money(0, "USD"),
+                price=Money(10, "USD"),
+                currency=channel_USD.currency_code,
+            ),
+            ShippingMethodChannelListing(
+                channel=channel_USD,
+                shipping_method=second_method,
+                minimum_order_price=Money(0, "USD"),
+                currency=channel_USD.currency_code,
+            ),
+            ShippingMethodChannelListing(
+                channel=channel_PLN,
+                shipping_method=method,
+                minimum_order_price=Money(0, "PLN"),
+                price=Money(40, "PLN"),
+                currency=channel_PLN.currency_code,
+            ),
+            ShippingMethodChannelListing(
+                channel=channel_PLN,
+                shipping_method=second_method,
+                minimum_order_price=Money(0, "PLN"),
+                currency=channel_PLN.currency_code,
+            ),
+        ]
+    )
+    return [shipping_zone_poland, shipping_zone_usa]
+
+
+@pytest.fixture
 def shipping_zone_without_countries(db, channel_USD):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(name="Europe", countries=[])
     method = shipping_zone.shipping_methods.create(
