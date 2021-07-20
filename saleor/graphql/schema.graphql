@@ -5245,6 +5245,8 @@ type Shop {
   phonePrefixes: [String]!
   headerText: String
   includeTaxesInPrices: Boolean!
+  fulfillmentAutoConfirm: Boolean!
+  fulfillmentAllowUnpaid: Boolean!
   displayGrossPrices: Boolean!
   chargeTaxesOnShipping: Boolean!
   trackInventoryByDefault: Boolean
@@ -5303,6 +5305,8 @@ input ShopSettingsInput {
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
   automaticFulfillmentDigitalProducts: Boolean
+  fulfillmentAutoConfirm: Boolean
+  fulfillmentAllowUnpaid: Boolean
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
   defaultMailSenderName: String
