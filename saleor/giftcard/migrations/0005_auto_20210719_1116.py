@@ -69,11 +69,11 @@ class Migration(migrations.Migration):
             name="expiry_type",
             field=models.CharField(
                 choices=[
-                    ("never-expiry", "Never expire"),
-                    ("expiry-period", "Expiry period"),
-                    ("expiry-date", "Expiry date"),
+                    ("never_expiry", "Never expire"),
+                    ("expiry_period", "Expiry period"),
+                    ("expiry_date", "Expiry date"),
                 ],
-                default="expiry-date",
+                default="expiry_date",
                 max_length=32,
             ),
         ),
@@ -139,5 +139,85 @@ class Migration(migrations.Migration):
                 related_name="user_gift_cards",
                 to=settings.AUTH_USER_MODEL,
             ),
+        ),
+        migrations.CreateModel(
+            name="GiftCardEvent",
+            fields=[
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "date",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, editable=False
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            (
+                                "issued",
+                                "The gift card was created be staff user or app.",
+                            ),
+                            ("bought", "The gift card was bought by customer."),
+                            ("updated", "The gift card was updated."),
+                            ("activated", "The gift card was activated."),
+                            ("deactivated", "The gift card was deactivated."),
+                            ("balance_reset", "The gift card balance was reset."),
+                            (
+                                "expiry_settings_updated",
+                                "The gift card expiry settings was updated.",
+                            ),
+                            (
+                                "sent_to_customer",
+                                "The gift card was sent to the customer.",
+                            ),
+                            ("resent", "The gift card was resent to the customer."),
+                        ],
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "parameters",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
+                    ),
+                ),
+                (
+                    "app",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="gift_card_events",
+                        to="app.app",
+                    ),
+                ),
+                (
+                    "gift_card",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="events",
+                        to="giftcard.giftcard",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="gift_card_events",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+            ],
         ),
     ]
