@@ -140,6 +140,10 @@ class Migration(migrations.Migration):
                 to=settings.AUTH_USER_MODEL,
             ),
         ),
+        migrations.RemoveField(
+            model_name="giftcard",
+            name="start_date",
+        ),
         migrations.CreateModel(
             name="GiftCardEvent",
             fields=[
