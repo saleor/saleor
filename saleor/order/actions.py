@@ -367,13 +367,14 @@ def fulfill_order_lines(order_lines_info: Iterable["OrderLineData"]):
 
 
 @traced_atomic_transaction()
-def handle_subscription_lines(order: "Order", user: "User"):
+def handle_subscription_lines(order: "Order", user: Optional["User"] = None):
     """Create or renew subscription."""
     subscription_lines = order.get_subscription_lines()
 
     if not subscription_lines:
         return
 
+    user = user or order.user
     for order_line in subscription_lines:
         variant = order_line.variant
         quantity = order_line.quantity
@@ -1385,10 +1386,6 @@ def subscription_cancel(subscription: "Subscription"):
             subscription=subscription, status=SubscriptionStatus.CANCELED
         )
     else:
-        subscription_update_status(
-            subscription=subscription, status=SubscriptionStatus.PENDING_CANCEL
-        )
-
         subscription_update_status_eta = subscription.end_date + timedelta(minutes=1)
         subscription_update_status_task.apply_async(
             kwargs={
@@ -1396,4 +1393,8 @@ def subscription_cancel(subscription: "Subscription"):
                 "status": SubscriptionStatus.CANCELED,
             },
             eta=subscription_update_status_eta,
+        )
+
+        subscription_update_status(
+            subscription=subscription, status=SubscriptionStatus.PENDING_CANCEL
         )

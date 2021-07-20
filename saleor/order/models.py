@@ -837,17 +837,17 @@ class Subscription(ModelWithMetadata):
         return None
 
     def can_renew(self) -> bool:
-        if self.status in [
+        if self.status not in [
             SubscriptionStatus.PENDING,
             SubscriptionStatus.ACTIVE,
             SubscriptionStatus.ON_HOLD,
         ]:
-            if self.expiry_date and self.expiry_date < now():
-                return False
-            if self.next_payment_date > now():
-                return False
-            return True
-        return False
+            return False
+        elif self.expiry_date and self.expiry_date < now():
+            return False
+        elif self.next_payment_date > now():
+            return False
+        return True
 
     def can_update_status(self, status: str) -> bool:
         if status == SubscriptionStatus.PENDING:
@@ -872,6 +872,7 @@ class Subscription(ModelWithMetadata):
             return True
 
         elif status == SubscriptionStatus.PENDING_CANCEL:
-            return True
+            if self.end_date > now():
+                return True
 
         return False
