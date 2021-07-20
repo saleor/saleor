@@ -2505,6 +2505,36 @@ def test_checkout_delivery_method_update_with_both_fields_filled_causes_and_erro
     assert checkout.collection_point is None
 
 
+@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
+def test_checkout_delivery_method_with_empty_fields_results_None(
+    mock_clean_delivery,
+    api_client,
+    shipping_method,
+    warehouse_for_cc,
+    checkout_with_item,
+    address,
+):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    mock_clean_delivery.return_value = True
+
+    response = api_client.post_graphql(
+        query,
+        {
+            "token": checkout.token,
+        },
+    )
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    checkout.refresh_from_db()
+
+    assert not data["errors"]
+    assert data["checkout"]["deliveryMethod"] is None
+    assert checkout.shipping_method is None
+    assert checkout.collection_point is None
+
+
 # Deprecated
 @patch("saleor.shipping.postal_codes.is_shipping_method_applicable_for_postal_code")
 def test_checkout_shipping_method_update_excluded_postal_code(

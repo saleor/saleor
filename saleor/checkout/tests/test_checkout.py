@@ -20,6 +20,7 @@ from .. import AddressType, calculations
 from ..fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
+    EmptyDeliveryMethod,
     build_delivery_method,
     fetch_checkout_info,
     fetch_checkout_lines,
@@ -1224,3 +1225,18 @@ def test_cancel_active_payments(checkout_with_payments):
 
     # then
     assert checkout.payments.filter(is_active=True).count() == 0
+
+
+def test_chckout_without_delivery_method_creates_empty_delivery_method(
+    checkout_with_item,
+):
+    checkout = checkout_with_item
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    delivery_method_info = checkout_info.delivery_method_info
+
+    assert isinstance(delivery_method_info, EmptyDeliveryMethod)
+    assert not delivery_method_info.is_valid_delivery_method()
+    assert not delivery_method_info.is_local_collection_point
+    assert not delivery_method_info.is_method_in_valid_methods(checkout_info)

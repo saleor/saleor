@@ -110,10 +110,7 @@ def clean_delivery_method(
             ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
         )
 
-    if (
-        not checkout_info.shipping_address
-        and not checkout_info.delivery_method_info.is_valid_delivery_method()
-    ):
+    if not checkout_info.shipping_address:
         raise ValidationError(
             "Cannot choose a shipping method for a checkout without the "
             "shipping address.",
