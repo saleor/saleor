@@ -307,7 +307,7 @@ def test_create_gift_card(
     assert not errors
     assert data["displayCode"]
     assert data["user"]["email"] == customer_user.email
-    assert data["startDate"] == start_date.isoformat()
+    assert data["startDate"] is None
     assert data["endDate"] == end_date.isoformat()
     assert not data["lastUsedOn"]
     assert data["isActive"]
@@ -339,33 +339,6 @@ def test_create_gift_card_with_empty_code(
 
     assert not errors
     assert len(data["displayCode"]) > 4
-
-
-def test_create_gift_card_with_with_enddate_before_startdate(
-    staff_api_client, permission_manage_gift_card, permission_manage_users
-):
-    start_date = date(day=1, month=2, year=2019)
-    end_date = date(day=1, month=1, year=2019)
-    initial_balance = 123
-    variables = {
-        "code": "oracle",
-        "startDate": start_date.isoformat(),
-        "endDate": end_date.isoformat(),
-        "balance": initial_balance,
-        "userEmail": staff_api_client.user.email,
-    }
-    response = staff_api_client.post_graphql(
-        CREATE_GIFT_CARD_MUTATION,
-        variables,
-        permissions=[permission_manage_gift_card, permission_manage_users],
-    )
-    content = get_graphql_content(response)
-    assert content["data"]["giftCardCreate"]["errors"]
-    errors = content["data"]["giftCardCreate"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["field"] == "endDate"
-    assert errors[0]["code"] == GiftCardErrorCode.INVALID.name
-    assert errors
 
 
 def test_create_gift_card_without_code(

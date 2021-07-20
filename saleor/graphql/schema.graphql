@@ -2157,13 +2157,13 @@ type GiftCard implements Node {
   isActive: Boolean!
   created: DateTime!
   lastUsedOn: DateTime
-  startDate: Date!
   initialBalance: Money
   currentBalance: Money
   id: ID!
   displayCode: String
   user: User @deprecated(reason: "Will be removed in Saleor 4.0.")
   endDate: DateTime @deprecated(reason: "Will be removed in Saleor 4.0.")
+  startDate: DateTime @deprecated(reason: "Will be removed in Saleor 4.0.")
 }
 
 type GiftCardActivate {
