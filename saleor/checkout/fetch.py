@@ -91,6 +91,7 @@ class EmptyDeliveryMethod:
     def is_valid_delivery_method(self) -> bool:
         return False
 
+    # TODO: these Methods should take checkout_info as a parameter
     def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
         return False
 
