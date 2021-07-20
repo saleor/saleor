@@ -77,7 +77,7 @@ def test_order_fulfill(
         ]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
+        staff_user, None, order, fulfillment_lines_for_warehouses, ANY, True
     )
 
 
@@ -127,7 +127,12 @@ def test_order_fulfill_as_app(
         ]
     }
     mock_create_fulfillments.assert_called_once_with(
-        AnonymousUser(), order, fulfillment_lines_for_warehouses, ANY, True
+        AnonymousUser(),
+        app_api_client.app,
+        order,
+        fulfillment_lines_for_warehouses,
+        ANY,
+        True,
     )
 
 
@@ -186,7 +191,7 @@ def test_order_fulfill_many_warehouses(
     }
 
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
+        staff_user, None, order, fulfillment_lines_for_warehouses, ANY, True
     )
 
 
@@ -228,7 +233,7 @@ def test_order_fulfill_without_notification(
         str(warehouse.pk): [{"order_line": order_line, "quantity": 1}]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, False
+        staff_user, None, order, fulfillment_lines_for_warehouses, ANY, False
     )
 
 
@@ -286,7 +291,7 @@ def test_order_fulfill_lines_with_empty_quantity(
         str(warehouse.pk): [{"order_line": order_line2, "quantity": 2}]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
+        staff_user, None, order, fulfillment_lines_for_warehouses, ANY, True
     )
 
 
