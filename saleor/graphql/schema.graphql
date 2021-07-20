@@ -2086,6 +2086,13 @@ input FulfillmentCancelInput {
   warehouseId: ID!
 }
 
+type FulfillmentConfirm {
+  fulfillment: Fulfillment
+  order: Order
+  orderErrors: [OrderError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [OrderError!]!
+}
+
 type FulfillmentLine implements Node {
   id: ID!
   quantity: Int!
@@ -2813,6 +2820,7 @@ type Mutation {
   orderConfirm(id: ID!): OrderConfirm
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
+  orderFulfillmentConfirm(id: ID!, notifyCustomer: Boolean!): FulfillmentConfirm
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
   orderFulfillmentReturnProducts(input: OrderReturnProductsInput!, order: ID!): FulfillmentReturnProducts
@@ -3155,6 +3163,7 @@ enum OrderErrorCode {
   CANNOT_DELETE
   CANNOT_DISCOUNT
   CANNOT_REFUND
+  CANNOT_FULFILL_UNPAID_ORDER
   CAPTURE_INACTIVE_PAYMENT
   NOT_EDITABLE
   FULFILL_ORDER_LINE

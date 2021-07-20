@@ -10,6 +10,7 @@ from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
     cancel_fulfillment,
+    confirm_fulfillment,
     create_fulfillments,
     create_fulfillments_for_returned_products,
     create_refund_fulfillment,
@@ -306,6 +307,50 @@ class FulfillmentCancel(BaseMutation):
         fulfillment.refresh_from_db(fields=["status"])
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)
+
+
+class FulfillmentConfirm(BaseMutation):
+    fulfillment = graphene.Field(Fulfillment, description="A confirmed fulfillment.")
+    order = graphene.Field(Order, description="Order which fulfillment was confirmed.")
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of an fulfillment to confirm.")
+        notify_customer = graphene.Boolean(
+            required=True, description="True if confirmation email should be send."
+        )
+
+    class Meta:
+        description = "Confirm existing fulfillment."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def clean_input(info, root):
+        if root.status != FulfillmentStatus.WAITING_FOR_ACCEPTANCE:
+            raise ValidationError(
+                "Invalid fulfillment status, only WAITING_FOR_ACCEPTANCE "
+                "fulfillments can be accepted.",
+                code=OrderErrorCode.INVALID.value,
+            )
+        if (
+            not info.context.site.settings.fulfillment_allow_unpaid
+            and not root.order.is_fully_paid()
+        ):
+            raise ValidationError(
+                "Cannot fulfill unpaid order.",
+                code=OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER,
+            )
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        cls.clean_input(info, root)
+
+        order = root.order
+        confirm_fulfillment(root, info.context.user, info.context.plugins)
+        root.refresh_from_db(fields=["status"])
+        order.refresh_from_db(fields=["status"])
+        return FulfillmentConfirm(fulfillment=root, order=order)
 
 
 class OrderRefundLineInput(graphene.InputObjectType):

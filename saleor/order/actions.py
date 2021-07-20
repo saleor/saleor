@@ -290,6 +290,30 @@ def cancel_fulfillment(
 
 
 @traced_atomic_transaction()
+def confirm_fulfillment(
+    fulfillment: "Fulfillment",
+    user: "User",
+    warehouse: "Warehouse",
+    manager: "PluginsManager",
+):
+    fulfillment = Fulfillment.objects.select_for_update().get(pk=fulfillment.pk)
+    restock_fulfillment_lines(fulfillment, warehouse)
+    events.fulfillment_canceled_event(
+        order=fulfillment.order, user=user, fulfillment=fulfillment
+    )
+    events.fulfillment_restocked_items_event(
+        order=fulfillment.order,
+        user=user,
+        fulfillment=fulfillment,
+        warehouse_pk=warehouse.pk,
+    )
+    fulfillment.status = FulfillmentStatus.CANCELED
+    fulfillment.save(update_fields=["status"])
+    update_order_status(fulfillment.order)
+    manager.order_updated(fulfillment.order)
+
+
+@traced_atomic_transaction()
 def mark_order_as_paid(
     order: "Order",
     request_user: "User",
