@@ -2495,7 +2495,7 @@ def order_line_with_one_allocation(
 def gift_card(customer_user, staff_user):
     return GiftCard.objects.create(
         code="mirumee_giftcard",
-        user=customer_user,
+        created_by=customer_user,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
     )
