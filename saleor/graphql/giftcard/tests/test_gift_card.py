@@ -46,7 +46,7 @@ def test_query_gift_card_with_permissions(
     data = content["data"]["giftCard"]
     assert data["id"] == gift_card_id
     assert data["displayCode"] == gift_card.display_code
-    assert data["user"]["email"] == gift_card.user.email
+    assert data["user"]["email"] == gift_card.created_by.email
 
 
 def test_query_gift_card_code_without_user(
@@ -220,7 +220,7 @@ def test_query_gift_card_by_app_with_permissions(
     data = content["data"]["giftCard"]
     assert data["id"] == gift_card_id
     assert data["displayCode"] == gift_card.display_code
-    assert data["user"]["email"] == gift_card.user.email
+    assert data["user"]["email"] == gift_card.created_by.email
 
 
 def test_query_gift_card_by_app_without_premissions(
@@ -566,7 +566,7 @@ def test_update_gift_card(staff_api_client, gift_card, permission_manage_gift_ca
     balance = 150
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     assert gift_card.current_balance != balance
-    assert gift_card.user != staff_api_client.user
+    assert gift_card.created_by != staff_api_client.user
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
         "balance": balance,
