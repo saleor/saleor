@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from decimal import Decimal
 
     from ..account.models import User  # noqa: F401
+    from ..app.models import App
 
 
 def get_image_payload(instance: ProductMedia):
@@ -293,22 +294,22 @@ def send_order_confirmation(order, redirect_url, manager):
         manager.notify(NotifyEventType.STAFF_ORDER_CONFIRMATION, payload=payload)
 
 
-def send_order_confirmed(order, user, manager):
+def send_order_confirmed(order, user, app, manager):
     """Send email which tells customer that order has been confirmed."""
     payload = {
         "order": get_default_order_payload(order, order.redirect_url),
         "recipient_email": order.get_customer_email(),
-        "requester_user_id": user.id,
         **get_site_context(),
     }
+    attach_requester_payload_data(payload, user, app)
     manager.notify(
         NotifyEventType.ORDER_CONFIRMED, payload, channel_slug=order.channel.slug
     )
 
 
-def send_fulfillment_confirmation_to_customer(order, fulfillment, user, manager):
+def send_fulfillment_confirmation_to_customer(order, fulfillment, user, app, manager):
     payload = get_default_fulfillment_payload(order, fulfillment)
-    payload["requester_user_id"] = user.id if user else None
+    attach_requester_payload_data(payload, user, app)
     manager.notify(
         NotifyEventType.ORDER_FULFILLMENT_CONFIRMATION,
         payload=payload,
@@ -348,31 +349,45 @@ def send_payment_confirmation(order, manager):
     )
 
 
-def send_order_canceled_confirmation(order: "Order", user: Optional["User"], manager):
+def send_order_canceled_confirmation(
+    order: "Order", user: Optional["User"], app: Optional["App"], manager
+):
     payload = {
-        "requester_user_id": user.id if user else None,
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
         **get_site_context(),
     }
+    attach_requester_payload_data(payload, user, app)
     manager.notify(
         NotifyEventType.ORDER_CANCELED, payload, channel_slug=order.channel.slug
     )
 
 
 def send_order_refunded_confirmation(
-    order: "Order", user: Optional["User"], amount: "Decimal", currency: str, manager
+    order: "Order",
+    user: Optional["User"],
+    app: Optional["App"],
+    amount: "Decimal",
+    currency: str,
+    manager,
 ):
     payload = {
-        "requester_user_id": user.id if user else None,
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
         "amount": amount,
         "currency": currency,
         **get_site_context(),
     }
+    attach_requester_payload_data(payload, user, app)
     manager.notify(
         NotifyEventType.ORDER_REFUND_CONFIRMATION,
         payload,
         channel_slug=order.channel.slug,
     )
+
+
+def attach_requester_payload_data(
+    payload: dict, user: Optional["User"], app: Optional["App"]
+):
+    payload["requester_user_id"] = user.id if user else None
+    payload["requester_app_id"] = app.id if app else None

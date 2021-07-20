@@ -36,7 +36,7 @@ def generate_fake_user() -> "User":
 
     The instance cannot be saved
     """
-    fake_user = create_fake_user(save=False)
+    fake_user = create_fake_user(user_password=None, save=False)
     # Prevent accidental saving of the instance
     fake_user.save = _fake_save  # type: ignore
     return fake_user

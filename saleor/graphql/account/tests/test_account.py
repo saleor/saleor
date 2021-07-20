@@ -1944,9 +1944,7 @@ CUSTOMER_DELETE_MUTATION = """
 
 
 @patch("saleor.account.signals.delete_versatile_image")
-@patch(
-    "saleor.graphql.account.utils.account_events.staff_user_deleted_a_customer_event"
-)
+@patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
 def test_customer_delete(
     mocked_deletion_event,
     delete_versatile_image_mock,
@@ -1976,20 +1974,18 @@ def test_customer_delete(
     # Ensure the customer was properly deleted
     # and any related event was properly triggered
     mocked_deletion_event.assert_called_once_with(
-        staff_user=staff_user, deleted_count=1
+        staff_user=staff_user, app=None, deleted_count=1
     )
     delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
 
 
 @patch("saleor.account.signals.delete_versatile_image")
-@patch(
-    "saleor.graphql.account.utils.account_events.staff_user_deleted_a_customer_event"
-)
+@patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
 def test_customer_delete_by_app(
     mocked_deletion_event,
     delete_versatile_image_mock,
     app_api_client,
-    staff_user,
+    app,
     customer_user,
     image,
     permission_manage_users,
@@ -2017,6 +2013,7 @@ def test_customer_delete_by_app(
     args, kwargs = mocked_deletion_event.call_args
     assert kwargs["deleted_count"] == 1
     assert kwargs["staff_user"].is_anonymous
+    assert kwargs["app"] == app
     delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
 
 

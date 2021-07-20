@@ -12,7 +12,12 @@ from ...account.models import Address
 from ...account.utils import requestor_is_staff_member_or_app
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
+from ...core.permissions import (
+    AccountPermissions,
+    AppPermission,
+    OrderPermissions,
+    ProductPermissions,
+)
 from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
@@ -33,6 +38,8 @@ from ...product.product_images import get_product_image_thumbnail
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import requestor_has_access
+from ..app.dataloaders import AppByIdLoader
+from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
@@ -140,6 +147,7 @@ class OrderEvent(CountableDjangoObjectType):
     )
     type = OrderEventsEnum(description="Order event type.")
     user = graphene.Field(User, description="User who performed the action.")
+    app = graphene.Field(App, description="App that performed the action.")
     message = graphene.String(description="Content of the event.")
     email = graphene.String(description="Email of the customer.")
     email_type = OrderEventsEmailsEnum(
@@ -200,6 +208,16 @@ class OrderEvent(CountableDjangoObjectType):
             return None
 
         return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_app(root: models.OrderEvent, info):
+        requestor = get_user_or_app_from_context(info.context)
+        if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
+            return (
+                AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
+            )
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_email(root: models.OrderEvent, _info):

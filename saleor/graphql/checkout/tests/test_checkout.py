@@ -32,11 +32,7 @@ from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
 from ....warehouse.models import Stock
-from ...tests.utils import (
-    assert_no_permission,
-    get_graphql_content,
-    get_graphql_content_from_response,
-)
+from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
@@ -2363,44 +2359,6 @@ def test_checkout_shipping_method_update_shipping_zone_with_channel(
     assert data["checkout"]["token"] == str(checkout_with_item.token)
 
     assert checkout.shipping_method == shipping_method
-
-
-QUERY_CHECKOUT_LINE_BY_ID = """
-    query checkoutLine($id: ID) {
-        checkoutLine(id: $id) {
-            id
-        }
-    }
-"""
-
-
-def test_query_checkout_line(checkout_with_item, user_api_client):
-    query = QUERY_CHECKOUT_LINE_BY_ID
-    checkout = checkout_with_item
-    line = checkout.lines.first()
-    line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
-    variables = {"id": line_id}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    received_id = content["data"]["checkoutLine"]["id"]
-    assert received_id == line_id
-
-
-def test_query_checkout_line_by_invalid_id(staff_api_client, page_type):
-    id = "bh/"
-    variables = {"id": id}
-    response = staff_api_client.post_graphql(QUERY_CHECKOUT_LINE_BY_ID, variables)
-    content = get_graphql_content_from_response(response)
-    assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
-    assert content["data"]["checkoutLine"] is None
-
-
-def test_query_checkout_line_with_invalid_object_type(staff_api_client, page_type):
-    variables = {"id": graphene.Node.to_global_id("Order", page_type.pk)}
-    response = staff_api_client.post_graphql(QUERY_CHECKOUT_LINE_BY_ID, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["checkoutLine"] is None
 
 
 def test_query_checkouts(
