@@ -161,16 +161,13 @@ class CheckoutLine(CountableDjangoObjectType):
 
 class DeliveryMethod(graphene.Union):
     class Meta:
-        types = (Warehouse, ShippingMethod)  # What the heck?
+        types = (Warehouse, ShippingMethod)
 
     @classmethod
     def resolve_type(cls, instance, info):
-        if isinstance(instance, ShippingMethod):
-            return ShippingMethod
         if isinstance(instance, ChannelContext):
             return ShippingMethod
-        if isinstance(instance, Warehouse):
-            return Warehouse
+        return super(DeliveryMethod, cls).resolve_type(instance, info)
 
 
 class Checkout(CountableDjangoObjectType):

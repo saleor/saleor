@@ -16,40 +16,7 @@ from .fetch import CheckoutLineInfo
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
-    from ..checkout.fetch import CheckoutInfo
     from ..order.models import OrderLine
-
-
-def base_checkout_shipping_price(
-    checkout_info: "CheckoutInfo", lines=None
-) -> TaxedMoney:
-    """Return checkout shipping price."""
-    # FIXME: Optimize checkout.is_shipping_required
-    shipping_method = checkout_info.shipping_method
-
-    # all(isinstance  ... is not needed...)
-    if lines is not None and all(isinstance(line, CheckoutLineInfo) for line in lines):
-        from .utils import is_shipping_required
-
-        shipping_required = is_shipping_required(lines)
-    else:
-        shipping_required = checkout_info.checkout.is_shipping_required()
-
-    if not shipping_method or not shipping_required:
-        return zero_taxed_money(checkout_info.checkout.currency)
-    shipping_price = shipping_method.channel_listings.get(
-        channel_id=checkout_info.checkout.channel_id,
-    ).get_total()
-
-    return quantize_price(
-        TaxedMoney(net=shipping_price, gross=shipping_price), shipping_price.currency
-    )
-
-
-def base_checkout_shipping_price_click_and_collect(
-    checkout_info: "CheckoutInfo", lines=None
-) -> TaxedMoney:
-    return zero_taxed_money(checkout_info.checkout.currency)
 
 
 def base_checkout_total(
