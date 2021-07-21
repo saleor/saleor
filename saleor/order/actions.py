@@ -497,6 +497,7 @@ def create_fulfillments(
     fulfillment_lines_for_warehouses: Dict,
     manager: "PluginsManager",
     notify_customer: bool = True,
+    confirmed: bool = True,
 ) -> List[Fulfillment]:
     """Fulfill order.
 
@@ -520,6 +521,8 @@ def create_fulfillments(
         manager (PluginsManager): Base manager for handling plugins logic.
         notify_customer (bool): If `True` system send email about
             fulfillments to customer.
+        confirmed (Boolean): fulfillments will have status fulfilled if it's True,
+            otherwise waiting_for_acceptance.
 
     Return:
         List[Fulfillment]: Fulfillmet with lines created for this order
@@ -532,8 +535,13 @@ def create_fulfillments(
     """
     fulfillments: List[Fulfillment] = []
     fulfillment_lines: List[FulfillmentLine] = []
+    status = (
+        FulfillmentStatus.FULFILLED
+        if confirmed
+        else FulfillmentStatus.WAITING_FOR_ACCEPTANCE
+    )
     for warehouse_pk in fulfillment_lines_for_warehouses:
-        fulfillment = Fulfillment.objects.create(order=order)
+        fulfillment = Fulfillment.objects.create(order=order, status=status)
         fulfillments.append(fulfillment)
         fulfillment_lines.extend(
             _create_fulfillment_lines(
