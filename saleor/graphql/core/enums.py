@@ -6,7 +6,7 @@ from ...app import error_codes as app_error_codes
 from ...attribute import error_codes as attribute_error_codes
 from ...channel import error_codes as channel_error_codes
 from ...checkout import error_codes as checkout_error_codes
-from ...core import JobStatus
+from ...core import JobStatus, TimePeriodType
 from ...core import error_codes as core_error_codes
 from ...core.permissions import get_permissions_enum_list
 from ...core.units import (
@@ -89,6 +89,7 @@ LanguageCodeEnum = graphene.Enum(
 
 JobStatusEnum = to_enum(JobStatus)
 PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
+TimePeriodTypeEnum = to_enum(TimePeriodType)
 
 # unit enums
 MeasurementUnitsEnum = to_enum(MeasurementUnits)
