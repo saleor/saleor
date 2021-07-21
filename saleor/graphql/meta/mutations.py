@@ -7,6 +7,7 @@ from graphql.error.base import GraphQLError
 from ...core import models
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
+from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
@@ -146,6 +147,8 @@ class BaseMetadataMutation(BaseMutation):
                     shipping_models.ShippingZone,
                     menu_models.Menu,
                     menu_models.MenuItem,
+                    discount_models.Voucher,
+                    discount_models.Sale,
                 ]
             ]
         )
