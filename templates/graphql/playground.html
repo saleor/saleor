@@ -4,14 +4,13 @@
   <meta charset=utf-8/>
   <meta name="viewport" content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui">
   <title>GraphQL Playground</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/css/index.css" />
+  <link rel="stylesheet" crossorigin="anonymous" integrity="sha256-dKnNLEFwKSVFpkpjRWe+o/jQDM6n/JsvQ0J3l5Dk3fc" href="https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/css/index.css" />
   <link rel="shortcut icon" href="https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png" />
-  {# sha256-24AcA5M3t+KN6ZRQvfqBG51OyLciyk0UJwVBAX94SZI= #}
-  <script src="https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/js/middleware.js"></script>
-  <meta http-equiv="content-security-policy" content="default-src 'none'; connect-src {{ api_url }}; script-src 'sha256-24AcA5M3t+KN6ZRQvfqBG51OyLciyk0UJwVBAX94SZI=' 'sha256-jpQ7CLb9c8nrwEY+pDfFNOgGpKzrNTRsWVv4yB8QVnQ='; style-src https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/css/index.css 'sha256-jkwxzyKPdPQHgIYu9x7it0jbIOtzMGr9iFmRtSaiwX4='; img-src data: https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/media/logo.8c98d067.png https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png 'self'">
+  <script crossorigin="anonymous" integrity="sha256-24AcA5M3t+KN6ZRQvfqBG51OyLciyk0UJwVBAX94SZI=" src="https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/js/middleware.js"></script>
+  <meta http-equiv="content-security-policy" content="default-src 'none'; connect-src {{ api_url }}; script-src 'sha256-24AcA5M3t+KN6ZRQvfqBG51OyLciyk0UJwVBAX94SZI=' 'sha256-jpQ7CLb9c8nrwEY+pDfFNOgGpKzrNTRsWVv4yB8QVnQ='; style-src https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/css/index.css 'sha256-jkwxzyKPdPQHgIYu9x7it0jbIOtzMGr9iFmRtSaiwX4='; img-src data: https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/media/logo.8c98d067.png https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png">
 </head>
 <body>
-  <div id="root" {% if api_url %}data-endpoint="{{ api_url }}"{% endif %} {% if query %}data-query="{{ query|safe }}"{% endif %}>
+  <div id="root" data-endpoint="{{ api_url }}" {% if query %}data-query="{{ query|safe }}"{% endif %}>
     {# sha256-jkwxzyKPdPQHgIYu9x7it0jbIOtzMGr9iFmRtSaiwX4= #}
     <style>
       body {
@@ -40,7 +39,6 @@
         font-weight: 400;
       }
     </style>
-    {# sha256-o2yyZe08MRJmp33Nmb0pj7P+kOSiMxx0WfzYMVUbImQ= #}
     <img src='https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/static/media/logo.8c98d067.png' alt=''>
     <div class="loading"> Loading
       <span class="title">GraphQL Playground</span>
