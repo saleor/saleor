@@ -1875,6 +1875,28 @@ def test_update_product_variant_change_sku(
     assert variant.sku == "n3wSKU"
 
 
+def test_update_product_variant_without_sku_keep_it_empty(
+    staff_api_client, product, permission_manage_products
+):
+    variant = product.variants.first()
+    variant.sku = None
+    variant.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "sku": ""}
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_SKU, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]
+    error = data["errors"][0]
+    assert error["field"] == "sku"
+    assert error["code"] == ProductErrorCode.REQUIRED.name
+    variant.refresh_from_db()
+    assert variant.sku
+
+
 def test_update_product_variant_change_sku_to_empty_string(
     staff_api_client, product, permission_manage_products
 ):
