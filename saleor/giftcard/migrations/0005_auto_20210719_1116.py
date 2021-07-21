@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
             name="expiry_period_type",
             field=models.CharField(
                 blank=True,
-                choices=[("month", "Month"), ("year", "Year")],
+                choices=[("day", "day"), ("month", "Month"), ("year", "Year")],
                 max_length=32,
                 null=True,
             ),
