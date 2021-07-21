@@ -38,7 +38,7 @@ from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
-from ..core import JobStatus
+from ..core import JobStatus, TimePeriodType
 from ..core.payments import PaymentInterface
 from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
@@ -54,6 +54,7 @@ from ..discount.models import (
     VoucherCustomer,
     VoucherTranslation,
 )
+from ..giftcard import GiftCardExpiryType
 from ..giftcard.models import GiftCard
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderLineData, OrderOrigin, OrderStatus
@@ -2550,30 +2551,74 @@ def order_line_with_one_allocation(
 
 
 @pytest.fixture
-def gift_card(customer_user, staff_user):
+def gift_card(customer_user):
     return GiftCard.objects.create(
-        code="mirumee_giftcard",
+        code="never_expiry",
         created_by=customer_user,
+        created_by_email=customer_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
+        expiry_type=GiftCardExpiryType.NEVER_EXPIRE,
+        tag="test-tag",
     )
 
 
 @pytest.fixture
-def gift_card_used(staff_user):
+def gift_card_expiry_period(customer_user):
     return GiftCard.objects.create(
-        code="gift_card_used",
-        initial_balance=Money(150, "USD"),
+        code="expiry_period",
+        created_by=customer_user,
+        created_by_email=customer_user.email,
+        initial_balance=Money(10, "USD"),
+        current_balance=Money(10, "USD"),
+        expiry_type=GiftCardExpiryType.EXPIRY_PERIOD,
+        expiry_period_type=TimePeriodType.YEAR,
+        expiry_period=2,
+        tag="test-tag",
+    )
+
+
+@pytest.fixture
+def gift_card_expiry_date(customer_user):
+    return GiftCard.objects.create(
+        code="expiry_date",
+        created_by=customer_user,
+        created_by_email=customer_user.email,
+        initial_balance=Money(10, "USD"),
+        current_balance=Money(10, "USD"),
+        expiry_type=GiftCardExpiryType.EXPIRY_DATE,
+        expiry_date=datetime.date.today() + datetime.timedelta(days=100),
+        tag="test-tag",
+    )
+
+
+@pytest.fixture
+def gift_card_used(staff_user, customer_user):
+    return GiftCard.objects.create(
+        code="giftcard_used",
+        created_by=staff_user,
+        used_by=customer_user,
+        created_by_email=staff_user.email,
+        used_by_email=customer_user.email,
+        initial_balance=Money(100, "USD"),
         current_balance=Money(100, "USD"),
+        expiry_type=GiftCardExpiryType.NEVER_EXPIRE,
+        tag="test-tag",
     )
 
 
 @pytest.fixture
 def gift_card_created_by_staff(staff_user):
     return GiftCard.objects.create(
-        code="mirumee_staff",
-        initial_balance=Money(5, "USD"),
-        current_balance=Money(5, "USD"),
+        code="created_by_staff",
+        created_by=staff_user,
+        created_by_email=staff_user.email,
+        initial_balance=Money(10, "USD"),
+        current_balance=Money(10, "USD"),
+        expiry_type=GiftCardExpiryType.EXPIRY_PERIOD,
+        expiry_period_type=TimePeriodType.YEAR,
+        expiry_period=2,
+        tag="test-tag",
     )
 
 
