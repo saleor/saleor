@@ -32,6 +32,7 @@ from ..enums import (
     ShippingErrorCode,
     ShopErrorCode,
     StockErrorCode,
+    TimePeriodTypeEnum,
     TranslationErrorCode,
     UploadErrorCode,
     WarehouseErrorCode,
@@ -432,3 +433,8 @@ class Job(graphene.Interface):
             # <DjangoModel>: <GrapheneType>
         }
         return MODEL_TO_TYPE_MAP.get(type(instance))
+
+
+class TimePeriod(graphene.ObjectType):
+    amount = graphene.Int(description="The length of the period.", required=True)
+    type = TimePeriodTypeEnum(description="The type of the period.", required=True)
