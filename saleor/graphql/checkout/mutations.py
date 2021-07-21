@@ -639,6 +639,8 @@ class CheckoutCustomerAttach(BaseMutation):
             checkout = cls.get_node_or_error(
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
+        if checkout.user:
+            raise PermissionDenied()
 
         checkout.user = info.context.user
         checkout.email = info.context.user.email
