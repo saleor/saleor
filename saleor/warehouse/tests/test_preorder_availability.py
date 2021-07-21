@@ -126,12 +126,13 @@ def test_check_preorder_threshold_bulk_global_and_channel_threshold(
     variant = preorder_variant_global_and_channel_threshold
 
     channel_listings = variant.channel_listings.all()
-    channel_listings = channel_listings.annotate_available_preorder_quantities()
+    channel_listings = channel_listings.annotate_preorder_quantity_allocated()
     channel_listing_USD = channel_listings.get(channel=channel_USD)
     channel_listing_PLN = channel_listings.get(channel=channel_PLN)
 
     assert (
-        channel_listing_PLN.available_preorder_quantity
+        channel_listing_PLN.preorder_quantity_threshold
+        - channel_listing_PLN.preorder_quantity_allocated
         < channel_listing_PLN.preorder_quantity_threshold
     )
     # Global availability is smaller than the channel_USD availability
@@ -139,7 +140,11 @@ def test_check_preorder_threshold_bulk_global_and_channel_threshold(
         channel_listing.preorder_quantity_allocated
         for channel_listing in channel_listings
     )
-    assert global_availability < channel_listing_USD.available_preorder_quantity
+    channel_listing_USD_availability = (
+        channel_listing_USD.preorder_quantity_threshold
+        - channel_listing_USD.preorder_quantity_allocated
+    )
+    assert global_availability < channel_listing_USD_availability
 
     # test it doesn't raise any error if global limit is not exceeded
     assert (
@@ -154,6 +159,6 @@ def test_check_preorder_threshold_bulk_global_and_channel_threshold(
     with pytest.raises(InsufficientStock):
         check_preorder_threshold_bulk(
             [variant],
-            [channel_listing_USD.available_preorder_quantity],
+            [channel_listing_USD_availability],
             channel_USD.slug,
         )

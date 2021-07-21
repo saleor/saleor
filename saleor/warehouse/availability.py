@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple
 
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 
 from ..core.exceptions import InsufficientStock, InsufficientStockData
@@ -173,7 +173,11 @@ def check_preorder_threshold_bulk(
     """
     all_variants_channel_listings = (
         ProductVariantChannelListing.objects.filter(variant__in=variants)
-        .annotate_available_preorder_quantities()
+        .annotate_preorder_quantity_allocated()
+        .annotate(
+            available_preorder_quantity=F("preorder_quantity_threshold")
+            - Coalesce(Sum("preorder_allocations__quantity"), 0),
+        )
         .select_related("channel")
     )
     variants_channel_availability = {

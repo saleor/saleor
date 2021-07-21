@@ -596,10 +596,8 @@ class ProductVariantTranslation(models.Model):
 
 
 class ProductVariantChannelListingQuerySet(models.QuerySet):
-    def annotate_available_preorder_quantities(self):
+    def annotate_preorder_quantity_allocated(self):
         return self.annotate(
-            available_preorder_quantity=F("preorder_quantity_threshold")
-            - Coalesce(Sum("preorder_allocations__quantity"), 0),
             preorder_quantity_allocated=Coalesce(
                 Sum("preorder_allocations__quantity"), 0
             ),
