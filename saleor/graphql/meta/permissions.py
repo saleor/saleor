@@ -9,6 +9,7 @@ from ...core.permissions import (
     AppPermission,
     BasePermissionEnum,
     CheckoutPermissions,
+    GiftcardPermissions,
     MenuPermissions,
     OrderPermissions,
     PagePermissions,
@@ -97,6 +98,10 @@ def shipping_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [ShippingPermissions.MANAGE_SHIPPING]
 
 
+def gift_card_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [GiftcardPermissions.MANAGE_GIFT_CARD]
+
+
 PUBLIC_META_PERMISSION_MAP = {
     "Attribute": attribute_permissions,
     "Category": product_permissions,
@@ -104,6 +109,7 @@ PUBLIC_META_PERMISSION_MAP = {
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "GiftCard": gift_card_permissions,
     "Menu": menu_permissions,
     "MenuItem": menu_permissions,
     "Order": no_permissions,
@@ -128,6 +134,7 @@ PRIVATE_META_PERMISSION_MAP = {
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "GiftCard": gift_card_permissions,
     "Menu": menu_permissions,
     "MenuItem": menu_permissions,
     "Order": order_permissions,
