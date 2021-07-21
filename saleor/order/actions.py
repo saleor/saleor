@@ -424,6 +424,7 @@ def _create_fulfillment_lines(
     warehouse_pk: str,
     lines_data: List[Dict],
     channel_slug: str,
+    decrease_stock: bool = True,
 ) -> List[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
 
@@ -440,6 +441,7 @@ def _create_fulfillment_lines(
                     ...
                 ]
         channel_slug (str): Channel for which fulfillment lines should be created.
+        decrease_stock (Bool): Stocks will get decreased if this is True.
 
     Return:
         List[FulfillmentLine]: Unsaved fulfillmet lines created for this fulfillment
@@ -500,7 +502,7 @@ def _create_fulfillment_lines(
     if insufficient_stocks:
         raise InsufficientStock(insufficient_stocks)
 
-    if lines_info:
+    if lines_info and decrease_stock:
         fulfill_order_lines(lines_info)
 
     return fulfillment_lines
@@ -565,6 +567,7 @@ def create_fulfillments(
                 warehouse_pk,
                 fulfillment_lines_for_warehouses[warehouse_pk],
                 order.channel.slug,
+                decrease_stock=confirmed,
             )
         )
 

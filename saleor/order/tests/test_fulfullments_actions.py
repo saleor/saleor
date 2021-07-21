@@ -99,18 +99,18 @@ def test_create_fulfillments_require_acceptance(
     assert fulfillment_lines[1].stock == order_line2.variant.stocks.get()
     assert fulfillment_lines[1].quantity == 2
 
-    assert order.status == OrderStatus.FULFILLED
+    assert order.status == OrderStatus.UNFULFILLED
     assert order.fulfillments.get() == fulfillment
 
     order_line1, order_line2 = order.lines.all()
-    assert order_line1.quantity_fulfilled == 3
-    assert order_line2.quantity_fulfilled == 2
+    assert order_line1.quantity_fulfilled == 0
+    assert order_line2.quantity_fulfilled == 0
 
     assert (
         Allocation.objects.filter(
             order_line__order=order, quantity_allocated__gt=0
         ).count()
-        == 0
+        == 2
     )
 
     events = order.events.all()
