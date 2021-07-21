@@ -213,6 +213,22 @@ def order_fulfilled(
             send_fulfillment_confirmation_to_customer(order, fulfillment, user, manager)
 
 
+@traced_atomic_transaction()
+def order_awaits_fulfillment_acceptance(
+    fulfillments: List["Fulfillment"],
+    user: "User",
+    fulfillment_lines: List["FulfillmentLine"],
+    manager: "PluginsManager",
+    _notify_customer=True,
+):
+    order = fulfillments[0].order
+    update_order_status(order)
+    events.fulfillment_awaits_acceptance_event(
+        order=order, user=user, fulfillment_lines=fulfillment_lines
+    )
+    manager.order_updated(order)
+
+
 def order_shipping_updated(order: "Order", manager: "PluginsManager"):
     recalculate_order(order)
     manager.order_updated(order)
@@ -553,8 +569,11 @@ def create_fulfillments(
         )
 
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
+    post_creation_func = (
+        order_fulfilled if confirmed else order_awaits_fulfillment_acceptance
+    )
     transaction.on_commit(
-        lambda: order_fulfilled(
+        lambda: post_creation_func(
             fulfillments,
             requester,
             fulfillment_lines,
