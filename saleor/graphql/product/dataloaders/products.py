@@ -284,7 +284,9 @@ class VariantChannelListingByVariantIdAndChannelLoader(
             "variant_id__in": variant_ids,
             "price_amount__isnull": False,
         }
-        variant_channel_listings = ProductVariantChannelListing.objects.filter(**filter)
+        variant_channel_listings = ProductVariantChannelListing.objects.filter(
+            **filter
+        ).annotate_available_preorder_quantities()
 
         variant_channel_listings_map: Dict[int, ProductVariantChannelListing] = {}
         for variant_channel_listing in variant_channel_listings.iterator():
