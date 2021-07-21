@@ -1890,11 +1890,10 @@ def test_update_product_variant_without_sku_keep_it_empty(
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]
-    error = data["errors"][0]
-    assert error["field"] == "sku"
-    assert error["code"] == ProductErrorCode.REQUIRED.name
+    assert data["productVariant"]["sku"] is None
+    assert not data["errors"]
     variant.refresh_from_db()
-    assert variant.sku
+    assert variant.sku is None
 
 
 def test_update_product_variant_change_sku_to_empty_string(
