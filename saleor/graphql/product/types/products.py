@@ -995,7 +995,6 @@ class ProductType(CountableDjangoObjectType):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
     @staticmethod
-    @traced_resolver
     def resolve_weight(root: models.ProductType, _info, **_kwargs):
         return convert_weight_to_default_weight_unit(root.weight)
 
