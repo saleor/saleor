@@ -1,7 +1,6 @@
 import graphene
 
 from ...core.permissions import GiftcardPermissions
-from ...core.tracing import traced_resolver
 from ..core.fields import PrefetchingConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
@@ -31,7 +30,6 @@ class GiftCardQueries(graphene.ObjectType):
         return resolve_gift_card(id)
 
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
-    @traced_resolver
     def resolve_gift_cards(self, info, **_kwargs):
         return resolve_gift_cards()
 

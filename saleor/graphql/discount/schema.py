@@ -1,7 +1,6 @@
 import graphene
 
 from ...core.permissions import DiscountPermissions
-from ...core.tracing import traced_resolver
 from ..core.fields import ChannelContextFilterConnectionField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
@@ -79,7 +78,6 @@ class DiscountQueries(graphene.ObjectType):
     )
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    @traced_resolver
     def resolve_sale(self, info, id, channel=None):
         _, id = from_global_id_or_error(id, Sale)
         return resolve_sale(id, channel)

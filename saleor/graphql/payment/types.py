@@ -28,7 +28,6 @@ class Transaction(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    @traced_resolver
     def resolve_amount(root: models.Transaction, _info):
         return root.get_amount()
 
@@ -112,7 +111,6 @@ class Payment(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    @traced_resolver
     def resolve_actions(root: models.Payment, _info):
         actions = []
         if root.can_capture():
@@ -129,17 +127,14 @@ class Payment(CountableDjangoObjectType):
         return root.get_total()
 
     @staticmethod
-    @traced_resolver
     def resolve_captured_amount(root: models.Payment, _info):
         return root.get_captured_amount()
 
     @staticmethod
-    @traced_resolver
     def resolve_transactions(root: models.Payment, _info):
         return root.transactions.all()
 
     @staticmethod
-    @traced_resolver
     def resolve_available_refund_amount(root: models.Payment, _info):
         # FIXME TESTME
         if not root.can_refund():
@@ -147,7 +142,6 @@ class Payment(CountableDjangoObjectType):
         return root.get_captured_amount()
 
     @staticmethod
-    @traced_resolver
     def resolve_available_capture_amount(root: models.Payment, _info):
         # FIXME TESTME
         if not root.can_capture():
@@ -155,7 +149,6 @@ class Payment(CountableDjangoObjectType):
         return root.get_charge_amount()
 
     @staticmethod
-    @traced_resolver
     def resolve_credit_card(root: models.Payment, _info):
         data = {
             "brand": root.cc_brand,
