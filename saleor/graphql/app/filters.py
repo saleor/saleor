@@ -31,7 +31,7 @@ def filter_app_extension_view(qs, _, value):
 
 
 def filter_app_extension_type(qs, _, value):
-    if value in [t for t, _ in AppExtensionType.CHOICES]:
+    if value in [type for type, _ in AppExtensionType.CHOICES]:
         qs = qs.filter(type=value)
     return qs
 
