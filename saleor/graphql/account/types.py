@@ -10,7 +10,6 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, AppPermission, OrderPermissions
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
-from ...order import models as order_models
 from ..account.utils import requestor_has_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
@@ -25,7 +24,7 @@ from ..core.utils import from_global_id_or_error, str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
-from ..order.dataloaders import OrdersByUserLoader
+from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from .dataloaders import CustomerEventsByUserLoader
@@ -178,12 +177,9 @@ class CustomerEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_order_line(root: models.CustomerEvent, info):
         if "order_line_pk" in root.parameters:
-            try:
-                qs = order_models.OrderLine.objects
-                order_line_pk = root.parameters["order_line_pk"]
-                return qs.filter(pk=order_line_pk).first()
-            except order_models.OrderLine.DoesNotExist:
-                pass
+            return OrderLineByIdLoader(info.context).load(
+                root.parameters["order_line_pk"]
+            )
         return None
 
 
