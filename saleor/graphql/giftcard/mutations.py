@@ -14,7 +14,7 @@ from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import GiftCardError
-from ..core.validators import validate_end_is_after_start, validate_price_precision
+from ..core.validators import validate_price_precision
 from .types import GiftCard
 
 
@@ -70,7 +70,7 @@ class GiftCardCreate(ModelMutation):
         user_email = data.get("user_email", None)
         if user_email:
             try:
-                cleaned_input["user"] = User.objects.get(email=user_email)
+                cleaned_input["created_by"] = User.objects.get(email=user_email)
             except ObjectDoesNotExist:
                 raise ValidationError(
                     {
@@ -80,18 +80,9 @@ class GiftCardCreate(ModelMutation):
                         )
                     }
                 )
+        # TODO: Add validation that `expiry_date` is not in the past
+        cleaned_input["expiry_date"] = cleaned_input.get("end_date")
         return cleaned_input
-
-    @classmethod
-    def clean_instance(cls, info, instance):
-        super().clean_instance(info, instance)
-        start_date = instance.start_date
-        end_date = instance.end_date
-        try:
-            validate_end_is_after_start(start_date, end_date)
-        except ValidationError as error:
-            error.code = GiftCardErrorCode.INVALID.value
-            raise ValidationError({"end_date": error})
 
 
 class GiftCardUpdate(GiftCardCreate):

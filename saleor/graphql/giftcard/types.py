@@ -17,6 +17,17 @@ class GiftCard(CountableDjangoObjectType):
     user = graphene.Field(
         "saleor.graphql.account.types.User",
         description="The customer who bought a gift card.",
+        # TODO: Add info about using created_by instead, when updating gift card type
+        deprecation_reason="Will be removed in Saleor 4.0.",
+    )
+    end_date = graphene.types.datetime.DateTime(
+        description="End date of gift card.",
+        # TODO: Add info about using expiry_date instead, when updating gift card type
+        deprecation_reason=("Will be removed in Saleor 4.0."),
+    )
+    start_date = graphene.types.datetime.DateTime(
+        description="Start date of gift card.",
+        deprecation_reason=("Will be removed in Saleor 4.0."),
     )
 
     class Meta:
@@ -25,11 +36,8 @@ class GiftCard(CountableDjangoObjectType):
             "can be used during checkout by providing a valid gift card codes."
         )
         only_fields = [
-            "user",
             "code",
             "created",
-            "start_date",
-            "end_date",
             "last_used_on",
             "is_active",
             "initial_balance",
@@ -47,8 +55,10 @@ class GiftCard(CountableDjangoObjectType):
     @traced_resolver
     def resolve_user(root: models.GiftCard, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_USERS):
-            return root.user
+        if requestor_has_access(
+            requestor, root.created_by, AccountPermissions.MANAGE_USERS
+        ):
+            return root.created_by
         raise PermissionDenied()
 
     @staticmethod
@@ -56,9 +66,17 @@ class GiftCard(CountableDjangoObjectType):
     def resolve_code(root: models.GiftCard, info, **_kwargs):
         user = info.context.user
         # Staff user has access to show gift card code only for gift card without user.
-        if user.has_perm(GiftcardPermissions.MANAGE_GIFT_CARD) and not root.user:
+        if user.has_perm(GiftcardPermissions.MANAGE_GIFT_CARD) and not root.created_by:
             return root.code
         # Only user associated with a gift card can see gift card code.
-        if user == root.user:
+        if user == root.created_by:
             return root.code
+        return None
+
+    @staticmethod
+    def resolve_end_date(root: models.GiftCard, *_args, **_kwargs):
+        return root.expiry_date
+
+    @staticmethod
+    def resolve_start_date(root: models.GiftCard, *_args, **_kwargs):
         return None

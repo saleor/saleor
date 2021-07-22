@@ -10,3 +10,11 @@ class JobStatus:
         (FAILED, "Failed"),
         (DELETED, "Deleted"),
     ]
+
+
+class TimePeriodType:
+    DAY = "day"
+    MONTH = "month"
+    YEAR = "year"
+
+    CHOICES = [(DAY, "day"), (MONTH, "Month"), (YEAR, "Year")]
