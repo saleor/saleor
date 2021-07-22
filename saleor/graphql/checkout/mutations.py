@@ -639,6 +639,9 @@ class CheckoutCustomerAttach(BaseMutation):
             checkout = cls.get_node_or_error(
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
+
+        # Raise error when trying to attach a user to a checkout
+        # that is already owned by another user.
         if checkout.user:
             raise PermissionDenied()
 
