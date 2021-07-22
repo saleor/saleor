@@ -321,7 +321,6 @@ class User(CountableDjangoObjectType):
         return resolve_permissions(root)
 
     @staticmethod
-    @traced_resolver
     def resolve_permission_groups(root: models.User, _info, **_kwargs):
         return root.groups.all()
 
