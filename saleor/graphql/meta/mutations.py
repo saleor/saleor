@@ -140,15 +140,15 @@ class BaseMetadataMutation(BaseMutation):
             [
                 isinstance(instance, Model)
                 for Model in [
-                    product_models.Product,
-                    product_models.ProductVariant,
-                    product_models.Collection,
-                    shipping_models.ShippingMethod,
-                    shipping_models.ShippingZone,
+                    discount_models.Sale,
+                    discount_models.Voucher,
                     menu_models.Menu,
                     menu_models.MenuItem,
-                    discount_models.Voucher,
-                    discount_models.Sale,
+                    product_models.Collection,
+                    product_models.Product,
+                    product_models.ProductVariant,
+                    shipping_models.ShippingMethod,
+                    shipping_models.ShippingZone,
                 ]
             ]
         )
