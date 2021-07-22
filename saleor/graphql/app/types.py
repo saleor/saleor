@@ -3,7 +3,6 @@ from graphene_federation import key
 
 from ...app import models
 from ...core.permissions import AppPermission
-from ...core.tracing import traced_resolver
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Permission
 from ..core.types.common import Job
@@ -116,12 +115,10 @@ class App(CountableDjangoObjectType):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
     @staticmethod
-    @traced_resolver
     def resolve_webhooks(root: models.App, _info):
         return root.webhooks.all()
 
     @staticmethod
-    @traced_resolver
     def resolve_access_token(root: models.App, info):
         return resolve_access_token(info, root)
 
