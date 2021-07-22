@@ -62,10 +62,11 @@ def get_filename(model_name: str, file_type: str) -> str:
 
 
 def parse_input(data: Any) -> Dict[str, Union[str, dict]]:
+    """Parse input to correct data types, since scope coming from celery will be parsed to strings."""
     if "attributes" in data:
         serialized_attributes = []
 
-        for attr in data.get("attributes", []):
+        for attr in data.get("attributes") or []:
             if "date_time" in attr:
                 if gte := attr["date_time"].get("gte"):
                     attr["date_time"]["gte"] = datetime.fromisoformat(gte)
