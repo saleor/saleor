@@ -241,6 +241,7 @@ def order_fulfilled(
 def order_awaits_fulfillment_acceptance(
     fulfillments: List["Fulfillment"],
     user: "User",
+    app: Optional["App"],
     fulfillment_lines: List["FulfillmentLine"],
     manager: "PluginsManager",
     _notify_customer=True,
@@ -248,7 +249,7 @@ def order_awaits_fulfillment_acceptance(
     order = fulfillments[0].order
     update_order_status(order)
     events.fulfillment_awaits_acceptance_event(
-        order=order, user=user, fulfillment_lines=fulfillment_lines
+        order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
     )
     manager.order_updated(order)
     transaction.on_commit(lambda: manager.order_updated(order))

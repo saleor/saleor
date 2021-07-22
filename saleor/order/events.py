@@ -505,7 +505,11 @@ def fulfillment_fulfilled_items_event(
 
 
 def fulfillment_awaits_acceptance_event(
-    *, order: Order, user: UserType, fulfillment_lines: List[FulfillmentLine]
+    *,
+    order: Order,
+    user: UserType,
+    app: AppType,
+    fulfillment_lines: List[FulfillmentLine]
 ) -> OrderEvent:
     if not user_is_valid(user):
         user = None
@@ -513,6 +517,7 @@ def fulfillment_awaits_acceptance_event(
         order=order,
         type=OrderEvents.FULFILLMENT_AWAITS_ACCEPTANCE,
         user=user,
+        app=app,
         parameters={"awaiting_fulfillments": [line.pk for line in fulfillment_lines]},
     )
 
