@@ -2215,6 +2215,52 @@ def test_products_query_with_filter_search_by_sku(
     assert products[0]["node"]["name"] == product_with_default_variant.name
 
 
+def test_products_query_with_is_published_filter_variants_without_prices(
+    query_products_with_filter,
+    staff_api_client,
+    variant,
+    permission_manage_products,
+    channel_USD,
+):
+    ProductVariantChannelListing.objects.filter(
+        variant__product=variant.product
+    ).update(price_amount=None)
+
+    variables = {"channel": channel_USD.slug, "filter": {"isPublished": True}}
+    response = staff_api_client.post_graphql(
+        query_products_with_filter,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 0
+
+
+def test_products_query_with_is_published_filter_one_variant_without_price(
+    query_products_with_filter,
+    staff_api_client,
+    variant,
+    permission_manage_products,
+    channel_USD,
+):
+    variant.channel_listings.update(price_amount=None)
+
+    variables = {"channel": channel_USD.slug, "filter": {"isPublished": True}}
+    response = staff_api_client.post_graphql(
+        query_products_with_filter,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+
+
 def test_products_query_with_filter_stock_availability_as_staff(
     query_products_with_filter,
     staff_api_client,
