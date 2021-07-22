@@ -1,4 +1,4 @@
-from ...app.types import AppType
+from ...app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
 from ..core.enums import to_enum
 
 
@@ -20,3 +20,7 @@ def description(enum):
 
 
 AppTypeEnum = to_enum(AppType, description=description)
+
+AppExtensionTypeEnum = to_enum(AppExtensionType)
+AppExtensionViewEnum = to_enum(AppExtensionView)
+AppExtensionTargetEnum = to_enum(AppExtensionTarget)

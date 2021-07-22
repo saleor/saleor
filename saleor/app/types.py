@@ -6,12 +6,23 @@ class AppType:
 
 
 class AppExtensionView:
+    """All available place where app's iframe can be mounted.
+
+    PRODUCT - app's iframe will be mounted in product section
+    """
+
     PRODUCT = "product"
 
     CHOICES = [(PRODUCT, "product")]
 
 
 class AppExtensionType:
+    """All available type where app's iframe can be mounted.
+
+    OVERVIEW - app's iframe will be mounted on list view.
+    DETAILS - app's iframe will be mounted on detail view
+    """
+
     OVERVIEW = "overview"
     DETAILS = "details"
 
@@ -19,6 +30,12 @@ class AppExtensionType:
 
 
 class AppExtensionTarget:
+    """All available places where app's iframe can be mounted.
+
+    MORE_ACTIONS - three dots button
+    CREATE - create button
+    """
+
     MORE_ACTIONS = "more_actions"
     CREATE = "create"
 

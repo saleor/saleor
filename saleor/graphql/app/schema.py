@@ -3,8 +3,8 @@ import graphene
 from ...core.permissions import AppPermission
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
-from ..decorators import permission_required
-from .filters import AppFilter
+from ..decorators import permission_required, staff_member_or_app_required
+from .filters import AppExtensionFilter, AppFilter
 from .mutations import (
     AppActivate,
     AppCreate,
@@ -19,14 +19,25 @@ from .mutations import (
     AppTokenVerify,
     AppUpdate,
 )
-from .resolvers import resolve_app, resolve_apps, resolve_apps_installations
+from .resolvers import (
+    resolve_app,
+    resolve_app_extension,
+    resolve_app_extensions,
+    resolve_apps,
+    resolve_apps_installations,
+)
 from .sorters import AppSortingInput
-from .types import App, AppInstallation
+from .types import App, AppExtension, AppInstallation
 
 
 class AppFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = AppFilter
+
+
+class AppExtensionFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = AppExtensionFilter
 
 
 class AppQueries(graphene.ObjectType):
@@ -50,6 +61,21 @@ class AppQueries(graphene.ObjectType):
         ),
     )
 
+    app_extensions = FilterInputConnectionField(
+        AppExtension,
+        filter=AppExtensionFilterInput(
+            description="Filtering options for apps extensions."
+        ),
+        description="List of all extensions",
+    )
+    app_extension = graphene.Field(
+        AppExtension,
+        id=graphene.Argument(
+            graphene.ID, description="ID of the app extension.", required=True
+        ),
+        description="Look up an app extension by ID.",
+    )
+
     @permission_required(AppPermission.MANAGE_APPS)
     def resolve_apps_installations(self, info, **kwargs):
         return resolve_apps_installations(info, **kwargs)
@@ -63,6 +89,14 @@ class AppQueries(graphene.ObjectType):
         if not id and app:
             return app
         return resolve_app(info, id)
+
+    @staff_member_or_app_required
+    def resolve_app_extensions(self, info, **kwargs):
+        return resolve_app_extensions(info)
+
+    @staff_member_or_app_required
+    def resolve_app_extension(self, info, id):
+        return resolve_app_extension(info, id)
 
 
 class AppMutations(graphene.ObjectType):
