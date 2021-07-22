@@ -21,7 +21,6 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.variants import get_variant_selection_attributes
-from ....warehouse.availability import is_product_in_stock
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
@@ -284,9 +283,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         country_code=None,
     ):
         if address is not None:
-            country_code = get_user_country_context(
-                address, info.context.site.settings.company_address
-            )
+            country_code = address.country
 
         if not root.node.track_inventory:
             return settings.MAX_CHECKOUT_LINE_QUANTITY
@@ -729,21 +726,53 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             return None
 
         channel_slug = str(root.channel_slug)
-        country_code = get_user_country_context(
-            address, info.context.site.settings.company_address
-        )
+        country_code = None
+        if address:
+            country_code = address.country
 
-        def calculate_is_available(product_channel_listing):
-            in_stock = is_product_in_stock(root.node, country_code, channel_slug)
-            is_visible = False
+        requestor = get_user_or_app_from_context(info.context)
+        is_staff = requestor_is_staff_member_or_app(requestor)
+        channel_slug = str(root.channel_slug)
+
+        def calculate_is_available(quantities):
+            for qty in quantities:
+                if qty > 0:
+                    return True
+            return False
+
+        def load_variants_availability(variants):
+            keys = [(variant.id, country_code, channel_slug) for variant in variants]
+            return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
+                info.context
+            ).load_many(keys)
+
+        def check_variant_availability():
+            if is_staff and not channel_slug:
+                variants = ProductVariantsByProductIdLoader(info.context).load(
+                    root.node.id
+                )
+            elif is_staff and channel_slug:
+                variants = ProductVariantsByProductIdAndChannel(info.context).load(
+                    (root.node.id, channel_slug)
+                )
+            else:
+                variants = AvailableProductVariantsByProductIdAndChannel(
+                    info.context
+                ).load((root.node.id, channel_slug))
+            return variants.then(load_variants_availability).then(
+                calculate_is_available
+            )
+
+        def check_is_available_for_purchase(product_channel_listing):
             if product_channel_listing:
-                is_visible = product_channel_listing.is_available_for_purchase()
-            return is_visible and in_stock
+                if product_channel_listing.is_available_for_purchase():
+                    return check_variant_availability()
+            return False
 
         return (
             ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
             .load((root.node.id, channel_slug))
-            .then(calculate_is_available)
+            .then(check_is_available_for_purchase)
         )
 
     @staticmethod
