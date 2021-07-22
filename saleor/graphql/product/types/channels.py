@@ -73,11 +73,11 @@ class ProductChannelListing(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    @traced_resolver
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
+    @traced_resolver
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_purchase_cost(root: models.ProductChannelListing, info, *_kwargs):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
@@ -115,6 +115,7 @@ class ProductChannelListing(CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductChannelListing, info, *_kwargs):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
@@ -156,6 +157,7 @@ class ProductChannelListing(CountableDjangoObjectType):
         return root.is_available_for_purchase()
 
     @staticmethod
+    @traced_resolver
     def resolve_pricing(root: models.ProductChannelListing, info, address=None):
         context = info.context
         country_code = get_user_country_context(
