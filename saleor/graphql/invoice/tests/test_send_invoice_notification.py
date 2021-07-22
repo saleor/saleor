@@ -24,7 +24,7 @@ INVOICE_SEND_EMAIL_MUTATION = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def test_invoice_send_notification(
+def test_invoice_send_notification_by_user(
     mock_notify, staff_api_client, permission_manage_orders, order
 ):
     number = "01/12/2020/TEST"
@@ -39,6 +39,34 @@ def test_invoice_send_notification(
     content = get_graphql_content(response)
     expected_payload = {
         "requester_user_id": staff_api_client.user.id,
+        "requester_app_id": None,
+        "invoice": get_invoice_payload(invoice),
+        "recipient_email": invoice.order.get_customer_email(),
+        "domain": "mirumee.com",
+        "site_name": "mirumee.com",
+    }
+
+    mock_notify.assert_called_once_with(NotifyEventType.INVOICE_READY, expected_payload)
+    assert not content["data"]["invoiceSendNotification"]["errors"]
+
+
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_invoice_send_notification_by_app(
+    mock_notify, app_api_client, permission_manage_orders, order
+):
+    number = "01/12/2020/TEST"
+    url = "http://www.example.com"
+    invoice = Invoice.objects.create(
+        order=order, number=number, url=url, status=JobStatus.SUCCESS
+    )
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+    response = app_api_client.post_graphql(
+        INVOICE_SEND_EMAIL_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    expected_payload = {
+        "requester_user_id": None,
+        "requester_app_id": app_api_client.app.pk,
         "invoice": get_invoice_payload(invoice),
         "recipient_email": invoice.order.get_customer_email(),
         "domain": "mirumee.com",

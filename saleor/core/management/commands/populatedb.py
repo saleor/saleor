@@ -38,9 +38,9 @@ class Command(BaseCommand):
             default=False,
             help="Create admin account",
         )
-        parser.add_argument("user_password", type=str, default="password")
-        parser.add_argument("staff_password", type=str, default="password")
-        parser.add_argument("superuser_password", type=str, default="admin")
+        parser.add_argument("--user_password", type=str, default="password")
+        parser.add_argument("--staff_password", type=str, default="password")
+        parser.add_argument("--superuser_password", type=str, default="admin")
         parser.add_argument(
             "--withoutimages",
             action="store_true",
@@ -102,7 +102,7 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in create_gift_card():
             self.stdout.write(msg)
-        for msg in create_users(20, user_password):
+        for msg in create_users(user_password, 20):
             self.stdout.write(msg)
         for msg in create_orders(20):
             self.stdout.write(msg)

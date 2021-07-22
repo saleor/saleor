@@ -28,7 +28,7 @@ def test_create_fulfillments(
     }
     manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, manager, True
+        staff_user, None, order, fulfillment_lines_for_warehouses, manager, True
     )
     flush_post_commit_hooks()
 
@@ -65,7 +65,7 @@ def test_create_fulfillments(
     )
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user, manager
+        order, order.fulfillments.get(), staff_user, None, manager
     )
 
 
@@ -143,6 +143,7 @@ def test_create_fulfillments_without_notification(
 
     [fulfillment] = create_fulfillments(
         staff_user,
+        None,
         order,
         fulfillment_lines_for_warehouses,
         get_plugins_manager(),
@@ -205,6 +206,7 @@ def test_create_fulfillments_many_warehouses(
 
     [fulfillment1, fulfillment2] = create_fulfillments(
         staff_user,
+        None,
         order,
         fulfillment_lines_for_warehouses,
         get_plugins_manager(),
@@ -257,7 +259,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
 
     manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, manager, True
+        staff_user, None, order, fulfillment_lines_for_warehouses, manager, True
     )
     flush_post_commit_hooks()
 
@@ -283,7 +285,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
     )
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user, manager
+        order, order.fulfillments.get(), staff_user, None, manager
     )
 
 
@@ -304,7 +306,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
 
     manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, manager, True
+        staff_user, None, order, fulfillment_lines_for_warehouses, manager, True
     )
     flush_post_commit_hooks()
 
@@ -325,7 +327,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
     assert stock_quantity_before == stock.quantity
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user, manager
+        order, order.fulfillments.get(), staff_user, None, manager
     )
 
 
@@ -349,7 +351,7 @@ def test_create_fulfillments_without_allocations(
 
     manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, manager, True
+        staff_user, None, order, fulfillment_lines_for_warehouses, manager, True
     )
     flush_post_commit_hooks()
 
@@ -377,7 +379,7 @@ def test_create_fulfillments_without_allocations(
     )
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user, manager
+        order, order.fulfillments.get(), staff_user, None, manager
     )
 
 
@@ -400,6 +402,7 @@ def test_create_fulfillments_warehouse_without_stock(
     with pytest.raises(InsufficientStock) as exc:
         create_fulfillments(
             staff_user,
+            None,
             order,
             fulfillment_lines_for_warehouses,
             get_plugins_manager(),
@@ -452,6 +455,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
     with pytest.raises(InsufficientStock) as exc:
         create_fulfillments(
             staff_user,
+            None,
             order,
             fulfillment_lines_for_warehouses,
             get_plugins_manager(),

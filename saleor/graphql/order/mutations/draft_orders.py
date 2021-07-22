@@ -237,12 +237,20 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             for variant, quantity in zip(variants, quantities):
                 lines.append((quantity, variant))
                 add_variant_to_order(
-                    instance, variant, quantity, info.context.user, info.context.plugins
+                    instance,
+                    variant,
+                    quantity,
+                    info.context.user,
+                    info.context.app,
+                    info.context.plugins,
                 )
 
             # New event
             events.order_added_products_event(
-                order=instance, user=info.context.user, order_lines=lines
+                order=instance,
+                user=info.context.user,
+                app=info.context.app,
+                order_lines=lines,
             )
 
     @classmethod
@@ -252,7 +260,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         # Create draft created event if the instance is from scratch
         if not created:
-            events.draft_order_created_event(order=instance, user=info.context.user)
+            events.draft_order_created_event(
+                order=instance, user=info.context.user, app=info.context.app
+            )
 
         instance.save(update_fields=["billing_address", "shipping_address"])
 
@@ -403,7 +413,11 @@ class DraftOrderComplete(BaseMutation):
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})
         order_created(
-            order, user=info.context.user, manager=info.context.plugins, from_draft=True
+            order,
+            user=info.context.user,
+            app=info.context.app,
+            manager=info.context.plugins,
+            from_draft=True,
         )
 
         return DraftOrderComplete(order=order)

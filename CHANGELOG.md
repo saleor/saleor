@@ -126,6 +126,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix performance for User type on resolvers: orders, gift cards, events - #7574 by @tomaszszymanski129
 - Fix failing account mutations for app - #7569 by @IKarbowiak
 - Modify order of auth middleware calls - #7572 by @tomaszszymanski129
+- Add app support for events - #7622 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
