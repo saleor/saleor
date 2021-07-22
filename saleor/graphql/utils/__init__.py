@@ -35,6 +35,7 @@ def resolve_global_ids_to_primary_keys(
 
     for graphql_id in ids:
         if not graphql_id:
+            invalid_ids.append(graphql_id)
             continue
 
         try:
