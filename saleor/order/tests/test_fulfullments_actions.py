@@ -70,7 +70,7 @@ def test_create_fulfillments(
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
-def test_create_fulfillments_require_acceptance(
+def test_create_fulfillments_require_approval(
     mock_email_fulfillment,
     staff_user,
     order_with_lines,
@@ -116,7 +116,7 @@ def test_create_fulfillments_require_acceptance(
     events = order.events.all()
     assert len(events) == 1
     event = events[0]
-    assert event.type == OrderEvents.FULFILLMENT_AWAITS_ACCEPTANCE
+    assert event.type == OrderEvents.FULFILLMENT_AWAITS_APPROVAL
     assert event.user == staff_user
     assert set(event.parameters["awaiting_fulfillments"]) == set(
         [fulfillment_lines[0].pk, fulfillment_lines[1].pk]
@@ -126,7 +126,7 @@ def test_create_fulfillments_require_acceptance(
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
-def test_create_fulfillments_require_acceptance_as_app(
+def test_create_fulfillments_require_approval_as_app(
     mock_email_fulfillment,
     app,
     order_with_lines,
@@ -172,7 +172,7 @@ def test_create_fulfillments_require_acceptance_as_app(
     events = order.events.all()
     assert len(events) == 1
     event = events[0]
-    assert event.type == OrderEvents.FULFILLMENT_AWAITS_ACCEPTANCE
+    assert event.type == OrderEvents.FULFILLMENT_AWAITS_APPROVAL
     assert event.user is None
     assert event.app == app
     assert set(event.parameters["awaiting_fulfillments"]) == set(

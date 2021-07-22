@@ -238,7 +238,7 @@ def order_fulfilled(
 
 
 @traced_atomic_transaction()
-def order_awaits_fulfillment_acceptance(
+def order_awaits_fulfillment_approval(
     fulfillments: List["Fulfillment"],
     user: "User",
     app: Optional["App"],
@@ -248,7 +248,7 @@ def order_awaits_fulfillment_acceptance(
 ):
     order = fulfillments[0].order
     update_order_status(order)
-    events.fulfillment_awaits_acceptance_event(
+    events.fulfillment_awaits_approval_event(
         order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
     )
     manager.order_updated(order)
@@ -552,7 +552,7 @@ def create_fulfillments(
     fulfillment_lines_for_warehouses: Dict,
     manager: "PluginsManager",
     notify_customer: bool = True,
-    accepted: bool = True,
+    approved: bool = True,
 ) -> List[Fulfillment]:
     """Fulfill order.
 
@@ -577,8 +577,8 @@ def create_fulfillments(
         manager (PluginsManager): Base manager for handling plugins logic.
         notify_customer (bool): If `True` system send email about
             fulfillments to customer.
-        accepted (Boolean): fulfillments will have status fulfilled if it's True,
-            otherwise waiting_for_acceptance.
+        approved (Boolean): fulfillments will have status fulfilled if it's True,
+            otherwise waiting_for_approval.
 
     Return:
         List[Fulfillment]: Fulfillmet with lines created for this order
@@ -593,8 +593,8 @@ def create_fulfillments(
     fulfillment_lines: List[FulfillmentLine] = []
     status = (
         FulfillmentStatus.FULFILLED
-        if accepted
-        else FulfillmentStatus.WAITING_FOR_ACCEPTANCE
+        if approved
+        else FulfillmentStatus.WAITING_FOR_APPROVAL
     )
     for warehouse_pk in fulfillment_lines_for_warehouses:
         fulfillment = Fulfillment.objects.create(order=order, status=status)
@@ -605,13 +605,13 @@ def create_fulfillments(
                 warehouse_pk,
                 fulfillment_lines_for_warehouses[warehouse_pk],
                 order.channel.slug,
-                decrease_stock=accepted,
+                decrease_stock=approved,
             )
         )
 
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
     post_creation_func = (
-        order_fulfilled if accepted else order_awaits_fulfillment_acceptance
+        order_fulfilled if approved else order_awaits_fulfillment_approval
     )
     transaction.on_commit(
         lambda: post_creation_func(  # type: ignore

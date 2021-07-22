@@ -322,7 +322,7 @@ def test_shop_settings_mutation(
                     headerText,
                     includeTaxesInPrices,
                     chargeTaxesOnShipping,
-                    fulfillmentAutoConfirm,
+                    fulfillmentAutoApprove,
                     fulfillmentAllowUnpaid
                 }
                 errors {
@@ -350,7 +350,7 @@ def test_shop_settings_mutation(
     assert data["headerText"] == "Lorem ipsum"
     assert data["includeTaxesInPrices"] is False
     assert data["chargeTaxesOnShipping"] == new_charge_taxes_on_shipping
-    assert data["fulfillmentAutoConfirm"] is True
+    assert data["fulfillmentAutoApprove"] is True
     assert data["fulfillmentAllowUnpaid"] is False
     site_settings.refresh_from_db()
     assert not site_settings.include_taxes_in_prices

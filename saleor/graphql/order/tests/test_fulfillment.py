@@ -32,11 +32,11 @@ ORDER_FULFILL_QUERY = """
 """
 
 
-@pytest.mark.parametrize("fulfillment_auto_confirm", [True, False])
+@pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
 def test_order_fulfill(
     mock_create_fulfillments,
-    fulfillment_auto_confirm,
+    fulfillment_auto_approve,
     staff_api_client,
     staff_user,
     order_with_lines,
@@ -44,8 +44,8 @@ def test_order_fulfill(
     warehouse,
     site_settings,
 ):
-    site_settings.fulfillment_auto_confirm = fulfillment_auto_confirm
-    site_settings.save(update_fields=["fulfillment_auto_confirm"])
+    site_settings.fulfillment_auto_approve = fulfillment_auto_approve
+    site_settings.save(update_fields=["fulfillment_auto_approve"])
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -89,7 +89,7 @@ def test_order_fulfill(
         fulfillment_lines_for_warehouses,
         ANY,
         True,
-        accepted=fulfillment_auto_confirm,
+        approved=fulfillment_auto_approve,
     )
 
 
@@ -145,7 +145,7 @@ def test_order_fulfill_as_app(
         fulfillment_lines_for_warehouses,
         ANY,
         True,
-        accepted=True,
+        approved=True,
     )
 
 
@@ -210,7 +210,7 @@ def test_order_fulfill_many_warehouses(
         fulfillment_lines_for_warehouses,
         ANY,
         True,
-        accepted=True,
+        approved=True,
     )
 
 
@@ -258,7 +258,7 @@ def test_order_fulfill_without_notification(
         fulfillment_lines_for_warehouses,
         ANY,
         False,
-        accepted=True,
+        approved=True,
     )
 
 
@@ -322,7 +322,7 @@ def test_order_fulfill_lines_with_empty_quantity(
         fulfillment_lines_for_warehouses,
         ANY,
         True,
-        accepted=True,
+        approved=True,
     )
 
 

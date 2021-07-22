@@ -233,7 +233,7 @@ class OrderFulfill(BaseMutation):
                 dict(lines_for_warehouses),
                 info.context.plugins,
                 notify_customer,
-                accepted=info.context.site.settings.fulfillment_auto_confirm,
+                approved=info.context.site.settings.fulfillment_auto_approve,
             )
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)

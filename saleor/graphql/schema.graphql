@@ -2116,7 +2116,7 @@ enum FulfillmentStatus {
   REPLACED
   REFUNDED_AND_RETURNED
   CANCELED
-  WAITING_FOR_ACCEPTANCE
+  WAITING_FOR_APPROVAL
 }
 
 type FulfillmentUpdateTracking {
@@ -3287,7 +3287,7 @@ enum OrderEventsEnum {
   FULFILLMENT_REFUNDED
   FULFILLMENT_RETURNED
   FULFILLMENT_REPLACED
-  FULFILLMENT_AWAITS_ACCEPTANCE
+  FULFILLMENT_AWAITS_APPROVAL
   TRACKING_UPDATED
   NOTE_ADDED
   OTHER
@@ -5249,7 +5249,7 @@ type Shop {
   phonePrefixes: [String]!
   headerText: String
   includeTaxesInPrices: Boolean!
-  fulfillmentAutoConfirm: Boolean!
+  fulfillmentAutoApprove: Boolean!
   fulfillmentAllowUnpaid: Boolean!
   displayGrossPrices: Boolean!
   chargeTaxesOnShipping: Boolean!
@@ -5309,7 +5309,7 @@ input ShopSettingsInput {
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
   automaticFulfillmentDigitalProducts: Boolean
-  fulfillmentAutoConfirm: Boolean
+  fulfillmentAutoApprove: Boolean
   fulfillmentAllowUnpaid: Boolean
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int

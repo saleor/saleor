@@ -28,7 +28,7 @@ class ShopSettingsInput(graphene.InputObjectType):
     automatic_fulfillment_digital_products = graphene.Boolean(
         description="Enable automatic fulfillment for all digital products."
     )
-    fulfillment_auto_confirm = graphene.Boolean(
+    fulfillment_auto_approve = graphene.Boolean(
         description="Enable automatic confirmation of all new fulfillments."
     )
     fulfillment_allow_unpaid = graphene.Boolean(
