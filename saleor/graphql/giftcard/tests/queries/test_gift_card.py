@@ -1,5 +1,11 @@
-import graphene
+import datetime
 
+import graphene
+from django.utils import timezone
+
+from .....core import TimePeriodType
+from .....giftcard import GiftCardEvents, GiftCardExpiryType
+from .....giftcard.models import GiftCardEvent
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -375,3 +381,208 @@ def test_staff_query_gift_card_with_invalid_object_type(
     # then
     content = get_graphql_content(response)
     assert content["data"]["giftCard"] is None
+
+
+QUERY_GIFT_CARD_EVENTS = """
+    query giftCard($id: ID!) {
+        giftCard(id: $id){
+            id
+            events {
+                id
+                date
+                type
+                user {
+                    email
+                }
+                app {
+                    name
+                }
+                message
+                email
+                orderId
+                orderNumber
+                tag
+                oldTag
+                balance {
+                    initialBalance {
+                        amount
+                        currency
+                    }
+                    oldInitialBalance {
+                        amount
+                        currency
+                    }
+                    currentBalance {
+                        amount
+                        currency
+                    }
+                    oldCurrentBalance {
+                        amount
+                        currency
+                    }
+                }
+                expiry {
+                    expiryType
+                    oldExpiryType
+                    expiryPeriod {
+                        type
+                        amount
+                    }
+                    oldExpiryPeriod {
+                        type
+                        amount
+                    }
+                    expiryDate
+                    oldExpiryDate
+                }
+            }
+        }
+    }
+"""
+
+
+def test_query_gift_card_events(
+    staff_api_client, app, gift_card, order, permission_manage_gift_card
+):
+    # given
+    staff_user = staff_api_client.user
+    parameters = {
+        "message": "test message",
+        "email": "testemail@email.com",
+        "order_id": order.pk,
+        "tag": "test tag",
+        "old_tag": "test old tag",
+        "balance": {
+            "currency": "USD",
+            "initial_balance": 10,
+            "old_initial_balance": 20,
+            "current_balance": 10,
+            "old_current_balance": 5,
+        },
+        "expiry": {
+            "expiry_type": GiftCardExpiryType.EXPIRY_PERIOD,
+            "old_expiry_type": GiftCardExpiryType.EXPIRY_DATE,
+            "expiry_period_type": TimePeriodType.MONTH,
+            "expiry_period": 10,
+            "expiry_date": datetime.date(2050, 1, 1),
+        },
+    }
+    gift_card_events = GiftCardEvent.objects.bulk_create(
+        [
+            # gift card with empty fields
+            GiftCardEvent(
+                user=staff_user,
+                gift_card=gift_card,
+                type=GiftCardEvents.ISSUED,
+                date=timezone.now(),
+            ),
+            # example gift card with all gift card event fields
+            GiftCardEvent(
+                user=staff_user,
+                app=app,
+                gift_card=gift_card,
+                type=GiftCardEvents.UPDATED,
+                parameters=parameters,
+                date=timezone.now() + datetime.timedelta(days=10),
+            ),
+        ]
+    )
+    empty_event, full_event = gift_card_events
+
+    variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_GIFT_CARD_EVENTS,
+        variables,
+        permissions=[permission_manage_gift_card],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events_data = content["data"]["giftCard"]["events"]
+    assert len(events_data) == len(gift_card_events)
+
+    assert events_data[0]["id"] == graphene.Node.to_global_id(
+        "GiftCardEvent", empty_event.pk
+    )
+    assert events_data[0]["date"] == empty_event.date.isoformat()
+    assert events_data[0]["type"] == empty_event.type.upper()
+    assert events_data[0]["user"]["email"] == staff_user.email
+    assert events_data[0]["app"] is None
+    assert events_data[0]["message"] is None
+    assert events_data[0]["email"] is None
+    assert events_data[0]["orderId"] is None
+    assert events_data[0]["orderNumber"] is None
+    assert events_data[0]["tag"] is None
+    assert events_data[0]["oldTag"] is None
+    assert events_data[0]["balance"] is None
+    assert events_data[0]["expiry"] is None
+
+    assert events_data[1]["id"] == graphene.Node.to_global_id(
+        "GiftCardEvent", full_event.pk
+    )
+    assert events_data[1]["date"] == full_event.date.isoformat()
+    assert events_data[1]["type"] == full_event.type.upper()
+    assert events_data[1]["user"]["email"] == staff_user.email
+    assert events_data[1]["app"]["name"] == app.name
+    assert events_data[1]["message"] == parameters["message"]
+    assert events_data[1]["email"] == parameters["email"]
+    assert events_data[1]["orderId"] == graphene.Node.to_global_id("Order", order.pk)
+    assert events_data[1]["orderNumber"] == str(order.pk)
+    assert events_data[1]["tag"] == parameters["tag"]
+    assert events_data[1]["oldTag"] == parameters["old_tag"]
+    assert (
+        events_data[1]["balance"]["initialBalance"]["amount"]
+        == parameters["balance"]["initial_balance"]
+    )
+    assert (
+        events_data[1]["balance"]["initialBalance"]["currency"]
+        == parameters["balance"]["currency"]
+    )
+    assert (
+        events_data[1]["balance"]["oldInitialBalance"]["amount"]
+        == parameters["balance"]["old_initial_balance"]
+    )
+    assert (
+        events_data[1]["balance"]["oldInitialBalance"]["currency"]
+        == parameters["balance"]["currency"]
+    )
+    assert (
+        events_data[1]["balance"]["currentBalance"]["amount"]
+        == parameters["balance"]["current_balance"]
+    )
+    assert (
+        events_data[1]["balance"]["currentBalance"]["currency"]
+        == parameters["balance"]["currency"]
+    )
+    assert (
+        events_data[1]["balance"]["oldCurrentBalance"]["amount"]
+        == parameters["balance"]["old_current_balance"]
+    )
+    assert (
+        events_data[1]["balance"]["oldCurrentBalance"]["currency"]
+        == parameters["balance"]["currency"]
+    )
+    assert (
+        events_data[1]["expiry"]["expiryType"]
+        == parameters["expiry"]["expiry_type"].upper()
+    )
+    assert (
+        events_data[1]["expiry"]["oldExpiryType"]
+        == parameters["expiry"]["old_expiry_type"].upper()
+    )
+    assert (
+        events_data[1]["expiry"]["expiryDate"]
+        == parameters["expiry"]["expiry_date"].isoformat()
+    )
+    assert events_data[1]["expiry"]["oldExpiryDate"] is None
+    assert (
+        events_data[1]["expiry"]["expiryPeriod"]["amount"]
+        == parameters["expiry"]["expiry_period"]
+    )
+    assert (
+        events_data[1]["expiry"]["expiryPeriod"]["type"]
+        == parameters["expiry"]["expiry_period_type"].upper()
+    )
+    assert events_data[1]["expiry"]["oldExpiryPeriod"] is None
