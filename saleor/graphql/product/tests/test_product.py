@@ -5544,6 +5544,42 @@ def test_update_product_with_page_reference_attribute_value(
     assert product_type_page_reference_attribute.values.count() == values_count + 1
 
 
+def test_update_product_with_empty_input_collections(
+    product, permission_manage_products, staff_api_client
+):
+    # given
+    query = """
+    mutation updateProduct($productId: ID!, $input: ProductInput!) {
+      productUpdate(id: $productId, input: $input) {
+        productErrors {
+          field
+          message
+          code
+        }
+        product {
+          id
+        }
+      }
+    }
+
+    """
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {
+        "productId": product_id,
+        "input": {"collections": [""]},
+    }
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert len(data["productErrors"]) == 1
+    product_errors = data["productErrors"][0]
+    assert product_errors["code"] == ProductErrorCode.GRAPHQL_ERROR.name
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product_with_page_reference_attribute_existing_value(
     updated_webhook_mock,
