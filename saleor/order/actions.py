@@ -227,6 +227,7 @@ def order_awaits_fulfillment_acceptance(
         order=order, user=user, fulfillment_lines=fulfillment_lines
     )
     manager.order_updated(order)
+    transaction.on_commit(lambda: manager.order_updated(order))
 
 
 def order_shipping_updated(order: "Order", manager: "PluginsManager"):
@@ -515,7 +516,7 @@ def create_fulfillments(
     fulfillment_lines_for_warehouses: Dict,
     manager: "PluginsManager",
     notify_customer: bool = True,
-    confirmed: bool = True,
+    accepted: bool = True,
 ) -> List[Fulfillment]:
     """Fulfill order.
 
@@ -539,7 +540,7 @@ def create_fulfillments(
         manager (PluginsManager): Base manager for handling plugins logic.
         notify_customer (bool): If `True` system send email about
             fulfillments to customer.
-        confirmed (Boolean): fulfillments will have status fulfilled if it's True,
+        accepted (Boolean): fulfillments will have status fulfilled if it's True,
             otherwise waiting_for_acceptance.
 
     Return:
@@ -555,7 +556,7 @@ def create_fulfillments(
     fulfillment_lines: List[FulfillmentLine] = []
     status = (
         FulfillmentStatus.FULFILLED
-        if confirmed
+        if accepted
         else FulfillmentStatus.WAITING_FOR_ACCEPTANCE
     )
     for warehouse_pk in fulfillment_lines_for_warehouses:
@@ -567,13 +568,13 @@ def create_fulfillments(
                 warehouse_pk,
                 fulfillment_lines_for_warehouses[warehouse_pk],
                 order.channel.slug,
-                decrease_stock=confirmed,
+                decrease_stock=accepted,
             )
         )
 
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
     post_creation_func = (
-        order_fulfilled if confirmed else order_awaits_fulfillment_acceptance
+        order_fulfilled if accepted else order_awaits_fulfillment_acceptance
     )
     transaction.on_commit(
         lambda: post_creation_func(

@@ -461,7 +461,7 @@ def fulfillment_awaits_acceptance_event(
         user = None
     return OrderEvent.objects.create(
         order=order,
-        type=OrderEvents.FULFILLMENTS_AWAITS_ACCEPTANCE,
+        type=OrderEvents.FULFILLMENT_AWAITS_ACCEPTANCE,
         user=user,
         parameters={"awaiting_fulfillments": [line.pk for line in fulfillment_lines]},
     )

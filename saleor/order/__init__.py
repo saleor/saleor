@@ -123,7 +123,7 @@ class OrderEvents:
     FULFILLMENT_REFUNDED = "fulfillment_refunded"
     FULFILLMENT_RETURNED = "fulfillment_returned"
     FULFILLMENT_REPLACED = "fulfillment_replaced"
-    FULFILLMENTS_AWAITS_ACCEPTANCE = "fulfillments_awaits_acceptance"
+    FULFILLMENT_AWAITS_ACCEPTANCE = "fulfillment_awaits_acceptance"
     TRACKING_UPDATED = "tracking_updated"
     NOTE_ADDED = "note_added"
 
@@ -172,7 +172,7 @@ class OrderEvents:
         (FULFILLMENT_REFUNDED, "Some items were refunded"),
         (FULFILLMENT_RETURNED, "Some items were returned"),
         (FULFILLMENT_REPLACED, "Some items were replaced"),
-        (FULFILLMENTS_AWAITS_ACCEPTANCE, "Fulfillments awaits acceptance"),
+        (FULFILLMENT_AWAITS_ACCEPTANCE, "Fulfillments awaits acceptance"),
         (TRACKING_UPDATED, "The fulfillment's tracking code was updated"),
         (NOTE_ADDED, "A note was added to the order"),
         (OTHER, "An unknown order event containing a message"),

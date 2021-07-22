@@ -116,7 +116,7 @@ def test_create_fulfillments_require_acceptance(
     events = order.events.all()
     assert len(events) == 1
     event = events[0]
-    assert event.type == OrderEvents.FULFILLMENTS_AWAITS_ACCEPTANCE
+    assert event.type == OrderEvents.FULFILLMENT_AWAITS_ACCEPTANCE
     assert event.user == staff_user
     assert set(event.parameters["awaiting_fulfillments"]) == set(
         [fulfillment_lines[0].pk, fulfillment_lines[1].pk]
