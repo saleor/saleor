@@ -122,3 +122,6 @@ class GiftCardEvent(models.Model):
     gift_card = models.ForeignKey(
         GiftCard, related_name="events", on_delete=models.CASCADE
     )
+
+    class Meta:
+        ordering = ("date",)
