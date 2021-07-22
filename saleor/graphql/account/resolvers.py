@@ -32,7 +32,6 @@ USER_SEARCH_FIELDS = (
 )
 
 
-@traced_resolver
 def resolve_customers(info, query, **_kwargs):
     qs = models.User.objects.customers()
     qs = filter_by_query_param(
@@ -41,12 +40,10 @@ def resolve_customers(info, query, **_kwargs):
     return qs.distinct()
 
 
-@traced_resolver
 def resolve_permission_groups(info, **_kwargs):
     return auth_models.Group.objects.all()
 
 
-@traced_resolver
 def resolve_staff_users(info, query, **_kwargs):
     qs = models.User.objects.staff()
     qs = filter_by_query_param(
@@ -55,7 +52,6 @@ def resolve_staff_users(info, query, **_kwargs):
     return qs.distinct()
 
 
-@traced_resolver
 def resolve_user(info, id=None, email=None):
     requester = get_user_or_app_from_context(info.context)
     if requester:

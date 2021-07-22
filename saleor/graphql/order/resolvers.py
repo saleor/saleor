@@ -13,7 +13,6 @@ from .types import Order
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
 
 
-@traced_resolver
 def resolve_orders(_info, channel_slug, **_kwargs):
     qs = models.Order.objects.non_draft()
     if channel_slug:
@@ -21,7 +20,6 @@ def resolve_orders(_info, channel_slug, **_kwargs):
     return qs
 
 
-@traced_resolver
 def resolve_draft_orders(_info, **_kwargs):
     qs = models.Order.objects.drafts()
     return qs
@@ -43,7 +41,6 @@ def resolve_orders_total(_info, period, channel_slug):
     return sum_order_totals(qs, channel.currency_code)
 
 
-@traced_resolver
 def resolve_order(info, order_id):
     return graphene.Node.get_node_from_global_id(info, order_id, Order)
 

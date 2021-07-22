@@ -1,6 +1,5 @@
 import graphene
 
-from ...core.tracing import traced_resolver
 from ..decorators import staff_member_or_app_required
 from .mutations import (
     ChannelActivate,
@@ -28,7 +27,6 @@ class ChannelQueries(graphene.ObjectType):
         return resolve_channel(info, id)
 
     @staff_member_or_app_required
-    @traced_resolver
     def resolve_channels(self, _info, **kwargs):
         return resolve_channels()
 

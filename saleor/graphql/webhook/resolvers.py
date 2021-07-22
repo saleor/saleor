@@ -9,7 +9,6 @@ from ..core.utils import from_global_id_or_error
 from .types import Webhook, WebhookEvent
 
 
-@traced_resolver
 def resolve_webhooks(info, **_kwargs):
     app = info.context.app
     if app:
@@ -22,7 +21,6 @@ def resolve_webhooks(info, **_kwargs):
     return qs
 
 
-@traced_resolver
 def resolve_webhook(info, webhook_id):
     app = info.context.app
     if app:
