@@ -74,7 +74,7 @@ class AttributeValueTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = attribute_models.AttributeValue
         interfaces = [graphene.relay.Node]
-        only_fields = BASIC_TRANSLATABLE_FIELDS
+        only_fields = BASIC_TRANSLATABLE_FIELDS + ["rich_text"]
 
     @staticmethod
     def resolve_attribute_value(root: attribute_models.AttributeValue, _info):
@@ -173,6 +173,11 @@ class ProductTranslatableContent(CountableDjangoObjectType):
             "Will be removed in Saleor 4.0. " "Get model fields from the root level."
         ),
     )
+    attribute_values = graphene.List(
+        graphene.NonNull(AttributeValueTranslatableContent),
+        required=True,
+        description="List of product attribute values that can be translated.",
+    )
 
     class Meta:
         model = product_models.Product
@@ -187,6 +192,18 @@ class ProductTranslatableContent(CountableDjangoObjectType):
     def resolve_description_json(root: product_models.Product, _info):
         description = root.description
         return description if description is not None else {}
+
+    @staticmethod
+    def resolve_attribute_values(root: product_models.Product, _info):
+        translatable_values = []
+        for assignment in root.attributes.all():
+            attr = assignment.attribute
+            # FIXME: in attributes/__init__.py we can store a global list of
+            # "translatable" values, instead of hardcoding rich-text here.
+            if attr.input_type == "rich-text":
+                value = assignment.values.first()
+                translatable_values.append(value)
+        return translatable_values
 
 
 class CollectionTranslation(BaseTranslationType):
