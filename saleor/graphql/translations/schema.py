@@ -2,7 +2,6 @@ import graphene
 
 from ...attribute.models import Attribute, AttributeValue
 from ...core.permissions import SitePermissions
-from ...core.tracing import traced_resolver
 from ...discount.models import Sale, Voucher
 from ...menu.models import MenuItem
 from ...page.models import Page
@@ -85,7 +84,6 @@ class TranslationQueries(graphene.ObjectType):
     )
 
     @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
-    @traced_resolver
     def resolve_translations(self, info, kind, **_kwargs):
         if kind == TranslatableKinds.PRODUCT:
             return resolve_products(info)
@@ -111,7 +109,6 @@ class TranslationQueries(graphene.ObjectType):
             return resolve_sales(info)
 
     @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
-    @traced_resolver
     def resolve_translation(self, info, id, kind, **_kwargs):
         _type, kind_id = from_global_id_or_error(id)
         if not _type == kind:

@@ -5,7 +5,6 @@ from ...core.permissions import (
     ProductPermissions,
     ShippingPermissions,
 )
-from ...core.tracing import traced_resolver
 from ...warehouse import models
 from ..core.fields import FilterInputConnectionField
 from ..decorators import one_of_permissions_required, permission_required
@@ -43,7 +42,6 @@ class WarehouseQueries(graphene.ObjectType):
             ShippingPermissions.MANAGE_SHIPPING,
         ]
     )
-    @traced_resolver
     def resolve_warehouse(self, info, **data):
         warehouse_pk = data.get("id")
         warehouse = graphene.Node.get_node_from_global_id(info, warehouse_pk, Warehouse)
@@ -56,7 +54,6 @@ class WarehouseQueries(graphene.ObjectType):
             ShippingPermissions.MANAGE_SHIPPING,
         ]
     )
-    @traced_resolver
     def resolve_warehouses(self, info, **_kwargs):
         return models.Warehouse.objects.all()
 
@@ -80,13 +77,11 @@ class StockQueries(graphene.ObjectType):
     )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    @traced_resolver
     def resolve_stock(self, info, **kwargs):
         stock_id = kwargs.get("id")
         stock = graphene.Node.get_node_from_global_id(info, stock_id, Stock)
         return stock
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    @traced_resolver
     def resolve_stocks(self, info, **_kwargs):
         return models.Stock.objects.all()

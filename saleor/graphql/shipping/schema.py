@@ -1,7 +1,6 @@
 import graphene
 
 from ...core.permissions import ShippingPermissions
-from ...core.tracing import traced_resolver
 from ..channel.types import ChannelContext
 from ..core.fields import ChannelContextFilterConnectionField
 from ..decorators import permission_required
@@ -46,13 +45,11 @@ class ShippingQueries(graphene.ObjectType):
     )
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    @traced_resolver
     def resolve_shipping_zone(self, info, id, channel=None):
         instance = graphene.Node.get_node_from_global_id(info, id, ShippingZone)
         return ChannelContext(node=instance, channel_slug=channel) if instance else None
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    @traced_resolver
     def resolve_shipping_zones(self, info, channel=None, **_kwargs):
         return resolve_shipping_zones(channel)
 

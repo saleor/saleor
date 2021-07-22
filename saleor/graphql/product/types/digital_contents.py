@@ -1,7 +1,6 @@
 import graphene
 from graphene import relay
 
-from ....core.tracing import traced_resolver
 from ....product import models
 from ...channel import ChannelContext
 from ...core.connection import CountableDjangoObjectType
@@ -22,7 +21,6 @@ class DigitalContentUrl(CountableDjangoObjectType):
         interfaces = (relay.Node,)
 
     @staticmethod
-    @traced_resolver
     def resolve_url(root: models.DigitalContentUrl, *_args):
         return root.get_absolute_url()
 
@@ -51,12 +49,10 @@ class DigitalContent(CountableDjangoObjectType):
         interfaces = (relay.Node, ObjectWithMetadata)
 
     @staticmethod
-    @traced_resolver
     def resolve_urls(root: models.DigitalContent, **_kwargs):
         return root.urls.all()
 
     @staticmethod
-    @traced_resolver
     def resolve_product_variant(root: models.DigitalContent, info):
         return (
             ProductVariantByIdLoader(info.context)
