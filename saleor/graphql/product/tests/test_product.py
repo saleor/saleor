@@ -3453,11 +3453,10 @@ def test_sort_product_by_rank_without_search(
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
-    with pytest.raises(AssertionError) as e:
-        get_graphql_content(response)
-
+    data = get_graphql_content(response, ignore_errors=True)
+    assert len(data["errors"]) == 1
     assert (
-        e._excinfo[1].args[0][0]["message"]
+        data["errors"][0]["message"]
         == "Sorting by Rank is available only with searching."
     )
 
@@ -3490,11 +3489,10 @@ def test_sort_product_by_rank_with_empty_search_value(
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
-    with pytest.raises(AssertionError) as e:
-        get_graphql_content(response)
-
+    data = get_graphql_content(response, ignore_errors=True)
+    assert len(data["errors"]) == 1
     assert (
-        e._excinfo[1].args[0][0]["message"]
+        data["errors"][0]["message"]
         == "Sorting by Rank is available only with searching."
     )
 
@@ -5544,6 +5542,42 @@ def test_update_product_with_page_reference_attribute_value(
 
     product_type_page_reference_attribute.refresh_from_db()
     assert product_type_page_reference_attribute.values.count() == values_count + 1
+
+
+def test_update_product_with_empty_input_collections(
+    product, permission_manage_products, staff_api_client
+):
+    # given
+    query = """
+    mutation updateProduct($productId: ID!, $input: ProductInput!) {
+      productUpdate(id: $productId, input: $input) {
+        productErrors {
+          field
+          message
+          code
+        }
+        product {
+          id
+        }
+      }
+    }
+
+    """
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {
+        "productId": product_id,
+        "input": {"collections": [""]},
+    }
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert len(data["productErrors"]) == 1
+    product_errors = data["productErrors"][0]
+    assert product_errors["code"] == ProductErrorCode.GRAPHQL_ERROR.name
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

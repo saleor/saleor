@@ -675,7 +675,7 @@ def test_handle_refund(
     assert payment.captured_amount == Decimal("0.00")
 
     mock_order_refunded.assert_called_once_with(
-        payment.order, None, transaction.amount, payment, mock.ANY
+        payment.order, None, None, transaction.amount, payment, mock.ANY
     )
     external_events = payment.order.events.filter(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION

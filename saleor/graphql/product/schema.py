@@ -1,5 +1,4 @@
 import graphene
-from graphql.error import GraphQLError
 
 from saleor.core.tracing import traced_resolver
 
@@ -111,7 +110,6 @@ from .sorters import (
     CategorySortingInput,
     CollectionSortingInput,
     ProductOrder,
-    ProductOrderField,
     ProductTypeSortingInput,
 )
 from .types import (
@@ -317,17 +315,6 @@ class ProductQueries(graphene.ObjectType):
 
     @traced_resolver
     def resolve_products(self, info, channel=None, **kwargs):
-        # sort by RANK can be used only with search filter
-        if "sort_by" in kwargs and ProductOrderField.RANK == kwargs["sort_by"].get(
-            "field"
-        ):
-            if (
-                "filter" not in kwargs
-                or kwargs["filter"].get("search") is None
-                or not kwargs["filter"]["search"].strip()
-            ):
-                raise GraphQLError("Sorting by Rank is available only with searching.")
-
         requestor = get_user_or_app_from_context(info.context)
         if channel is None and not requestor_is_staff_member_or_app(requestor):
             channel = get_default_channel_slug_or_graphql_error()

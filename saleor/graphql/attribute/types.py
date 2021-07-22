@@ -52,6 +52,7 @@ class AttributeValue(CountableDjangoObjectType):
         model = models.AttributeValue
 
     @staticmethod
+    @traced_resolver
     def resolve_input_type(root: models.AttributeValue, info, *_args):
         def _resolve_input_type(attribute):
             requester = get_user_or_app_from_context(info.context)
@@ -70,14 +71,12 @@ class AttributeValue(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_file(root: models.AttributeValue, *_args):
         if not root.file_url:
             return
         return File(url=root.file_url, content_type=root.content_type)
 
     @staticmethod
-    @traced_resolver
     def resolve_reference(root: models.AttributeValue, info, **_kwargs):
         def prepare_reference(attribute):
             if attribute.input_type != AttributeInputType.REFERENCE:
@@ -146,7 +145,6 @@ class Attribute(CountableDjangoObjectType):
         model = models.Attribute
 
     @staticmethod
-    @traced_resolver
     def resolve_choices(root: models.Attribute, info, **_kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
             return root.values.all()
