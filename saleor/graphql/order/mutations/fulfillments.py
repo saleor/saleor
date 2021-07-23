@@ -163,7 +163,20 @@ class OrderFulfill(BaseMutation):
             )
 
     @classmethod
-    def clean_input(cls, data):
+    def clean_input(cls, info, order, data):
+        if (
+            not info.context.site.settings.fulfillment_allow_unpaid
+            and not order.is_fully_paid()
+        ):
+            raise ValidationError(
+                {
+                    "order": ValidationError(
+                        "Cannot fulfill unpaid order.",
+                        code=OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER.value,
+                    )
+                }
+            )
+
         lines = data["lines"]
 
         warehouse_ids_for_lines = [
@@ -206,7 +219,7 @@ class OrderFulfill(BaseMutation):
         order = cls.get_node_or_error(info, order, field="order", only_type=Order)
         data = data.get("input")
 
-        cleaned_input = cls.clean_input(data)
+        cleaned_input = cls.clean_input(info, order, data)
 
         user = info.context.user
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
@@ -220,6 +233,7 @@ class OrderFulfill(BaseMutation):
                 dict(lines_for_warehouses),
                 info.context.plugins,
                 notify_customer,
+                approved=info.context.site.settings.fulfillment_auto_approve,
             )
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)

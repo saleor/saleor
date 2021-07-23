@@ -7,6 +7,7 @@ class OrderErrorCode(Enum):
     CANNOT_CANCEL_ORDER = "cannot_cancel_order"
     CANNOT_DELETE = "cannot_delete"
     CANNOT_DISCOUNT = "cannot_discount"
+    CANNOT_FULFILL_UNPAID_ORDER = "cannot_fulfill_unpaid_order"
     CANNOT_REFUND = "cannot_refund"
     CAPTURE_INACTIVE_PAYMENT = "capture_inactive_payment"
     NOT_EDITABLE = "not_editable"

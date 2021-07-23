@@ -155,7 +155,7 @@ class Shop(graphene.ObjectType):
     include_taxes_in_prices = graphene.Boolean(
         description="Include taxes in prices.", required=True
     )
-    fulfillment_auto_confirm = graphene.Boolean(
+    fulfillment_auto_approve = graphene.Boolean(
         description="Automatically confirm all new fulfillments.", required=True
     )
     fulfillment_allow_unpaid = graphene.Boolean(
@@ -280,8 +280,8 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.include_taxes_in_prices
 
     @staticmethod
-    def resolve_fulfillment_auto_confirm(_, info):
-        return info.context.site.settings.fulfillment_auto_confirm
+    def resolve_fulfillment_auto_approve(_, info):
+        return info.context.site.settings.fulfillment_auto_approve
 
     @staticmethod
     def resolve_fulfillment_allow_unpaid(_, info):
