@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+from typing import Dict, Union
 
 import graphene
 import prices
@@ -7,7 +8,6 @@ import prices
 from ...core.anonymize import obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, AppPermission, GiftcardPermissions
-from ...core.tracing import traced_resolver
 from ...giftcard import models
 from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import requestor_has_access
@@ -105,22 +105,25 @@ class GiftCardEvent(CountableDjangoObjectType):
                 or requester.has_perm(AccountPermissions.MANAGE_STAFF)
             ):
                 return event_user
-            return None
+            return PermissionDenied()
 
-        if not root.user_id:
-            return None
+        if root.user_id is None:
+            return _resolve_user(None)
 
         return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
     @staticmethod
-    @traced_resolver
     def resolve_app(root: models.GiftCardEvent, info):
-        requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
-            return (
-                AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
-            )
-        raise PermissionDenied()
+        def _resolve_app(app):
+            requester = get_user_or_app_from_context(info.context)
+            if requester == app or requester.has_perm(AppPermission.MANAGE_APPS):
+                return app
+            return PermissionDenied()
+
+        if root.app_id is None:
+            return _resolve_app(None)
+
+        return AppByIdLoader(info.context).load(root.app_id).then(_resolve_app)
 
     @staticmethod
     def resolve_message(root: models.GiftCardEvent, _info):
@@ -172,45 +175,35 @@ class GiftCardEvent(CountableDjangoObjectType):
         expiry = root.parameters.get("expiry")
         if expiry is None:
             return None
-        expiry_period = (
-            TimePeriod(
-                amount=expiry.get("expiry_period"),
-                type=expiry.get("expiry_period_type"),
+
+        expiry_data: Dict[str, Union[TimePeriod, datetime.datetime, None]] = {}
+        for period_field in ["expiry_period", "old_expiry_period"]:
+            expiry_data[period_field] = (
+                TimePeriod(
+                    amount=expiry.get(period_field),
+                    type=expiry.get(f"{period_field}_type"),
+                )
+                if expiry.get(period_field)
+                else None
             )
-            if expiry.get("expiry_period")
-            else None
-        )
-        old_expiry_period = (
-            TimePeriod(
-                amount=expiry.get("old_expiry_period"),
-                type=expiry.get("old_expiry_period_type"),
+
+        for date_field in ["expiry_date", "old_expiry_date"]:
+            date = expiry.get(date_field)
+            expiry_data[date_field] = (
+                datetime.datetime.strptime(date, "%Y-%m-%d") if date else None
             )
-            if expiry.get("old_expiry_period")
-            else None
-        )
-        expiry_date = (
-            datetime.datetime.strptime(expiry.get("expiry_date"), "%Y-%m-%d")
-            if expiry.get("expiry_date")
-            else None
-        )
-        old_expiry_date = (
-            datetime.datetime.strptime(expiry.get("old_expiry_date"), "%Y-%m-%d")
-            if expiry.get("old_expiry_date")
-            else None
-        )
+
         return GiftCardEventExpiry(
             expiry_type=expiry.get("expiry_type"),
             old_expiry_type=expiry.get("old_expiry_type"),
-            expiry_date=expiry_date,
-            old_expiry_date=old_expiry_date,
-            expiry_period=expiry_period,
-            old_expiry_period=old_expiry_period,
+            **expiry_data,
         )
 
 
 class GiftCard(CountableDjangoObjectType):
     display_code = graphene.String(
-        description="Code in format which allows displaying in a user interface."
+        description="Code in format which allows displaying in a user interface.",
+        required=True,
     )
     code = graphene.String(
         description=(
@@ -240,7 +233,9 @@ class GiftCard(CountableDjangoObjectType):
         App,
         description="App which created the gift card.",
     )
-    expiry_type = GiftCardExpiryTypeEnum(description="The gift card expiry type.")
+    expiry_type = GiftCardExpiryTypeEnum(
+        description="The gift card expiry type.", required=True
+    )
     expiry_period = graphene.Field(
         TimePeriod, description="The gift card expiry period.", required=False
     )
@@ -296,48 +291,57 @@ class GiftCard(CountableDjangoObjectType):
         return root.display_code
 
     @staticmethod
-    @traced_resolver
     def resolve_code(root: models.GiftCard, info, **_kwargs):
-        requestor = get_user_or_app_from_context(info.context)
-        # Gift card code can be fetched by the staff user and app
-        # with manage gift card permission and by the card owner.
-        if (
-            not root.used_by_email
-            and requestor.has_perm(GiftcardPermissions.MANAGE_GIFT_CARD)
-        ) or requestor == root.used_by:
-            return root.code
-        return PermissionDenied()
+        def _resolve_code(user):
+            requestor = get_user_or_app_from_context(info.context)
+            # Gift card code can be fetched by the staff user and app
+            # with manage gift card permission and by the card owner.
+            if (
+                not root.used_by_email
+                and requestor.has_perm(GiftcardPermissions.MANAGE_GIFT_CARD)
+            ) or (user and requestor == user):
+                return root.code
+
+            return PermissionDenied()
+
+        if root.used_by_id is None:
+            return _resolve_code(None)
+
+        return (
+            UserByUserIdLoader(info.context).load(root.used_by_id).then(_resolve_code)
+        )
 
     @staticmethod
-    @traced_resolver
     def resolve_created_by(root: models.GiftCard, info):
-        requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(
-            requestor, root.created_by, AccountPermissions.MANAGE_USERS
-        ):
-            return (
-                UserByUserIdLoader(info.context).load(root.created_by_id)
-                if root.created_by_id
-                else None
-            )
-        raise PermissionDenied()
+        def _resolve_created_by(user):
+            requestor = get_user_or_app_from_context(info.context)
+            if requestor_has_access(requestor, user, AccountPermissions.MANAGE_USERS):
+                return user
+
+            return PermissionDenied()
+
+        if root.created_by_id is None:
+            return _resolve_created_by(None)
+
+        return UserByUserIdLoader(info.context).load(root.created_by_id)
 
     @staticmethod
-    @traced_resolver
     def resolve_used_by(root: models.GiftCard, info):
-        requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(
-            requestor, root.used_by, AccountPermissions.MANAGE_USERS
-        ):
-            return (
-                UserByUserIdLoader(info.context).load(root.used_by_id)
-                if root.used_by_id
-                else None
-            )
-        raise PermissionDenied()
+        def _resolve_used_by(user):
+            requestor = get_user_or_app_from_context(info.context)
+            if requestor_has_access(requestor, user, AccountPermissions.MANAGE_USERS):
+                return user
+
+        if not root.used_by_id:
+            return _resolve_used_by(None)
+
+        return (
+            UserByUserIdLoader(info.context)
+            .load(root.used_by_id)
+            .then(_resolve_used_by)
+        )
 
     @staticmethod
-    @traced_resolver
     def resolve_created_by_email(root: models.GiftCard, info):
         def _resolve_created_by_email(user):
             requester = get_user_or_app_from_context(info.context)
@@ -357,7 +361,6 @@ class GiftCard(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_used_by_email(root: models.GiftCard, info):
         def _resolve_used_by_email(user):
             requester = get_user_or_app_from_context(info.context)
@@ -377,17 +380,19 @@ class GiftCard(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_app(root: models.GiftCard, info):
-        requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requestor, root.used_by, AppPermission.MANAGE_APPS):
-            return (
-                AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
-            )
-        raise PermissionDenied()
+        def _resolve_app(app):
+            requester = get_user_or_app_from_context(info.context)
+            if requester == app or requester.has_perm(AppPermission.MANAGE_APPS):
+                return app
+            return PermissionDenied()
+
+        if root.app_id is None:
+            return _resolve_app(None)
+
+        return AppByIdLoader(info.context).load(root.app_id).then(_resolve_app)
 
     @staticmethod
-    @traced_resolver
     def resolve_product(root: models.GiftCard, info):
         if root.product_id is None:
             return None
@@ -395,30 +400,31 @@ class GiftCard(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
-    @traced_resolver
     def resolve_events(root: models.GiftCard, _info):
         return GiftCardEventsByGiftCardIdLoader(_info.context).load(root.id)
 
     @staticmethod
-    @traced_resolver
     def resolve_expiry_period(root: models.GiftCard, info):
         if root.expiry_period_type is None:
             return None
         return TimePeriod(amount=root.expiry_period, type=root.expiry_period_type)
 
+    # DEPRECATED
     @staticmethod
-    @traced_resolver
     def resolve_user(root: models.GiftCard, info):
-        requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(
-            requestor, root.created_by, AccountPermissions.MANAGE_USERS
-        ):
-            return (
-                UserByUserIdLoader(info.context).load(root.created_by_id)
-                if root.created_by_id
-                else None
-            )
-        raise PermissionDenied()
+        def _resolve_user(user):
+            requestor = get_user_or_app_from_context(info.context)
+            if requestor_has_access(requestor, user, AccountPermissions.MANAGE_USERS):
+                return user
+
+        if not root.created_by_id:
+            return _resolve_user(None)
+
+        return (
+            UserByUserIdLoader(info.context)
+            .load(root.created_by_id)
+            .then(_resolve_user)
+        )
 
     @staticmethod
     def resolve_end_date(root: models.GiftCard, *_args, **_kwargs):

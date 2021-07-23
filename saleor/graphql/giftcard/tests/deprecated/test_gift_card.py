@@ -47,16 +47,12 @@ def test_query_gift_card(
     assert data["startDate"] is None
 
 
-def test_query_gift_card_no_permission(
-    staff_api_client, gift_card, permission_manage_gift_card, permission_manage_users
-):
+def test_query_gift_card_no_permission(staff_api_client, gift_card):
     query = QUERY_GIFT_CARD_BY_ID
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     variables = {"id": gift_card_id}
 
     # Query should fail without manage_users permission.
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_gift_card]
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     assert_no_permission(response)
