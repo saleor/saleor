@@ -8,6 +8,7 @@ import prices
 from ...core.anonymize import obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, AppPermission, GiftcardPermissions
+from ...core.tracing import traced_resolver
 from ...giftcard import models
 from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import requestor_has_access
@@ -152,6 +153,7 @@ class GiftCardEvent(CountableDjangoObjectType):
         return root.parameters.get("old_tag")
 
     @staticmethod
+    @traced_resolver
     def resolve_balance(root: models.GiftCardEvent, _info):
         balance = root.parameters.get("balance")
         if balance is None:
@@ -171,6 +173,7 @@ class GiftCardEvent(CountableDjangoObjectType):
         return GiftCardEventBalance(**balance_data)
 
     @staticmethod
+    @traced_resolver
     def resolve_expiry(root: models.GiftCardEvent, _info):
         expiry = root.parameters.get("expiry")
         if expiry is None:
