@@ -638,7 +638,7 @@ class ProductVariantChannelListing(models.Model):
 
     preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
 
-    objects = ProductVariantChannelListingQuerySet.as_manager()
+    objects = models.Manager.from_queryset(ProductVariantChannelListingQuerySet)()
 
     class Meta:
         unique_together = [["variant", "channel"]]
