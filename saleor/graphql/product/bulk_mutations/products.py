@@ -467,6 +467,7 @@ class ProductVariantBulkCreate(BaseMutation):
             channel = channel_listing_data["channel"]
             price = channel_listing_data["price"]
             cost_price = channel_listing_data.get("cost_price")
+            preorder_quantity_threshold = channel_listing_data.get("preorder_threshold")
             variant_channel_listings.append(
                 models.ProductVariantChannelListing(
                     channel=channel,
@@ -474,6 +475,7 @@ class ProductVariantBulkCreate(BaseMutation):
                     price_amount=price,
                     cost_price_amount=cost_price,
                     currency=channel.currency_code,
+                    preorder_quantity_threshold=preorder_quantity_threshold,
                 )
             )
         models.ProductVariantChannelListing.objects.bulk_create(
