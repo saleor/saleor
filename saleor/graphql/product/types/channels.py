@@ -269,8 +269,8 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
     def resolve_preorder_threshold(
         root: models.ProductVariantChannelListing, info, **_kwargs
     ):
-        # This field is added through annotation when using the
-        # `resolve_channel_listings` resolver.
+        # The preorder_quantity_allocated field is added through annotation
+        # when using the `resolve_channel_listings` resolver.
         return PreorderThreshold(
             quantity=root.preorder_quantity_threshold,
             sold_units=getattr(root, "preorder_quantity_allocated", 0),
