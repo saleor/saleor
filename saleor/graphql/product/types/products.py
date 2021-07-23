@@ -177,7 +177,7 @@ class PreorderData(graphene.ObjectType):
         required=False, description="The global preorder threshold for product variant."
     )
     global_sold_units = graphene.Int(
-        required=False,
+        required=True,
         description="Total number of sold product variant during preorder.",
     )
     end_date = graphene.DateTime(required=False, description="Preorder end date.")

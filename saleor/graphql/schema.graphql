@@ -4086,7 +4086,7 @@ enum PostalCodeRuleInclusionTypeEnum {
 type PreorderData {
   isPreorder: Boolean!
   globalThreshold: Int
-  globalSoldUnits: Int
+  globalSoldUnits: Int!
   endDate: DateTime
 }
 
