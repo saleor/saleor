@@ -745,6 +745,13 @@ class ProductDelete(ModelDeleteMutation):
         ).delete()
 
 
+class PreorderSettingsInput(graphene.InputObjectType):
+    global_threshold = graphene.Int(
+        description="The global threshold for preorder variant."
+    )
+    end_date = graphene.DateTime(description="The end date for preorder.")
+
+
 class ProductVariantInput(graphene.InputObjectType):
     attributes = graphene.List(
         graphene.NonNull(AttributeValueInput),
@@ -759,6 +766,9 @@ class ProductVariantInput(graphene.InputObjectType):
         )
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
+    preorder = PreorderSettingsInput(
+        description="Determines if variant is in preorder."
+    )
 
 
 class ProductVariantCreateInput(ProductVariantInput):
@@ -883,6 +893,14 @@ class ProductVariantCreate(ModelMutation):
                     )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
+
+        preorder_settings = cleaned_input.get("preorder")
+        if preorder_settings:
+            cleaned_input["is_preorder"] = True
+            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
+                "global_threshold"
+            )
+            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
 
         return cleaned_input
 

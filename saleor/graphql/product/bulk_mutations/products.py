@@ -271,6 +271,14 @@ class ProductVariantBulkCreate(BaseMutation):
         if stocks:
             cls.clean_stocks(stocks, errors, variant_index)
 
+        preorder_settings = cleaned_input.get("preorder")
+        if preorder_settings:
+            cleaned_input["is_preorder"] = True
+            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
+                "global_threshold"
+            )
+            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
+
         return cleaned_input
 
     @classmethod
