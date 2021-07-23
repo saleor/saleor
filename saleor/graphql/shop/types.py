@@ -156,10 +156,10 @@ class Shop(graphene.ObjectType):
         description="Include taxes in prices.", required=True
     )
     fulfillment_auto_approve = graphene.Boolean(
-        description="Automatically confirm all new fulfillments.", required=True
+        description="Automatically approve all new fulfillments.", required=True
     )
     fulfillment_allow_unpaid = graphene.Boolean(
-        description="Allow to confirm fulfillments which are unpaid.", required=True
+        description="Allow to approve fulfillments which are unpaid.", required=True
     )
     display_gross_prices = graphene.Boolean(
         description="Display prices with tax in store.", required=True
