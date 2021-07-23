@@ -1639,6 +1639,7 @@ type CustomerEvent implements Node {
   date: DateTime
   type: CustomerEventsEnum
   user: User
+  app: App
   message: String
   count: Int
   order: Order
@@ -2122,7 +2123,7 @@ enum FulfillmentStatus {
   REPLACED
   REFUNDED_AND_RETURNED
   CANCELED
-  WAITING_FOR_ACCEPTANCE
+  WAITING_FOR_APPROVAL
 }
 
 type FulfillmentUpdateTracking {
@@ -3162,6 +3163,7 @@ enum OrderErrorCode {
   CANNOT_CANCEL_ORDER
   CANNOT_DELETE
   CANNOT_DISCOUNT
+  CANNOT_FULFILL_UNPAID_ORDER
   CANNOT_REFUND
   CANNOT_FULFILL_UNPAID_ORDER
   CAPTURE_INACTIVE_PAYMENT
@@ -3194,6 +3196,7 @@ type OrderEvent implements Node {
   date: DateTime
   type: OrderEventsEnum
   user: User
+  app: App
   message: String
   email: String
   emailType: OrderEventsEmailsEnum
@@ -3293,6 +3296,7 @@ enum OrderEventsEnum {
   FULFILLMENT_REFUNDED
   FULFILLMENT_RETURNED
   FULFILLMENT_REPLACED
+  FULFILLMENT_AWAITS_APPROVAL
   TRACKING_UPDATED
   NOTE_ADDED
   OTHER
@@ -5254,7 +5258,7 @@ type Shop {
   phonePrefixes: [String]!
   headerText: String
   includeTaxesInPrices: Boolean!
-  fulfillmentAutoConfirm: Boolean!
+  fulfillmentAutoApprove: Boolean!
   fulfillmentAllowUnpaid: Boolean!
   displayGrossPrices: Boolean!
   chargeTaxesOnShipping: Boolean!
@@ -5314,7 +5318,7 @@ input ShopSettingsInput {
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
   automaticFulfillmentDigitalProducts: Boolean
-  fulfillmentAutoConfirm: Boolean
+  fulfillmentAutoApprove: Boolean
   fulfillmentAllowUnpaid: Boolean
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
@@ -6179,7 +6183,7 @@ enum WeightUnitsEnum {
 
 scalar _Any
 
-union _Entity = Address | User | Group | App | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | ProductImage | PageType
+union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | ProductImage | PageType
 
 type _Service {
   sdl: String

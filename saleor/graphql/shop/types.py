@@ -155,7 +155,7 @@ class Shop(graphene.ObjectType):
     include_taxes_in_prices = graphene.Boolean(
         description="Include taxes in prices.", required=True
     )
-    fulfillment_auto_confirm = graphene.Boolean(
+    fulfillment_auto_approve = graphene.Boolean(
         description="Automatically confirm all new fulfillments.", required=True
     )
     fulfillment_allow_unpaid = graphene.Boolean(
@@ -221,12 +221,10 @@ class Shop(graphene.ObjectType):
         return info.context.plugins.list_external_authentications(active_only=True)
 
     @staticmethod
-    @traced_resolver
     def resolve_available_shipping_methods(_, info, channel, address=None):
         return resolve_available_shipping_methods(info, channel, address)
 
     @staticmethod
-    @traced_resolver
     def resolve_countries(_, _info, language_code=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
         with translation.override(language_code):
@@ -238,7 +236,6 @@ class Shop(graphene.ObjectType):
             ]
 
     @staticmethod
-    @traced_resolver
     def resolve_domain(_, info):
         site = info.context.site
         return Domain(
@@ -252,7 +249,6 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.description
 
     @staticmethod
-    @traced_resolver
     def resolve_languages(_, _info):
         return [
             LanguageDisplay(
@@ -284,8 +280,8 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.include_taxes_in_prices
 
     @staticmethod
-    def resolve_fulfillment_auto_confirm(_, info):
-        return info.context.site.settings.fulfillment_auto_confirm
+    def resolve_fulfillment_auto_approve(_, info):
+        return info.context.site.settings.fulfillment_auto_approve
 
     @staticmethod
     def resolve_fulfillment_allow_unpaid(_, info):
@@ -361,7 +357,6 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)
-    @traced_resolver
     def resolve_staff_notification_recipients(_, info):
         return account_models.StaffNotificationRecipient.objects.all()
 

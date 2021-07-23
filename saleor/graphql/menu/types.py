@@ -3,7 +3,6 @@ from graphene import relay
 
 from ...account.utils import requestor_is_staff_member_or_app
 from ...core.permissions import PagePermissions
-from ...core.tracing import traced_resolver
 from ...menu import models
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.types import (
@@ -44,7 +43,6 @@ class Menu(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         model = models.Menu
 
     @staticmethod
-    @traced_resolver
     def resolve_items(root: ChannelContext[models.Menu], info, **_kwargs):
         menu_items = MenuItemsByParentMenuLoader(info.context).load(root.node.id)
         return menu_items.then(
@@ -85,14 +83,12 @@ class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         model = models.MenuItem
 
     @staticmethod
-    @traced_resolver
     def resolve_category(root: ChannelContext[models.MenuItem], info, **_kwargs):
         if root.node.category_id:
             return CategoryByIdLoader(info.context).load(root.node.category_id)
         return None
 
     @staticmethod
-    @traced_resolver
     def resolve_children(root: ChannelContext[models.MenuItem], info, **_kwargs):
         menus = MenuItemChildrenLoader(info.context).load(root.node.id)
         return menus.then(
@@ -103,7 +99,6 @@ class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_collection(root: ChannelContext[models.MenuItem], info, **_kwargs):
         if not root.node.collection_id:
             return None
@@ -160,7 +155,6 @@ class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_menu(root: ChannelContext[models.MenuItem], info, **_kwargs):
         if root.node.menu_id:
             menu = MenuByIdLoader(info.context).load(root.node.menu_id)
@@ -170,7 +164,6 @@ class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return None
 
     @staticmethod
-    @traced_resolver
     def resolve_parent(root: ChannelContext[models.MenuItem], info, **_kwargs):
         if root.node.parent_id:
             menu = MenuItemByIdLoader(info.context).load(root.node.parent_id)
@@ -180,7 +173,6 @@ class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return None
 
     @staticmethod
-    @traced_resolver
     def resolve_page(root: ChannelContext[models.MenuItem], info, **kwargs):
         if root.node.page_id:
             requestor = get_user_or_app_from_context(info.context)

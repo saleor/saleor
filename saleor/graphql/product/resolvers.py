@@ -20,7 +20,6 @@ def resolve_category_by_slug(slug):
     return models.Category.objects.filter(slug=slug).first()
 
 
-@traced_resolver
 def resolve_categories(_info, level=None, **_kwargs):
     qs = models.Category.objects.prefetch_related("children")
     if level is not None:
@@ -28,7 +27,6 @@ def resolve_categories(_info, level=None, **_kwargs):
     return qs.distinct()
 
 
-@traced_resolver
 def resolve_collection_by_id(info, id, channel_slug, requestor):
     return (
         models.Collection.objects.visible_to_user(requestor, channel_slug=channel_slug)
@@ -37,7 +35,6 @@ def resolve_collection_by_id(info, id, channel_slug, requestor):
     )
 
 
-@traced_resolver
 def resolve_collection_by_slug(info, slug, channel_slug, requestor):
     return (
         models.Collection.objects.visible_to_user(requestor, channel_slug)
@@ -46,7 +43,6 @@ def resolve_collection_by_slug(info, slug, channel_slug, requestor):
     )
 
 
-@traced_resolver
 def resolve_collections(info, channel_slug):
     requestor = get_user_or_app_from_context(info.context)
     qs = models.Collection.objects.visible_to_user(requestor, channel_slug)
@@ -58,12 +54,10 @@ def resolve_digital_content_by_id(id):
     return models.DigitalContent.objects.filter(pk=id).first()
 
 
-@traced_resolver
 def resolve_digital_contents(_info):
     return models.DigitalContent.objects.all()
 
 
-@traced_resolver
 def resolve_product_by_id(info, id, channel_slug, requestor):
     return (
         models.Product.objects.visible_to_user(requestor, channel_slug=channel_slug)
@@ -72,7 +66,6 @@ def resolve_product_by_id(info, id, channel_slug, requestor):
     )
 
 
-@traced_resolver
 def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
     return (
         models.Product.objects.visible_to_user(requestor, channel_slug=channel_slug)
@@ -113,7 +106,6 @@ def resolve_product_type_by_id(id):
     return models.ProductType.objects.filter(pk=id).first()
 
 
-@traced_resolver
 def resolve_product_types(_info, **_kwargs):
     return models.ProductType.objects.all()
 

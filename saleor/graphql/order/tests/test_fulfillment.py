@@ -1,6 +1,7 @@
 from unittest.mock import ANY, patch
 
 import graphene
+import pytest
 from django.contrib.auth.models import AnonymousUser
 
 from ....core.exceptions import InsufficientStock, InsufficientStockData
@@ -12,34 +13,39 @@ from ....warehouse.models import Allocation, Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_FULFILL_QUERY = """
-mutation fulfillOrder(
-    $order: ID, $input: OrderFulfillInput!
-) {
-    orderFulfill(
-        order: $order,
-        input: $input
+    mutation fulfillOrder(
+        $order: ID, $input: OrderFulfillInput!
     ) {
-        errors {
-            field
-            code
-            message
-            warehouse
-            orderLines
+        orderFulfill(
+            order: $order,
+            input: $input
+        ) {
+            errors {
+                field
+                code
+                message
+                warehouse
+                orderLines
+            }
         }
     }
-}
 """
 
 
+@pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
 def test_order_fulfill(
     mock_create_fulfillments,
+    fulfillment_auto_approve,
     staff_api_client,
     staff_user,
     order_with_lines,
     permission_manage_orders,
     warehouse,
+    site_settings,
 ):
+    site_settings.fulfillment_auto_approve = fulfillment_auto_approve
+    site_settings.save(update_fields=["fulfillment_auto_approve"])
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -77,7 +83,13 @@ def test_order_fulfill(
         ]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        ANY,
+        True,
+        approved=fulfillment_auto_approve,
     )
 
 
@@ -127,7 +139,13 @@ def test_order_fulfill_as_app(
         ]
     }
     mock_create_fulfillments.assert_called_once_with(
-        AnonymousUser(), order, fulfillment_lines_for_warehouses, ANY, True
+        AnonymousUser(),
+        app_api_client.app,
+        order,
+        fulfillment_lines_for_warehouses,
+        ANY,
+        True,
+        approved=True,
     )
 
 
@@ -186,7 +204,13 @@ def test_order_fulfill_many_warehouses(
     }
 
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        ANY,
+        True,
+        approved=True,
     )
 
 
@@ -228,7 +252,13 @@ def test_order_fulfill_without_notification(
         str(warehouse.pk): [{"order_line": order_line, "quantity": 1}]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, False
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        ANY,
+        False,
+        approved=True,
     )
 
 
@@ -286,7 +316,13 @@ def test_order_fulfill_lines_with_empty_quantity(
         str(warehouse.pk): [{"order_line": order_line2, "quantity": 2}]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        ANY,
+        True,
+        approved=True,
     )
 
 
@@ -402,6 +438,46 @@ def test_order_fulfill_fulfilled_order(
     assert error["code"] == OrderErrorCode.FULFILL_ORDER_LINE.name
     assert error["orderLines"] == [order_line_id]
     assert not error["warehouse"]
+
+    mock_create_fulfillments.assert_not_called()
+
+
+@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
+def test_order_fulfill_unpaid_order_and_disallow_unpaid(
+    mock_create_fulfillments,
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
+    warehouse,
+    site_settings,
+):
+    site_settings.fulfillment_allow_unpaid = False
+    site_settings.save(update_fields=["fulfillment_allow_unpaid"])
+    query = ORDER_FULFILL_QUERY
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    order_line = order_with_lines.lines.first()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 100, "warehouse": warehouse_id}],
+                }
+            ]
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfill"]
+    assert data["errors"]
+    error = data["errors"][0]
+    assert error["field"] == "order"
+    assert error["code"] == OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER.name
 
     mock_create_fulfillments.assert_not_called()
 
@@ -550,13 +626,14 @@ def test_fulfillment_update_tracking(
     permission_manage_orders,
 ):
     query = """
-    mutation updateFulfillment($id: ID!, $tracking: String) {
+        mutation updateFulfillment($id: ID!, $tracking: String) {
             orderFulfillmentUpdateTracking(
-                id: $id, input: {trackingNumber: $tracking}) {
-                    fulfillment {
-                        trackingNumber
-                    }
+                id: $id, input: { trackingNumber: $tracking }
+            ) {
+                fulfillment {
+                    trackingNumber
                 }
+            }
         }
     """
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
@@ -572,16 +649,21 @@ def test_fulfillment_update_tracking(
 
 
 FULFILLMENT_UPDATE_TRACKING_WITH_SEND_NOTIFICATION_QUERY = """
-    mutation updateFulfillment($id: ID!, $tracking: String, $notifyCustomer: Boolean) {
-            orderFulfillmentUpdateTracking(
-                id: $id
-                input: {trackingNumber: $tracking, notifyCustomer: $notifyCustomer}) {
-                    fulfillment {
-                        trackingNumber
-                    }
-                }
+    mutation updateFulfillment(
+        $id: ID!
+        $tracking: String
+        $notifyCustomer: Boolean
+    ) {
+        orderFulfillmentUpdateTracking(
+            id: $id
+            input: { trackingNumber: $tracking, notifyCustomer: $notifyCustomer }
+        ) {
+            fulfillment {
+                trackingNumber
+            }
         }
-    """
+    }
+"""
 
 
 @patch("saleor.graphql.order.mutations.fulfillments.send_fulfillment_update")
@@ -630,15 +712,15 @@ def test_fulfillment_update_tracking_send_notification_false(
 
 CANCEL_FULFILLMENT_MUTATION = """
     mutation cancelFulfillment($id: ID!, $warehouseId: ID!) {
-            orderFulfillmentCancel(id: $id, input: {warehouseId: $warehouseId}) {
-                    fulfillment {
-                        status
-                    }
-                    order {
-                        status
-                    }
-                }
+        orderFulfillmentCancel(id: $id, input: {warehouseId: $warehouseId}) {
+            fulfillment {
+                status
+            }
+            order {
+                status
+            }
         }
+    }
 """
 
 
@@ -780,25 +862,25 @@ CONFIRM_FULFILLMENT_MUTATION = """
 
 
 QUERY_FULFILLMENT = """
-query fulfillment($id: ID!){
-    order(id: $id){
-        fulfillments{
-            id
-            fulfillmentOrder
-            status
-            trackingNumber
-            warehouse{
+    query fulfillment($id: ID!) {
+        order(id: $id) {
+            fulfillments {
                 id
-            }
-            lines{
-                orderLine{
+                fulfillmentOrder
+                status
+                trackingNumber
+                warehouse {
                     id
                 }
-                quantity
+                lines {
+                    orderLine {
+                        id
+                    }
+                    quantity
+                }
             }
         }
     }
-}
 """
 
 
@@ -839,22 +921,22 @@ def test_fulfillment_query(
 
 
 QUERY_ORDER_FULFILL_DATA = """
-query OrderFulfillData($id: ID!) {
-    order(id: $id) {
-        id
-        lines {
-            variant {
-                stocks {
-                    warehouse {
-                        id
+    query OrderFulfillData($id: ID!) {
+        order(id: $id) {
+            id
+            lines {
+                variant {
+                    stocks {
+                        warehouse {
+                            id
+                        }
+                        quantity
+                        quantityAllocated
                     }
-                    quantity
-                    quantityAllocated
                 }
             }
         }
     }
-}
 """
 
 

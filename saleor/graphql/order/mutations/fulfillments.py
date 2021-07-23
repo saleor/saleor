@@ -22,7 +22,6 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import get_duplicated_values
-from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..utils import prepare_insufficient_stock_order_validation_errors
@@ -165,7 +164,20 @@ class OrderFulfill(BaseMutation):
             )
 
     @classmethod
-    def clean_input(cls, data):
+    def clean_input(cls, info, order, data):
+        if (
+            not info.context.site.settings.fulfillment_allow_unpaid
+            and not order.is_fully_paid()
+        ):
+            raise ValidationError(
+                {
+                    "order": ValidationError(
+                        "Cannot fulfill unpaid order.",
+                        code=OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER.value,
+                    )
+                }
+            )
+
         lines = data["lines"]
 
         warehouse_ids_for_lines = [
@@ -208,7 +220,7 @@ class OrderFulfill(BaseMutation):
         order = cls.get_node_or_error(info, order, field="order", only_type=Order)
         data = data.get("input")
 
-        cleaned_input = cls.clean_input(data)
+        cleaned_input = cls.clean_input(info, order, data)
 
         user = info.context.user
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
@@ -217,10 +229,12 @@ class OrderFulfill(BaseMutation):
         try:
             fulfillments = create_fulfillments(
                 user,
+                info.context.app,
                 order,
                 dict(lines_for_warehouses),
                 info.context.plugins,
                 notify_customer,
+                approved=info.context.site.settings.fulfillment_auto_approve,
             )
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)
@@ -257,7 +271,11 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.save()
         order = fulfillment.order
         fulfillment_tracking_updated(
-            fulfillment, info.context.user, tracking_number, info.context.plugins
+            fulfillment,
+            info.context.user,
+            info.context.app,
+            tracking_number,
+            info.context.plugins,
         )
         input_data = data.get("input", {})
         notify_customer = input_data.get("notify_customer")
@@ -302,7 +320,11 @@ class FulfillmentCancel(BaseMutation):
 
         order = fulfillment.order
         cancel_fulfillment(
-            fulfillment, info.context.user, warehouse, info.context.plugins
+            fulfillment,
+            info.context.user,
+            info.context.app,
+            warehouse,
+            info.context.plugins,
         )
         fulfillment.refresh_from_db(fields=["status"])
         order.refresh_from_db(fields=["status"])
@@ -600,7 +622,8 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
         refund_fulfillment = create_refund_fulfillment(
-            get_user_or_app_from_context(info.context),
+            info.context.user,
+            info.context.app,
             order,
             cleaned_input["payment"],
             cleaned_input.get("order_lines", []),
@@ -743,7 +766,8 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
         response = create_fulfillments_for_returned_products(
-            get_user_or_app_from_context(info.context),
+            info.context.user,
+            info.context.app,
             order,
             cleaned_input.get("payment"),
             cleaned_input.get("order_lines", []),
