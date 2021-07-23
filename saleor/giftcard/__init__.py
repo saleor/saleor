@@ -1,7 +1,7 @@
 class GiftCardExpiryType:
     """The gift card expiry options."""
 
-    NEVER_EXPIRE = "never_expiry"
+    NEVER_EXPIRE = "never_expire"
     EXPIRY_PERIOD = "expiry_period"
     EXPIRY_DATE = "expiry_date"
 
