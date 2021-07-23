@@ -193,6 +193,7 @@ class ProductsQueryset(models.QuerySet):
         ).values("id")
         variant_channel_listings = ProductVariantChannelListing.objects.filter(
             Exists(channels.filter(pk=OuterRef("channel_id"))),
+            variant__sku__isnull=False,
             price_amount__isnull=False,
         ).values("id")
         variants = ProductVariant.objects.filter(

@@ -535,7 +535,7 @@ def test_product_variants_without_sku_query_by_staff(
     assert product_data["variants"] == [{"id": variant_id}]
 
 
-def test_product_variants_without_sku_query_by_customer(
+def test_product_only_with_variants_without_sku_query_by_customer(
     user_api_client, product, channel_USD
 ):
     product.variants.update(sku=None)
@@ -552,12 +552,10 @@ def test_product_variants_without_sku_query_by_customer(
     )
     content = get_graphql_content(response)
     product_data = content["data"]["product"]
-    assert product_data is not None
-    assert product_data["id"] == product_id
-    assert product_data["variants"] == []
+    assert product_data is None
 
 
-def test_product_variants_without_sku_query_by_anonymous(
+def test_product_only_with_variants_without_sku_query_by_anonymous(
     api_client, product, channel_USD
 ):
     product.variants.update(sku=None)
@@ -574,9 +572,7 @@ def test_product_variants_without_sku_query_by_anonymous(
     )
     content = get_graphql_content(response)
     product_data = content["data"]["product"]
-    assert product_data is not None
-    assert product_data["id"] == product_id
-    assert product_data["variants"] == []
+    assert product_data is None
 
 
 QUERY_COLLECTION_FROM_PRODUCT = """

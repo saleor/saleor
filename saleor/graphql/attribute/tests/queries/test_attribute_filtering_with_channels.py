@@ -88,7 +88,7 @@ def attributes_for_filtering_with_channels(
             ),
         ]
     )
-    variant = ProductVariant.objects.create(product=product)
+    variant = ProductVariant.objects.create(product=product, sku="TEST_SKU")
     ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
