@@ -847,9 +847,9 @@ def test_create_digital_fulfillment(
     assert mock_email_fulfillment.call_count == 1
 
 
-CONFIRM_FULFILLMENT_MUTATION = """
+APPROVE_FULFILLMENT_MUTATION = """
     mutation confirmFulfillment($id: ID!, $warehouseId: ID!) {
-        orderFulfillmentConfirm(id: $id, input: {warehouseId: $warehouseId}) {
+        orderFulfillmentApprove(id: $id, input: {warehouseId: $warehouseId}) {
             fulfillment {
                 status
             }

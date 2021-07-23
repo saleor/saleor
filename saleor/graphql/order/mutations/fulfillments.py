@@ -331,9 +331,9 @@ class FulfillmentCancel(BaseMutation):
         return FulfillmentCancel(fulfillment=fulfillment, order=order)
 
 
-class FulfillmentConfirm(BaseMutation):
-    fulfillment = graphene.Field(Fulfillment, description="A confirmed fulfillment.")
-    order = graphene.Field(Order, description="Order which fulfillment was confirmed.")
+class FulfillmentApprove(BaseMutation):
+    fulfillment = graphene.Field(Fulfillment, description="An approved fulfillment.")
+    order = graphene.Field(Order, description="Order which fulfillment was approved.")
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of an fulfillment to confirm.")
@@ -372,7 +372,7 @@ class FulfillmentConfirm(BaseMutation):
         confirm_fulfillment(root, info.context.user, info.context.plugins)
         root.refresh_from_db(fields=["status"])
         order.refresh_from_db(fields=["status"])
-        return FulfillmentConfirm(fulfillment=root, order=order)
+        return FulfillmentApprove(fulfillment=root, order=order)
 
 
 class OrderRefundLineInput(graphene.InputObjectType):

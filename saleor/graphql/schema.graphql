@@ -2076,6 +2076,13 @@ type Fulfillment implements Node & ObjectWithMetadata {
   warehouse: Warehouse
 }
 
+type FulfillmentApprove {
+  fulfillment: Fulfillment
+  order: Order
+  orderErrors: [OrderError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [OrderError!]!
+}
+
 type FulfillmentCancel {
   fulfillment: Fulfillment
   order: Order
@@ -2085,13 +2092,6 @@ type FulfillmentCancel {
 
 input FulfillmentCancelInput {
   warehouseId: ID!
-}
-
-type FulfillmentConfirm {
-  fulfillment: Fulfillment
-  order: Order
-  orderErrors: [OrderError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
-  errors: [OrderError!]!
 }
 
 type FulfillmentLine implements Node {
@@ -2821,7 +2821,7 @@ type Mutation {
   orderConfirm(id: ID!): OrderConfirm
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
-  orderFulfillmentConfirm(id: ID!, notifyCustomer: Boolean!): FulfillmentConfirm
+  orderFulfillmentConfirm(id: ID!, notifyCustomer: Boolean!): FulfillmentApprove
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
   orderFulfillmentReturnProducts(input: OrderReturnProductsInput!, order: ID!): FulfillmentReturnProducts
