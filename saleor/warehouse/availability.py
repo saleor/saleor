@@ -187,12 +187,10 @@ def check_preorder_threshold_bulk(
     """
     all_variants_channel_listings = (
         ProductVariantChannelListing.objects.filter(variant__in=variants)
+        .annotate_preorder_quantity_allocated()
         .annotate(
             available_preorder_quantity=F("preorder_quantity_threshold")
             - Coalesce(Sum("preorder_allocations__quantity"), 0),
-            preorder_quantity_allocated=Coalesce(
-                Sum("preorder_allocations__quantity"), 0
-            ),
         )
         .select_related("channel")
     )

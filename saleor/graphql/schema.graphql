@@ -5125,6 +5125,18 @@ enum PostalCodeRuleInclusionTypeEnum {
   EXCLUDE
 }
 
+type PreorderData {
+  isPreorder: Boolean!
+  globalThreshold: Int
+  globalSoldUnits: Int!
+  endDate: DateTime
+}
+
+type PreorderThreshold {
+  quantity: Int
+  soldUnits: Int!
+}
+
 input PriceInput {
   currency: String!
   amount: PositiveDecimal!
@@ -5625,6 +5637,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   digitalContent: DigitalContent
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]
   quantityAvailable(address: AddressInput, countryCode: CountryCode): Int!
+  preorder: PreorderData!
 }
 
 type ProductVariantBulkCreate {
@@ -5655,6 +5668,7 @@ type ProductVariantChannelListing implements Node {
   price: Money
   costPrice: Money
   margin: Int
+  preorderThreshold: PreorderThreshold
 }
 
 input ProductVariantChannelListingAddInput {

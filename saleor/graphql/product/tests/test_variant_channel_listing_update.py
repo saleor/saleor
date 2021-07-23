@@ -218,14 +218,24 @@ def test_variant_channel_listing_update_as_staff_user(
     variant_data = data["variant"]
     assert not data["errors"]
     assert variant_data["id"] == variant_id
-    assert variant_data["channelListings"][0]["price"]["currency"] == "USD"
-    assert variant_data["channelListings"][0]["price"]["amount"] == price
-    assert variant_data["channelListings"][0]["costPrice"]["amount"] == price
-    assert variant_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
-    assert variant_data["channelListings"][1]["price"]["currency"] == "PLN"
-    assert variant_data["channelListings"][1]["price"]["amount"] == second_price
-    assert variant_data["channelListings"][1]["costPrice"]["amount"] == second_price
-    assert variant_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
+    channel_usd_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_usd_id
+    )
+    channel_pln_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_pln_id
+    )
+    assert channel_usd_data["price"]["currency"] == "USD"
+    assert channel_usd_data["price"]["amount"] == price
+    assert channel_usd_data["costPrice"]["amount"] == price
+    assert channel_usd_data["channel"]["slug"] == channel_USD.slug
+    assert channel_pln_data["price"]["currency"] == "PLN"
+    assert channel_pln_data["price"]["amount"] == second_price
+    assert channel_pln_data["costPrice"]["amount"] == second_price
+    assert channel_pln_data["channel"]["slug"] == channel_PLN.slug
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
@@ -308,12 +318,22 @@ def test_variant_channel_listing_update_as_app(
     variant_data = data["variant"]
     assert not data["errors"]
     assert variant_data["id"] == variant_id
-    assert variant_data["channelListings"][0]["price"]["currency"] == "USD"
-    assert variant_data["channelListings"][0]["price"]["amount"] == 1
-    assert variant_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
-    assert variant_data["channelListings"][1]["price"]["currency"] == "PLN"
-    assert variant_data["channelListings"][1]["price"]["amount"] == 20
-    assert variant_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
+    channel_usd_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_usd_id
+    )
+    channel_pln_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_pln_id
+    )
+    assert channel_usd_data["price"]["currency"] == "USD"
+    assert channel_usd_data["price"]["amount"] == 1
+    assert channel_usd_data["channel"]["slug"] == channel_USD.slug
+    assert channel_pln_data["price"]["currency"] == "PLN"
+    assert channel_pln_data["price"]["amount"] == 20
+    assert channel_pln_data["channel"]["slug"] == channel_PLN.slug
 
 
 def test_variant_channel_listing_update_as_customer(
