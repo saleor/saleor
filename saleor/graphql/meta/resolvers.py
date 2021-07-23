@@ -6,6 +6,7 @@ from ...attribute import models as attribute_models
 from ...checkout import models as checkout_models
 from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
+from ...giftcard import models as giftcard_models
 from ...order import models as order_models
 from ...page import models as page_models
 from ...product import models as product_models
@@ -23,6 +24,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ..app import types as app_types
     from ..attribute import types as attribute_types
     from ..checkout import types as checkout_types
+    from ..giftcard import types as giftcard_types
     from ..invoice import types as invoice_types
     from ..menu import types as menu_types
     from ..order import types as order_types
@@ -32,9 +34,11 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ..warehouse import types as warehouse_types
 
     MODEL_TO_TYPE_MAP = {
+        app_models.App: app_types.App,
         attribute_models.Attribute: attribute_types.Attribute,
         product_models.Category: product_types.Category,
         checkout_models.Checkout: checkout_types.Checkout,
+        giftcard_models.GiftCard: giftcard_types.GiftCard,
         product_models.Collection: product_types.Collection,
         product_models.DigitalContent: product_types.DigitalContent,
         order_models.Fulfillment: order_types.Fulfillment,
@@ -49,7 +53,6 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         menu_models.MenuItem: menu_types.MenuItem,
         shipping_models.ShippingMethod: shipping_types.ShippingMethod,
         shipping_models.ShippingZone: shipping_types.ShippingZone,
-        app_models.App: app_types.App,
         account_models.User: account_types.User,
         warehouse_models.Warehouse: warehouse_types.Warehouse,
     }

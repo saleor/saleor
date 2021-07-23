@@ -2137,17 +2137,30 @@ type GatewayConfigLine {
 
 scalar GenericScalar
 
-type GiftCard implements Node {
-  code: String
+type GiftCard implements Node & ObjectWithMetadata {
+  code: String!
   isActive: Boolean!
+  expiryDate: Date
+  expiryType: GiftCardExpiryTypeEnum!
+  tag: String
   created: DateTime!
   lastUsedOn: DateTime
   initialBalance: Money
   currentBalance: Money
   id: ID!
-  displayCode: String
-  user: User @deprecated(reason: "Will be removed in Saleor 4.0.")
-  endDate: DateTime @deprecated(reason: "Will be removed in Saleor 4.0.")
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  displayCode: String!
+  createdBy: User
+  usedBy: User
+  createdByEmail: String
+  usedByEmail: String
+  app: App
+  expiryPeriod: TimePeriod
+  product: Product
+  events: [GiftCardEvent]
+  user: User @deprecated(reason: "Will be removed in Saleor 4.0. Use created_by field instead")
+  endDate: DateTime @deprecated(reason: "Will be removed in Saleor 4.0. Use expiry_date field instead.")
   startDate: DateTime @deprecated(reason: "Will be removed in Saleor 4.0.")
 }
 
@@ -2201,6 +2214,56 @@ enum GiftCardErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+}
+
+type GiftCardEvent implements Node {
+  id: ID!
+  date: DateTime
+  type: GiftCardEventsEnum
+  user: User
+  app: App
+  message: String
+  email: String
+  orderId: ID
+  orderNumber: String
+  tag: String
+  oldTag: String
+  balance: GiftCardEventBalance
+  expiry: GiftCardEventExpiry
+}
+
+type GiftCardEventBalance {
+  initialBalance: Money!
+  currentBalance: Money!
+  oldInitialBalance: Money
+  oldCurrentBalance: Money
+}
+
+type GiftCardEventExpiry {
+  expiryType: GiftCardExpiryTypeEnum
+  expiryPeriod: TimePeriod
+  expiryDate: Date
+  oldExpiryType: GiftCardExpiryTypeEnum
+  oldExpiryPeriod: TimePeriod
+  oldExpiryDate: Date
+}
+
+enum GiftCardEventsEnum {
+  ISSUED
+  BOUGHT
+  UPDATED
+  ACTIVATED
+  DEACTIVATED
+  BALANCE_RESET
+  EXPIRY_SETTINGS_UPDATED
+  SENT_TO_CUSTOMER
+  RESENT
+}
+
+enum GiftCardExpiryTypeEnum {
+  NEVER_EXPIRY
+  EXPIRY_PERIOD
+  EXPIRY_DATE
 }
 
 type GiftCardUpdate {
@@ -5499,6 +5562,17 @@ type TaxedMoney {
 type TaxedMoneyRange {
   start: TaxedMoney
   stop: TaxedMoney
+}
+
+type TimePeriod {
+  amount: Int!
+  type: TimePeriodTypeEnum!
+}
+
+enum TimePeriodTypeEnum {
+  DAY
+  MONTH
+  YEAR
 }
 
 type Transaction implements Node {
