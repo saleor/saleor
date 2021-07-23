@@ -2159,7 +2159,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   app: App
   expiryPeriod: TimePeriod
   product: Product
-  events: [GiftCardEvent]
+  events: [GiftCardEvent!]
   user: User @deprecated(reason: "Will be removed in Saleor 4.0. Use created_by field instead")
   endDate: DateTime @deprecated(reason: "Will be removed in Saleor 4.0. Use expiry_date field instead.")
   startDate: DateTime @deprecated(reason: "Will be removed in Saleor 4.0.")
@@ -2189,11 +2189,14 @@ type GiftCardCreate {
 }
 
 input GiftCardCreateInput {
+  tag: String
   startDate: Date
   endDate: Date
-  balance: PositiveDecimal
+  balance: PriceInput!
   userEmail: String
+  expirySettings: GiftCardExpirySettingsInput!
   code: String
+  note: String
 }
 
 type GiftCardDeactivate {
@@ -2261,8 +2264,14 @@ enum GiftCardEventsEnum {
   RESENT
 }
 
+input GiftCardExpirySettingsInput {
+  expiryType: GiftCardExpiryTypeEnum!
+  expiryDate: Date
+  expiryPeriod: TimePeriodInputType
+}
+
 enum GiftCardExpiryTypeEnum {
-  NEVER_EXPIRY
+  NEVER_EXPIRE
   EXPIRY_PERIOD
   EXPIRY_DATE
 }
@@ -2274,10 +2283,11 @@ type GiftCardUpdate {
 }
 
 input GiftCardUpdateInput {
+  tag: String
   startDate: Date
   endDate: Date
-  balance: PositiveDecimal
-  userEmail: String
+  balance: PriceInput
+  expirySettings: GiftCardExpirySettingsInput
 }
 
 type Group implements Node {
@@ -4151,6 +4161,11 @@ enum PostalCodeRuleInclusionTypeEnum {
   EXCLUDE
 }
 
+input PriceInput {
+  currency: String!
+  amount: PositiveDecimal!
+}
+
 input PriceRangeInput {
   gte: Float
   lte: Float
@@ -5572,6 +5587,11 @@ type TaxedMoneyRange {
 }
 
 type TimePeriod {
+  amount: Int!
+  type: TimePeriodTypeEnum!
+}
+
+input TimePeriodInputType {
   amount: Int!
   type: TimePeriodTypeEnum!
 }

@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
             name="expiry_type",
             field=models.CharField(
                 choices=[
-                    ("never_expiry", "Never expire"),
+                    ("never_expire", "Never expire"),
                     ("expiry_period", "Expiry period"),
                     ("expiry_date", "Expiry date"),
                 ],
