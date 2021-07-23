@@ -1,4 +1,4 @@
-import uuid
+import secrets
 
 from django.core.exceptions import ValidationError
 
@@ -18,22 +18,16 @@ class InvalidPromoCode(ValidationError):
         super().__init__(message, **kwargs)
 
 
-class PromoCodeAlreadyExists(ValidationError):
-    def __init__(self, message=None, **kwargs):
-        code = kwargs.get("code", GiftCardErrorCode.ALREADY_EXISTS)
-        if message is None:
-            message = {
-                "promo_code": ValidationError("Promo code already exists.", code=code)
-            }
-        super().__init__(message, **kwargs)
-
-
 def generate_promo_code():
     """Generate a promo unique code that can be used as a voucher or gift card code."""
-    code = str(uuid.uuid4()).replace("-", "").upper()[:12]
+    code = generate_random_code()
     while not is_available_promo_code(code):
-        code = str(uuid.uuid4()).replace("-", "").upper()[:12]
+        code = generate_random_code()
     return code
+
+
+def generate_random_code():
+    return secrets.token_hex(nbytes=6).upper()
 
 
 def is_available_promo_code(code):
