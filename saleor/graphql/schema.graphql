@@ -4912,6 +4912,7 @@ input SaleFilterInput {
   saleType: DiscountValueTypeEnum
   started: DateTimeRangeInput
   search: String
+  metadata: [MetadataFilter]
 }
 
 input SaleInput {
@@ -5851,6 +5852,7 @@ input VoucherFilterInput {
   discountType: [VoucherDiscountType]
   started: DateTimeRangeInput
   search: String
+  metadata: [MetadataFilter]
 }
 
 input VoucherInput {
