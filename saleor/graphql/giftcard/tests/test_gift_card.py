@@ -301,7 +301,9 @@ mutation giftCardUpdate(
 """
 
 
-def test_update_gift_card(staff_api_client, gift_card, permission_manage_gift_card):
+def test_update_gift_card(
+    staff_api_client, gift_card, permission_manage_gift_card, permission_manage_users
+):
     balance = 150
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     assert gift_card.current_balance != balance
@@ -312,7 +314,9 @@ def test_update_gift_card(staff_api_client, gift_card, permission_manage_gift_ca
         "userEmail": staff_api_client.user.email,
     }
     response = staff_api_client.post_graphql(
-        UPDATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
+        UPDATE_GIFT_CARD_MUTATION,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
     )
     content = get_graphql_content(response)
     errors = content["data"]["giftCardUpdate"]["errors"]
