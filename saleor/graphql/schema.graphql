@@ -2141,7 +2141,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   code: String!
   isActive: Boolean!
   expiryDate: Date
-  expiryType: GiftCardExpiryTypeEnum
+  expiryType: GiftCardExpiryTypeEnum!
   tag: String
   created: DateTime!
   lastUsedOn: DateTime
@@ -2150,7 +2150,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  displayCode: String
+  displayCode: String!
   createdBy: User
   usedBy: User
   createdByEmail: String

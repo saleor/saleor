@@ -1,10 +1,7 @@
-import datetime
-
 import graphene
 from django.utils import timezone
 
-from .....core import TimePeriodType
-from .....giftcard import GiftCardEvents, GiftCardExpiryType
+from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCardEvent
 from ....tests.utils import (
     assert_no_permission,
@@ -125,6 +122,11 @@ def test_query_gift_card_by_app(
 ):
     # given
     query = QUERY_GIFT_CARD_BY_ID
+
+    app = app_api_client.app
+    gift_card_expiry_period.app = app
+    gift_card_expiry_period.save(update_fields=["app"])
+
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card_expiry_period.pk)
     variables = {"id": gift_card_id}
 
@@ -135,7 +137,6 @@ def test_query_gift_card_by_app(
         permissions=[
             permission_manage_gift_card,
             permission_manage_users,
-            permission_manage_apps,
         ],
     )
 
@@ -177,7 +178,7 @@ def test_query_gift_card_by_app(
     assert data["createdByEmail"] == gift_card_expiry_period.created_by_email
     assert data["usedByEmail"] == gift_card_expiry_period.used_by_email
     assert data["product"] is None
-    assert data["app"] is None
+    assert data["app"]["name"] == app.name
 
 
 def test_query_gift_card_by_app_no_premissions(
@@ -292,7 +293,6 @@ def test_query_used_gift_card_by_owner(
         query,
         variables,
         permissions=[
-            permission_manage_gift_card,
             permission_manage_gift_card,
             permission_manage_users,
             permission_manage_apps,
@@ -442,52 +442,24 @@ QUERY_GIFT_CARD_EVENTS = """
 
 
 def test_query_gift_card_events(
-    staff_api_client, app, gift_card, order, permission_manage_gift_card
+    staff_api_client,
+    app,
+    gift_card,
+    gift_card_event,
+    order,
+    permission_manage_gift_card,
+    permission_manage_apps,
 ):
     # given
     staff_user = staff_api_client.user
-    parameters = {
-        "message": "test message",
-        "email": "testemail@email.com",
-        "order_id": order.pk,
-        "tag": "test tag",
-        "old_tag": "test old tag",
-        "balance": {
-            "currency": "USD",
-            "initial_balance": 10,
-            "old_initial_balance": 20,
-            "current_balance": 10,
-            "old_current_balance": 5,
-        },
-        "expiry": {
-            "expiry_type": GiftCardExpiryType.EXPIRY_PERIOD,
-            "old_expiry_type": GiftCardExpiryType.EXPIRY_DATE,
-            "expiry_period_type": TimePeriodType.MONTH,
-            "expiry_period": 10,
-            "expiry_date": datetime.date(2050, 1, 1),
-        },
-    }
-    gift_card_events = GiftCardEvent.objects.bulk_create(
-        [
-            # gift card with empty fields
-            GiftCardEvent(
-                user=staff_user,
-                gift_card=gift_card,
-                type=GiftCardEvents.ISSUED,
-                date=timezone.now(),
-            ),
-            # example gift card with all gift card event fields
-            GiftCardEvent(
-                user=staff_user,
-                app=app,
-                gift_card=gift_card,
-                type=GiftCardEvents.UPDATED,
-                parameters=parameters,
-                date=timezone.now() + datetime.timedelta(days=10),
-            ),
-        ]
+
+    # gift card with empty fields
+    empty_event = GiftCardEvent.objects.create(
+        user=staff_user,
+        gift_card=gift_card,
+        type=GiftCardEvents.ISSUED,
+        date=timezone.now(),
     )
-    empty_event, full_event = gift_card_events
 
     variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
 
@@ -495,13 +467,13 @@ def test_query_gift_card_events(
     response = staff_api_client.post_graphql(
         QUERY_GIFT_CARD_EVENTS,
         variables,
-        permissions=[permission_manage_gift_card],
+        permissions=[permission_manage_gift_card, permission_manage_apps],
     )
 
     # then
     content = get_graphql_content(response)
     events_data = content["data"]["giftCard"]["events"]
-    assert len(events_data) == len(gift_card_events)
+    assert len(events_data) == gift_card.events.count()
 
     assert events_data[0]["id"] == graphene.Node.to_global_id(
         "GiftCardEvent", empty_event.pk
@@ -520,12 +492,13 @@ def test_query_gift_card_events(
     assert events_data[0]["expiry"] is None
 
     assert events_data[1]["id"] == graphene.Node.to_global_id(
-        "GiftCardEvent", full_event.pk
+        "GiftCardEvent", gift_card_event.pk
     )
-    assert events_data[1]["date"] == full_event.date.isoformat()
-    assert events_data[1]["type"] == full_event.type.upper()
+    assert events_data[1]["date"] == gift_card_event.date.isoformat()
+    assert events_data[1]["type"] == gift_card_event.type.upper()
     assert events_data[1]["user"]["email"] == staff_user.email
     assert events_data[1]["app"]["name"] == app.name
+    parameters = gift_card_event.parameters
     assert events_data[1]["message"] == parameters["message"]
     assert events_data[1]["email"] == parameters["email"]
     assert events_data[1]["orderId"] == graphene.Node.to_global_id("Order", order.pk)
