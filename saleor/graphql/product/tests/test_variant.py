@@ -3486,6 +3486,9 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
                         currency
                         amount
                     }
+                    preorderThreshold {
+                        quantity
+                    }
                 }
                 preorder {
                     isPreorder
@@ -3948,6 +3951,7 @@ def test_product_variant_bulk_create_channel_listings_input(
                         "amount": variants[0]["channelListings"][0]["costPrice"],
                         "currency": channel_USD.currency_code,
                     },
+                    "preorderThreshold": {"quantity": None},
                 }
             ],
         },
@@ -3964,6 +3968,7 @@ def test_product_variant_bulk_create_channel_listings_input(
                         "amount": variants[1]["channelListings"][0]["costPrice"],
                         "currency": channel_USD.currency_code,
                     },
+                    "preorderThreshold": {"quantity": None},
                 },
                 {
                     "channel": {"slug": channel_PLN.slug},
@@ -3975,6 +3980,7 @@ def test_product_variant_bulk_create_channel_listings_input(
                         "amount": variants[1]["channelListings"][1]["costPrice"],
                         "currency": channel_PLN.currency_code,
                     },
+                    "preorderThreshold": {"quantity": None},
                 },
             ],
         },
@@ -4026,6 +4032,7 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
                     "price": 10.0,
                     "costPrice": 11.0,
                     "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                    "preorderThreshold": 5,
                 }
             ],
             "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
@@ -4042,11 +4049,13 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
                     "price": 15.0,
                     "costPrice": 16.0,
                     "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                    "preorderThreshold": None,
                 },
                 {
                     "price": 12.0,
                     "costPrice": 13.0,
                     "channelId": graphene.Node.to_global_id("Channel", channel_PLN.pk),
+                    "preorderThreshold": 4,
                 },
             ],
             "preorder": {
@@ -4071,19 +4080,7 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
     expected_result = {
         variants[0]["sku"]: {
             "sku": variants[0]["sku"],
-            "channelListings": [
-                {
-                    "channel": {"slug": channel_USD.slug},
-                    "price": {
-                        "amount": variants[0]["channelListings"][0]["price"],
-                        "currency": channel_USD.currency_code,
-                    },
-                    "costPrice": {
-                        "amount": variants[0]["channelListings"][0]["costPrice"],
-                        "currency": channel_USD.currency_code,
-                    },
-                }
-            ],
+            "channelListings": [{"preorderThreshold": {"quantity": 5}}],
             "preorder": {
                 "isPreorder": True,
                 "globalThreshold": global_threshold,
@@ -4093,28 +4090,8 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
         variants[1]["sku"]: {
             "sku": variants[1]["sku"],
             "channelListings": [
-                {
-                    "channel": {"slug": channel_USD.slug},
-                    "price": {
-                        "amount": variants[1]["channelListings"][0]["price"],
-                        "currency": channel_USD.currency_code,
-                    },
-                    "costPrice": {
-                        "amount": variants[1]["channelListings"][0]["costPrice"],
-                        "currency": channel_USD.currency_code,
-                    },
-                },
-                {
-                    "channel": {"slug": channel_PLN.slug},
-                    "price": {
-                        "amount": variants[1]["channelListings"][1]["price"],
-                        "currency": channel_PLN.currency_code,
-                    },
-                    "costPrice": {
-                        "amount": variants[1]["channelListings"][1]["costPrice"],
-                        "currency": channel_PLN.currency_code,
-                    },
-                },
+                {"preorderThreshold": {"quantity": None}},
+                {"preorderThreshold": {"quantity": 4}},
             ],
             "preorder": {
                 "isPreorder": True,
@@ -4127,11 +4104,15 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
         variant_data.pop("id")
         assert variant_data["sku"] in expected_result
         expected_variant = expected_result[variant_data["sku"]]
-        expected_channel_listing = expected_variant["channelListings"]
+        expected_channel_listing_thresholds = [
+            channel_listing["preorderThreshold"]["quantity"]
+            for channel_listing in expected_variant["channelListings"]
+        ]
         assert all(
             [
-                channelListing in expected_channel_listing
-                for channelListing in variant_data["channelListings"]
+                channel_listing["preorderThreshold"]["quantity"]
+                in expected_channel_listing_thresholds
+                for channel_listing in variant_data["channelListings"]
             ]
         )
         preorder_data = variant_data["preorder"]

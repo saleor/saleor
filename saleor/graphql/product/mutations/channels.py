@@ -305,6 +305,9 @@ class ProductVariantChannelListingAddInput(graphene.InputObjectType):
         required=True, description="Price of the particular variant in channel."
     )
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
+    preorder_threshold = graphene.Int(
+        description="The threshold for preorder variant in channel."
+    )
 
 
 class ProductVariantChannelListingUpdate(BaseMutation):
