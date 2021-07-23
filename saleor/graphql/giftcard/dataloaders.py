@@ -19,7 +19,7 @@ class GiftCardEventsByGiftCardIdLoader(DataLoader):
     context_key = "giftcardevents_by_giftcard"
 
     def batch_load(self, keys):
-        events = GiftCardEvent.objects.filter(gift_card_id__in=keys).order_by("pk")
+        events = GiftCardEvent.objects.filter(gift_card_id__in=keys)
         events_map = defaultdict(list)
         for event in events.iterator():
             events_map[event.gift_card_id].append(event)

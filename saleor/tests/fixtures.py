@@ -55,8 +55,8 @@ from ..discount.models import (
     VoucherCustomer,
     VoucherTranslation,
 )
-from ..giftcard import GiftCardExpiryType
-from ..giftcard.models import GiftCard
+from ..giftcard import GiftCardEvents, GiftCardExpiryType
+from ..giftcard.models import GiftCard, GiftCardEvent
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
@@ -2561,6 +2561,39 @@ def gift_card_created_by_staff(staff_user):
         expiry_period_type=TimePeriodType.YEAR,
         expiry_period=2,
         tag="test-tag",
+    )
+
+
+@pytest.fixture
+def gift_card_event(gift_card, order, app, staff_user):
+    parameters = {
+        "message": "test message",
+        "email": "testemail@email.com",
+        "order_id": order.pk,
+        "tag": "test tag",
+        "old_tag": "test old tag",
+        "balance": {
+            "currency": "USD",
+            "initial_balance": 10,
+            "old_initial_balance": 20,
+            "current_balance": 10,
+            "old_current_balance": 5,
+        },
+        "expiry": {
+            "expiry_type": GiftCardExpiryType.EXPIRY_PERIOD,
+            "old_expiry_type": GiftCardExpiryType.EXPIRY_DATE,
+            "expiry_period_type": TimePeriodType.MONTH,
+            "expiry_period": 10,
+            "expiry_date": datetime.date(2050, 1, 1),
+        },
+    }
+    return GiftCardEvent.objects.create(
+        user=staff_user,
+        app=app,
+        gift_card=gift_card,
+        type=GiftCardEvents.UPDATED,
+        parameters=parameters,
+        date=timezone.now() + datetime.timedelta(days=10),
     )
 
 
