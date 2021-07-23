@@ -595,6 +595,15 @@ class ProductVariantTranslation(models.Model):
         return self.name or str(self.product_variant)
 
 
+class ProductVariantChannelListingQuerySet(models.QuerySet):
+    def annotate_preorder_quantity_allocated(self):
+        return self.annotate(
+            preorder_quantity_allocated=Coalesce(
+                Sum("preorder_allocations__quantity"), 0
+            ),
+        )
+
+
 class ProductVariantChannelListing(models.Model):
     variant = models.ForeignKey(
         ProductVariant,
@@ -628,6 +637,8 @@ class ProductVariantChannelListing(models.Model):
     cost_price = MoneyField(amount_field="cost_price_amount", currency_field="currency")
 
     preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
+
+    objects = models.Manager.from_queryset(ProductVariantChannelListingQuerySet)()
 
     class Meta:
         unique_together = [["variant", "channel"]]

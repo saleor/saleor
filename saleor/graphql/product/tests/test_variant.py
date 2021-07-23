@@ -147,6 +147,10 @@ QUERY_PRODUCT_VARIANT_CHANNEL_LISTING = """
                     currency
                     amount
                 }
+                preorderThreshold {
+                    quantity
+                    soldUnits
+                }
             }
         }
     }
@@ -184,6 +188,10 @@ def test_get_product_variant_channel_listing_as_staff_user(
                 "currency": channel_listing.currency,
                 "amount": channel_listing.cost_price_amount,
             },
+            "preorderThreshold": {
+                "quantity": channel_listing.preorder_quantity_threshold,
+                "soldUnits": 0,
+            },
         } in data["channelListings"]
     assert len(data["channelListings"]) == variant.channel_listings.count()
 
@@ -218,6 +226,10 @@ def test_get_product_variant_channel_listing_as_app(
             "costPrice": {
                 "currency": channel_listing.currency,
                 "amount": channel_listing.cost_price_amount,
+            },
+            "preorderThreshold": {
+                "quantity": channel_listing.preorder_quantity_threshold,
+                "soldUnits": 0,
             },
         } in data["channelListings"]
     assert len(data["channelListings"]) == variant.channel_listings.count()
@@ -323,6 +335,102 @@ def test_get_product_variant_stocks_no_channel_shipping_zones(
     data = content["data"]["productVariant"]
     assert data["stocks"] == []
     assert stocks_count > 0
+
+
+QUERY_PRODUCT_VARIANT_PREORDER = """
+    query ProductVariantDetails($id: ID!, $channel: String) {
+        productVariant(id: $id, channel: $channel) {
+            preorder {
+                isPreorder
+                globalThreshold
+                globalSoldUnits
+                endDate
+            }
+        }
+    }
+"""
+
+
+def test_get_product_variant_preorder_as_staff(
+    staff_api_client,
+    preorder_variant_global_and_channel_threshold,
+    preorder_allocation,
+    channel_USD,
+    permission_manage_products,
+):
+    # given
+    variant = preorder_variant_global_and_channel_threshold
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_PREORDER,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariant"]["preorder"]
+    assert data["isPreorder"] == variant.is_preorder
+    assert data["globalThreshold"] == variant.preorder_global_threshold
+    assert data["globalSoldUnits"] == preorder_allocation.quantity
+    assert data["endDate"] == variant.preorder_end_date
+
+
+def test_get_product_variant_preorder_as_customer_not_allowed_fields(
+    user_api_client,
+    preorder_variant_global_threshold,
+    channel_USD,
+):
+    # given
+    variant = preorder_variant_global_threshold
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_PREORDER,
+        variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_get_product_variant_preorder_as_customer_allowed_fields(
+    user_api_client,
+    preorder_variant_global_threshold,
+    channel_USD,
+):
+    # given
+    variant = preorder_variant_global_threshold
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    query = """
+        query ProductVariantDetails($id: ID!, $channel: String) {
+            productVariant(id: $id, channel: $channel) {
+                preorder {
+                    isPreorder
+                    endDate
+                }
+            }
+        }
+    """
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariant"]["preorder"]
+    assert data["isPreorder"] == variant.is_preorder
+    assert data["endDate"] == variant.preorder_end_date
 
 
 CREATE_VARIANT_MUTATION = """
