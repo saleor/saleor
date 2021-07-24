@@ -1,3 +1,4 @@
+import json
 import logging
 from enum import Enum
 from json import JSONDecodeError
@@ -8,6 +9,7 @@ import boto3
 import requests
 from celery.utils.log import get_task_logger
 from google.cloud import pubsub_v1
+from pydantic import ValidationError
 from requests.exceptions import RequestException
 
 from ...celeryconf import app
@@ -15,6 +17,7 @@ from ...payment import PaymentError
 from ...site.models import Site
 from ...webhook.event_types import WebhookEventType
 from ...webhook.models import Webhook
+from ...webhook.schema import WebhookSchema
 from . import signature_for_payload
 
 if TYPE_CHECKING:
@@ -58,9 +61,21 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     return webhooks
 
 
+def check_webhook_payload(event_type: str, data: str):
+    try:
+        json_data = json.loads(data)
+        WebhookSchema(__root__=json_data)
+    except ValidationError:
+        logger.exception(
+            "Webhook payload is different than declared in schema.",
+            extra={"event_type": event_type},
+        )
+
+
 @app.task(compression="zlib")
 def trigger_webhooks_for_event(event_type, data):
     """Send a webhook request for an event as an async task."""
+    check_webhook_payload(event_type, data)
     webhooks = _get_webhooks_for_event(event_type)
     for webhook in webhooks:
         send_webhook_request.delay(
@@ -70,6 +85,7 @@ def trigger_webhooks_for_event(event_type, data):
 
 def trigger_webhook_sync(event_type: str, data: str, app: "App"):
     """Send a synchronous webhook request."""
+    check_webhook_payload(event_type, data)
     webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
     webhook = webhooks.first()
     if not webhook:

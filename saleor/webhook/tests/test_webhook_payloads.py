@@ -18,6 +18,7 @@ from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
     generate_checkout_payload,
+    generate_customer_payload,
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -25,6 +26,12 @@ from ..payloads import (
     generate_payment_payload,
     generate_product_variant_payload,
 )
+from ..schema import Customer
+
+
+def test_generate_customer_payload(customer_user):
+    payload = generate_customer_payload(customer_user)
+    Customer(**json.loads(payload)[0])
 
 
 @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
