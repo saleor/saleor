@@ -2849,6 +2849,101 @@ def test_update_product_variant_with_price_does_not_raise_price_validation_error
     assert not content["data"]["productVariantUpdate"]["errors"]
 
 
+QUERY_UPDATE_VARIANT_PREORDER = """
+    mutation updateVariant (
+        $id: ID!,
+        $sku: String!,
+        $preorder: PreorderSettingsInput) {
+            productVariantUpdate(
+                id: $id,
+                input: {
+                    sku: $sku,
+                    preorder: $preorder,
+                }) {
+                productVariant {
+                    sku
+                    preorder {
+                        isPreorder
+                        globalThreshold
+                        endDate
+                    }
+                }
+            }
+        }
+"""
+
+
+def test_update_product_variant_change_preorder_data(
+    staff_api_client,
+    permission_manage_products,
+    preorder_variant_global_threshold,
+):
+    variant = preorder_variant_global_threshold
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "test sku"
+
+    new_global_threshold = variant.preorder_global_threshold + 5
+    assert variant.preorder_end_date is None
+    new_preorder_end_date = (
+        (datetime.now() + timedelta(days=3))
+        .astimezone()
+        .replace(microsecond=0)
+        .isoformat()
+    )
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "preorder": {
+            "globalThreshold": new_global_threshold,
+            "endDate": new_preorder_end_date,
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_PREORDER,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantUpdate"]["productVariant"]
+
+    assert data["sku"] == sku
+    assert data["preorder"]["isPreorder"] is True
+    assert data["preorder"]["globalThreshold"] == new_global_threshold
+    assert data["preorder"]["endDate"] == new_preorder_end_date
+
+
+def test_update_product_variant_can_not_turn_off_preorder(
+    staff_api_client,
+    permission_manage_products,
+    preorder_variant_global_threshold,
+):
+    """Passing None with `preorder` field can not turn off preorder,
+    it could be done only with ProductVariantPreorderDeactivate mutation."""
+    variant = preorder_variant_global_threshold
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "test sku"
+
+    variables = {"id": variant_id, "sku": sku, "preorder": None}
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_PREORDER,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantUpdate"]["productVariant"]
+
+    assert data["sku"] == sku
+    assert data["preorder"]["isPreorder"] is True
+    assert data["preorder"]["globalThreshold"] == variant.preorder_global_threshold
+    assert data["preorder"]["endDate"] is None
+
+
 DELETE_VARIANT_MUTATION = """
     mutation variantDelete($id: ID!) {
         productVariantDelete(id: $id) {
