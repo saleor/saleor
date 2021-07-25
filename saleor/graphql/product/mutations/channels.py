@@ -428,6 +428,10 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                 defaults["cost_price_amount"] = channel_listing_data.get(
                     "cost_price", None
                 )
+            if "preorder_threshold" in channel_listing_data.keys():
+                defaults["preorder_quantity_threshold"] = channel_listing_data.get(
+                    "preorder_threshold", None
+                )
             ProductVariantChannelListing.objects.update_or_create(
                 variant=variant,
                 channel=channel,
