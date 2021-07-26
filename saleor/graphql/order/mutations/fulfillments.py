@@ -336,13 +336,13 @@ class FulfillmentApprove(BaseMutation):
     order = graphene.Field(Order, description="Order which fulfillment was approved.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an fulfillment to confirm.")
+        id = graphene.ID(required=True, description="ID of an fulfillment to approve.")
         notify_customer = graphene.Boolean(
             required=True, description="True if confirmation email should be send."
         )
 
     class Meta:
-        description = "Confirm existing fulfillment."
+        description = "Approve existing fulfillment."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

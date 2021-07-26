@@ -889,6 +889,11 @@ def test_fulfillment_approve(
     assert fulfillment.status == FulfillmentStatus.FULFILLED
 
     assert mock_email_fulfillment.call_count == 1
+    events = fulfillment.order.events.all()
+    assert len(events) == 1
+    event = events[0]
+    assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
+    assert event.user == staff_api_client.user
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
