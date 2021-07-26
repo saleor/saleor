@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from functools import singledispatch
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
+from django.utils.encoding import smart_text
 from prices import TaxedMoney
 
 from ..core.prices import quantize_price
@@ -79,6 +80,10 @@ class EmptyDeliveryMethod:
     def is_local_collection_point(self) -> bool:
         return False
 
+    @property
+    def delivery_method_name(self) -> Dict[str, Optional[str]]:
+        return {"shipping_method_name": None}
+
     def get_warehouse_filter_lookup(self) -> Dict[str, Any]:
         return {}
 
@@ -102,6 +107,10 @@ class ShippingMethodInfo(EmptyDeliveryMethod):
     delivery_method: "ShippingMethod"
     shipping_address: Optional["Address"]
     order_key: str = "shipping_method"
+
+    @property
+    def delivery_method_name(self) -> Dict[str, Optional[str]]:
+        return {"shipping_method_name": smart_text(self.delivery_method)}
 
     def calculate_checkout_shipping(self, checkout_info, lines=None) -> TaxedMoney:
         """Return checkout shipping price."""
@@ -131,9 +140,7 @@ class ShippingMethodInfo(EmptyDeliveryMethod):
         )
 
     def is_valid_delivery_method(self) -> bool:
-        if not self.shipping_address:
-            return False
-        return True
+        return bool(self.shipping_address)
 
     def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
         valid_delivery_methods = checkout_info.valid_delivery_methods
@@ -166,6 +173,10 @@ class CollectionPointInfo(EmptyDeliveryMethod):
             == WarehouseClickAndCollectOption.LOCAL_STOCK
         )
 
+    @property
+    def delivery_method_name(self) -> Dict[str, Optional[str]]:
+        return {"collection_point_name": smart_text(self.delivery_method)}
+
     def get_warehouse_filter_lookup(self) -> Dict[str, Any]:
         return (
             {"warehouse__pk": self.delivery_method.pk}
@@ -192,26 +203,18 @@ class CollectionPointInfo(EmptyDeliveryMethod):
 
 
 @singledispatch
-def build_delivery_method(
+def get_delivery_method_info(
     delivery_method: Optional[Union["ShippingMethod", "Warehouse"]],
     address=Optional["Address"],
 ) -> EmptyDeliveryMethod:
-    raise NotImplementedError("Incompatible Type")
-
-
-@build_delivery_method.register(ShippingMethod)
-def _(delivery_method, address):
-    return ShippingMethodInfo(delivery_method, address)
-
-
-@build_delivery_method.register(Warehouse)  # type: ignore[no-redef]
-def _(delivery_method, _):
-    return CollectionPointInfo(delivery_method, delivery_method.address)
-
-
-@build_delivery_method.register(type(None))  # type: ignore[no-redef]
-def _(delivery_method, address):
-    return EmptyDeliveryMethod()
+    if delivery_method is None:
+        return EmptyDeliveryMethod()
+    elif isinstance(delivery_method, ShippingMethod):
+        return ShippingMethodInfo(delivery_method, address)
+    elif isinstance(delivery_method, Warehouse):
+        return CollectionPointInfo(delivery_method, delivery_method.address)
+    else:
+        raise NotImplementedError()
 
 
 def fetch_checkout_lines(checkout: "Checkout") -> Iterable[CheckoutLineInfo]:
@@ -267,7 +270,7 @@ def fetch_checkout_info(
         shipping_method=shipping_method, channel=channel
     ).first()
     delivery_method = checkout.collection_point or shipping_method
-    delivery_method_info = build_delivery_method(delivery_method, shipping_address)
+    delivery_method_info = get_delivery_method_info(delivery_method, shipping_address)
     checkout_info = CheckoutInfo(
         checkout=checkout,
         user=checkout.user,
@@ -307,7 +310,9 @@ def update_checkout_info_shipping_address(
     )
     checkout_info.valid_shipping_methods = valid_methods
     delivery_method = checkout_info.delivery_method_info.delivery_method
-    checkout_info.delivery_method_info = build_delivery_method(delivery_method, address)
+    checkout_info.delivery_method_info = get_delivery_method_info(
+        delivery_method, address
+    )
 
 
 def get_valid_shipping_method_list_for_checkout_info(
@@ -344,7 +349,7 @@ def get_valid_collection_points_for_checkout_info(
     valid_collection_points = get_valid_collection_points_for_checkout(
         lines, checkout_info, country_code=country_code, quantity_check=False
     )
-    return list(valid_collection_points) if valid_collection_points is not None else []
+    return list(valid_collection_points)
 
 
 def update_checkout_info_shipping_method(
@@ -366,7 +371,7 @@ def update_checkout_info_delivery_method(
     checkout_info: CheckoutInfo,
     delivery_method: Optional[Union["ShippingMethod", "Warehouse"]],
 ):
-    checkout_info.delivery_method_info = build_delivery_method(
+    checkout_info.delivery_method_info = get_delivery_method_info(
         delivery_method, checkout_info.shipping_address
     )
     checkout_info.delivery_method_info.update_channel_listings(checkout_info)

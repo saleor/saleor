@@ -506,14 +506,9 @@ class Checkout(CountableDjangoObjectType):
     def resolve_available_collection_points(root: models.Checkout, info):
         def get_available_collection_points(data):
             address, lines, checkout_info = data
-            available = get_valid_collection_points_for_checkout(
+            return get_valid_collection_points_for_checkout(
                 lines, checkout_info, country_code=address.country.code
             )
-            if not available:
-                return []
-
-            available_ids = available.values_list("id", flat=True)
-            return WarehouseByIdLoader(info.context).load_many(available_ids)
 
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)

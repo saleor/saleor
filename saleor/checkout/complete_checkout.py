@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.utils.encoding import smart_text
 from prices import TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
@@ -97,13 +96,12 @@ def _process_shipping_data_for_order(
 
     result: Dict[str, Any] = {
         "shipping_address": shipping_address,
-        "shipping_method_name": smart_text(
-            checkout_info.shipping_method
-        ),  # TODO: collection_point_name?
         "shipping_price": shipping_price,
         "weight": checkout_info.checkout.get_total_weight(lines),
     }
     result.update(delivery_method_dict)
+    result.update(delivery_method_info.delivery_method_name)
+
     return result
 
 

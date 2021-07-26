@@ -31,33 +31,19 @@ class WarehouseQueryset(models.QuerySet):
         )
 
     def applicable_for_click_and_collect_no_quantity_check(
-        self, lines: QuerySet[CheckoutLine], country: str
+        self, lines_qs: QuerySet[CheckoutLine], country: str
     ):
-
-        warehouse_cc_option_enum = WarehouseClickAndCollectOption
         stocks_qs = Stock.objects.filter(
-            product_variant__id__in=lines.values("variant_id"),
+            product_variant__id__in=lines_qs.values("variant_id"),
         ).select_related("product_variant")
 
-        warehouses_qs = (
-            self.for_country(country)
-            .prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
-            .filter(stock__in=stocks_qs)
-            .annotate(stock_num=Count("stock__id"))
-            .filter(
-                Q(stock_num=lines.count())
-                & Q(click_and_collect_option=warehouse_cc_option_enum.LOCAL_STOCK)
-                | Q(click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES)
-            )
-        )
-        return warehouses_qs
+        return self._for_country_lines_and_stocks(lines_qs, stocks_qs, country)
 
     def applicable_for_click_and_collect(
-        self, lines: QuerySet[CheckoutLine], country: str
-    ):
-        warehouse_cc_option_enum = WarehouseClickAndCollectOption
+        self, lines_qs: QuerySet[CheckoutLine], country: str
+    ) -> QuerySet["Warehouse"]:
         lines_quantity = (
-            lines.filter(variant_id=OuterRef("product_variant_id"))
+            lines_qs.filter(variant_id=OuterRef("product_variant_id"))
             .annotate(prod_sum=Sum("quantity"))
             .values_list("prod_sum")
         )
@@ -67,25 +53,33 @@ class WarehouseQueryset(models.QuerySet):
             .annotate(line_quantity=F("available_quantity") - Subquery(lines_quantity))
             .order_by("line_quantity")
             .filter(
-                product_variant__id__in=lines.values("variant_id"),
+                product_variant__id__in=lines_qs.values("variant_id"),
                 line_quantity__gte=0,
             )
             .select_related("product_variant")
         )
 
-        warehouses_qs = (
+        return self._for_country_lines_and_stocks(lines_qs, stocks_qs, country)
+
+    def _for_country_lines_and_stocks(
+        self,
+        lines_qs: QuerySet[CheckoutLine],
+        stocks_qs: QuerySet["Stock"],
+        country: str,
+    ) -> QuerySet["Warehouse"]:
+        warehouse_cc_option_enum = WarehouseClickAndCollectOption
+
+        return (
             self.for_country(country)
             .prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
             .filter(stock__in=stocks_qs)
             .annotate(stock_num=Count("stock__id"))
             .filter(
-                Q(stock_num=lines.count())
+                Q(stock_num=lines_qs.count())
                 & Q(click_and_collect_option=warehouse_cc_option_enum.LOCAL_STOCK)
                 | Q(click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES)
             )
         )
-
-        return warehouses_qs
 
 
 class Warehouse(ModelWithMetadata):

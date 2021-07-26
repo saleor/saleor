@@ -23,9 +23,9 @@ from ....checkout.checkout_cleaner import (
 )
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
-    build_delivery_method,
     fetch_checkout_info,
     fetch_checkout_lines,
+    get_delivery_method_info,
 )
 from ....checkout.models import Checkout
 from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
@@ -2434,7 +2434,7 @@ def test_checkout_shipping_method_update(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     checkout_info.shipping_method = old_shipping_method
-    checkout_info.delivery_method_info = build_delivery_method(
+    checkout_info.delivery_method_info = get_delivery_method_info(
         checkout_info.shipping_method, None
     )
     checkout_info.shipping_method_channel_listings = None
@@ -2499,7 +2499,7 @@ def test_checkout_delivery_method_update(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     checkout_info.shipping_method = old_delivery_method
-    checkout_info.delivery_method_info = build_delivery_method(
+    checkout_info.delivery_method_info = get_delivery_method_info(
         checkout_info.shipping_method, None
     )
     checkout_info.shipping_method_channel_listings = None
@@ -2553,7 +2553,7 @@ def test_checkout_delivery_method_update_with_both_fields_filled_causes_and_erro
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "deliveryMethod"
-    assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    assert errors[0]["code"] == CheckoutErrorCode.INVALID.name
     assert checkout.shipping_method is None
     assert checkout.collection_point is None
 

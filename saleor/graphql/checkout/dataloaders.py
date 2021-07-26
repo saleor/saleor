@@ -3,7 +3,7 @@ from collections import defaultdict
 from django.db.models import F
 from promise import Promise
 
-from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo, build_delivery_method
+from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo, get_delivery_method_info
 from ...checkout.models import Checkout, CheckoutLine
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
@@ -230,7 +230,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         shipping_address = (
                             address_map.get(checkout.shipping_address_id),
                         )
-                        delivery_method_info = build_delivery_method(
+                        delivery_method_info = get_delivery_method_info(
                             delivery_method, shipping_address
                         )
 
