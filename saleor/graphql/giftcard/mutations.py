@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -87,30 +89,38 @@ class GiftCardCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        if instance.pk is None:
-            data["code"] = generate_promo_code()
-
         cleaned_input = super().clean_input(info, instance, data)
-        cls.clean_expiry_settings(cleaned_input)
-        cls.clean_balance(cleaned_input, instance.currency)
 
-        # TODO: send an email to the customer from user_email field in SALEOR-3901
-        data.get("user_email", None)
+        # perform only when gift card is created
+        if instance.pk is None:
+            cleaned_input["code"] = generate_promo_code()
+            cls.set_created_by_user(cleaned_input, info)
 
+        cls.clean_expiry_settings(cleaned_input, instance)
+        cls.clean_balance(cleaned_input, instance)
+
+        cleaned_input.get("user_email", None)
+
+        return cleaned_input
+
+    @staticmethod
+    def set_created_by_user(cleaned_input, info):
         user = info.context.user
         if user_is_valid(user):
             cleaned_input["created_by"] = user
             cleaned_input["created_by_email"] = user.email
         cleaned_input["app"] = info.context.app
-        return cleaned_input
 
     @staticmethod
-    def clean_expiry_settings(cleaned_input):
+    def clean_expiry_settings(cleaned_input, instance):
         expiry_settings = cleaned_input.pop("expiry_settings", None)
         if not expiry_settings:
             return
         type = expiry_settings["expiry_type"]
         cleaned_input["expiry_type"] = type
+        cleaned_input["expiry_period"] = None
+        cleaned_input["expiry_period_type"] = None
+        cleaned_input["expiry_date"] = None
         if type == GiftCardExpiryType.EXPIRY_DATE:
             expiry_date = expiry_settings.get("expiry_date")
             if not expiry_date:
@@ -118,7 +128,7 @@ class GiftCardCreate(ModelMutation):
                     {
                         "expiry_date": ValidationError(
                             "Expiry date is required for chosen expiry type.",
-                            code=GiftCardErrorCode.REQUIRED,
+                            code=GiftCardErrorCode.REQUIRED.value,
                         )
                     }
                 )
@@ -127,7 +137,7 @@ class GiftCardCreate(ModelMutation):
                     {
                         "expiry_date": ValidationError(
                             "Expiry date cannot be in the past.",
-                            code=GiftCardErrorCode.INVALID,
+                            code=GiftCardErrorCode.INVALID.value,
                         )
                     }
                 )
@@ -140,7 +150,17 @@ class GiftCardCreate(ModelMutation):
                         "expiry_period": ValidationError(
                             "Expiry period settings are required for chosen "
                             "expiry type.",
-                            code=GiftCardErrorCode.REQUIRED,
+                            code=GiftCardErrorCode.REQUIRED.value,
+                        )
+                    }
+                )
+            if instance.used_by_email:
+                raise ValidationError(
+                    {
+                        "expiry_type": ValidationError(
+                            "The expiry type cannot be changed to the expiry period "
+                            "for the already used card.",
+                            code=GiftCardErrorCode.INVALID.value,
                         )
                     }
                 )
@@ -148,7 +168,7 @@ class GiftCardCreate(ModelMutation):
             cleaned_input["expiry_period_type"] = expiry_period["type"]
 
     @staticmethod
-    def clean_balance(cleaned_input, currency):
+    def clean_balance(cleaned_input, instance):
         balance = cleaned_input.pop("balance", None)
         if balance:
             amount = balance["amount"]
@@ -158,6 +178,16 @@ class GiftCardCreate(ModelMutation):
             except ValidationError as error:
                 error.code = GiftCardErrorCode.INVALID.value
                 raise ValidationError({"balance": error})
+            if instance.pk:
+                if currency != instance.currency:
+                    raise ValidationError(
+                        {
+                            "balance": ValidationError(
+                                "Cannot change gift card currency.",
+                                code=GiftCardErrorCode.INVALID.value,
+                            )
+                        }
+                    )
             cleaned_input["currency"] = currency
             cleaned_input["current_balance_amount"] = amount
             cleaned_input["initial_balance_amount"] = amount
@@ -184,6 +214,28 @@ class GiftCardUpdate(GiftCardCreate):
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        instance = cls.get_instance(info, **data)
+        old_instance = deepcopy(instance)
+
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.clean_instance(info, instance)
+        cls.save(info, instance, cleaned_input)
+
+        if "currency" in cleaned_input:
+            events.gift_card_balance_reset(
+                instance, old_instance, info.context.user, info.context.app
+            )
+        if "expiry_type" in cleaned_input:
+            events.gift_card_expiry_settings_updated(
+                instance, old_instance, info.context.user, info.context.app
+            )
+
+        return cls.success_response(instance)
 
 
 class GiftCardDeactivate(BaseMutation):
