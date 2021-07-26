@@ -19,7 +19,9 @@ from .resolvers import resolve_access_token
 class AppExtension(CountableDjangoObjectType):
     app = graphene.Field("saleor.graphql.app.types.App", required=True)
     permissions = graphene.List(
-        Permission, description="List of the app extension's permissions."
+        graphene.NonNull(Permission),
+        description="List of the app extension's permissions.",
+        required=True,
     )
 
     class Meta:
@@ -40,10 +42,10 @@ class AppExtension(CountableDjangoObjectType):
         app = info.context.app
         if app and app.id == root.app_id:
             app_id = root.app_id
-
-        requestor = get_user_or_app_from_context(info.context)
-        if requestor.has_perm(AppPermission.MANAGE_APPS):
-            app_id = root.app_id
+        else:
+            requestor = get_user_or_app_from_context(info.context)
+            if requestor.has_perm(AppPermission.MANAGE_APPS):
+                app_id = root.app_id
 
         if not app_id:
             raise PermissionDenied()
@@ -128,7 +130,9 @@ class App(CountableDjangoObjectType):
         description="JWT token used to authenticate by thridparty app."
     )
     extensions = graphene.List(
-        graphene.NonNull(AppExtension), description="App's dashboard extensions."
+        graphene.NonNull(AppExtension),
+        description="App's dashboard extensions.",
+        required=True,
     )
 
     class Meta:

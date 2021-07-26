@@ -37,12 +37,5 @@ def resolve_app(_info, id):
     return models.App.objects.filter(id=id).first()
 
 
-@traced_resolver
 def resolve_app_extensions(_info):
     return models.AppExtension.objects.filter(app__is_active=True)
-
-
-@traced_resolver
-def resolve_app_extension(_info, id):
-    _, id = from_global_id_or_error(id, "AppExtension")
-    return models.AppExtension.objects.filter(id=id, app__is_active=True).first()

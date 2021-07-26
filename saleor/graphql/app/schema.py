@@ -3,7 +3,9 @@ import graphene
 from ...core.permissions import AppPermission
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
+from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required, staff_member_or_app_required
+from .dataloaders import AppByIdLoader, AppExtensionByIdLoader
 from .filters import AppExtensionFilter, AppFilter
 from .mutations import (
     AppActivate,
@@ -21,7 +23,6 @@ from .mutations import (
 )
 from .resolvers import (
     resolve_app,
-    resolve_app_extension,
     resolve_app_extensions,
     resolve_apps,
     resolve_apps_installations,
@@ -96,7 +97,21 @@ class AppQueries(graphene.ObjectType):
 
     @staff_member_or_app_required
     def resolve_app_extension(self, info, id):
-        return resolve_app_extension(info, id)
+        def app_is_active(app_extension):
+            def is_active(app):
+                if app.is_active:
+                    return app_extension
+                return None
+
+            if not app_extension:
+                return None
+            print(app_extension)
+            return (
+                AppByIdLoader(info.context).load(app_extension.app_id).then(is_active)
+            )
+
+        _, id = from_global_id_or_error(id, "AppExtension")
+        return AppExtensionByIdLoader(info.context).load(int(id)).then(app_is_active)
 
 
 class AppMutations(graphene.ObjectType):

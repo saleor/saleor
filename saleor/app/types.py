@@ -32,7 +32,7 @@ class AppExtensionType:
 class AppExtensionTarget:
     """All available places where app's iframe can be mounted.
 
-    MORE_ACTIONS - three dots button
+    MORE_ACTIONS - more actions button
     CREATE - create button
     """
 
