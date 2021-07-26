@@ -640,6 +640,11 @@ class CheckoutCustomerAttach(BaseMutation):
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
 
+        # Raise error when trying to attach a user to a checkout
+        # that is already owned by another user.
+        if checkout.user:
+            raise PermissionDenied()
+
         checkout.user = info.context.user
         checkout.email = info.context.user.email
         checkout.save(update_fields=["email", "user", "last_change"])
