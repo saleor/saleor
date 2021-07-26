@@ -4832,12 +4832,14 @@ type RequestPasswordReset {
   errors: [AccountError!]!
 }
 
-type Sale implements Node {
+type Sale implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   type: SaleType!
   startDate: DateTime!
   endDate: DateTime
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -4910,6 +4912,7 @@ input SaleFilterInput {
   saleType: DiscountValueTypeEnum
   started: DateTimeRangeInput
   search: String
+  metadata: [MetadataFilter]
 }
 
 input SaleInput {
@@ -5750,7 +5753,7 @@ enum VolumeUnitsEnum {
   ACRE_FT
 }
 
-type Voucher implements Node {
+type Voucher implements Node & ObjectWithMetadata {
   id: ID!
   name: String
   type: VoucherTypeEnum!
@@ -5764,6 +5767,8 @@ type Voucher implements Node {
   onlyForStaff: Boolean!
   discountValueType: DiscountValueTypeEnum!
   minCheckoutItemsQuantity: Int
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -5847,6 +5852,7 @@ input VoucherFilterInput {
   discountType: [VoucherDiscountType]
   started: DateTimeRangeInput
   search: String
+  metadata: [MetadataFilter]
 }
 
 input VoucherInput {
