@@ -1,13 +1,12 @@
 import django_filters
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
-from saleor.graphql.core.filters import EnumFilter
-from saleor.graphql.warehouse.enums import WarehouseClickAndCollectOptionEnum
-from saleor.warehouse import WarehouseClickAndCollectOption
-
+from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
+from ..core.filters import EnumFilter
 from ..core.types import FilterInputObjectType
 from ..utils.filters import filter_by_query_param
+from ..warehouse.enums import WarehouseClickAndCollectOptionEnum
 
 
 def prefech_qs_for_filter(qs):

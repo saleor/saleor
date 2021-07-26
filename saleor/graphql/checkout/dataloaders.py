@@ -3,8 +3,6 @@ from collections import defaultdict
 from django.db.models import F
 from promise import Promise
 
-from saleor.graphql.warehouse.dataloaders import WarehouseByIdLoader
-
 from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo, build_delivery_method
 from ...checkout.models import Checkout, CheckoutLine
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
@@ -20,6 +18,7 @@ from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
+from ..warehouse.dataloaders import WarehouseByIdLoader
 
 
 class CheckoutByTokenLoader(DataLoader):

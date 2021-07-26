@@ -22,8 +22,6 @@ from faker.providers import BaseProvider
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from saleor.warehouse import WarehouseClickAndCollectOption
-
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...attribute.models import (
@@ -84,6 +82,7 @@ from ...shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
+from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
 from ...warehouse.models import Stock, Warehouse
 

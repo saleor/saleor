@@ -7,8 +7,6 @@ from unittest.mock import ANY
 
 import graphene
 
-from saleor.warehouse import WarehouseClickAndCollectOption
-
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...order import OrderLineData, OrderOrigin
@@ -17,6 +15,7 @@ from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
+from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,

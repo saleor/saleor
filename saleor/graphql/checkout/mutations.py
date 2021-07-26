@@ -7,8 +7,6 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 
-from saleor.graphql.warehouse.types import Warehouse
-
 from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
@@ -56,6 +54,7 @@ from ..core.validators import (
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
+from ..warehouse.types import Warehouse
 from .types import Checkout, CheckoutLine
 from .utils import prepare_insufficient_stock_checkout_validation_error
 
@@ -1060,13 +1059,6 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout")
 
     class Arguments:
-        checkout_id = graphene.ID(
-            description=(
-                "Checkout ID. "
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
-            ),
-            required=False,
-        )
         token = UUID(description="Checkout token.", required=False)
         shipping_method_id = graphene.ID(description="Shipping Method.")
         collection_point_id = graphene.ID(description="Collection Point Id")
@@ -1153,25 +1145,14 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     @classmethod
     def perform_mutation(
         cls,
-        root,
+        _,
         info,
-        checkout_id=None,
         token=None,
         shipping_method_id=None,
         collection_point_id=None,
     ):
-        # DEPRECATED
-        validate_one_of_args_is_in_mutation(
-            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
-        )
 
-        if token:
-            checkout = get_checkout_by_token(token)
-        # DEPRECATED
-        else:
-            checkout = cls.get_node_or_error(
-                info, checkout_id or token, only_type=Checkout, field="checkout_id"
-            )
+        checkout = get_checkout_by_token(token)
 
         manager = info.context.plugins
         lines = fetch_checkout_lines(checkout)

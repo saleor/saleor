@@ -997,11 +997,11 @@ type Checkout implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   availableShippingMethods: [ShippingMethod]!
-  availableCollectionPoints: [Warehouse]
+  availableCollectionPoints: [Warehouse!]!
   availablePaymentGateways: [PaymentGateway!]!
   email: String!
   isShippingRequired: Boolean!
-  isClickAndCollect: Boolean
+  isClickAndCollect: Boolean!
   quantity: Int!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
@@ -3793,8 +3793,8 @@ type Mutation {
   checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
   checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
-  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate @deprecated(reason: "Use checkoutDeliveryMethodUpdate instead")
-  checkoutDeliveryMethodUpdate(checkoutId: ID, collectionPointId: ID, shippingMethodId: ID, token: UUID): CheckoutDeliveryMethodUpdate
+  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate @deprecated(reason: "Will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead")
+  checkoutDeliveryMethodUpdate(collectionPointId: ID, shippingMethodId: ID, token: UUID): CheckoutDeliveryMethodUpdate
   checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
@@ -6883,7 +6883,7 @@ type Warehouse implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   companyName: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Address.companyName` instead.")
-  clickAndCollectOption: WarehouseClickAndCollectOptionEnum
+  clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
 }
 
 enum WarehouseClickAndCollectOptionEnum {

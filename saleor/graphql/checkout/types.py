@@ -161,6 +161,11 @@ class CheckoutLine(CountableDjangoObjectType):
 
 class DeliveryMethod(graphene.Union):
     class Meta:
+        description = (
+            "Represents a delivery method chosen for the checkout. `Warehouse` ",
+            'type is used when checkout is marked as "click and collect" and ',
+            "`ShippingMethod` otherwise.",
+        )
         types = (Warehouse, ShippingMethod)
 
     @classmethod
@@ -177,8 +182,8 @@ class Checkout(CountableDjangoObjectType):
         description="Shipping methods that can be used with this order.",
     )
     available_collection_points = graphene.List(
-        Warehouse,
-        required=False,
+        graphene.NonNull(Warehouse),
+        required=True,
         description="Collection points that can be used for this order.",
     )
     available_payment_gateways = graphene.List(
@@ -194,7 +199,11 @@ class Checkout(CountableDjangoObjectType):
         description="Returns True, if checkout requires shipping.", required=True
     )
     is_click_and_collect = graphene.Boolean(
-        description="Returns True, if checkout is click and collect"
+        description=(
+            "Returns True, if click and collect is chosen ",
+            "as a delivery method for this checkout.",
+        ),
+        required=True,
     )
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     lines = graphene.List(
@@ -216,7 +225,7 @@ class Checkout(CountableDjangoObjectType):
 
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description="The shipping method related with checkout, or warehouse if C&C",
+        description="The delivery method selected for this checkout",
     )
 
     subtotal_price = graphene.Field(

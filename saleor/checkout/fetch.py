@@ -5,11 +5,10 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 from prices import TaxedMoney
 
-from saleor.warehouse import WarehouseClickAndCollectOption
-
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
 
 if TYPE_CHECKING:
@@ -91,7 +90,6 @@ class EmptyDeliveryMethod:
     def is_valid_delivery_method(self) -> bool:
         return False
 
-    # TODO: these Methods should take checkout_info as a parameter
     def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
         return False
 
@@ -108,7 +106,6 @@ class ShippingMethodInfo(EmptyDeliveryMethod):
     def calculate_checkout_shipping(self, checkout_info, lines=None) -> TaxedMoney:
         """Return checkout shipping price."""
         # FIXME: Optimize checkout.is_shipping_required
-        # Copied from base_calculation due to circular imports
 
         shipping_method = self.delivery_method
 

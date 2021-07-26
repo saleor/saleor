@@ -636,7 +636,7 @@ def is_valid_shipping_method(checkout_info: "CheckoutInfo"):
 
     valid_methods = checkout_info.valid_shipping_methods
     if valid_methods is None or checkout_info.shipping_method not in valid_methods:
-        clear_shipping_method(checkout_info)  # TODO: Derides command query separation
+        clear_shipping_method(checkout_info)
         return False
     return True
 

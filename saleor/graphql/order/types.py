@@ -8,8 +8,6 @@ from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
 
-from saleor.graphql.checkout.types import DeliveryMethod
-
 from ...account.models import Address
 from ...account.utils import requestor_is_staff_member_or_app
 from ...core.anonymize import obfuscate_address, obfuscate_email
@@ -23,6 +21,7 @@ from ...core.permissions import (
 from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
+from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderStatus, models
@@ -678,11 +677,14 @@ class Order(CountableDjangoObjectType):
         description="Returns True, if order requires shipping.", required=True
     )
     is_click_and_collect = graphene.Boolean(
-        description="Returns True, if order is set as click and collect"
+        description=(
+            "Returns True, if click and collect is chosen ",
+            "as a delivery method for this checkout.",
+        ),
     )
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description="The shipping method related with checkout, or warehouse if C&C",
+        description="The delivery method selected for this checkout",
     )
     language_code = graphene.String(
         deprecation_reason=(
@@ -1063,7 +1065,6 @@ class Order(CountableDjangoObjectType):
         return None
 
     @staticmethod
-    @traced_resolver
     def resolve_is_click_and_collect(root: models.Order, info):
         return bool(root.collection_point_id)
 

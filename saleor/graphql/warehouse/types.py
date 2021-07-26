@@ -54,7 +54,7 @@ class Warehouse(CountableDjangoObjectType):
         ),
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
-        description="Click and collect options: local, all or disabled", required=False
+        description="Click and collect options: local, all or disabled", required=True
     )
 
     class Meta:
