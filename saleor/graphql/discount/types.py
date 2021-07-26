@@ -4,7 +4,11 @@ from graphene import relay
 from ...core.permissions import DiscountPermissions, OrderPermissions
 from ...discount import models
 from ..channel.dataloaders import ChannelByIdLoader
-from ..channel.types import ChannelContext, ChannelContextType
+from ..channel.types import (
+    ChannelContext,
+    ChannelContextType,
+    ChannelContextTypeWithMetadata,
+)
 from ..core import types
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import (
@@ -15,6 +19,7 @@ from ..core.fields import (
 from ..core.scalars import PositiveDecimal
 from ..core.types import Money
 from ..decorators import permission_required
+from ..meta.types import ObjectWithMetadata
 from ..product.types import Category, Collection, Product
 from ..translations.fields import TranslationField
 from ..translations.types import SaleTranslation, VoucherTranslation
@@ -39,7 +44,7 @@ class SaleChannelListing(CountableDjangoObjectType):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
-class Sale(ChannelContextType, CountableDjangoObjectType):
+class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     categories = PrefetchingConnectionField(
         Category, description="List of categories this sale applies to."
     )
@@ -67,7 +72,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
             "Sales allow creating discounts for categories, collections or products "
             "and are visible to all the customers."
         )
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Sale
         only_fields = ["end_date", "id", "name", "start_date", "type"]
 
@@ -135,7 +140,7 @@ class VoucherChannelListing(CountableDjangoObjectType):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
-class Voucher(ChannelContextType, CountableDjangoObjectType):
+class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     categories = PrefetchingConnectionField(
         Category, description="List of categories this voucher applies to."
     )
@@ -191,7 +196,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
             "usage_limit",
             "used",
         ]
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Voucher
 
     @staticmethod
