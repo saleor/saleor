@@ -1384,11 +1384,9 @@ def test_create_variant_with_date_attribute(
     product_type,
     staff_api_client,
     date_attribute,
-    date_time_attribute,
     warehouse,
 ):
     product_type.variant_attributes.add(date_attribute)
-    product_type.variant_attributes.add(date_time_attribute)
 
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -1396,9 +1394,6 @@ def test_create_variant_with_date_attribute(
     price = 1.32
     weight = 10.22
     date_attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.id)
-    date_time_attribute_id = graphene.Node.to_global_id(
-        "Attribute", date_time_attribute.id
-    )
     date_time_value = datetime.now(tz=pytz.utc)
     date_value = date_time_value.date()
 
@@ -1409,6 +1404,68 @@ def test_create_variant_with_date_attribute(
         "weight": weight,
         "attributes": [
             {"id": date_attribute_id, "date": date_value},
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+    data = content["productVariant"]
+    variant = product.variants.last()
+    expected_attributes_data = {
+        "attribute": {"slug": "release-date"},
+        "values": [
+            {
+                "boolean": None,
+                "file": None,
+                "reference": None,
+                "richText": None,
+                "dateTime": None,
+                "date": str(date_value),
+                "name": str(date_value),
+                "slug": f"{variant.id}_{date_attribute.id}",
+            }
+        ],
+    }
+
+    assert not content["errors"]
+    assert data["sku"] == sku
+    assert expected_attributes_data in data["attributes"]
+
+    created_webhook_mock.assert_called_once_with(variant)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+def test_create_variant_with_date_time_attribute(
+    created_webhook_mock,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    date_time_attribute,
+    warehouse,
+):
+    product_type.variant_attributes.add(date_time_attribute)
+
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    price = 1.32
+    weight = 10.22
+    date_time_attribute_id = graphene.Node.to_global_id(
+        "Attribute", date_time_attribute.id
+    )
+    date_time_value = datetime.now(tz=pytz.utc)
+
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "price": price,
+        "weight": weight,
+        "attributes": [
             {"id": date_time_attribute_id, "dateTime": date_time_value},
         ],
     }
@@ -1420,43 +1477,26 @@ def test_create_variant_with_date_attribute(
     flush_post_commit_hooks()
     data = content["productVariant"]
     variant = product.variants.last()
-    expected_attributes_data = [
-        {
-            "attribute": {"slug": "release-date"},
-            "values": [
-                {
-                    "boolean": None,
-                    "file": None,
-                    "reference": None,
-                    "richText": None,
-                    "dateTime": None,
-                    "date": str(date_value),
-                    "name": str(date_value),
-                    "slug": f"{variant.id}_{date_attribute.id}",
-                }
-            ],
-        },
-        {
-            "attribute": {"slug": "release-date-time"},
-            "values": [
-                {
-                    "boolean": None,
-                    "file": None,
-                    "reference": None,
-                    "richText": None,
-                    "dateTime": date_time_value.isoformat(),
-                    "date": None,
-                    "name": str(date_time_value),
-                    "slug": f"{variant.id}_{date_time_attribute.id}",
-                }
-            ],
-        },
-    ]
+    expected_attributes_data = {
+        "attribute": {"slug": "release-date-time"},
+        "values": [
+            {
+                "boolean": None,
+                "file": None,
+                "reference": None,
+                "richText": None,
+                "dateTime": date_time_value.isoformat(),
+                "date": None,
+                "name": str(date_time_value),
+                "slug": f"{variant.id}_{date_time_attribute.id}",
+            }
+        ],
+    }
 
     assert not content["errors"]
     assert data["sku"] == sku
-    for expected_attribute in expected_attributes_data:
-        assert expected_attribute in data["attributes"]
+    assert expected_attributes_data in data["attributes"]
+
     created_webhook_mock.assert_called_once_with(variant)
 
 
@@ -1855,9 +1895,67 @@ def test_update_variant_with_rich_text_attribute(
     product_variant_updated.assert_called_once_with(product.variants.last())
 
 
-# @freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_update_variant_with_date_attribute(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    date_attribute,
+    warehouse,
+    staff_api_client,
+):
+    product_type.variant_attributes.add(date_attribute)
+
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    date_attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.id)
+    date_time_value = datetime(2025, 5, 5, 5, 5, 5, tzinfo=pytz.utc)
+    date_value = date_time_value.date()
+    date_values_count = date_attribute.values.count()
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": date_attribute_id, "date": date_value},
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+    expected_attributes_data = {
+        "attribute": {"slug": "release-date"},
+        "values": [
+            {
+                "id": ANY,
+                "boolean": None,
+                "file": None,
+                "reference": None,
+                "richText": None,
+                "dateTime": None,
+                "date": str(date_value),
+                "name": str(date_value),
+                "slug": f"{variant.id}_{date_attribute.id}",
+            }
+        ],
+    }
+
+    assert not content["errors"]
+    assert data["sku"] == sku
+    assert date_values_count + 1 == date_attribute.values.count()
+    assert expected_attributes_data in data["attributes"]
+    product_variant_updated.assert_called_once_with(product.variants.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_with_date_time_attribute(
     product_variant_updated,
     permission_manage_products,
     product,
@@ -1867,27 +1965,22 @@ def test_update_variant_with_date_attribute(
     warehouse,
     staff_api_client,
 ):
-    product_type.variant_attributes.add(date_attribute)
     product_type.variant_attributes.add(date_time_attribute)
 
     query = QUERY_UPDATE_VARIANT_ATTRIBUTES
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = "123"
-    date_attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.id)
     date_time_attribute_id = graphene.Node.to_global_id(
         "Attribute", date_time_attribute.id
     )
     date_time_value = datetime(2025, 5, 5, 5, 5, 5, tzinfo=pytz.utc)
-    date_value = date_time_value.date()
     date_time_values_count = date_time_attribute.values.count()
-    date_values_count = date_attribute.values.count()
 
     variables = {
         "id": variant_id,
         "sku": sku,
         "attributes": [
-            {"id": date_attribute_id, "date": date_value},
             {"id": date_time_attribute_id, "dateTime": date_time_value},
         ],
     }
@@ -1898,47 +1991,27 @@ def test_update_variant_with_date_attribute(
     content = get_graphql_content(response)["data"]["productVariantUpdate"]
     variant.refresh_from_db()
     data = content["productVariant"]
-    expected_attributes_data = [
-        {
-            "attribute": {"slug": "release-date"},
-            "values": [
-                {
-                    "id": ANY,
-                    "boolean": None,
-                    "file": None,
-                    "reference": None,
-                    "richText": None,
-                    "dateTime": None,
-                    "date": str(date_value),
-                    "name": str(date_value),
-                    "slug": f"{variant.id}_{date_attribute.id}",
-                }
-            ],
-        },
-        {
-            "attribute": {"slug": "release-date-time"},
-            "values": [
-                {
-                    "id": ANY,
-                    "boolean": None,
-                    "file": None,
-                    "reference": None,
-                    "richText": None,
-                    "dateTime": date_time_value.isoformat(),
-                    "date": None,
-                    "name": str(date_time_value),
-                    "slug": f"{variant.id}_{date_time_attribute.id}",
-                }
-            ],
-        },
-    ]
+    expected_attributes_data = {
+        "attribute": {"slug": "release-date-time"},
+        "values": [
+            {
+                "id": ANY,
+                "boolean": None,
+                "file": None,
+                "reference": None,
+                "richText": None,
+                "dateTime": date_time_value.isoformat(),
+                "date": None,
+                "name": str(date_time_value),
+                "slug": f"{variant.id}_{date_time_attribute.id}",
+            }
+        ],
+    }
 
     assert not content["errors"]
     assert data["sku"] == sku
     assert date_time_values_count + 1 == date_time_attribute.values.count()
-    assert date_values_count + 1 == date_attribute.values.count()
-    for expected_attribute in expected_attributes_data:
-        assert expected_attribute in data["attributes"]
+    assert expected_attributes_data in data["attributes"]
     product_variant_updated.assert_called_once_with(product.variants.last())
 
 
