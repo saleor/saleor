@@ -2771,7 +2771,7 @@ def order_events(order):
 @pytest.fixture
 def fulfilled_order(order_with_lines):
     order = order_with_lines
-    invoice = order.invoices.create(
+    order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
         created=datetime.datetime.now(tz=pytz.utc),
@@ -2843,6 +2843,17 @@ def fulfilled_order_with_all_cancelled_fulfillments(
 @pytest.fixture
 def fulfillment(fulfilled_order):
     return fulfilled_order.fulfillments.first()
+
+
+@pytest.fixture
+def fulfillment_awaiting_approval(fulfilled_order):
+    line = fulfilled_order.lines.first()
+    line.quantity_fulfilled -= 1
+    line.save(update_fields=["quantity_fulfilled"])
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
+    return fulfillment
 
 
 @pytest.fixture

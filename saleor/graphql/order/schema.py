@@ -150,7 +150,7 @@ class OrderMutations(graphene.ObjectType):
 
     order_fulfill = OrderFulfill.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
-    order_fulfillment_confirm = FulfillmentApprove.Field()
+    order_fulfillment_approve = FulfillmentApprove.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
     order_fulfillment_refund_products = FulfillmentRefundProducts.Field()
     order_fulfillment_return_products = FulfillmentReturnProducts.Field()

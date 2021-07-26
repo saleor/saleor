@@ -338,27 +338,28 @@ def cancel_fulfillment(
 
 
 @traced_atomic_transaction()
-def confirm_fulfillment(
-    fulfillment: "Fulfillment",
+def approve_fulfillment(
+    fulfillment: Fulfillment,
     user: "User",
-    warehouse: "Warehouse",
+    app: Optional["App"],
     manager: "PluginsManager",
+    notify_customer=True,
 ):
-    fulfillment = Fulfillment.objects.select_for_update().get(pk=fulfillment.pk)
-    restock_fulfillment_lines(fulfillment, warehouse)
-    events.fulfillment_canceled_event(
-        order=fulfillment.order, user=user, fulfillment=fulfillment
+    fulfillment.status = FulfillmentStatus.FULFILLED
+    fulfillment.save()
+    order = fulfillment.order
+    if notify_customer:
+        send_fulfillment_confirmation_to_customer(
+            fulfillment.order, fulfillment, user, app, manager
+        )
+    update_order_status(order)
+    manager.order_updated(order)
+    if order.status == OrderStatus.FULFILLED:
+        manager.order_fulfilled(order)
+    events.fulfillment_fulfilled_items_event(
+        order=order, user=user, app=app, fulfillment_lines=list(fulfillment.lines.all())
     )
-    events.fulfillment_restocked_items_event(
-        order=fulfillment.order,
-        user=user,
-        fulfillment=fulfillment,
-        warehouse_pk=warehouse.pk,
-    )
-    fulfillment.status = FulfillmentStatus.CANCELED
-    fulfillment.save(update_fields=["status"])
-    update_order_status(fulfillment.order)
-    manager.order_updated(fulfillment.order)
+    return fulfillment
 
 
 @traced_atomic_transaction()

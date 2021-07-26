@@ -9,8 +9,8 @@ from ....core.permissions import OrderPermissions
 from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
+    approve_fulfillment,
     cancel_fulfillment,
-    confirm_fulfillment,
     create_fulfillments,
     create_fulfillments_for_returned_products,
     create_refund_fulfillment,
@@ -348,16 +348,16 @@ class FulfillmentApprove(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_input(info, root):
-        if root.status != FulfillmentStatus.WAITING_FOR_ACCEPTANCE:
+    def clean_input(cls, info, fulfillment):
+        if fulfillment.status != FulfillmentStatus.WAITING_FOR_APPROVAL:
             raise ValidationError(
-                "Invalid fulfillment status, only WAITING_FOR_ACCEPTANCE "
+                "Invalid fulfillment status, only WAITING_FOR_APPROVAL "
                 "fulfillments can be accepted.",
                 code=OrderErrorCode.INVALID.value,
             )
         if (
             not info.context.site.settings.fulfillment_allow_unpaid
-            and not root.order.is_fully_paid()
+            and not fulfillment.order.is_fully_paid()
         ):
             raise ValidationError(
                 "Cannot fulfill unpaid order.",
@@ -365,14 +365,20 @@ class FulfillmentApprove(BaseMutation):
             )
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
-        cls.clean_input(info, root)
+    def perform_mutation(cls, _root, info, **data):
+        fulfillment = cls.get_node_or_error(info, data["id"], only_type="Fulfillment")
+        cls.clean_input(info, fulfillment)
 
-        order = root.order
-        confirm_fulfillment(root, info.context.user, info.context.plugins)
-        root.refresh_from_db(fields=["status"])
+        order = fulfillment.order
+        fulfillment = approve_fulfillment(
+            fulfillment,
+            info.context.user,
+            info.context.app,
+            info.context.plugins,
+            notify_customer=data["notify_customer"],
+        )
         order.refresh_from_db(fields=["status"])
-        return FulfillmentApprove(fulfillment=root, order=order)
+        return FulfillmentApprove(fulfillment=fulfillment, order=order)
 
 
 class OrderRefundLineInput(graphene.InputObjectType):
