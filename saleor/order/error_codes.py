@@ -34,7 +34,7 @@ class OrderErrorCode(Enum):
 
 
 class SubscriptionErrorCode(Enum):
-    CANNOT_CANCEL_SUBSCRIPTION = "cannot_cancel_subscription"
+    CANNOT_CANCEL = "cannot_cancel"
     CANNOT_DELETE = "cannot_delete"
     CANNOT_RENEW = "cannot_renew"
     CANNOT_UPDATE_STATUS = "cannot_update_status"

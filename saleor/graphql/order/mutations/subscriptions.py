@@ -35,6 +35,7 @@ class SubscriptionRenew(BaseMutation):
         )
         if subscription.can_renew():
             subscription_renew(subscription=subscription)
+            subscription.refresh_from_db()
         else:
             if subscription.status not in [
                 SubscriptionStatus.PENDING,
@@ -97,6 +98,7 @@ class SubscriptionUpdateStatus(BaseMutation):
         status = data.get("status")
         if subscription.can_update_status(status=status):
             subscription_update_status(subscription, status)
+            subscription.refresh_from_db()
         else:
             if status == SubscriptionStatus.PENDING and not (
                 subscription.status
@@ -157,6 +159,17 @@ class SubscriptionCancel(BaseMutation):
         subscription = cls.get_node_or_error(
             info, data.get("id"), only_type=Subscription
         )
-        subscription_cancel(subscription=subscription)
+        if subscription.can_cancel():
+            subscription_cancel(subscription=subscription)
+            subscription.refresh_from_db()
+        else:
+            raise ValidationError(
+                {
+                    "status": ValidationError(
+                        "Provided subscription already cancelled. ",
+                        code=SubscriptionErrorCode.CANNOT_CANCEL,
+                    )
+                }
+            )
 
         return SubscriptionCancel(subscription=subscription)

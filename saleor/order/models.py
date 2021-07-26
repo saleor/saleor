@@ -749,7 +749,6 @@ class Subscription(ModelWithMetadata):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-pk",)
-        permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
 
     def save(self, *args, **kwargs):
         return super().save(*args, **kwargs)
@@ -876,3 +875,8 @@ class Subscription(ModelWithMetadata):
                 return True
 
         return False
+
+    def can_cancel(self) -> bool:
+        if self.cancelled:
+            return False
+        return True

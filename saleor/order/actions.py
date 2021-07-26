@@ -1379,22 +1379,23 @@ def subscription_update_status(subscription: "Subscription", status: str):
 
 def subscription_cancel(subscription: "Subscription"):
     """Cancel subscription."""
-    subscription.cancelled = timezone.now()
-    subscription.save()
-    if subscription.end_date < subscription.cancelled:
-        subscription_update_status(
-            subscription=subscription, status=SubscriptionStatus.CANCELED
-        )
-    else:
-        subscription_update_status_eta = subscription.end_date + timedelta(minutes=1)
-        subscription_update_status_task.apply_async(
-            kwargs={
-                "subscription_pk": subscription.pk,
-                "status": SubscriptionStatus.CANCELED,
-            },
-            eta=subscription_update_status_eta,
-        )
+    if subscription.can_cancel():
+        subscription.cancelled = timezone.now()
+        subscription.save()
+        if subscription.end_date < subscription.cancelled:
+            subscription_update_status(
+                subscription=subscription, status=SubscriptionStatus.CANCELED
+            )
+        else:
+            subscription_update_status_eta = subscription.end_date + timedelta(minutes=1)
+            subscription_update_status_task.apply_async(
+                kwargs={
+                    "subscription_pk": subscription.pk,
+                    "status": SubscriptionStatus.CANCELED,
+                },
+                eta=subscription_update_status_eta,
+            )
 
-        subscription_update_status(
-            subscription=subscription, status=SubscriptionStatus.PENDING_CANCEL
-        )
+            subscription_update_status(
+                subscription=subscription, status=SubscriptionStatus.PENDING_CANCEL
+            )
