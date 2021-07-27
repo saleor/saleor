@@ -20,6 +20,7 @@ class AttributeDescriptions:
     AVAILABLE_IN_GRID = (
         "Whether the attribute can be displayed in the admin product list."
     )
+    WITH_CHOICES = "Flag indicating that attribute has predefined choices."
 
 
 class AttributeValueDescriptions:
