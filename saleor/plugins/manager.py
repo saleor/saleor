@@ -991,6 +991,12 @@ class PluginsManager(PaymentInterface):
             plugin, "external_verify", default_value, data, request
         )
 
+    def is_backorder_allowed(self, channel_slug) -> dict:
+        default_value = False
+        return self.__run_method_on_plugins(
+            "is_backorder_allowed", default_value, channel_slug=channel_slug
+        )
+
 
 def get_plugins_manager() -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):

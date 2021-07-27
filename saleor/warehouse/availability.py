@@ -5,6 +5,7 @@ from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
 from ..core.exceptions import InsufficientStock, InsufficientStockData
+from ..plugins.manager import get_plugins_manager
 from .models import Stock, StockQuerySet
 
 if TYPE_CHECKING:
@@ -37,8 +38,13 @@ def check_stock_quantity(
         if not stocks:
             raise InsufficientStock([InsufficientStockData(variant=variant)])
 
-        if quantity > _get_available_quantity(stocks):
-            raise InsufficientStock([InsufficientStockData(variant=variant)])
+        available_quantity = _get_available_quantity(stocks)
+        if quantity > available_quantity:
+            plugin_manager = get_plugins_manager()
+            if not plugin_manager.is_backorder_allowed(channel_slug):
+                raise InsufficientStock([InsufficientStockData(
+                    variant=variant, available_quantity=available_quantity
+                )])
 
 
 def check_stock_quantity_bulk(

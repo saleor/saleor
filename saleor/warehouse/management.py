@@ -6,8 +6,9 @@ from django.db.models import F, Sum
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
+from ..plugins.manager import get_plugins_manager
 from ..product.models import ProductVariant
-from .models import Allocation, Stock, Warehouse
+from .models import Allocation, Stock, Warehouse, Backorder
 
 if TYPE_CHECKING:
     from ..order.models import Order, OrderLine
@@ -79,10 +80,28 @@ def allocate_stocks(
         allocations.extend(allocation_items)
 
     if insufficient_stock:
-        raise InsufficientStock(insufficient_stock)
+        plugin_manager = get_plugins_manager()
+        if plugin_manager.is_backorder_allowed(channel_slug):
+            for insufficient_stock_data in insufficient_stock:
+                Backorder.objects.update_or_create(
+                    order_line=line_info.line,
+                    product_variant=insufficient_stock_data.variant,
+                    defaults={"quantity": insufficient_stock_data.backorder_quantity}
+                )
+        else:
+            raise InsufficientStock(insufficient_stock)
 
     if allocations:
-        Allocation.objects.bulk_create(allocations)
+        for allocation in allocations:
+            try:
+                existing_allocation = Allocation.objects.get(
+                    order_line=allocation.order_line,
+                    stock=allocation.stock,
+                )
+                existing_allocation.quantity_allocated += allocation.quantity_allocated
+                existing_allocation.save()
+            except Allocation.DoesNotExist:
+                allocation.save()
 
 
 def _create_allocations(
@@ -120,10 +139,11 @@ def _create_allocations(
     if not quantity_allocated == quantity:
         insufficient_stock.append(
             InsufficientStockData(
-                variant=line_info.variant, order_line=line_info.line  # type: ignore
+                variant=line_info.variant, order_line=line_info.line,  # type: ignore
+                backorder_quantity=quantity - quantity_allocated
             )
         )
-        return insufficient_stock, []
+        return insufficient_stock, allocations
 
 
 @traced_atomic_transaction()
@@ -218,6 +238,8 @@ def increase_stock(
             Allocation.objects.create(
                 order_line=order_line, stock=stock, quantity_allocated=quantity
             )
+
+    fill_backorders(order_line.variant)
 
 
 @traced_atomic_transaction()
@@ -376,3 +398,45 @@ def deallocate_stock_for_order(order: "Order"):
         order_line__order=order, quantity_allocated__gt=0
     ).select_for_update(of=("self",))
     allocations.update(quantity_allocated=0)
+
+
+@traced_atomic_transaction()
+def fill_backorders(product_variant: "ProductVariant"):
+    """Given a product variant, attempt to fill any backorders that might exist for
+    that variant. Backorders are filled in a FIFO order.
+    """
+    # Fetch all backorders for the variant being stocked
+    backorders = (
+        product_variant.backorders.filter(quantity__gt=0)
+        .prefetch_related("order_line__allocations")
+        .prefetch_related("order_line__order__shipping_address")
+        .prefetch_related("order_line__order__channel")
+        .order_by("created")
+    )
+
+    for backorder in backorders:
+        shipping_country = backorder.order_line.order.shipping_address.country
+        channel_slug = backorder.order_line.order.channel.slug
+
+        # Since stock available is specific to a shipping zone and channel, we need to
+        # check available quantity for each backorder
+        stock = Stock.objects.get_variant_stocks_for_country(
+            country_code=shipping_country,
+            channel_slug=channel_slug,
+            product_variant=product_variant
+        ).annotate_available_quantity().first()
+
+        available_quantity = stock.available_quantity if stock else 0
+        if available_quantity > 0:
+            order_line_data = OrderLineData(
+                line=backorder.order_line,
+                quantity=backorder.quantity,
+                variant=product_variant
+            )
+            allocate_stocks([order_line_data], shipping_country, channel_slug)
+            if available_quantity >= backorder.quantity:
+                # The allocate_stocks function will update the backorder quantity if
+                # there still exists insufficient stock, but not if we can allocate the
+                # order line completely
+                backorder.quantity = 0
+                backorder.save()

@@ -148,3 +148,37 @@ class Allocation(CountableDjangoObjectType):
     )
     def resolve_quantity(root, *_args):
         return root.quantity_allocated
+
+
+class Backorder(CountableDjangoObjectType):
+    quantity = graphene.Int(required=True, description="Quantity backordered.")
+    created = graphene.String(
+        required=True,
+        description="Date when backorder was created."
+    )
+
+    class Meta:
+        description = "Represents backorder."
+        model = models.Backorder
+        interfaces = [graphene.relay.Node]
+        only_fields = ["id"]
+
+    @staticmethod
+    @one_of_permissions_required(
+        [
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ]
+    )
+    def resolve_quantity(root, *_args):
+        return root.quantity
+
+    @staticmethod
+    @one_of_permissions_required(
+        [
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ]
+    )
+    def resolve_created(root, *_args):
+        return root.created

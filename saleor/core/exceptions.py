@@ -14,6 +14,7 @@ class InsufficientStockData:
     order_line: Optional["OrderLine"] = None
     warehouse_pk: Union[str, int, None] = None
     available_quantity: Optional[int] = None
+    backorder_quantity: Optional[int] = None
 
 
 class InsufficientStock(Exception):

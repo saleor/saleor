@@ -35,6 +35,7 @@ from ...payment.model_helpers import (
 )
 from ...product import ProductMediaTypes
 from ...product.product_images import get_product_image_thumbnail
+from ...warehouse.models import Backorder as backorder_model
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import requestor_has_access
@@ -66,7 +67,7 @@ from ..product.dataloaders import (
 from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
-from ..warehouse.types import Allocation, Warehouse
+from ..warehouse.types import Allocation, Warehouse, Backorder
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
     FulfillmentLinesByIdLoader,
@@ -443,6 +444,11 @@ class OrderLine(CountableDjangoObjectType):
     unit_discount_type = graphene.Field(
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
+    )
+    backorder = graphene.Field(
+        Backorder,
+        description="Backorder details for this line item.",
+        required=False
     )
 
     class Meta:

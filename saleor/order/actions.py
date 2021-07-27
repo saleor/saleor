@@ -28,7 +28,7 @@ from ..warehouse.management import (
     decrease_stock,
     get_order_lines_with_track_inventory,
 )
-from ..warehouse.models import Stock
+from ..warehouse.models import Stock, Backorder
 from . import (
     FulfillmentLineData,
     FulfillmentStatus,
@@ -639,6 +639,8 @@ def _move_order_lines_to_target_fulfillment(
     fulfillment_lines_to_create: List[FulfillmentLine] = []
     order_lines_to_update: List[OrderLine] = []
 
+    backorders_to_update: List[Backorder] = []
+    backorders_to_delete: List[int] = []
     lines_to_dellocate: List[OrderLineData] = []
     for line_data in order_lines_to_move:
         line_to_move = line_data.line
@@ -660,6 +662,20 @@ def _move_order_lines_to_target_fulfillment(
 
         fulfillment_lines_to_create.append(fulfillment_line)
 
+        # Remove any backordered units before removing actual allocations
+        try:
+            backorder = line_to_move.backorder
+        except Backorder.DoesNotExist:
+            pass
+        else:
+            backorder_reduction = min(backorder.quantity, unfulfilled_to_move)
+            unfulfilled_to_move -= backorder_reduction
+            backorder.quantity -= backorder_reduction
+            if backorder.quantity == 0:
+                backorders_to_delete.append(backorder.pk)
+            else:
+                backorders_to_update.append(backorder)
+
         line_allocations_exists = line_to_move.allocations.exists()
         if line_allocations_exists:
             lines_to_dellocate.append(
@@ -675,6 +691,8 @@ def _move_order_lines_to_target_fulfillment(
                 "Unable to deallocate stock for lines.", extra={"lines": lines}
             )
 
+    Backorder.objects.bulk_update(backorders_to_update, ["quantity"])
+    Backorder.objects.filter(pk__in=backorders_to_delete).delete()
     created_fulfillment_lines = FulfillmentLine.objects.bulk_create(
         fulfillment_lines_to_create
     )

@@ -19,6 +19,7 @@ from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
 from ....product.utils.variants import generate_and_set_variant_name
 from ....warehouse import models as warehouse_models
+from ....warehouse.management import fill_backorders
 from ....warehouse.error_codes import StockErrorCode
 from ...channel import ChannelContext
 from ...channel.types import Channel
@@ -722,6 +723,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             stock.quantity = stock_data["quantity"]
             stocks.append(stock)
         warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])
+        fill_backorders(variant)
 
 
 class ProductVariantStocksDelete(BaseMutation):

@@ -655,6 +655,9 @@ class BasePlugin:
         )
         return [gateway]
 
+    def is_backorder_allowed(self, previous_value):
+        return NotImplemented
+
     @classmethod
     def _update_config_items(
         cls, configuration_to_update: List[dict], current_config: List[dict]

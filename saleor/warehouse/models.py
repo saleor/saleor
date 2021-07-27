@@ -5,6 +5,7 @@ from typing import Set
 from django.db import models
 from django.db.models import Exists, F, OuterRef, Sum
 from django.db.models.functions import Coalesce
+from django.utils.timezone import now
 
 from ..account.models import Address
 from ..channel.models import Channel
@@ -157,3 +158,24 @@ class Allocation(models.Model):
     class Meta:
         unique_together = [["order_line", "stock"]]
         ordering = ("pk",)
+
+
+class Backorder(models.Model):
+    order_line = models.OneToOneField(
+        OrderLine,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="backorder",
+    )
+    product_variant = models.ForeignKey(
+        ProductVariant,
+        null=False,
+        on_delete=models.CASCADE,
+        related_name="backorders",
+    )
+    quantity = models.PositiveIntegerField(default=0)
+    created = models.DateTimeField(default=now, editable=False)
+
+    class Meta:
+        ordering = ("created",)
