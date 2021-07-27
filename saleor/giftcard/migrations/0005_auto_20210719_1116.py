@@ -144,6 +144,24 @@ class Migration(migrations.Migration):
             model_name="giftcard",
             name="start_date",
         ),
+        migrations.AddIndex(
+            model_name="giftcard",
+            index=django.contrib.postgres.indexes.GinIndex(
+                fields=["private_metadata"], name="giftcard_p_meta_idx"
+            ),
+        ),
+        migrations.AddIndex(
+            model_name="giftcard",
+            index=django.contrib.postgres.indexes.GinIndex(
+                fields=["metadata"], name="giftcard_meta_idx"
+            ),
+        ),
+        migrations.AddIndex(
+            model_name="giftcard",
+            index=django.contrib.postgres.indexes.GinIndex(
+                fields=["tag"], name="giftcard_search_gin", opclasses=["gin_trgm_ops"]
+            ),
+        ),
         migrations.CreateModel(
             name="GiftCardEvent",
             fields=[

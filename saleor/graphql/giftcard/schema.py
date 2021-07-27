@@ -1,9 +1,10 @@
 import graphene
 
 from ...core.permissions import GiftcardPermissions
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
+from .filters import GiftCardFilterInput
 from .mutations import (
     GiftCardActivate,
     GiftCardCreate,
@@ -22,7 +23,11 @@ class GiftCardQueries(graphene.ObjectType):
         ),
         description="Look up a gift card by ID.",
     )
-    gift_cards = PrefetchingConnectionField(GiftCard, description="List of gift cards.")
+    gift_cards = FilterInputConnectionField(
+        GiftCard,
+        filter=GiftCardFilterInput(description="Filtering options for gift cards."),
+        description="List of gift cards.",
+    )
 
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
     def resolve_gift_card(self, info, **data):

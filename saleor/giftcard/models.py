@@ -1,6 +1,7 @@
 import os
 
 from django.conf import settings
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import JSONField, Q
 from django.utils import timezone
@@ -100,6 +101,15 @@ class GiftCard(ModelWithMetadata):
         permissions = (
             (GiftcardPermissions.MANAGE_GIFT_CARD.codename, "Manage gift cards."),
         )
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(
+                name="giftcard_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["tag"],
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
 
     @property
     def display_code(self):
