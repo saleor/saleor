@@ -105,7 +105,7 @@ class AppQueries(graphene.ObjectType):
 
             if not app_extension:
                 return None
-            print(app_extension)
+
             return (
                 AppByIdLoader(info.context).load(app_extension.app_id).then(is_active)
             )
