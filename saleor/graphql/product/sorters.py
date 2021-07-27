@@ -14,6 +14,7 @@ from django.db.models import (
 )
 from django.db.models.expressions import Window
 from django.db.models.functions import Coalesce, DenseRank
+from graphql.error import GraphQLError
 
 from ...product.models import (
     Category,
@@ -210,6 +211,12 @@ class ProductOrderField(graphene.Enum):
                 ),
             )
         )
+
+    @staticmethod
+    def qs_with_rank(queryset: QuerySet, **_kwargs) -> QuerySet:
+        if "rank" in queryset.query.annotations.keys():
+            return queryset
+        raise GraphQLError("Sorting by Rank is available only with searching.")
 
 
 class ProductOrder(SortInputObjectType):

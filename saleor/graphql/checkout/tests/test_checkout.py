@@ -1506,6 +1506,43 @@ def test_checkout_customer_attach(
     assert checkout.email == customer_user.email
 
 
+def test_checkout_customer_attach_user_to_checkout_with_user(
+    user_api_client, customer_user, user_checkout, address
+):
+    checkout = user_checkout
+
+    query = """
+    mutation checkoutCustomerAttach($checkoutId: ID, $token: UUID) {
+        checkoutCustomerAttach(checkoutId: $checkoutId, token: $token) {
+            checkout {
+                token
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+    default_address = address.get_copy()
+    second_user = User.objects.create_user(
+        "test2@example.com",
+        "password",
+        default_billing_address=default_address,
+        default_shipping_address=default_address,
+        first_name="Test2",
+        last_name="Tested",
+    )
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    customer_id = graphene.Node.to_global_id("User", second_user.pk)
+    variables = {"checkoutId": checkout_id, "customerId": customer_id}
+    response = user_api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+
+
 MUTATION_CHECKOUT_CUSTOMER_DETACH = """
     mutation checkoutCustomerDetach($token: UUID) {
         checkoutCustomerDetach(token: $token) {

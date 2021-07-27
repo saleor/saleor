@@ -84,7 +84,6 @@ class CheckoutLine(CountableDjangoObjectType):
         filter_fields = ["id"]
 
     @staticmethod
-    @traced_resolver
     def resolve_variant(root: models.CheckoutLine, info):
         variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
         channel = ChannelByCheckoutLineIDLoader(info.context).load(root.id)
@@ -144,7 +143,6 @@ class CheckoutLine(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_requires_shipping(root: models.CheckoutLine, info):
         def is_shipping_required(product_type):
             return product_type.is_shipping_required
@@ -228,21 +226,18 @@ class Checkout(CountableDjangoObjectType):
         filter_fields = ["token"]
 
     @staticmethod
-    @traced_resolver
     def resolve_shipping_address(root: models.Checkout, info):
         if not root.shipping_address_id:
             return
         return AddressByIdLoader(info.context).load(root.shipping_address_id)
 
     @staticmethod
-    @traced_resolver
     def resolve_billing_address(root: models.Checkout, info):
         if not root.billing_address_id:
             return
         return AddressByIdLoader(info.context).load(root.billing_address_id)
 
     @staticmethod
-    @traced_resolver
     def resolve_user(root: models.Checkout, info):
         requestor = get_user_or_app_from_context(info.context)
         if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_USERS):
@@ -250,12 +245,10 @@ class Checkout(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
-    @traced_resolver
     def resolve_email(root: models.Checkout, _info):
         return root.get_customer_email()
 
     @staticmethod
-    @traced_resolver
     def resolve_shipping_method(root: models.Checkout, info):
         if not root.shipping_method_id:
             return None
@@ -371,7 +364,6 @@ class Checkout(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_lines(root: models.Checkout, info):
         return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
 
@@ -454,19 +446,16 @@ class Checkout(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_available_payment_gateways(root: models.Checkout, info):
         return info.context.plugins.list_payment_gateways(
             currency=root.currency, checkout=root, channel_slug=root.channel.slug
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_gift_cards(root: models.Checkout, _info):
         return root.gift_cards.all()
 
     @staticmethod
-    @traced_resolver
     def resolve_is_shipping_required(root: models.Checkout, info):
         def is_shipping_required(lines):
             product_ids = [line_info.product.id for line_info in lines]
@@ -487,6 +476,5 @@ class Checkout(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_language_code(root, _info, **_kwargs):
         return LanguageCodeEnum[str_to_enum(root.language_code)]

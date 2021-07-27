@@ -67,12 +67,20 @@ class Address(models.Model):
     postal_code = models.CharField(max_length=20, blank=True)
     country = CountryField()
     country_area = models.CharField(max_length=128, blank=True)
-    phone = PossiblePhoneNumberField(blank=True, default="")
+    phone = PossiblePhoneNumberField(blank=True, default="", db_index=True)
 
     objects = models.Manager.from_queryset(AddressQueryset)()
 
     class Meta:
         ordering = ("pk",)
+        indexes = [
+            GinIndex(
+                name="address_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["first_name", "last_name", "city", "country"],
+                opclasses=["gin_trgm_ops"] * 4,
+            ),
+        ]
 
     @property
     def full_name(self):
@@ -176,7 +184,12 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         indexes = [
             *ModelWithMetadata.Meta.indexes,
             # Orders searching index
-            GinIndex(fields=["email", "first_name", "last_name"]),
+            GinIndex(
+                name="user_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["email", "first_name", "last_name"],
+                opclasses=["gin_trgm_ops"] * 3,
+            ),
         ]
 
     def __init__(self, *args, **kwargs):

@@ -329,7 +329,20 @@ def _filter_products_is_published(qs, _, value, channel_slug):
     product_channel_listings = ProductChannelListing.objects.filter(
         Exists(channel.filter(pk=OuterRef("channel_id"))), is_published=value
     ).values("product_id")
-    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
+
+    # Filter out product for which there is no variant with price
+    variant_channel_listings = ProductVariantChannelListing.objects.filter(
+        Exists(channel.filter(pk=OuterRef("channel_id"))),
+        price_amount__isnull=False,
+    ).values("id")
+    variants = ProductVariant.objects.filter(
+        Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
+    ).values("product_id")
+
+    return qs.filter(
+        Exists(product_channel_listings.filter(product_id=OuterRef("pk"))),
+        Exists(variants.filter(product_id=OuterRef("pk"))),
+    )
 
 
 def _filter_variant_price(qs, _, value, channel_slug):

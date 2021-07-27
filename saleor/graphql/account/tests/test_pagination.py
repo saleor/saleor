@@ -221,7 +221,7 @@ def test_query_customers_pagination_with_sort(
     "customer_filter, users_order",
     [
         ({"search": "example.com"}, ["Alan", "Harry"]),  # email
-        ({"search": "test.com"}, ["Anthony", "Robert"]),  # email
+        ({"search": "davis@test.com"}, ["Robert", "Xavier"]),  # email
         ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
         ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
         ({"search": "pl"}, ["Anthony", "Alan"]),  # country
@@ -254,7 +254,7 @@ def test_query_customer_members_pagination_with_filter_search(
 @pytest.mark.parametrize(
     "staff_member_filter, users_order",
     [
-        ({"search": "example.com"}, ["Anthony", "Alan"]),  # email
+        ({"search": "davis@example.com"}, ["Robert", "Xavier"]),  # email
         ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
         ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
         ({"search": "pl"}, ["Anthony", "Alan"]),  # country

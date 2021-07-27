@@ -39,12 +39,10 @@ class GiftCard(CountableDjangoObjectType):
         model = models.GiftCard
 
     @staticmethod
-    @traced_resolver
     def resolve_display_code(root: models.GiftCard, *_args, **_kwargs):
         return root.display_code
 
     @staticmethod
-    @traced_resolver
     def resolve_user(root: models.GiftCard, info):
         requestor = get_user_or_app_from_context(info.context)
         if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_USERS):
