@@ -37,6 +37,7 @@ from . import (
     OrderStatus,
     events,
     utils,
+    OrderEvents,
 )
 from .error_codes import OrderErrorCode
 from .events import (
@@ -45,6 +46,9 @@ from .events import (
     fulfillment_replaced_event,
     order_replacement_created,
     order_returned_event,
+    backorder_changed_event,
+    backorder_removed_event,
+    OrderEvent,
 )
 from .models import Fulfillment, FulfillmentLine, Order, OrderLine
 from .notifications import (
@@ -641,6 +645,8 @@ def _move_order_lines_to_target_fulfillment(
 
     backorders_to_update: List[Backorder] = []
     backorders_to_delete: List[int] = []
+    backorder_changed_events: List[OrderEvent] = []
+    backorder_removed_events: List[OrderEvent] =[]
     lines_to_dellocate: List[OrderLineData] = []
     for line_data in order_lines_to_move:
         line_to_move = line_data.line
@@ -673,8 +679,32 @@ def _move_order_lines_to_target_fulfillment(
             backorder.quantity -= backorder_reduction
             if backorder.quantity == 0:
                 backorders_to_delete.append(backorder.pk)
+                backorder_removed_events.append(OrderEvent(
+                    order=backorder.order_line.order,
+                    type=OrderEvents.BACKORDER_REMOVED,
+                    parameters={
+                        "backorder_pk": backorder.pk,
+                        "quantity": backorder.quantity,
+                        "line": {
+                            "line_pk": backorder.order_line.pk,
+                            "item": str(backorder.order_line)
+                        }
+                    },
+                ))
             else:
                 backorders_to_update.append(backorder)
+                backorder_changed_event(OrderEvent(
+                    order=backorder.order_line.order,
+                    type=OrderEvents.BACKORDER_CHANGED,
+                    parameters={
+                        "backorder_pk": backorder.pk,
+                        "quantity": backorder.quantity,
+                        "line": {
+                            "line_pk": backorder.order_line.pk,
+                            "item": str(backorder.order_line)
+                        }
+                    },
+                ))
 
         line_allocations_exists = line_to_move.allocations.exists()
         if line_allocations_exists:
@@ -692,6 +722,8 @@ def _move_order_lines_to_target_fulfillment(
             )
 
     Backorder.objects.bulk_update(backorders_to_update, ["quantity"])
+    OrderEvent.objects.bulk_create(backorder_changed_events)
+    OrderEvent.objects.bulk_create(backorder_removed_events)
     Backorder.objects.filter(pk__in=backorders_to_delete).delete()
     created_fulfillment_lines = FulfillmentLine.objects.bulk_create(
         fulfillment_lines_to_create

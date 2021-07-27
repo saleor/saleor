@@ -122,6 +122,10 @@ class OrderEvents:
     TRACKING_UPDATED = "tracking_updated"
     NOTE_ADDED = "note_added"
 
+    BACKORDER_CREATED = "backorder_created"
+    BACKORDER_CHANGED = "backorder_changed"
+    BACKORDER_REMOVED = "backorder_removed"
+
     # Used mostly for importing legacy data from before Enum-based events
     OTHER = "other"
 
@@ -169,6 +173,9 @@ class OrderEvents:
         (FULFILLMENT_REPLACED, "Some items were replaced"),
         (TRACKING_UPDATED, "The fulfillment's tracking code was updated"),
         (NOTE_ADDED, "A note was added to the order"),
+        (BACKORDER_CREATED, "A backorder was created"),
+        (BACKORDER_CHANGED, "A backorder's quantity was changed"),
+        (BACKORDER_REMOVED, "A backorder was filled or removed"),
         (OTHER, "An unknown order event containing a message"),
     ]
 

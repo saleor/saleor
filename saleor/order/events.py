@@ -8,6 +8,7 @@ from ..core.utils.validators import user_is_valid
 from ..discount.models import OrderDiscount
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment.models import Payment
+from ..warehouse.models import Backorder
 from . import OrderEvents, OrderEventsEmails
 from .models import OrderEvent
 
@@ -809,4 +810,73 @@ def order_line_variant_removed_event(
         user=user,
         app=app,
         parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
+    )
+
+
+def backorder_created_event(
+    user: UserType,
+    app: AppType,
+    backorder: Backorder,
+) -> OrderEvent:
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=backorder.order_line.order,
+        type=OrderEvents.BACKORDER_CREATED,
+        user=user,
+        app=app,
+        parameters={
+            "backorder_pk": backorder.pk,
+            "quantity": backorder.quantity,
+            "line": {
+                "line_pk": backorder.order_line.pk,
+                "item": str(backorder.order_line)
+            }
+        },
+    )
+
+
+def backorder_changed_event(
+    user: UserType,
+    app: AppType,
+    backorder: Backorder,
+) -> OrderEvent:
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=backorder.order_line.order,
+        type=OrderEvents.BACKORDER_CHANGED,
+        user=user,
+        app=app,
+        parameters={
+            "backorder_pk": backorder.pk,
+            "quantity": backorder.quantity,
+            "line": {
+                "line_pk": backorder.order_line.pk,
+                "item": str(backorder.order_line)
+            }
+        },
+    )
+
+
+def backorder_removed_event(
+    user: UserType,
+    app: AppType,
+    backorder: Backorder,
+) -> OrderEvent:
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=backorder.order_line.order,
+        type=OrderEvents.BACKORDER_REMOVED,
+        user=user,
+        app=app,
+        parameters={
+            "backorder_pk": backorder.pk,
+            "quantity": backorder.quantity,
+            "line": {
+                "line_pk": backorder.order_line.pk,
+                "item": str(backorder.order_line)
+            }
+        },
     )

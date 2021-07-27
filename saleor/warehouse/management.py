@@ -5,7 +5,7 @@ from django.db.models import F, Sum
 
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
-from ..order import OrderLineData
+from ..order import OrderLineData, events
 from ..plugins.manager import get_plugins_manager
 from ..product.models import ProductVariant
 from .models import Allocation, Stock, Warehouse, Backorder
@@ -83,11 +83,23 @@ def allocate_stocks(
         plugin_manager = get_plugins_manager()
         if plugin_manager.is_backorder_allowed(channel_slug):
             for insufficient_stock_data in insufficient_stock:
-                Backorder.objects.update_or_create(
+                backorder, created = Backorder.objects.update_or_create(
                     order_line=line_info.line,
                     product_variant=insufficient_stock_data.variant,
                     defaults={"quantity": insufficient_stock_data.backorder_quantity}
                 )
+                if created:
+                    events.backorder_created_event(
+                        user=None,
+                        app=None,
+                        backorder=backorder
+                    )
+                else:
+                    events.backorder_changed_event(
+                        user=None,
+                        app=None,
+                        backorder=backorder
+                    )
         else:
             raise InsufficientStock(insufficient_stock)
 
