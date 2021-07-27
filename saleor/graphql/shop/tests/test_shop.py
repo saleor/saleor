@@ -1330,3 +1330,42 @@ def test_get_shop_limit_info_returns_null_by_default(staff_api_client):
             }
         }
     }
+
+
+CHANNEL_CURRENCIES_QUERY = """
+    query {
+        shop {
+            channelCurrencies
+        }
+    }
+"""
+
+
+def test_fetch_channel_currencies(
+    staff_api_client, channel_PLN, channel_USD, other_channel_USD
+):
+    query = CHANNEL_CURRENCIES_QUERY
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    assert set(content["data"]["shop"]["channelCurrencies"]) == {
+        channel_PLN.currency_code,
+        channel_USD.currency_code,
+    }
+
+
+def test_fetch_channel_currencies_by_app(
+    app_api_client, channel_PLN, channel_USD, other_channel_USD
+):
+    query = CHANNEL_CURRENCIES_QUERY
+    response = app_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    assert set(content["data"]["shop"]["channelCurrencies"]) == {
+        channel_PLN.currency_code,
+        channel_USD.currency_code,
+    }
+
+
+def test_fetch_channel_currencies_by_customer(api_client, channel_PLN, channel_USD):
+    query = CHANNEL_CURRENCIES_QUERY
+    response = api_client.post_graphql(query)
+    assert_no_permission(response)
