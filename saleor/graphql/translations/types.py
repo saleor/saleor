@@ -230,7 +230,6 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
         only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
     @staticmethod
-    @traced_resolver
     def resolve_collection(root: product_models.Collection, info):
         collection = product_models.Collection.objects.all().filter(pk=root.id).first()
         return (
@@ -349,7 +348,6 @@ class PageTranslatableContent(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    @traced_resolver
     def resolve_page(root: page_models.Page, info):
         return (
             page_models.Page.objects.visible_to_user(info.context.user)
