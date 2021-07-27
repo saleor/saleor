@@ -352,13 +352,24 @@ def approve_fulfillment(
         send_fulfillment_confirmation_to_customer(
             fulfillment.order, fulfillment, user, app, manager
         )
-    update_order_status(order)
-    manager.order_updated(order)
-    if order.status == OrderStatus.FULFILLED:
-        manager.order_fulfilled(order)
     events.fulfillment_fulfilled_items_event(
         order=order, user=user, app=app, fulfillment_lines=list(fulfillment.lines.all())
     )
+    lines_to_fulfill = [
+        OrderLineData(
+            line=f_line.order_line,
+            quantity=f_line.quantity,
+            variant=f_line.order_line.variant,
+            warehouse_pk=str(f_line.stock.warehouse_id),  # type: ignore
+        )
+        for f_line in fulfillment.lines.all()
+    ]
+    fulfill_order_lines(lines_to_fulfill)
+    order.refresh_from_db()
+    manager.order_updated(order)
+    if order.status == OrderStatus.FULFILLED:
+        manager.order_fulfilled(order)
+    update_order_status(order)
     return fulfillment
 
 
