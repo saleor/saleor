@@ -21,6 +21,8 @@ def description(enum):
 
 AppTypeEnum = to_enum(AppType, description=description)
 
-AppExtensionTypeEnum = to_enum(AppExtensionType)
-AppExtensionViewEnum = to_enum(AppExtensionView)
-AppExtensionTargetEnum = to_enum(AppExtensionTarget)
+AppExtensionTypeEnum = to_enum(AppExtensionType, description=AppExtensionType.__doc__)
+AppExtensionViewEnum = to_enum(AppExtensionView, description=AppExtensionView.__doc__)
+AppExtensionTargetEnum = to_enum(
+    AppExtensionTarget, description=AppExtensionTarget.__doc__
+)

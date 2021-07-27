@@ -12,29 +12,46 @@ from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
 from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader
-from .enums import AppTypeEnum
+from .enums import (
+    AppExtensionTargetEnum,
+    AppExtensionTypeEnum,
+    AppExtensionViewEnum,
+    AppTypeEnum,
+)
 from .resolvers import resolve_access_token
 
 
-class AppExtension(CountableDjangoObjectType):
-    app = graphene.Field("saleor.graphql.app.types.App", required=True)
+class AppManifestExtension(graphene.ObjectType):
     permissions = graphene.List(
         graphene.NonNull(Permission),
         description="List of the app extension's permissions.",
         required=True,
     )
+    label = graphene.String(
+        description="Label of the extension show on dashboard side.", required=True
+    )
+    url = graphene.String(
+        description="URL where iframe of extension is placed.", required=True
+    )
+    view = AppExtensionViewEnum(
+        description="View where extension's iframe will be mounted.", required=True
+    )
+    type = AppExtensionTypeEnum(
+        description="Type of view where extension's iframe will be mounted.",
+        required=True,
+    )
+    target = AppExtensionTargetEnum(
+        description="Place where extension's iframe will be mounted.", required=True
+    )
+
+
+class AppExtension(AppManifestExtension, CountableDjangoObjectType):
+    app = graphene.Field("saleor.graphql.app.types.App", required=True)
 
     class Meta:
         description = "Represents app data."
         interfaces = [graphene.relay.Node]
         model = models.AppExtension
-        only_fields = [
-            "label",
-            "url",
-            "view",
-            "type",
-            "target",
-        ]
 
     @staticmethod
     def resolve_app(root, info):
@@ -72,6 +89,7 @@ class Manifest(graphene.ObjectType):
     data_privacy_url = graphene.String()
     homepage_url = graphene.String()
     support_url = graphene.String()
+    extensions = graphene.List(graphene.NonNull(AppManifestExtension))
 
     class Meta:
         description = "The manifest definition."
