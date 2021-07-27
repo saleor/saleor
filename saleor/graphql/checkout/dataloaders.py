@@ -244,9 +244,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             shipping_address=address_map.get(
                                 checkout.shipping_address_id
                             ),
-                            shipping_method=shipping_method_map.get(
-                                checkout.shipping_method_id
-                            ),
                             delivery_method_info=delivery_method_info,
                             valid_shipping_methods=[],
                             valid_pick_up_points=[],
@@ -256,9 +253,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                                 )
                             ),
                         )
-                        delivery_method = shipping_method_map.get(
-                            checkout.shipping_method_id
-                        ) or collection_points_map.get(checkout.collection_point_id)
 
                     return [checkout_info_map[key] for key in keys]
 

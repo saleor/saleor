@@ -34,7 +34,6 @@ from .error_codes import CheckoutErrorCode
 from .fetch import (
     update_checkout_info_delivery_method,
     update_checkout_info_shipping_address,
-    update_checkout_info_shipping_method,
 )
 from .models import Checkout, CheckoutLine
 
@@ -257,9 +256,9 @@ def _get_shipping_voucher_discount_for_checkout(
     if not is_shipping_required(lines):
         msg = "Your order does not require shipping."
         raise NotApplicable(msg)
-    shipping_method = checkout_info.shipping_method
+    shipping_method = checkout_info.delivery_method_info.delivery_method
     if not shipping_method:
-        msg = "Please select a shipping method first."
+        msg = "Please select a delivery method first."
         raise NotApplicable(msg)
 
     # check if voucher is limited to specified countries
@@ -627,33 +626,12 @@ def get_valid_collection_points_for_checkout(
     )
 
 
-def is_valid_shipping_method(checkout_info: "CheckoutInfo"):
-    """Check if shipping method is valid and remove (if not)."""
-    if not checkout_info.shipping_method:
-        return False
-    if not checkout_info.shipping_address:
-        return False
-
-    valid_methods = checkout_info.valid_shipping_methods
-    if valid_methods is None or checkout_info.shipping_method not in valid_methods:
-        clear_shipping_method(checkout_info)
-        return False
-    return True
-
-
 def clear_delivery_method(checkout_info: "CheckoutInfo"):
     checkout = checkout_info.checkout
     checkout.collection_point = None
     checkout.shipping_method = None
     update_checkout_info_delivery_method(checkout_info, None)
     checkout.save(update_fields=["shipping_method", "collection_point", "last_change"])
-
-
-def clear_shipping_method(checkout_info: "CheckoutInfo"):
-    checkout = checkout_info.checkout
-    checkout.shipping_method = None
-    update_checkout_info_shipping_method(checkout_info, None)
-    checkout.save(update_fields=["shipping_method", "last_change"])
 
 
 def is_fully_paid(

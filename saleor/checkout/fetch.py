@@ -44,7 +44,6 @@ class CheckoutInfo:
     channel: "Channel"
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
-    shipping_method: Optional["ShippingMethod"]  # Will be deprecated
     delivery_method_info: "EmptyDeliveryMethod"
     valid_shipping_methods: List["ShippingMethod"]
     valid_pick_up_points: List["Warehouse"]
@@ -99,7 +98,7 @@ class EmptyDeliveryMethod:
         return False
 
     def update_channel_listings(self, checkout_info: "CheckoutInfo") -> None:
-        pass
+        checkout_info.shipping_method_channel_listings = None
 
 
 @dataclass(frozen=True)
@@ -277,7 +276,6 @@ def fetch_checkout_info(
         channel=channel,
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
-        shipping_method=shipping_method,
         delivery_method_info=delivery_method_info,
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=[],
@@ -350,21 +348,6 @@ def get_valid_collection_points_for_checkout_info(
         lines, checkout_info, country_code=country_code, quantity_check=False
     )
     return list(valid_collection_points)
-
-
-def update_checkout_info_shipping_method(
-    checkout_info: CheckoutInfo, shipping_method: Optional["ShippingMethod"]
-):
-    checkout_info.shipping_method = shipping_method
-    checkout_info.shipping_method_channel_listings = (
-        (
-            ShippingMethodChannelListing.objects.filter(
-                shipping_method=shipping_method, channel=checkout_info.channel
-            ).first()
-        )
-        if shipping_method
-        else None
-    )
 
 
 def update_checkout_info_delivery_method(

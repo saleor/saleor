@@ -39,12 +39,12 @@ from ....shipping import models as shipping_models
 from ....warehouse.models import Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
-    clean_shipping_method,
+    clean_delivery_method,
     update_checkout_shipping_method_if_invalid,
 )
 
 
-def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
+def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
     checkout_with_single_item, address, shipping_method, other_shipping_method
 ):
     """Ensure the current shipping method applies to new address.
@@ -58,11 +58,11 @@ def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    is_valid_method = clean_shipping_method(checkout_info, lines, shipping_method)
+    is_valid_method = clean_delivery_method(checkout_info, lines, shipping_method)
     assert is_valid_method is True
 
 
-def test_clean_shipping_method_does_nothing_if_no_shipping_method(
+def test_clean_delivery_method_does_nothing_if_no_shipping_method(
     checkout_with_single_item, address, other_shipping_method
 ):
     """If no shipping method was selected, it shouldn't return an error."""
@@ -72,7 +72,7 @@ def test_clean_shipping_method_does_nothing_if_no_shipping_method(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    is_valid_method = clean_shipping_method(checkout_info, lines, None)
+    is_valid_method = clean_delivery_method(checkout_info, lines, None)
     assert is_valid_method is True
 
 
@@ -97,9 +97,14 @@ def test_update_checkout_shipping_method_if_invalid(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
-    assert checkout.shipping_method is None
-    assert checkout_info.shipping_method is None
-    assert checkout_info.shipping_method_channel_listings is None
+    assert checkout.shipping_method == other_shipping_method
+    assert checkout_info.delivery_method_info.delivery_method == other_shipping_method
+    assert (
+        checkout_info.shipping_method_channel_listings
+        == shipping_models.ShippingMethodChannelListing.objects.filter(
+            shipping_method=other_shipping_method, channel=checkout_info.channel
+        ).first()
+    )
 
     # Ensure the checkout's shipping method was saved
     checkout.refresh_from_db(fields=["shipping_method"])
@@ -2409,7 +2414,7 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
 
 # TODO: Deprecated
 @pytest.mark.parametrize("is_valid_shipping_method", (True, False))
-@patch("saleor.graphql.checkout.mutations.clean_shipping_method")
+@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
 def test_checkout_shipping_method_update(
     mock_clean_shipping,
     staff_api_client,
@@ -2433,9 +2438,8 @@ def test_checkout_shipping_method_update(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    checkout_info.shipping_method = old_shipping_method
     checkout_info.delivery_method_info = get_delivery_method_info(
-        checkout_info.shipping_method, None
+        old_shipping_method, None
     )
     checkout_info.shipping_method_channel_listings = None
     mock_clean_shipping.assert_called_once_with(
@@ -2498,9 +2502,8 @@ def test_checkout_delivery_method_update(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    checkout_info.shipping_method = old_delivery_method
     checkout_info.delivery_method_info = get_delivery_method_info(
-        checkout_info.shipping_method, None
+        old_delivery_method, None
     )
     checkout_info.shipping_method_channel_listings = None
     mock_clean_delivery.assert_called_once_with(

@@ -14,8 +14,10 @@ from ...checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
+    get_delivery_method_info,
     get_valid_collection_points_for_checkout_info,
     get_valid_shipping_method_list_for_checkout_info,
+    update_checkout_info_delivery_method,
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -23,7 +25,6 @@ from ...checkout.utils import (
     calculate_checkout_quantity,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    clear_shipping_method,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
@@ -66,33 +67,6 @@ if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo
 
 
-def clean_shipping_method(
-    checkout_info: "CheckoutInfo",
-    lines: Iterable[CheckoutLineInfo],
-    method: Optional[models.ShippingMethod],
-) -> bool:
-    """Check if current shipping method is valid."""
-
-    if not method:
-        # no shipping method was provided, it is valid
-        return True
-
-    if not is_shipping_required(lines):
-        raise ValidationError(
-            ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
-        )
-
-    if not checkout_info.shipping_address:
-        raise ValidationError(
-            "Cannot choose a shipping method for a checkout without the "
-            "shipping address.",
-            code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
-        )
-
-    valid_methods = checkout_info.valid_shipping_methods
-    return method in valid_methods
-
-
 def clean_delivery_method(
     checkout_info: "CheckoutInfo",
     lines: Iterable[CheckoutLineInfo],
@@ -123,21 +97,28 @@ def clean_delivery_method(
 def update_checkout_shipping_method_if_invalid(
     checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
 ):
+    checkout = checkout_info.checkout
     quantity = calculate_checkout_quantity(lines)
 
     # remove shipping method when empty checkout
     if quantity == 0 or not is_shipping_required(lines):
-        clear_shipping_method(checkout_info)
+        checkout.shipping_method = None
+        checkout_info.delivery_method_info = get_delivery_method_info(None)
+        checkout_info.shipping_method_channel_listings = None
+        checkout.save(update_fields=["shipping_method", "last_change"])
 
-    is_valid = clean_shipping_method(
+    is_valid = clean_delivery_method(
         checkout_info=checkout_info,
         lines=lines,
-        method=checkout_info.shipping_method,
+        method=checkout_info.delivery_method_info.delivery_method,
     )
 
     if not is_valid:
-        # remove shipping method when it is no longer valid
-        clear_shipping_method(checkout_info)
+        cheapest_alternative = checkout_info.valid_shipping_methods
+        new_shipping_method = cheapest_alternative[0] if cheapest_alternative else None
+        checkout.shipping_method = new_shipping_method
+        update_checkout_info_delivery_method(checkout_info, new_shipping_method)
+        checkout.save(update_fields=["shipping_method", "last_change"])
 
 
 def check_lines_quantity(
@@ -1031,7 +1012,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ),
         )
 
-        shipping_method_is_valid = clean_shipping_method(
+        shipping_method_is_valid = clean_delivery_method(
             checkout_info=checkout_info,
             lines=lines,
             method=shipping_method,

@@ -15,7 +15,7 @@ from ...discount import DiscountValueType, VoucherType
 from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
-from ...shipping.models import ShippingZone
+from ...shipping.models import ShippingMethod, ShippingZone
 from .. import AddressType, calculations
 from ..fetch import (
     CheckoutInfo,
@@ -32,49 +32,51 @@ from ..utils import (
     cancel_active_payments,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    clear_shipping_method,
+    clear_delivery_method,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
     is_fully_paid,
-    is_valid_shipping_method,
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
 )
 
 
-def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone):
+def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.save()
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    delivery_method_info = checkout_info.delivery_method_info
     # no shipping method assigned
-    assert not is_valid_shipping_method(checkout_info)
+    assert not delivery_method_info.is_valid_delivery_method()
     shipping_method = shipping_zone.shipping_methods.first()
     checkout.shipping_method = shipping_method
     checkout.save()
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    delivery_method_info = checkout_info.delivery_method_info
 
-    assert is_valid_shipping_method(checkout_info)
+    assert delivery_method_info.is_valid_delivery_method()
 
     zone = ShippingZone.objects.create(name="DE", countries=["DE"])
     shipping_method.shipping_zone = zone
     shipping_method.save()
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    delivery_method_info = checkout_info.delivery_method_info
 
-    assert not is_valid_shipping_method(checkout_info)
+    assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
-def test_clear_shipping_method(checkout, shipping_method):
+def test_clear_delivery_method(checkout, shipping_method):
     checkout.shipping_method = shipping_method
     checkout.save()
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout, [], [], manager)
-    clear_shipping_method(checkout_info)
+    clear_delivery_method(checkout_info)
     checkout.refresh_from_db()
     assert not checkout.shipping_method
-    assert not checkout_info.shipping_method
+    assert isinstance(checkout_info.delivery_method_info, EmptyDeliveryMethod)
     assert not checkout_info.shipping_method_channel_listings
 
 
@@ -143,7 +145,6 @@ def test_get_discount_for_checkout_value_voucher(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=None,
         shipping_address=None,
         billing_address=None,
         channel=channel_USD,
@@ -239,7 +240,6 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=None,
         delivery_method_info=None,
         shipping_address=None,
         billing_address=None,
@@ -354,8 +354,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     checkout = Mock(quantity=total_quantity, spec=Checkout, channel=channel_USD)
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=None,
-        delivery_method_info=None,
+        delivery_method_info=get_delivery_method_info(None, None),
         shipping_address=None,
         billing_address=None,
         channel=channel_USD,
@@ -428,7 +427,6 @@ def test_get_discount_for_checkout_shipping_voucher(
     shipping_address = Mock(spec=Address, country=Mock(code="PL"))
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=shipping_method,
         shipping_address=shipping_address,
         delivery_method_info=get_delivery_method_info(
             shipping_method, shipping_address
@@ -491,8 +489,7 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     manager = get_plugins_manager()
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=shipping_method,
-        delivery_method_info=None,
+        delivery_method_info=get_delivery_method_info(shipping_method, None),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
@@ -538,8 +535,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
 
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=None,
-        delivery_method_info=None,
+        delivery_method_info=get_delivery_method_info(None, None),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
@@ -561,6 +557,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         (
             True,
             Mock(
+                spec=ShippingMethod,
                 get_total=Mock(return_value=Money(10, "USD")),
                 shipping_zone=Mock(countries=["PL"]),
             ),
@@ -583,7 +580,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
             None,
             TaxedMoney(Money(10, "USD"), Money(10, "USD")),
             10,
-            "Please select a shipping method first.",
+            "Please select a delivery method first.",
         ),
         (
             False,
@@ -599,7 +596,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            Mock(price=Money(10, "USD")),
+            Mock(spec=ShippingMethod, price=Money(10, "USD")),
             10,
             DiscountValueType.FIXED,
             [],
@@ -611,7 +608,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            Mock(price=Money(10, "USD")),
+            Mock(spec=ShippingMethod, price=Money(10, "USD")),
             10,
             DiscountValueType.FIXED,
             [],
@@ -623,7 +620,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            Mock(price=Money(10, "USD")),
+            Mock(spec=ShippingMethod, price=Money(10, "USD")),
             10,
             DiscountValueType.FIXED,
             [],
@@ -685,8 +682,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=shipping_method,
-        delivery_method_info=None,
+        delivery_method_info=get_delivery_method_info(shipping_method),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,

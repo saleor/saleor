@@ -91,7 +91,6 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
         channel=channel,
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
-        shipping_method=shipping_method,
         delivery_method_info=get_delivery_method_info(
             shipping_method, shipping_address
         ),

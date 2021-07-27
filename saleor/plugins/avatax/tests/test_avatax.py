@@ -13,6 +13,7 @@ from ....checkout.fetch import (
     CheckoutInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
+    get_delivery_method_info,
     get_valid_shipping_method_list_for_checkout_info,
 )
 from ....checkout.utils import add_variant_to_checkout
@@ -836,8 +837,9 @@ def test_get_checkout_line_tax_rate(
 
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
-        delivery_method_info=None,
+        delivery_method_info=get_delivery_method_info(
+            checkout_with_item.shipping_method
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
@@ -891,8 +893,9 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
 
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
-        delivery_method_info=None,
+        delivery_method_info=get_delivery_method_info(
+            checkout_with_item.shipping_method
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
@@ -958,8 +961,9 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
     variant2 = product2.variants.first()
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
-        delivery_method_info=None,
+        delivery_method_info=get_delivery_method_info(
+            checkout_with_item.shipping_method
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
@@ -1185,8 +1189,9 @@ def test_get_checkout_shipping_tax_rate(
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
-        delivery_method_info=None,
+        delivery_method_info=get_delivery_method_info(
+            checkout_with_item.shipping_method
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
