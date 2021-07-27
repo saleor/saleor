@@ -110,7 +110,7 @@ def test_applicable_for_click_and_collect_does_not_show_warehouses_with_empty_st
 def test_applicable_for_click_and_collect_additional_stock_does_not_change_availbility(
     stocks_for_cc, checkout_with_items_for_cc, warehouses_for_cc, product_variant_list
 ):
-    expected_total_number_of_stocks = 4
+    expected_total_number_of_stocks = 5
     expected_total_number_of_warehouses = 2
     expected_number_of_checkout_lines = 3
 

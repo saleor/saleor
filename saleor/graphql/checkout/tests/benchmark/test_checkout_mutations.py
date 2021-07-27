@@ -102,6 +102,18 @@ FRAGMENT_SHIPPING_METHOD = """
     }
 """
 
+FRAGMENT_COLLECTION_POINT = """
+   fragment CollectionPoint on Warehouse {
+        id
+        name
+        isPrivate
+        clickAndCollectOption
+        address {
+             streetAddress1
+          }
+     }
+"""
+
 
 FRAGMENT_CHECKOUT = (
     FRAGMENT_CHECKOUT_LINE
@@ -145,6 +157,70 @@ FRAGMENT_CHECKOUT = (
             ...CheckoutLine
           }
           isShippingRequired
+          discount {
+            currency
+            amount
+          }
+          discountName
+          translatedDiscountName
+          voucherCode
+        }
+    """
+)
+
+FRAGMENT_CHECKOUT_FOR_CC = (
+    FRAGMENT_CHECKOUT_LINE
+    + FRAGMENT_ADDRESS
+    + FRAGMENT_SHIPPING_METHOD
+    + FRAGMENT_COLLECTION_POINT
+    + """
+        fragment Checkout on Checkout {
+          availablePaymentGateways {
+            id
+            name
+            config {
+              field
+              value
+            }
+          }
+          token
+          id
+          totalPrice {
+            ...Price
+          }
+          subtotalPrice {
+            ...Price
+          }
+          billingAddress {
+            ...Address
+          }
+          shippingAddress {
+            ...Address
+          }
+          email
+          availableShippingMethods {
+            ...ShippingMethod
+          }
+          availableCollectionPoints {
+            ...CollectionPoint
+          }
+          deliveryMethod {
+            __typename
+            ... on ShippingMethod {
+              ...ShippingMethod
+            }
+            ... on Warehouse {
+              ...CollectionPoint
+            }
+          }
+          shippingPrice {
+            ...Price
+          }
+          lines {
+            ...CheckoutLine
+          }
+          isShippingRequired
+          isClickAndCollect
           discount {
             currency
             amount
@@ -235,6 +311,65 @@ def test_create_checkout(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
+def test_create_checkout_for_cc(
+    api_client,
+    graphql_address_data,
+    channel_USD,
+    stocks_for_cc,
+    product_variant_list,
+):
+    query = (
+        FRAGMENT_CHECKOUT_FOR_CC
+        + """
+            mutation CreateCheckout($checkoutInput: CheckoutCreateInput!) {
+              checkoutCreate(input: $checkoutInput) {
+                errors {
+                  field
+                  message
+                }
+                checkout {
+                  ...Checkout
+                }
+              }
+            }
+        """
+    )
+    checkout_counts = Checkout.objects.count()
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "email": "test@example.com",
+            "shippingAddress": graphql_address_data,
+            "lines": [
+                {
+                    "quantity": 1,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant", stocks_for_cc[0].product_variant.pk
+                    ),
+                },
+                {
+                    "quantity": 2,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_variant_list[0].pk,
+                    ),
+                },
+                {
+                    "quantity": 5,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_variant_list[1].pk,
+                    ),
+                },
+            ],
+        }
+    }
+    get_graphql_content(api_client.post_graphql(query, variables))
+    assert checkout_counts + 1 == Checkout.objects.count()
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
 def test_add_shipping_to_checkout(
     api_client,
     checkout_with_shipping_address,
@@ -267,6 +402,44 @@ def test_add_shipping_to_checkout(
     }
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutShippingMethodUpdate"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_add_delivery_to_checkout(
+    api_client,
+    checkout_with_shipping_address_for_cc,
+    shipping_method,
+    warehouses_for_cc,
+    count_queries,
+):
+    query = (
+        FRAGMENT_CHECKOUT
+        + """
+            mutation updateCheckoutDeliveryOptions(
+              $token: UUID, $shippingMethodId: ID, $collectionPointId: ID
+            ) {
+              checkoutDeliveryMethodUpdate(
+                token: $token, shippingMethodId: $shippingMethodId,
+                collectionPointId: $collectionPointId
+              ) {
+                errors {
+                  field
+                  message
+                }
+                checkout {
+                  ...Checkout
+                }
+              }
+            }
+        """
+    )
+    variables = {
+        "token": checkout_with_shipping_address_for_cc.token,
+        "collectionPointId": Node.to_global_id("Warehouse", warehouses_for_cc[1].pk),
+    }
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+    assert not response["data"]["checkoutDeliveryMethodUpdate"]["errors"]
 
 
 @pytest.mark.django_db
