@@ -457,7 +457,7 @@ class Subscription(CountableDjangoObjectType):
     def resolve_user_email(root: models.Subscription, info):
         def _resolve_user_email(user):
             requester = get_user_or_app_from_context(info.context)
-            if requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
+            if requestor_has_access(requester, user, AccountPermissions.MANAGE_USERS):
                 return user.email
             return obfuscate_email(user.email)
 
@@ -1268,3 +1268,11 @@ class Order(CountableDjangoObjectType):
             except ValidationError as e:
                 return validation_error_to_error_type(e, OrderError)
         return []
+
+    @staticmethod
+    @traced_resolver
+    def resolve_subscriptions(root: models.Order, info):
+        requester = get_user_or_app_from_context(info.context)
+        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
+            return root.subscriptions.all()
+        raise PermissionDenied()

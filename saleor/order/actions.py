@@ -1387,7 +1387,9 @@ def subscription_cancel(subscription: "Subscription"):
                 subscription=subscription, status=SubscriptionStatus.CANCELED
             )
         else:
-            subscription_update_status_eta = subscription.end_date + timedelta(minutes=1)
+            subscription_update_status_eta = subscription.end_date + timedelta(
+                minutes=1
+            )
             subscription_update_status_task.apply_async(
                 kwargs={
                     "subscription_pk": subscription.pk,
