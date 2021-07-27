@@ -38,7 +38,7 @@ class AttributeInputType:
         NUMERIC,
     ]
 
-    # list of the translatable attributes
+    # list of the translatable attributes, excluding attributes with choices.
     TRANSLATABLE_ATTRIBUTES = [
         RICH_TEXT,
     ]

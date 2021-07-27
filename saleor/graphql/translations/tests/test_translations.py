@@ -2325,46 +2325,26 @@ def test_product_attribute_value_rich_text_translation(
     )
 
     query = """
-    query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
-    ){
-        translation(kind: $kind, id: $id){
-            __typename
-            ...on ProductTranslatableContent{
-                name
-                attributeValues{
-                name
-                richText
-                translation(languageCode: $languageCode){
+        query translation(
+            $kind: TranslatableKinds!
+            $id: ID!
+            $languageCode: LanguageCodeEnum!
+        ) {
+            translation(kind: $kind, id: $id) {
+                ... on ProductTranslatableContent {
                     name
-                    richText
+                    attributeValues {
+                        name
+                        richText
+                        translation(languageCode: $languageCode) {
+                            name
+                            richText
+                        }
                     }
                 }
             }
         }
-    }
-"""
-    # """
-    # {
-    #     translations(kind: PRODUCT, first: 1) {
-    #         edges {
-    #             node {
-    #                 ... on ProductTranslatableContent {
-    #                     name
-    #                     attributeValues{
-    #                     name
-    #                     richText
-    #                     translation(languageCode: PL) {
-    #                         name
-    #                         richText
-    #                         }
-    #                     }
-    #                 }
-    #             }
-    #         }
-    #     }
-    # }
-    # """
+    """
     variables = {
         "id": product_id,
         "kind": TranslatableKinds.PRODUCT.name,
@@ -2378,12 +2358,8 @@ def test_product_attribute_value_rich_text_translation(
 
     attribute_value_response = data["translation"]["attributeValues"][0]
     assert attribute_value_response["name"] == attribute_value.name
-    assert attribute_value_response["richText"] == dummy_editorjs(
-        "Rich text attribute content.", json_format=True
-    )
-    assert attribute_value_response["translation"]["richText"] == dummy_editorjs(
-        "Test_dummy_data", json_format=True
-    )
+    assert attribute_value_response["richText"] == json.dumps(attribute_value.rich_text)
+    assert attribute_value_response["translation"]["richText"] == json.dumps(rich_text)
 
 
 def test_product_variant_attribute_value_rich_text_translation(
@@ -2402,24 +2378,25 @@ def test_product_variant_attribute_value_rich_text_translation(
     )
 
     query = """
-    query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
-    ){
-        translation(kind: $kind, id: $id){
-            __typename
-            ...on ProductVariantTranslatableContent{
-                        name
-                        attributeValues{
+        query translation(
+            $kind: TranslatableKinds!
+            $id: ID!
+            $languageCode: LanguageCodeEnum!
+        ) {
+            translation(kind: $kind, id: $id) {
+                ... on ProductVariantTranslatableContent {
+                    name
+                    attributeValues {
                         name
                         richText
                         translation(languageCode: $languageCode) {
                             name
                             richText
-                            }
                         }
+                    }
+                }
             }
         }
-    }
     """
     variables = {
         "id": variant_id,
@@ -2434,12 +2411,8 @@ def test_product_variant_attribute_value_rich_text_translation(
 
     translations_response = data["translation"]["attributeValues"][0]
     assert translations_response["name"] == attribute_value.name
-    assert translations_response["richText"] == dummy_editorjs(
-        "Rich text attribute content.", json_format=True
-    )
-    assert translations_response["translation"]["richText"] == dummy_editorjs(
-        "Test_dummy_data", json_format=True
-    )
+    assert translations_response["richText"] == json.dumps(attribute_value.rich_text)
+    assert translations_response["translation"]["richText"] == json.dumps(rich_text)
 
 
 def test_page_attribute_value_rich_text_translation(
@@ -2457,24 +2430,26 @@ def test_page_attribute_value_rich_text_translation(
     page_id = graphene.Node.to_global_id("Page", page_with_rich_text_attribute.id)
 
     query = """
-    query translation(
-        $   kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
-        ){
-            translation(kind: $kind, id: $id){
-                __typename
-                ...on PageTranslatableContent{
-                            attributeValues{
+        query translation(
+            $kind: TranslatableKinds!
+            $id: ID!
+            $languageCode: LanguageCodeEnum!
+        ) {
+            translation(kind: $kind, id: $id) {
+                ... on PageTranslatableContent {
+                    attributeValues {
+                        name
+                        richText
+                        translation(languageCode: $languageCode) {
                             name
                             richText
-                            translation(languageCode: $languageCode) {
-                                name
-                                richText
-                                }
-                            }
                         }
                     }
                 }
-        """
+            }
+        }
+
+    """
 
     variables = {
         "id": page_id,
@@ -2488,9 +2463,5 @@ def test_page_attribute_value_rich_text_translation(
 
     attribute_value_response = data["translation"]["attributeValues"][0]
     assert attribute_value_response["name"] == attribute_value.name
-    assert attribute_value_response["richText"] == dummy_editorjs(
-        "Rich text attribute content.", json_format=True
-    )
-    assert attribute_value_response["translation"]["richText"] == dummy_editorjs(
-        "Test_dummy_data", json_format=True
-    )
+    assert attribute_value_response["richText"] == json.dumps(attribute_value.rich_text)
+    assert attribute_value_response["translation"]["richText"] == json.dumps(rich_text)
