@@ -1,6 +1,7 @@
 import graphene
 from django.conf import settings
 
+from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
 from ...core.permissions import DiscountPermissions, ShippingPermissions
 from ...core.tracing import traced_resolver
@@ -128,6 +129,11 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
             "Will be removed in Saleor 4.0. " "Get model fields from the root level."
         ),
     )
+    attribute_values = graphene.List(
+        graphene.NonNull(AttributeValueTranslatableContent),
+        required=True,
+        description="List of product variant attribute values that can be translated.",
+    )
 
     class Meta:
         model = product_models.ProductVariant
@@ -137,6 +143,16 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
     @staticmethod
     def resolve_product_variant(root: product_models.ProductVariant, info):
         return ChannelContext(node=root, channel_slug=None)
+
+    @staticmethod
+    def resolve_attribute_values(root: product_models.ProductVariant, _info):
+        translatable_values = []
+        for assignment in root.attributes.all():
+            attr = assignment.attribute
+            if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
+                value = assignment.values.first()
+                translatable_values.append(value)
+        return translatable_values
 
 
 class ProductTranslation(BaseTranslationType):
@@ -198,9 +214,7 @@ class ProductTranslatableContent(CountableDjangoObjectType):
         translatable_values = []
         for assignment in root.attributes.all():
             attr = assignment.attribute
-            # FIXME: in attributes/__init__.py we can store a global list of
-            # "translatable" values, instead of hardcoding rich-text here.
-            if attr.input_type == "rich-text":
+            if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
                 value = assignment.values.first()
                 translatable_values.append(value)
         return translatable_values
@@ -353,6 +367,11 @@ class PageTranslatableContent(CountableDjangoObjectType):
             "Will be removed in Saleor 4.0. " "Get model fields from the root level."
         ),
     )
+    attribute_values = graphene.List(
+        graphene.NonNull(AttributeValueTranslatableContent),
+        required=True,
+        description="List of page content attribute values that can be translated.",
+    )
 
     class Meta:
         model = page_models.Page
@@ -378,6 +397,16 @@ class PageTranslatableContent(CountableDjangoObjectType):
     def resolve_content_json(root: page_models.Page, _info):
         content = root.content
         return content if content is not None else {}
+
+    @staticmethod
+    def resolve_attribute_values(root: page_models.Page, _info):
+        translatable_values = []
+        for assignment in root.attributes.all():
+            attr = assignment.attribute
+            if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
+                value = assignment.values.first()
+                translatable_values.append(value)
+        return translatable_values
 
 
 class VoucherTranslation(BaseTranslationType):
