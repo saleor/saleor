@@ -286,6 +286,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - remove `companyName` on `WarehouseInput` type
     - remove `WarehouseAddressInput` on `WarehouseUpdateInput` and `WarehouseCreateInput`, and change it to `AddressInput`
 - Fix passing incorrect customer email to payment gateways - #7486 by @korycins
+- Add HTTP meta tag for Content-Security-Policy in GraphQL Playground - #7662 by @NyanKiyoshi
 
 # 2.11.1
 

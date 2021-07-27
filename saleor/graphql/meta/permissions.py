@@ -9,6 +9,7 @@ from ...core.permissions import (
     AppPermission,
     BasePermissionEnum,
     CheckoutPermissions,
+    DiscountPermissions,
     MenuPermissions,
     OrderPermissions,
     PagePermissions,
@@ -97,49 +98,57 @@ def shipping_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [ShippingPermissions.MANAGE_SHIPPING]
 
 
+def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [DiscountPermissions.MANAGE_DISCOUNTS]
+
+
 PUBLIC_META_PERMISSION_MAP = {
+    "App": app_permissions,
     "Attribute": attribute_permissions,
     "Category": product_permissions,
     "Checkout": no_permissions,
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "Invoice": invoice_permissions,
     "Menu": menu_permissions,
     "MenuItem": menu_permissions,
     "Order": no_permissions,
-    "Invoice": invoice_permissions,
     "Page": page_permissions,
     "PageType": page_type_permissions,
     "Product": product_permissions,
     "ProductType": product_type_permissions,
     "ProductVariant": product_permissions,
+    "Sale": discount_permissions,
     "ShippingMethod": shipping_permissions,
     "ShippingZone": shipping_permissions,
-    "App": app_permissions,
     "User": public_user_permissions,
+    "Voucher": discount_permissions,
     "Warehouse": product_permissions,
 }
 
 
 PRIVATE_META_PERMISSION_MAP = {
+    "App": app_permissions,
     "Attribute": attribute_permissions,
     "Category": product_permissions,
     "Checkout": checkout_permissions,
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "Invoice": invoice_permissions,
     "Menu": menu_permissions,
     "MenuItem": menu_permissions,
     "Order": order_permissions,
-    "Invoice": invoice_permissions,
     "Page": page_permissions,
     "PageType": page_type_permissions,
     "Product": product_permissions,
     "ProductType": product_type_permissions,
     "ProductVariant": product_permissions,
+    "Sale": discount_permissions,
     "ShippingMethod": shipping_permissions,
     "ShippingZone": shipping_permissions,
-    "App": app_permissions,
     "User": private_user_permissions,
+    "Voucher": discount_permissions,
     "Warehouse": product_permissions,
 }
