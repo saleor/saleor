@@ -550,7 +550,7 @@ class AppFetchManifest(BaseMutation):
 
         extension["permissions"] = [
             grapqhl_types.Permission(
-                code=PermissionEnum.get(p.formated_codename),  # type: ignore
+                code=PermissionEnum.get(p.formated_codename),
                 name=p.name,
             )
             for p in extension_permissions
