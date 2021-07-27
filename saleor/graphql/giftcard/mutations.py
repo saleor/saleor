@@ -1,38 +1,75 @@
 import graphene
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 
-from ...account.models import User
 from ...core.permissions import GiftcardPermissions
-from ...core.utils.promo_code import (
-    PromoCodeAlreadyExists,
-    generate_promo_code,
-    is_available_promo_code,
-)
-from ...giftcard import models
+from ...core.utils.promo_code import generate_promo_code
+from ...core.utils.validators import date_passed, user_is_valid
+from ...giftcard import GiftCardExpiryType, events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
-from ..core.scalars import PositiveDecimal
-from ..core.types.common import GiftCardError
+from ..core.types.common import GiftCardError, PriceInput, TimePeriodInputType
 from ..core.validators import validate_price_precision
+from .enums import GiftCardExpiryTypeEnum
 from .types import GiftCard
 
 
-class GiftCardUpdateInput(graphene.InputObjectType):
+class GiftCardExpirySettingsInput(graphene.InputObjectType):
+    expiry_type = GiftCardExpiryTypeEnum(
+        description="The gift card expiry type.", required=True
+    )
+    expiry_date = graphene.types.datetime.Date(description="The gift card expiry date.")
+    expiry_period = TimePeriodInputType(description="The gift card expiry period.")
+
+
+class GiftCardInput(graphene.InputObjectType):
+    tag = graphene.String(description="The gift card tag.")
+
+    # DEPRECATED
     start_date = graphene.types.datetime.Date(
-        description="Start date of the gift card in ISO 8601 format."
+        description=(
+            "Start date of the gift card in ISO 8601 format. "
+            "DEPRECATED: Will be removed in Saleor 4.0."
+        )
     )
     end_date = graphene.types.datetime.Date(
-        description="End date of the gift card in ISO 8601 format."
+        description=(
+            "End date of the gift card in ISO 8601 format."
+            "DEPRECATED: Will be removed in Saleor 4.0. "
+            "Use expiryDate from expirySettings instead."
+        )
     )
-    balance = PositiveDecimal(description="Value of the gift card.")
+
+
+class GiftCardCreateInput(GiftCardInput):
+    balance = graphene.Field(
+        PriceInput, description="Balance of the gift card.", required=True
+    )
     user_email = graphene.String(
-        required=False, description="The customer's email of the gift card buyer."
+        required=False,
+        description="Email of the customer to whom gift card will be sent.",
     )
+    expiry_settings = GiftCardExpirySettingsInput(
+        description="The gift card expiry settings.", required=True
+    )
+    code = graphene.String(
+        required=False,
+        description=(
+            "Code to use the gift card. "
+            "DEPRECATED: The code is auto generated. "
+            "The field will be removed in Saleor 4.0"
+        ),
+    )
+    note = graphene.String(description="The gift card note from the staff member.")
 
 
-class GiftCardCreateInput(GiftCardUpdateInput):
-    code = graphene.String(required=False, description="Code to use the gift card.")
+class GiftCardUpdateInput(GiftCardInput):
+    balance = graphene.Field(
+        PriceInput, description="Balance of the gift card.", required=False
+    )
+    expiry_settings = GiftCardExpirySettingsInput(
+        description="The gift card expiry settings.", required=False
+    )
 
 
 class GiftCardCreate(ModelMutation):
@@ -50,39 +87,88 @@ class GiftCardCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        code = data.get("code", None)
-        if not code and not instance.pk:
+        if instance.pk is None:
             data["code"] = generate_promo_code()
-        elif not is_available_promo_code(code):
-            raise PromoCodeAlreadyExists(code=GiftCardErrorCode.ALREADY_EXISTS)
+
         cleaned_input = super().clean_input(info, instance, data)
+        cls.clean_expiry_settings(cleaned_input)
+        cls.clean_balance(cleaned_input, instance.currency)
 
-        balance = cleaned_input.get("balance", None)
-        if balance:
-            try:
-                validate_price_precision(balance, instance.currency)
-            except ValidationError as error:
-                error.code = GiftCardErrorCode.INVALID.value
-                raise ValidationError({"balance": error})
-            cleaned_input["current_balance_amount"] = balance
-            cleaned_input["initial_balance_amount"] = balance
+        # TODO: send an email to the customer from user_email field in SALEOR-3901
+        data.get("user_email", None)
 
-        user_email = data.get("user_email", None)
-        if user_email:
-            try:
-                cleaned_input["created_by"] = User.objects.get(email=user_email)
-            except ObjectDoesNotExist:
+        user = info.context.user
+        if user_is_valid(user):
+            cleaned_input["created_by"] = user
+            cleaned_input["created_by_email"] = user.email
+        cleaned_input["app"] = info.context.app
+        return cleaned_input
+
+    @staticmethod
+    def clean_expiry_settings(cleaned_input):
+        expiry_settings = cleaned_input.pop("expiry_settings", None)
+        if not expiry_settings:
+            return
+        type = expiry_settings["expiry_type"]
+        cleaned_input["expiry_type"] = type
+        if type == GiftCardExpiryType.EXPIRY_DATE:
+            expiry_date = expiry_settings.get("expiry_date")
+            if not expiry_date:
                 raise ValidationError(
                     {
-                        "email": ValidationError(
-                            "Customer with this email doesn't exist.",
-                            code=GiftCardErrorCode.NOT_FOUND,
+                        "expiry_date": ValidationError(
+                            "Expiry date is required for chosen expiry type.",
+                            code=GiftCardErrorCode.REQUIRED,
                         )
                     }
                 )
-        # TODO: Add validation that `expiry_date` is not in the past
-        cleaned_input["expiry_date"] = cleaned_input.get("end_date")
-        return cleaned_input
+            if date_passed(expiry_date):
+                raise ValidationError(
+                    {
+                        "expiry_date": ValidationError(
+                            "Expiry date cannot be in the past.",
+                            code=GiftCardErrorCode.INVALID,
+                        )
+                    }
+                )
+            cleaned_input["expiry_date"] = expiry_date
+        elif type == GiftCardExpiryType.EXPIRY_PERIOD:
+            expiry_period = expiry_settings.get("expiry_period")
+            if not expiry_period:
+                raise ValidationError(
+                    {
+                        "expiry_period": ValidationError(
+                            "Expiry period settings are required for chosen "
+                            "expiry type.",
+                            code=GiftCardErrorCode.REQUIRED,
+                        )
+                    }
+                )
+            cleaned_input["expiry_period"] = expiry_period["amount"]
+            cleaned_input["expiry_period_type"] = expiry_period["type"]
+
+    @staticmethod
+    def clean_balance(cleaned_input, currency):
+        balance = cleaned_input.pop("balance", None)
+        if balance:
+            amount = balance["amount"]
+            currency = balance["currency"]
+            try:
+                validate_price_precision(amount, currency)
+            except ValidationError as error:
+                error.code = GiftCardErrorCode.INVALID.value
+                raise ValidationError({"balance": error})
+            cleaned_input["currency"] = currency
+            cleaned_input["current_balance_amount"] = amount
+            cleaned_input["initial_balance_amount"] = amount
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        events.gift_card_issued_event(
+            gift_card=instance,
+            user=info.context.user,
+            app=info.context.app,
+        )
 
 
 class GiftCardUpdate(GiftCardCreate):
