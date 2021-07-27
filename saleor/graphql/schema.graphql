@@ -5315,6 +5315,7 @@ type Shop {
   availablePaymentGateways(currency: String, channel: String): [PaymentGateway!]!
   availableExternalAuthentications: [ExternalAuthentication!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
+  channelCurrencies: [String!]!
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
   defaultCountry: CountryDisplay
   defaultMailSenderName: String

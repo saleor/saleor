@@ -9,6 +9,7 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ... import __version__
 from ...account import models as account_models
+from ...channel import models as channel_models
 from ...core.permissions import SitePermissions, get_permissions
 from ...core.tracing import traced_resolver
 from ...site import models as site_models
@@ -119,6 +120,11 @@ class Shop(graphene.ObjectType):
         required=False,
         description="Shipping methods that are available for the shop.",
     )
+    channel_currencies = graphene.List(
+        graphene.NonNull(graphene.String),
+        description="List of all currencies supported by shop's channels.",
+        required=True,
+    )
     countries = graphene.List(
         graphene.NonNull(CountryDisplay),
         language_code=graphene.Argument(
@@ -217,6 +223,13 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_available_shipping_methods(_, info, channel, address=None):
         return resolve_available_shipping_methods(info, channel, address)
+
+    @staticmethod
+    @staff_member_or_app_required
+    def resolve_channel_currencies(_, info):
+        return set(
+            channel_models.Channel.objects.values_list("currency_code", flat=True)
+        )
 
     @staticmethod
     def resolve_countries(_, _info, language_code=None):
