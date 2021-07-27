@@ -9,7 +9,7 @@ from ...core.utils.validators import date_passed, user_is_valid
 from ...giftcard import GiftCardExpiryType, events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
-from ..core.mutations import BaseMutation, ModelMutation
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import GiftCardError, PriceInput, TimePeriodInputType
 from ..core.validators import validate_price_precision
 from .enums import GiftCardExpiryTypeEnum
@@ -236,6 +236,18 @@ class GiftCardUpdate(GiftCardCreate):
             )
 
         return cls.success_response(instance)
+
+
+class GiftCardDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(description="ID of the gift card to delete.", required=True)
+
+    class Meta:
+        description = "Delete gift card."
+        model = models.GiftCard
+        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
 
 
 class GiftCardDeactivate(BaseMutation):

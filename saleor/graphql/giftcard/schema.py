@@ -9,6 +9,7 @@ from .mutations import (
     GiftCardActivate,
     GiftCardCreate,
     GiftCardDeactivate,
+    GiftCardDelete,
     GiftCardUpdate,
 )
 from .resolvers import resolve_gift_card, resolve_gift_cards
@@ -42,5 +43,6 @@ class GiftCardQueries(graphene.ObjectType):
 class GiftCardMutations(graphene.ObjectType):
     gift_card_activate = GiftCardActivate.Field()
     gift_card_create = GiftCardCreate.Field()
+    gift_card_delete = GiftCardDelete.Field()
     gift_card_deactivate = GiftCardDeactivate.Field()
     gift_card_update = GiftCardUpdate.Field()
