@@ -2438,7 +2438,7 @@ def gift_card_expiry_period(customer_user):
         expiry_type=GiftCardExpiryType.EXPIRY_PERIOD,
         expiry_period_type=TimePeriodType.YEAR,
         expiry_period=2,
-        tag="test-tag",
+        tag="another-tag",
     )
 
 
@@ -2452,7 +2452,7 @@ def gift_card_expiry_date(customer_user):
         current_balance=Money(10, "USD"),
         expiry_type=GiftCardExpiryType.EXPIRY_DATE,
         expiry_date=datetime.date.today() + datetime.timedelta(days=100),
-        tag="test-tag",
+        tag="another-tag",
     )
 
 
@@ -2467,7 +2467,7 @@ def gift_card_used(staff_user, customer_user):
         initial_balance=Money(100, "USD"),
         current_balance=Money(100, "USD"),
         expiry_type=GiftCardExpiryType.NEVER_EXPIRE,
-        tag="test-tag",
+        tag="tag",
     )
 
 
