@@ -2204,6 +2204,12 @@ type GiftCardDeactivate {
   errors: [GiftCardError!]!
 }
 
+type GiftCardDelete {
+  giftCardErrors: [GiftCardError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [GiftCardError!]!
+  giftCard: GiftCard
+}
+
 type GiftCardError {
   field: String
   message: String
@@ -2926,6 +2932,7 @@ type Mutation {
   invoiceSendNotification(id: ID!): InvoiceSendNotification
   giftCardActivate(id: ID!): GiftCardActivate
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
+  giftCardDelete(id: ID!): GiftCardDelete
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
   pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
