@@ -925,6 +925,43 @@ def test_fulfillment_approve_partial_order_fulfill(
     assert mock_email_fulfillment.call_count == 0
 
 
+def test_fulfillment_approve_invalid_status(
+    staff_api_client,
+    fulfillment,
+    permission_manage_orders,
+):
+    query = APPROVE_FULFILLMENT_MUTATION
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    variables = {"id": fulfillment_id, "notifyCustomer": True}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentApprove"]
+    assert data["errors"][0]["code"] == OrderErrorCode.INVALID.name
+
+
+def test_fulfillment_approve_order_unpaid(
+    staff_api_client,
+    fulfillment,
+    site_settings,
+    permission_manage_orders,
+):
+    site_settings.fulfillment_allow_unpaid = False
+    site_settings.save(update_fields=["fulfillment_allow_unpaid"])
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
+    query = APPROVE_FULFILLMENT_MUTATION
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    variables = {"id": fulfillment_id, "notifyCustomer": True}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentApprove"]
+    assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER.name
+
+
 QUERY_FULFILLMENT = """
     query fulfillment($id: ID!) {
         order(id: $id) {
