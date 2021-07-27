@@ -35,7 +35,6 @@ from ...payment.model_helpers import (
 )
 from ...product import ProductMediaTypes
 from ...product.product_images import get_product_image_thumbnail
-from ...warehouse.models import Backorder as backorder_model
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import requestor_has_access
