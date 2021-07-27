@@ -179,3 +179,43 @@ def test_query_gift_cards(
 
     assert content["data"]
     assert len(content["data"]["giftCards"]["edges"]) == len(gift_cards_for_benchmarks)
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_filter_gift_cards_by_tag(
+    staff_api_client,
+    gift_cards_for_benchmarks,
+    permission_manage_gift_card,
+    permission_manage_apps,
+    permission_manage_users,
+    count_queries,
+):
+    query = (
+        FRAGMENT_GIFT_CARD_DETAILS
+        + """
+        query giftCards($filter: GiftCardFilterInput){
+            giftCards(first: 20, filter: $filter) {
+                edges {
+                    node {
+                        ...GiftCardDetails
+                    }
+                }
+            }
+        }
+    """
+    )
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            query,
+            {"filter": {"tag": "tag"}},
+            permissions=[
+                permission_manage_gift_card,
+                permission_manage_apps,
+                permission_manage_users,
+            ],
+        )
+    )
+
+    assert content["data"]
+    assert len(content["data"]["giftCards"]["edges"]) == len(gift_cards_for_benchmarks)
