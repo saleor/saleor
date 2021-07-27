@@ -249,6 +249,7 @@ class GiftCard(CountableDjangoObjectType):
     events = graphene.List(
         graphene.NonNull(GiftCardEvent),
         description="List of events associated with the gift card.",
+        required=True,
     )
 
     # DEPRECATED

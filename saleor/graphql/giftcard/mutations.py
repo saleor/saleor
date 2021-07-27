@@ -50,7 +50,7 @@ class GiftCardCreateInput(GiftCardInput):
         description="Email of the customer to whom gift card will be sent.",
     )
     expiry_settings = GiftCardExpirySettingsInput(
-        description="The gift crd expiry settings.", required=True
+        description="The gift card expiry settings.", required=True
     )
     code = graphene.String(
         required=False,
@@ -68,7 +68,7 @@ class GiftCardUpdateInput(GiftCardInput):
         PriceInput, description="Balance of the gift card.", required=False
     )
     expiry_settings = GiftCardExpirySettingsInput(
-        description="The gift crd expiry settings.", required=False
+        description="The gift card expiry settings.", required=False
     )
 
 
