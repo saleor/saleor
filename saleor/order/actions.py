@@ -171,6 +171,11 @@ def cancel_order(
     manager.order_updated(order)
 
     send_order_canceled_confirmation(order, user, app, manager)
+    backorders = Backorder.objects.filter(order_line__order=order)
+    for backorder in backorders:
+        events.backorder_removed_event(user=user, app=app, backorder=backorder)
+
+    backorders.delete()
 
 
 def order_refunded(
