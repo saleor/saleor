@@ -2,16 +2,61 @@ import graphene
 from graphene_federation import key
 
 from ...app import models
+from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ...core.tracing import traced_resolver
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Permission
 from ..core.types.common import Job
 from ..meta.types import ObjectWithMetadata
-from ..utils import format_permissions_for_display
+from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
+from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader
 from .enums import AppTypeEnum
 from .resolvers import resolve_access_token
+
+
+class AppExtension(CountableDjangoObjectType):
+    app = graphene.Field("saleor.graphql.app.types.App", required=True)
+    permissions = graphene.List(
+        graphene.NonNull(Permission),
+        description="List of the app extension's permissions.",
+        required=True,
+    )
+
+    class Meta:
+        description = "Represents app data."
+        interfaces = [graphene.relay.Node]
+        model = models.AppExtension
+        only_fields = [
+            "label",
+            "url",
+            "view",
+            "type",
+            "target",
+        ]
+
+    @staticmethod
+    def resolve_app(root, info):
+        app_id = None
+        app = info.context.app
+        if app and app.id == root.app_id:
+            app_id = root.app_id
+        else:
+            requestor = get_user_or_app_from_context(info.context)
+            if requestor.has_perm(AppPermission.MANAGE_APPS):
+                app_id = root.app_id
+
+        if not app_id:
+            raise PermissionDenied()
+        return AppByIdLoader(info.context).load(app_id)
+
+    @staticmethod
+    def resolve_permissions(root: models.AppExtension, _info, **_kwargs):
+        permissions = root.permissions.prefetch_related("content_type").order_by(
+            "codename"
+        )
+        return format_permissions_for_display(permissions)
 
 
 class Manifest(graphene.ObjectType):
@@ -84,6 +129,11 @@ class App(CountableDjangoObjectType):
     access_token = graphene.String(
         description="JWT token used to authenticate by thridparty app."
     )
+    extensions = graphene.List(
+        graphene.NonNull(AppExtension),
+        description="App's dashboard extensions.",
+        required=True,
+    )
 
     class Meta:
         description = "Represents app data."
@@ -124,6 +174,10 @@ class App(CountableDjangoObjectType):
     @staticmethod
     def resolve_access_token(root: models.App, info):
         return resolve_access_token(info, root)
+
+    @staticmethod
+    def resolve_extensions(root: models.App, info):
+        return AppExtensionByAppIdLoader(info.context).load(root.id)
 
 
 class AppInstallation(CountableDjangoObjectType):

@@ -222,6 +222,7 @@ type App implements Node & ObjectWithMetadata {
   appUrl: String
   version: String
   accessToken: String
+  extensions: [AppExtension!]!
 }
 
 type AppActivate {
@@ -287,6 +288,62 @@ enum AppErrorCode {
   UNIQUE
   OUT_OF_SCOPE_APP
   OUT_OF_SCOPE_PERMISSION
+}
+
+type AppExtension implements Node {
+  label: String!
+  url: String!
+  view: AppExtensionView!
+  type: AppExtensionType!
+  target: AppExtensionTarget!
+  id: ID!
+  app: App!
+  permissions: [Permission!]!
+}
+
+type AppExtensionCountableConnection {
+  pageInfo: PageInfo!
+  edges: [AppExtensionCountableEdge!]!
+  totalCount: Int
+}
+
+type AppExtensionCountableEdge {
+  node: AppExtension!
+  cursor: String!
+}
+
+input AppExtensionFilterInput {
+  view: AppExtensionViewEnum
+  type: AppExtensionTypeEnum
+  target: AppExtensionTargetEnum
+}
+
+enum AppExtensionTarget {
+  MORE_ACTIONS
+  CREATE
+}
+
+enum AppExtensionTargetEnum {
+  MORE_ACTIONS
+  CREATE
+}
+
+enum AppExtensionType {
+  OVERVIEW
+  DETAILS
+}
+
+enum AppExtensionTypeEnum {
+  OVERVIEW
+  DETAILS
+}
+
+enum AppExtensionView {
+  PRODUCT
+}
+
+enum AppExtensionViewEnum {
+  PRODUCT
 }
 
 type AppFetchManifest {
@@ -4784,6 +4841,8 @@ type Query {
   appsInstallations: [AppInstallation!]!
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
   app(id: ID): App
+  appExtensions(filter: AppExtensionFilterInput, before: String, after: String, first: Int, last: Int): AppExtensionCountableConnection
+  appExtension(id: ID!): AppExtension
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
   address(id: ID!): Address
   customers(filter: CustomerFilterInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection

@@ -26,8 +26,8 @@ from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App, AppInstallation
-from ..app.types import AppType
+from ..app.models import App, AppExtension, AppInstallation
+from ..app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
@@ -3692,6 +3692,33 @@ def app(db):
     app = App.objects.create(name="Sample app objects", is_active=True)
     app.tokens.create(name="Default")
     return app
+
+
+@pytest.fixture
+def app_with_extensions(app, permission_manage_products):
+    first_app_extension = AppExtension(
+        app=app,
+        label="Create product with App",
+        url="www.example.com/app-product",
+        view=AppExtensionView.PRODUCT,
+        type=AppExtensionType.OVERVIEW,
+        target=AppExtensionTarget.MORE_ACTIONS,
+    )
+    extensions = AppExtension.objects.bulk_create(
+        [
+            first_app_extension,
+            AppExtension(
+                app=app,
+                label="Update product with App",
+                url="www.example.com/app-product-update",
+                view=AppExtensionView.PRODUCT,
+                type=AppExtensionType.DETAILS,
+                target=AppExtensionTarget.MORE_ACTIONS,
+            ),
+        ]
+    )
+    first_app_extension.permissions.add(permission_manage_products)
+    return app, extensions
 
 
 @pytest.fixture

@@ -35,3 +35,7 @@ def resolve_app(_info, id):
         return None
     _, id = from_global_id_or_error(id, "App")
     return models.App.objects.filter(id=id).first()
+
+
+def resolve_app_extensions(_info):
+    return models.AppExtension.objects.filter(app__is_active=True)
