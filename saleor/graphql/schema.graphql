@@ -2364,6 +2364,16 @@ input GiftCardFilterInput {
   tag: String
 }
 
+type GiftCardSettings {
+  expiryType: GiftCardSettingsExpiryTypeEnum!
+  expiryPeriod: TimePeriod
+}
+
+enum GiftCardSettingsExpiryTypeEnum {
+  NEVER_EXPIRE
+  EXPIRY_PERIOD
+}
+
 type GiftCardUpdate {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [GiftCardError!]!
@@ -5643,6 +5653,7 @@ type Query {
   stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop!
   orderSettings: OrderSettings
+  giftCardSettings: GiftCardSettings!
   shippingZone(id: ID!, channel: String): ShippingZone
   shippingZones(filter: ShippingZoneFilterInput, channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
