@@ -115,7 +115,7 @@ def test_create_channels_with_default_channel_slug(db):
 
 def test_create_fake_user(db):
     assert User.objects.all().count() == 0
-    random_data.create_fake_user()
+    random_data.create_fake_user("password")
     assert User.objects.all().count() == 1
     user = User.objects.all().first()
     assert not user.is_superuser
@@ -123,7 +123,7 @@ def test_create_fake_user(db):
 
 def test_create_fake_users(db):
     how_many = 5
-    for _ in random_data.create_users(how_many):
+    for _ in random_data.create_users("password", how_many):
         pass
     assert User.objects.all().count() == 5
 
@@ -143,7 +143,7 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
         pass
     for _ in random_data.create_shipping_zones():
         pass
-    for _ in random_data.create_users(3):
+    for _ in random_data.create_users("password", 3):
         pass
     for msg in random_data.create_page_type():
         pass
