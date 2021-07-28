@@ -9,6 +9,7 @@ from ....core.permissions import OrderPermissions
 from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
+    approve_fulfillment,
     cancel_fulfillment,
     create_fulfillments,
     create_fulfillments_for_returned_products,
@@ -328,6 +329,56 @@ class FulfillmentCancel(BaseMutation):
         fulfillment.refresh_from_db(fields=["status"])
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)
+
+
+class FulfillmentApprove(BaseMutation):
+    fulfillment = graphene.Field(Fulfillment, description="An approved fulfillment.")
+    order = graphene.Field(Order, description="Order which fulfillment was approved.")
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of an fulfillment to approve.")
+        notify_customer = graphene.Boolean(
+            required=True, description="True if confirmation email should be send."
+        )
+
+    class Meta:
+        description = "Approve existing fulfillment."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def clean_input(cls, info, fulfillment):
+        if fulfillment.status != FulfillmentStatus.WAITING_FOR_APPROVAL:
+            raise ValidationError(
+                "Invalid fulfillment status, only WAITING_FOR_APPROVAL "
+                "fulfillments can be accepted.",
+                code=OrderErrorCode.INVALID.value,
+            )
+        if (
+            not info.context.site.settings.fulfillment_allow_unpaid
+            and not fulfillment.order.is_fully_paid()
+        ):
+            raise ValidationError(
+                "Cannot fulfill unpaid order.",
+                code=OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER,
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        fulfillment = cls.get_node_or_error(info, data["id"], only_type="Fulfillment")
+        cls.clean_input(info, fulfillment)
+
+        order = fulfillment.order
+        fulfillment = approve_fulfillment(
+            fulfillment,
+            info.context.user,
+            info.context.app,
+            info.context.plugins,
+            notify_customer=data["notify_customer"],
+        )
+        order.refresh_from_db(fields=["status"])
+        return FulfillmentApprove(fulfillment=fulfillment, order=order)
 
 
 class OrderRefundLineInput(graphene.InputObjectType):

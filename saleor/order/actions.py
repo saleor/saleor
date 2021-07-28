@@ -338,6 +338,42 @@ def cancel_fulfillment(
 
 
 @traced_atomic_transaction()
+def approve_fulfillment(
+    fulfillment: Fulfillment,
+    user: "User",
+    app: Optional["App"],
+    manager: "PluginsManager",
+    notify_customer=True,
+):
+    fulfillment.status = FulfillmentStatus.FULFILLED
+    fulfillment.save()
+    order = fulfillment.order
+    if notify_customer:
+        send_fulfillment_confirmation_to_customer(
+            fulfillment.order, fulfillment, user, app, manager
+        )
+    events.fulfillment_fulfilled_items_event(
+        order=order, user=user, app=app, fulfillment_lines=list(fulfillment.lines.all())
+    )
+    lines_to_fulfill = [
+        OrderLineData(
+            line=f_line.order_line,
+            quantity=f_line.quantity,
+            variant=f_line.order_line.variant,
+            warehouse_pk=str(f_line.stock.warehouse_id),  # type: ignore
+        )
+        for f_line in fulfillment.lines.all()
+    ]
+    fulfill_order_lines(lines_to_fulfill)
+    order.refresh_from_db()
+    manager.order_updated(order)
+    if order.status == OrderStatus.FULFILLED:
+        manager.order_fulfilled(order)
+    update_order_status(order)
+    return fulfillment
+
+
+@traced_atomic_transaction()
 def mark_order_as_paid(
     order: "Order",
     request_user: "User",

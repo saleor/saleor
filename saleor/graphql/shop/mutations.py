@@ -29,10 +29,10 @@ class ShopSettingsInput(graphene.InputObjectType):
         description="Enable automatic fulfillment for all digital products."
     )
     fulfillment_auto_approve = graphene.Boolean(
-        description="Enable automatic confirmation of all new fulfillments."
+        description="Enable automatic approval of all new fulfillments."
     )
     fulfillment_allow_unpaid = graphene.Boolean(
-        description="Enable ability to confirm fulfillments which are unpaid."
+        description="Enable ability to approve fulfillments which are unpaid."
     )
     default_digital_max_downloads = graphene.Int(
         description="Default number of max downloads per digital content URL."
