@@ -54,8 +54,6 @@ class GiftCard(ModelWithMetadata):
     expiry_type = models.CharField(
         max_length=32,
         choices=GiftCardExpiryType.CHOICES,
-        # to removed after updating GiftCard mutations
-        default=GiftCardExpiryType.EXPIRY_DATE,
     )
     expiry_period_type = models.CharField(
         max_length=32, choices=TimePeriodType.CHOICES, null=True, blank=True
