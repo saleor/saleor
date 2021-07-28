@@ -251,7 +251,7 @@ class GiftCardDelete(ModelDeleteMutation):
 
 
 class GiftCardDeactivate(BaseMutation):
-    gift_card = graphene.Field(GiftCard, description="A gift card to deactivate.")
+    gift_card = graphene.Field(GiftCard, description="Deactivated gift card.")
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a gift card to deactivate.")
@@ -273,7 +273,7 @@ class GiftCardDeactivate(BaseMutation):
 
 
 class GiftCardActivate(BaseMutation):
-    gift_card = graphene.Field(GiftCard, description="A gift card to activate.")
+    gift_card = graphene.Field(GiftCard, description="Activated gift card.")
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a gift card to activate.")
