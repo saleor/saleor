@@ -251,7 +251,6 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         translation_data = generate_translation_payload(translation)
-        print(translation_data)
         trigger_webhooks_for_event.delay(
             WebhookEventType.TRANSLATION_UPDATED, translation_data
         )
