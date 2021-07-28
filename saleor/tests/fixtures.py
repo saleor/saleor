@@ -914,6 +914,27 @@ def rich_text_attribute(db):
 
 
 @pytest.fixture
+def rich_text_attribute_page_type(db):
+    attribute = Attribute.objects.create(
+        slug="text",
+        name="Text",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.RICH_TEXT,
+        filterable_in_storefront=False,
+        filterable_in_dashboard=False,
+        available_in_grid=False,
+    )
+    text = "Rich text attribute content."
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=truncatechars(clean_editor_js(dummy_editorjs(text), to_string=True), 50),
+        slug=f"instance_{attribute.id}",
+        rich_text=dummy_editorjs(text),
+    )
+    return attribute
+
+
+@pytest.fixture
 def rich_text_attribute_with_many_values(rich_text_attribute):
     attribute = rich_text_attribute
     values = []
@@ -1329,6 +1350,21 @@ def product_type(color_attribute, size_attribute):
 
 
 @pytest.fixture
+def product_type_with_rich_text_attribute(
+    rich_text_attribute, color_attribute, size_attribute
+):
+    product_type = ProductType.objects.create(
+        name="Default Type",
+        slug="default-type",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(rich_text_attribute)
+    product_type.variant_attributes.add(rich_text_attribute)
+    return product_type
+
+
+@pytest.fixture
 def product_type_without_variant():
     product_type = ProductType.objects.create(
         name="Type", slug="type", has_variants=False, is_shipping_required=True
@@ -1374,6 +1410,48 @@ def product(product_type, category, warehouse, channel_USD):
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
     return product
+
+
+@pytest.fixture
+def product_with_rich_text_attribute(
+    product_type_with_rich_text_attribute, category, warehouse, channel_USD
+):
+    product_attr = product_type_with_rich_text_attribute.product_attributes.first()
+    product_attr_value = product_attr.values.first()
+
+    product = Product.objects.create(
+        name="Test product",
+        slug="test-product-11",
+        product_type=product_type_with_rich_text_attribute,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        discounted_price_amount="10.00",
+        currency=channel_USD.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+    )
+
+    associate_attribute_values_to_instance(product, product_attr, product_attr_value)
+
+    variant_attr = product_type_with_rich_text_attribute.variant_attributes.first()
+    variant_attr_value = variant_attr.values.first()
+
+    variant = ProductVariant.objects.create(product=product, sku="123")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
+
+    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    return [product, variant]
 
 
 @pytest.fixture
@@ -3279,6 +3357,26 @@ def page(db, page_type):
 
 
 @pytest.fixture
+def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
+    data = {
+        "slug": "test-url",
+        "title": "Test page",
+        "content": dummy_editorjs("Test content."),
+        "is_published": True,
+        "page_type": page_type_with_rich_text_attribute,
+    }
+    page = Page.objects.create(**data)
+
+    # associate attribute value
+    page_attr = page_type_with_rich_text_attribute.page_attributes.first()
+    page_attr_value = page_attr.values.first()
+
+    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+
+    return page
+
+
+@pytest.fixture
 def page_list(db, page_type):
     data_1 = {
         "slug": "test-url",
@@ -3322,6 +3420,13 @@ def page_type(db, size_page_attribute, tag_page_attribute):
     page_type.page_attributes.add(size_page_attribute)
     page_type.page_attributes.add(tag_page_attribute)
 
+    return page_type
+
+
+@pytest.fixture
+def page_type_with_rich_text_attribute(db, rich_text_attribute_page_type):
+    page_type = PageType.objects.create(name="Test page type", slug="test-page-type")
+    page_type.page_attributes.add(rich_text_attribute_page_type)
     return page_type
 
 
