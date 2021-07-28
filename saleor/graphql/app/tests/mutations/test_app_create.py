@@ -1,5 +1,3 @@
-from django.contrib.auth.hashers import check_password
-
 from .....app.error_codes import AppErrorCode
 from .....app.models import App
 from ....core.enums import PermissionEnum
@@ -59,7 +57,7 @@ def test_app_create_mutation(
     assert app_data["isActive"] == app.is_active
     assert app_data["name"] == app.name
     assert list(app.permissions.all()) == [permission_manage_products]
-    assert check_password(default_token, app.tokens.get().auth_token)
+    assert default_token == app.tokens.get().auth_token
 
 
 def test_app_create_mutation_for_app(
@@ -84,7 +82,7 @@ def test_app_create_mutation_for_app(
     assert app_data["isActive"] == app.is_active
     assert app_data["name"] == app.name
     assert list(app.permissions.all()) == [permission_manage_products]
-    assert check_password(default_token, app.tokens.get().auth_token)
+    assert default_token == app.tokens.get().auth_token
 
 
 def test_app_create_mutation_out_of_scope_permissions(
@@ -139,7 +137,7 @@ def test_app_create_mutation_superuser_can_create_app_with_any_perms(
     assert app_data["isActive"] == app.is_active
     assert app_data["name"] == app.name
     assert list(app.permissions.all()) == [permission_manage_products]
-    assert check_password(default_token, app.tokens.get().auth_token)
+    assert default_token == app.tokens.get().auth_token
 
 
 def test_app_create_mutation_for_app_out_of_scope_permissions(

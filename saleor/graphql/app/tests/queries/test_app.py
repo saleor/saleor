@@ -53,11 +53,11 @@ def test_app_query(
     staff_api_client,
     permission_manage_apps,
     permission_manage_staff,
-    app_with_token,
+    app,
     external_app,
     webhook,
 ):
-    app = app_with_token if app_type == "custom" else external_app
+    app = app if app_type == "custom" else external_app
     app.permissions.add(permission_manage_staff)
 
     webhook = webhook

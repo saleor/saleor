@@ -10,7 +10,6 @@ from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
 
 from ...account.models import User
-from ...app.models import AppToken
 from ...core.jwt import create_access_token
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
@@ -33,10 +32,13 @@ class ApiClient(Client):
         self._user = None
         self.token = None
         self.user = user
-        self.app_token = kwargs.pop("app_token", None)
+        self.app_token = None
         self.app = app
         if not user.is_anonymous:
             self.token = create_access_token(user)
+        elif app:
+            token = app.tokens.first()
+            self.app_token = token.auth_token if token else None
         super().__init__(*args, **kwargs)
 
     def _base_environ(self, **request):
@@ -118,8 +120,7 @@ class ApiClient(Client):
 
 @pytest.fixture
 def app_api_client(app):
-    _token_inst, token = AppToken.objects.create_app_token(app=app, name="Default")
-    return ApiClient(app=app, app_token=token)
+    return ApiClient(app=app)
 
 
 @pytest.fixture

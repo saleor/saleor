@@ -1,10 +1,11 @@
 import requests
 from django.contrib.sites.models import Site
 
-from ..core.permissions import get_permission_names
 from .manifest_validations import clean_manifest_data
-from .models import App, AppExtension, AppInstallation
+from .models import App, AppInstallation
+from .models import AppExtension
 from .types import AppType
+from ..core.permissions import get_permission_names
 
 REQUEST_TIMEOUT = 25
 

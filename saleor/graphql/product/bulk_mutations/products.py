@@ -6,8 +6,6 @@ from django.db import transaction
 from django.db.models import Q
 from graphene.types import InputObjectType
 
-from saleor.plugins.manager import get_plugins_manager
-
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.permissions import ProductPermissions, ProductTypePermissions
@@ -16,7 +14,11 @@ from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import models
-from ....product.actions import ProductVariantStockWebhookTrigger
+from ....product.actions import (
+    get_product_variant_data_from_warehouses,
+    trigger_product_variant_back_in_stock_webhook,
+    trigger_product_variant_out_of_stock_webhook,
+)
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
@@ -719,32 +721,38 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             warehouses = cls.get_nodes_or_error(
                 warehouse_ids, "warehouse", only_type=Warehouse
             )
-            cls.update_or_create_variant_stocks(variant, stocks, warehouses)
+
+            plugins_manager = info.context.plugins
+            cls.update_or_create_variant_stocks(
+                variant, stocks, warehouses, plugins_manager
+            )
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
     @traced_atomic_transaction()
-    def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses):
-        product_variant_stock_webhooks = ProductVariantStockWebhookTrigger()
+    def update_or_create_variant_stocks(
+        cls, variant, stocks_data, warehouses, plugins_manager
+    ):
+        variant_for_webhook = get_product_variant_data_from_warehouses(
+            variant, warehouses
+        )
+
         stocks = []
         for stock_data, warehouse in zip(stocks_data, warehouses):
             stock, is_created = warehouse_models.Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
             )
-            product_variant_stock_webhooks.append_stock_data(
-                stock, is_created, stock.quantity, stock_data["quantity"]
-            )
             stock.quantity = stock_data["quantity"]
             stocks.append(stock)
         warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])
-        plugins_manager = get_plugins_manager()
-        product_variant_stock_webhooks.trigger_product_variant_back_in_stock_webhook(
-            plugins_manager
+
+        trigger_product_variant_back_in_stock_webhook(
+            variant_for_webhook, plugins_manager
         )
-        product_variant_stock_webhooks.trigger_product_variant_out_of_stock_webhook(
-            plugins_manager
+        trigger_product_variant_out_of_stock_webhook(
+            variant_for_webhook, plugins_manager
         )
 
 
