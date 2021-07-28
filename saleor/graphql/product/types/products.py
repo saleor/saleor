@@ -61,11 +61,12 @@ from ...translations.types import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from ...utils import get_user_country_context, get_user_or_app_from_context
+from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
-    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChanneLoader,
+    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
+    WarehouseCountryCodeByChannelLoader,
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
@@ -267,11 +268,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         country_code=None,
     ):
         if address is not None:
-            country_code = get_user_country_context(
-                address, info.context.site.settings.company_address
-            )
-
-        return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChanneLoader(
+            country_code = address.country
+        return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             info.context
         ).load((root.node.id, country_code, root.channel_slug))
 
@@ -345,10 +343,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        country_code = get_user_country_context(
-            address, info.context.site.settings.company_address
-        )
-
         channel_slug = str(root.channel_slug)
         context = info.context
 
@@ -362,56 +356,74 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         collections = CollectionsByProductIdLoader(context).load(root.node.product_id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
-        def calculate_pricing_info(discounts):
-            def calculate_pricing_with_channel(channel):
-                def calculate_pricing_with_product_variant_channel_listings(
-                    variant_channel_listing,
-                ):
-                    def calculate_pricing_with_product(product):
-                        def calculate_pricing_with_product_channel_listings(
-                            product_channel_listing,
-                        ):
-                            def calculate_pricing_with_collections(collections):
-                                if (
-                                    not variant_channel_listing
-                                    or not product_channel_listing
-                                ):
-                                    return None
-                                availability = get_variant_availability(
-                                    variant=root.node,
-                                    variant_channel_listing=variant_channel_listing,
-                                    product=product,
-                                    product_channel_listing=product_channel_listing,
-                                    collections=collections,
-                                    discounts=discounts,
-                                    channel=channel,
-                                    country=Country(country_code),
-                                    local_currency=get_currency_for_country(
-                                        country_code
-                                    ),
-                                    plugins=context.plugins,
+        country_code = address.country if address is not None else None
+
+        def calculate_discounts(country_code):
+            def calculate_pricing_info(discounts):
+                def calculate_pricing_with_channel(channel):
+                    def calculate_pricing_with_product_variant_channel_listings(
+                        variant_channel_listing,
+                    ):
+                        def calculate_pricing_with_product(product):
+                            def calculate_pricing_with_product_channel_listings(
+                                product_channel_listing,
+                            ):
+                                def calculate_pricing_with_collections(collections):
+                                    if (
+                                        not variant_channel_listing
+                                        or not product_channel_listing
+                                    ):
+                                        return None
+
+                                    local_currency = None
+                                    if country_code:
+                                        local_currency = get_currency_for_country(
+                                            country_code
+                                        )
+
+                                    availability = get_variant_availability(
+                                        variant=root.node,
+                                        variant_channel_listing=variant_channel_listing,
+                                        product=product,
+                                        product_channel_listing=product_channel_listing,
+                                        collections=collections,
+                                        discounts=discounts,
+                                        channel=channel,
+                                        country=Country(country_code),
+                                        local_currency=local_currency,
+                                        plugins=context.plugins,
+                                    )
+                                    return VariantPricingInfo(**asdict(availability))
+
+                                return collections.then(
+                                    calculate_pricing_with_collections
                                 )
-                                return VariantPricingInfo(**asdict(availability))
 
-                            return collections.then(calculate_pricing_with_collections)
+                            return product_channel_listing.then(
+                                calculate_pricing_with_product_channel_listings
+                            )
 
-                        return product_channel_listing.then(
-                            calculate_pricing_with_product_channel_listings
-                        )
+                        return product.then(calculate_pricing_with_product)
 
-                    return product.then(calculate_pricing_with_product)
+                    return variant_channel_listing.then(
+                        calculate_pricing_with_product_variant_channel_listings
+                    )
 
-                return variant_channel_listing.then(
-                    calculate_pricing_with_product_variant_channel_listings
-                )
+                return channel.then(calculate_pricing_with_channel)
 
-            return channel.then(calculate_pricing_with_channel)
+            return (
+                DiscountsByDateTimeLoader(context)
+                .load(info.context.request_time)
+                .then(calculate_pricing_info)
+            )
 
-        return (
-            DiscountsByDateTimeLoader(context)
-            .load(info.context.request_time)
-            .then(calculate_pricing_info)
-        )
+        if not country_code:
+            return (
+                WarehouseCountryCodeByChannelLoader(context)
+                .load(channel_slug)
+                .then(calculate_discounts)
+            )
+        return calculate_discounts(country_code)
 
     @staticmethod
     def resolve_product(root: ChannelContext[models.ProductVariant], info):
@@ -654,11 +666,9 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        country_code = get_user_country_context(
-            address, info.context.site.settings.company_address
-        )
-        context = info.context
         channel_slug = str(root.channel_slug)
+        context = info.context
+
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
         ).load((root.node.id, channel_slug))
@@ -671,53 +681,72 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         collections = CollectionsByProductIdLoader(context).load(root.node.id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
-        def calculate_pricing_info(discounts):
-            def calculate_pricing_with_channel(channel):
-                def calculate_pricing_with_product_channel_listings(
-                    product_channel_listing,
-                ):
-                    def calculate_pricing_with_variants(variants):
-                        def calculate_pricing_with_variants_channel_listings(
-                            variants_channel_listing,
-                        ):
-                            def calculate_pricing_with_collections(collections):
-                                if not variants_channel_listing:
-                                    return None
-                                availability = get_product_availability(
-                                    product=root.node,
-                                    product_channel_listing=product_channel_listing,
-                                    variants=variants,
-                                    variants_channel_listing=variants_channel_listing,
-                                    collections=collections,
-                                    discounts=discounts,
-                                    channel=channel,
-                                    manager=context.plugins,
-                                    country=Country(country_code),
-                                    local_currency=get_currency_for_country(
-                                        country_code
-                                    ),
+        country_code = address.country if address is not None else None
+
+        def calculate_discounts(country_code):
+            def calculate_pricing_info(discounts):
+                def calculate_pricing_with_channel(channel):
+                    def calculate_pricing_with_product_channel_listings(
+                        product_channel_listing,
+                    ):
+                        def calculate_pricing_with_variants(variants):
+                            def calculate_pricing_with_variants_channel_listings(
+                                variants_channel_listing,
+                            ):
+                                def calculate_pricing_with_collections(collections):
+                                    if not variants_channel_listing:
+                                        return None
+
+                                    vc_listing = variants_channel_listing
+                                    local_currency = None
+                                    if country_code:
+                                        local_currency = get_currency_for_country(
+                                            country_code
+                                        )
+
+                                    availability = get_product_availability(
+                                        product=root.node,
+                                        product_channel_listing=product_channel_listing,
+                                        variants=variants,
+                                        variants_channel_listing=vc_listing,
+                                        collections=collections,
+                                        discounts=discounts,
+                                        channel=channel,
+                                        manager=context.plugins,
+                                        country=Country(country_code),
+                                        local_currency=local_currency,
+                                    )
+                                    return ProductPricingInfo(**asdict(availability))
+
+                                return collections.then(
+                                    calculate_pricing_with_collections
                                 )
-                                return ProductPricingInfo(**asdict(availability))
 
-                            return collections.then(calculate_pricing_with_collections)
+                            return variants_channel_listing.then(
+                                calculate_pricing_with_variants_channel_listings
+                            )
 
-                        return variants_channel_listing.then(
-                            calculate_pricing_with_variants_channel_listings
-                        )
+                        return variants.then(calculate_pricing_with_variants)
 
-                    return variants.then(calculate_pricing_with_variants)
+                    return product_channel_listing.then(
+                        calculate_pricing_with_product_channel_listings
+                    )
 
-                return product_channel_listing.then(
-                    calculate_pricing_with_product_channel_listings
-                )
+                return channel.then(calculate_pricing_with_channel)
 
-            return channel.then(calculate_pricing_with_channel)
+            return (
+                DiscountsByDateTimeLoader(context)
+                .load(info.context.request_time)
+                .then(calculate_pricing_info)
+            )
 
-        return (
-            DiscountsByDateTimeLoader(context)
-            .load(info.context.request_time)
-            .then(calculate_pricing_info)
-        )
+        if not country_code:
+            return (
+                WarehouseCountryCodeByChannelLoader(context)
+                .load(channel_slug)
+                .then(calculate_discounts)
+            )
+        return calculate_discounts(country_code)
 
     @staticmethod
     @traced_resolver
@@ -726,9 +755,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             return None
 
         channel_slug = str(root.channel_slug)
-        country_code = None
-        if address:
-            country_code = address.country
+        country_code = address.country if address is not None else None
 
         requestor = get_user_or_app_from_context(info.context)
         is_staff = requestor_is_staff_member_or_app(requestor)
