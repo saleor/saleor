@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -821,8 +822,9 @@ PRODUCT_TRANSLATE_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.translation_created")
 def test_product_create_translation(
-    staff_api_client, product, permission_manage_translations
+    translation_created, staff_api_client, product, permission_manage_translations
 ):
     query = PRODUCT_TRANSLATE_MUTATION
 
@@ -836,6 +838,8 @@ def test_product_create_translation(
 
     assert data["product"]["translation"]["name"] == "Produkt PL"
     assert data["product"]["translation"]["language"]["code"] == "PL"
+
+    translation_created.assert_called_once()
 
 
 def test_product_create_translation_for_description(
@@ -894,8 +898,9 @@ def test_product_create_translation_with_app(
     assert data["product"]["translation"]["language"]["code"] == "PL"
 
 
+@patch("saleor.plugins.manager.PluginsManager.translation_updated")
 def test_product_update_translation(
-    staff_api_client, product, permission_manage_translations
+    translation_updated, staff_api_client, product, permission_manage_translations
 ):
     product.translations.create(language_code="pl", name="Produkt")
 
@@ -911,6 +916,8 @@ def test_product_update_translation(
 
     assert data["product"]["translation"]["name"] == "Produkt PL"
     assert data["product"]["translation"]["language"]["code"] == "PL"
+
+    translation_updated.assert_called_once()
 
 
 PRODUCT_VARIANT_TRANSLATE_MUTATION = """
@@ -933,8 +940,9 @@ mutation productVariantTranslate(
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.translation_created")
 def test_product_variant_create_translation(
-    staff_api_client, variant, permission_manage_translations
+    translation_created, staff_api_client, variant, permission_manage_translations
 ):
     query = PRODUCT_VARIANT_TRANSLATE_MUTATION
 
@@ -949,9 +957,12 @@ def test_product_variant_create_translation(
     assert data["productVariant"]["translation"]["name"] == "Wariant PL"
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
 
+    translation_created.assert_called_once()
 
+
+@patch("saleor.plugins.manager.PluginsManager.translation_updated")
 def test_product_variant_update_translation(
-    staff_api_client, variant, permission_manage_translations
+    translation_updated, staff_api_client, variant, permission_manage_translations
 ):
     variant.translations.create(language_code="pl", name="Wariant")
 
@@ -967,6 +978,8 @@ def test_product_variant_update_translation(
 
     assert data["productVariant"]["translation"]["name"] == "Wariant PL"
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
+
+    translation_updated.assert_called_once()
 
 
 COLLECTION_TRANSLATE_MUTATION = """

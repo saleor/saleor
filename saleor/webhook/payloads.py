@@ -39,6 +39,7 @@ if TYPE_CHECKING:
     from ..account.models import User
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData
+    from ..translation.models import Translation
 
 
 ADDRESS_FIELDS = (
@@ -609,3 +610,21 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
     else:
         payload = _generate_sample_order_payload(event_name)
     return json.loads(payload) if payload else None
+
+
+def generate_translation_payload(translation: "Translation"):
+    translated_object = translation.get_translated_object()
+    translated_keys = [
+        {"key": key, "value": value}
+        for key, value in translation.get_translated_keys().items()
+    ]
+
+    translation_data = {
+        "id": graphene.Node.to_global_id(
+            translated_object._meta.object_name, translated_object.pk
+        ),
+        "language_code": translation.language_code,
+        "keys": translated_keys,
+    }
+
+    return json.dumps(translation_data)

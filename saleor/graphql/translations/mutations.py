@@ -106,10 +106,16 @@ class ProductTranslate(BaseTranslateMutation):
 
         product_pk = cls.get_global_id_or_error(data["id"], only_type=Product)
         product = product_models.Product.objects.get(pk=product_pk)
-        product.translations.update_or_create(
+        translation, created = product.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
         product = ChannelContext(node=product, channel_slug=None)
+
+        if created:
+            info.context.plugins.translation_created(translation)
+        else:
+            info.context.plugins.translation_updated(translation)
+
         return cls(**{cls._meta.return_field_name: product})
 
 
@@ -162,14 +168,20 @@ class ProductVariantTranslate(BaseTranslateMutation):
         variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
         )
-        variant.translations.update_or_create(
+        translation, created = variant.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
         variant = ChannelContext(node=variant, channel_slug=None)
 
-        transaction.on_commit(
-            lambda: info.context.plugins.product_variant_updated(variant)
-        )
+        def on_commit():
+            info.context.plugins.product_variant_updated(variant)
+
+            if created:
+                info.context.plugins.translation_created(translation)
+            else:
+                info.context.plugins.translation_updated(translation)
+
+        transaction.on_commit(on_commit)
 
         return cls(**{cls._meta.return_field_name: variant})
 

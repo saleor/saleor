@@ -49,6 +49,7 @@ from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
+from ..translation.models import Translation
 from . import ProductMediaTypes
 
 if TYPE_CHECKING:
@@ -411,7 +412,6 @@ class Product(SeoModel, ModelWithMetadata):
 
 
 class ProductTranslation(SeoModelTranslation):
-    language_code = models.CharField(max_length=10)
     product = models.ForeignKey(
         Product, related_name="translations", on_delete=models.CASCADE
     )
@@ -432,6 +432,19 @@ class ProductTranslation(SeoModelTranslation):
             self.name,
             self.product_id,
         )
+
+    def get_translated_object(self) -> Product:
+        return self.product
+
+    def get_translated_keys(self):
+        translated_keys = super().get_translated_keys()
+        translated_keys.update(
+            {
+                "name": self.name,
+                "description": self.description,
+            }
+        )
+        return translated_keys
 
 
 class ProductVariantQueryset(models.QuerySet):
@@ -567,8 +580,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         return self.product.variants.all()
 
 
-class ProductVariantTranslation(models.Model):
-    language_code = models.CharField(max_length=10)
+class ProductVariantTranslation(Translation):
     product_variant = models.ForeignKey(
         ProductVariant, related_name="translations", on_delete=models.CASCADE
     )
@@ -590,6 +602,12 @@ class ProductVariantTranslation(models.Model):
 
     def __str__(self):
         return self.name or str(self.product_variant)
+
+    def get_translated_object(self) -> ProductVariant:
+        return self.product_variant
+
+    def get_translated_keys(self):
+        return {"name": self.name}
 
 
 class ProductVariantChannelListing(models.Model):
