@@ -1,6 +1,7 @@
 import requests
 from django.contrib.sites.models import Site
 
+from ..core.permissions import get_permission_names
 from .manifest_validations import clean_manifest_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppType
@@ -24,7 +25,10 @@ def install_app(
 ):
     response = requests.get(app_installation.manifest_url, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
+    assigned_permissions = app_installation.permissions.all()
     manifest_data = response.json()
+
+    manifest_data["permissions"] = get_permission_names(assigned_permissions)
 
     clean_manifest_data(manifest_data)
 

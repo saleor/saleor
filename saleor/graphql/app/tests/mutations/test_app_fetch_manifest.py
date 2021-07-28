@@ -46,24 +46,6 @@ mutation AppFetchManifest($manifest_url: String!){
 """
 
 
-@pytest.fixture
-def manifest():
-    return {
-        "name": "Sample Saleor App",
-        "version": "0.1",
-        "about": "Sample Saleor App serving as an example.",
-        "dataPrivacy": "",
-        "dataPrivacyUrl": "",
-        "homepageUrl": "http://172.17.0.1:5000/homepageUrl",
-        "supportUrl": "http://172.17.0.1:5000/supportUrl",
-        "id": "saleor-complex-sample",
-        "permissions": ["MANAGE_PRODUCTS", "MANAGE_USERS"],
-        "appUrl": "",
-        "configurationUrl": "http://127.0.0.1:5000/configuration/",
-        "tokenTargetUrl": "http://127.0.0.1:5000/configuration/install",
-    }
-
-
 @pytest.mark.vcr
 def test_app_fetch_manifest(staff_api_client, staff_user, permission_manage_apps):
     manifest_url = "http://localhost:3000/manifest"
@@ -250,12 +232,12 @@ def test_app_fetch_manifest_handle_exception(
     ],
 )
 def test_app_fetch_manifest_missing_fields(
-    missing_field, manifest, monkeypatch, staff_api_client, permission_manage_apps
+    missing_field, app_manifest, monkeypatch, staff_api_client, permission_manage_apps
 ):
     # given
-    del manifest[missing_field]
+    del app_manifest[missing_field]
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = manifest
+    mocked_get_response.json.return_value = app_manifest
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -292,10 +274,10 @@ def test_app_fetch_manifest_missing_fields(
     ],
 )
 def test_app_fetch_manifest_missing_extension_fields(
-    missing_field, manifest, monkeypatch, staff_api_client, permission_manage_apps
+    missing_field, app_manifest, monkeypatch, staff_api_client, permission_manage_apps
 ):
     # given
-    manifest["extensions"] = [
+    app_manifest["extensions"] = [
         {
             "permissions": ["MANAGE_PRODUCTS"],
             "label": "Create product with App",
@@ -305,9 +287,9 @@ def test_app_fetch_manifest_missing_extension_fields(
             "target": AppExtensionTargetEnum.CREATE.name,
         }
     ]
-    del manifest["extensions"][0][missing_field]
+    del app_manifest["extensions"][0][missing_field]
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = manifest
+    mocked_get_response.json.return_value = app_manifest
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -342,10 +324,10 @@ def test_app_fetch_manifest_missing_extension_fields(
     ],
 )
 def test_app_fetch_manifest_extensions_incorrect_enum_values(
-    incorrect_field, manifest, monkeypatch, staff_api_client, permission_manage_apps
+    incorrect_field, app_manifest, monkeypatch, staff_api_client, permission_manage_apps
 ):
     # given
-    manifest["extensions"] = [
+    app_manifest["extensions"] = [
         {
             "permissions": ["MANAGE_PRODUCTS"],
             "label": "Create product with App",
@@ -355,10 +337,10 @@ def test_app_fetch_manifest_extensions_incorrect_enum_values(
             "target": AppExtensionTargetEnum.CREATE.name,
         }
     ]
-    manifest["extensions"][0][incorrect_field] = "INCORRECT_VALUE"
+    app_manifest["extensions"][0][incorrect_field] = "INCORRECT_VALUE"
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = manifest
+    mocked_get_response.json.return_value = app_manifest
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -395,10 +377,10 @@ def test_app_fetch_manifest_extensions_incorrect_enum_values(
     ],
 )
 def test_app_fetch_manifest_extensions_incorrect_url(
-    url, manifest, monkeypatch, staff_api_client, permission_manage_apps
+    url, app_manifest, monkeypatch, staff_api_client, permission_manage_apps
 ):
     # given
-    manifest["extensions"] = [
+    app_manifest["extensions"] = [
         {
             "permissions": ["MANAGE_PRODUCTS"],
             "label": "Create product with App",
@@ -410,7 +392,7 @@ def test_app_fetch_manifest_extensions_incorrect_url(
     ]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = manifest
+    mocked_get_response.json.return_value = app_manifest
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -446,14 +428,14 @@ def test_app_fetch_manifest_extensions_incorrect_url(
 def test_app_fetch_manifest_extensions_permission_out_of_scope(
     app_permissions,
     extension_permissions,
-    manifest,
+    app_manifest,
     monkeypatch,
     staff_api_client,
     permission_manage_apps,
 ):
     # given
-    manifest["permissions"] = app_permissions
-    manifest["extensions"] = [
+    app_manifest["permissions"] = app_permissions
+    app_manifest["extensions"] = [
         {
             "permissions": extension_permissions,
             "label": "Create product with App",
@@ -465,7 +447,7 @@ def test_app_fetch_manifest_extensions_permission_out_of_scope(
     ]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = manifest
+    mocked_get_response.json.return_value = app_manifest
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -492,11 +474,11 @@ def test_app_fetch_manifest_extensions_permission_out_of_scope(
 
 
 def test_app_fetch_manifest_extensions_invalid_permission(
-    manifest, monkeypatch, staff_api_client, permission_manage_apps
+    app_manifest, monkeypatch, staff_api_client, permission_manage_apps
 ):
     # given
-    manifest["permissions"] = ["MANAGE_ORDERS"]
-    manifest["extensions"] = [
+    app_manifest["permissions"] = ["MANAGE_ORDERS"]
+    app_manifest["extensions"] = [
         {
             "permissions": ["incorrect_permission"],
             "label": "Create product with App",
@@ -508,7 +490,7 @@ def test_app_fetch_manifest_extensions_invalid_permission(
     ]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = manifest
+    mocked_get_response.json.return_value = app_manifest
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     query = APP_FETCH_MANIFEST_MUTATION
@@ -535,12 +517,12 @@ def test_app_fetch_manifest_extensions_invalid_permission(
 
 
 def test_app_fetch_manifest_with_extensions(
-    staff_api_client, staff_user, manifest, permission_manage_apps, monkeypatch
+    staff_api_client, staff_user, app_manifest, permission_manage_apps, monkeypatch
 ):
     # given
     manifest_url = "http://localhost:3000/manifest"
 
-    manifest["extensions"] = [
+    app_manifest["extensions"] = [
         {
             "permissions": ["MANAGE_PRODUCTS"],
             "label": "Create product with App",
@@ -552,7 +534,7 @@ def test_app_fetch_manifest_with_extensions(
     ]
 
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = manifest
+    mocked_get_response.json.return_value = app_manifest
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
 

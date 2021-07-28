@@ -60,7 +60,7 @@ def clean_manifest_data(manifest_data):
     except (ValidationError, AttributeError):
         errors["tokenTargetUrl"].append(
             ValidationError(
-                "Incorrect value for field: tokenTargetUrl.",
+                "Incorrect format.",
                 code=AppErrorCode.INVALID_URL_FORMAT.value,
             )
         )
