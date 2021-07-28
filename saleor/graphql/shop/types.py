@@ -17,7 +17,7 @@ from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
-from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
+from ..core.types.common import CountryDisplay, LanguageDisplay, Permission, TimePeriod
 from ..core.utils import str_to_enum
 from ..decorators import (
     permission_required,
@@ -29,6 +29,7 @@ from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
+from .enums import GiftCardSettingsExpiryTypeEnum
 from .resolvers import resolve_available_shipping_methods
 
 
@@ -48,6 +49,30 @@ class OrderSettings(CountableDjangoObjectType):
         only_fields = ["automatically_confirm_all_new_orders"]
         description = "Order related settings from site settings."
         model = site_models.SiteSettings
+
+
+class GiftCardSettings(CountableDjangoObjectType):
+    expiry_type = GiftCardSettingsExpiryTypeEnum(
+        description="The gift card expiry type settings.", required=True
+    )
+    expiry_period = graphene.Field(
+        TimePeriod, description="The gift card expiry period settings.", required=False
+    )
+
+    class Meta:
+        description = "Gift card related settings from site settings."
+        model = site_models.SiteSettings
+        only_fields = ["expiry_type"]
+
+    def resolve_expiry_type(root, info):
+        return root.gift_card_expiry_type
+
+    def resolve_expiry_period(root, info):
+        if root.gift_card_expiry_period_type is None:
+            return None
+        return TimePeriod(
+            amount=root.gift_card_expiry_period, type=root.gift_card_expiry_period_type
+        )
 
 
 class ExternalAuthentication(graphene.ObjectType):
