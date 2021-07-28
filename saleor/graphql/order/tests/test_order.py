@@ -899,6 +899,7 @@ def test_order_confirm(
         "order": get_default_order_payload(order_unconfirmed, ""),
         "recipient_email": order_unconfirmed.user.email,
         "requester_user_id": staff_api_client.user.id,
+        "requester_app_id": None,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
@@ -1039,54 +1040,62 @@ def test_draft_order_query(staff_api_client, permission_manage_orders, orders):
     assert len(edges) == Order.objects.drafts().count()
 
 
-def test_nested_order_events_query(
-    staff_api_client,
-    permission_manage_orders,
-    fulfilled_order,
-    fulfillment,
-    staff_user,
-    warehouse,
-):
-    query = """
-        query OrdersQuery {
-            orders(first: 1) {
-                edges {
-                    node {
-                        events {
-                            date
-                            type
-                            user {
-                                email
-                            }
-                            message
+ORDERS_FULFILLED_EVENTS = """
+    query OrdersQuery {
+        orders(first: 1) {
+            edges {
+                node {
+                    events {
+                        date
+                        type
+                        user {
                             email
-                            emailType
-                            amount
+                        }
+                        app {
+                            name
+                        }
+                        message
+                        email
+                        emailType
+                        amount
+                        quantity
+                        composedId
+                        orderNumber
+                        fulfilledItems {
                             quantity
-                            composedId
-                            orderNumber
-                            fulfilledItems {
-                                quantity
-                                orderLine {
-                                    productName
-                                    variantName
-                                }
+                            orderLine {
+                                productName
+                                variantName
                             }
-                            paymentId
-                            paymentGateway
-                            warehouse {
-                                name
-                            }
+                        }
+                        paymentId
+                        paymentGateway
+                        warehouse {
+                            name
                         }
                     }
                 }
             }
         }
-    """
+    }
+"""
+
+
+def test_nested_order_events_query(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_apps,
+    fulfilled_order,
+    fulfillment,
+    staff_user,
+    warehouse,
+):
+    query = ORDERS_FULFILLED_EVENTS
 
     event = order_events.fulfillment_fulfilled_items_event(
         order=fulfilled_order,
         user=staff_user,
+        app=None,
         fulfillment_lines=fulfillment.lines.all(),
     )
     event.parameters.update(
@@ -1101,7 +1110,9 @@ def test_nested_order_events_query(
     )
     event.save()
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders, permission_manage_apps
+    )
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
@@ -1111,6 +1122,66 @@ def test_nested_order_events_query(
     assert data["quantity"] == int(event.parameters["quantity"])
     assert data["composedId"] == event.parameters["composed_id"]
     assert data["user"]["email"] == staff_user.email
+    assert data["type"] == "FULFILLMENT_FULFILLED_ITEMS"
+    assert data["date"] == event.date.isoformat()
+    assert data["orderNumber"] == str(fulfilled_order.pk)
+    assert data["fulfilledItems"] == [
+        {
+            "quantity": line.quantity,
+            "orderLine": {
+                "productName": line.order_line.product_name,
+                "variantName": line.order_line.variant_name,
+            },
+        }
+        for line in fulfillment.lines.all()
+    ]
+    assert data["paymentId"] is None
+    assert data["paymentGateway"] is None
+    assert data["warehouse"]["name"] == warehouse.name
+
+
+def test_nested_order_events_query_for_app(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_apps,
+    fulfilled_order,
+    fulfillment,
+    app,
+    warehouse,
+):
+    query = ORDERS_FULFILLED_EVENTS
+
+    event = order_events.fulfillment_fulfilled_items_event(
+        order=fulfilled_order,
+        user=None,
+        app=app,
+        fulfillment_lines=fulfillment.lines.all(),
+    )
+    event.parameters.update(
+        {
+            "message": "Example note",
+            "email_type": order_events.OrderEventsEmails.PAYMENT,
+            "amount": "80.00",
+            "quantity": "10",
+            "composed_id": "10-10",
+            "warehouse": warehouse.pk,
+        }
+    )
+    event.save()
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders, permission_manage_apps
+    )
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
+    assert data["message"] == event.parameters["message"]
+    assert data["amount"] == float(event.parameters["amount"])
+    assert data["emailType"] == "PAYMENT_CONFIRMATION"
+    assert data["quantity"] == int(event.parameters["quantity"])
+    assert data["composedId"] == event.parameters["composed_id"]
+    assert data["user"] is None
+    assert data["app"]["name"] == app.name
     assert data["type"] == "FULFILLMENT_FULFILLED_ITEMS"
     assert data["date"] == event.date.isoformat()
     assert data["orderNumber"] == str(fulfilled_order.pk)
@@ -1157,7 +1228,49 @@ def test_related_order_events_query(
     related_order_id = graphene.Node.to_global_id("Order", new_order.id)
 
     order_replacement_created(
-        original_order=order, replace_order=new_order, user=staff_user
+        original_order=order, replace_order=new_order, user=staff_user, app=None
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    data = content["data"]["orders"]["edges"]
+    for order_data in data:
+        events_data = order_data["node"]["events"]
+        if order_data["node"]["id"] != related_order_id:
+            assert events_data[0]["relatedOrder"]["id"] == related_order_id
+
+
+def test_related_order_events_query_for_app(
+    staff_api_client, permission_manage_orders, order, payment_dummy, app
+):
+    query = """
+        query OrdersQuery {
+            orders(first: 2) {
+                edges {
+                    node {
+                        id
+                        events {
+                            relatedOrder{
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    new_order = deepcopy(order)
+    new_order.id = None
+    new_order.token = None
+    new_order.save()
+
+    related_order_id = graphene.Node.to_global_id("Order", new_order.id)
+
+    order_replacement_created(
+        original_order=order, replace_order=new_order, user=None, app=app
     )
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -1205,45 +1318,58 @@ def test_order_events_without_permission(
     assert response_events[-1]["user"] is None
 
 
-def test_payment_information_order_events_query(
-    staff_api_client, permission_manage_orders, order, payment_dummy, staff_user
-):
-    query = """
-        query OrdersQuery {
-            orders(first: 1) {
-                edges {
-                    node {
-                        events {
-                            type
-                            user {
-                                email
-                            }
-                            message
+ORDERS_PAYMENTS_EVENTS_QUERY = """
+    query OrdersQuery {
+        orders(first: 1) {
+            edges {
+                node {
+                    events {
+                        type
+                        user {
                             email
-                            emailType
-                            amount
-                            quantity
-                            composedId
-                            orderNumber
-                            lines {
-                                quantity
-                            }
-                            paymentId
-                            paymentGateway
                         }
+                        app {
+                            name
+                        }
+                        message
+                        email
+                        emailType
+                        amount
+                        quantity
+                        composedId
+                        orderNumber
+                        lines {
+                            quantity
+                        }
+                        paymentId
+                        paymentGateway
                     }
                 }
             }
         }
-    """
+    }
+"""
+
+
+def test_payment_information_order_events_query(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_apps,
+    order,
+    payment_dummy,
+    staff_user,
+):
+    query = ORDERS_PAYMENTS_EVENTS_QUERY
 
     amount = order.total.gross.amount
 
     order_events.payment_captured_event(
-        order=order, user=staff_user, amount=amount, payment=payment_dummy
+        order=order, user=staff_user, app=None, amount=amount, payment=payment_dummy
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders, permission_manage_apps
+    )
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
@@ -1255,6 +1381,43 @@ def test_payment_information_order_events_query(
     assert data["composedId"] is None
     assert data["lines"] is None
     assert data["user"]["email"] == staff_user.email
+    assert data["app"] is None
+    assert data["type"] == "PAYMENT_CAPTURED"
+    assert data["orderNumber"] == str(order.pk)
+    assert data["paymentId"] == payment_dummy.token
+    assert data["paymentGateway"] == payment_dummy.gateway
+
+
+def test_payment_information_order_events_query_for_app(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_apps,
+    order,
+    payment_dummy,
+    app,
+):
+    query = ORDERS_PAYMENTS_EVENTS_QUERY
+
+    amount = order.total.gross.amount
+
+    order_events.payment_captured_event(
+        order=order, user=None, app=app, amount=amount, payment=payment_dummy
+    )
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders, permission_manage_apps
+    )
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
+
+    assert data["message"] is None
+    assert Money(str(data["amount"]), "USD") == order.total.gross
+    assert data["emailType"] is None
+    assert data["quantity"] is None
+    assert data["composedId"] is None
+    assert data["lines"] is None
+    assert data["app"]["name"] == app.name
     assert data["type"] == "PAYMENT_CAPTURED"
     assert data["orderNumber"] == str(order.pk)
     assert data["paymentId"] == payment_dummy.token
@@ -3468,7 +3631,7 @@ def test_retrieving_event_lines_with_deleted_line(
 
     # Create the test event
     order_events.order_added_products_event(
-        order=order, user=staff_user, order_lines=quantities_per_lines
+        order=order, user=staff_user, app=None, order_lines=quantities_per_lines
     )
 
     # Delete a line
@@ -3507,7 +3670,7 @@ def test_retrieving_event_lines_with_missing_line_pk_in_data(
 
     # Create the test event
     event = order_events.order_added_products_event(
-        order=order, user=staff_user, order_lines=quantities_per_lines
+        order=order, user=staff_user, app=None, order_lines=quantities_per_lines
     )
     del event.parameters["lines"][0]["line_pk"]
     event.save(update_fields=["parameters"])
@@ -3860,7 +4023,7 @@ def test_order_cancel(
 
     mock_clean_order_cancel.assert_called_once_with(order)
     mock_cancel_order.assert_called_once_with(
-        order=order, user=staff_api_client.user, manager=ANY
+        order=order, user=staff_api_client.user, app=None, manager=ANY
     )
 
 
@@ -3885,7 +4048,7 @@ def test_order_cancel_as_app(
 
     mock_clean_order_cancel.assert_called_once_with(order)
     mock_cancel_order.assert_called_once_with(
-        order=order, user=AnonymousUser(), manager=ANY
+        order=order, user=AnonymousUser(), app=app_api_client.app, manager=ANY
     )
 
 
@@ -4228,7 +4391,11 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
 
     with pytest.raises(ValidationError) as exc:
         try_payment_action(
-            order=order, user=staff_user, payment=payment_dummy, func=_test_operation
+            order=order,
+            user=staff_user,
+            app=None,
+            payment=payment_dummy,
+            func=_test_operation,
         )
 
     assert exc.value.args[0]["payment"].message == message
@@ -4236,6 +4403,32 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
     error_event = OrderEvent.objects.get()  # type: OrderEvent
     assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
     assert error_event.user == staff_user
+    assert not error_event.app
+    assert error_event.parameters == {
+        "message": message,
+        "gateway": payment_dummy.gateway,
+        "payment_id": payment_dummy.token,
+    }
+
+
+def test_try_payment_action_generates_app_event(order, app, payment_dummy):
+    message = "The payment did a oopsie!"
+    assert not OrderEvent.objects.exists()
+
+    def _test_operation():
+        raise PaymentError(message)
+
+    with pytest.raises(ValidationError) as exc:
+        try_payment_action(
+            order=order, user=None, app=app, payment=payment_dummy, func=_test_operation
+        )
+
+    assert exc.value.args[0]["payment"].message == message
+
+    error_event = OrderEvent.objects.get()  # type: OrderEvent
+    assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
+    assert not error_event.user
+    assert error_event.app == app
     assert error_event.parameters == {
         "message": message,
         "gateway": payment_dummy.gateway,
@@ -5160,7 +5353,8 @@ def test_order_bulk_cancel(
     assert not data["errors"]
 
     calls = [
-        call(order=order, user=staff_api_client.user, manager=ANY) for order in orders
+        call(order=order, user=staff_api_client.user, app=None, manager=ANY)
+        for order in orders
     ]
 
     mock_cancel_order.assert_has_calls(calls, any_order=True)
@@ -5190,7 +5384,10 @@ def test_order_bulk_cancel_as_app(
     assert data["count"] == expected_count
     assert not data["errors"]
 
-    calls = [call(order=order, user=AnonymousUser(), manager=ANY) for order in orders]
+    calls = [
+        call(order=order, user=AnonymousUser(), app=app_api_client.app, manager=ANY)
+        for order in orders
+    ]
 
     mock_cancel_order.assert_has_calls(calls, any_order=True)
     assert mock_cancel_order.call_count == expected_count

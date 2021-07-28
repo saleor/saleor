@@ -13,6 +13,7 @@ from django_prices.templatetags.prices import amount
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
+from ..core.models import ModelWithMetadata
 from ..core.permissions import DiscountPermissions
 from ..core.taxes import display_gross_prices
 from ..core.utils.translations import TranslationProxy
@@ -57,7 +58,7 @@ class VoucherQueryset(models.QuerySet):
         )
 
 
-class Voucher(models.Model):
+class Voucher(ModelWithMetadata):
     type = models.CharField(
         max_length=20, choices=VoucherType.CHOICES, default=VoucherType.ENTIRE_ORDER
     )
@@ -234,7 +235,7 @@ class VoucherTranslation(models.Model):
         unique_together = (("language_code", "voucher"),)
 
 
-class Sale(models.Model):
+class Sale(ModelWithMetadata):
     name = models.CharField(max_length=255)
     type = models.CharField(
         max_length=10,

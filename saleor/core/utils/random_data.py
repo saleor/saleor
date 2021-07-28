@@ -504,7 +504,7 @@ def create_address(save=True):
     return address
 
 
-def create_fake_user(save=True):
+def create_fake_user(user_password, save=True):
     address = create_address(save=save)
     email = get_email(address.first_name, address.last_name)
 
@@ -519,7 +519,6 @@ def create_fake_user(save=True):
         first_name=address.first_name,
         last_name=address.last_name,
         email=email,
-        password="password",
         default_billing_address=address,
         default_shipping_address=address,
         is_active=True,
@@ -528,6 +527,7 @@ def create_fake_user(save=True):
     )
 
     if save:
+        user.set_password(user_password)
         user.save()
         user.addresses.add(address)
     return user
@@ -746,20 +746,20 @@ def create_fake_sale():
     return sale
 
 
-def create_users(how_many=10):
+def create_users(user_password, how_many=10):
     for dummy in range(how_many):
-        user = create_fake_user()
+        user = create_fake_user(user_password)
         yield "User: %s" % (user.email,)
 
 
-def create_permission_groups():
+def create_permission_groups(staff_password):
     super_users = User.objects.filter(is_superuser=True)
     if not super_users:
-        super_users = create_staff_users(1, True)
+        super_users = create_staff_users(staff_password, 1, True)
     group = create_group("Full Access", get_permissions(), super_users)
     yield f"Group: {group}"
 
-    staff_users = create_staff_users()
+    staff_users = create_staff_users(staff_password)
     customer_support_codenames = [
         perm.codename
         for enum in [CheckoutPermissions, OrderPermissions, GiftcardPermissions]
@@ -773,7 +773,7 @@ def create_permission_groups():
     yield f"Group: {group}"
 
 
-def create_staffs():
+def create_staffs(staff_password):
     for permission in get_permissions():
         base_name = permission.codename.split("_")[1:]
 
@@ -785,7 +785,7 @@ def create_staffs():
         user_email = ".".join(email_base_name)
         user_email += ".manager@example.com"
 
-        user = _create_staff_user(email=user_email)
+        user = _create_staff_user(staff_password, email=user_email)
         group = create_group(group_name, [permission], [user])
 
         yield f"Group: {group}"
@@ -799,7 +799,7 @@ def create_group(name, permissions, users):
     return group
 
 
-def _create_staff_user(email=None, superuser=False):
+def _create_staff_user(staff_password, email=None, superuser=False):
     user = User.objects.filter(email=email).first()
     if user:
         return user
@@ -813,7 +813,7 @@ def _create_staff_user(email=None, superuser=False):
         first_name=first_name,
         last_name=last_name,
         email=email,
-        password=DUMMY_STAFF_PASSWORD,
+        password=staff_password,
         default_billing_address=address,
         default_shipping_address=address,
         is_staff=True,
@@ -823,10 +823,10 @@ def _create_staff_user(email=None, superuser=False):
     return staff_user
 
 
-def create_staff_users(how_many=2, superuser=False):
+def create_staff_users(staff_password, how_many=2, superuser=False):
     users = []
     for _ in range(how_many):
-        staff_user = _create_staff_user(superuser=superuser)
+        staff_user = _create_staff_user(staff_password, superuser=superuser)
         users.append(staff_user)
     return users
 

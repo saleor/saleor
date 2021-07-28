@@ -3,8 +3,8 @@ from math import isclose
 
 from django_countries import countries
 
-from ....interface import AddressData
-from ....utils import create_payment_information
+from .....interface import AddressData
+from .....utils import create_payment_information
 from ..utils import (
     get_amount_for_stripe,
     get_amount_from_stripe,
