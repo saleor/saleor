@@ -8,9 +8,11 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
 
+from ..core import TimePeriodType
 from ..core.permissions import SitePermissions
 from ..core.units import WeightUnits
 from ..core.utils.translations import Translation, TranslationProxy
+from . import GiftCardSettingsExpiryType
 from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
 
@@ -65,6 +67,18 @@ class SiteSettings(models.Model):
     default_mail_sender_address = models.EmailField(blank=True, null=True)
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
     automatically_confirm_all_new_orders = models.BooleanField(default=True)
+
+    # gift card settings
+    gift_card_expiry_type = models.CharField(
+        max_length=32,
+        choices=GiftCardSettingsExpiryType.CHOICES,
+        default=GiftCardSettingsExpiryType.NEVER_EXPIRE,
+    )
+    gift_card_expiry_period_type = models.CharField(
+        max_length=32, choices=TimePeriodType.CHOICES, null=True, blank=True
+    )
+    gift_card_expiry_period = models.PositiveIntegerField(null=True, blank=True)
+
     translated = TranslationProxy()
 
     class Meta:
