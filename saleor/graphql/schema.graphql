@@ -4090,6 +4090,11 @@ type PreorderData {
   endDate: DateTime
 }
 
+input PreorderSettingsInput {
+  globalThreshold: Int
+  endDate: DateTime
+}
+
 type PreorderThreshold {
   quantity: Int
   soldUnits: Int!
@@ -4591,6 +4596,7 @@ input ProductVariantBulkCreateInput {
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
+  preorder: PreorderSettingsInput
   stocks: [StockInput!]
   channelListings: [ProductVariantChannelListingAddInput!]
 }
@@ -4614,6 +4620,7 @@ input ProductVariantChannelListingAddInput {
   channelId: ID!
   price: PositiveDecimal!
   costPrice: PositiveDecimal
+  preorderThreshold: Int
 }
 
 type ProductVariantChannelListingUpdate {
@@ -4644,6 +4651,7 @@ input ProductVariantCreateInput {
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
+  preorder: PreorderSettingsInput
   product: ID!
   stocks: [StockInput!]
 }
@@ -4665,6 +4673,7 @@ input ProductVariantInput {
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
+  preorder: PreorderSettingsInput
 }
 
 type ProductVariantReorder {
