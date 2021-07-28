@@ -317,6 +317,7 @@ def test_create_checkout_for_cc(
     channel_USD,
     stocks_for_cc,
     product_variant_list,
+    count_queries,
 ):
     query = (
         FRAGMENT_CHECKOUT_FOR_CC
@@ -836,10 +837,73 @@ FRAGMENT_ORDER_DETAIL = (
   """
 )
 
-
-COMPLETE_CHECKOUT_MUTATION = (
-    FRAGMENT_ORDER_DETAIL
+FRAGMENT_ORDER_DETAIL_FOR_CC = (
+    FRAGMENT_ADDRESS
+    + FRAGMENT_PRODUCT_VARIANT
+    + ORDER_PRICE_FRAGMENT
+    + FRAGMENT_COLLECTION_POINT
+    + FRAGMENT_SHIPPING_METHOD
     + """
+  fragment OrderDetail on Order {
+    userEmail
+    paymentStatus
+    paymentStatusDisplay
+    status
+    statusDisplay
+    id
+    token
+    number
+    isClickAndCollect
+    shippingAddress {
+      ...Address
+      __typename
+    }
+    deliveryMethod {
+      __typename
+      ... on ShippingMethod {
+        ...ShippingMethod
+      }
+      ... on Warehouse {
+        ...CollectionPoint
+      }
+    }
+    lines {
+      productName
+      quantity
+      variant {
+        ...ProductVariant
+        __typename
+      }
+      unitPrice {
+        currency
+        ...OrderPrice
+        __typename
+      }
+      totalPrice {
+        currency
+        ...OrderPrice
+        __typename
+      }
+      __typename
+    }
+    subtotal {
+      ...OrderPrice
+      __typename
+    }
+    total {
+      ...OrderPrice
+      __typename
+    }
+    shippingPrice {
+      ...OrderPrice
+      __typename
+    }
+    __typename
+  }
+  """
+)
+
+COMPLETE_CHECKOUT_MUTATION_PART = """
     mutation completeCheckout($token: UUID) {
       checkoutComplete(token: $token) {
         errors {
@@ -856,6 +920,12 @@ COMPLETE_CHECKOUT_MUTATION = (
       }
     }
 """
+
+
+COMPLETE_CHECKOUT_MUTATION = FRAGMENT_ORDER_DETAIL + COMPLETE_CHECKOUT_MUTATION_PART
+
+COMPLETE_CHECKOUT_MUTATION_FOR_CC = (
+    FRAGMENT_ORDER_DETAIL_FOR_CC + COMPLETE_CHECKOUT_MUTATION_PART
 )
 
 
@@ -919,6 +989,23 @@ def test_customer_complete_checkout(
 ):
     query = COMPLETE_CHECKOUT_MUTATION
     checkout = checkout_with_charged_payment
+    checkout.user = customer_user
+    checkout.save()
+    variables = {
+        "token": checkout.token,
+    }
+
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+    assert not response["data"]["checkoutComplete"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_customer_complete_checkout_for_cc(
+    api_client, checkout_with_charged_payment_for_cc, count_queries, customer_user
+):
+    query = COMPLETE_CHECKOUT_MUTATION_FOR_CC
+    checkout = checkout_with_charged_payment_for_cc
     checkout.user = customer_user
     checkout.save()
     variables = {

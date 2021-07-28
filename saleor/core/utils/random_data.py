@@ -1212,6 +1212,21 @@ def create_click_and_collect_related_fields() -> List[Tuple[bool, str]]:
     )
 
 
+def create_additional_cc_warehouse():
+    shipping_zone = ShippingZone.objects.first()
+    warehouse_name = f"{shipping_zone.name} for click and collect"
+    warehouse, _ = Warehouse.objects.update_or_create(
+        name=warehouse_name,
+        slug=slugify(warehouse_name),
+        defaults={
+            "address": create_address(),
+            "is_private": False,
+            "click_and_collect_option": WarehouseClickAndCollectOption.LOCAL_STOCK,
+        },
+    )
+    warehouse.shipping_zones.add(shipping_zone)
+
+
 def create_warehouses():
     cc_related = create_click_and_collect_related_fields()
 
@@ -1228,6 +1243,8 @@ def create_warehouses():
             },
         )
         warehouse.shipping_zones.add(shipping_zone)
+
+    create_additional_cc_warehouse()
 
 
 def create_vouchers():
