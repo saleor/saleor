@@ -3,6 +3,8 @@ from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...core.exceptions import PermissionDenied
+from ...order import SubscriptionLimit
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Category
 from .. import calculations, utils
@@ -274,3 +276,32 @@ def test_get_total_weight(checkout_with_item):
     line.save()
     lines = fetch_checkout_lines(checkout_with_item)
     assert checkout_with_item.get_total_weight(lines) == Weight(kg=60)
+
+
+def test_checkout_subscription_detection(user_checkout, variant_with_subscription):
+    checkout = user_checkout
+    variant = variant_with_subscription
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, replace=True)
+    assert checkout.is_subscription()
+
+
+def test_checkout_subscription_as_anonymous_user(checkout, variant_with_subscription):
+    variant = variant_with_subscription
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    with pytest.raises(PermissionDenied):
+        add_variant_to_checkout(checkout_info, variant, replace=True)
+
+
+def test_checkout_subscription_with_limit_invalid_quantity(
+    user_checkout, variant_with_subscription
+):
+    checkout = user_checkout
+    variant = variant_with_subscription
+    subscription = variant.subscription
+    setattr(subscription, "limit", SubscriptionLimit.ACTIVE)
+    subscription.save()
+    variant.subscription.refresh_from_db()
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    with pytest.raises(ValueError):
+        add_variant_to_checkout(checkout_info, variant, 2)

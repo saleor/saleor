@@ -57,14 +57,14 @@ from ..discount.models import (
 )
 from ..giftcard.models import GiftCard
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
-from ..order import OrderLineData, OrderOrigin, OrderStatus
+from ..order import OrderLineData, OrderOrigin, OrderStatus, SubscriptionStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
 from ..order.events import (
     OrderEvents,
     fulfillment_refunded_event,
     order_added_products_event,
 )
-from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
+from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine, Subscription
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
@@ -90,6 +90,7 @@ from ..product.models import (
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
+    ProductVariantSubscription,
     ProductVariantTranslation,
     VariantMedia,
 )
@@ -1579,6 +1580,16 @@ def product_with_variant_with_file_attribute(
 
 
 @pytest.fixture
+def product_with_single_variant_subscription(product_with_single_variant):
+    product = product_with_single_variant
+    variant = product.variants.first()
+    subscription = ProductVariantSubscription(variant=variant)
+    subscription.save()
+    variant.subscription.refresh_from_db()
+    return product
+
+
+@pytest.fixture
 def product_with_multiple_values_attributes(product, product_type, category) -> Product:
 
     attribute = Attribute.objects.create(
@@ -1709,6 +1720,14 @@ def variant_with_many_stocks_different_shipping_zones(
             Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
         ]
     )
+    return variant
+
+
+@pytest.fixture
+def variant_with_subscription(
+    product_with_single_variant_subscription,
+) -> ProductVariant:
+    variant = product_with_single_variant_subscription.variants.first()
     return variant
 
 
@@ -2356,6 +2375,32 @@ def order_line_with_one_allocation(
     )
 
     return order_line
+
+
+@pytest.fixture
+def order_line_with_variant_subscription(order, variant_with_subscription):
+    variant = variant_with_subscription
+    product = variant.product
+    channel = order.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 1
+    unit_price = TaxedMoney(net=net, gross=gross)
+    return order.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
 
 
 @pytest.fixture
@@ -3911,6 +3956,59 @@ def allocations(order_list, stock, channel_USD):
             ),
         ]
     )
+
+
+@pytest.fixture
+def subscription(order_line_with_variant_subscription):
+    order_line = order_line_with_variant_subscription
+    order = order_line.order
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy",
+        order=order,
+        is_active=True,
+        cc_first_digits="4111",
+        cc_last_digits="1111",
+        cc_brand="visa",
+        cc_exp_month=12,
+        cc_exp_year=2027,
+        total=order.total.gross.amount,
+        currency=order.currency,
+        billing_first_name=order.billing_address.first_name,
+        billing_last_name=order.billing_address.last_name,
+        billing_company_name=order.billing_address.company_name,
+        billing_address_1=order.billing_address.street_address_1,
+        billing_address_2=order.billing_address.street_address_2,
+        billing_city=order.billing_address.city,
+        billing_postal_code=order.billing_address.postal_code,
+        billing_country_code=order.billing_address.country.code,
+        billing_country_area=order.billing_address.country_area,
+        billing_email=order.user_email,
+    )
+    payment.transactions.create(
+        amount=payment.total,
+        currency=payment.currency,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+    redirect_url = "http://localhost.pl"
+    order.redirect_url = redirect_url
+    order.save()
+
+    subscription = Subscription(
+        status=SubscriptionStatus.ACTIVE,
+        user=order.user,
+        variant=order_line.variant,
+        quantity=order_line.quantity,
+        customer_note="",
+        channel=order.channel,
+        language_code=order.language_code,
+    )
+    subscription.save()
+    subscription.orders.add(order)
+    subscription.save()
+
+    return subscription
 
 
 @pytest.fixture

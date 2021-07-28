@@ -9,6 +9,7 @@ import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from freezegun import freeze_time
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
@@ -20,7 +21,7 @@ from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
-from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
+from ....order import FulfillmentStatus, OrderOrigin, OrderStatus, SubscriptionStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
@@ -33,6 +34,7 @@ from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
+from ...core.enums import SubscriptionStatusEnum
 from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
@@ -6286,3 +6288,268 @@ def test_get_variant_from_order_line_variant_not_exists_as_staff(
     content = get_graphql_content(response)
     orders = content["data"]["me"]["orders"]["edges"]
     assert orders[0]["node"]["lines"][0]["variant"] is None
+
+
+SUBSCRIPTIONS_QUERY = """
+    query SubscriptionsQuery {
+        subscriptions(first: 5) {
+            edges {
+                node {
+                    id
+                    number
+                    created
+                    renewed
+                    cancelled
+                    status
+                    startDate
+                    trialEndDate
+                    nextPaymentDate
+                    endDate
+                    expiryDate
+                    quantity
+                    variant {
+                        id
+                        name
+                        subscription {
+                            id
+                            billingPeriod
+                            billingInterval
+                            trialPeriod
+                            trialInterval
+                            length
+                            limit
+                        }
+                    }
+                    channel {
+                        id
+                        slug
+                        name
+                        isActive
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_subscriptions_query(user_api_client, permission_manage_orders, subscription):
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+
+    response = user_api_client.post_graphql(SUBSCRIPTIONS_QUERY)
+    content = get_graphql_content(response)
+    edges = content["data"]["subscriptions"]["edges"]
+    subscription_data = edges[0]["node"]
+
+    assert subscription_data["number"] == str(subscription.pk)
+    assert len(edges) == 1
+
+
+def test_subscriptions_query_staff_no_permission(staff_api_client):
+    response = staff_api_client.post_graphql(SUBSCRIPTIONS_QUERY)
+    assert_no_permission(response)
+
+
+def test_subscriptions_query_customer_user(user_api_client):
+    response = user_api_client.post_graphql(SUBSCRIPTIONS_QUERY)
+    assert_no_permission(response)
+
+
+def test_subscriptions_query_anonymous_user(api_client):
+    response = api_client.post_graphql(SUBSCRIPTIONS_QUERY)
+    assert_no_permission(response)
+
+
+SUBSCRIPTION_RENEW_MUTATION = """
+    mutation subscriptionRenew($id: ID!) {
+        subscriptionRenew(id: $id) {
+            errors {
+                field
+                code
+            }
+            subscription {
+                renewed
+                status
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.django_db(transaction=True)
+def test_renew_subscription(user_api_client, permission_manage_orders, subscription):
+    setattr(subscription, "created", timezone.now() - timedelta(days=10))
+    setattr(subscription, "status", SubscriptionStatus.PENDING)
+    subscription.save()
+    subscription.refresh_from_db()
+
+    renewed = subscription.renewed
+
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+
+    response = user_api_client.post_graphql(
+        SUBSCRIPTION_RENEW_MUTATION,
+        {"id": graphene.Node.to_global_id("Subscription", subscription.id)},
+    )
+    subscription_data = get_graphql_content(response)["data"]["subscriptionRenew"][
+        "subscription"
+    ]
+
+    assert subscription_data["renewed"] != renewed
+    assert subscription_data["status"] == SubscriptionStatusEnum.ACTIVE.name
+
+
+def test_renew_subscription_staff_no_permission(staff_api_client, subscription):
+    response = staff_api_client.post_graphql(
+        SUBSCRIPTION_RENEW_MUTATION,
+        {"id": graphene.Node.to_global_id("Subscription", subscription.id)},
+    )
+    assert_no_permission(response)
+
+
+def test_renew_subscription_customer_user(user_api_client, subscription):
+    response = user_api_client.post_graphql(
+        SUBSCRIPTION_RENEW_MUTATION,
+        {"id": graphene.Node.to_global_id("Subscription", subscription.id)},
+    )
+    assert_no_permission(response)
+
+
+def test_renew_subscription_anonymous_user(api_client, subscription):
+    response = api_client.post_graphql(
+        SUBSCRIPTION_RENEW_MUTATION,
+        {"id": graphene.Node.to_global_id("Subscription", subscription.id)},
+    )
+    assert_no_permission(response)
+
+
+SUBSCRIPTION_UPDATE_STATUS_MUTATION = """
+    mutation subscriptionUpdateStatus($id: ID!, $status: SubscriptionStatusEnum!) {
+        subscriptionUpdateStatus(id: $id, status: $status) {
+            errors {
+                field
+                code
+            }
+            subscription {
+                status
+            }
+        }
+    }
+"""
+
+
+def test_update_status_subscription(
+    user_api_client, permission_manage_orders, subscription
+):
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+
+    status = SubscriptionStatusEnum.ON_HOLD.name
+
+    response = user_api_client.post_graphql(
+        SUBSCRIPTION_UPDATE_STATUS_MUTATION,
+        {
+            "id": graphene.Node.to_global_id("Subscription", subscription.id),
+            "status": status,
+        },
+    )
+    subscription_data = get_graphql_content(response)["data"][
+        "subscriptionUpdateStatus"
+    ]["subscription"]
+
+    assert subscription_data["status"] == status
+
+
+def test_update_status_subscription_staff_no_permission(staff_api_client, subscription):
+    status = SubscriptionStatusEnum.ON_HOLD.name
+
+    response = staff_api_client.post_graphql(
+        SUBSCRIPTION_UPDATE_STATUS_MUTATION,
+        {
+            "id": graphene.Node.to_global_id("Subscription", subscription.id),
+            "status": status,
+        },
+    )
+    assert_no_permission(response)
+
+
+def test_update_status_subscription_customer_user(user_api_client, subscription):
+    status = SubscriptionStatusEnum.ON_HOLD.name
+
+    response = user_api_client.post_graphql(
+        SUBSCRIPTION_UPDATE_STATUS_MUTATION,
+        {
+            "id": graphene.Node.to_global_id("Subscription", subscription.id),
+            "status": status,
+        },
+    )
+    assert_no_permission(response)
+
+
+def test_update_status_subscription_anonymous_user(api_client, subscription):
+    status = SubscriptionStatusEnum.ON_HOLD.name
+
+    response = api_client.post_graphql(
+        SUBSCRIPTION_UPDATE_STATUS_MUTATION,
+        {
+            "id": graphene.Node.to_global_id("Subscription", subscription.id),
+            "status": status,
+        },
+    )
+    assert_no_permission(response)
+
+
+SUBSCRIPTION_CANCEL_MUTATION = """
+    mutation subscriptionCancel($id: ID!) {
+        subscriptionCancel(id: $id) {
+            errors {
+                field
+                code
+            }
+            subscription {
+                cancelled
+                status
+            }
+        }
+    }
+"""
+
+
+def test_cancel_subscription(user_api_client, permission_manage_orders, subscription):
+    cancelled = subscription.cancelled
+
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+
+    response = user_api_client.post_graphql(
+        SUBSCRIPTION_CANCEL_MUTATION,
+        {"id": graphene.Node.to_global_id("Subscription", subscription.id)},
+    )
+    subscription_data = get_graphql_content(response)["data"]["subscriptionCancel"][
+        "subscription"
+    ]
+
+    assert subscription_data["cancelled"] != cancelled
+    assert subscription_data["status"] == SubscriptionStatusEnum.PENDING_CANCEL.name
+
+
+def test_cancel_subscription_staff_no_permission(staff_api_client, subscription):
+    response = staff_api_client.post_graphql(
+        SUBSCRIPTION_CANCEL_MUTATION,
+        {"id": graphene.Node.to_global_id("Subscription", subscription.id)},
+    )
+    assert_no_permission(response)
+
+
+def test_cancel_subscription_customer_user(user_api_client, subscription):
+    response = user_api_client.post_graphql(
+        SUBSCRIPTION_CANCEL_MUTATION,
+        {"id": graphene.Node.to_global_id("Subscription", subscription.id)},
+    )
+    assert_no_permission(response)
+
+
+def test_cancel_subscription_anonymous_user(api_client, subscription):
+    response = api_client.post_graphql(
+        SUBSCRIPTION_CANCEL_MUTATION,
+        {"id": graphene.Node.to_global_id("Subscription", subscription.id)},
+    )
+    assert_no_permission(response)

@@ -2,6 +2,8 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
+from _datetime import timedelta
+from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ...order import OrderLineData
@@ -11,7 +13,7 @@ from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContent
 from ...product.tests.utils import create_image
 from ...warehouse.models import Allocation, Stock
-from .. import FulfillmentStatus, OrderEvents, OrderStatus
+from .. import FulfillmentStatus, OrderEvents, OrderStatus, SubscriptionStatus
 from ..actions import (
     automatically_fulfill_digital_lines,
     cancel_fulfillment,
@@ -19,8 +21,12 @@ from ..actions import (
     clean_mark_order_as_paid,
     fulfill_order_lines,
     handle_fully_paid_order,
+    handle_subscription_lines,
     mark_order_as_paid,
     order_refunded,
+    subscription_cancel,
+    subscription_renew,
+    subscription_update_status,
 )
 from ..models import Fulfillment
 from ..notifications import (
@@ -394,3 +400,117 @@ def test_fulfill_digital_lines(
     assert fulfillment_lines.count() == 1
     assert line.digital_content_url
     assert mock_email_fulfillment.called
+
+
+def test_handle_subscription_lines(order_line_with_variant_subscription):
+    order = order_line_with_variant_subscription.order
+    order.payments.add(Payment.objects.create())
+    redirect_url = "http://localhost.pl"
+    order.redirect_url = redirect_url
+    order.save()
+
+    assert order.is_subscription()
+
+    handle_subscription_lines(order)
+
+    subscription = order.subscriptions.first()
+
+    order.refresh_from_db()
+
+    assert subscription.pk
+    assert subscription.user.pk == order.user.pk
+    assert subscription.variant.pk == order_line_with_variant_subscription.variant.pk
+    assert subscription.renewed is None
+
+    order2 = order_line_with_variant_subscription.order
+    order2.pk = None
+    order2.token = None
+    order2.save()
+    order2_line = order_line_with_variant_subscription
+    order2_line.pk = None
+    order2_line.order = order2
+    order2_line.save()
+    order2.refresh_from_db()
+    subscription.orders.add(order2)
+    subscription.save()
+
+    handle_subscription_lines(order2)
+
+    subscription.refresh_from_db()
+
+    assert subscription.renewed is not None
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize("can_renew", (False, True))
+def test_subscription_renew(subscription, can_renew):
+    if can_renew:
+        setattr(subscription, "created", timezone.now() - timedelta(days=10))
+        setattr(subscription, "status", SubscriptionStatus.PENDING)
+        subscription.save()
+        subscription.refresh_from_db()
+
+        renewed = subscription.renewed
+        subscription_renew(subscription)
+        subscription.refresh_from_db()
+
+        assert subscription.renewed != renewed
+        assert subscription.status == SubscriptionStatus.ACTIVE
+    else:
+        renewed = subscription.renewed
+        status = subscription.status
+        subscription_renew(subscription)
+        subscription.refresh_from_db()
+
+        assert subscription.renewed == renewed
+        assert subscription.status == status
+
+
+@pytest.mark.parametrize("can_update_status", (False, True))
+def test_subscription_update_status(subscription, can_update_status):
+    if can_update_status:
+        assert subscription.status == SubscriptionStatus.ACTIVE
+        subscription_update_status(subscription, SubscriptionStatus.ON_HOLD)
+        subscription.refresh_from_db()
+        assert subscription.status == SubscriptionStatus.ON_HOLD
+    else:
+        assert subscription.status == SubscriptionStatus.ACTIVE
+        subscription_update_status(subscription, SubscriptionStatus.PENDING)
+        subscription.refresh_from_db()
+        assert subscription.status == SubscriptionStatus.ACTIVE
+
+
+@pytest.mark.parametrize(
+    "can_cancel, is_ended",
+    [
+        (False, False),
+        (True, False),
+        (True, True),
+    ],
+)
+def test_subscription_cancel(subscription, can_cancel, is_ended):
+    if can_cancel:
+        if is_ended:
+            setattr(subscription, "created", timezone.now() - timedelta(days=10))
+            setattr(subscription, "status", SubscriptionStatus.PENDING)
+            subscription.save()
+            subscription.refresh_from_db()
+            assert subscription.cancelled is None
+            subscription_cancel(subscription)
+            subscription.refresh_from_db()
+            assert subscription.cancelled is not None
+            assert subscription.status == SubscriptionStatus.CANCELED
+        else:
+            assert subscription.cancelled is None
+            subscription_cancel(subscription)
+            subscription.refresh_from_db()
+            assert subscription.cancelled is not None
+            assert subscription.status == SubscriptionStatus.PENDING_CANCEL
+    else:
+        setattr(subscription, "cancelled", timezone.now())
+        subscription.save()
+        subscription.refresh_from_db()
+        assert subscription.cancelled is not None
+        subscription_cancel(subscription)
+        subscription.refresh_from_db()
+        assert subscription.cancelled is not None

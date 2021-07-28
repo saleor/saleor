@@ -2,6 +2,8 @@ from decimal import Decimal
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from _datetime import timedelta
+from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ...core.weight import zero_weight
@@ -20,7 +22,7 @@ from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
 from ...warehouse.models import Stock
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
-from .. import FulfillmentStatus, OrderEvents, OrderStatus
+from .. import FulfillmentStatus, OrderEvents, OrderStatus, SubscriptionStatus
 from ..events import (
     OrderEventsEmails,
     event_fulfillment_confirmed_notification,
@@ -1049,3 +1051,168 @@ def test_email_sent_event_without_user_pk(order, event_fun, expected_event_type)
         "email": order.get_customer_email(),
         "email_type": expected_event_type,
     }
+
+
+@pytest.mark.parametrize(
+    "status",
+    (
+        SubscriptionStatus.PENDING,
+        SubscriptionStatus.ACTIVE,
+        SubscriptionStatus.ON_HOLD,
+        SubscriptionStatus.CANCELED,
+        SubscriptionStatus.EXPIRED,
+        SubscriptionStatus.PENDING_CANCEL,
+    ),
+)
+def test_subscription_can_renew_with_status(subscription, status):
+    assert not subscription.can_renew()
+    setattr(subscription, "created", timezone.now() - timedelta(days=10))
+    setattr(subscription, "status", status)
+    subscription.save()
+    subscription.refresh_from_db()
+    if status == SubscriptionStatus.PENDING:
+        assert subscription.can_renew()
+    elif status == SubscriptionStatus.ACTIVE:
+        assert subscription.can_renew()
+    elif status == SubscriptionStatus.ON_HOLD:
+        assert subscription.can_renew()
+    elif status == SubscriptionStatus.CANCELED:
+        assert not subscription.can_renew()
+    elif status == SubscriptionStatus.EXPIRED:
+        assert not subscription.can_renew()
+    elif status == SubscriptionStatus.PENDING_CANCEL:
+        assert not subscription.can_renew()
+
+
+@pytest.mark.parametrize("is_expired", (False, True))
+def test_subscription_can_renew_with_expiry_date(subscription, is_expired):
+    assert subscription.expiry_date is None
+    setattr(
+        subscription.variant.subscription,
+        "length",
+        subscription.variant.subscription.billing_interval + 1,
+    )
+    subscription.variant.subscription.save()
+    subscription.variant.subscription.refresh_from_db()
+    assert subscription.expiry_date is not None
+    assert not subscription.can_renew()
+    if is_expired:
+        setattr(
+            subscription,
+            "created",
+            subscription.created - (subscription.expiry_date - timezone.now()),
+        )
+        subscription.save()
+        subscription.refresh_from_db()
+        assert not subscription.can_renew()
+    else:
+        setattr(
+            subscription,
+            "created",
+            subscription.created - (subscription.next_payment_date - timezone.now()),
+        )
+        subscription.save()
+        subscription.refresh_from_db()
+        assert subscription.can_renew()
+
+
+def test_subscription_can_renew_with_next_payment_date(subscription):
+    assert not subscription.can_renew()
+    setattr(
+        subscription,
+        "created",
+        subscription.created - (subscription.next_payment_date - timezone.now()),
+    )
+    subscription.save()
+    subscription.refresh_from_db()
+    assert subscription.can_renew()
+
+
+@pytest.mark.parametrize(
+    "current_status, status",
+    [
+        (SubscriptionStatus.PENDING, SubscriptionStatus.ACTIVE),
+        (SubscriptionStatus.PENDING, SubscriptionStatus.ON_HOLD),
+        (SubscriptionStatus.PENDING, SubscriptionStatus.CANCELED),
+        (SubscriptionStatus.PENDING, SubscriptionStatus.EXPIRED),
+        (SubscriptionStatus.PENDING, SubscriptionStatus.PENDING_CANCEL),
+        (SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING),
+        (SubscriptionStatus.ACTIVE, SubscriptionStatus.ON_HOLD),
+        (SubscriptionStatus.ACTIVE, SubscriptionStatus.CANCELED),
+        (SubscriptionStatus.ACTIVE, SubscriptionStatus.EXPIRED),
+        (SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING_CANCEL),
+        (SubscriptionStatus.ON_HOLD, SubscriptionStatus.PENDING),
+        (SubscriptionStatus.ON_HOLD, SubscriptionStatus.ACTIVE),
+        (SubscriptionStatus.ON_HOLD, SubscriptionStatus.CANCELED),
+        (SubscriptionStatus.ON_HOLD, SubscriptionStatus.EXPIRED),
+        (SubscriptionStatus.ON_HOLD, SubscriptionStatus.PENDING_CANCEL),
+        (SubscriptionStatus.CANCELED, SubscriptionStatus.PENDING),
+        (SubscriptionStatus.CANCELED, SubscriptionStatus.ACTIVE),
+        (SubscriptionStatus.CANCELED, SubscriptionStatus.ON_HOLD),
+        (SubscriptionStatus.CANCELED, SubscriptionStatus.EXPIRED),
+        (SubscriptionStatus.CANCELED, SubscriptionStatus.PENDING_CANCEL),
+        (SubscriptionStatus.EXPIRED, SubscriptionStatus.PENDING),
+        (SubscriptionStatus.EXPIRED, SubscriptionStatus.ACTIVE),
+        (SubscriptionStatus.EXPIRED, SubscriptionStatus.ON_HOLD),
+        (SubscriptionStatus.EXPIRED, SubscriptionStatus.CANCELED),
+        (SubscriptionStatus.EXPIRED, SubscriptionStatus.PENDING_CANCEL),
+        (SubscriptionStatus.PENDING_CANCEL, SubscriptionStatus.PENDING),
+        (SubscriptionStatus.PENDING_CANCEL, SubscriptionStatus.ACTIVE),
+        (SubscriptionStatus.PENDING_CANCEL, SubscriptionStatus.ON_HOLD),
+        (SubscriptionStatus.PENDING_CANCEL, SubscriptionStatus.CANCELED),
+        (SubscriptionStatus.PENDING_CANCEL, SubscriptionStatus.EXPIRED),
+    ],
+)
+def test_subscription_can_update_status(subscription, current_status, status):
+    setattr(subscription, "status", current_status)
+    subscription.save()
+    subscription.refresh_from_db()
+    if status == SubscriptionStatus.PENDING:
+        if current_status in [SubscriptionStatus.ACTIVE, SubscriptionStatus.ON_HOLD]:
+            assert not subscription.can_update_status(status)
+            setattr(
+                subscription,
+                "created",
+                subscription.created - (subscription.end_date - timezone.now()),
+            )
+            subscription.save()
+            subscription.refresh_from_db()
+            assert subscription.can_update_status(status)
+        else:
+            assert not subscription.can_update_status(status)
+    elif status == SubscriptionStatus.ACTIVE:
+        if current_status in [SubscriptionStatus.PENDING, SubscriptionStatus.ON_HOLD]:
+            assert subscription.can_update_status(status)
+        else:
+            assert not subscription.can_update_status(status)
+    elif status == SubscriptionStatus.ON_HOLD:
+        if current_status == SubscriptionStatus.ACTIVE:
+            assert subscription.can_update_status(status)
+        else:
+            assert not subscription.can_update_status(status)
+    elif status == SubscriptionStatus.CANCELED:
+        assert subscription.can_update_status(status)
+    elif status == SubscriptionStatus.EXPIRED:
+        assert subscription.can_update_status(status)
+    elif status == SubscriptionStatus.PENDING_CANCEL:
+        assert subscription.can_update_status(status)
+        setattr(
+            subscription,
+            "created",
+            subscription.created - (subscription.end_date - timezone.now()),
+        )
+        subscription.save()
+        subscription.refresh_from_db()
+        assert not subscription.can_update_status(status)
+
+
+def test_subscription_can_cancel(subscription):
+    assert subscription.can_cancel()
+    setattr(
+        subscription,
+        "cancelled",
+        timezone.now(),
+    )
+    subscription.save()
+    subscription.refresh_from_db()
+    assert not subscription.can_cancel()

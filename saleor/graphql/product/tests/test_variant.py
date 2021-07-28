@@ -19,7 +19,7 @@ from ....product.models import Product, ProductChannelListing, ProductVariant
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
-from ...core.enums import WeightUnitsEnum
+from ...core.enums import SubscriptionLimitEnum, SubscriptionPeriodEnum, WeightUnitsEnum
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -4314,3 +4314,225 @@ def test_product_variant_stocks_delete_mutation_invalid_object_type_of_warehouse
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.GRAPHQL_ERROR.name
     assert errors[0]["field"] == "warehouseIds"
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_create_product_variant_with_subscription(
+    updated_webhook_mock,
+    created_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+    warehouse,
+):
+    query = """
+        mutation createVariant (
+            $productId: ID!,
+            $sku: String,
+            $stocks: [StockInput!],
+            $attributes: [AttributeValueInput!]!,
+            $weight: WeightScalar,
+            $trackInventory: Boolean,
+            $subscription: ProductVariantSubscriptionInput) {
+                productVariantCreate(
+                    input: {
+                        product: $productId,
+                        sku: $sku,
+                        stocks: $stocks,
+                        attributes: $attributes,
+                        trackInventory: $trackInventory,
+                        weight: $weight,
+                        subscription: $subscription
+                    }) {
+                    errors {
+                        field
+                        message
+                        attributes
+                        code
+                    }
+                    productVariant {
+                        id
+                        name
+                        sku
+                        attributes {
+                            attribute {
+                                slug
+                            }
+                            values {
+                                name
+                                slug
+                                reference
+                                richText
+                                boolean
+                                file {
+                                    url
+                                    contentType
+                                }
+                            }
+                        }
+                        weight {
+                            value
+                            unit
+                        }
+                        stocks {
+                            quantity
+                            warehouse {
+                                slug
+                            }
+                        }
+                        subscription {
+                            id
+                            billingPeriod
+                            billingInterval
+                            trialPeriod
+                            trialInterval
+                            length
+                            limit
+                        }
+                    }
+                }
+            }
+
+    """
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    weight = 10.22
+    variant_slug = product_type.variant_attributes.first().slug
+    variant_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().pk
+    )
+    variant_value = "test-value"
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+    billingPeriod = SubscriptionPeriodEnum.DAY.name
+    billingInterval = 1
+    trialPeriod = SubscriptionPeriodEnum.DAY.name
+    trialInterval = 0
+    length = 0
+    limit = SubscriptionLimitEnum.NO.name
+
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "weight": weight,
+        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "trackInventory": True,
+        "subscription": {
+            "billingPeriod": billingPeriod,
+            "billingInterval": billingInterval,
+            "trialPeriod": trialPeriod,
+            "trialInterval": trialInterval,
+            "length": length,
+            "limit": limit,
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+
+    assert not content["errors"]
+    data = content["productVariant"]
+    assert data["name"] == variant_value
+    assert data["sku"] == sku
+    assert data["attributes"][0]["attribute"]["slug"] == variant_slug
+    assert data["attributes"][0]["values"][0]["slug"] == variant_value
+    assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
+    assert data["weight"]["value"] == weight
+    assert len(data["stocks"]) == 1
+    assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
+    assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+    assert data["subscription"]["billingPeriod"] == billingPeriod
+    assert data["subscription"]["billingInterval"] == billingInterval
+    assert data["subscription"]["trialPeriod"] == trialPeriod
+    assert data["subscription"]["trialInterval"] == trialInterval
+    assert data["subscription"]["length"] == length
+    assert data["subscription"]["limit"] == limit
+    created_webhook_mock.assert_called_once_with(product.variants.last())
+    updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_product_variant_with_subscription(
+    product_variant_updated_webhook_mock,
+    product_variant_created_webhook_mock,
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
+):
+    query = """
+        mutation updateVariant (
+            $id: ID!,
+            $subscription: ProductVariantSubscriptionInput) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        subscription: $subscription
+                    }) {
+                    productVariant {
+                        name
+                        sku
+                        subscription {
+                            id
+                            billingPeriod
+                            billingInterval
+                            trialPeriod
+                            trialInterval
+                            length
+                            limit
+                        }
+                    }
+                }
+            }
+
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    billingPeriod = SubscriptionPeriodEnum.DAY.name
+    billingInterval = 1
+    trialPeriod = SubscriptionPeriodEnum.DAY.name
+    trialInterval = 1
+    length = 0
+    limit = SubscriptionLimitEnum.NO.name
+
+    variables = {
+        "id": variant_id,
+        "subscription": {
+            "billingPeriod": billingPeriod,
+            "billingInterval": billingInterval,
+            "trialPeriod": trialPeriod,
+            "trialInterval": trialInterval,
+            "length": length,
+            "limit": limit,
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantUpdate"]["productVariant"]
+
+    assert data["name"] == variant.name
+    assert data["subscription"]["billingPeriod"] == billingPeriod
+    assert data["subscription"]["billingInterval"] == billingInterval
+    assert data["subscription"]["trialPeriod"] == trialPeriod
+    assert data["subscription"]["trialInterval"] == trialInterval
+    assert data["subscription"]["length"] == length
+    assert data["subscription"]["limit"] == limit
+    product_variant_updated_webhook_mock.assert_called_once_with(
+        product.variants.last()
+    )
+    product_variant_created_webhook_mock.assert_not_called()
