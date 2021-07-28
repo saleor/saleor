@@ -1,32 +1,22 @@
-from collections import defaultdict
-from typing import Dict, Iterable, List
+from typing import Dict, List
 
 import graphene
 import requests
-from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
-from django.db.models import Value
-from django.db.models.functions import Concat
 
 from ...app import models
 from ...app.error_codes import AppErrorCode
 from ...app.installation_utils import REQUEST_TIMEOUT
+from ...app.manifest_validations import clean_manifest_data, clean_manifest_url
 from ...app.tasks import install_app_task
-from ...app.validators import AppURLValidator
 from ...core import JobStatus
-from ...core.permissions import (
-    AppPermission,
-    get_permissions,
-    get_permissions_enum_list,
-    split_permission_codename,
-)
+from ...core.permissions import AppPermission, get_permissions
 from ..account.utils import can_manage_app
 from ..core import types as grapqhl_types
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import AppError
 from ..utils import get_user_or_app_from_context, requestor_is_superuser
-from .enums import AppExtensionTargetEnum, AppExtensionTypeEnum, AppExtensionViewEnum
 from .types import App, AppToken, Manifest
 from .utils import ensure_can_manage_permissions
 
@@ -377,19 +367,9 @@ class AppInstall(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def clean_manifest_url(self, url):
-        url_validator = AppURLValidator()
-        try:
-            url_validator(url)
-        except (ValidationError, AttributeError):
-            msg = "Enter a valid URL."
-            code = AppErrorCode.INVALID_URL_FORMAT.value
-            raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
-
-    @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         manifest_url = data.get("manifest_url")
-        cls.clean_manifest_url(manifest_url)
+        clean_manifest_url(manifest_url)
 
         cleaned_input = super().clean_input(info, instance, data, input_cls)
 
@@ -448,20 +428,6 @@ class AppFetchManifest(BaseMutation):
             raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
 
     @classmethod
-    def _clean_app_url(cls, url):
-        url_validator = AppURLValidator()
-        url_validator(url)
-
-    @classmethod
-    def clean_manifest_url(cls, manifest_url):
-        try:
-            cls._clean_app_url(manifest_url)
-        except (ValidationError, AttributeError):
-            msg = "Enter a valid URL."
-            code = AppErrorCode.INVALID_URL_FORMAT.value
-            raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
-
-    @classmethod
     def construct_instance(cls, instance, cleaned_data):
         return Manifest(
             identifier=cleaned_data.get("id"),
@@ -480,150 +446,28 @@ class AppFetchManifest(BaseMutation):
         )
 
     @classmethod
-    def clean_permissions(
-        cls, required_permissions: List[str], saleor_permissions: Iterable[Permission]
-    ) -> List[Permission]:
-        missing_permissions = []
-        all_permissions = {perm[0]: perm[1] for perm in get_permissions_enum_list()}
-        for perm in required_permissions:
-            if not all_permissions.get(perm):
-                missing_permissions.append(perm)
-        if missing_permissions:
-            error_msg = "Given permissions don't exist."
-            code = AppErrorCode.INVALID_PERMISSION.value
-            params = {"permissions": missing_permissions}
-            raise ValidationError(error_msg, code=code, params=params)
-
-        permissions = [all_permissions[perm] for perm in required_permissions]
-        permissions = split_permission_codename(permissions)
-        return [p for p in saleor_permissions if p.codename in permissions]
-
-    @classmethod
     def clean_manifest_data(cls, info, manifest_data):
-        errors: T_ERRORS = defaultdict(list)
-
-        cls.validate_required_fields(manifest_data, errors)
-
-        saleor_permissions = get_permissions().annotate(
-            formated_codename=Concat("content_type__app_label", Value("."), "codename")
-        )
-        try:
-            app_permissions = cls.clean_permissions(
-                manifest_data.get("permissions", []), saleor_permissions
-            )
-        except ValidationError as e:
-            errors["permissions"].append(e)
-            app_permissions = []
+        clean_manifest_data(manifest_data)
 
         manifest_data["permissions"] = [
             grapqhl_types.Permission(
                 code=PermissionEnum.get(p.formated_codename), name=p.name
             )
-            for p in app_permissions
+            for p in manifest_data["permissions"]
         ]
-
-        if not errors:
-            cls.clean_extensions(manifest_data, app_permissions, errors)
-
-        if errors:
-            raise ValidationError(errors)
-
-    @classmethod
-    def _clean_extension_permissions(cls, extension, app_permissions, errors):
-        permissions_data = extension.get("permissions", [])
-        try:
-            extension_permissions = cls.clean_permissions(
-                permissions_data, app_permissions
-            )
-        except ValidationError as e:
-            e.params["label"] = extension.get("label")
-            errors["extensions"].append(e)
-            return
-
-        if len(extension_permissions) != len(permissions_data):
-            errors["extensions"].append(
-                ValidationError(
-                    "Extension permission must be listed in App's permissions.",
-                    code=AppErrorCode.OUT_OF_SCOPE_PERMISSION.value,
+        for extension in manifest_data.get("extensions", []):
+            extension["permissions"] = [
+                grapqhl_types.Permission(
+                    code=PermissionEnum.get(p.formated_codename),
+                    name=p.name,
                 )
-            )
-
-        extension["permissions"] = [
-            grapqhl_types.Permission(
-                code=PermissionEnum.get(p.formated_codename),
-                name=p.name,
-            )
-            for p in extension_permissions
-        ]
-
-    @classmethod
-    def clean_extensions(cls, manifest_data, app_permissions, errors):
-        extensions = manifest_data.get("extensions", [])
-        enum_map = [
-            (AppExtensionViewEnum, "view"),
-            (AppExtensionTypeEnum, "type"),
-            (AppExtensionTargetEnum, "target"),
-        ]
-        for index, extension in enumerate(extensions):
-            for enum, key in enum_map:
-                try:
-                    extension[key] = enum[extension[key]].value
-                except KeyError:
-                    errors["extensions"].append(
-                        ValidationError(
-                            f"Incorrect value for field: {key}",
-                            code=AppErrorCode.INVALID.value,
-                        )
-                    )
-
-            try:
-                cls._clean_app_url(extension["url"])
-            except (ValidationError, AttributeError):
-                errors["extensions"].append(
-                    ValidationError(
-                        "Incorrect value for field: url.",
-                        code=AppErrorCode.INVALID_URL_FORMAT.value,
-                    )
-                )
-
-            cls._clean_extension_permissions(extension, app_permissions, errors)
-
-    @classmethod
-    def validate_required_fields(cls, manifest_data, errors):
-        manifest_required_fields = {"id", "version", "name"}
-        extension_required_fields = {
-            "label",
-            "url",
-            "view",
-            "type",
-            "target",
-        }
-        manifest_missing_fields = manifest_required_fields.difference(manifest_data)
-        if manifest_missing_fields:
-            [
-                errors[missing_field].append(
-                    ValidationError("Field required.", code=AppErrorCode.REQUIRED.value)
-                )
-                for missing_field in manifest_missing_fields
+                for p in extension["permissions"]
             ]
-
-        app_extensions_data = manifest_data.get("extensions", [])
-        for extension in app_extensions_data:
-            extension_fields = set(extension.keys())
-            missing_fields = extension_required_fields.difference(extension_fields)
-            if missing_fields:
-                errors["extensions"].append(
-                    ValidationError(
-                        "Missing required fields for app extension: %s."
-                        % ", ".join(missing_fields),
-                        code=AppErrorCode.REQUIRED.value,
-                    )
-                )
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         manifest_url = data.get("manifest_url")
-        cls.clean_manifest_url(manifest_url)
+        clean_manifest_url(manifest_url)
         manifest_data = cls.fetch_manifest(manifest_url)
         cls.clean_manifest_data(info, manifest_data)
 
