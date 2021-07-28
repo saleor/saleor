@@ -995,6 +995,7 @@ class ProductType(CountableDjangoObjectType):
             "is_shipping_required",
             "name",
             "slug",
+            "type",
             "weight",
             "tax_type",
         ]
