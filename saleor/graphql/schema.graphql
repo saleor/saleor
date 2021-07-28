@@ -4537,6 +4537,7 @@ type ProductType implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
+  type: ProductTypeType!
   hasVariants: Boolean!
   isShippingRequired: Boolean!
   isDigital: Boolean!
@@ -4600,6 +4601,7 @@ input ProductTypeFilterInput {
 input ProductTypeInput {
   name: String
   slug: String
+  type: ProductTypeKindEnum
   hasVariants: Boolean
   productAttributes: [ID]
   variantAttributes: [ID]
@@ -4607,6 +4609,11 @@ input ProductTypeInput {
   isDigital: Boolean
   weight: WeightScalar
   taxCode: String
+}
+
+enum ProductTypeKindEnum {
+  NORMAL
+  GIFT_CARD
 }
 
 type ProductTypeReorderAttributes {
@@ -4624,6 +4631,11 @@ enum ProductTypeSortField {
 input ProductTypeSortingInput {
   direction: OrderDirection!
   field: ProductTypeSortField!
+}
+
+enum ProductTypeType {
+  NORMAL
+  GIFT_CARD
 }
 
 type ProductTypeUpdate {
