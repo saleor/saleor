@@ -9,15 +9,14 @@ from saleor.core.prices import quantize_price
 from saleor.payment import PaymentError
 from saleor.payment.gateways.adyen.utils.common import (
     append_klarna_data,
-    from_adyen_price,
     get_payment_method_info,
     get_shopper_locale_value,
     request_data_for_gateway_config,
     request_data_for_payment,
-    to_adyen_price,
     update_payment_with_action_required_data,
 )
 from saleor.payment.interface import PaymentMethodInfo
+from saleor.payment.utils import price_from_minor_unit, price_to_minor_unit
 
 from ......plugins.manager import get_plugins_manager
 
@@ -52,7 +51,8 @@ def test_append_klarna_data(
     variant_channel_listing = line.variant.channel_listings.get(channel_id=channel_id)
     variant_price = variant_channel_listing.price_amount
     variant_currency = variant_channel_listing.currency
-    price = to_adyen_price(variant_price, variant_currency)
+    price = price_to_minor_unit(variant_price, variant_currency)
+
     assert result == {
         "reference": "test",
         "shopperLocale": get_shopper_locale_value(country_code),
@@ -125,10 +125,10 @@ def test_append_klarna_data_tax_included(
                 "description": f"{line.variant.product.name}, {line.variant.name}",
                 "quantity": line.quantity,
                 "id": line.variant.sku,
-                "taxAmount": to_adyen_price((gross - net).amount, "USD"),
+                "taxAmount": price_to_minor_unit((gross - net).amount, "USD"),
                 "taxPercentage": 2300,
-                "amountExcludingTax": to_adyen_price(net.amount, "USD"),
-                "amountIncludingTax": to_adyen_price(gross.amount, "USD"),
+                "amountExcludingTax": price_to_minor_unit(net.amount, "USD"),
+                "amountIncludingTax": price_to_minor_unit(gross.amount, "USD"),
             },
             {
                 "amountExcludingTax": "1000",
@@ -190,7 +190,7 @@ def test_request_data_for_payment(dummy_payment_data):
     # then
     assert result == {
         "amount": {
-            "value": to_adyen_price(
+            "value": price_to_minor_unit(
                 dummy_payment_data.amount, dummy_payment_data.currency
             ),
             "currency": dummy_payment_data.currency,
@@ -233,7 +233,7 @@ def test_request_data_for_payment_native_3d_secure(dummy_payment_data):
     # then
     assert result == {
         "amount": {
-            "value": to_adyen_price(
+            "value": price_to_minor_unit(
                 dummy_payment_data.amount, dummy_payment_data.currency
             ),
             "currency": dummy_payment_data.currency,
@@ -268,7 +268,7 @@ def test_request_data_for_payment_channel_different_than_web(dummy_payment_data)
     # then
     assert result == {
         "amount": {
-            "value": to_adyen_price(
+            "value": price_to_minor_unit(
                 dummy_payment_data.amount, dummy_payment_data.currency
             ),
             "currency": dummy_payment_data.currency,
@@ -303,7 +303,7 @@ def test_request_data_for_payment_append_klarna_data(
     dummy_payment_data.data = data
     klarna_result = {
         "amount": {
-            "value": to_adyen_price(
+            "value": price_to_minor_unit(
                 dummy_payment_data.amount, dummy_payment_data.currency
             ),
             "currency": dummy_payment_data.currency,
@@ -339,7 +339,7 @@ def test_request_data_for_payment_append_klarna_data(
 )
 def test_from_adyen_price(value, currency, expected_result):
     # when
-    result = from_adyen_price(value, currency)
+    result = price_from_minor_unit(value, currency)
 
     # then
     assert result == expected_result
@@ -355,7 +355,7 @@ def test_from_adyen_price(value, currency, expected_result):
 )
 def test_to_adyen_price(value, currency, expected_result):
     # when
-    result = to_adyen_price(value, currency)
+    result = price_to_minor_unit(value, currency)
 
     # then
     assert result == expected_result

@@ -705,6 +705,61 @@ def shipping_zones(db, channel_USD, channel_PLN):
 
 
 @pytest.fixture
+def shipping_zones_with_different_channels(db, channel_USD, channel_PLN):
+    shipping_zone_poland, shipping_zone_usa = ShippingZone.objects.bulk_create(
+        [
+            ShippingZone(name="Poland", countries=["PL"]),
+            ShippingZone(name="USA", countries=["US"]),
+        ]
+    )
+
+    shipping_zone_poland.channels.add(channel_PLN, channel_USD)
+    shipping_zone_usa.channels.add(channel_USD)
+
+    method = shipping_zone_poland.shipping_methods.create(
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
+    )
+    second_method = shipping_zone_usa.shipping_methods.create(
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
+    )
+    ShippingMethodChannelListing.objects.bulk_create(
+        [
+            ShippingMethodChannelListing(
+                channel=channel_USD,
+                shipping_method=method,
+                minimum_order_price=Money(0, "USD"),
+                price=Money(10, "USD"),
+                currency=channel_USD.currency_code,
+            ),
+            ShippingMethodChannelListing(
+                channel=channel_USD,
+                shipping_method=second_method,
+                minimum_order_price=Money(0, "USD"),
+                currency=channel_USD.currency_code,
+            ),
+            ShippingMethodChannelListing(
+                channel=channel_PLN,
+                shipping_method=method,
+                minimum_order_price=Money(0, "PLN"),
+                price=Money(40, "PLN"),
+                currency=channel_PLN.currency_code,
+            ),
+            ShippingMethodChannelListing(
+                channel=channel_PLN,
+                shipping_method=second_method,
+                minimum_order_price=Money(0, "PLN"),
+                currency=channel_PLN.currency_code,
+            ),
+        ]
+    )
+    return [shipping_zone_poland, shipping_zone_usa]
+
+
+@pytest.fixture
 def shipping_zone_without_countries(db, channel_USD):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(name="Europe", countries=[])
     method = shipping_zone.shipping_methods.create(
@@ -843,6 +898,27 @@ def rich_text_attribute(db):
         slug="text",
         name="Text",
         type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.RICH_TEXT,
+        filterable_in_storefront=False,
+        filterable_in_dashboard=False,
+        available_in_grid=False,
+    )
+    text = "Rich text attribute content."
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=truncatechars(clean_editor_js(dummy_editorjs(text), to_string=True), 50),
+        slug=f"instance_{attribute.id}",
+        rich_text=dummy_editorjs(text),
+    )
+    return attribute
+
+
+@pytest.fixture
+def rich_text_attribute_page_type(db):
+    attribute = Attribute.objects.create(
+        slug="text",
+        name="Text",
+        type=AttributeType.PAGE_TYPE,
         input_type=AttributeInputType.RICH_TEXT,
         filterable_in_storefront=False,
         filterable_in_dashboard=False,
@@ -1274,6 +1350,21 @@ def product_type(color_attribute, size_attribute):
 
 
 @pytest.fixture
+def product_type_with_rich_text_attribute(
+    rich_text_attribute, color_attribute, size_attribute
+):
+    product_type = ProductType.objects.create(
+        name="Default Type",
+        slug="default-type",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(rich_text_attribute)
+    product_type.variant_attributes.add(rich_text_attribute)
+    return product_type
+
+
+@pytest.fixture
 def product_type_without_variant():
     product_type = ProductType.objects.create(
         name="Type", slug="type", has_variants=False, is_shipping_required=True
@@ -1319,6 +1410,48 @@ def product(product_type, category, warehouse, channel_USD):
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
     return product
+
+
+@pytest.fixture
+def product_with_rich_text_attribute(
+    product_type_with_rich_text_attribute, category, warehouse, channel_USD
+):
+    product_attr = product_type_with_rich_text_attribute.product_attributes.first()
+    product_attr_value = product_attr.values.first()
+
+    product = Product.objects.create(
+        name="Test product",
+        slug="test-product-11",
+        product_type=product_type_with_rich_text_attribute,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        discounted_price_amount="10.00",
+        currency=channel_USD.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+    )
+
+    associate_attribute_values_to_instance(product, product_attr, product_attr_value)
+
+    variant_attr = product_type_with_rich_text_attribute.variant_attributes.first()
+    variant_attr_value = variant_attr.values.first()
+
+    variant = ProductVariant.objects.create(product=product, sku="123")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
+
+    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    return [product, variant]
 
 
 @pytest.fixture
@@ -2529,6 +2662,7 @@ def order_with_lines_and_events(order_with_lines, staff_user):
     fulfillment_refunded_event(
         order=order_with_lines,
         user=staff_user,
+        app=None,
         refunded_lines=[(1, order_with_lines.lines.first())],
         amount=Decimal("10.0"),
         shipping_costs_included=False,
@@ -2536,6 +2670,7 @@ def order_with_lines_and_events(order_with_lines, staff_user):
     order_added_products_event(
         order=order_with_lines,
         user=staff_user,
+        app=None,
         order_lines=[(1, order_with_lines.lines.first())],
     )
     return order_with_lines
@@ -2779,7 +2914,7 @@ def fulfilled_order_with_all_cancelled_fulfillments(
     fulfilled_order, staff_user, warehouse
 ):
     fulfillment = fulfilled_order.fulfillments.get()
-    cancel_fulfillment(fulfillment, staff_user, warehouse, get_plugins_manager())
+    cancel_fulfillment(fulfillment, staff_user, None, warehouse, get_plugins_manager())
     return fulfilled_order
 
 
@@ -3222,6 +3357,26 @@ def page(db, page_type):
 
 
 @pytest.fixture
+def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
+    data = {
+        "slug": "test-url",
+        "title": "Test page",
+        "content": dummy_editorjs("Test content."),
+        "is_published": True,
+        "page_type": page_type_with_rich_text_attribute,
+    }
+    page = Page.objects.create(**data)
+
+    # associate attribute value
+    page_attr = page_type_with_rich_text_attribute.page_attributes.first()
+    page_attr_value = page_attr.values.first()
+
+    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+
+    return page
+
+
+@pytest.fixture
 def page_list(db, page_type):
     data_1 = {
         "slug": "test-url",
@@ -3265,6 +3420,13 @@ def page_type(db, size_page_attribute, tag_page_attribute):
     page_type.page_attributes.add(size_page_attribute)
     page_type.page_attributes.add(tag_page_attribute)
 
+    return page_type
+
+
+@pytest.fixture
+def page_type_with_rich_text_attribute(db, rich_text_attribute_page_type):
+    page_type = PageType.objects.create(name="Test page type", slug="test-page-type")
+    page_type.page_attributes.add(rich_text_attribute_page_type)
     return page_type
 
 
