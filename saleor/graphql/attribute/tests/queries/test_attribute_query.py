@@ -4,6 +4,7 @@ from django.db.models import Q
 from graphene.utils.str_converters import to_camel_case
 
 from .....attribute.models import Attribute
+from .....product import ProductTypeKind
 from .....product.models import Category, Collection, Product, ProductType
 from .....tests.utils import dummy_editorjs
 from ....tests.utils import (
@@ -531,7 +532,10 @@ def test_attributes_in_collection_query(
     other_category = Category.objects.create(name="Other Category", slug="other-cat")
     other_attribute = Attribute.objects.create(name="Other", slug="other")
     other_product_type = ProductType.objects.create(
-        name="Other type", has_variants=True, is_shipping_required=True
+        name="Other type",
+        has_variants=True,
+        is_shipping_required=True,
+        type=ProductTypeKind.NORMAL,
     )
     other_product_type.product_attributes.add(other_attribute)
     other_product = Product.objects.create(

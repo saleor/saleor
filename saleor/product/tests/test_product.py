@@ -9,7 +9,7 @@ from prices import Money
 from ...account import events as account_events
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...graphql.product.filters import filter_products_by_attributes_values
-from .. import models
+from .. import ProductTypeKind, models
 from ..models import DigitalContentUrl
 from ..thumbnails import create_product_thumbnails
 from ..utils.costs import get_margin_for_variant_channel_listing
@@ -20,11 +20,17 @@ def test_filtering_by_attribute(
     db, color_attribute, size_attribute, category, channel_USD, settings
 ):
     product_type_a = models.ProductType.objects.create(
-        name="New class", slug="new-class1", has_variants=True
+        name="New class",
+        slug="new-class1",
+        has_variants=True,
+        type=ProductTypeKind.NORMAL,
     )
     product_type_a.product_attributes.add(color_attribute)
     product_type_b = models.ProductType.objects.create(
-        name="New class", slug="new-class2", has_variants=True
+        name="New class",
+        slug="new-class2",
+        has_variants=True,
+        type=ProductTypeKind.NORMAL,
     )
     product_type_b.variant_attributes.add(color_attribute)
     product_a = models.Product.objects.create(
