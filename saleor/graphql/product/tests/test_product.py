@@ -7465,6 +7465,7 @@ def test_create_product_type_with_date_attribute(
     query = PRODUCT_TYPE_CREATE_MUTATION
     product_type_name = "test type"
     slug = "test-type"
+    type = ProductTypeKindEnum.NORMAL.name
 
     product_type.product_attributes.add(date_attribute)
     product_type.product_attributes.add(date_time_attribute)
@@ -7477,7 +7478,7 @@ def test_create_product_type_with_date_attribute(
     variables = {
         "name": product_type_name,
         "slug": slug,
-        "type": ProductTypeKindEnum.NORMAL.name,
+        "type": type,
         "productAttributes": product_attributes_ids,
     }
 
@@ -7495,6 +7496,7 @@ def test_create_product_type_with_date_attribute(
     assert not errors
     assert data["name"] == product_type_name
     assert data["slug"] == slug
+    assert data["type"] == type
 
     for attribute in expected_attribute:
         assert attribute in data["productAttributes"]
