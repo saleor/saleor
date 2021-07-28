@@ -666,6 +666,7 @@ input AttributeValueInput {
 type AttributeValueTranslatableContent implements Node {
   id: ID!
   name: String!
+  richText: JSONString
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
   attributeValue: AttributeValue @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
@@ -3688,6 +3689,7 @@ type PageTranslatableContent implements Node {
   contentJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   page: Page @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
+  attributeValues: [AttributeValueTranslatableContent!]!
 }
 
 type PageTranslate {
@@ -4434,6 +4436,7 @@ type ProductTranslatableContent implements Node {
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   product: Product @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
+  attributeValues: [AttributeValueTranslatableContent!]!
 }
 
 type ProductTranslate {
@@ -4708,6 +4711,7 @@ type ProductVariantTranslatableContent implements Node {
   name: String!
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   productVariant: ProductVariant @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
+  attributeValues: [AttributeValueTranslatableContent!]!
 }
 
 type ProductVariantTranslate {

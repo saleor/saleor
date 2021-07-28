@@ -38,6 +38,11 @@ class AttributeInputType:
         NUMERIC,
     ]
 
+    # list of the translatable attributes, excluding attributes with choices.
+    TRANSLATABLE_ATTRIBUTES = [
+        RICH_TEXT,
+    ]
+
 
 # list of input types that are allowed for given attribute property
 ATTRIBUTE_PROPERTIES_CONFIGURATION = {
