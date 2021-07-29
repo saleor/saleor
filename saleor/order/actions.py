@@ -163,8 +163,8 @@ def cancel_order(
     order.status = OrderStatus.CANCELED
     order.save(update_fields=["status"])
 
-    manager.order_cancelled(order)
-    manager.order_updated(order)
+    transaction.on_commit(lambda: manager.order_cancelled(order))
+    transaction.on_commit(lambda: manager.order_updated(order))
 
     send_order_canceled_confirmation(order, user, app, manager)
 
@@ -222,13 +222,13 @@ def order_fulfilled(
     events.fulfillment_fulfilled_items_event(
         order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
     )
-    manager.order_updated(order)
+    transaction.on_commit(lambda: manager.order_updated(order))
 
     for fulfillment in fulfillments:
-        manager.fulfillment_created(fulfillment)
+        transaction.on_commit(lambda: manager.fulfillment_created(fulfillment))
 
     if order.status == OrderStatus.FULFILLED:
-        manager.order_fulfilled(order)
+        transaction.on_commit(lambda: manager.order_fulfilled(order))
 
     if notify_customer:
         for fulfillment in fulfillments:
@@ -251,7 +251,6 @@ def order_awaits_fulfillment_approval(
     events.fulfillment_awaits_approval_event(
         order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
     )
-    manager.order_updated(order)
     transaction.on_commit(lambda: manager.order_updated(order))
 
 
@@ -334,7 +333,7 @@ def cancel_fulfillment(
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save(update_fields=["status"])
     update_order_status(fulfillment.order)
-    manager.order_updated(fulfillment.order)
+    transaction.on_commit(lambda: manager.order_updated(fulfillment.order))
 
 
 @traced_atomic_transaction()
@@ -366,10 +365,12 @@ def approve_fulfillment(
     ]
     fulfill_order_lines(lines_to_fulfill)
     order.refresh_from_db()
-    manager.order_updated(order)
-    if order.status == OrderStatus.FULFILLED:
-        manager.order_fulfilled(order)
     update_order_status(order)
+
+    transaction.on_commit(lambda: manager.order_updated(order))
+    if order.status == OrderStatus.FULFILLED:
+        transaction.on_commit(lambda: manager.order_fulfilled(order))
+
     return fulfillment
 
 
