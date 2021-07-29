@@ -927,7 +927,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
-    kind = ProductTypeKindEnum(description="The product type kind.")
+    kind = ProductTypeKindEnum(description="The product type kind.", required=True)
     products = ChannelContextFilterConnectionField(
         Product,
         channel=graphene.String(
