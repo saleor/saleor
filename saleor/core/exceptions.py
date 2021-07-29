@@ -31,6 +31,12 @@ class AllocationError(Exception):
         self.order_lines = order_lines
 
 
+class PreorderAllocationError(Exception):
+    def __init__(self, order_line):
+        super().__init__(f"Unable to allocate in stock for line {str(order_line)}.")
+        self.order_line = order_line
+
+
 class ReadOnlyException(Exception):
     def __init__(self, msg=None):
         if msg is None:
