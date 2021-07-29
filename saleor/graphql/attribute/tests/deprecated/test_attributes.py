@@ -43,7 +43,7 @@ def test_attributes_query_with_filter(
         name="Other type",
         has_variants=True,
         is_shipping_required=True,
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
     )
     other_product_type.product_attributes.add(other_attribute)
 
