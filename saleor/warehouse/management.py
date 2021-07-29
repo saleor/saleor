@@ -513,6 +513,8 @@ def complete_preorder(product_variant: ProductVariant):
     All preorder settings should be cleared and all preorder allocations
     should be replaced by regular allocations.
     """
+    if not product_variant.is_preorder:
+        return
     channel_listings = ProductVariantChannelListing.objects.filter(
         variant_id=product_variant.pk
     )
