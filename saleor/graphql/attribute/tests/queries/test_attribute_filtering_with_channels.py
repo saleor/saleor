@@ -56,7 +56,7 @@ def attributes_for_filtering_with_channels(
 
     product_type = ProductType.objects.create(
         name="My Product Type",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
     )
     product = Product.objects.create(
         name="Test product",

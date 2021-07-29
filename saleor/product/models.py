@@ -119,7 +119,7 @@ class CategoryTranslation(SeoModelTranslation):
 class ProductType(ModelWithMetadata):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    type = models.CharField(max_length=32, choices=ProductTypeKind.CHOICES)
+    kind = models.CharField(max_length=32, choices=ProductTypeKind.CHOICES)
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
     is_digital = models.BooleanField(default=False)
