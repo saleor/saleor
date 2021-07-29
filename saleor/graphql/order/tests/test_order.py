@@ -294,6 +294,9 @@ query OrdersQuery {
                             amount
                         }
                     }
+                    quantity
+                    quantityFulfilled
+                    quantityToFulfill
                 }
                 discounts{
                     id
@@ -382,6 +385,8 @@ def test_order_query(
     assert expected_price == shipping_price.gross
     assert order_data["shippingTaxRate"] == float(shipping_tax_rate)
     assert len(order_data["lines"]) == order.lines.count()
+    for line in order_data["lines"]:
+        assert line["quantityToFulfill"] == 0
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data["fulfillments"][0]["fulfillmentOrder"]
     assert fulfillment_order == fulfillment

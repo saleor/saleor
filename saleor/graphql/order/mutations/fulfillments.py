@@ -99,7 +99,17 @@ class OrderFulfill(BaseMutation):
         for order_line, line_quantities in zip(order_lines, quantities):
             line_quantity_unfulfilled = order_line.quantity_unfulfilled
 
-            if sum(line_quantities) > line_quantity_unfulfilled:
+            quantity_awaiting = sum(
+                [
+                    f_line.quantity
+                    if f_line.fulfillment.status
+                    == FulfillmentStatus.WAITING_FOR_APPROVAL
+                    else 0
+                    for f_line in order_line.fulfillment_lines.all()
+                ]
+            )
+
+            if sum(line_quantities) > (line_quantity_unfulfilled - quantity_awaiting):
                 msg = (
                     "Only %(quantity)d item%(item_pluralize)s remaining "
                     "to fulfill: %(order_line)s."
@@ -177,7 +187,6 @@ class OrderFulfill(BaseMutation):
                     )
                 }
             )
-
         lines = data["lines"]
 
         warehouse_ids_for_lines = [
@@ -192,7 +201,12 @@ class OrderFulfill(BaseMutation):
         lines_ids = [line["order_line_id"] for line in lines]
         cls.check_lines_for_duplicates(lines_ids)
         order_lines = cls.get_nodes_or_error(
-            lines_ids, field="lines", only_type=OrderLine
+            lines_ids,
+            field="lines",
+            only_type=OrderLine,
+            qs=order_models.OrderLine.objects.prefetch_related(
+                "fulfillment_lines__fulfillment"
+            ),
         )
 
         cls.clean_lines(order_lines, quantities_for_lines)
