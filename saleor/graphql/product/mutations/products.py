@@ -33,6 +33,7 @@ from ....product.thumbnails import (
 )
 from ....product.utils import delete_categories, get_products_ids_without_variants
 from ....product.utils.variants import generate_and_set_variant_name
+from ....warehouse.management import complete_preorder
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
@@ -1702,3 +1703,47 @@ class VariantMediaUnassign(BaseMutation):
             lambda: info.context.plugins.product_variant_updated(variant.node)
         )
         return VariantMediaUnassign(product_variant=variant, media=media)
+
+
+class ProductVariantPreorderDeactivate(BaseMutation):
+    product_variant = graphene.Field(ProductVariant)
+
+    class Arguments:
+        id = graphene.ID(
+            required=True,
+            description="ID of a variant which preorder should be deactivated.",
+        )
+
+    class Meta:
+        description = (
+            "Deactivates product variant preorder."
+            "It changes all preorder allocation into regular allocation."
+        )
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, id):
+        qs = models.ProductVariant.objects.prefetched_for_webhook()
+        variant = cls.get_node_or_error(
+            info, id, field="variant_id", only_type=ProductVariant, qs=qs
+        )
+        if not variant.is_preorder:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "This variant is not in preorder.",
+                        code=ProductErrorCode.INVALID,
+                    )
+                }
+            )
+
+        complete_preorder(variant)
+
+        variant = ChannelContext(node=variant, channel_slug=None)
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_updated(variant.node)
+        )
+        return ProductVariantPreorderDeactivate(product_variant=variant)
