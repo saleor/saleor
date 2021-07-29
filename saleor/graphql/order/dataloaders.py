@@ -2,7 +2,14 @@ from collections import defaultdict
 
 from django.db.models import F
 
-from ...order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
+from ...order.models import (
+    Fulfillment,
+    FulfillmentLine,
+    Order,
+    OrderEvent,
+    OrderLine,
+    Subscription,
+)
 from ...warehouse.models import Allocation
 from ..core.dataloaders import DataLoader
 
@@ -103,3 +110,52 @@ class FulfillmentLinesByIdLoader(DataLoader):
     def batch_load(self, keys):
         fulfillment_lines = FulfillmentLine.objects.in_bulk(keys)
         return [fulfillment_lines.get(line_id) for line_id in keys]
+
+
+class SubscriptionByIdLoader(DataLoader):
+    context_key = "subscription_by_id"
+
+    def batch_load(self, keys):
+        subscriptions = Subscription.objects.in_bulk(keys)
+        return [subscriptions.get(subscription_id) for subscription_id in keys]
+
+
+class SubscriptionsByOrderIdLoader(DataLoader):
+    context_key = "subscription_by_order"
+
+    def batch_load(self, keys):
+        subscription_and_order_is_pairs = Subscription.objects.filter(
+            orders__id__in=keys
+        ).values_list("pk", "orders__id")
+        order_subscription_map = defaultdict(list)
+        for subscription_id, order__id in subscription_and_order_is_pairs:
+            order_subscription_map[order__id].append(subscription_id)
+
+        def map_subscriptions(subscriptions):
+            subscription_map = {
+                subscription.pk: subscription for subscription in subscriptions
+            }
+            return [
+                [
+                    subscription_map[subscription_id]
+                    for subscription_id in order_subscription_map[order__id]
+                ]
+                for order__id in keys
+            ]
+
+        return (
+            SubscriptionByIdLoader(self.context)
+            .load_many({pk for pk, _ in subscription_and_order_is_pairs})
+            .then(map_subscriptions)
+        )
+
+
+class SubscriptionsByUserLoader(DataLoader):
+    context_key = "subscription_by_user"
+
+    def batch_load(self, keys):
+        subscriptions = Subscription.objects.filter(user_id__in=keys)
+        subscriptions_by_user_map = defaultdict(list)
+        for subscription in subscriptions:
+            subscriptions_by_user_map[subscription.user_id].append(subscription)
+        return [subscriptions_by_user_map.get(user_id, []) for user_id in keys]

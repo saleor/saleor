@@ -50,7 +50,6 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
-from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
 from ..types import (
     Category,
@@ -715,7 +714,6 @@ class ProductDelete(ModelDeleteMutation):
 
         cls.delete_assigned_attribute_values(instance)
 
-        requester = get_user_or_app_from_context(info.context)
         draft_order_lines_data = get_draft_order_lines_data_for_variants(variants_id)
 
         response = super().perform_mutation(_root, info, **data)
@@ -728,7 +726,9 @@ class ProductDelete(ModelDeleteMutation):
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             lines_data = [(line.quantity, line) for line in order_lines]
-            order_events.order_line_product_removed_event(order, requester, lines_data)
+            order_events.order_line_product_removed_event(
+                order, info.context.user, info.context.app, lines_data
+            )
 
         order_pks = draft_order_lines_data.order_pks
         if order_pks:
@@ -1074,7 +1074,6 @@ class ProductVariantDelete(ModelDeleteMutation):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
 
-        requester = get_user_or_app_from_context(info.context)
         draft_order_lines_data = get_draft_order_lines_data_for_variants([instance.pk])
 
         # Get cached variant with related fields to fully populate webhook payload.
@@ -1095,7 +1094,9 @@ class ProductVariantDelete(ModelDeleteMutation):
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             lines_data = [(line.quantity, line) for line in order_lines]
-            order_events.order_line_variant_removed_event(order, requester, lines_data)
+            order_events.order_line_variant_removed_event(
+                order, info.context.user, info.context.app, lines_data
+            )
 
         order_pks = draft_order_lines_data.order_pks
         if order_pks:

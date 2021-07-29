@@ -126,6 +126,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix performance for User type on resolvers: orders, gift cards, events - #7574 by @tomaszszymanski129
 - Fix failing account mutations for app - #7569 by @IKarbowiak
 - Modify order of auth middleware calls - #7572 by @tomaszszymanski129
+- Add app support for events - #7622 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -285,6 +286,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - remove `companyName` on `WarehouseInput` type
     - remove `WarehouseAddressInput` on `WarehouseUpdateInput` and `WarehouseCreateInput`, and change it to `AddressInput`
 - Fix passing incorrect customer email to payment gateways - #7486 by @korycins
+- Add HTTP meta tag for Content-Security-Policy in GraphQL Playground - #7662 by @NyanKiyoshi
 
 # 2.11.1
 

@@ -1,4 +1,3 @@
-from ...core.tracing import traced_resolver
 from ...payment import models
 
 
@@ -6,6 +5,5 @@ def resolve_payment_by_id(id):
     return models.Payment.objects.filter(id=id).first()
 
 
-@traced_resolver
 def resolve_payments(info):
     return models.Payment.objects.all()

@@ -10,6 +10,7 @@ JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 class PaymentMethodInfo:
     """Uniform way to represent payment method information."""
 
+    first_4: Optional[str] = None
     last_4: Optional[str] = None
     exp_year: Optional[int] = None
     exp_month: Optional[int] = None

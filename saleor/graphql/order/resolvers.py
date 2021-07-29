@@ -10,7 +10,6 @@ from ..utils.filters import filter_by_period
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
 
 
-@traced_resolver
 def resolve_orders(_info, channel_slug, **_kwargs):
     qs = models.Order.objects.non_draft()
     if channel_slug:
@@ -18,7 +17,6 @@ def resolve_orders(_info, channel_slug, **_kwargs):
     return qs
 
 
-@traced_resolver
 def resolve_draft_orders(_info, **_kwargs):
     qs = models.Order.objects.drafts()
     return qs

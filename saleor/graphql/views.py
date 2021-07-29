@@ -113,7 +113,11 @@ class GraphQLView(View):
         return response
 
     def render_playground(self, request):
-        return render(request, "graphql/playground.html", {})
+        return render(
+            request,
+            "graphql/playground.html",
+            {"api_url": request.build_absolute_uri(str(API_PATH))},
+        )
 
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
         try:
