@@ -4569,7 +4569,7 @@ type ProductType implements Node & ObjectWithMetadata {
   weight: Weight
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  kind: ProductTypeKindEnum
+  kind: ProductTypeKindEnum!
   products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection @deprecated(reason: "Will be removed in Saleor 4.0. Use the top-level `products` query with the `productTypes` filter.")
   taxType: TaxType
   variantAttributes(variantSelection: VariantAttributeScope): [Attribute]
