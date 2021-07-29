@@ -274,7 +274,13 @@ class GiftCardDeactivate(BaseMutation):
         gift_card = cls.get_node_or_error(
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
+        # create event only when is_active value has changed
+        create_event = gift_card.is_active
         deactivate_gift_card(gift_card)
+        if create_event:
+            events.gift_card_deactivated(
+                gift_card=gift_card, user=info.context.user, app=info.context.app
+            )
         return GiftCardDeactivate(gift_card=gift_card)
 
 
@@ -296,5 +302,11 @@ class GiftCardActivate(BaseMutation):
         gift_card = cls.get_node_or_error(
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
+        # create event only when is_active value has changed
+        create_event = not gift_card.is_active
         activate_gift_card(gift_card)
+        if create_event:
+            events.gift_card_activated(
+                gift_card=gift_card, user=info.context.user, app=info.context.app
+            )
         return GiftCardActivate(gift_card=gift_card)
