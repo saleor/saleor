@@ -2468,7 +2468,7 @@ type Manifest {
   dataPrivacyUrl: String
   homepageUrl: String
   supportUrl: String
-  extensions: [AppManifestExtension!]
+  extensions: [AppManifestExtension!]!
 }
 
 type Margin {

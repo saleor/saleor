@@ -442,7 +442,7 @@ class AppFetchManifest(BaseMutation):
             version=cleaned_data.get("version"),
             token_target_url=cleaned_data.get("tokenTargetUrl"),
             permissions=cleaned_data.get("permissions"),
-            extensions=cleaned_data.get("extensions"),
+            extensions=cleaned_data.get("extensions", []),
         )
 
     @classmethod

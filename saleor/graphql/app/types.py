@@ -88,7 +88,7 @@ class Manifest(graphene.ObjectType):
     data_privacy_url = graphene.String()
     homepage_url = graphene.String()
     support_url = graphene.String()
-    extensions = graphene.List(graphene.NonNull(AppManifestExtension))
+    extensions = graphene.List(graphene.NonNull(AppManifestExtension), required=True)
 
     class Meta:
         description = "The manifest definition."
