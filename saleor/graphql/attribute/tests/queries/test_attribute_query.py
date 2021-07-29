@@ -536,7 +536,7 @@ def test_attributes_in_collection_query(
         name="Other type",
         has_variants=True,
         is_shipping_required=True,
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
     )
     other_product_type.product_attributes.add(other_attribute)
     other_product = Product.objects.create(

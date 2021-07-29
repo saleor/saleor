@@ -1400,7 +1400,7 @@ def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
         name="Default Type",
         slug="default-type",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -1416,7 +1416,7 @@ def product_type_with_rich_text_attribute(
     product_type = ProductType.objects.create(
         name="Default Type",
         slug="default-type",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -1432,7 +1432,7 @@ def product_type_without_variant():
         slug="type",
         has_variants=False,
         is_shipping_required=True,
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
     )
     return product_type
 
@@ -1629,7 +1629,7 @@ def product_with_variant_with_two_attributes(
     product_type = ProductType.objects.create(
         name="Type with two variants",
         slug="two-variants",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -1681,7 +1681,7 @@ def product_with_variant_with_external_media(
     product_type = ProductType.objects.create(
         name="Type with two variants",
         slug="two-variants",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -1739,7 +1739,7 @@ def product_with_variant_with_file_attribute(
     product_type = ProductType.objects.create(
         name="Type with variant and file attribute",
         slug="type-with-file-attribute",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -1957,7 +1957,7 @@ def product_without_shipping(category, warehouse, channel_USD):
     product_type = ProductType.objects.create(
         name="Type with no shipping",
         slug="no-shipping",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=False,
         is_shipping_required=False,
     )
@@ -3852,7 +3852,7 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
     product_type = ProductType.objects.create(
         name="Digital Type",
         slug="digital-type",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=False,
         is_digital=True,

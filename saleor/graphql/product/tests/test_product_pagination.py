@@ -307,7 +307,7 @@ def products_for_pagination(
     product_type, color_attribute, category, warehouse, channel_USD
 ):
     product_type2 = ProductType.objects.create(
-        name="Apple", type=ProductTypeKind.NORMAL
+        name="Apple", kind=ProductTypeKind.NORMAL
     )
     products = Product.objects.bulk_create(
         [
