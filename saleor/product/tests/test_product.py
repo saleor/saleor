@@ -37,14 +37,14 @@ def test_filtering_by_attribute(
         name="New class",
         slug="new-class1",
         has_variants=True,
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
     )
     product_type_a.product_attributes.add(color_attribute)
     product_type_b = models.ProductType.objects.create(
         name="New class",
         slug="new-class2",
         has_variants=True,
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
     )
     product_type_b.variant_attributes.add(color_attribute)
     product_a = models.Product.objects.create(

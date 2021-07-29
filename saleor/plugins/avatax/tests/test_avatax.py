@@ -942,7 +942,7 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
     manager = get_plugins_manager()
 
     product_type = ProductType.objects.create(
-        name="non-taxable", type=ProductTypeKind.NORMAL
+        name="non-taxable", kind=ProductTypeKind.NORMAL
     )
     product2 = product_with_two_variants
     product2.product_type = product_type
