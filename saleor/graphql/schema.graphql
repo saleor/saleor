@@ -2305,9 +2305,31 @@ type GiftCardSettings {
   expiryPeriod: TimePeriod
 }
 
+type GiftCardSettingsError {
+  field: String
+  message: String
+  code: GiftCardSettingsErrorCode!
+}
+
+enum GiftCardSettingsErrorCode {
+  INVALID
+  REQUIRED
+  GRAPHQL_ERROR
+}
+
 enum GiftCardSettingsExpiryTypeEnum {
   NEVER_EXPIRE
   EXPIRY_PERIOD
+}
+
+type GiftCardSettingsUpdate {
+  giftCardSettings: GiftCardSettings
+  errors: [GiftCardSettingsError!]!
+}
+
+input GiftCardSettingsUpdateInput {
+  expiryType: GiftCardSettingsExpiryTypeEnum
+  expiryPeriod: TimePeriodInputType
 }
 
 type GiftCardUpdate {
@@ -2827,6 +2849,7 @@ type Mutation {
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
+  giftCardSettingsUpdate(input: GiftCardSettingsUpdateInput!): GiftCardSettingsUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
