@@ -442,7 +442,7 @@ class OrderLine(CountableDjangoObjectType):
         description="List of allocations across warehouses.",
     )
     quantity_to_fulfill = graphene.Int(
-        description="A quantity of items remaining to be fulfilled."
+        required=True, description="A quantity of items remaining to be fulfilled."
     )
     unit_discount_type = graphene.Field(
         DiscountValueTypeEnum,
