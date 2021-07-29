@@ -17,6 +17,7 @@ from ...channel.models import Channel
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...giftcard.models import GiftCard
 from ...order.models import Order
+from ...product import ProductTypeKind
 from ...product.models import ProductMedia, ProductType
 from ...shipping.models import ShippingZone
 from ..storages import S3MediaStorage
@@ -290,7 +291,11 @@ def test_generate_unique_slug_with_slugable_field(
         ("わたし わ にっぽん です", "わたし-わ-にっぽん-です"),
     ]
     for name, slug in product_names_and_slugs:
-        ProductType.objects.create(name=name, slug=slug)
+        ProductType.objects.create(
+            name=name,
+            slug=slug,
+            kind=ProductTypeKind.NORMAL,
+        )
 
     instance, _ = ProductType.objects.get_or_create(name=product_name)
     result = generate_unique_slug(instance, instance.name)

@@ -93,7 +93,7 @@ from ..dataloaders import (
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
-from ..enums import VariantAttributeScope
+from ..enums import ProductTypeKindEnum, VariantAttributeScope
 from ..filters import ProductFilterInput
 from ..sorters import ProductOrder
 from .channels import (
@@ -897,6 +897,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
+    kind = ProductTypeKindEnum(description="The product type kind.", required=True)
     products = ChannelContextFilterConnectionField(
         Product,
         channel=graphene.String(
