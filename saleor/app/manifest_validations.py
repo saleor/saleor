@@ -55,6 +55,15 @@ def clean_manifest_data(manifest_data):
     errors: T_ERRORS = defaultdict(list)
 
     validate_required_fields(manifest_data, errors)
+    try:
+        _clean_app_url(manifest_data["tokenTargetUrl"])
+    except (ValidationError, AttributeError):
+        errors["tokenTargetUrl"].append(
+            ValidationError(
+                "Incorrect format.",
+                code=AppErrorCode.INVALID_URL_FORMAT.value,
+            )
+        )
 
     saleor_permissions = get_permissions().annotate(
         formated_codename=Concat("content_type__app_label", Value("."), "codename")
@@ -105,7 +114,6 @@ def clean_extensions(manifest_data, app_permissions, errors):
     ]
     for index, extension in enumerate(extensions):
         for extension_enum, key in enum_map:
-            print(extension[key])
             if extension[key] in [code.upper() for code, _ in extension_enum.CHOICES]:
                 extension[key] = getattr(extension_enum, extension[key])
             else:
@@ -130,7 +138,7 @@ def clean_extensions(manifest_data, app_permissions, errors):
 
 
 def validate_required_fields(manifest_data, errors):
-    manifest_required_fields = {"id", "version", "name"}
+    manifest_required_fields = {"id", "version", "name", "tokenTargetUrl"}
     extension_required_fields = {
         "label",
         "url",
