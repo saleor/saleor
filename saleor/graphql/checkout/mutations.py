@@ -1066,31 +1066,22 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             ),
         )
 
-        delivery_method_is_valid = clean_delivery_method(
-            checkout_info=checkout_info,
-            lines=lines,
-            method=shipping_method,
+        CheckoutDeliveryMethodUpdate._check_delivery_method(
+            checkout_info, lines, shipping_method=shipping_method, collection_point=None
         )
-        if not delivery_method_is_valid:
-            raise ValidationError(
-                {
-                    "delivery_method": ValidationError(
-                        "This shipping method is not applicable.",
-                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
-                    )
-                }
-            )
 
-        checkout.shipping_method = shipping_method
-        checkout.collection_point = None
-        checkout.save(
-            update_fields=["shipping_method", "collection_point", "last_change"]
+        checkout_delivery_method_update = (
+            CheckoutDeliveryMethodUpdate._update_delivery_method(
+                manager,
+                checkout,
+                shipping_method=shipping_method,
+                collection_point=None,
+            )
         )
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
         )
-        manager.checkout_updated(checkout)
-        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+        return checkout_delivery_method_update
 
     @classmethod
     def perform_on_collection_point(
@@ -1103,24 +1094,59 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             field="collection_point_id",
             qs=warehouse_models.Warehouse.objects.select_related("address"),
         )
-        collection_point_is_valid = clean_delivery_method(
-            checkout_info=checkout_info, lines=lines, method=collection_point
+        CheckoutDeliveryMethodUpdate._check_delivery_method(
+            checkout_info,
+            lines,
+            shipping_method=None,
+            collection_point=collection_point,
         )
-        if not collection_point_is_valid:
+        return CheckoutDeliveryMethodUpdate._update_delivery_method(
+            manager, checkout, shipping_method=None, collection_point=collection_point
+        )
+
+    @staticmethod
+    def _check_delivery_method(
+        checkout_info,
+        lines,
+        *,
+        shipping_method: Optional[ShippingMethod],
+        collection_point: Optional[Warehouse]
+    ) -> None:
+        delivery_method = shipping_method
+        error_msg = "This shipping method is not applicable."
+
+        if collection_point is not None:
+            delivery_method = collection_point
+            error_msg = "This pick up point is not applicable."
+
+        delivery_method_is_valid = clean_delivery_method(
+            checkout_info=checkout_info, lines=lines, method=delivery_method
+        )
+        if not delivery_method_is_valid:
             raise ValidationError(
                 {
                     "delivery_method": ValidationError(
-                        "This pick up point is not applicable.",
-                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                        error_msg,
+                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
                     )
                 }
             )
+
+    @staticmethod
+    def _update_delivery_method(
+        manager,
+        checkout: Checkout,
+        *,
+        shipping_method: Optional[ShippingMethod],
+        collection_point: Optional[Warehouse]
+    ) -> "CheckoutDeliveryMethodUpdate":
+        checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
-        checkout.shipping_method = None
         checkout.save(
-            update_fields=["collection_point", "shipping_method", "last_change"]
+            update_fields=["shipping_method", "collection_point", "last_change"]
         )
         manager.checkout_updated(checkout)
+
         return CheckoutDeliveryMethodUpdate(checkout=checkout)
 
     @classmethod
@@ -1158,14 +1184,13 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                     )
                 }
             )
-        return (
-            cls.perform_on_collection_point(
+
+        if collection_point_id is not None:
+            return cls.perform_on_collection_point(
                 info, collection_point_id, checkout_info, lines, checkout, manager
             )
-            if collection_point_id is not None
-            else cls.perform_on_shipping_method(
-                info, shipping_method_id, checkout_info, lines, checkout, manager
-            )
+        return cls.perform_on_shipping_method(
+            info, shipping_method_id, checkout_info, lines, checkout, manager
         )
 
 

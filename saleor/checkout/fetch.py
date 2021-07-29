@@ -44,7 +44,7 @@ class CheckoutInfo:
     channel: "Channel"
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
-    delivery_method_info: "EmptyDeliveryMethod"
+    delivery_method_info: "DeliveryMethodBase"
     valid_shipping_methods: List["ShippingMethod"]
     valid_pick_up_points: List["Warehouse"]
     shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
@@ -66,7 +66,7 @@ class CheckoutInfo:
 
 
 @dataclass(frozen=True)
-class EmptyDeliveryMethod:
+class DeliveryMethodBase:
     delivery_method: Optional[Union["ShippingMethod", "Warehouse"]] = None
     shipping_address: Optional["Address"] = None
     order_key: str = "shipping_method"
@@ -102,7 +102,7 @@ class EmptyDeliveryMethod:
 
 
 @dataclass(frozen=True)
-class ShippingMethodInfo(EmptyDeliveryMethod):
+class ShippingMethodInfo(DeliveryMethodBase):
     delivery_method: "ShippingMethod"
     shipping_address: Optional["Address"]
     order_key: str = "shipping_method"
@@ -156,7 +156,7 @@ class ShippingMethodInfo(EmptyDeliveryMethod):
 
 
 @dataclass(frozen=True)
-class CollectionPointInfo(EmptyDeliveryMethod):
+class CollectionPointInfo(DeliveryMethodBase):
     delivery_method: "Warehouse"
     shipping_address: Optional["Address"]
     order_key: str = "collection_point"
@@ -205,15 +205,15 @@ class CollectionPointInfo(EmptyDeliveryMethod):
 def get_delivery_method_info(
     delivery_method: Optional[Union["ShippingMethod", "Warehouse"]],
     address=Optional["Address"],
-) -> EmptyDeliveryMethod:
+) -> DeliveryMethodBase:
     if delivery_method is None:
-        return EmptyDeliveryMethod()
-    elif isinstance(delivery_method, ShippingMethod):
+        return DeliveryMethodBase()
+    if isinstance(delivery_method, ShippingMethod):
         return ShippingMethodInfo(delivery_method, address)
-    elif isinstance(delivery_method, Warehouse):
+    if isinstance(delivery_method, Warehouse):
         return CollectionPointInfo(delivery_method, delivery_method.address)
-    else:
-        raise NotImplementedError()
+
+    raise NotImplementedError()
 
 
 def fetch_checkout_lines(checkout: "Checkout") -> Iterable[CheckoutLineInfo]:

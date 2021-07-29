@@ -191,7 +191,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                 collection_point_ids = [
                     checkout.collection_point_id
                     for checkout in checkouts
-                    if checkout.collection_point
+                    if checkout.collection_point_id
                 ]
                 collection_points = WarehouseByIdLoader(self.context).load_many(
                     collection_point_ids

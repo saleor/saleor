@@ -20,7 +20,7 @@ from .. import AddressType, calculations
 from ..fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
-    EmptyDeliveryMethod,
+    DeliveryMethodBase,
     fetch_checkout_info,
     fetch_checkout_lines,
     get_delivery_method_info,
@@ -76,7 +76,7 @@ def test_clear_delivery_method(checkout, shipping_method):
     clear_delivery_method(checkout_info)
     checkout.refresh_from_db()
     assert not checkout.shipping_method
-    assert isinstance(checkout_info.delivery_method_info, EmptyDeliveryMethod)
+    assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
     assert not checkout_info.shipping_method_channel_listings
 
 
@@ -1234,7 +1234,7 @@ def test_chckout_without_delivery_method_creates_empty_delivery_method(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     delivery_method_info = checkout_info.delivery_method_info
 
-    assert isinstance(delivery_method_info, EmptyDeliveryMethod)
+    assert isinstance(delivery_method_info, DeliveryMethodBase)
     assert not delivery_method_info.is_valid_delivery_method()
     assert not delivery_method_info.is_local_collection_point
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)

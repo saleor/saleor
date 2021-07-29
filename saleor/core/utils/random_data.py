@@ -6,7 +6,7 @@ import unicodedata
 import uuid
 from collections import defaultdict
 from decimal import Decimal
-from typing import List, Tuple, Type, Union
+from typing import Type, Union
 from unittest.mock import patch
 
 from django.conf import settings
@@ -1203,15 +1203,6 @@ def create_shipping_zones():
     )
 
 
-def create_click_and_collect_related_fields() -> List[Tuple[bool, str]]:
-    data = itertools.product(
-        (True, False), (c[0] for c in WarehouseClickAndCollectOption.CHOICES)
-    )
-    return list(
-        d for d in data if d != (True, WarehouseClickAndCollectOption.LOCAL_STOCK)
-    )
-
-
 def create_additional_cc_warehouse():
     shipping_zone = ShippingZone.objects.first()
     warehouse_name = f"{shipping_zone.name} for click and collect"
@@ -1228,11 +1219,18 @@ def create_additional_cc_warehouse():
 
 
 def create_warehouses():
-    cc_related = create_click_and_collect_related_fields()
-
     for shipping_zone in ShippingZone.objects.all():
         shipping_zone_name = shipping_zone.name
-        is_private, cc_option = random.choice(cc_related)
+        is_private = random.choice([True, False])
+        cc_option = random.choice(
+            [
+                option[0]
+                for option in WarehouseClickAndCollectOption.CHOICES
+                if not (
+                    is_private and option == WarehouseClickAndCollectOption.LOCAL_STOCK
+                )
+            ]
+        )
         warehouse, _ = Warehouse.objects.update_or_create(
             name=shipping_zone_name,
             slug=slugify(shipping_zone_name),
