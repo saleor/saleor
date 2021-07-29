@@ -2185,6 +2185,11 @@ type GiftCardActivate {
   errors: [GiftCardError!]!
 }
 
+type GiftCardBulkDelete {
+  count: Int!
+  errors: [GiftCardError!]!
+}
+
 type GiftCardCountableConnection {
   pageInfo: PageInfo!
   edges: [GiftCardCountableEdge!]!
@@ -2987,6 +2992,7 @@ type Mutation {
   giftCardDelete(id: ID!): GiftCardDelete
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
+  giftCardBulkDelete(ids: [ID]!): GiftCardBulkDelete
   pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
