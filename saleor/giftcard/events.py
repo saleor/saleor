@@ -81,3 +81,33 @@ def gift_card_expiry_settings_updated(
         type=GiftCardEvents.EXPIRY_SETTINGS_UPDATED,
         parameters={"expiry": expiry_data},
     )
+
+
+def gift_card_activated(
+    gift_card: GiftCard,
+    user: UserType,
+    app: AppType,
+):
+    if not user_is_valid(user):
+        user = None
+    return GiftCardEvent.objects.create(
+        gift_card=gift_card,
+        user=user,
+        app=app,
+        type=GiftCardEvents.ACTIVATED,
+    )
+
+
+def gift_card_deactivated(
+    gift_card: GiftCard,
+    user: UserType,
+    app: AppType,
+):
+    if not user_is_valid(user):
+        user = None
+    return GiftCardEvent.objects.create(
+        gift_card=gift_card,
+        user=user,
+        app=app,
+        type=GiftCardEvents.DEACTIVATED,
+    )
