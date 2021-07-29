@@ -69,6 +69,7 @@ from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentLinesAwaitingApprovalByOrderLineIdLoader,
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
@@ -440,6 +441,9 @@ class OrderLine(CountableDjangoObjectType):
         graphene.NonNull(Allocation),
         description="List of allocations across warehouses.",
     )
+    quantity_to_fulfill = graphene.Int(
+        description="A quantity of items remaining to be fulflled."
+    )
     unit_discount_type = graphene.Field(
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
@@ -509,6 +513,18 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_unit_price(root: models.OrderLine, _info):
         return root.unit_price
+
+    @staticmethod
+    def resolve_quantity_to_fulfill(root: models.OrderLine, info):
+        def _resolve_quantity_to_fulfill(fulfillment_lines):
+            awaiting_quantity = sum(map(lambda f: f.quantity, fulfillment_lines)) or 0
+            return root.quantity - root.quantity_fulfilled - awaiting_quantity
+
+        return (
+            FulfillmentLinesAwaitingApprovalByOrderLineIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_quantity_to_fulfill)
+        )
 
     @staticmethod
     def resolve_undiscounted_unit_price(root: models.OrderLine, _info):
