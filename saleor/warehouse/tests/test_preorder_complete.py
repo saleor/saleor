@@ -1,9 +1,9 @@
 from ...product.models import ProductVariantChannelListing
-from ..management import complete_preorder
+from ..management import deactivate_preorder_for_variant
 from ..models import Allocation, PreorderAllocation, Stock
 
 
-def test_complete_preorder(
+def test_deactivate_preorder_for_variant(
     preorder_variant_global_and_channel_threshold,
     preorder_allocation,
     shipping_method_channel_PLN,
@@ -27,7 +27,7 @@ def test_complete_preorder(
     # Allocations and stocks will be created
     assert variant.stocks.count() == 0
 
-    complete_preorder(variant)
+    deactivate_preorder_for_variant(variant)
 
     assert (
         PreorderAllocation.objects.filter(
@@ -53,7 +53,7 @@ def test_complete_preorder(
         assert channel_listing.preorder_quantity_threshold is None
 
 
-def test_complete_preorder_order_without_shipping_method(
+def test_deactivate_preorder_for_variant_order_without_shipping_method(
     preorder_variant_global_and_channel_threshold,
     preorder_allocation,
 ):
@@ -75,7 +75,7 @@ def test_complete_preorder_order_without_shipping_method(
         stock__product_variant_id=variant.pk
     ).count()
 
-    complete_preorder(variant)
+    deactivate_preorder_for_variant(variant)
 
     assert (
         PreorderAllocation.objects.filter(
@@ -89,7 +89,7 @@ def test_complete_preorder_order_without_shipping_method(
     )
 
 
-def test_complete_preorder_existing_stock(
+def test_deactivate_preorder_for_variant_existing_stock(
     preorder_variant_global_and_channel_threshold,
     preorder_allocation,
     shipping_method_channel_PLN,
@@ -117,7 +117,7 @@ def test_complete_preorder_existing_stock(
     # Existing stock will be used
     assert variant.stocks.count() > 0
 
-    complete_preorder(variant)
+    deactivate_preorder_for_variant(variant)
 
     assert (
         PreorderAllocation.objects.filter(

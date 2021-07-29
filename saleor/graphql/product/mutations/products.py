@@ -33,7 +33,7 @@ from ....product.thumbnails import (
 )
 from ....product.utils import delete_categories, get_products_ids_without_variants
 from ....product.utils.variants import generate_and_set_variant_name
-from ....warehouse.management import complete_preorder
+from ....warehouse.management import deactivate_preorder_for_variant
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
@@ -1740,7 +1740,7 @@ class ProductVariantPreorderDeactivate(BaseMutation):
                 }
             )
 
-        complete_preorder(variant)
+        deactivate_preorder_for_variant(variant)
 
         variant = ChannelContext(node=variant, channel_slug=None)
         transaction.on_commit(

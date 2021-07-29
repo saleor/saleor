@@ -507,7 +507,7 @@ def _create_preorder_allocation(
 
 
 @traced_atomic_transaction()
-def complete_preorder(product_variant: ProductVariant):
+def deactivate_preorder_for_variant(product_variant: ProductVariant):
     """Complete preorder for product variant.
 
     All preorder settings should be cleared and all preorder allocations
@@ -526,7 +526,7 @@ def complete_preorder(product_variant: ProductVariant):
     allocations_to_create = []
     stocks_to_create = []
     for preorder_allocation in preorder_allocations:
-        stock = _get_stock_for_allocation(preorder_allocation, product_variant)
+        stock = _get_stock_for_preorder_allocation(preorder_allocation, product_variant)
         if stock._state.adding:
             stocks_to_create.append(stock)
         allocations_to_create.append(
@@ -560,7 +560,7 @@ def complete_preorder(product_variant: ProductVariant):
     )
 
 
-def _get_stock_for_allocation(
+def _get_stock_for_preorder_allocation(
     preorder_allocation: PreorderAllocation, product_variant: ProductVariant
 ) -> Stock:
     """Return stock where preordered variant should be allocated."""
