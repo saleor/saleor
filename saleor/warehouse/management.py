@@ -522,8 +522,11 @@ def complete_preorder(product_variant: ProductVariant):
     ).select_related("order_line", "order_line__order")
 
     allocations_to_create = []
+    stocks_to_create = []
     for preorder_allocation in preorder_allocations:
         stock = _get_stock_for_allocation(preorder_allocation, product_variant)
+        if stock._state.adding:
+            stocks_to_create.append(stock)
         allocations_to_create.append(
             Allocation(
                 order_line=preorder_allocation.order_line,
@@ -531,6 +534,9 @@ def complete_preorder(product_variant: ProductVariant):
                 quantity_allocated=preorder_allocation.quantity,
             )
         )
+
+    if stocks_to_create:
+        Stock.objects.bulk_create(stocks_to_create)
 
     if allocations_to_create:
         Allocation.objects.bulk_create(allocations_to_create)
@@ -560,7 +566,7 @@ def _get_stock_for_allocation(
     shipping_method_id = order.shipping_method_id
     if shipping_method_id is not None:
         warehouse = Warehouse.objects.filter(
-            shipping_zones=order.shipping_method.shipping_zone  # type: ignore
+            shipping_zones__id=order.shipping_method.shipping_zone_id  # type: ignore
         ).first()
     else:
         from ..order.utils import get_order_country
@@ -579,6 +585,6 @@ def _get_stock_for_allocation(
         .first()
     )
 
-    return stock or Stock.objects.create(
+    return stock or Stock(
         warehouse=warehouse, product_variant=product_variant, quantity=0
     )

@@ -1,6 +1,6 @@
 from ...product.models import ProductVariantChannelListing
 from ..management import complete_preorder
-from ..models import Allocation, PreorderAllocation
+from ..models import Allocation, PreorderAllocation, Stock
 
 
 def test_complete_preorder(
@@ -19,10 +19,13 @@ def test_complete_preorder(
     preorder_allocations_before = PreorderAllocation.objects.filter(
         product_variant_channel_listing_id__in=channel_listings_id
     ).count()
+    assert preorder_allocations_before > 0
 
     allocations_before = Allocation.objects.filter(
         stock__product_variant_id=variant.pk
     ).count()
+    # Allocations and stocks will be created
+    assert variant.stocks.count() == 0
 
     complete_preorder(variant)
 
@@ -66,10 +69,53 @@ def test_complete_preorder_order_without_shipping_method(
     preorder_allocations_before = PreorderAllocation.objects.filter(
         product_variant_channel_listing_id__in=channel_listings_id
     ).count()
+    assert preorder_allocations_before > 0
 
     allocations_before = Allocation.objects.filter(
         stock__product_variant_id=variant.pk
     ).count()
+
+    complete_preorder(variant)
+
+    assert (
+        PreorderAllocation.objects.filter(
+            product_variant_channel_listing_id__in=channel_listings_id
+        ).count()
+        == 0
+    )
+    assert (
+        Allocation.objects.filter(stock__product_variant_id=variant.pk).count()
+        == allocations_before + preorder_allocations_before
+    )
+
+
+def test_complete_preorder_existing_stock(
+    preorder_variant_global_and_channel_threshold,
+    preorder_allocation,
+    shipping_method_channel_PLN,
+    warehouse,
+):
+    variant = preorder_variant_global_and_channel_threshold
+    order = preorder_allocation.order_line.order
+    order.shipping_method = shipping_method_channel_PLN
+    order.save(update_fields=["shipping_method"])
+
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=0)
+
+    channel_listings_id = ProductVariantChannelListing.objects.filter(
+        variant_id=variant.pk
+    ).values_list("id", flat=True)
+    preorder_allocations_before = PreorderAllocation.objects.filter(
+        product_variant_channel_listing_id__in=channel_listings_id
+    ).count()
+    assert preorder_allocations_before > 0
+
+    allocations_before = Allocation.objects.filter(
+        stock__product_variant_id=variant.pk
+    ).count()
+
+    # Existing stock will be used
+    assert variant.stocks.count() > 0
 
     complete_preorder(variant)
 
