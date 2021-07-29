@@ -291,13 +291,13 @@ enum AppErrorCode {
 }
 
 type AppExtension implements Node {
-  label: String!
-  url: String!
-  view: AppExtensionView!
-  type: AppExtensionType!
-  target: AppExtensionTarget!
   id: ID!
   app: App!
+  label: String!
+  url: String!
+  view: AppExtensionViewEnum!
+  type: AppExtensionTypeEnum!
+  target: AppExtensionTargetEnum!
   permissions: [Permission!]!
 }
 
@@ -318,28 +318,14 @@ input AppExtensionFilterInput {
   target: AppExtensionTargetEnum
 }
 
-enum AppExtensionTarget {
-  MORE_ACTIONS
-  CREATE
-}
-
 enum AppExtensionTargetEnum {
   MORE_ACTIONS
   CREATE
 }
 
-enum AppExtensionType {
-  OVERVIEW
-  DETAILS
-}
-
 enum AppExtensionTypeEnum {
   OVERVIEW
   DETAILS
-}
-
-enum AppExtensionView {
-  PRODUCT
 }
 
 enum AppExtensionViewEnum {
@@ -384,6 +370,15 @@ type AppInstallation implements Node & Job {
   createdAt: DateTime!
   updatedAt: DateTime!
   message: String
+}
+
+type AppManifestExtension {
+  permissions: [Permission!]!
+  label: String!
+  url: String!
+  view: AppExtensionViewEnum!
+  type: AppExtensionTypeEnum!
+  target: AppExtensionTargetEnum!
 }
 
 type AppRetryInstall {
@@ -2473,6 +2468,7 @@ type Manifest {
   dataPrivacyUrl: String
   homepageUrl: String
   supportUrl: String
+  extensions: [AppManifestExtension!]!
 }
 
 type Margin {
