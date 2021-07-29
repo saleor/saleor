@@ -12,7 +12,6 @@ import pytest
 import pytz
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
-from django.contrib.postgres.search import SearchVector
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -847,6 +846,65 @@ def color_attribute(db):
     )
     AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
     AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
+    return attribute
+
+
+@pytest.fixture
+def date_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="release-date",
+        name="Release date",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.DATE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=attribute,
+                name=f"{attribute.name}: {value.date()}",
+                slug=f"{value.date()}_{attribute.id}",
+                date_time=value,
+            )
+            for value in [
+                datetime.datetime(2020, 10, 5, tzinfo=pytz.utc),
+                datetime.datetime(2020, 11, 5, tzinfo=pytz.utc),
+            ]
+        ]
+    )
+
+    return attribute
+
+
+@pytest.fixture
+def date_time_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="release-date-time",
+        name="Release date time",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.DATE_TIME,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+
+    AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=attribute,
+                name=f"{attribute.name}: {value.date()}",
+                slug=f"{value.date()}_{attribute.id}",
+                date_time=value,
+            )
+            for value in [
+                datetime.datetime(2020, 10, 5, tzinfo=pytz.utc),
+                datetime.datetime(2020, 11, 5, tzinfo=pytz.utc),
+            ]
+        ]
+    )
+
     return attribute
 
 
