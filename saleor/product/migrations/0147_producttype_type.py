@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="producttype",
-            name="type",
+            name="kind",
             field=models.CharField(
                 choices=[
                     ("normal", "A standard product type."),
