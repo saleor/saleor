@@ -4,6 +4,7 @@ from ...core.permissions import GiftcardPermissions, OrderPermissions
 from ..decorators import permission_required
 from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
+    GiftCardSettingsUpdate,
     OrderSettingsUpdate,
     ShopAddressUpdate,
     ShopDomainUpdate,
@@ -55,3 +56,4 @@ class ShopMutations(graphene.ObjectType):
     shop_address_update = ShopAddressUpdate.Field()
 
     order_settings_update = OrderSettingsUpdate.Field()
+    gift_card_settings_update = GiftCardSettingsUpdate.Field()
