@@ -298,7 +298,7 @@ def test_assign_attributes_to_product_type(
     product_type = ProductType.objects.create(
         name="Default Type",
         has_variants=True,
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
     )
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
@@ -355,7 +355,7 @@ def test_assign_non_existing_attributes_to_product_type(
     product_type_attribute_list,
 ):
     product_type = ProductType.objects.create(
-        name="Default Type", has_variants=True, type=ProductTypeKind.NORMAL
+        name="Default Type", has_variants=True, kind=ProductTypeKind.NORMAL
     )
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
@@ -465,7 +465,7 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
     """The assignAttribute mutation should raise an error when trying
     to add an attribute already contained in the product type."""
 
-    product_type = ProductType.objects.create(name="Type", type=ProductTypeKind.NORMAL)
+    product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     attribute = color_attribute_without_values
     staff_api_client.user.user_permissions.add(
         permission_manage_product_types_and_attributes
@@ -545,7 +545,7 @@ def test_assign_attribute_to_product_type_multiple_errors_returned(
     tag_page_attribute,
 ):
     # given
-    product_type = ProductType.objects.create(name="Type", type=ProductTypeKind.NORMAL)
+    product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     staff_api_client.user.user_permissions.add(
         permission_manage_product_types_and_attributes
     )
@@ -632,7 +632,7 @@ def test_unassign_attributes_from_product_type(
     permission_manage_product_types_and_attributes,
     product_type_attribute_list,
 ):
-    product_type = ProductType.objects.create(name="Type", type=ProductTypeKind.NORMAL)
+    product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
     variant_attribute, *product_attributes = product_type_attribute_list
@@ -682,7 +682,7 @@ def test_unassign_attributes_not_in_product_type(
         permission_manage_product_types_and_attributes
     )
 
-    product_type = ProductType.objects.create(name="Type", type=ProductTypeKind.NORMAL)
+    product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
     query = PRODUCT_UNASSIGN_ATTR_QUERY
@@ -806,7 +806,7 @@ def test_sort_attributes_within_product_type_invalid_id(
     """Try to reorder an attribute not associated to the given product type."""
 
     product_type = ProductType.objects.create(
-        name="Dummy Type", type=ProductTypeKind.NORMAL
+        name="Dummy Type", kind=ProductTypeKind.NORMAL
     )
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
 
@@ -859,7 +859,7 @@ def test_sort_attributes_within_product_type(
     )
 
     product_type = ProductType.objects.create(
-        name="Dummy Type", type=ProductTypeKind.NORMAL
+        name="Dummy Type", kind=ProductTypeKind.NORMAL
     )
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
     m2m_attributes = getattr(product_type, relation_field)

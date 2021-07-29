@@ -4563,13 +4563,13 @@ type ProductType implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
-  type: ProductTypeType!
   hasVariants: Boolean!
   isShippingRequired: Boolean!
   isDigital: Boolean!
   weight: Weight
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  kind: ProductTypeKindEnum
   products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection @deprecated(reason: "Will be removed in Saleor 4.0. Use the top-level `products` query with the `productTypes` filter.")
   taxType: TaxType
   variantAttributes(variantSelection: VariantAttributeScope): [Attribute]
@@ -4627,7 +4627,7 @@ input ProductTypeFilterInput {
 input ProductTypeInput {
   name: String
   slug: String
-  type: ProductTypeKindEnum
+  kind: ProductTypeKindEnum
   hasVariants: Boolean
   productAttributes: [ID]
   variantAttributes: [ID]
@@ -4657,11 +4657,6 @@ enum ProductTypeSortField {
 input ProductTypeSortingInput {
   direction: OrderDirection!
   field: ProductTypeSortField!
-}
-
-enum ProductTypeType {
-  NORMAL
-  GIFT_CARD
 }
 
 type ProductTypeUpdate {

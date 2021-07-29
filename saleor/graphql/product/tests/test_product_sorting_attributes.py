@@ -561,7 +561,7 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
         name="Apples", slug="apples"
     )
     other_product_type = product_models.ProductType.objects.create(
-        name="Chocolates", slug="chocolates", type=ProductTypeKind.NORMAL
+        name="Chocolates", slug="chocolates", kind=ProductTypeKind.NORMAL
     )
 
     # Assign an attribute to the product type
