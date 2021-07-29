@@ -20,7 +20,7 @@ def variant_with_no_attributes(category, channel_USD):
         name="Test product type",
         has_variants=True,
         is_shipping_required=True,
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
     )
     product = Product.objects.create(
         name="Test product",

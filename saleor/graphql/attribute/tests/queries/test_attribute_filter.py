@@ -135,7 +135,7 @@ def test_filter_attributes_in_category_invalid_category_id(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -177,7 +177,7 @@ def test_filter_attributes_in_category_object_with_given_id_does_not_exist(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -214,7 +214,7 @@ def test_filter_attributes_in_category_not_visible_in_listings_by_customer(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -264,7 +264,7 @@ def test_filter_attributes_in_category_not_visible_in_listings_by_staff_with_per
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -308,7 +308,7 @@ def test_filter_attributes_in_category_not_in_listings_by_staff_without_manage_p
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -355,7 +355,7 @@ def test_filter_attributes_in_category_not_visible_in_listings_by_app_with_perm(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -399,7 +399,7 @@ def test_filter_attributes_in_category_not_in_listings_by_app_without_manage_pro
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -440,7 +440,7 @@ def test_filter_attributes_in_category_not_published_by_customer(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -490,7 +490,7 @@ def test_filter_attributes_in_category_not_published_by_staff_with_perm(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -534,7 +534,7 @@ def test_filter_attributes_in_category_not_published_by_staff_without_manage_pro
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -581,7 +581,7 @@ def test_filter_attributes_in_category_not_published_by_app_with_perm(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -625,7 +625,7 @@ def test_filter_attributes_in_category_not_published_by_app_without_manage_produ
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -666,7 +666,7 @@ def test_filter_attributes_in_collection_invalid_category_id(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -711,7 +711,7 @@ def test_filter_attributes_in_collection_object_with_given_id_does_not_exist(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -751,7 +751,7 @@ def test_filter_attributes_in_collection_not_visible_in_listings_by_customer(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -794,7 +794,7 @@ def test_filter_in_collection_not_published_by_customer(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -847,7 +847,7 @@ def test_filter_in_collection_not_published_by_staff_with_perm(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -894,7 +894,7 @@ def test_filter_in_collection_not_published_by_staff_without_manage_products(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -944,7 +944,7 @@ def test_filter_in_collection_not_published_by_app_with_perm(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -991,7 +991,7 @@ def test_filter_in_collection_not_published_by_app_without_manage_products(
     product_type = ProductType.objects.create(
         name="Default Type 2",
         slug="default-type-2",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )

@@ -1687,7 +1687,7 @@ def test_products_query_with_filter_attributes(
         slug="custom-type",
         has_variants=True,
         is_shipping_required=True,
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
     )
     attribute = Attribute.objects.create(slug="new_attr", name="Attr")
     attribute.product_types.add(product_type)
@@ -1750,7 +1750,7 @@ def test_products_query_with_filter_numeric_attributes(
     product_type = ProductType.objects.create(
         name="Custom Type",
         slug="custom-type",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -1828,7 +1828,7 @@ def test_products_query_with_filter_boolean_attributes(
     product_type = ProductType.objects.create(
         name="Custom Type",
         slug="custom-type",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -1888,7 +1888,7 @@ def test_products_query_with_filter_by_attributes_values_and_range(
     product_type = ProductType.objects.create(
         name="Custom Type",
         slug="custom-type",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -6963,7 +6963,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
     mutation createProductType(
         $name: String,
         $slug: String,
-        $type: ProductTypeKindEnum,
+        $kind: ProductTypeKindEnum,
         $taxCode: String,
         $hasVariants: Boolean,
         $isShippingRequired: Boolean,
@@ -6974,7 +6974,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
             input: {
                 name: $name,
                 slug: $slug,
-                type: $type,
+                kind: $kind,
                 taxCode: $taxCode,
                 hasVariants: $hasVariants,
                 isShippingRequired: $isShippingRequired,
@@ -6984,7 +6984,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
             productType {
                 name
                 slug
-                type
+                kind
                 isShippingRequired
                 hasVariants
                 variantAttributes {
@@ -7035,7 +7035,7 @@ def test_product_type_create_mutation(
     query = PRODUCT_TYPE_CREATE_MUTATION
     product_type_name = "test type"
     slug = "test-type"
-    type = ProductTypeKindEnum.NORMAL.name
+    kind = ProductTypeKindEnum.NORMAL.name
     has_variants = True
     require_shipping = True
     product_attributes = product_type.product_attributes.all()
@@ -7050,7 +7050,7 @@ def test_product_type_create_mutation(
     variables = {
         "name": product_type_name,
         "slug": slug,
-        "type": type,
+        "kind": kind,
         "hasVariants": has_variants,
         "taxCode": "wine",
         "isShippingRequired": require_shipping,
@@ -7066,7 +7066,7 @@ def test_product_type_create_mutation(
     data = content["data"]["productTypeCreate"]["productType"]
     assert data["name"] == product_type_name
     assert data["slug"] == slug
-    assert data["type"] == type
+    assert data["kind"] == kind
     assert data["hasVariants"] == has_variants
     assert data["isShippingRequired"] == require_shipping
 
@@ -7101,7 +7101,7 @@ def test_create_gift_card_product_type(
     query = PRODUCT_TYPE_CREATE_MUTATION
     product_type_name = "test type"
     slug = "test-type"
-    type = ProductTypeKindEnum.GIFT_CARD.name
+    kind = ProductTypeKindEnum.GIFT_CARD.name
     has_variants = True
     require_shipping = True
     product_attributes = product_type.product_attributes.all()
@@ -7116,7 +7116,7 @@ def test_create_gift_card_product_type(
     variables = {
         "name": product_type_name,
         "slug": slug,
-        "type": type,
+        "kind": kind,
         "hasVariants": has_variants,
         "taxCode": "wine",
         "isShippingRequired": require_shipping,
@@ -7132,7 +7132,7 @@ def test_create_gift_card_product_type(
     data = content["data"]["productTypeCreate"]["productType"]
     assert data["name"] == product_type_name
     assert data["slug"] == slug
-    assert data["type"] == type
+    assert data["kind"] == kind
     assert data["hasVariants"] == has_variants
     assert data["isShippingRequired"] == require_shipping
 
@@ -7174,7 +7174,7 @@ def test_create_product_type_with_rich_text_attribute(
     variables = {
         "name": product_type_name,
         "slug": slug,
-        "type": ProductTypeKindEnum.NORMAL.name,
+        "kind": ProductTypeKindEnum.NORMAL.name,
         "productAttributes": product_attributes_ids,
     }
 
@@ -7216,7 +7216,7 @@ def test_create_product_type_with_boolean_attribute(
     query = PRODUCT_TYPE_CREATE_MUTATION
     product_type_name = "test type"
     slug = "test-type"
-    type = ProductTypeKindEnum.NORMAL.name
+    kind = ProductTypeKindEnum.NORMAL.name
 
     product_type.product_attributes.add(boolean_attribute)
     product_attributes_ids = [
@@ -7227,7 +7227,7 @@ def test_create_product_type_with_boolean_attribute(
     variables = {
         "name": product_type_name,
         "slug": slug,
-        "type": type,
+        "kind": kind,
         "productAttributes": product_attributes_ids,
     }
 
@@ -7241,7 +7241,7 @@ def test_create_product_type_with_boolean_attribute(
     assert not errors
     assert data["name"] == product_type_name
     assert data["slug"] == slug
-    assert data["type"] == type
+    assert data["kind"] == kind
     assert {"choices": {"edges": []}, "name": "Boolean"} in data["productAttributes"]
 
 
@@ -7265,7 +7265,7 @@ def test_create_product_type_with_given_slug(
     variables = {
         "name": name,
         "slug": input_slug,
-        "type": ProductTypeKindEnum.NORMAL.name,
+        "kind": ProductTypeKindEnum.NORMAL.name,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_product_types_and_attributes]
@@ -7281,10 +7281,10 @@ def test_create_product_type_with_unicode_in_name(
 ):
     query = PRODUCT_TYPE_CREATE_MUTATION
     name = "わたし わ にっぽん です"
-    type = ProductTypeKindEnum.NORMAL.name
+    kind = ProductTypeKindEnum.NORMAL.name
     variables = {
         "name": name,
-        "type": type,
+        "kind": kind,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_product_types_and_attributes]
@@ -7294,7 +7294,7 @@ def test_create_product_type_with_unicode_in_name(
     assert not data["errors"]
     assert data["productType"]["name"] == name
     assert data["productType"]["slug"] == "わたし-わ-にっぽん-です"
-    assert data["productType"]["type"] == type
+    assert data["productType"]["kind"] == kind
 
 
 def test_create_product_type_create_with_negative_weight(
@@ -7351,7 +7351,7 @@ def test_product_type_create_mutation_not_valid_attributes(
     variables = {
         "name": product_type_name,
         "slug": slug,
-        "type": ProductTypeKindEnum.NORMAL.name,
+        "kind": ProductTypeKindEnum.NORMAL.name,
         "hasVariants": has_variants,
         "taxCode": "wine",
         "isShippingRequired": require_shipping,
@@ -7715,16 +7715,16 @@ def test_update_product_type_type(
     permission_manage_product_types_and_attributes,
 ):
     query = """
-        mutation($id: ID!, $type: ProductTypeKindEnum) {
+        mutation($id: ID!, $kind: ProductTypeKindEnum) {
             productTypeUpdate(
                 id: $id
                 input: {
-                    type: $type
+                    kind: $kind
                 }
             ) {
                 productType{
                     name
-                    type
+                    kind
                 }
                 errors {
                     field
@@ -7734,11 +7734,11 @@ def test_update_product_type_type(
             }
         }
     """
-    type = ProductTypeKindEnum.GIFT_CARD.name
-    assert product_type.type != type
+    kind = ProductTypeKindEnum.GIFT_CARD.name
+    assert product_type.kind != kind
 
     node_id = graphene.Node.to_global_id("ProductType", product_type.id)
-    variables = {"type": type, "id": node_id}
+    variables = {"kind": kind, "id": node_id}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_product_types_and_attributes]
@@ -7747,7 +7747,7 @@ def test_update_product_type_type(
     data = content["data"]["productTypeUpdate"]
     errors = data["errors"]
     assert not errors
-    assert data["productType"]["type"] == type
+    assert data["productType"]["kind"] == kind
 
 
 PRODUCT_TYPE_DELETE_MUTATION = """
@@ -9646,7 +9646,7 @@ def test_product_type_filter_unassigned_attributes(
     expected_attribute = product_type_attribute_list[0]
     query = QUERY_AVAILABLE_ATTRIBUTES
     product_type = ProductType.objects.create(
-        name="Empty Type", type=ProductTypeKind.NORMAL
+        name="Empty Type", kind=ProductTypeKind.NORMAL
     )
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     filters = {"search": expected_attribute.name}

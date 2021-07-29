@@ -60,7 +60,7 @@ def attributes_for_pagination(collection, category, channel_USD):
 
     product_type = ProductType.objects.create(
         name="My Product Type",
-        type=ProductTypeKind.NORMAL,
+        kind=ProductTypeKind.NORMAL,
     )
     product = Product.objects.create(
         name="Test product",

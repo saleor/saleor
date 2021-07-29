@@ -294,7 +294,7 @@ def test_generate_unique_slug_with_slugable_field(
         ProductType.objects.create(
             name=name,
             slug=slug,
-            type=ProductTypeKind.NORMAL,
+            kind=ProductTypeKind.NORMAL,
         )
 
     instance, _ = ProductType.objects.get_or_create(name=product_name)
