@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Iterable, Optional
 
 from ..account.models import User
 from ..app.models import App
@@ -111,3 +111,22 @@ def gift_card_deactivated(
         app=app,
         type=GiftCardEvents.DEACTIVATED,
     )
+
+
+def gift_cards_activated(
+    gift_card_ids: Iterable[int],
+    user: UserType,
+    app: AppType,
+):
+    if not user_is_valid(user):
+        user = None
+    events = [
+        GiftCardEvent(
+            gift_card_id=gift_card_id,
+            user=user,
+            app=app,
+            type=GiftCardEvents.ACTIVATED,
+        )
+        for gift_card_id in gift_card_ids
+    ]
+    return GiftCardEvent.objects.bulk_create(events)
