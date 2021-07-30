@@ -37,6 +37,7 @@ from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import models as shipping_models
 from ...warehouse.availability import check_stock_quantity_bulk
+from ...warehouse.models import Warehouse
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..channel.utils import clean_channel
@@ -51,7 +52,6 @@ from ..core.validators import (
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
-from ..utils import get_user_country_context
 from .types import Checkout, CheckoutLine
 from .utils import prepare_insufficient_stock_checkout_validation_error
 
@@ -325,10 +325,16 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         shipping_address = cls.retrieve_shipping_address(user, data)
         billing_address = cls.retrieve_billing_address(user, data)
-        country = get_user_country_context(
-            destination_address=shipping_address,
-            company_address=info.context.site.settings.company_address,
-        )
+
+        if shipping_address:
+            country = shipping_address.country.code
+        else:
+            warehouse = Warehouse.objects.get_first_warehouse_for_channel(channel.pk)
+            if warehouse:
+                country = warehouse.address.country.code
+            else:
+                # fallback when channel has no warehouses
+                country = settings.DEFAULT_COUNTRY
 
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
@@ -790,10 +796,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         manager = info.context.plugins
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
-        country = get_user_country_context(
-            destination_address=shipping_address,
-            company_address=info.context.site.settings.company_address,
-        )
+        country = shipping_address.country.code
         checkout.set_country(country, commit=True)
 
         # Resolve and process the lines, validating variants quantities

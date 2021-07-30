@@ -122,6 +122,7 @@ def test_variant_pricing(
         discounts=[],
         channel=channel_USD,
         plugins=manager,
+        country=Country("US"),
     )
     assert pricing.price == taxed_price
     assert pricing.price_local_currency is None
@@ -131,7 +132,6 @@ def test_variant_pricing(
         lambda c: {"PLN": Mock(rate=2)},
     )
 
-    settings.DEFAULT_COUNTRY = "PL"
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
 
     pricing = get_variant_availability(
@@ -157,6 +157,7 @@ def test_variant_pricing(
         discounts=[],
         channel=channel_USD,
         plugins=manager,
+        country=Country("PL"),
     )
     assert pricing.price.tax.amount
     assert pricing.price_undiscounted.tax.amount

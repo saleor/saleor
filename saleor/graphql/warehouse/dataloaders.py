@@ -196,19 +196,20 @@ class WarehouseCountryCodeByChannelLoader(DataLoader):
         def with_channels(channels):
             address_id_by_channel_slug = dict()
             for channel in channels:
-                warehouses = Warehouse.objects.filter(
-                    shipping_zones__channels=channel.id
+                first_warehouse = Warehouse.objects.get_first_warehouse_for_channel(
+                    channel.id
                 )
-                first_warehouse = warehouses[0] if warehouses else None
-                address_pk = first_warehouse.address_id if first_warehouse else None
-                address_id_by_channel_slug[channel.slug] = address_pk
+                if first_warehouse:
+                    address_id_by_channel_slug[
+                        channel.slug
+                    ] = first_warehouse.address_id
 
             def with_addresses(addresses):
                 address_by_id = {address.pk: address for address in addresses}
                 country_codes = []
                 for key in keys:
-                    address_id = address_id_by_channel_slug[key]
-                    address = address_by_id.get(address_id)
+                    address_id = address_id_by_channel_slug.get(key)
+                    address = address_by_id.get(address_id) if address_id else None
                     if address and address.country:
                         country_code = address.country.code
                     else:
@@ -221,7 +222,6 @@ class WarehouseCountryCodeByChannelLoader(DataLoader):
                 return country_codes
 
             address_ids = address_id_by_channel_slug.values()
-            # FIXME: Handle loading addresses when first warehouse is null
             return (
                 AddressByIdLoader(self.context)
                 .load_many(address_ids)
