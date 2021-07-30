@@ -227,12 +227,15 @@ UPDATE_GIFT_CARD_MUTATION = """
 """
 
 
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
 def test_update_gift_card(
     staff_api_client,
     gift_card,
     permission_manage_gift_card,
     permission_manage_users,
     permission_manage_apps,
+    count_queries,
 ):
     # given
     initial_balance = 100.0
