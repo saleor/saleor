@@ -10,7 +10,7 @@ from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
-from ....core.exceptions import PermissionDenied
+from ....core.exceptions import PermissionDenied, PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.editorjs import clean_editor_js
@@ -1740,7 +1740,13 @@ class ProductVariantPreorderDeactivate(BaseMutation):
                 }
             )
 
-        deactivate_preorder_for_variant(variant)
+        try:
+            deactivate_preorder_for_variant(variant)
+        except PreorderAllocationError:
+            raise ValidationError(
+                "Cannot deactivate variant preorder.",
+                code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED,
+            )
 
         variant = ChannelContext(node=variant, channel_slug=None)
         transaction.on_commit(

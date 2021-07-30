@@ -12,6 +12,7 @@ from prices import Money, TaxedMoney
 from ....attribute import AttributeInputType
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....core.exceptions import PreorderAllocationError
 from ....core.units import WeightUnits
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
@@ -4788,6 +4789,33 @@ def test_product_variant_deactivate_preorder_non_preorder_variant(
 
     assert error["field"] == "id"
     assert error["code"] == ProductErrorCode.INVALID.name
+
+
+@patch("saleor.graphql.product.mutations.products.deactivate_preorder_for_variant")
+def test_product_variant_deactivate_preorder_cannot_deactivate(
+    mock_deactivate_preorder_for_variant,
+    staff_api_client,
+    permission_manage_products,
+    preorder_variant_global_and_channel_threshold,
+    preorder_allocation,
+):
+    variant = preorder_variant_global_and_channel_threshold
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    mock_deactivate_preorder_for_variant.side_effect = PreorderAllocationError(
+        preorder_allocation.order_line
+    )
+
+    response = staff_api_client.post_graphql(
+        QUERY_VARIANT_DEACTIVATE_PREORDER,
+        {"id": variant_id},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["productVariantPreorderDeactivate"]["errors"][0]
+
+    assert error["field"] is None
+    assert error["code"] == ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED.name
 
 
 def test_product_variant_deactivate_preorder_as_customer(
