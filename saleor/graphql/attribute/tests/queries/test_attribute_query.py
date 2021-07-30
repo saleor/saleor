@@ -577,7 +577,7 @@ def test_attributes_in_collection_query(
 
 
 @pytest.mark.parametrize(
-    "input_type, expected_withChoice_return",
+    "input_type, expected_with_choice_return",
     [
         (AttributeInputType.DROPDOWN, True),
         (AttributeInputType.MULTISELECT, True),
@@ -588,14 +588,14 @@ def test_attributes_in_collection_query(
         (AttributeInputType.BOOLEAN, False),
     ],
 )
-def test_attributes_withChoice_flag(
+def test_attributes_with_choice_flag(
     user_api_client,
     input_type,
-    expected_withChoice_return,
+    expected_with_choice_return,
 ):
     attribute = Attribute.objects.create(
-        slug="boolean",
-        name="Boolean",
+        slug=input_type,
+        name=input_type.upper(),
         type=AttributeType.PRODUCT_TYPE,
         input_type=input_type,
         filterable_in_storefront=True,
@@ -621,4 +621,4 @@ def test_attributes_withChoice_flag(
     assert content["data"]["attribute"]["inputType"] == input_type.upper().replace(
         "-", "_"
     )
-    assert content["data"]["attribute"]["withChoices"] == expected_withChoice_return
+    assert content["data"]["attribute"]["withChoices"] == expected_with_choice_return
