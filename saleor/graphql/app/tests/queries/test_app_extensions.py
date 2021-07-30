@@ -1,14 +1,10 @@
 import pytest
 
-from saleor.app.models import AppExtension
-from saleor.app.types import AppExtensionTarget, AppExtensionType, AppExtensionView
-from saleor.core.jwt import jwt_decode
-from saleor.graphql.app.enums import (
-    AppExtensionTargetEnum,
-    AppExtensionTypeEnum,
-    AppExtensionViewEnum,
-)
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
+from .....app.models import AppExtension
+from .....app.types import AppExtensionTarget, AppExtensionType, AppExtensionView
+from .....core.jwt import jwt_decode
+from ....tests.utils import assert_no_permission, get_graphql_content
+from ...enums import AppExtensionTargetEnum, AppExtensionTypeEnum, AppExtensionViewEnum
 
 QUERY_APP_EXTENSIONS = """
 query ($filter: AppExtensionFilterInput){
