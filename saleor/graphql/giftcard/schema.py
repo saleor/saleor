@@ -4,7 +4,7 @@ from ...core.permissions import GiftcardPermissions
 from ..core.fields import FilterInputConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
-from .bulk_mutations import GiftCardBulkDelete
+from .bulk_mutations import GiftCardBulkActivate, GiftCardBulkDelete
 from .filters import GiftCardFilterInput
 from .mutations import (
     GiftCardActivate,
@@ -49,3 +49,4 @@ class GiftCardMutations(graphene.ObjectType):
     gift_card_update = GiftCardUpdate.Field()
 
     gift_card_bulk_delete = GiftCardBulkDelete.Field()
+    gift_card_bulk_activate = GiftCardBulkActivate.Field()
