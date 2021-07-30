@@ -9,6 +9,10 @@ from ...order import OrderLineData
 from ...order.models import OrderLine
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Stock, Warehouse
+from ...warehouse.tests.utils import (
+    compare_stocks_quantity_from_channel,
+    create_test_warehouse_with_stocks,
+)
 from ..management import (
     allocate_stocks,
     deallocate_stock,
@@ -662,44 +666,24 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered_among_warehouses(
         product_variant=allocation.order_line.variant,
         quantity=20,
     )
-
     second_allocation = allocations[0]
-    second_test_warehouse = Warehouse.objects.create(
-        name="TEST-WAREHOUSE-2", slug="2", address=address.get_copy()
-    )
-    second_test_warehouse.shipping_zones.set(first_test_warehouse.shipping_zones.all())
-    Stock.objects.create(
-        warehouse=second_test_warehouse,
-        product_variant=second_allocation.order_line.variant,
-        quantity=20,
-    )
-
     third_allocation = allocations[1]
-    third_test_warehouse = Warehouse.objects.create(
-        name="TEST-WAREHOUSE-3", slug="3", address=address.get_copy()
+
+    second_test_warehouse = create_test_warehouse_with_stocks(
+        second_allocation,
+        "TEST-WAREHOUSE-2",
+        "2",
+        address,
+        first_test_warehouse.shipping_zones.all(),
     )
-    third_test_warehouse.shipping_zones.set([poland])
-    Stock.objects.create(
-        warehouse=third_test_warehouse,
-        product_variant=third_allocation.order_line.variant,
-        quantity=20,
+    third_test_warehouse = create_test_warehouse_with_stocks(
+        third_allocation, "TEST-WAREHOUSE-3", "3", address, [poland]
     )
 
     assert allocation.order_line.variant == second_allocation.order_line.variant
     assert allocation.order_line.variant == third_allocation.order_line.variant
 
-    assert (
-        Stock.objects.for_channel(channel_PLN.slug).aggregate(Sum("quantity"))[
-            "quantity__sum"
-        ]
-        == 20
-    )
-    assert (
-        Stock.objects.for_channel(channel_default.slug).aggregate(Sum("quantity"))[
-            "quantity__sum"
-        ]
-        == 40
-    )
+    compare_stocks_quantity_from_channel(channel_PLN, channel_default, 20, 40)
 
     decrease_stock(
         [
@@ -715,18 +699,7 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered_among_warehouses(
     flush_post_commit_hooks()
     product_variant_out_of_stock_webhook_mock.assert_not_called()
 
-    assert (
-        Stock.objects.for_channel(channel_PLN.slug).aggregate(Sum("quantity"))[
-            "quantity__sum"
-        ]
-        == 20
-    )
-    assert (
-        Stock.objects.for_channel(channel_default.slug).aggregate(Sum("quantity"))[
-            "quantity__sum"
-        ]
-        == 20
-    )
+    compare_stocks_quantity_from_channel(channel_PLN, channel_default, 20, 20)
 
     decrease_stock(
         [
@@ -739,18 +712,7 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered_among_warehouses(
         ],
     )
 
-    assert (
-        Stock.objects.for_channel(channel_PLN.slug).aggregate(Sum("quantity"))[
-            "quantity__sum"
-        ]
-        == 0
-    )
-    assert (
-        Stock.objects.for_channel(channel_default.slug).aggregate(Sum("quantity"))[
-            "quantity__sum"
-        ]
-        == 20
-    )
+    compare_stocks_quantity_from_channel(channel_PLN, channel_default, 0, 20)
 
     flush_post_commit_hooks()
     product_variant_out_of_stock_webhook_mock.assert_called_once()
@@ -766,18 +728,7 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered_among_warehouses(
         ],
     )
 
-    assert (
-        Stock.objects.for_channel(channel_PLN.slug).aggregate(Sum("quantity"))[
-            "quantity__sum"
-        ]
-        == 0
-    )
-    assert (
-        Stock.objects.for_channel(channel_default.slug).aggregate(Sum("quantity"))[
-            "quantity__sum"
-        ]
-        == 0
-    )
+    compare_stocks_quantity_from_channel(channel_PLN, channel_default, 0, 0)
 
     flush_post_commit_hooks()
     assert product_variant_out_of_stock_webhook_mock.call_count == 2

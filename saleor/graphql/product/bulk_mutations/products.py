@@ -15,9 +15,9 @@ from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import models
 from ....product.actions import (
+    check_and_trigger_back_in_stock_webhook,
+    check_and_trigger_out_of_stock_webhook,
     get_product_variant_data_from_warehouses,
-    trigger_product_variant_back_in_stock_webhook,
-    trigger_product_variant_out_of_stock_webhook,
 )
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_discounted_price_task
@@ -722,38 +722,30 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 warehouse_ids, "warehouse", only_type=Warehouse
             )
 
-            plugins_manager = info.context.plugins
-            cls.update_or_create_variant_stocks(
-                variant, stocks, warehouses, plugins_manager
-            )
+            manager = info.context.plugins
+            cls.update_or_create_variant_stocks(variant, stocks, warehouses, manager)
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
     @traced_atomic_transaction()
-    def update_or_create_variant_stocks(
-        cls, variant, stocks_data, warehouses, plugins_manager
-    ):
+    def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses, manager):
         variant_for_webhook = get_product_variant_data_from_warehouses(
             variant, warehouses
         )
 
         stocks = []
         for stock_data, warehouse in zip(stocks_data, warehouses):
-            stock, is_created = warehouse_models.Stock.objects.get_or_create(
+            stock, _ = warehouse_models.Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
             )
             stock.quantity = stock_data["quantity"]
             stocks.append(stock)
         warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])
 
-        trigger_product_variant_back_in_stock_webhook(
-            variant_for_webhook, plugins_manager
-        )
-        trigger_product_variant_out_of_stock_webhook(
-            variant_for_webhook, plugins_manager
-        )
+        check_and_trigger_back_in_stock_webhook(variant_for_webhook, manager)
+        check_and_trigger_out_of_stock_webhook(variant_for_webhook, manager)
 
 
 class ProductVariantStocksDelete(BaseMutation):

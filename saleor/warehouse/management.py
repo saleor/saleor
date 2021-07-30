@@ -9,9 +9,9 @@ from ..core.exceptions import AllocationError, InsufficientStock, InsufficientSt
 from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
 from ..product.actions import (
+    check_and_trigger_back_in_stock_webhook,
+    check_and_trigger_out_of_stock_webhook,
     product_variant_webhook_container,
-    trigger_product_variant_back_in_stock_webhook,
-    trigger_product_variant_out_of_stock_webhook,
 )
 from ..product.models import ProductVariant
 from .models import Allocation, Stock, Warehouse
@@ -241,7 +241,7 @@ def increase_stock(
                 order_line=order_line, stock=stock, quantity_allocated=quantity
             )
 
-    trigger_product_variant_back_in_stock_webhook(
+    check_and_trigger_back_in_stock_webhook(
         product_variant_stock_trigger, plugins_manager
     )
 
@@ -388,9 +388,9 @@ def _decrease_stocks_quantity(
         raise InsufficientStock(insufficient_stocks)
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity"])
-    plugins_manager = get_plugins_manager()
-    for v in variants_for_webhooks:
-        trigger_product_variant_out_of_stock_webhook(v, plugins_manager)
+    manager = get_plugins_manager()
+    for variant_data_container in variants_for_webhooks:
+        check_and_trigger_out_of_stock_webhook(variant_data_container, manager)
 
 
 def get_order_lines_with_track_inventory(
