@@ -285,7 +285,7 @@ def test_create_gift_card_no_premissions(staff_api_client):
     assert_no_permission(response)
 
 
-def test_create_gift_card_with_to_many_decimal_places_in_balance_amount(
+def test_create_gift_card_with_too_many_decimal_places_in_balance_amount(
     staff_api_client,
     customer_user,
     permission_manage_gift_card,
