@@ -64,7 +64,7 @@ class SubscriptionRenew(BaseMutation):
                     {
                         "next_payment_date": ValidationError(
                             "Provided subscription cannot renew before "
-                            "next payment data.",
+                            "next payment date.",
                             code=SubscriptionErrorCode.CANNOT_RENEW,
                         )
                     }
