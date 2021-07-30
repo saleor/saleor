@@ -17,6 +17,11 @@ from ..core.enums import LanguageCodeEnum
 from ..core.types import LanguageDisplay
 from ..core.utils import str_to_enum
 from ..decorators import permission_required
+from ..page.dataloaders import SelectedAttributesByPageIdLoader
+from ..product.dataloaders import (
+    SelectedAttributesByProductIdLoader,
+    SelectedAttributesByProductVariantIdLoader,
+)
 from .fields import TranslationField
 
 BASIC_TRANSLATABLE_FIELDS = ["id", "name"]
@@ -146,13 +151,20 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_attribute_values(root: product_models.ProductVariant, _info):
-        translatable_values = []
-        for assignment in root.attributes.all():
-            attr = assignment.attribute
-            if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
-                value = assignment.values.first()
-                translatable_values.append(value)
-        return translatable_values
+        def func(attributes):
+            translatable_values = []
+            for assignment in attributes:
+                attr = assignment["attribute"]
+                if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
+                    value = assignment["values"][0]
+                    translatable_values.append(value)
+            return translatable_values
+
+        return (
+            SelectedAttributesByProductVariantIdLoader(_info.context)
+            .load(root.id)
+            .then(func)
+        )
 
 
 class ProductTranslation(BaseTranslationType):
@@ -211,13 +223,18 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_attribute_values(root: product_models.Product, _info):
-        translatable_values = []
-        for assignment in root.attributes.all():
-            attr = assignment.attribute
-            if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
-                value = assignment.values.first()
-                translatable_values.append(value)
-        return translatable_values
+        def func(attributes):
+            translatable_values = []
+            for assignment in attributes:
+                attr = assignment["attribute"]
+                if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
+                    value = assignment["values"][0]
+                    translatable_values.append(value)
+            return translatable_values
+
+        return (
+            SelectedAttributesByProductIdLoader(_info.context).load(root.id).then(func)
+        )
 
 
 class CollectionTranslation(BaseTranslationType):
@@ -398,13 +415,16 @@ class PageTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_attribute_values(root: page_models.Page, _info):
-        translatable_values = []
-        for assignment in root.attributes.all():
-            attr = assignment.attribute
-            if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
-                value = assignment.values.first()
-                translatable_values.append(value)
-        return translatable_values
+        def func(attributes):
+            translatable_values = []
+            for assignment in attributes:
+                attr = assignment["attribute"]
+                if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
+                    value = assignment["values"][0]
+                    translatable_values.append(value)
+            return translatable_values
+
+        return SelectedAttributesByPageIdLoader(_info.context).load(root.id).then(func)
 
 
 class VoucherTranslation(BaseTranslationType):
