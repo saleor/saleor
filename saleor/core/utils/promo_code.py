@@ -27,7 +27,9 @@ def generate_promo_code():
 
 
 def generate_random_code():
-    return secrets.token_hex(nbytes=6).upper()
+    # generate code in format "ABCD-EFGH-IJKL"
+    code = secrets.token_hex(nbytes=6).upper()
+    return "-".join(code[i : i + 4] for i in range(0, len(code), 4))  # noqa: E203
 
 
 def is_available_promo_code(code):
