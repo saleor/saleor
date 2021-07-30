@@ -10,6 +10,7 @@ from ...giftcard import GiftCardExpiryType, events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ..core.scalars import PositiveDecimal
 from ..core.types.common import GiftCardError, PriceInput, TimePeriodInputType
 from ..core.validators import validate_price_precision
 from .enums import GiftCardExpiryTypeEnum
@@ -66,8 +67,8 @@ class GiftCardCreateInput(GiftCardInput):
 
 
 class GiftCardUpdateInput(GiftCardInput):
-    balance = graphene.Field(
-        PriceInput, description="Balance of the gift card.", required=False
+    balance_amount = PositiveDecimal(
+        description="The gift card balance amount.", required=False
     )
     expiry_settings = GiftCardExpirySettingsInput(
         description="The gift card expiry settings.", required=False
@@ -170,27 +171,16 @@ class GiftCardCreate(ModelMutation):
     @staticmethod
     def clean_balance(cleaned_input, instance):
         balance = cleaned_input.pop("balance", None)
-        if balance:
-            amount = balance["amount"]
-            currency = balance["currency"]
-            try:
-                validate_price_precision(amount, currency)
-            except ValidationError as error:
-                error.code = GiftCardErrorCode.INVALID.value
-                raise ValidationError({"balance": error})
-            if instance.pk:
-                if currency != instance.currency:
-                    raise ValidationError(
-                        {
-                            "balance": ValidationError(
-                                "Cannot change gift card currency.",
-                                code=GiftCardErrorCode.INVALID.value,
-                            )
-                        }
-                    )
-            cleaned_input["currency"] = currency
-            cleaned_input["current_balance_amount"] = amount
-            cleaned_input["initial_balance_amount"] = amount
+        amount = balance["amount"]
+        currency = balance["currency"]
+        try:
+            validate_price_precision(amount, currency)
+        except ValidationError as error:
+            error.code = GiftCardErrorCode.INVALID.value
+            raise ValidationError({"balance": error})
+        cleaned_input["currency"] = currency
+        cleaned_input["current_balance_amount"] = amount
+        cleaned_input["initial_balance_amount"] = amount
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
@@ -215,6 +205,22 @@ class GiftCardUpdate(GiftCardCreate):
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
 
+    @staticmethod
+    def clean_balance(cleaned_input, instance):
+        amount = cleaned_input.pop("balance_amount", None)
+
+        if not amount:
+            return
+
+        currency = instance.currency
+        try:
+            validate_price_precision(amount, currency)
+        except ValidationError as error:
+            error.code = GiftCardErrorCode.INVALID.value
+            raise ValidationError({"balance_amount": error})
+        cleaned_input["current_balance_amount"] = amount
+        cleaned_input["initial_balance_amount"] = amount
+
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
@@ -226,7 +232,7 @@ class GiftCardUpdate(GiftCardCreate):
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
 
-        if "currency" in cleaned_input:
+        if "initial_balance_amount" in cleaned_input:
             events.gift_card_balance_reset(
                 instance, old_instance, info.context.user, info.context.app
             )

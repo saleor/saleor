@@ -239,17 +239,13 @@ def test_update_gift_card(
 ):
     # given
     initial_balance = 100.0
-    currency = gift_card.currency
     expiry_type = GiftCardExpiryTypeEnum.EXPIRY_DATE.name
     date_value = date.today() + timedelta(days=365)
     tag = "new-gift-card-tag"
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
         "input": {
-            "balance": {
-                "amount": initial_balance,
-                "currency": currency,
-            },
+            "balanceAmount": initial_balance,
             "tag": tag,
             "expirySettings": {
                 "expiryType": expiry_type,
