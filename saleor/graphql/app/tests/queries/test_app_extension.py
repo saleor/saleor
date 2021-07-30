@@ -2,6 +2,7 @@ import graphene
 
 from saleor.app.models import AppExtension
 from saleor.app.types import AppExtensionTarget, AppExtensionType, AppExtensionView
+from saleor.core.jwt import jwt_decode
 from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
 
 QUERY_APP_EXTENSION = """
@@ -13,6 +14,7 @@ query ($id: ID!){
         target
         type
         id
+        accessToken
         permissions{
             code
         }
@@ -113,6 +115,114 @@ def test_app_extension_normal_user(app, user_api_client, permission_manage_produ
 
     # then
     assert_no_permission(response)
+
+
+def test_app_extension_staff_user_without_all_permissions(
+    app, staff_api_client, permission_manage_products, permission_manage_orders
+):
+    # given
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        view=AppExtensionView.PRODUCT,
+        type=AppExtensionType.OVERVIEW,
+        target=AppExtensionTarget.MORE_ACTIONS,
+    )
+    app_extension.permissions.add(permission_manage_products)
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION,
+        variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+    assert extension_data["accessToken"] is None
+
+
+def test_app_extension_staff_user_fetching_access_token(
+    app,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_products,
+    permission_manage_apps,
+):
+    # given
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        view=AppExtensionView.PRODUCT,
+        type=AppExtensionType.OVERVIEW,
+        target=AppExtensionTarget.MORE_ACTIONS,
+    )
+    app_extension.permissions.add(permission_manage_products, permission_manage_orders)
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION,
+        variables,
+        permissions=[
+            permission_manage_orders,
+            permission_manage_products,
+            permission_manage_apps,
+        ],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+
+    assert extension_data["accessToken"]
+    decoded_token = jwt_decode(extension_data["accessToken"])
+    assert set(decoded_token["permissions"]) == set(
+        ["MANAGE_PRODUCTS", "MANAGE_ORDERS"]
+    )
+
+
+def test_app_extension_staff_user_partial_permission(
+    app,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_products,
+    permission_manage_apps,
+):
+    # given
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        view=AppExtensionView.PRODUCT,
+        type=AppExtensionType.OVERVIEW,
+        target=AppExtensionTarget.MORE_ACTIONS,
+    )
+    app_extension.permissions.add(permission_manage_products, permission_manage_orders)
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION,
+        variables,
+        permissions=[permission_manage_orders, permission_manage_apps],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+
+    assert extension_data["accessToken"] is None
 
 
 QUERY_APP_EXTENSION_WITH_APP = """

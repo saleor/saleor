@@ -2,6 +2,7 @@ import pytest
 
 from saleor.app.models import AppExtension
 from saleor.app.types import AppExtensionTarget, AppExtensionType, AppExtensionView
+from saleor.core.jwt import jwt_decode
 from saleor.graphql.app.enums import (
     AppExtensionTargetEnum,
     AppExtensionTypeEnum,
@@ -20,6 +21,7 @@ query ($filter: AppExtensionFilterInput){
         target
         id
         type
+        accessToken
         permissions{
           code
         }
@@ -47,6 +49,8 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
     response = staff_api_client.post_graphql(
         QUERY_APP_EXTENSIONS,
         variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
     )
 
     # then
@@ -66,6 +70,10 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
     assert len(extension_data["permissions"]) == 1
     permission_code = extension_data["permissions"][0]["code"].lower()
     assert app_extension.permissions.first().codename == permission_code
+
+    assert extension_data["accessToken"]
+    decode_token = jwt_decode(extension_data["accessToken"])
+    decode_token["permissions"] = ["MANAGE_PRODUCTS"]
 
 
 def test_app_extensions_app_not_active(

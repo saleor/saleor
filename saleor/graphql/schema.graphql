@@ -299,6 +299,8 @@ type AppExtension implements Node {
   type: AppExtensionTypeEnum!
   target: AppExtensionTargetEnum!
   permissions: [Permission!]!
+  accessToken: String
+  canBeUsedByUser: Boolean
 }
 
 type AppExtensionCountableConnection {

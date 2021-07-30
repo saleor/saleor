@@ -17,7 +17,10 @@ from .enums import (
     AppExtensionViewEnum,
     AppTypeEnum,
 )
-from .resolvers import resolve_access_token
+from .resolvers import (
+    resolve_access_token_for_app,
+    resolve_access_token_for_app_extension,
+)
 
 
 class AppManifestExtension(graphene.ObjectType):
@@ -46,6 +49,12 @@ class AppManifestExtension(graphene.ObjectType):
 
 class AppExtension(AppManifestExtension, CountableDjangoObjectType):
     app = graphene.Field("saleor.graphql.app.types.App", required=True)
+    access_token = graphene.String(
+        description="JWT token used to authenticate by thridparty app extension."
+    )
+    can_be_used_by_user = graphene.Boolean(
+        description="Determine if user has enough permission to use this extension"
+    )
 
     class Meta:
         description = "Represents app data."
@@ -73,6 +82,10 @@ class AppExtension(AppManifestExtension, CountableDjangoObjectType):
             "codename"
         )
         return format_permissions_for_display(permissions)
+
+    @staticmethod
+    def resolve_access_token(root: models.App, info):
+        return resolve_access_token_for_app_extension(info, root)
 
 
 class Manifest(graphene.ObjectType):
@@ -188,7 +201,7 @@ class App(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_access_token(root: models.App, info):
-        return resolve_access_token(info, root)
+        return resolve_access_token_for_app(info, root)
 
     @staticmethod
     def resolve_extensions(root: models.App, info):
