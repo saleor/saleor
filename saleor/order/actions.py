@@ -1346,17 +1346,21 @@ def subscription_renew(subscription: "Subscription"):
         store_source = True
         payment_data = {}
 
-        if last_order_payment.gateway == 'saleor.payments.stripe':
+        if last_order_payment.gateway == "saleor.payments.stripe":
             payment_method_id = None
             for last_transaction in last_order_payment.transactions.all():
                 if last_transaction.is_success:
-                    gateway_response = last_transaction.gateway_response if last_transaction.gateway_response else None
+                    gateway_response = (
+                        last_transaction.gateway_response
+                        if last_transaction.gateway_response
+                        else None
+                    )
                     if gateway_response and gateway_response.get("payment_method"):
                         payment_method_id = gateway_response.get("payment_method")
                         break
-            payment_data['payment_method_id'] = payment_method_id
-            payment_data['setup_future_usage'] = 'off_session'
-            payment_data['off_session'] = True
+            payment_data["payment_method_id"] = payment_method_id
+            payment_data["setup_future_usage"] = "off_session"
+            payment_data["off_session"] = True
 
         order = Order()
         order.status = OrderStatus.UNFULFILLED
@@ -1436,7 +1440,9 @@ def subscription_renew(subscription: "Subscription"):
         order.save()
 
         transaction.on_commit(
-            lambda: order_created(order=order, user=subscription.user, app=app, manager=manager)
+            lambda: order_created(
+                order=order, user=subscription.user, app=app, manager=manager
+            )
         )
 
 
