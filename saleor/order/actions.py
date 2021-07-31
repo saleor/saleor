@@ -1337,11 +1337,26 @@ def _process_refund(
 def subscription_renew(subscription: "Subscription"):
     """Renew subscription."""
     if subscription.can_renew():
+        app = None
         manager = get_plugins_manager()
         last_order = subscription.get_last_order()
         last_order_payment = last_order.get_last_payment()
 
         txn_customer_id = fetch_customer_id(last_order.user, last_order_payment.gateway)
+        store_source = True
+        payment_data = {}
+
+        if last_order_payment.gateway == 'saleor.payments.stripe':
+            payment_method_id = None
+            for last_transaction in last_order_payment.transactions.all():
+                if last_transaction.is_success:
+                    gateway_response = last_transaction.gateway_response if last_transaction.gateway_response else None
+                    if gateway_response and gateway_response.get("payment_method"):
+                        payment_method_id = gateway_response.get("payment_method")
+                        break
+            payment_data['payment_method_id'] = payment_method_id
+            payment_data['setup_future_usage'] = 'off_session'
+            payment_data['off_session'] = True
 
         order = Order()
         order.status = OrderStatus.UNFULFILLED
@@ -1372,6 +1387,7 @@ def subscription_renew(subscription: "Subscription"):
             variant=subscription.variant,
             quantity=subscription.quantity,
             user=subscription.user,
+            app=app,
             manager=manager,
         )
 
@@ -1408,8 +1424,8 @@ def subscription_renew(subscription: "Subscription"):
             manager=manager,
             channel_slug=order.channel.slug,
             customer_id=txn_customer_id,
-            store_source=True,
-            additional_data={"subscription_id": subscription.pk},
+            store_source=store_source,
+            additional_data=payment_data,
         )
 
         payment.refresh_from_db()
@@ -1420,7 +1436,7 @@ def subscription_renew(subscription: "Subscription"):
         order.save()
 
         transaction.on_commit(
-            lambda: order_created(order=order, user=subscription.user, manager=manager)
+            lambda: order_created(order=order, user=subscription.user, app=app, manager=manager)
         )
 
 
