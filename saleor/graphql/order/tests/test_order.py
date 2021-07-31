@@ -294,8 +294,6 @@ query OrdersQuery {
                             amount
                         }
                     }
-                    quantity
-                    quantityFulfilled
                     quantityToFulfill
                 }
                 discounts{

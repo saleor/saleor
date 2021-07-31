@@ -97,7 +97,6 @@ class OrderFulfill(BaseMutation):
     @classmethod
     def clean_lines(cls, order_lines, quantities):
         for order_line, line_quantities in zip(order_lines, quantities):
-            line_quantity_unfulfilled = order_line.quantity_unfulfilled
 
             quantity_awaiting = sum(
                 [
@@ -109,7 +108,11 @@ class OrderFulfill(BaseMutation):
                 ]
             )
 
-            if sum(line_quantities) > (line_quantity_unfulfilled - quantity_awaiting):
+            line_quantity_unfulfilled = (
+                order_line.quantity_unfulfilled - quantity_awaiting
+            )
+
+            if sum(line_quantities) > line_quantity_unfulfilled:
                 msg = (
                     "Only %(quantity)d item%(item_pluralize)s remaining "
                     "to fulfill: %(order_line)s."
