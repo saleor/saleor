@@ -1,4 +1,5 @@
 import secrets
+from datetime import date, datetime
 from tempfile import NamedTemporaryFile
 from typing import IO, TYPE_CHECKING, Any, Dict, List, Set, Union
 
@@ -60,6 +61,32 @@ def get_filename(model_name: str, file_type: str) -> str:
     )
 
 
+def parse_input(data: Any) -> Dict[str, Union[str, dict]]:
+    """Parse input to correct data types, since scope coming from celery will be parsed to strings."""
+    if "attributes" in data:
+        serialized_attributes = []
+
+        for attr in data.get("attributes") or []:
+            if "date_time" in attr:
+                if gte := attr["date_time"].get("gte"):
+                    attr["date_time"]["gte"] = datetime.fromisoformat(gte)
+                if lte := attr["date_time"].get("lte"):
+                    attr["date_time"]["lte"] = datetime.fromisoformat(lte)
+
+            if "date" in attr:
+                if gte := attr["date"].get("gte"):
+                    attr["date"]["gte"] = date.fromisoformat(gte)
+                if lte := attr["date"].get("lte"):
+                    attr["date"]["lte"] = date.fromisoformat(lte)
+
+            serialized_attributes.append(attr)
+
+        if serialized_attributes:
+            data["attributes"] = serialized_attributes
+
+    return data
+
+
 def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
     """Get product queryset based on a scope."""
 
@@ -69,7 +96,9 @@ def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
     if "ids" in scope:
         queryset = Product.objects.filter(pk__in=scope["ids"])
     elif "filter" in scope:
-        queryset = ProductFilter(data=scope["filter"], queryset=queryset).qs
+        queryset = ProductFilter(
+            data=parse_input(scope["filter"]), queryset=queryset
+        ).qs
 
     queryset = queryset.order_by("pk")
 
