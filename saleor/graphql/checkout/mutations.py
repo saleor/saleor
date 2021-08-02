@@ -30,6 +30,7 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
+from ...core.permissions import AccountPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
@@ -51,7 +52,7 @@ from ..core.validators import (
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
-from ..utils import get_user_country_context
+from ..utils import get_user_country_context, get_user_or_app_from_context
 from .types import Checkout, CheckoutLine
 from .utils import prepare_insufficient_stock_checkout_validation_error
 
@@ -612,6 +613,13 @@ class CheckoutCustomerAttach(BaseMutation):
                 "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
             ),
         )
+        customer_id = graphene.ID(
+            required=False,
+            description=(
+                "ID of customer to attach to checkout. Can be used to attach customer "
+                "to checkout by staff or app. Requires manage_users permission."
+            ),
+        )
         token = UUID(description="Checkout token.", required=False)
 
     class Meta:
@@ -621,7 +629,7 @@ class CheckoutCustomerAttach(BaseMutation):
 
     @classmethod
     def check_permissions(cls, context):
-        return context.user.is_authenticated
+        return context.user.is_authenticated or context.app
 
     @classmethod
     def perform_mutation(
@@ -642,11 +650,19 @@ class CheckoutCustomerAttach(BaseMutation):
 
         # Raise error when trying to attach a user to a checkout
         # that is already owned by another user.
-        if checkout.user:
+        if checkout.user_id:
             raise PermissionDenied()
 
-        checkout.user = info.context.user
-        checkout.email = info.context.user.email
+        if customer_id:
+            requestor = get_user_or_app_from_context(info.context)
+            if not requestor.has_perm(AccountPermissions.MANAGE_USERS):
+                raise PermissionDenied()
+            customer = cls.get_node_or_error(info, customer_id, only_type="User")
+        else:
+            customer = info.context.user
+
+        checkout.user = customer
+        checkout.email = customer.email
         checkout.save(update_fields=["email", "user", "last_change"])
 
         info.context.plugins.checkout_updated(checkout)
@@ -673,7 +689,7 @@ class CheckoutCustomerDetach(BaseMutation):
 
     @classmethod
     def check_permissions(cls, context):
-        return context.user.is_authenticated
+        return context.user.is_authenticated or context.app
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id=None, token=None):
@@ -690,9 +706,11 @@ class CheckoutCustomerDetach(BaseMutation):
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
 
-        # Raise error if the current user doesn't own the checkout of the given ID.
-        if checkout.user and checkout.user != info.context.user:
-            raise PermissionDenied()
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor.has_perm(AccountPermissions.MANAGE_USERS):
+            # Raise error if the current user doesn't own the checkout of the given ID.
+            if checkout.user and checkout.user != info.context.user:
+                raise PermissionDenied()
 
         checkout.user = None
         checkout.save(update_fields=["user", "last_change"])
@@ -1209,12 +1227,6 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout_info = fetch_checkout_info(
             checkout, lines, info.context.discounts, manager
         )
-
-        if info.context.user and checkout.user == info.context.user:
-            # reassign user from request to make sure that we will take into account
-            # that user can have granted staff permissions from external resources.
-            # Which is required to determine if user has access to 'staff discount'
-            checkout_info.user = info.context.user
 
         add_promo_code_to_checkout(
             manager,
