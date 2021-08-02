@@ -1375,11 +1375,11 @@ def subscription_renew(subscription: "Subscription"):
         order.metadata = last_order.metadata
         order.private_metadata = last_order.private_metadata
 
-        if last_order.billing_address:
+        if last_order.billing_address is not None:
             last_order.billing_address.pk = None
             order.billing_address = last_order.billing_address
             order.billing_address.save()
-        if last_order.shipping_address:
+        if last_order.shipping_address is not None:
             last_order.shipping_address.pk = None
             order.shipping_address = last_order.shipping_address
             order.shipping_address.save()
