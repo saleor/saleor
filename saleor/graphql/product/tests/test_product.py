@@ -6,6 +6,7 @@ from unittest.mock import ANY, Mock, patch
 
 import graphene
 import pytest
+import pytz
 from django.core.exceptions import ValidationError
 from django.utils.dateparse import parse_datetime
 from django.utils.html import strip_tags
@@ -3136,6 +3137,8 @@ CREATE_PRODUCT_MUTATION = """
                                     reference
                                     richText
                                     boolean
+                                    dateTime
+                                    date
                                     file {
                                         url
                                         contentType
@@ -3352,6 +3355,8 @@ def test_create_product_with_rich_text_attribute(
                     "richText": rich_text,
                     "file": None,
                     "boolean": None,
+                    "date": None,
+                    "dateTime": None,
                 }
             ],
         },
@@ -3359,6 +3364,132 @@ def test_create_product_with_rich_text_attribute(
 
     for attr_data in data["product"]["attributes"]:
         assert attr_data in expected_attributes_data
+
+
+@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+def test_create_product_with_date_time_attribute(
+    staff_api_client,
+    product_type,
+    date_time_attribute,
+    color_attribute,
+    permission_manage_products,
+    product,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name = "test name"
+
+    # Add second attribute
+    product_type.product_attributes.add(date_time_attribute)
+    date_time_attribute_id = graphene.Node.to_global_id(
+        "Attribute", date_time_attribute.id
+    )
+    value = datetime.now(tz=pytz.utc)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": product_name,
+            "attributes": [
+                {
+                    "id": date_time_attribute_id,
+                    "dateTime": value,
+                }
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["productType"]["name"] == product_type.name
+    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+
+    expected_attributes_data = {
+        "attribute": {"slug": "release-date-time"},
+        "values": [
+            {
+                "slug": f"{product_id}_{date_time_attribute.id}",
+                "name": str(value),
+                "reference": None,
+                "richText": None,
+                "boolean": None,
+                "file": None,
+                "date": None,
+                "dateTime": str(value.isoformat()),
+            }
+        ],
+    }
+
+    assert expected_attributes_data in data["product"]["attributes"]
+
+
+@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+def test_create_product_with_date_attribute(
+    staff_api_client,
+    product_type,
+    date_attribute,
+    color_attribute,
+    permission_manage_products,
+    product,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name = "test name"
+
+    # Add second attribute
+    product_type.product_attributes.add(date_attribute)
+    date_attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.id)
+    value = datetime.now(tz=pytz.utc).date()
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": product_name,
+            "attributes": [
+                {
+                    "id": date_attribute_id,
+                    "date": value,
+                }
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["productType"]["name"] == product_type.name
+    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+
+    expected_attributes_data = {
+        "attribute": {"slug": "release-date"},
+        "values": [
+            {
+                "slug": f"{product_id}_{date_attribute.id}",
+                "name": str(value),
+                "reference": None,
+                "richText": None,
+                "boolean": None,
+                "file": None,
+                "date": str(value),
+                "dateTime": None,
+            }
+        ],
+    }
+
+    assert expected_attributes_data in data["product"]["attributes"]
 
 
 def test_create_product_with_boolean_attribute(
@@ -3411,6 +3542,8 @@ def test_create_product_with_boolean_attribute(
                 "reference": None,
                 "richText": None,
                 "boolean": False,
+                "date": None,
+                "dateTime": None,
                 "file": None,
             }
         ],
@@ -3666,6 +3799,8 @@ def test_create_product_with_file_attribute(
                     "reference": None,
                     "richText": None,
                     "boolean": None,
+                    "date": None,
+                    "dateTime": None,
                 }
             ],
         },
@@ -3735,6 +3870,8 @@ def test_create_product_with_page_reference_attribute(
                     "file": None,
                     "richText": None,
                     "boolean": None,
+                    "date": None,
+                    "dateTime": None,
                     "reference": reference,
                 }
             ],
@@ -3805,6 +3942,8 @@ def test_create_product_with_product_reference_attribute(
                     "file": None,
                     "richText": None,
                     "boolean": None,
+                    "date": None,
+                    "dateTime": None,
                     "reference": reference,
                 }
             ],
@@ -3875,6 +4014,8 @@ def test_create_product_with_product_reference_attribute_values_saved_in_order(
             "file": None,
             "richText": None,
             "boolean": None,
+            "date": None,
+            "dateTime": None,
             "reference": reference,
         }
         for product, reference in zip(reference_instances, reference_ids)
@@ -3948,6 +4089,8 @@ def test_create_product_with_file_attribute_new_attribute_value(
                     "reference": None,
                     "richText": None,
                     "boolean": None,
+                    "date": None,
+                    "dateTime": None,
                     "file": {
                         "url": "http://testserver/media/" + non_existing_value,
                         "contentType": None,
@@ -6998,6 +7141,8 @@ PRODUCT_TYPE_CREATE_MUTATION = """
                                 name
                                 richText
                                 boolean
+                                date
+                                dateTime
                             }
                         }
 
@@ -7116,8 +7261,24 @@ def test_create_product_type_with_rich_text_attribute(
             "name": "Color",
             "choices": {
                 "edges": [
-                    {"node": {"name": "Red", "richText": None, "boolean": None}},
-                    {"node": {"name": "Blue", "richText": None, "boolean": None}},
+                    {
+                        "node": {
+                            "name": "Red",
+                            "richText": None,
+                            "boolean": None,
+                            "date": None,
+                            "dateTime": None,
+                        }
+                    },
+                    {
+                        "node": {
+                            "name": "Blue",
+                            "richText": None,
+                            "boolean": None,
+                            "date": None,
+                            "dateTime": None,
+                        }
+                    },
                 ]
             },
         },
@@ -7128,6 +7289,50 @@ def test_create_product_type_with_rich_text_attribute(
     ]
     for attribute in data["productAttributes"]:
         assert attribute in expected_attributes
+
+
+def test_create_product_type_with_date_attribute(
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
+    date_attribute,
+    date_time_attribute,
+):
+    query = PRODUCT_TYPE_CREATE_MUTATION
+    product_type_name = "test type"
+    slug = "test-type"
+
+    product_type.product_attributes.add(date_attribute)
+    product_type.product_attributes.add(date_time_attribute)
+
+    product_attributes_ids = [
+        graphene.Node.to_global_id("Attribute", attr.id)
+        for attr in product_type.product_attributes.all()
+    ]
+
+    variables = {
+        "name": product_type_name,
+        "slug": slug,
+        "productAttributes": product_attributes_ids,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeCreate"]["productType"]
+    errors = content["data"]["productTypeCreate"]["errors"]
+    expected_attribute = [
+        {"choices": {"edges": []}, "name": "Release date"},
+        {"choices": {"edges": []}, "name": "Release date time"},
+    ]
+
+    assert not errors
+    assert data["name"] == product_type_name
+    assert data["slug"] == slug
+
+    for attribute in expected_attribute:
+        assert attribute in data["productAttributes"]
 
 
 def test_create_product_type_with_boolean_attribute(

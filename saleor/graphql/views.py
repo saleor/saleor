@@ -242,7 +242,7 @@ class GraphQLView(View):
                 if selection_name == "__schema":
                     query_with_schema = True
                     if selection_count > 1:
-                        msg = "`__schema` must be fetched in separete query"
+                        msg = "`__schema` must be fetched in separate query"
                         raise GraphQLError(msg)
         return query_with_schema
 
