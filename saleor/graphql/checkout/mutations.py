@@ -612,7 +612,7 @@ class CheckoutCustomerAttach(BaseMutation):
             required=False,
             description=(
                 "ID of customer to attach to checkout. Can be used to attach customer "
-                "to checkout by staff or app. Requires manage_users permission."
+                "to checkout by staff or app. Requires MANAGE_USERS permission."
             ),
         )
         token = UUID(description="Checkout token.", required=False)
