@@ -563,7 +563,14 @@ def deactivate_preorder_for_variant(product_variant: ProductVariant):
 def _get_stock_for_preorder_allocation(
     preorder_allocation: PreorderAllocation, product_variant: ProductVariant
 ) -> Stock:
-    """Return stock where preordered variant should be allocated."""
+    """Return stock where preordered variant should be allocated.
+
+    By default this function uses any warehouse from the shipping zone that matches
+    order's shipping method. If order has no shipping method set, it uses any warehouse
+    that matches order's country. Function returns existing stock for selected warehouse
+    or creates a new one unsaved `Stock` instance. Function raises an error if there is
+    no warehouse assigned to any shipping zone handles order's country.
+    """
     order = preorder_allocation.order_line.order
     shipping_method_id = order.shipping_method_id
     if shipping_method_id is not None:

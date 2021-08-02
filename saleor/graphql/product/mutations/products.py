@@ -1706,7 +1706,9 @@ class VariantMediaUnassign(BaseMutation):
 
 
 class ProductVariantPreorderDeactivate(BaseMutation):
-    product_variant = graphene.Field(ProductVariant)
+    product_variant = graphene.Field(
+        ProductVariant, description="Product variant with ended preorder."
+    )
 
     class Arguments:
         id = graphene.ID(
