@@ -421,6 +421,7 @@ type Attribute implements Node & ObjectWithMetadata {
   availableInGrid: Boolean!
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
   storefrontSearchPosition: Int!
+  withChoices: Boolean!
 }
 
 type AttributeBulkDelete {
