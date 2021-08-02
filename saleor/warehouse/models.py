@@ -1,4 +1,5 @@
 import itertools
+import typing
 import uuid
 from typing import Set
 
@@ -72,24 +73,12 @@ class StockQuerySet(models.QuerySet):
         )
 
     def for_channel(self, channel_slug: str):
-        ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
-        WarehouseShippingZone = ShippingZone.warehouses.through  # type: ignore
         channels = Channel.objects.filter(slug=channel_slug).values("pk")
-        shipping_zone_channels = ShippingZoneChannel.objects.filter(
-            Exists(channels.filter(pk=OuterRef("channel_id")))
-        ).values("shippingzone_id")
-        warehouse_shipping_zones = WarehouseShippingZone.objects.filter(
-            Exists(
-                shipping_zone_channels.filter(
-                    shippingzone_id=OuterRef("shippingzone_id")
-                )
-            )
-        ).values("warehouse_id")
-        return self.select_related("product_variant").filter(
-            Exists(
-                warehouse_shipping_zones.filter(warehouse_id=OuterRef("warehouse_id"))
-            )
-        )
+        return self._stock_from_channels(channels)
+
+    def for_channels(self, channel_slugs: typing.List[str]):
+        channels = Channel.objects.filter(slug__in=channel_slugs).values("pk")
+        return self._stock_from_channels(channels)
 
     def for_country_and_channel(self, country_code: str, channel_slug):
         filter_lookup = {"shipping_zones__countries__contains": country_code}
@@ -120,6 +109,25 @@ class StockQuerySet(models.QuerySet):
             product_variant__product_id=product.pk
         )
 
+    def _stock_from_channels(self, channels):
+        ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
+        WarehouseShippingZone = ShippingZone.warehouses.through  # type: ignore
+        shipping_zone_channels = ShippingZoneChannel.objects.filter(
+            Exists(channels.filter(pk=OuterRef("channel_id")))
+        ).values("shippingzone_id")
+        warehouse_shipping_zones = WarehouseShippingZone.objects.filter(
+            Exists(
+                shipping_zone_channels.filter(
+                    shippingzone_id=OuterRef("shippingzone_id")
+                )
+            )
+        ).values("warehouse_id")
+        return self.select_related("product_variant").filter(
+            Exists(
+                warehouse_shipping_zones.filter(warehouse_id=OuterRef("warehouse_id"))
+            )
+        )
+
 
 class Stock(models.Model):
     warehouse = models.ForeignKey(Warehouse, null=False, on_delete=models.CASCADE)
@@ -144,6 +152,15 @@ class Stock(models.Model):
         self.quantity = F("quantity") - quantity
         if commit:
             self.save(update_fields=["quantity"])
+
+    def available_quantity(self):
+        allocated_quantity = (
+            self.allocations.aggregate(Sum("quantity_allocated"))[
+                "quantity_allocated__sum"
+            ]
+            or 0
+        )
+        return max(self.quantity - allocated_quantity, 0)
 
 
 class Allocation(models.Model):

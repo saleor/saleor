@@ -3,15 +3,14 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, cast
 
 from django.db.models import F, Sum
 
-from saleor.plugins.manager import get_plugins_manager
-
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
+from ..plugins.manager import PluginsManager
 from ..product.actions import (
     check_and_trigger_back_in_stock_webhook,
-    check_and_trigger_out_of_stock_webhook,
-    product_variant_webhook_container,
+    trigger_back_in_stock_webhook,
+    trigger_out_of_stock_webhook,
 )
 from ..product.models import ProductVariant
 from .models import Allocation, Stock, Warehouse
@@ -25,7 +24,10 @@ StockData = namedtuple("StockData", ["pk", "quantity"])
 
 @traced_atomic_transaction()
 def allocate_stocks(
-    order_lines_info: Iterable["OrderLineData"], country_code: str, channel_slug: str
+    order_lines_info: Iterable["OrderLineData"],
+    country_code: str,
+    channel_slug: str,
+    manager: PluginsManager,
 ):
     """Allocate stocks for given `order_lines` in given country.
 
@@ -91,6 +93,16 @@ def allocate_stocks(
     if allocations:
         Allocation.objects.bulk_create(allocations)
 
+        for allocation in allocations:
+            allocated_stock = (
+                allocation.stock.allocations.aggregate(Sum("quantity_allocated"))[
+                    "quantity_allocated__sum"
+                ]
+                or 0
+            )
+            if not max(allocation.stock.quantity - allocated_stock, 0):
+                trigger_out_of_stock_webhook(allocation.stock, manager)
+
 
 def _create_allocations(
     line_info: "OrderLineData",
@@ -134,7 +146,9 @@ def _create_allocations(
 
 
 @traced_atomic_transaction()
-def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
+def deallocate_stock(
+    order_lines_data: Iterable["OrderLineData"], manager: PluginsManager
+):
     """Deallocate stocks for given `order_lines`.
 
     Function lock for update stocks and allocations related to given `order_lines`.
@@ -185,7 +199,17 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
     if not_dellocated_lines:
         raise AllocationError(not_dellocated_lines)
 
+    available_stock_before = [
+        (allocation, allocation.stock.available_quantity())
+        for allocation in allocations_to_update
+    ]
+
     Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
+
+    for allocation, allocation_quantity_before in available_stock_before:
+        check_and_trigger_back_in_stock_webhook(
+            allocation, allocation_quantity_before, manager
+        )
 
 
 @traced_atomic_transaction()
@@ -205,32 +229,17 @@ def increase_stock(
     function increase `quantity_allocated`. If allocation does not exist function
     create a new allocation for this order line in this stock.
     """
-    plugins_manager = get_plugins_manager()
     stock = (
         Stock.objects.select_for_update(of=("self",))
         .filter(warehouse=warehouse, product_variant=order_line.variant)
         .first()
     )
-
     if stock:
-        product_variant_stock_trigger = product_variant_webhook_container(
-            order_line.variant,
-            warehouse.shipping_zones.values_list("channels__slug", flat=True),
-            stock.quantity,
-        )
         stock.increase_stock(quantity, commit=True)
-
     else:
-        product_variant_stock_trigger = product_variant_webhook_container(
-            order_line.variant,
-            warehouse.shipping_zones.values_list("channels__slug", flat=True),
-            prev_quantity=0,
-        )
-
         stock = Stock.objects.create(
             warehouse=warehouse, product_variant=order_line.variant, quantity=quantity
         )
-
     if allocate:
         allocation = order_line.allocations.filter(stock=stock).first()
         if allocation:
@@ -241,13 +250,11 @@ def increase_stock(
                 order_line=order_line, stock=stock, quantity_allocated=quantity
             )
 
-    check_and_trigger_back_in_stock_webhook(
-        product_variant_stock_trigger, plugins_manager
-    )
-
 
 @traced_atomic_transaction()
-def increase_allocations(lines_info: Iterable["OrderLineData"], channel_slug: str):
+def increase_allocations(
+    lines_info: Iterable["OrderLineData"], channel_slug: str, manager: PluginsManager
+):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
     allocations = list(
@@ -273,19 +280,22 @@ def increase_allocations(lines_info: Iterable["OrderLineData"], channel_slug: st
         lines_info,
         lines_info[0].line.order.shipping_address.country.code,  # type: ignore
         channel_slug,
+        manager,
     )
 
 
-def decrease_allocations(lines_info: Iterable["OrderLineData"]):
+def decrease_allocations(lines_info: Iterable["OrderLineData"], manager):
     """Decreate allocations for provided order lines."""
     tracked_lines = get_order_lines_with_track_inventory(lines_info)
     if not tracked_lines:
         return
-    decrease_stock(tracked_lines, update_stocks=False)
+    decrease_stock(tracked_lines, update_stocks=False, manager=manager)
 
 
 @traced_atomic_transaction()
-def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=True):
+def decrease_stock(
+    order_lines_info: Iterable["OrderLineData"], manager, update_stocks=True
+):
     """Decrease stocks quantities for given `order_lines` in given warehouses.
 
     Function deallocate as many quantities as requested if order_line has less quantity
@@ -299,7 +309,7 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=Tr
     variants = [line_info.variant for line_info in order_lines_info]
     warehouse_pks = [line_info.warehouse_pk for line_info in order_lines_info]
     try:
-        deallocate_stock(order_lines_info)
+        deallocate_stock(order_lines_info, manager)
     except AllocationError as exc:
         Allocation.objects.filter(order_line__in=exc.order_lines).update(
             quantity_allocated=0
@@ -333,13 +343,16 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=Tr
         quantity_allocation_for_stocks[allocation["stock"]] += allocation[
             "quantity_allocated__sum"
         ]
-
     if update_stocks:
         _decrease_stocks_quantity(
             order_lines_info,
             variant_and_warehouse_to_stock,
             quantity_allocation_for_stocks,
         )
+
+        for stock in stocks:
+            if stock.available_quantity() <= 0:
+                trigger_out_of_stock_webhook(stock, manager)
 
 
 def _decrease_stocks_quantity(
@@ -349,18 +362,11 @@ def _decrease_stocks_quantity(
 ):
     insufficient_stocks: List[InsufficientStockData] = []
     stocks_to_update = []
-    variants_for_webhooks = []
     for line_info in order_lines_info:
         variant = line_info.variant
         warehouse_pk = str(line_info.warehouse_pk)
         stock = variant_and_warehouse_to_stock.get(variant.pk, {}).get(  # type: ignore
             warehouse_pk
-        )
-        channel_slugs = Warehouse.objects.get(
-            pk=warehouse_pk
-        ).shipping_zones.values_list("channels__slug", flat=True)
-        variants_for_webhooks.append(
-            product_variant_webhook_container(variant, channel_slugs, prev_quantity=0)
         )
         if stock is None:
             insufficient_stocks.append(
@@ -388,9 +394,6 @@ def _decrease_stocks_quantity(
         raise InsufficientStock(insufficient_stocks)
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity"])
-    manager = get_plugins_manager()
-    for variant_data_container in variants_for_webhooks:
-        check_and_trigger_out_of_stock_webhook(variant_data_container, manager)
 
 
 def get_order_lines_with_track_inventory(
@@ -405,9 +408,14 @@ def get_order_lines_with_track_inventory(
 
 
 @traced_atomic_transaction()
-def deallocate_stock_for_order(order: "Order"):
+def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
     """Remove all allocations for given order."""
     allocations = Allocation.objects.filter(
         order_line__order=order, quantity_allocated__gt=0
     ).select_for_update(of=("self",))
+
+    for allocation in allocations:
+        if allocation.stock.available_quantity() <= 0:
+            trigger_back_in_stock_webhook(allocation.stock, manager)
+
     allocations.update(quantity_allocated=0)

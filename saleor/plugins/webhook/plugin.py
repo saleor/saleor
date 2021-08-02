@@ -18,6 +18,7 @@ from ...webhook.payloads import (
     generate_product_deleted_payload,
     generate_product_payload,
     generate_product_variant_payload,
+    generate_product_variant_with_stock_payload,
     generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
@@ -37,6 +38,7 @@ if TYPE_CHECKING:
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
     from ...product.models import Product, ProductVariant
+    from ...warehouse.models import Stock
     from ...translation.models import Translation
 
 
@@ -205,22 +207,18 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.PRODUCT_VARIANT_DELETED, product_variant_data
         )
 
-    def product_variant_out_of_stock(
-        self, product_variant: "ProductVariant", previous_value: Any
-    ) -> Any:
+    def product_variant_out_of_stock(self, stock: "Stock", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        product_variant_data = generate_product_variant_payload([product_variant])
+        product_variant_data = generate_product_variant_with_stock_payload([stock])
         trigger_webhooks_for_event.delay(
             WebhookEventType.PRODUCT_VARIANT_OUT_OF_STOCK, product_variant_data
         )
 
-    def product_variant_back_in_stock(
-        self, product_variant: "ProductVariant", previous_value: Any
-    ) -> Any:
+    def product_variant_back_in_stock(self, stock: "Stock", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        product_variant_data = generate_product_variant_payload([product_variant])
+        product_variant_data = generate_product_variant_with_stock_payload([stock])
         trigger_webhooks_for_event.delay(
             WebhookEventType.PRODUCT_VARIANT_BACK_IN_STOCK, product_variant_data
         )

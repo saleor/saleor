@@ -7,6 +7,8 @@ from unittest.mock import ANY
 
 import graphene
 
+from saleor.plugins.manager import get_plugins_manager
+
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...order import OrderLineData, OrderOrigin
@@ -26,6 +28,7 @@ from ..payloads import (
     generate_order_payload,
     generate_payment_payload,
     generate_product_variant_payload,
+    generate_product_variant_with_stock_payload,
     generate_translation_payload,
 )
 
@@ -122,9 +125,8 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
         order_line=line, quantity=line.quantity, stock=stock
     )
     fulfill_order_lines(
-        [
-            OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk),
-        ]
+        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        get_plugins_manager(),
     )
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
 
@@ -226,6 +228,22 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
             undiscounted_total_price_gross_amount
         ),
     }
+
+
+def test_generate_base_product_variant_payload(product_with_two_variants):
+    variants_to_serialize = [
+        variant.stocks.first() for variant in product_with_two_variants.variants.all()
+    ]
+    payload = json.loads(
+        generate_product_variant_with_stock_payload(variants_to_serialize)
+    )[0]
+    payload_keys = payload.keys()
+    assert len(payload_keys) == 6
+    assert "warehouse_id" in payload_keys
+    assert "product_variant_id" in payload_keys
+    assert "id" in payload_keys
+    assert "product_id" in payload_keys
+    assert "product_slug" in payload_keys
 
 
 def test_generate_product_variant_payload(

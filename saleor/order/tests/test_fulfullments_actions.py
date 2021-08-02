@@ -580,7 +580,7 @@ def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
     }
     manager = get_plugins_manager()
     create_fulfillments(
-        user=staff_user, app=None, order=order, fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses, manager=manager
+        user=staff_user, app=None, order=order, fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses, manager=manager, approved=False
     )
     flush_post_commit_hooks()
 
