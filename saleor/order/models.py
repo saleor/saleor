@@ -575,7 +575,7 @@ class OrderLine(models.Model):
         subscription = None
         if self.is_subscription and hasattr(self.order, "subscriptions"):
             for sub in self.order.subscriptions.all():
-                if self.variant.pk == sub.variant.pk:
+                if self.variant and self.variant.pk == sub.variant.pk:
                     subscription = sub
                     break
         return subscription
@@ -747,7 +747,7 @@ class Subscription(ModelWithMetadata):
     )
     language_code = models.CharField(max_length=35, default=settings.LANGUAGE_CODE)
 
-    objects = SubscriptionQueryset.as_manager()
+    objects = models.Manager.from_queryset(SubscriptionQueryset)()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-pk",)

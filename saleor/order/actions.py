@@ -1417,7 +1417,7 @@ def subscription_renew(subscription: "Subscription"):
             email=order.user_email,
             order=order,
             checkout=None,
-            customer_ip_address=None,
+            customer_ip_address="",
             extra_data={"subscription_id": subscription.pk},
             return_url=None,
         )

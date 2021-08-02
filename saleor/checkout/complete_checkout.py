@@ -594,7 +594,7 @@ def complete_checkout(
     # Force enable store_source for subscription
     if checkout.is_subscription():
         store_source = True
-        if payment.gateway == "saleor.payments.stripe":
+        if payment and payment.gateway == "saleor.payments.stripe":
             payment_data["setup_future_usage"] = "off_session"
             payment_data["off_session"] = True
 
