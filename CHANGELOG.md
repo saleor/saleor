@@ -139,6 +139,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Optimize available quantity loader. - #7802 by @fowczarek
 - Configure a periodic task for removing empty allocations - #7885 by @fowczarek
 
+- Add `customerId` to `checkoutCustomerAttach` mutation - #7754 by @korycins
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
