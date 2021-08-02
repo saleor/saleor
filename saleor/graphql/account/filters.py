@@ -87,7 +87,7 @@ class StaffUserFilter(django_filters.FilterSet):
     status = EnumFilter(input_class=StaffMemberStatus, method=filter_staff_status)
     search = django_filters.CharFilter(method=filter_user_search)
 
-    # TODO - Figure out after permision types
+    # TODO - Figure out after permission types
     # department = ObjectTypeFilter
 
     class Meta:

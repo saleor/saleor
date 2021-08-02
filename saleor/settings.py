@@ -644,7 +644,7 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
 
 # Support multiple interface notation in schema for Apollo tooling.
 
-# In `graphql-core` V2 separator for interaces is `,`.
+# In `graphql-core` V2 separator for interface is `,`.
 # Apollo tooling to generate TypeScript types using `&` as interfaces separator.
 # https://github.com/graphql-python/graphql-core-legacy/pull/258
 # https://github.com/graphql-python/graphql-core-legacy/issues/176
