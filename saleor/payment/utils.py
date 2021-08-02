@@ -173,7 +173,7 @@ def create_transaction(
 ) -> Transaction:
     """Create a transaction based on transaction kind and gateway response."""
     # Default values for token, amount, currency are only used in cases where
-    # response from gateway was invalid or an exception occured
+    # response from gateway was invalid or an exception occurred
     if not gateway_response:
         gateway_response = GatewayResponse(
             kind=kind,
