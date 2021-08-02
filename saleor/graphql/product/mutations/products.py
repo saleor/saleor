@@ -1744,9 +1744,9 @@ class ProductVariantPreorderDeactivate(BaseMutation):
 
         try:
             deactivate_preorder_for_variant(variant)
-        except PreorderAllocationError:
+        except PreorderAllocationError as error:
             raise ValidationError(
-                "Cannot deactivate variant preorder.",
+                str(error),
                 code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED,
             )
 
