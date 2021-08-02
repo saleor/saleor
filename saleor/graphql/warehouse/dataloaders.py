@@ -190,7 +190,7 @@ class WarehouseByIdLoader(DataLoader):
 class WarehouseCountryCodeByChannelLoader(DataLoader):
     """Loads country code of a first available warehouse that is found for a channel."""
 
-    context_key = "warehouses_by_channel"
+    context_key = "warehouse_country_code_by_channel"
 
     def batch_load(self, keys):
         def with_channels(channels):
