@@ -4,6 +4,7 @@ from ...core.jwt import (
     create_access_token_for_app_extension,
 )
 from ...core.permissions import AppPermission
+from ...core.utils.validators import user_is_valid
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .enums import AppTypeEnum
@@ -29,7 +30,7 @@ def resolve_access_token_for_app(info, root, **_kwargs):
 
 def resolve_access_token_for_app_extension(info, root, **_kwargs):
     user = info.context.user
-    if user.is_anonymous:
+    if not user_is_valid(user):
         return None
     extension_permissions = root.permissions.all()
     user_permissions = user.effective_permissions

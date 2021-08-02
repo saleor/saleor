@@ -52,9 +52,6 @@ class AppExtension(AppManifestExtension, CountableDjangoObjectType):
     access_token = graphene.String(
         description="JWT token used to authenticate by thridparty app extension."
     )
-    can_be_used_by_user = graphene.Boolean(
-        description="Determine if user has enough permission to use this extension"
-    )
 
     class Meta:
         description = "Represents app data."

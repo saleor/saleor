@@ -208,7 +208,7 @@ def _create_access_token_for_third_party_actions(
 def create_access_token_for_app(app: "App", user: "User"):
     """Create access token for app.
 
-    App can use user jwt token to proceed given operation on the Saleor side.
+    App can use user's JWT token to proceed given operation in Saleor.
     The token which can be used by App has additional field defining the permissions
     assigned to it. The permissions set is the intersection of user permissions and
     app permissions.

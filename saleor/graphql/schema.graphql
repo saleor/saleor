@@ -300,7 +300,6 @@ type AppExtension implements Node {
   target: AppExtensionTargetEnum!
   permissions: [Permission!]!
   accessToken: String
-  canBeUsedByUser: Boolean
 }
 
 type AppExtensionCountableConnection {
