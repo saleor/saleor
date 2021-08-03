@@ -419,18 +419,18 @@ class StripeGatewayPlugin(BasePlugin):
             channel_slug: str = self.channel.slug  # type: ignore
             customer_sources = [
                 CustomerSource(
-                    id=c.id,
+                    id=payment_method.id,
                     gateway=PLUGIN_ID,
                     credit_card_info=PaymentMethodInfo(
-                        exp_year=c.card.exp_year,
-                        exp_month=c.card.exp_month,
-                        last_4=c.card.last4,
+                        exp_year=payment_method.card.exp_year,
+                        exp_month=payment_method.card.exp_month,
+                        last_4=payment_method.card.last4,
                         name=None,
-                        brand=c.card.brand,
+                        brand=payment_method.card.brand,
                     ),
                 )
-                for c in payment_methods
-                if c.metadata.get("channel", channel_slug) == channel_slug
+                for payment_method in payment_methods
+                if payment_method.metadata.get("channel") == channel_slug
             ]
             previous_value.extend(customer_sources)
         return previous_value
