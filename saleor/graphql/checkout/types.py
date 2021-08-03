@@ -198,13 +198,6 @@ class Checkout(CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if checkout requires shipping.", required=True
     )
-    is_click_and_collect = graphene.Boolean(
-        description=(
-            "Returns True, if click and collect is chosen ",
-            "as a delivery method for this checkout.",
-        ),
-        required=True,
-    )
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     lines = graphene.List(
         CheckoutLine,
@@ -317,10 +310,6 @@ class Checkout(CountableDjangoObjectType):
             )
             return collection_point
         return None
-
-    @staticmethod
-    def resolve_is_click_and_collect(root: models.Checkout, info):
-        return bool(root.collection_point_id)
 
     @staticmethod
     def resolve_quantity(root: models.Checkout, info):

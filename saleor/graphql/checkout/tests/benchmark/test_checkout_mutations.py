@@ -220,7 +220,6 @@ FRAGMENT_CHECKOUT_FOR_CC = (
             ...CheckoutLine
           }
           isShippingRequired
-          isClickAndCollect
           discount {
             currency
             amount
@@ -410,7 +409,6 @@ def test_add_shipping_to_checkout(
 def test_add_delivery_to_checkout(
     api_client,
     checkout_with_shipping_address_for_cc,
-    shipping_method,
     warehouses_for_cc,
     count_queries,
 ):
@@ -418,11 +416,10 @@ def test_add_delivery_to_checkout(
         FRAGMENT_CHECKOUT
         + """
             mutation updateCheckoutDeliveryOptions(
-              $token: UUID, $shippingMethodId: ID, $collectionPointId: ID
+              $token: UUID, $deliveryMethodId: ID
             ) {
               checkoutDeliveryMethodUpdate(
-                token: $token, shippingMethodId: $shippingMethodId,
-                collectionPointId: $collectionPointId
+                token: $token, deliveryMethodId: $deliveryMethodId
               ) {
                 errors {
                   field
@@ -437,7 +434,7 @@ def test_add_delivery_to_checkout(
     )
     variables = {
         "token": checkout_with_shipping_address_for_cc.token,
-        "collectionPointId": Node.to_global_id("Warehouse", warehouses_for_cc[1].pk),
+        "deliveryMethodId": Node.to_global_id("Warehouse", warehouses_for_cc[1].pk),
     }
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutDeliveryMethodUpdate"]["errors"]
@@ -853,7 +850,6 @@ FRAGMENT_ORDER_DETAIL_FOR_CC = (
     id
     token
     number
-    isClickAndCollect
     shippingAddress {
       ...Address
       __typename

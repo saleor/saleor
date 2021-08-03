@@ -1001,7 +1001,6 @@ type Checkout implements Node & ObjectWithMetadata {
   availablePaymentGateways: [PaymentGateway!]!
   email: String!
   isShippingRequired: Boolean!
-  isClickAndCollect: Boolean!
   quantity: Int!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
@@ -3794,7 +3793,7 @@ type Mutation {
   checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate @deprecated(reason: "Will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead")
-  checkoutDeliveryMethodUpdate(collectionPointId: ID, shippingMethodId: ID, token: UUID): CheckoutDeliveryMethodUpdate
+  checkoutDeliveryMethodUpdate(deliveryMethodId: ID, token: UUID): CheckoutDeliveryMethodUpdate
   checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
@@ -3895,6 +3894,7 @@ type Order implements Node & ObjectWithMetadata {
   shippingAddress: Address
   shippingMethod: ShippingMethod
   shippingMethodName: String
+  collectionPointName: String
   channel: Channel!
   shippingPrice: TaxedMoney!
   shippingTaxRate: Float!
@@ -3930,8 +3930,11 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+<<<<<<< HEAD
   languageCode: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `languageCodeEnum` field to fetch the language code. ")
   isClickAndCollect: Boolean
+=======
+>>>>>>> ccce99e00 (Change API according to Frontend Review + fix minor problem)
   deliveryMethod: DeliveryMethod
   languageCodeEnum: LanguageCodeEnum!
   discount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use discounts field.")

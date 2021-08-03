@@ -7,6 +7,8 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 
+from saleor.graphql.core.utils import from_global_id_or_error
+
 from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
@@ -1041,8 +1043,10 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
 
     class Arguments:
         token = UUID(description="Checkout token.", required=False)
-        shipping_method_id = graphene.ID(description="Shipping Method.")
-        collection_point_id = graphene.ID(description="Collection Point Id")
+        delivery_method_id = graphene.ID(
+            description="Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID).",
+            required=False,
+        )
 
     class Meta:
         description = (
@@ -1149,14 +1153,34 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
 
         return CheckoutDeliveryMethodUpdate(checkout=checkout)
 
+    @staticmethod
+    def _resolve_delivery_method_id(id_) -> Optional[str]:
+        if id_ is None:
+            return None
+
+        possible_types = ("Warehouse", "ShippingMethod")
+        type_, id_ = from_global_id_or_error(id_)
+        str_type = str(type_)
+
+        if str_type not in possible_types:
+            raise ValidationError(
+                {
+                    "delivery_method": ValidationError(
+                        "ID does not belong to Warehouse or ShippingMethod",
+                        code=CheckoutErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+        return str_type
+
     @classmethod
     def perform_mutation(
         cls,
         _,
         info,
-        token=None,
-        shipping_method_id=None,
-        collection_point_id=None,
+        token,
+        delivery_method_id=None,
     ):
 
         checkout = get_checkout_by_token(token)
@@ -1175,22 +1199,14 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                     )
                 }
             )
-        if shipping_method_id is not None and collection_point_id is not None:
-            raise ValidationError(
-                {
-                    "delivery_method": ValidationError(
-                        "Only one delivery method should be picked - C&C or Shipping",
-                        code=CheckoutErrorCode.INVALID,
-                    )
-                }
-            )
+        type_name = cls._resolve_delivery_method_id(delivery_method_id)
 
-        if collection_point_id is not None:
+        if type_name == "Warehouse":
             return cls.perform_on_collection_point(
-                info, collection_point_id, checkout_info, lines, checkout, manager
+                info, delivery_method_id, checkout_info, lines, checkout, manager
             )
         return cls.perform_on_shipping_method(
-            info, shipping_method_id, checkout_info, lines, checkout, manager
+            info, delivery_method_id, checkout_info, lines, checkout, manager
         )
 
 
