@@ -1,7 +1,7 @@
 from django.core.validators import MaxLengthValidator
 from django.db import models
 
-from ..translation.models import Translation
+from ..core.utils.translations import Translation
 
 
 class SeoModel(models.Model):

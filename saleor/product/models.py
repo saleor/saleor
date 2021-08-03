@@ -44,12 +44,11 @@ from ..core.units import WeightUnits
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.editorjs import clean_editor_js
-from ..core.utils.translations import TranslationProxy
+from ..core.utils.translations import Translation, TranslationProxy
 from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
-from ..translation.models import Translation
 from . import ProductMediaTypes
 
 if TYPE_CHECKING:
@@ -82,7 +81,6 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
 
 
 class CategoryTranslation(SeoModelTranslation):
-    language_code = models.CharField(max_length=10)
     category = models.ForeignKey(
         Category, related_name="translations", on_delete=models.CASCADE
     )
@@ -103,6 +101,19 @@ class CategoryTranslation(SeoModelTranslation):
             self.name,
             self.category_id,
         )
+
+    def get_translated_object(self) -> Category:
+        return self.category
+
+    def get_translated_keys(self):
+        translated_keys = super().get_translated_keys()
+        translated_keys.update(
+            {
+                "name": self.name,
+                "description": self.description,
+            }
+        )
+        return translated_keys
 
 
 class ProductType(ModelWithMetadata):
@@ -809,7 +820,6 @@ class CollectionChannelListing(PublishableModel):
 
 
 class CollectionTranslation(SeoModelTranslation):
-    language_code = models.CharField(max_length=10)
     collection = models.ForeignKey(
         Collection, related_name="translations", on_delete=models.CASCADE
     )
@@ -830,3 +840,16 @@ class CollectionTranslation(SeoModelTranslation):
 
     def __str__(self) -> str:
         return self.name if self.name else str(self.pk)
+
+    def get_translated_object(self) -> Collection:
+        return self.collection
+
+    def get_translated_keys(self):
+        translated_keys = super().get_translated_keys()
+        translated_keys.update(
+            {
+                "name": self.name,
+                "description": self.description,
+            }
+        )
+        return translated_keys
