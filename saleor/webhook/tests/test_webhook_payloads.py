@@ -18,6 +18,7 @@ from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
     generate_checkout_payload,
+    generate_customer_payload,
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -372,3 +373,21 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data):
         dummy_webhook_app_payment_data.gateway
     ).name
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
+
+
+def test_generate_customer_payload_with_proper_shipping_and_billing_address(
+    customer_user_different_billing_and_shipping_address,
+):
+    customer = customer_user_different_billing_and_shipping_address
+    payload = json.loads(generate_customer_payload(customer))[0]
+    keys_to_remove = ["id", "type"]
+    for key in keys_to_remove:
+        del payload["default_shipping_address"][key]
+        del payload["default_billing_address"][key]
+    assert (
+        payload["default_shipping_address"]
+        == customer.default_shipping_address.as_data()
+    )
+    assert (
+        payload["default_billing_address"] == customer.default_billing_address.as_data()
+    )
