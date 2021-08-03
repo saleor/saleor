@@ -1205,10 +1205,9 @@ class CheckoutAddPromoCode(BaseMutation):
             )
 
         manager = info.context.plugins
+        discounts = info.context.discounts
         lines = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(
-            checkout, lines, info.context.discounts, manager
-        )
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
         if info.context.user and checkout.user == info.context.user:
             # reassign user from request to make sure that we will take into account
@@ -1221,8 +1220,16 @@ class CheckoutAddPromoCode(BaseMutation):
             checkout_info,
             lines,
             promo_code,
-            info.context.discounts,
+            discounts,
         )
+
+        checkout_info.valid_shipping_methods = (
+            get_valid_shipping_method_list_for_checkout_info(
+                checkout_info, checkout_info.shipping_address, lines, discounts, manager
+            )
+        )
+
+        update_checkout_shipping_method_if_invalid(checkout_info, lines)
         manager.checkout_updated(checkout)
         return CheckoutAddPromoCode(checkout=checkout)
 
