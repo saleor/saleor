@@ -246,7 +246,7 @@ class AttributeValueTranslation(Translation):
         )
 
     def __str__(self) -> str:
-        return self.attribute_value
+        return self.name
 
     def get_translated_object_id(self):
         return "AttributeValue", self.attribute_value_id
