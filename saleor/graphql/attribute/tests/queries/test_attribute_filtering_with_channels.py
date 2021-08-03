@@ -192,7 +192,7 @@ def test_attributes_with_filtering_without_channel(
     "tested_field, attribute_count",
     [("inCategory", 5), ("inCollection", 5)],
 )
-def test_products_with_filtering_with_as_staff_user(
+def test_products_with_filtering_with_channel_as_staff_user(
     tested_field,
     attribute_count,
     staff_api_client,
@@ -225,6 +225,34 @@ def test_products_with_filtering_with_as_staff_user(
     content = get_graphql_content(response)
     attribute_nodes = content["data"]["attributes"]["edges"]
     assert len(attribute_nodes) == attribute_count
+
+
+def test_products_with_alternative_filtering_with_channel_as_staff_user(
+    staff_api_client,
+    permission_manage_products,
+    attributes_for_filtering_with_channels,
+    category,
+    channel_USD,
+):
+    # given
+    filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
+    filter_by = {"inCategory": filtered_by_node_id}
+    filter_by["channel"] = channel_USD.slug
+
+    variables = {"filter": filter_by}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_ATTRIBUTES_FILTERING,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attribute_nodes = content["data"]["attributes"]["edges"]
+    assert len(attribute_nodes) == 5
 
 
 @pytest.mark.parametrize(
