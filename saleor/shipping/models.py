@@ -302,8 +302,8 @@ class ShippingMethodTranslation(Translation):
     class Meta:
         unique_together = (("language_code", "shipping_method"),)
 
-    def get_translated_object(self) -> ShippingMethod:
-        return self.shipping_method
+    def get_translated_object_id(self):
+        return "ShippingMethod", self.shipping_method_id
 
     def get_translated_keys(self):
         return {

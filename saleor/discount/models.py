@@ -233,8 +233,8 @@ class VoucherTranslation(Translation):
         ordering = ("language_code", "voucher", "pk")
         unique_together = (("language_code", "voucher"),)
 
-    def get_translated_object(self) -> Voucher:
-        return self.voucher
+    def get_translated_object_id(self):
+        return "Voucher", self.voucher_id
 
     def get_translated_keys(self):
         return {"name": self.name}
@@ -330,8 +330,8 @@ class SaleTranslation(Translation):
         ordering = ("language_code", "name", "pk")
         unique_together = (("language_code", "sale"),)
 
-    def get_translated_object(self) -> Sale:
-        return self.sale
+    def get_translated_object_id(self):
+        return "Sale", self.sale_id
 
     def get_translated_keys(self):
         return {"name": self.name}

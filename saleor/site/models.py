@@ -119,8 +119,8 @@ class SiteSettingsTranslation(Translation):
     def __str__(self):
         return self.site_settings.site.name
 
-    def get_translated_object(self) -> SiteSettings:
-        return self.site_settings
+    def get_translated_object_id(self):
+        return "Shop", self.site_settings_id
 
     def get_translated_keys(self):
         return {

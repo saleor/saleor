@@ -188,8 +188,8 @@ class AttributeTranslation(Translation):
     def __str__(self) -> str:
         return self.name
 
-    def get_translated_object(self) -> Attribute:
-        return self.attribute
+    def get_translated_object_id(self):
+        return "Attribute", self.attribute_id
 
     def get_translated_keys(self):
         return {"name": self.name}
@@ -248,8 +248,8 @@ class AttributeValueTranslation(Translation):
     def __str__(self) -> str:
         return self.attribute_value
 
-    def get_translated_object(self) -> AttributeValue:
-        return self.attribute_value
+    def get_translated_object_id(self):
+        return "AttributeValue", self.attribute_value_id
 
     def get_translated_keys(self):
         return {"name": self.name, "rich_text": self.rich_text}

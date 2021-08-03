@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Tuple, Union
 
 from django.db import models
 from django.utils.translation import get_language
@@ -39,9 +39,9 @@ class Translation(models.Model):
     class Meta:
         abstract = True
 
-    def get_translated_object(self) -> Any:
+    def get_translated_object_id(self) -> Tuple[str, Union[int, str]]:
         raise NotImplementedError(
-            "Models extending Translation should implement get_translated_object"
+            "Models extending Translation should implement get_translated_object_id"
         )
 
     def get_translated_keys(self) -> Dict[str, Any]:

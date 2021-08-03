@@ -83,8 +83,8 @@ class MenuItemTranslation(Translation):
     def __str__(self):
         return self.name
 
-    def get_translated_object(self) -> MenuItem:
-        return self.menu_item
+    def get_translated_object_id(self):
+        return "MenuItem", self.menu_item_id
 
     def get_translated_keys(self):
         return {

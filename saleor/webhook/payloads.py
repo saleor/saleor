@@ -613,16 +613,14 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
 
 
 def generate_translation_payload(translation: "Translation"):
-    translated_object = translation.get_translated_object()
+    translated_object = translation.get_translated_object_id()
     translated_keys = [
         {"key": key, "value": value}
         for key, value in translation.get_translated_keys().items()
     ]
 
     translation_data = {
-        "id": graphene.Node.to_global_id(
-            translated_object._meta.object_name, translated_object.pk
-        ),
+        "id": graphene.Node.to_global_id(translated_object[0], translated_object[1]),
         "language_code": translation.language_code,
         "keys": translated_keys,
     }

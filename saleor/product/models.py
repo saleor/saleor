@@ -102,8 +102,8 @@ class CategoryTranslation(SeoModelTranslation):
             self.category_id,
         )
 
-    def get_translated_object(self) -> Category:
-        return self.category
+    def get_translated_object_id(self):
+        return "Category", self.category_id
 
     def get_translated_keys(self):
         translated_keys = super().get_translated_keys()
@@ -444,8 +444,8 @@ class ProductTranslation(SeoModelTranslation):
             self.product_id,
         )
 
-    def get_translated_object(self) -> Product:
-        return self.product
+    def get_translated_object_id(self):
+        return "Product", self.product_id
 
     def get_translated_keys(self):
         translated_keys = super().get_translated_keys()
@@ -614,8 +614,8 @@ class ProductVariantTranslation(Translation):
     def __str__(self):
         return self.name or str(self.product_variant)
 
-    def get_translated_object(self) -> ProductVariant:
-        return self.product_variant
+    def get_translated_object_id(self):
+        return "ProductVariant", self.product_variant_id
 
     def get_translated_keys(self):
         return {"name": self.name}
@@ -841,8 +841,8 @@ class CollectionTranslation(SeoModelTranslation):
     def __str__(self) -> str:
         return self.name if self.name else str(self.pk)
 
-    def get_translated_object(self) -> Collection:
-        return self.collection
+    def get_translated_object_id(self):
+        return "Collection", self.collection_id
 
     def get_translated_keys(self):
         translated_keys = super().get_translated_keys()

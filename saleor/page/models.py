@@ -52,8 +52,8 @@ class PageTranslation(SeoModelTranslation):
     def __str__(self):
         return self.title if self.title else str(self.pk)
 
-    def get_translated_object(self) -> Page:
-        return self.page
+    def get_translated_object_id(self):
+        return "Page", self.page_id
 
     def get_translated_keys(self):
         translated_keys = super().get_translated_keys()
