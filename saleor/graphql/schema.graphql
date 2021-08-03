@@ -6119,6 +6119,8 @@ enum WebhookEventTypeEnum {
   PAYMENT_PROCESS
   PAYMENT_REFUND
   PAYMENT_VOID
+  TRANSLATION_CREATED
+  TRANSLATION_UPDATED
 }
 
 enum WebhookSampleEventTypeEnum {
@@ -6153,6 +6155,8 @@ enum WebhookSampleEventTypeEnum {
   PAYMENT_PROCESS
   PAYMENT_REFUND
   PAYMENT_VOID
+  TRANSLATION_CREATED
+  TRANSLATION_UPDATED
 }
 
 type WebhookUpdate {
