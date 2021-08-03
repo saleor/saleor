@@ -25,6 +25,7 @@ def test_app_extensions(
             target
             id
             type
+            accessToken
             permissions{
               code
             }
@@ -67,7 +68,7 @@ def test_app_extensions(
 
     # when
     response = staff_api_client.post_graphql(
-        query,
+        query, permissions=[permission_manage_products], check_no_permissions=False
     )
 
     # then
@@ -119,6 +120,7 @@ def test_app_extensions_with_filter(
             target
             id
             type
+            accessToken
             permissions{
               code
             }
@@ -162,6 +164,8 @@ def test_app_extensions_with_filter(
     response = staff_api_client.post_graphql(
         query,
         variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
     )
 
     # then
