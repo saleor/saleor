@@ -1,8 +1,11 @@
+from typing import List
+
 import graphene
 from django.conf import settings
 
 from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
+from ...attribute.models import AttributeValue
 from ...core.permissions import DiscountPermissions, ShippingPermissions
 from ...core.tracing import traced_resolver
 from ...discount import models as discount_models
@@ -32,6 +35,20 @@ EXTENDED_TRANSLATABLE_FIELDS = [
     "seo_title",
     "seo_description",
 ]
+
+
+def get_translatable_attribute_values(attributes: list) -> List[AttributeValue]:
+    """Filter the list of passed attributes.
+
+    Return those which are translatable attributes.
+    """
+    translatable_values = []
+    for assignment in attributes:
+        attr = assignment["attribute"]
+        if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
+            value = assignment["values"][0]
+            translatable_values.append(value)
+    return translatable_values
 
 
 class BaseTranslationType(CountableDjangoObjectType):
@@ -150,20 +167,11 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
         return ChannelContext(node=root, channel_slug=None)
 
     @staticmethod
-    def resolve_attribute_values(root: product_models.ProductVariant, _info):
-        def func(attributes):
-            translatable_values = []
-            for assignment in attributes:
-                attr = assignment["attribute"]
-                if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
-                    value = assignment["values"][0]
-                    translatable_values.append(value)
-            return translatable_values
-
+    def resolve_attribute_values(root: product_models.ProductVariant, info):
         return (
-            SelectedAttributesByProductVariantIdLoader(_info.context)
+            SelectedAttributesByProductVariantIdLoader(info.context)
             .load(root.id)
-            .then(func)
+            .then(get_translatable_attribute_values)
         )
 
 
@@ -222,18 +230,11 @@ class ProductTranslatableContent(CountableDjangoObjectType):
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_attribute_values(root: product_models.Product, _info):
-        def func(attributes):
-            translatable_values = []
-            for assignment in attributes:
-                attr = assignment["attribute"]
-                if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
-                    value = assignment["values"][0]
-                    translatable_values.append(value)
-            return translatable_values
-
+    def resolve_attribute_values(root: product_models.Product, info):
         return (
-            SelectedAttributesByProductIdLoader(_info.context).load(root.id).then(func)
+            SelectedAttributesByProductIdLoader(info.context)
+            .load(root.id)
+            .then(get_translatable_attribute_values)
         )
 
 
@@ -414,17 +415,12 @@ class PageTranslatableContent(CountableDjangoObjectType):
         return content if content is not None else {}
 
     @staticmethod
-    def resolve_attribute_values(root: page_models.Page, _info):
-        def func(attributes):
-            translatable_values = []
-            for assignment in attributes:
-                attr = assignment["attribute"]
-                if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
-                    value = assignment["values"][0]
-                    translatable_values.append(value)
-            return translatable_values
-
-        return SelectedAttributesByPageIdLoader(_info.context).load(root.id).then(func)
+    def resolve_attribute_values(root: page_models.Page, info):
+        return (
+            SelectedAttributesByPageIdLoader(info.context)
+            .load(root.id)
+            .then(get_translatable_attribute_values)
+        )
 
 
 class VoucherTranslation(BaseTranslationType):
