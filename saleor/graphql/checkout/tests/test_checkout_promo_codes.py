@@ -712,7 +712,7 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
-    assert shipping_method_id not in data["checkout"]["shippingMethod"]
+    assert shipping_method_id != data["checkout"]["shippingMethod"]["id"]
     assert shipping_method_id not in data["checkout"]["availableShippingMethods"]
 
 
