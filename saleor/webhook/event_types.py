@@ -5,6 +5,7 @@ from ..core.permissions import (
     PagePermissions,
     PaymentPermissions,
     ProductPermissions,
+    SitePermissions,
 )
 
 
@@ -51,6 +52,9 @@ class WebhookEventType:
     PAYMENT_CONFIRM = "payment_confirm"
     PAYMENT_PROCESS = "payment_process"
 
+    TRANSLATION_CREATED = "translation_created"
+    TRANSLATION_UPDATED = "translation_updated"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         ORDER_CREATED: "Order created",
@@ -84,6 +88,8 @@ class WebhookEventType:
         PAYMENT_PROCESS: "Process payment",
         PAYMENT_REFUND: "Refund payment",
         PAYMENT_VOID: "Void payment",
+        TRANSLATION_CREATED: "Create translation",
+        TRANSLATION_UPDATED: "Update translation",
     }
 
     CHOICES = [
@@ -119,6 +125,8 @@ class WebhookEventType:
         (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
         (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
         (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
+        (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
+        (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
     ]
 
     PAYMENT_EVENTS = [
@@ -163,4 +171,6 @@ class WebhookEventType:
         PAYMENT_PROCESS: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_REFUND: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
+        TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
     }
