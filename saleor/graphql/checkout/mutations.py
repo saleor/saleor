@@ -7,8 +7,6 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 
-from saleor.graphql.core.utils import from_global_id_or_error
-
 from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
@@ -50,6 +48,7 @@ from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import UUID
 from ..core.types.common import CheckoutError
+from ..core.utils import from_global_id_or_error
 from ..core.validators import (
     validate_one_of_args_is_in_mutation,
     validate_variants_available_in_channel,

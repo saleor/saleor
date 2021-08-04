@@ -24,8 +24,6 @@ from django_countries import countries
 from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
-from saleor.warehouse import WarehouseClickAndCollectOption
-
 from ..account.models import Address, StaffNotificationRecipient, User
 from ..app.models import App, AppExtension, AppInstallation
 from ..app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
@@ -110,6 +108,7 @@ from ..shipping.models import (
     ShippingZone,
 )
 from ..site.models import SiteSettings
+from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Allocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
 from ..webhook.models import Webhook, WebhookEvent
