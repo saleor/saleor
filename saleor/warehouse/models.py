@@ -33,6 +33,13 @@ class WarehouseQueryset(models.QuerySet):
     def applicable_for_click_and_collect_no_quantity_check(
         self, lines_qs: QuerySet[CheckoutLine], country: str
     ):
+        """Return the queryset of a `Warehouse` which are applicable for click and collect.
+
+        Note this method does not check stocks quantity for given `CheckoutLine`s.
+        This method should be used only if stocks quantity will be checked in further
+        validation steps, for instance in checkout completion.
+        """
+
         stocks_qs = Stock.objects.filter(
             product_variant__id__in=lines_qs.values("variant_id"),
         ).select_related("product_variant")
@@ -42,6 +49,13 @@ class WarehouseQueryset(models.QuerySet):
     def applicable_for_click_and_collect(
         self, lines_qs: QuerySet[CheckoutLine], country: str
     ) -> QuerySet["Warehouse"]:
+        """Return the queryset of a `Warehouse` which are applicable for click and collect.
+
+        Note additional check of stocks quantity for given `CheckoutLine`s.
+        For `WarehouseClickAndCollect.LOCAL` all `CheckoutLine`s must be available from
+        a single warehouse.
+        """
+
         lines_quantity = (
             lines_qs.filter(variant_id=OuterRef("product_variant_id"))
             .annotate(prod_sum=Sum("quantity"))

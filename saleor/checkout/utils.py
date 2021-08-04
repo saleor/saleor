@@ -610,6 +610,13 @@ def get_valid_collection_points_for_checkout(
     country_code: Optional[str] = None,
     quantity_check: bool = True,
 ):
+    """Return a collection of `Warehouse`s that can be used as a collection point.
+
+    Note that `quantity_check=False` should be used, when stocks quantity will
+    be validated in further steps (checkout completion) in order to raise
+    'InsufficientProductStock' error instead of 'InvalidShippingError'.
+    """
+
     if not is_shipping_required(lines):
         return []
     if not checkout_info.shipping_address:
