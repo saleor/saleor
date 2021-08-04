@@ -26,7 +26,11 @@ from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
-from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
+from ...order.utils import (
+    get_order_country,
+    get_valid_collection_points_for_order,
+    get_valid_shipping_methods_for_order,
+)
 from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import (
@@ -615,6 +619,11 @@ class Order(CountableDjangoObjectType):
         required=False,
         description="Shipping methods that can be used with this order.",
     )
+    available_collection_points = graphene.List(
+        graphene.NonNull(Warehouse),
+        required=True,
+        description="Collection points that can be used for this order.",
+    )
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
     )
@@ -1092,6 +1101,17 @@ class Order(CountableDjangoObjectType):
         ]
 
         return instances
+
+    @staticmethod
+    def resolve_available_collection_points(root: models.Order, info):
+        def get_available_collection_points(data):
+            lines, address = data
+
+            return get_valid_collection_points_for_order(lines, address)
+
+        lines = Order.resolve_lines(root, info)
+        address = Order.resolve_shipping_address(root, info)
+        return Promise.all([lines, address]).then(get_available_collection_points)
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):
