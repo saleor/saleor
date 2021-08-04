@@ -3,6 +3,7 @@ import pytest
 from django.db.models import Q
 from graphene.utils.str_converters import to_camel_case
 
+from .....attribute import AttributeInputType, AttributeType
 from .....attribute.models import Attribute
 from .....product.models import Category, Collection, Product, ProductType
 from .....tests.utils import dummy_editorjs
@@ -573,3 +574,51 @@ def test_attributes_in_collection_query(
     expected_flat_attributes_data = list(expected_qs.values_list("slug", flat=True))
 
     assert flat_attributes_data == expected_flat_attributes_data
+
+
+@pytest.mark.parametrize(
+    "input_type, expected_with_choice_return",
+    [
+        (AttributeInputType.DROPDOWN, True),
+        (AttributeInputType.MULTISELECT, True),
+        (AttributeInputType.FILE, False),
+        (AttributeInputType.REFERENCE, False),
+        (AttributeInputType.NUMERIC, False),
+        (AttributeInputType.RICH_TEXT, False),
+        (AttributeInputType.BOOLEAN, False),
+    ],
+)
+def test_attributes_with_choice_flag(
+    user_api_client,
+    input_type,
+    expected_with_choice_return,
+):
+    attribute = Attribute.objects.create(
+        slug=input_type,
+        name=input_type.upper(),
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=input_type,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+
+    attribute_gql_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    query = """
+    query($id: ID!) {
+        attribute(id: $id) {
+            id
+            inputType
+            withChoices
+
+        }
+    }
+    """
+    content = get_graphql_content(
+        user_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+    assert content["data"]["attribute"]["id"] == attribute_gql_id
+    assert content["data"]["attribute"]["inputType"] == input_type.upper().replace(
+        "-", "_"
+    )
+    assert content["data"]["attribute"]["withChoices"] == expected_with_choice_return

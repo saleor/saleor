@@ -24,6 +24,7 @@ from ..payloads import (
     generate_order_payload,
     generate_payment_payload,
     generate_product_variant_payload,
+    generate_translation_payload,
 )
 
 
@@ -372,3 +373,28 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data):
         dummy_webhook_app_payment_data.gateway
     ).name
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
+
+
+def test_generate_product_translation_payload(product_translation_fr):
+    payload = generate_translation_payload(product_translation_fr)
+    data = json.loads(payload)
+    assert data["id"] == graphene.Node.to_global_id(
+        "Product", product_translation_fr.product_id
+    )
+    assert data["language_code"] == product_translation_fr.language_code
+
+    translation_keys = {i["key"]: i["value"] for i in data["keys"]}
+    assert translation_keys["name"] == product_translation_fr.name
+    assert translation_keys["description"] == product_translation_fr.description
+
+
+def test_generate_product_variant_translation_payload(variant_translation_fr):
+    payload = generate_translation_payload(variant_translation_fr)
+    data = json.loads(payload)
+    assert data["id"] == graphene.Node.to_global_id(
+        "ProductVariant", variant_translation_fr.product_variant_id
+    )
+    assert data["language_code"] == variant_translation_fr.language_code
+
+    translation_keys = {i["key"]: i["value"] for i in data["keys"]}
+    assert translation_keys["name"] == variant_translation_fr.name
