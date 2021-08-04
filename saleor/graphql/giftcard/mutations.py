@@ -8,6 +8,7 @@ from ...core.utils.promo_code import generate_promo_code
 from ...core.utils.validators import date_passed, user_is_valid
 from ...giftcard import GiftCardExpiryType, events, models
 from ...giftcard.error_codes import GiftCardErrorCode
+from ...giftcard.notifications import send_gift_card_notification
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
@@ -183,11 +184,14 @@ class GiftCardCreate(ModelMutation):
         cleaned_input["initial_balance_amount"] = amount
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info, instance, _cleaned_input):
         events.gift_card_issued_event(
             gift_card=instance,
             user=info.context.user,
             app=info.context.app,
+        )
+        send_gift_card_notification(
+            info.context.user.email, instance, info.context.plugins
         )
 
 
