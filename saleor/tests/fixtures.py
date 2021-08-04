@@ -4012,18 +4012,18 @@ def warehouse(address, shipping_zone):
 
 
 @pytest.fixture
-def warehouses(address):
+def warehouses(address, address_usa):
     return Warehouse.objects.bulk_create(
         [
             Warehouse(
                 address=address.get_copy(),
-                name="Warehouse1",
+                name="Warehouse PL",
                 slug="warehouse1",
                 email="warehouse1@example.com",
             ),
             Warehouse(
-                address=address.get_copy(),
-                name="Warehouse2",
+                address=address_usa.get_copy(),
+                name="Warehouse USA",
                 slug="warehouse2",
                 email="warehouse2@example.com",
             ),

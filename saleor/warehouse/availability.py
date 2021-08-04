@@ -8,7 +8,7 @@ from ..core.exceptions import InsufficientStock, InsufficientStockData
 from .models import Stock, StockQuerySet
 
 if TYPE_CHECKING:
-    from ..product.models import Product, ProductVariant
+    from ..product.models import ProductVariant
 
 
 def _get_available_quantity(stocks: StockQuerySet) -> int:
@@ -84,13 +84,3 @@ def check_stock_quantity_bulk(
 
     if insufficient_stocks:
         raise InsufficientStock(insufficient_stocks)
-
-
-def is_product_in_stock(
-    product: "Product", country_code: str, channel_slug: str
-) -> bool:
-    """Check if there is any variant of given product available in given country."""
-    stocks = Stock.objects.get_product_stocks_for_country_and_channel(
-        country_code, channel_slug, product
-    ).annotate_available_quantity()
-    return any(stocks.values_list("available_quantity", flat=True))

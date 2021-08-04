@@ -147,10 +147,9 @@ def get_product_availability(
     discounts: Iterable[DiscountInfo],
     channel: Channel,
     manager: "PluginsManager",
-    country: Optional[Country] = None,
+    country: Country,
     local_currency: Optional[str] = None,
 ) -> ProductAvailability:
-    country = country or Country(settings.DEFAULT_COUNTRY)
     with opentracing.global_tracer().start_active_span("get_product_availability"):
         channel_slug = channel.slug
 
@@ -237,10 +236,9 @@ def get_variant_availability(
     discounts: Iterable[DiscountInfo],
     channel: Channel,
     plugins: "PluginsManager",
-    country: Optional[Country] = None,
+    country: Country,
     local_currency: Optional[str] = None,
 ) -> VariantAvailability:
-    country = country or Country(settings.DEFAULT_COUNTRY)
     with opentracing.global_tracer().start_active_span("get_variant_availability"):
         channel_slug = channel.slug
         discounted = plugins.apply_taxes_to_product(
