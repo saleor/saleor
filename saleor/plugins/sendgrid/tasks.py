@@ -295,6 +295,21 @@ def send_order_refund_email_task(payload: dict, configuration: dict):
     retry_kwargs={"max_retries": CELERY_RETRY_MAX},
     compression="zlib",
 )
+def send_gift_card_email_task(payload: dict, configuration: dict):
+    configuration = SendgridConfiguration(**configuration)
+    send_email(
+        configuration=configuration,
+        template_id=configuration.send_gift_card_template_id,
+        payload=payload,
+    )
+
+
+@app.task(
+    autoretry_for=(SendGridException,),
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
+    compression="zlib",
+)
 def send_order_confirmed_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
     send_email(
