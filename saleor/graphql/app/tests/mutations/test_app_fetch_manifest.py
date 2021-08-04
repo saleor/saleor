@@ -358,12 +358,25 @@ def test_app_fetch_manifest_extensions_incorrect_enum_values(
     content = get_graphql_content(response)
     errors = content["data"]["appFetchManifest"]["errors"]
 
-    assert len(errors) == 1
-    assert errors[0] == {
-        "code": "INVALID",
-        "field": "extensions",
-        "message": f"Incorrect value for field: {incorrect_field}",
-    }
+    assert len(errors) == 2
+    expected_errors = [
+        {
+            "code": "INVALID",
+            "field": "extensions",
+            "message": f"Incorrect value for field: {incorrect_field}",
+        },
+        {
+            "field": "extensions",
+            "message": (
+                "Incorrect configuration of app extension for fields: view, type and "
+                "target."
+            ),
+            "code": "INVALID",
+        },
+    ]
+
+    assert errors[0] in expected_errors
+    assert errors[1] in expected_errors
 
 
 @pytest.mark.parametrize(

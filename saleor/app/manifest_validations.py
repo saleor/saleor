@@ -18,6 +18,22 @@ from .validators import AppURLValidator
 T_ERRORS = Dict[str, List[ValidationError]]
 
 
+AVAILABLE_APP_EXTENSION_CONFIGS = {
+    AppExtensionType.DETAILS: {
+        AppExtensionView.PRODUCT: [
+            AppExtensionTarget.CREATE,
+            AppExtensionTarget.MORE_ACTIONS,
+        ]
+    },
+    AppExtensionType.OVERVIEW: {
+        AppExtensionView.PRODUCT: [
+            AppExtensionTarget.CREATE,
+            AppExtensionTarget.MORE_ACTIONS,
+        ]
+    },
+}
+
+
 def _clean_app_url(url):
     url_validator = AppURLValidator()
     url_validator(url)
@@ -105,6 +121,28 @@ def _clean_extension_permissions(extension, app_permissions, errors):
     extension["permissions"] = extension_permissions
 
 
+def _validate_configuration(extension, errors):
+
+    available_config_for_type = AVAILABLE_APP_EXTENSION_CONFIGS.get(
+        extension["type"], {}
+    )
+    available_config_for_type_and_view = available_config_for_type.get(
+        extension["view"], []
+    )
+
+    if extension["target"] not in available_config_for_type_and_view:
+        msg = (
+            "Incorrect configuration of app extension for fields: view, type and "
+            "target."
+        )
+        errors["extensions"].append(
+            ValidationError(
+                msg,
+                code=AppErrorCode.INVALID.value,
+            )
+        )
+
+
 def clean_extensions(manifest_data, app_permissions, errors):
     extensions = manifest_data.get("extensions", [])
     enum_map = [
@@ -112,7 +150,7 @@ def clean_extensions(manifest_data, app_permissions, errors):
         (AppExtensionType, "type"),
         (AppExtensionTarget, "target"),
     ]
-    for index, extension in enumerate(extensions):
+    for extension in extensions:
         for extension_enum, key in enum_map:
             if extension[key] in [code.upper() for code, _ in extension_enum.CHOICES]:
                 extension[key] = getattr(extension_enum, extension[key])
@@ -133,7 +171,7 @@ def clean_extensions(manifest_data, app_permissions, errors):
                     code=AppErrorCode.INVALID_URL_FORMAT.value,
                 )
             )
-
+        _validate_configuration(extension, errors)
         _clean_extension_permissions(extension, app_permissions, errors)
 
 
