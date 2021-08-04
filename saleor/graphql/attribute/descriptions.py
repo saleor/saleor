@@ -20,6 +20,7 @@ class AttributeDescriptions:
     AVAILABLE_IN_GRID = (
         "Whether the attribute can be displayed in the admin product list."
     )
+    WITH_CHOICES = "Flag indicating that attribute has predefined choices."
 
 
 class AttributeValueDescriptions:
@@ -29,6 +30,10 @@ class AttributeValueDescriptions:
     TYPE = "Type of value (used only when `value` field is set)."
     FILE = "Represents file URL and content type (if attribute value is a file)."
     VALUES_RANGE = "The range that the returned values should be in."
+    DATE_TIME_RANGE = "The date time range that the returned values should be in."
+    DATE_RANGE = "The date range that the returned values should be in."
     VALUE = "Represents the value of the attribute value."
     RICH_TEXT = "Represents the text (JSON) of the attribute value."
     BOOLEAN = "Represents the boolean value of the attribute value."
+    DATE = "Represents the date value of the attribute value."
+    DATE_TIME = "Represents the date time value of the attribute value."
