@@ -198,6 +198,33 @@ def send_set_user_password_email_task(recipient_email, payload, config):
 
 
 @app.task(compression="zlib")
+def send_gift_card_email_task(recipient_email, payload, config):
+    email_config = EmailConfig(**config)
+
+    plugin_configuration = get_plugin_configuration()
+    email_template_str = get_email_template_or_default(
+        plugin_configuration,
+        constants.SEND_GIFT_CARD_TEMPLATE_FIELD,
+        constants.SEND_GIFT_CARD_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
+    )
+
+    subject = get_email_subject(
+        plugin_configuration,
+        constants.SEND_GIFT_CARD_SUBJECT_FIELD,
+        constants.SEND_GIFT_CARD_DEFAULT_SUBJECT,
+    )
+
+    send_email(
+        config=email_config,
+        recipient_list=[recipient_email],
+        context=payload,
+        subject=subject,
+        template_str=email_template_str,
+    )
+
+
+@app.task(compression="zlib")
 def send_invoice_email_task(recipient_email, payload, config):
     """Send an invoice to user of related order with URL to download it."""
     email_config = EmailConfig(**config)
