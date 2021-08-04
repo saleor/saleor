@@ -37,7 +37,7 @@ class DummyGatewayPlugin(BasePlugin):
         },
         "Automatic payment capture": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should automaticaly capture payments.",
+            "help_text": "Determines if Saleor should automatically capture payments.",
             "label": "Automatic payment capture",
         },
         "Supported currencies": {

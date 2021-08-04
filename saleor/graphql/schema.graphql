@@ -421,6 +421,7 @@ type Attribute implements Node & ObjectWithMetadata {
   availableInGrid: Boolean!
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
   storefrontSearchPosition: Int!
+  withChoices: Boolean!
 }
 
 type AttributeBulkDelete {
@@ -512,12 +513,15 @@ input AttributeFilterInput {
   type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
+  channel: String
 }
 
 input AttributeInput {
   slug: String!
   values: [String]
   valuesRange: IntRangeInput
+  dateTime: DateTimeRangeInput
+  date: DateRangeInput
   boolean: Boolean
 }
 
@@ -529,6 +533,8 @@ enum AttributeInputTypeEnum {
   NUMERIC
   RICH_TEXT
   BOOLEAN
+  DATE
+  DATE_TIME
 }
 
 type AttributeReorderValues {
@@ -610,6 +616,8 @@ type AttributeValue implements Node {
   file: File
   richText: JSONString
   boolean: Boolean
+  date: Date
+  dateTime: DateTime
 }
 
 type AttributeValueBulkDelete {
@@ -661,11 +669,14 @@ input AttributeValueInput {
   references: [ID!]
   richText: JSONString
   boolean: Boolean
+  date: Date
+  dateTime: DateTime
 }
 
 type AttributeValueTranslatableContent implements Node {
   id: ID!
   name: String!
+  richText: JSONString
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
   attributeValue: AttributeValue @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
@@ -697,7 +708,8 @@ type AttributeValueUpdate {
 
 input BulkAttributeValueInput {
   id: ID
-  values: [String!]!
+  values: [String!]
+  boolean: Boolean
 }
 
 type BulkProductError {
@@ -797,6 +809,7 @@ enum CategorySortField {
 
 input CategorySortingInput {
   direction: OrderDirection!
+  channel: String
   field: CategorySortField!
 }
 
@@ -1230,6 +1243,7 @@ input CollectionFilterInput {
   search: String
   metadata: [MetadataFilter]
   ids: [ID]
+  channel: String
 }
 
 input CollectionInput {
@@ -1269,6 +1283,7 @@ enum CollectionSortField {
 
 input CollectionSortingInput {
   direction: OrderDirection!
+  channel: String
   field: CollectionSortField!
 }
 
@@ -3677,6 +3692,7 @@ type PageTranslatableContent implements Node {
   contentJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   page: Page @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
+  attributeValues: [AttributeValueTranslatableContent!]!
 }
 
 type PageTranslate {
@@ -4293,6 +4309,7 @@ input ProductFilterInput {
   minimalPrice: PriceRangeInput
   productTypes: [ID]
   ids: [ID]
+  channel: String
 }
 
 type ProductImage {
@@ -4377,6 +4394,7 @@ input ProductMediaUpdateInput {
 
 input ProductOrder {
   direction: OrderDirection!
+  channel: String
   attributeId: ID
   field: ProductOrderField
 }
@@ -4423,6 +4441,7 @@ type ProductTranslatableContent implements Node {
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   product: Product @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
+  attributeValues: [AttributeValueTranslatableContent!]!
 }
 
 type ProductTranslate {
@@ -4697,6 +4716,7 @@ type ProductVariantTranslatableContent implements Node {
   name: String!
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   productVariant: ProductVariant @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
+  attributeValues: [AttributeValueTranslatableContent!]!
 }
 
 type ProductVariantTranslate {
@@ -4942,6 +4962,7 @@ enum SaleSortField {
 
 input SaleSortingInput {
   direction: OrderDirection!
+  channel: String
   field: SaleSortField!
 }
 
@@ -5891,6 +5912,7 @@ enum VoucherSortField {
 
 input VoucherSortingInput {
   direction: OrderDirection!
+  channel: String
   field: VoucherSortField!
 }
 
@@ -6105,6 +6127,8 @@ enum WebhookEventTypeEnum {
   PAYMENT_PROCESS
   PAYMENT_REFUND
   PAYMENT_VOID
+  TRANSLATION_CREATED
+  TRANSLATION_UPDATED
 }
 
 enum WebhookSampleEventTypeEnum {
@@ -6139,6 +6163,8 @@ enum WebhookSampleEventTypeEnum {
   PAYMENT_PROCESS
   PAYMENT_REFUND
   PAYMENT_VOID
+  TRANSLATION_CREATED
+  TRANSLATION_UPDATED
 }
 
 type WebhookUpdate {

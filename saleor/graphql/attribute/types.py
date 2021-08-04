@@ -11,7 +11,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import FilterInputConnectionField
 from ..core.types import File
-from ..core.types.common import IntRangeInput
+from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
@@ -43,6 +43,10 @@ class AttributeValue(CountableDjangoObjectType):
     )
     boolean = graphene.Boolean(
         description=AttributeValueDescriptions.BOOLEAN, required=False
+    )
+    date = graphene.Date(description=AttributeValueDescriptions.DATE, required=False)
+    date_time = graphene.DateTime(
+        description=AttributeValueDescriptions.DATE_TIME, required=False
     )
 
     class Meta:
@@ -93,6 +97,18 @@ class AttributeValue(CountableDjangoObjectType):
             .then(prepare_reference)
         )
 
+    @staticmethod
+    def resolve_date_time(root: models.AttributeValue, info, **_kwargs):
+        if root.attribute.input_type == AttributeInputType.DATE_TIME:
+            return root.date_time
+        return None
+
+    @staticmethod
+    def resolve_date(root: models.AttributeValue, info, **_kwargs):
+        if root.attribute.input_type == AttributeInputType.DATE:
+            return root.date_time
+        return None
+
 
 class Attribute(CountableDjangoObjectType):
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
@@ -133,6 +149,9 @@ class Attribute(CountableDjangoObjectType):
 
     storefront_search_position = graphene.Int(
         description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION, required=True
+    )
+    with_choices = graphene.Boolean(
+        description=AttributeDescriptions.WITH_CHOICES, required=True
     )
 
     class Meta:
@@ -180,6 +199,10 @@ class Attribute(CountableDjangoObjectType):
     def resolve_available_in_grid(root: models.Attribute, *_args):
         return root.available_in_grid
 
+    @staticmethod
+    def resolve_with_choices(root: models.Attribute, *_args):
+        return root.input_type in AttributeInputType.TYPES_WITH_CHOICES
+
 
 class SelectedAttribute(graphene.ObjectType):
     attribute = graphene.Field(
@@ -205,6 +228,16 @@ class AttributeInput(graphene.InputObjectType):
         IntRangeInput,
         required=False,
         description=AttributeValueDescriptions.VALUES_RANGE,
+    )
+    date_time = graphene.Field(
+        DateTimeRangeInput,
+        required=False,
+        description=AttributeValueDescriptions.DATE_TIME_RANGE,
+    )
+    date = graphene.Field(
+        DateRangeInput,
+        required=False,
+        description=AttributeValueDescriptions.DATE_RANGE,
     )
     boolean = graphene.Boolean(
         required=False, description=AttributeDescriptions.BOOLEAN
@@ -236,4 +269,8 @@ class AttributeValueInput(graphene.InputObjectType):
     )
     boolean = graphene.Boolean(
         required=False, description=AttributeValueDescriptions.BOOLEAN
+    )
+    date = graphene.Date(required=False, description=AttributeValueDescriptions.DATE)
+    date_time = graphene.DateTime(
+        required=False, description=AttributeValueDescriptions.DATE_TIME
     )

@@ -44,7 +44,7 @@ from ..core.units import WeightUnits
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.editorjs import clean_editor_js
-from ..core.utils.translations import TranslationProxy
+from ..core.utils.translations import Translation, TranslationProxy
 from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
@@ -81,7 +81,6 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
 
 
 class CategoryTranslation(SeoModelTranslation):
-    language_code = models.CharField(max_length=10)
     category = models.ForeignKey(
         Category, related_name="translations", on_delete=models.CASCADE
     )
@@ -102,6 +101,19 @@ class CategoryTranslation(SeoModelTranslation):
             self.name,
             self.category_id,
         )
+
+    def get_translated_object_id(self):
+        return "Category", self.category_id
+
+    def get_translated_keys(self):
+        translated_keys = super().get_translated_keys()
+        translated_keys.update(
+            {
+                "name": self.name,
+                "description": self.description,
+            }
+        )
+        return translated_keys
 
 
 class ProductType(ModelWithMetadata):
@@ -411,7 +423,6 @@ class Product(SeoModel, ModelWithMetadata):
 
 
 class ProductTranslation(SeoModelTranslation):
-    language_code = models.CharField(max_length=10)
     product = models.ForeignKey(
         Product, related_name="translations", on_delete=models.CASCADE
     )
@@ -432,6 +443,19 @@ class ProductTranslation(SeoModelTranslation):
             self.name,
             self.product_id,
         )
+
+    def get_translated_object_id(self):
+        return "Product", self.product_id
+
+    def get_translated_keys(self):
+        translated_keys = super().get_translated_keys()
+        translated_keys.update(
+            {
+                "name": self.name,
+                "description": self.description,
+            }
+        )
+        return translated_keys
 
 
 class ProductVariantQueryset(models.QuerySet):
@@ -567,8 +591,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         return self.product.variants.all()
 
 
-class ProductVariantTranslation(models.Model):
-    language_code = models.CharField(max_length=10)
+class ProductVariantTranslation(Translation):
     product_variant = models.ForeignKey(
         ProductVariant, related_name="translations", on_delete=models.CASCADE
     )
@@ -590,6 +613,12 @@ class ProductVariantTranslation(models.Model):
 
     def __str__(self):
         return self.name or str(self.product_variant)
+
+    def get_translated_object_id(self):
+        return "ProductVariant", self.product_variant_id
+
+    def get_translated_keys(self):
+        return {"name": self.name}
 
 
 class ProductVariantChannelListing(models.Model):
@@ -791,7 +820,6 @@ class CollectionChannelListing(PublishableModel):
 
 
 class CollectionTranslation(SeoModelTranslation):
-    language_code = models.CharField(max_length=10)
     collection = models.ForeignKey(
         Collection, related_name="translations", on_delete=models.CASCADE
     )
@@ -812,3 +840,16 @@ class CollectionTranslation(SeoModelTranslation):
 
     def __str__(self) -> str:
         return self.name if self.name else str(self.pk)
+
+    def get_translated_object_id(self):
+        return "Collection", self.collection_id
+
+    def get_translated_keys(self):
+        translated_keys = super().get_translated_keys()
+        translated_keys.update(
+            {
+                "name": self.name,
+                "description": self.description,
+            }
+        )
+        return translated_keys
