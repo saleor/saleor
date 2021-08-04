@@ -113,6 +113,19 @@ def send_set_user_password_email_task(
 
 
 @app.task(compression="zlib")
+def send_gift_card_email_task(recipient_email, payload, config, subject, template):
+    email_config = EmailConfig(**config)
+
+    send_email(
+        config=email_config,
+        recipient_list=[recipient_email],
+        context=payload,
+        subject=subject,
+        template_str=template,
+    )
+
+
+@app.task(compression="zlib")
 def send_invoice_email_task(recipient_email, payload, config, subject, template):
     """Send an invoice to user of related order with URL to download it."""
     email_config = EmailConfig(**config)
