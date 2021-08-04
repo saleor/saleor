@@ -124,10 +124,6 @@ class ProductTranslate(BaseTranslateMutation):
         def on_commit():
             if created:
                 info.context.plugins.translation_created(translation)
-                print(
-                    "info.context.plugins.translation_created(translation)",
-                    info.context.plugins.translation_created,
-                )
             else:
                 info.context.plugins.translation_updated(translation)
 

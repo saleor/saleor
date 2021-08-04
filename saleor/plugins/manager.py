@@ -122,7 +122,6 @@ class PluginsManager(PaymentInterface):
         ):
             value = default_value
             plugins = self.get_plugins(channel_slug=channel_slug)
-            print(plugins)
             for plugin in plugins:
                 value = self.__run_method_on_single_plugin(
                     plugin, method_name, value, *args, **kwargs
@@ -729,14 +728,12 @@ class PluginsManager(PaymentInterface):
         raise Exception(f"Payment plugin {gateway} is inaccessible!")
 
     def translation_created(self, translation: "Translation"):
-        print("translation_created")
         default_value = None
         return self.__run_method_on_plugins(
             "translation_created", default_value, translation
         )
 
     def translation_updated(self, translation: "Translation"):
-        print("translation_updated")
         default_value = None
         return self.__run_method_on_plugins(
             "translation_updated", default_value, translation
