@@ -127,6 +127,7 @@ def test_get_channels_headers(channel_USD, channel_PLN):
             "price amount",
             "variant currency code",
             "variant cost price",
+            "variant preorder quantity threshold",
         ]:
             expected_headers.append(f"{channel_slug} (channel {field})")
     assert channel_headers == expected_headers
@@ -200,6 +201,7 @@ def test_get_export_fields_and_headers_info(
             "price amount",
             "variant currency code",
             "variant cost price",
+            "variant preorder quantity threshold",
         ]:
             channel_headers.append(f"{slug} (channel {field})")
 
