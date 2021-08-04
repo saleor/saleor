@@ -20,6 +20,7 @@ from ..tasks import (
     send_email,
     send_fulfillment_confirmation_email_task,
     send_fulfillment_update_email_task,
+    send_gift_card_email_task,
     send_invoice_email_task,
     send_order_canceled_email_task,
     send_order_confirmation_email_task,
@@ -52,7 +53,7 @@ def test_send_email(
     mocked_api_client, mocked_mail, sendgrid_email_plugin, sample_payload
 ):
     plugin = sendgrid_email_plugin(
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
         api_key="123",
     )
@@ -125,7 +126,7 @@ def test_send_password_reset_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         account_password_reset_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -162,7 +163,7 @@ def test_send_request_email_change_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         account_change_email_request_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -201,7 +202,7 @@ def test_send_user_change_email_notification_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         account_change_email_confirm_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -241,7 +242,7 @@ def test_send_account_delete_confirmation_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         account_delete_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -274,7 +275,7 @@ def test_send_set_user_password_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         account_set_customer_password_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -312,7 +313,7 @@ def test_send_invoice_email_task_by_user(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         invoice_ready_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -359,7 +360,7 @@ def test_send_invoice_email_task_by_app(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         invoice_ready_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -398,7 +399,7 @@ def test_send_order_confirmation_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -431,7 +432,7 @@ def test_send_fulfillment_confirmation_email_task_by_user(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_fulfillment_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -466,7 +467,7 @@ def test_send_fulfillment_confirmation_email_task_by_app(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_fulfillment_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -499,7 +500,7 @@ def test_send_fulfillment_update_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_fulfillment_update_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -537,7 +538,7 @@ def test_send_payment_confirmation_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_payment_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -576,7 +577,7 @@ def test_send_order_canceled_email_task_by_user(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_canceled_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -617,7 +618,7 @@ def test_send_order_canceled_email_task_by_app(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_canceled_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -660,7 +661,7 @@ def test_send_order_refund_email_task_by_user(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_refund_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -703,7 +704,7 @@ def test_send_order_refund_email_task_by_app(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_refund_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -723,6 +724,70 @@ def test_send_order_refund_email_task_by_app(
     }
     assert not order_event.user
     assert order_event.app == app
+
+
+@patch("saleor.plugins.sendgrid.tasks.send_email")
+def test_send_gift_card_email_task_by_user(
+    mocked_send_email, staff_user, order, sendgrid_email_plugin
+):
+    template_id = "ABC1"
+
+    recipient_email = "user@example.com"
+    payload = {
+        "order": get_default_order_payload(order, "http://localhost:8000/redirect"),
+        "recipient_email": recipient_email,
+        "site_name": "Saleor",
+        "domain": "localhost:8000",
+        "requester_user_id": staff_user.pk,
+        "requester_app_id": None,
+    }
+
+    plugin = sendgrid_email_plugin(
+        api_key="A12",
+        send_gift_card_template_id=template_id,
+        sender_name="Sender Name",
+        sender_address="sender@example.com",
+    )
+
+    send_gift_card_email_task(payload, asdict(plugin.config))
+
+    mocked_send_email.assert_called_with(
+        configuration=plugin.config,
+        template_id=template_id,
+        payload=payload,
+    )
+
+
+@patch("saleor.plugins.sendgrid.tasks.send_email")
+def test_send_gift_card_email_task_by_app(
+    mocked_send_email, app, order, sendgrid_email_plugin
+):
+    template_id = "ABC1"
+
+    recipient_email = "user@example.com"
+    payload = {
+        "order": get_default_order_payload(order, "http://localhost:8000/redirect"),
+        "recipient_email": recipient_email,
+        "site_name": "Saleor",
+        "domain": "localhost:8000",
+        "requester_user_id": None,
+        "requester_app_id": app.pk,
+    }
+
+    plugin = sendgrid_email_plugin(
+        api_key="A12",
+        send_gift_card_template_id=template_id,
+        sender_name="Sender Name",
+        sender_address="sender@example.com",
+    )
+
+    send_gift_card_email_task(payload, asdict(plugin.config))
+
+    mocked_send_email.assert_called_with(
+        configuration=plugin.config,
+        template_id=template_id,
+        payload=payload,
+    )
 
 
 @patch("saleor.plugins.sendgrid.tasks.send_email")
@@ -746,7 +811,7 @@ def test_send_order_confirmed_email_task_by_user(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_confirmed_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -789,7 +854,7 @@ def test_send_order_confirmed_email_task_by_app(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_confirmed_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
