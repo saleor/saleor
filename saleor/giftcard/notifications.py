@@ -2,10 +2,13 @@ from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
 
 
-def send_gift_card_notification(email, gift_card, manager):
+def send_gift_card_notification(user, app, email, gift_card, manager):
     """Trigger sending a gift card notification for the given recipient."""
     payload = {
+        "user_id": user.id if user else None,
+        "app_id": app.id if app else None,
         "recipient_email": email,
+        "gift_card_id": gift_card.id,
         "code": gift_card.code,
         **get_site_context(),
     }
