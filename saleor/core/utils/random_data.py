@@ -629,7 +629,7 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
     variants = (
         ProductVariant.objects.filter(pk__in=available_variant_ids, is_preorder=True)
         .order_by("?")
-        .prefetch_related("product__product_type", "channel_listings")[:how_many]
+        .prefetch_related("product__product_type")[:how_many]
     )
     variants_iter = itertools.cycle(variants)
     lines = []
@@ -761,13 +761,13 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
         }
 
     manager = get_plugins_manager()
-    shipping_method_chanel_listing = (
+    shipping_method_channel_listing = (
         ShippingMethodChannelListing.objects.filter(channel=channel)
         .order_by("?")
         .first()
     )
-    shipping_method = shipping_method_chanel_listing.shipping_method
-    shipping_price = shipping_method_chanel_listing.price
+    shipping_method = shipping_method_channel_listing.shipping_method
+    shipping_price = shipping_method_channel_listing.price
     shipping_price = manager.apply_taxes_to_shipping(
         shipping_price, address, channel_slug=channel.slug
     )
@@ -822,7 +822,7 @@ def create_fake_sale():
 
 
 def create_users(user_password, how_many=10):
-    for dummy in range(how_many):
+    for _ in range(how_many):
         user = create_fake_user(user_password)
         yield "User: %s" % (user.email,)
 
@@ -921,7 +921,7 @@ def create_preorder_orders(how_many=1):
 
 
 def create_product_sales(how_many=5):
-    for dummy in range(how_many):
+    for _ in range(how_many):
         sale = create_fake_sale()
         update_products_discounted_prices_of_discount_task.delay(sale.pk)
         yield "Sale: %s" % (sale,)
