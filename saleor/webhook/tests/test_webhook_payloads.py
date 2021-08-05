@@ -375,7 +375,8 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data):
     ).name
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
 
-    def test_generate_product_translation_payload(product_translation_fr):
+
+def test_generate_product_translation_payload(product_translation_fr):
     payload = generate_translation_payload(product_translation_fr)
     data = json.loads(payload)
     assert data["id"] == graphene.Node.to_global_id(
@@ -472,4 +473,3 @@ def test_generate_customer_payload(customer_user, address_other_country, address
     }
 
     assert payload == expected_payload
-
