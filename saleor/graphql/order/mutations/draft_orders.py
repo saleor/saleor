@@ -399,8 +399,9 @@ class DraftOrderComplete(BaseMutation):
                 )
                 channel_slug = order.channel.slug
                 try:
-                    allocate_stocks([line_data], country, channel_slug)
-                    allocate_preorders([line_data], channel_slug)
+                    with traced_atomic_transaction():
+                        allocate_stocks([line_data], country, channel_slug)
+                        allocate_preorders([line_data], channel_slug)
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})
