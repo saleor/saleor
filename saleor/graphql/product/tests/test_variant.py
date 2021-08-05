@@ -267,28 +267,45 @@ def test_get_product_variant_channel_listing_as_anonymous(
 
 
 QUERY_PRODUCT_VARIANT_STOCKS = """
-    query ProductVariantDetails($id: ID!, $channel: String) {
-        productVariant(id: $id, channel: $channel) {
-            id
-            stocks{
-                id
-                quantity
-                warehouse{
-                    slug
-                }
-            }
-        }
+  fragment Stock on Stock {
+    id
+    quantity
+    warehouse {
+      slug
     }
+  }
+  query ProductVariantDetails(
+    $id: ID!
+    $channel: String
+    $address: AddressInput
+  ) {
+    productVariant(id: $id, channel: $channel) {
+      id
+      stocksNoAddress: stocks {
+        ...Stock
+      }
+      stocksWithAddress: stocks(address: $address) {
+        ...Stock
+      }
+    }
+  }
 """
 
 
 def test_get_product_variant_stocks(
-    staff_api_client, variant_with_many_stocks, channel_USD, permission_manage_products
+    staff_api_client,
+    variant_with_many_stocks_different_shipping_zones,
+    channel_USD,
+    permission_manage_products,
 ):
     # given
-    variant = variant_with_many_stocks
+    variant = variant_with_many_stocks_different_shipping_zones
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    variables = {"id": variant_id, "channel": channel_USD.slug}
+    variables = {
+        "id": variant_id,
+        "channel": channel_USD.slug,
+        "address": {"country": "PL"},
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -299,19 +316,50 @@ def test_get_product_variant_stocks(
     content = get_graphql_content(response)
 
     # then
-    stocks_count = variant.stocks.count()
+    all_stocks = variant.stocks.all()
+    pl_stocks = variant.stocks.filter(
+        warehouse__shipping_zones__countries__contains="PL"
+    )
     data = content["data"]["productVariant"]
-    assert len(data["stocks"]) == stocks_count
+
+    # When no address is provided, it should return all stocks of the variant available
+    # in given channel.
+    assert len(data["stocksNoAddress"]) == all_stocks.count()
+    no_address_stocks_ids = [stock["id"] for stock in data["stocksNoAddress"]]
+    assert all(
+        [
+            graphene.Node.to_global_id("Stock", stock.pk) in no_address_stocks_ids
+            for stock in all_stocks
+        ]
+    )
+
+    # When address is given, return only stocks from warehouse that ship to that
+    # address.
+    assert len(data["stocksWithAddress"]) == pl_stocks.count()
+    with_address_stocks_ids = [stock["id"] for stock in data["stocksWithAddress"]]
+    assert all(
+        [
+            graphene.Node.to_global_id("Stock", stock.pk) in with_address_stocks_ids
+            for stock in pl_stocks
+        ]
+    )
 
 
 def test_get_product_variant_stocks_no_channel_shipping_zones(
-    staff_api_client, variant_with_many_stocks, channel_USD, permission_manage_products
+    staff_api_client,
+    variant_with_many_stocks_different_shipping_zones,
+    channel_USD,
+    permission_manage_products,
 ):
     # given
     channel_USD.shipping_zones.clear()
-    variant = variant_with_many_stocks
+    variant = variant_with_many_stocks_different_shipping_zones
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    variables = {"id": variant_id, "channel": channel_USD.slug}
+    variables = {
+        "id": variant_id,
+        "channel": channel_USD.slug,
+        "address": {"country": "PL"},
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -324,7 +372,8 @@ def test_get_product_variant_stocks_no_channel_shipping_zones(
     # then
     stocks_count = variant.stocks.count()
     data = content["data"]["productVariant"]
-    assert data["stocks"] == []
+    assert data["stocksNoAddress"] == []
+    assert data["stocksWithAddress"] == []
     assert stocks_count > 0
 
 

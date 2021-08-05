@@ -14,7 +14,7 @@ from ..core.tracing import traced_atomic_transaction
 from ..order.models import Order
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
-from .interface import AddressData, GatewayResponse, PaymentData
+from .interface import AddressData, GatewayResponse, PaymentData, PaymentMethodInfo
 from .models import Payment, Transaction
 
 if TYPE_CHECKING:
@@ -356,31 +356,35 @@ def update_payment(payment: "Payment", gateway_response: "GatewayResponse"):
         changed_fields.append("psp_reference")
 
     if gateway_response.payment_method_info:
-        _update_payment_method_details(payment, gateway_response, changed_fields)
+        update_payment_method_details(
+            payment, gateway_response.payment_method_info, changed_fields
+        )
 
     if changed_fields:
         payment.save(update_fields=changed_fields)
 
 
-def _update_payment_method_details(
-    payment: "Payment", gateway_response: "GatewayResponse", changed_fields: List[str]
+def update_payment_method_details(
+    payment: "Payment",
+    payment_method_info: Optional["PaymentMethodInfo"],
+    changed_fields: List[str],
 ):
-    if not gateway_response.payment_method_info:
+    if not payment_method_info:
         return
-    if gateway_response.payment_method_info.brand:
-        payment.cc_brand = gateway_response.payment_method_info.brand
+    if payment_method_info.brand:
+        payment.cc_brand = payment_method_info.brand
         changed_fields.append("cc_brand")
-    if gateway_response.payment_method_info.last_4:
-        payment.cc_last_digits = gateway_response.payment_method_info.last_4
+    if payment_method_info.last_4:
+        payment.cc_last_digits = payment_method_info.last_4
         changed_fields.append("cc_last_digits")
-    if gateway_response.payment_method_info.exp_year:
-        payment.cc_exp_year = gateway_response.payment_method_info.exp_year
+    if payment_method_info.exp_year:
+        payment.cc_exp_year = payment_method_info.exp_year
         changed_fields.append("cc_exp_year")
-    if gateway_response.payment_method_info.exp_month:
-        payment.cc_exp_month = gateway_response.payment_method_info.exp_month
+    if payment_method_info.exp_month:
+        payment.cc_exp_month = payment_method_info.exp_month
         changed_fields.append("cc_exp_month")
-    if gateway_response.payment_method_info.type:
-        payment.payment_method_type = gateway_response.payment_method_info.type
+    if payment_method_info.type:
+        payment.payment_method_type = payment_method_info.type
         changed_fields.append("payment_method_type")
 
 

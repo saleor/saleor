@@ -9,7 +9,7 @@ from ...core.db.fields import SanitizedJSONField
 from ...core.models import ModelWithMetadata, SortableModel
 from ...core.units import MeasurementUnits
 from ...core.utils.editorjs import clean_editor_js
-from ...core.utils.translations import TranslationProxy
+from ...core.utils.translations import Translation, TranslationProxy
 from ...page.models import PageType
 from ...product.models import ProductType
 from .. import AttributeEntityType, AttributeInputType, AttributeType
@@ -167,8 +167,7 @@ class Attribute(ModelWithMetadata):
         return self.values.exists()
 
 
-class AttributeTranslation(models.Model):
-    language_code = models.CharField(max_length=10)
+class AttributeTranslation(Translation):
     attribute = models.ForeignKey(
         Attribute, related_name="translations", on_delete=models.CASCADE
     )
@@ -188,6 +187,12 @@ class AttributeTranslation(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def get_translated_object_id(self):
+        return "Attribute", self.attribute_id
+
+    def get_translated_keys(self):
+        return {"name": self.name}
 
 
 class AttributeValue(SortableModel):
@@ -221,8 +226,7 @@ class AttributeValue(SortableModel):
         return self.attribute.values.all()
 
 
-class AttributeValueTranslation(models.Model):
-    language_code = models.CharField(max_length=10)
+class AttributeValueTranslation(Translation):
     attribute_value = models.ForeignKey(
         AttributeValue, related_name="translations", on_delete=models.CASCADE
     )
@@ -243,3 +247,9 @@ class AttributeValueTranslation(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def get_translated_object_id(self):
+        return "AttributeValue", self.attribute_value_id
+
+    def get_translated_keys(self):
+        return {"name": self.name, "rich_text": self.rich_text}

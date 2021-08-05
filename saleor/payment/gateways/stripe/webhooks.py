@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
@@ -17,7 +17,12 @@ from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
 from ...models import Payment
-from ...utils import create_transaction, gateway_postprocess, price_from_minor_unit
+from ...utils import (
+    create_transaction,
+    gateway_postprocess,
+    price_from_minor_unit,
+    update_payment_method_details,
+)
 from .consts import (
     WEBHOOK_AUTHORIZED_EVENT,
     WEBHOOK_CANCELED_EVENT,
@@ -26,7 +31,11 @@ from .consts import (
     WEBHOOK_REFUND_EVENT,
     WEBHOOK_SUCCESS_EVENT,
 )
-from .stripe_api import construct_stripe_event, update_payment_method
+from .stripe_api import (
+    construct_stripe_event,
+    get_payment_method_details,
+    update_payment_method,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -279,6 +288,13 @@ def handle_successful_payment_intent(
 
     if payment_intent.setup_future_usage:
         update_payment_method(api_key, payment_intent.payment_method, channel_slug)
+
+    payment_method_info = get_payment_method_details(payment_intent)
+    if payment_method_info:
+        changed_fields: List[str] = []
+        update_payment_method_details(payment, payment_method_info, changed_fields)
+        if changed_fields:
+            payment.save(update_fields=changed_fields)
 
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:

@@ -18,6 +18,7 @@ from ...webhook.payloads import (
     generate_product_deleted_payload,
     generate_product_payload,
     generate_product_variant_payload,
+    generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
 from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
@@ -36,6 +37,7 @@ if TYPE_CHECKING:
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
     from ...product.models import Product, ProductVariant
+    from ...translation.models import Translation
 
 
 logger = logging.getLogger(__name__)
@@ -236,6 +238,22 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         page_data = generate_page_payload(page)
         trigger_webhooks_for_event.delay(WebhookEventType.PAGE_DELETED, page_data)
+
+    def translation_created(self, translation: "Translation", previous_value: Any):
+        if not self.active:
+            return previous_value
+        translation_data = generate_translation_payload(translation)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.TRANSLATION_CREATED, translation_data
+        )
+
+    def translation_updated(self, translation: "Translation", previous_value: Any):
+        if not self.active:
+            return previous_value
+        translation_data = generate_translation_payload(translation)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.TRANSLATION_UPDATED, translation_data
+        )
 
     def __run_payment_webhook(
         self,
