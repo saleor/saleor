@@ -300,15 +300,11 @@ class Checkout(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_delivery_method(root: models.Checkout, info):
         if root.shipping_method_id:
             return Checkout.resolve_shipping_method(root, info)
         if root.collection_point_id:
-            collection_point = WarehouseByIdLoader(info.context).load(
-                root.collection_point_id
-            )
-            return collection_point
+            return WarehouseByIdLoader(info.context).load(root.collection_point_id)
         return None
 
     @staticmethod
