@@ -129,6 +129,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add app support for events - #7622 by @IKarbowiak
 - Add date & date time attributes - #7500 by @piotrgrundas
 - Add `withChoices` flag for Attribute type - #7733 by @dexon44
+- Drop assigning cheapest shipping method in checkout - #7767 by @maarcingebala
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
