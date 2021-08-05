@@ -434,6 +434,10 @@ def filter_sku_list(qs, _, value):
     return qs.filter(sku__in=value)
 
 
+def filter_is_preorder(qs, _, value):
+    return qs.filter(is_preorder=value)
+
+
 def filter_quantity(qs, quantity_value, warehouses=None):
     """Filter products queryset by product variants quantity.
 
@@ -533,6 +537,7 @@ class ProductVariantFilter(MetadataFilterBase):
         method=filter_fields_containing_value("name", "product__name", "sku")
     )
     sku = ListObjectTypeFilter(input_class=graphene.String, method=filter_sku_list)
+    is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
 
     class Meta:
         model = ProductVariant
