@@ -15,6 +15,7 @@ from ....product.utils.costs import (
 )
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
+from ...common.dataloaders import WarehouseCountryCodeByChannelLoader
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader

@@ -30,6 +30,7 @@ from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
+from ...common.dataloaders import WarehouseCountryCodeByChannelLoader
 from ...core.connection import CountableDjangoObjectType
 from ...core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_INPUT
 from ...core.enums import ReportingPeriod
