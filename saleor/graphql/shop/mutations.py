@@ -298,6 +298,11 @@ class OrderSettingsUpdateInput(graphene.InputObjectType):
         "will be marked as unconfirmed. When enabled orders from checkout will "
         "become unfulfilled immediately.",
     )
+    automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
+        required=True,
+        description="When disabled, all new non shippable gift cards "
+        "will require manual fulfillment.",
+    )
 
 
 class OrderSettingsUpdate(BaseMutation):
@@ -320,7 +325,15 @@ class OrderSettingsUpdate(BaseMutation):
         instance.automatically_confirm_all_new_orders = data["input"][
             "automatically_confirm_all_new_orders"
         ]
-        instance.save(update_fields=["automatically_confirm_all_new_orders"])
+        instance.automatically_fulfill_non_shippable_gift_card = data["input"][
+            "automatically_fulfill_non_shippable_gift_card"
+        ]
+        instance.save(
+            update_fields=[
+                "automatically_confirm_all_new_orders",
+                "automatically_fulfill_non_shippable_gift_card",
+            ]
+        )
         return OrderSettingsUpdate(order_settings=instance)
 
 
