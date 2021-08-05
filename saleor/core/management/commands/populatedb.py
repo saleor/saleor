@@ -16,6 +16,7 @@ from ...utils.random_data import (
     create_page_type,
     create_pages,
     create_permission_groups,
+    create_preorder_orders,
     create_product_sales,
     create_products_by_schema,
     create_shipping_zones,
@@ -99,6 +100,8 @@ class Command(BaseCommand):
         for msg in create_users(20):
             self.stdout.write(msg)
         for msg in create_orders(20):
+            self.stdout.write(msg)
+        for msg in create_preorder_orders(1):
             self.stdout.write(msg)
         for msg in create_menus():
             self.stdout.write(msg)
