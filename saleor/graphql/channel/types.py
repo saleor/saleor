@@ -1,4 +1,7 @@
+from typing import Union
+
 import graphene
+from django.db.models import Model
 from graphene.types.resolver import get_default_resolver
 from graphene_django import DjangoObjectType
 
@@ -32,8 +35,13 @@ class ChannelContextType(DjangoObjectType):
         return root.node.pk
 
     @classmethod
-    def is_type_of(cls, root: ChannelContext, info):
-        return super().is_type_of(root.node, info)
+    def is_type_of(cls, root: Union[ChannelContext, Model], info):
+        # Unwrap node from ChannelContext if it didn't happen already
+        if isinstance(root, ChannelContext):
+            return super().is_type_of(root.node, info)
+
+        # Check type that was already unwrapped by the Entity union check
+        return super().is_type_of(root, info)
 
     @staticmethod
     def resolve_translation(root: ChannelContext, info, language_code):
