@@ -172,16 +172,36 @@ class GiftCardCreate(ModelMutation):
     @staticmethod
     def clean_balance(cleaned_input, instance):
         balance = cleaned_input.pop("balance", None)
-        amount = balance["amount"]
-        currency = balance["currency"]
-        try:
-            validate_price_precision(amount, currency)
-        except ValidationError as error:
-            error.code = GiftCardErrorCode.INVALID.value
-            raise ValidationError({"balance": error})
-        cleaned_input["currency"] = currency
-        cleaned_input["current_balance_amount"] = amount
-        cleaned_input["initial_balance_amount"] = amount
+        if balance:
+            amount = balance["amount"]
+            currency = balance["currency"]
+            try:
+                validate_price_precision(amount, currency)
+            except ValidationError as error:
+                error.code = GiftCardErrorCode.INVALID.value
+                raise ValidationError({"balance": error})
+            if instance.pk:
+                if currency != instance.currency:
+                    raise ValidationError(
+                        {
+                            "balance": ValidationError(
+                                "Cannot change gift card currency.",
+                                code=GiftCardErrorCode.INVALID.value,
+                            )
+                        }
+                    )
+            if not amount > 0:
+                raise ValidationError(
+                    {
+                        "balance": ValidationError(
+                            "Balance amount have to be greater than 0.",
+                            code=GiftCardErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            cleaned_input["currency"] = currency
+            cleaned_input["current_balance_amount"] = amount
+            cleaned_input["initial_balance_amount"] = amount
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):

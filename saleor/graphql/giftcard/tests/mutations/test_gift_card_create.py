@@ -342,6 +342,52 @@ def test_create_gift_card_with_too_many_decimal_places_in_balance_amount(
     assert errors[0]["code"] == GiftCardErrorCode.INVALID.name
 
 
+def test_create_gift_card_with_zero_balance_amount(
+    staff_api_client,
+    customer_user,
+    permission_manage_gift_card,
+    permission_manage_users,
+    permission_manage_apps,
+):
+    # given
+    currency = "USD"
+    expiry_type = GiftCardExpiryTypeEnum.NEVER_EXPIRE.name
+    tag = "gift-card-tag"
+    variables = {
+        "balance": {
+            "amount": 0,
+            "currency": currency,
+        },
+        "userEmail": customer_user.email,
+        "tag": tag,
+        "note": "This is gift card note that will be save in gift card event.",
+        "expirySettings": {
+            "expiryType": expiry_type,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_GIFT_CARD_MUTATION,
+        variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_users,
+            permission_manage_apps,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["giftCardCreate"]["errors"]
+    data = content["data"]["giftCardCreate"]["giftCard"]
+
+    assert not data
+    assert len(errors) == 1
+    assert errors[0]["field"] == "balance"
+    assert errors[0]["code"] == GiftCardErrorCode.INVALID.name
+
+
 def test_create_gift_card_with_expiry_date(
     staff_api_client,
     customer_user,
