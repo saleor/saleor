@@ -553,10 +553,8 @@ def deactivate_preorder_for_variant(product_variant: ProductVariant):
         update_fields=["preorder_global_threshold", "preorder_end_date", "is_preorder"]
     )
 
-    for channel_listing in channel_listings:
-        channel_listing.preorder_quantity_threshold = None
-    ProductVariantChannelListing.objects.bulk_update(
-        channel_listings, ["preorder_quantity_threshold"]
+    ProductVariantChannelListing.objects.filter(variant_id=product_variant.pk).update(
+        preorder_quantity_threshold=None
     )
 
 
@@ -588,12 +586,14 @@ def _get_stock_for_preorder_allocation(
     if not warehouse:
         raise PreorderAllocationError(preorder_allocation.order_line)
 
-    stock = (
-        Stock.objects.select_for_update(of=("self",))
-        .filter(warehouse=warehouse, product_variant=product_variant)
-        .first()
+    stock = list(
+        (
+            Stock.objects.select_for_update(of=("self",)).filter(
+                warehouse=warehouse, product_variant=product_variant
+            )
+        )
     )
 
-    return stock or Stock(
+    return (stock[0] if stock else None) or Stock(
         warehouse=warehouse, product_variant=product_variant, quantity=0
     )

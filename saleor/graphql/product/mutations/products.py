@@ -1730,7 +1730,7 @@ class ProductVariantPreorderDeactivate(BaseMutation):
     def perform_mutation(cls, _root, info, id):
         qs = models.ProductVariant.objects.prefetched_for_webhook()
         variant = cls.get_node_or_error(
-            info, id, field="variant_id", only_type=ProductVariant, qs=qs
+            info, id, field="id", only_type=ProductVariant, qs=qs
         )
         if not variant.is_preorder:
             raise ValidationError(
