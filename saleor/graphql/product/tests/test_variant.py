@@ -4846,3 +4846,37 @@ def test_product_variant_deactivate_preorder_as_anonymous(
     )
 
     assert_no_permission(response)
+
+
+def test_product_variant_deactivate_preorder_as_app_with_permission(
+    app_api_client,
+    preorder_variant_global_and_channel_threshold,
+    permission_manage_products,
+):
+    variant = preorder_variant_global_and_channel_threshold
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    response = app_api_client.post_graphql(
+        QUERY_VARIANT_DEACTIVATE_PREORDER,
+        {"id": variant_id},
+        permissions=[permission_manage_products],
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantPreorderDeactivate"]["productVariant"]
+    assert data["preorder"]["isPreorder"] is False
+
+
+def test_product_variant_deactivate_preorder_as_app(
+    app_api_client,
+    preorder_variant_global_and_channel_threshold,
+):
+    variant = preorder_variant_global_and_channel_threshold
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    response = app_api_client.post_graphql(
+        QUERY_VARIANT_DEACTIVATE_PREORDER,
+        {"id": variant_id},
+    )
+
+    assert_no_permission(response)
