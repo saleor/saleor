@@ -1200,10 +1200,14 @@ def test_staff_notification_update_mutation_with_empty_email(
 ORDER_SETTINGS_UPDATE_MUTATION = """
     mutation orderSettings($confirmOrders: Boolean!) {
         orderSettingsUpdate(
-            input: { automaticallyConfirmAllNewOrders: $confirmOrders }
+            input: {
+                automaticallyConfirmAllNewOrders: $confirmOrders
+                automaticallyFulfillNonShippableGiftCard: $fulfillGiftCards
+            }
         ) {
             orderSettings {
                 automaticallyConfirmAllNewOrders
+                automaticallyFulfillNonShippableGiftCard
             }
         }
     }
@@ -1216,11 +1220,13 @@ def test_order_settings_update_by_staff(
     assert site_settings.automatically_confirm_all_new_orders is True
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(
-        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+        ORDER_SETTINGS_UPDATE_MUTATION,
+        {"confirmOrders": False, "fulfillGiftCards": False},
     )
     content = get_graphql_content(response)
     response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
     assert response_settings["automaticallyConfirmAllNewOrders"] is False
+    assert response_settings["automaticallyFulfillNonShippableGiftCard"] is False
     site_settings.refresh_from_db()
     assert site_settings.automatically_confirm_all_new_orders is False
 
@@ -1231,11 +1237,13 @@ def test_order_settings_update_by_app(
     assert site_settings.automatically_confirm_all_new_orders is True
     app_api_client.app.permissions.set([permission_manage_orders])
     response = app_api_client.post_graphql(
-        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+        ORDER_SETTINGS_UPDATE_MUTATION,
+        {"confirmOrders": False, "fulfillGiftCards": False},
     )
     content = get_graphql_content(response)
     response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
     assert response_settings["automaticallyConfirmAllNewOrders"] is False
+    assert response_settings["automaticallyFulfillNonShippableGiftCard"] is False
     site_settings.refresh_from_db()
     assert site_settings.automatically_confirm_all_new_orders is False
 
@@ -1256,6 +1264,7 @@ ORDER_SETTINGS_QUERY = """
     query orderSettings {
         orderSettings {
             automaticallyConfirmAllNewOrders
+            automaticallyFulfillNonShippableGiftCard
         }
     }
 """
@@ -1265,15 +1274,28 @@ def test_order_settings_query_as_staff(
     staff_api_client, permission_manage_orders, site_settings
 ):
     assert site_settings.automatically_confirm_all_new_orders is True
+    assert site_settings.automatically_fulfill_non_shippable_gift_card is True
 
     site_settings.automatically_confirm_all_new_orders = False
-    site_settings.save(update_fields=["automatically_confirm_all_new_orders"])
+    site_settings.automatically_fulfill_non_shippable_gift_card = False
+    site_settings.save(
+        update_fields=[
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
+        ]
+    )
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(ORDER_SETTINGS_QUERY)
     content = get_graphql_content(response)
 
     assert content["data"]["orderSettings"]["automaticallyConfirmAllNewOrders"] is False
+    assert (
+        content["data"]["orderSettings"][
+            "automatically_fulfill_non_shippable_gift_card"
+        ]
+        is False
+    )
 
 
 def test_order_settings_query_as_user(user_api_client, site_settings):
