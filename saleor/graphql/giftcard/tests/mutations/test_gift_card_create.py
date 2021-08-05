@@ -146,17 +146,22 @@ def test_create_never_expiry_gift_card(
     assert data["initialBalance"]["amount"] == initial_balance
     assert data["currentBalance"]["amount"] == initial_balance
 
-    assert len(data["events"]) == 1
-    event = data["events"][0]
-    assert event["type"] == GiftCardEvents.ISSUED.upper()
-    assert event["user"]["email"] == staff_api_client.user.email
-    assert not event["app"]
-    assert event["balance"]["initialBalance"]["amount"] == initial_balance
-    assert event["balance"]["initialBalance"]["currency"] == currency
-    assert event["balance"]["currentBalance"]["amount"] == initial_balance
-    assert event["balance"]["currentBalance"]["currency"] == currency
-    assert not event["balance"]["oldInitialBalance"]
-    assert not event["balance"]["oldCurrentBalance"]
+    assert len(data["events"]) == 2
+    created_event, sent_event = data["events"]
+
+    assert created_event["type"] == GiftCardEvents.ISSUED.upper()
+    assert created_event["user"]["email"] == staff_api_client.user.email
+    assert not created_event["app"]
+    assert created_event["balance"]["initialBalance"]["amount"] == initial_balance
+    assert created_event["balance"]["initialBalance"]["currency"] == currency
+    assert created_event["balance"]["currentBalance"]["amount"] == initial_balance
+    assert created_event["balance"]["currentBalance"]["currency"] == currency
+    assert not created_event["balance"]["oldInitialBalance"]
+    assert not created_event["balance"]["oldCurrentBalance"]
+
+    assert sent_event["type"] == GiftCardEvents.SENT_TO_CUSTOMER.upper()
+    assert sent_event["user"]["email"] == staff_api_client.user.email
+    assert not created_event["app"]
 
 
 def test_create_gift_card_by_app(
@@ -213,17 +218,22 @@ def test_create_gift_card_by_app(
     assert data["initialBalance"]["amount"] == initial_balance
     assert data["currentBalance"]["amount"] == initial_balance
 
-    assert len(data["events"]) == 1
-    event = data["events"][0]
-    assert event["type"] == GiftCardEvents.ISSUED.upper()
-    assert not event["user"]
-    assert event["app"]["name"] == app_api_client.app.name
-    assert event["balance"]["initialBalance"]["amount"] == initial_balance
-    assert event["balance"]["initialBalance"]["currency"] == currency
-    assert event["balance"]["currentBalance"]["amount"] == initial_balance
-    assert event["balance"]["currentBalance"]["currency"] == currency
-    assert not event["balance"]["oldInitialBalance"]
-    assert not event["balance"]["oldCurrentBalance"]
+    assert len(data["events"]) == 2
+    created_event, sent_event = data["events"]
+
+    assert created_event["type"] == GiftCardEvents.ISSUED.upper()
+    assert not created_event["user"]
+    assert created_event["app"]["name"] == app_api_client.app.name
+    assert created_event["balance"]["initialBalance"]["amount"] == initial_balance
+    assert created_event["balance"]["initialBalance"]["currency"] == currency
+    assert created_event["balance"]["currentBalance"]["amount"] == initial_balance
+    assert created_event["balance"]["currentBalance"]["currency"] == currency
+    assert not created_event["balance"]["oldInitialBalance"]
+    assert not created_event["balance"]["oldCurrentBalance"]
+
+    assert sent_event["type"] == GiftCardEvents.SENT_TO_CUSTOMER.upper()
+    assert not sent_event["user"]
+    assert sent_event["app"]["name"] == app_api_client.app.name
 
 
 def test_create_gift_card_by_customer(api_client, customer_user):
@@ -382,10 +392,22 @@ def test_create_gift_card_with_expiry_date(
     assert data["expiryDate"] == date_value.isoformat()
     assert not data["expiryPeriod"]
 
-    assert len(data["events"]) == 1
-    event = data["events"][0]
-    assert event["type"] == GiftCardEvents.ISSUED.upper()
-    assert event["user"]["email"] == staff_api_client.user.email
+    assert len(data["events"]) == 2
+    created_event, sent_event = data["events"]
+
+    assert created_event["type"] == GiftCardEvents.ISSUED.upper()
+    assert created_event["user"]["email"] == staff_api_client.user.email
+    assert not created_event["app"]
+    assert created_event["balance"]["initialBalance"]["amount"] == initial_balance
+    assert created_event["balance"]["initialBalance"]["currency"] == currency
+    assert created_event["balance"]["currentBalance"]["amount"] == initial_balance
+    assert created_event["balance"]["currentBalance"]["currency"] == currency
+    assert not created_event["balance"]["oldInitialBalance"]
+    assert not created_event["balance"]["oldCurrentBalance"]
+
+    assert sent_event["type"] == GiftCardEvents.SENT_TO_CUSTOMER.upper()
+    assert sent_event["user"]["email"] == staff_api_client.user.email
+    assert not created_event["app"]
 
 
 def test_create_gift_card_with_expiry_date_type_date_not_given(
@@ -539,10 +561,22 @@ def test_create_gift_card_with_expiry_period(
     assert data["expiryPeriod"]["amount"] == period_amount
     assert data["expiryPeriod"]["type"] == period_type
 
-    assert len(data["events"]) == 1
-    event = data["events"][0]
-    assert event["type"] == GiftCardEvents.ISSUED.upper()
-    assert event["user"]["email"] == staff_api_client.user.email
+    assert len(data["events"]) == 2
+    created_event, sent_event = data["events"]
+
+    assert created_event["type"] == GiftCardEvents.ISSUED.upper()
+    assert created_event["user"]["email"] == staff_api_client.user.email
+    assert not created_event["app"]
+    assert created_event["balance"]["initialBalance"]["amount"] == initial_balance
+    assert created_event["balance"]["initialBalance"]["currency"] == currency
+    assert created_event["balance"]["currentBalance"]["amount"] == initial_balance
+    assert created_event["balance"]["currentBalance"]["currency"] == currency
+    assert not created_event["balance"]["oldInitialBalance"]
+    assert not created_event["balance"]["oldCurrentBalance"]
+
+    assert sent_event["type"] == GiftCardEvents.SENT_TO_CUSTOMER.upper()
+    assert sent_event["user"]["email"] == staff_api_client.user.email
+    assert not created_event["app"]
 
 
 def test_create_gift_card_with_expiry_period_negative_amount(
