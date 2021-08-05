@@ -736,10 +736,14 @@ def test_send_gift_card_email_task_by_user(
 
     recipient_email = "user@example.com"
     payload = {
-        "gift_card_id": gift_card.id,
-        "user_id": staff_user.pk,
-        "app_id": None,
+        "requester": {
+            "user_id": staff_user.pk,
+            "email": staff_user.email,
+            "app_id": None,
+            "app_name": None,
+        },
         "recipient_email": recipient_email,
+        "gift_card": {"id": gift_card.id, "code": gift_card.code},
     }
 
     plugin = sendgrid_email_plugin(
@@ -774,10 +778,14 @@ def test_send_gift_card_email_task_by_app(
 
     recipient_email = "user@example.com"
     payload = {
-        "gift_card_id": gift_card.id,
-        "user_id": None,
-        "app_id": app.id,
+        "requester": {
+            "user_id": None,
+            "email": None,
+            "app_id": app.id,
+            "app_name": app.name,
+        },
         "recipient_email": recipient_email,
+        "gift_card": {"id": gift_card.id, "code": gift_card.code},
     }
 
     plugin = sendgrid_email_plugin(
