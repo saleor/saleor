@@ -30,7 +30,6 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
 
 
 class PageTranslation(SeoModelTranslation):
-    language_code = models.CharField(max_length=10)
     page = models.ForeignKey(
         Page, related_name="translations", on_delete=models.CASCADE
     )
@@ -52,6 +51,19 @@ class PageTranslation(SeoModelTranslation):
 
     def __str__(self):
         return self.title if self.title else str(self.pk)
+
+    def get_translated_object_id(self):
+        return "Page", self.page_id
+
+    def get_translated_keys(self):
+        translated_keys = super().get_translated_keys()
+        translated_keys.update(
+            {
+                "title": self.title,
+                "content": self.content,
+            }
+        )
+        return translated_keys
 
 
 class PageType(ModelWithMetadata):

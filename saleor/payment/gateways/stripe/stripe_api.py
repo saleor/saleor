@@ -291,7 +291,9 @@ def get_payment_method_details(
         charges_data = charges.get("data", [])
         if not charges_data:
             return None
-        payment_method_details = charges_data[-1]
+        charge_data = charges_data[-1]
+        payment_method_details = charge_data.get("payment_method_details", {})
+
         if payment_method_details.get("type") == "card":
             card_details = payment_method_details.get("card", {})
             exp_year = card_details.get("exp_year", "")
