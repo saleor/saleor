@@ -188,6 +188,15 @@ class GiftCardCreate(ModelMutation):
                             )
                         }
                     )
+            if not amount > 0:
+                raise ValidationError(
+                    {
+                        "balance": ValidationError(
+                            "Balance amount have to be greater than 0.",
+                            code=GiftCardErrorCode.INVALID.value,
+                        )
+                    }
+                )
             cleaned_input["currency"] = currency
             cleaned_input["current_balance_amount"] = amount
             cleaned_input["initial_balance_amount"] = amount
