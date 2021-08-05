@@ -70,6 +70,7 @@ def test_event_map():
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
         NotifyEventType.ORDER_CANCELED,
         NotifyEventType.ORDER_REFUND_CONFIRMATION,
+        NotifyEventType.SEND_GIFT_CARD,
     ],
 )
 @patch("saleor.plugins.user_email.plugin.get_user_event_map")
