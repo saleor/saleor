@@ -304,9 +304,9 @@ def send_gift_card_email_task(payload: dict, configuration: dict):
         payload=payload,
     )
     giftcard_events.gift_card_sent(
-        payload["gift_card_id"],
-        payload["user_id"],
-        payload["app_id"],
+        payload["gift_card"]["id"],
+        payload["requester"]["user_id"],
+        payload["requester"]["app_id"],
         payload["recipient_email"],
     )
 
