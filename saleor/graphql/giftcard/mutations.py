@@ -101,7 +101,7 @@ class GiftCardCreate(ModelMutation):
         cls.clean_expiry_settings(cleaned_input, instance)
         cls.clean_balance(cleaned_input, instance)
 
-        cleaned_input.get("user_email", None)
+        # TODO: validate user email
 
         return cleaned_input
 
@@ -184,14 +184,24 @@ class GiftCardCreate(ModelMutation):
         cleaned_input["initial_balance_amount"] = amount
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
+    def post_save_action(cls, info, instance, cleaned_input):
         events.gift_card_issued_event(
             gift_card=instance,
             user=info.context.user,
             app=info.context.app,
         )
+        events.gift_card_sent(
+            gift_card_id=instance.id,
+            user_id=info.context.user.id if info.context.user else None,
+            app_id=info.context.app.id if info.context.app else None,
+            email=cleaned_input["user_email"],
+        )
         send_gift_card_notification(
-            info.context.user.email, instance, info.context.plugins
+            cleaned_input["created_by"],
+            cleaned_input["app"],
+            cleaned_input["user_email"],
+            instance,
+            info.context.plugins,
         )
 
 
