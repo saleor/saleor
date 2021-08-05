@@ -197,8 +197,8 @@ class GiftCardCreate(ModelMutation):
             email=cleaned_input["user_email"],
         )
         send_gift_card_notification(
-            cleaned_input["created_by"],
-            cleaned_input["app"],
+            cleaned_input.get("created_by"),
+            cleaned_input.get("app"),
             cleaned_input["user_email"],
             instance,
             info.context.plugins,
