@@ -262,11 +262,11 @@ def generate_customer_payload(customer: "User"):
         ],
         additional_fields={
             "default_shipping_address": (
-                lambda c: c.default_billing_address,
+                lambda c: c.default_shipping_address,
                 ADDRESS_FIELDS,
             ),
             "default_billing_address": (
-                lambda c: c.default_shipping_address,
+                lambda c: c.default_billing_address,
                 ADDRESS_FIELDS,
             ),
             "addresses": (

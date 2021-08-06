@@ -18,6 +18,7 @@ from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
     generate_checkout_payload,
+    generate_customer_payload,
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -398,3 +399,77 @@ def test_generate_product_variant_translation_payload(variant_translation_fr):
 
     translation_keys = {i["key"]: i["value"] for i in data["keys"]}
     assert translation_keys["name"] == variant_translation_fr.name
+
+
+def test_generate_customer_payload(customer_user, address_other_country, address):
+
+    customer = customer_user
+    customer.default_billing_address = address_other_country
+    customer.save()
+    payload = json.loads(generate_customer_payload(customer))[0]
+    expected_payload = {
+        "type": "User",
+        "id": graphene.Node.to_global_id("User", customer.id),
+        "default_shipping_address": {
+            "type": "Address",
+            "id": graphene.Node.to_global_id(
+                "Address", customer.default_shipping_address_id
+            ),
+            "first_name": customer.default_shipping_address.first_name,
+            "last_name": customer.default_shipping_address.last_name,
+            "company_name": customer.default_shipping_address.company_name,
+            "street_address_1": customer.default_shipping_address.street_address_1,
+            "street_address_2": customer.default_shipping_address.street_address_2,
+            "city": customer.default_shipping_address.city,
+            "city_area": customer.default_shipping_address.city_area,
+            "postal_code": customer.default_shipping_address.postal_code,
+            "country": customer.default_shipping_address.country,
+            "country_area": customer.default_shipping_address.country_area,
+            "phone": customer.default_shipping_address.phone,
+        },
+        "default_billing_address": {
+            "type": "Address",
+            "id": graphene.Node.to_global_id(
+                "Address", customer.default_billing_address_id
+            ),
+            "first_name": customer.default_billing_address.first_name,
+            "last_name": customer.default_billing_address.last_name,
+            "company_name": customer.default_billing_address.company_name,
+            "street_address_1": customer.default_billing_address.street_address_1,
+            "street_address_2": customer.default_billing_address.street_address_2,
+            "city": customer.default_billing_address.city,
+            "city_area": customer.default_billing_address.city_area,
+            "postal_code": customer.default_billing_address.postal_code,
+            "country": customer.default_billing_address.country,
+            "country_area": customer.default_billing_address.country_area,
+            "phone": customer.default_billing_address.phone,
+        },
+        "addresses": [
+            {
+                "type": "Address",
+                "id": graphene.Node.to_global_id(
+                    "Address", customer.default_shipping_address_id
+                ),
+                "first_name": customer.default_shipping_address.first_name,
+                "last_name": customer.default_shipping_address.last_name,
+                "company_name": customer.default_shipping_address.company_name,
+                "street_address_1": customer.default_shipping_address.street_address_1,
+                "street_address_2": customer.default_shipping_address.street_address_2,
+                "city": customer.default_shipping_address.city,
+                "city_area": customer.default_shipping_address.city_area,
+                "postal_code": customer.default_shipping_address.postal_code,
+                "country": customer.default_shipping_address.country,
+                "country_area": customer.default_shipping_address.country_area,
+                "phone": customer.default_shipping_address.phone,
+            }
+        ],
+        "private_metadata": customer.private_metadata,
+        "metadata": customer.metadata,
+        "email": customer.email,
+        "first_name": customer.first_name,
+        "last_name": customer.last_name,
+        "is_active": customer.is_active,
+        "date_joined": ANY,
+    }
+
+    assert payload == expected_payload
