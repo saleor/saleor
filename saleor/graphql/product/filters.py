@@ -316,7 +316,11 @@ def filter_has_category(qs, _, value):
 
 
 def filter_has_preordered_variants(qs, _, value):
-    return qs.filter(variants__is_preorder=value)
+    variants = ProductVariant.objects.filter(is_preorder=True).values("product_id")
+    if value:
+        return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
+    else:
+        return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
 def filter_collections(qs, _, value):
