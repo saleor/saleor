@@ -315,6 +315,10 @@ def filter_has_category(qs, _, value):
     return qs.filter(category__isnull=not value)
 
 
+def filter_has_preordered_variants(qs, _, value):
+    return qs.filter(variants__is_preorder=value)
+
+
 def filter_collections(qs, _, value):
     if value:
         _, collection_pks = resolve_global_ids_to_primary_keys(
@@ -493,6 +497,9 @@ class ProductFilter(MetadataFilterBase):
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
     ids = GlobalIDMultipleChoiceFilter(method=filter_product_ids)
+    has_preordered_variants = django_filters.BooleanFilter(
+        method=filter_has_preordered_variants
+    )
 
     class Meta:
         model = Product

@@ -4307,6 +4307,7 @@ input ProductFilterInput {
   minimalPrice: PriceRangeInput
   productTypes: [ID]
   ids: [ID]
+  hasPreorderedVariants: Boolean
 }
 
 type ProductImage {
