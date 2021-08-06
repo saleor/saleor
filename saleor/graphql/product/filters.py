@@ -375,6 +375,14 @@ def filter_has_category(qs, _, value):
     return qs.filter(category__isnull=not value)
 
 
+def filter_has_preordered_variants(qs, _, value):
+    variants = ProductVariant.objects.filter(is_preorder=True).values("product_id")
+    if value:
+        return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
+    else:
+        return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
+
+
 def filter_collections(qs, _, value):
     if value:
         _, collection_pks = resolve_global_ids_to_primary_keys(
@@ -507,6 +515,10 @@ def filter_sku_list(qs, _, value):
     return qs.filter(sku__in=value)
 
 
+def filter_is_preorder(qs, _, value):
+    return qs.filter(is_preorder=value)
+
+
 def filter_quantity(qs, quantity_value, warehouses=None):
     """Filter products queryset by product variants quantity.
 
@@ -562,6 +574,9 @@ class ProductFilter(MetadataFilterBase):
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
     ids = GlobalIDMultipleChoiceFilter(method=filter_product_ids)
+    has_preordered_variants = django_filters.BooleanFilter(
+        method=filter_has_preordered_variants
+    )
 
     class Meta:
         model = Product
@@ -606,6 +621,7 @@ class ProductVariantFilter(MetadataFilterBase):
         method=filter_fields_containing_value("name", "product__name", "sku")
     )
     sku = ListObjectTypeFilter(input_class=graphene.String, method=filter_sku_list)
+    is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
 
     class Meta:
         model = ProductVariant
