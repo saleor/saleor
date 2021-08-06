@@ -46,7 +46,10 @@ class Domain(graphene.ObjectType):
 
 class OrderSettings(CountableDjangoObjectType):
     class Meta:
-        only_fields = ["automatically_confirm_all_new_orders"]
+        only_fields = [
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
+        ]
         description = "Order related settings from site settings."
         model = site_models.SiteSettings
 
