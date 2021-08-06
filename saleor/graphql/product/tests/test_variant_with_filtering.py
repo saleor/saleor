@@ -57,6 +57,12 @@ def products_for_variant_filtering(product_type, category):
                 category=category,
                 product_type=product_type,
             ),
+            Product(
+                name="ProductWithPreorder",
+                slug="prod5",
+                category=category,
+                product_type=product_type,
+            ),
         ]
     )
     ProductVariant.objects.bulk_create(
@@ -86,6 +92,11 @@ def products_for_variant_filtering(product_type, category):
             ProductVariant(
                 product=products[5],
             ),
+            ProductVariant(
+                product=products[6],
+                sku="Preorder-V1",
+                is_preorder=True,
+            ),
         ]
     )
     return products
@@ -106,6 +117,11 @@ def products_for_variant_filtering(product_type, category):
         ({"sku": ["P1-V1", "P1-V2", "PP1-V1"]}, ["P1-V1", "P1-V2", "PP1-V1"]),
         ({"sku": ["PP1-V1", "PP2-V1"]}, ["PP1-V1", "PP2-V1"]),
         ({"sku": ["invalid"]}, []),
+        ({"isPreorder": True}, ["Preorder-V1"]),
+        (
+            {"isPreorder": False},
+            ["P1-V1", "P1-V2", "P2-V1", "P3-V1", "PP1-V1", "PP2-V1"],
+        ),
     ],
 )
 def test_products_pagination_with_filtering(
