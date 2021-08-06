@@ -2190,6 +2190,11 @@ type GiftCardBulkActivate {
   errors: [GiftCardError!]!
 }
 
+type GiftCardBulkDeactivate {
+  count: Int!
+  errors: [GiftCardError!]!
+}
+
 type GiftCardBulkDelete {
   count: Int!
   errors: [GiftCardError!]!
@@ -3011,6 +3016,7 @@ type Mutation {
   giftCardResend(input: GiftCardResendInput!): GiftCardResend
   giftCardBulkDelete(ids: [ID]!): GiftCardBulkDelete
   giftCardBulkActivate(ids: [ID]!): GiftCardBulkActivate
+  giftCardBulkDeactivate(ids: [ID]!): GiftCardBulkDeactivate
   pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
