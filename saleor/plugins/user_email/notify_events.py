@@ -3,6 +3,7 @@ from .tasks import (
     send_account_delete_confirmation_email_task,
     send_fulfillment_confirmation_email_task,
     send_fulfillment_update_email_task,
+    send_gift_card_email_task,
     send_invoice_email_task,
     send_order_canceled_email_task,
     send_order_confirmation_email_task,
@@ -47,6 +48,11 @@ def send_account_change_email_confirm(payload: dict, config: dict):
 def send_account_delete(payload: dict, config: dict):
     recipient_email = payload["recipient_email"]
     send_account_delete_confirmation_email_task.delay(recipient_email, payload, config)
+
+
+def send_gift_card(payload: dict, config: dict):
+    recipient_email = payload["recipient_email"]
+    send_gift_card_email_task.delay(recipient_email, payload, config)
 
 
 def send_account_set_customer_password(payload: dict, config: dict):

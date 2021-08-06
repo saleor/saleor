@@ -8,6 +8,7 @@ from ...core.utils.promo_code import generate_promo_code
 from ...core.utils.validators import date_passed, user_is_valid
 from ...giftcard import GiftCardExpiryType, events, models
 from ...giftcard.error_codes import GiftCardErrorCode
+from ...giftcard.notifications import send_gift_card_notification
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import GiftCardError, PriceInput, TimePeriodInputType
@@ -99,7 +100,7 @@ class GiftCardCreate(ModelMutation):
         cls.clean_expiry_settings(cleaned_input, instance)
         cls.clean_balance(cleaned_input, instance)
 
-        cleaned_input.get("user_email", None)
+        # TODO: validate user email
 
         return cleaned_input
 
@@ -188,6 +189,15 @@ class GiftCardCreate(ModelMutation):
                             )
                         }
                     )
+            if not amount > 0:
+                raise ValidationError(
+                    {
+                        "balance": ValidationError(
+                            "Balance amount have to be greater than 0.",
+                            code=GiftCardErrorCode.INVALID.value,
+                        )
+                    }
+                )
             cleaned_input["currency"] = currency
             cleaned_input["current_balance_amount"] = amount
             cleaned_input["initial_balance_amount"] = amount
@@ -198,6 +208,19 @@ class GiftCardCreate(ModelMutation):
             gift_card=instance,
             user=info.context.user,
             app=info.context.app,
+        )
+        events.gift_card_sent(
+            gift_card_id=instance.id,
+            user_id=info.context.user.id if info.context.user else None,
+            app_id=info.context.app.id if info.context.app else None,
+            email=cleaned_input["user_email"],
+        )
+        send_gift_card_notification(
+            cleaned_input.get("created_by"),
+            cleaned_input.get("app"),
+            cleaned_input["user_email"],
+            instance,
+            info.context.plugins,
         )
 
 
