@@ -25,6 +25,9 @@ class WarehouseQueryset(models.QuerySet):
             .order_by("pk")
         )
 
+    def get_first_warehouse_for_channel(self, channel_pk: int):
+        return self.filter(shipping_zones__channels=channel_pk).first()
+
 
 class Warehouse(ModelWithMetadata):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)

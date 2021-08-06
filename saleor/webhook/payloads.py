@@ -621,6 +621,7 @@ def generate_translation_payload(translation: "Translation"):
 
     translation_data = {
         "id": graphene.Node.to_global_id(object_type, object_id),
+        "type": object_type,
         "language_code": translation.language_code,
         "keys": translated_keys,
     }

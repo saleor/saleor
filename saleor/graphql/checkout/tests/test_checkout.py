@@ -31,7 +31,7 @@ from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
-from ....warehouse.models import Stock
+from ....warehouse.models import Stock, Warehouse
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
     clean_shipping_method,
@@ -78,7 +78,7 @@ def test_update_checkout_shipping_method_if_invalid(
     other_shipping_method,
     shipping_zone_without_countries,
 ):
-    """If the shipping method is invalid, it should replace it."""
+    # If the shipping method is invalid, it should be removed.
 
     checkout = checkout_with_single_item
     checkout.shipping_address = address
@@ -92,18 +92,13 @@ def test_update_checkout_shipping_method_if_invalid(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
-    assert checkout.shipping_method == other_shipping_method
-    assert checkout_info.shipping_method == other_shipping_method
-    assert (
-        checkout_info.shipping_method_channel_listings
-        == shipping_models.ShippingMethodChannelListing.objects.filter(
-            shipping_method=other_shipping_method, channel=checkout_info.channel
-        ).first()
-    )
+    assert checkout.shipping_method is None
+    assert checkout_info.shipping_method is None
+    assert checkout_info.shipping_method_channel_listings is None
 
     # Ensure the checkout's shipping method was saved
     checkout.refresh_from_db(fields=["shipping_method"])
-    assert checkout.shipping_method == other_shipping_method
+    assert checkout.shipping_method is None
 
 
 MUTATION_CHECKOUT_CREATE = """
@@ -1018,6 +1013,28 @@ def test_checkout_create_sets_country_from_shipping_address_country(
     content["data"]["checkoutCreate"]
     checkout = Checkout.objects.first()
     assert checkout.country == "US"
+
+
+def test_checkout_create_sets_country_when_no_shipping_address_is_given(
+    api_client, variant_with_many_stocks_different_shipping_zones, channel_USD
+):
+    variant = variant_with_many_stocks_different_shipping_zones
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    # should set address of a first warehouse in the channel
+    api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    checkout = Checkout.objects.first()
+    first_warehouse = Warehouse.objects.get_first_warehouse_for_channel(channel_USD.pk)
+    assert checkout.country == first_warehouse.address.country
 
 
 @override_settings(DEFAULT_COUNTRY="DE")
