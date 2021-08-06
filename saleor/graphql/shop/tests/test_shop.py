@@ -1198,7 +1198,7 @@ def test_staff_notification_update_mutation_with_empty_email(
 
 
 ORDER_SETTINGS_UPDATE_MUTATION = """
-    mutation orderSettings($confirmOrders: Boolean!) {
+    mutation orderSettings($confirmOrders: Boolean!, $fulfillGiftCards: Boolean!) {
         orderSettingsUpdate(
             input: {
                 automaticallyConfirmAllNewOrders: $confirmOrders
@@ -1229,6 +1229,7 @@ def test_order_settings_update_by_staff(
     assert response_settings["automaticallyFulfillNonShippableGiftCard"] is False
     site_settings.refresh_from_db()
     assert site_settings.automatically_confirm_all_new_orders is False
+    assert site_settings.automatically_fulfill_non_shippable_gift_card is False
 
 
 def test_order_settings_update_by_app(
@@ -1246,6 +1247,7 @@ def test_order_settings_update_by_app(
     assert response_settings["automaticallyFulfillNonShippableGiftCard"] is False
     site_settings.refresh_from_db()
     assert site_settings.automatically_confirm_all_new_orders is False
+    assert site_settings.automatically_fulfill_non_shippable_gift_card is False
 
 
 def test_order_settings_update_by_user_without_permissions(
@@ -1253,11 +1255,13 @@ def test_order_settings_update_by_user_without_permissions(
 ):
     assert site_settings.automatically_confirm_all_new_orders is True
     response = user_api_client.post_graphql(
-        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+        ORDER_SETTINGS_UPDATE_MUTATION,
+        {"confirmOrders": False, "fulfillGiftCards": False},
     )
     assert_no_permission(response)
     site_settings.refresh_from_db()
     assert site_settings.automatically_confirm_all_new_orders is True
+    assert site_settings.automatically_fulfill_non_shippable_gift_card is True
 
 
 ORDER_SETTINGS_QUERY = """
@@ -1291,9 +1295,7 @@ def test_order_settings_query_as_staff(
 
     assert content["data"]["orderSettings"]["automaticallyConfirmAllNewOrders"] is False
     assert (
-        content["data"]["orderSettings"][
-            "automatically_fulfill_non_shippable_gift_card"
-        ]
+        content["data"]["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
         is False
     )
 
