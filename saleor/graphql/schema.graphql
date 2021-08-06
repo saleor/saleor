@@ -5357,6 +5357,7 @@ input ProductFilterInput {
   giftCard: Boolean
   ids: [ID]
   channel: String
+  hasPreorderedVariants: Boolean
 }
 
 type ProductImage {
@@ -5727,6 +5728,7 @@ input ProductVariantFilterInput {
   search: String
   sku: [String]
   metadata: [MetadataFilter]
+  isPreorder: Boolean
 }
 
 input ProductVariantInput {

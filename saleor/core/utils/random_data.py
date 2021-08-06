@@ -743,7 +743,9 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     customer = random.choice([None, customers.first()])
 
     # 20% chance to be unconfirmed order.
-    will_be_unconfirmed = random.choice([0, 0, 0, 0, 1])
+    will_be_unconfirmed = (
+        random.choice([0, 0, 0, 0, 1]) if not create_preorder_lines else True
+    )
 
     if customer:
         address = customer.default_shipping_address
@@ -798,7 +800,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
 
     create_fake_payment(order=order)
 
-    if not (will_be_unconfirmed and create_preorder_lines):
+    if not will_be_unconfirmed:
         create_fulfillments(order)
 
     return order
