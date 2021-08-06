@@ -2842,7 +2842,7 @@ type Mutation {
   orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
   orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
-  orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
+  orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput!): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
   orderBulkCancel(ids: [ID]!): OrderBulkCancel
   deleteMetadata(id: ID!, keys: [String!]!): DeleteMetadata
