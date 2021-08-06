@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 from ...core.permissions import GiftcardPermissions
 from ...core.utils.promo_code import generate_promo_code
@@ -101,7 +102,18 @@ class GiftCardCreate(ModelMutation):
         cls.clean_expiry_settings(cleaned_input, instance)
         cls.clean_balance(cleaned_input, instance)
 
-        # TODO: validate user email
+        if email := data.get("user_email"):
+            try:
+                validate_email(email)
+            except ValidationError:
+                raise ValidationError(
+                    {
+                        "email": ValidationError(
+                            "Provided email is invalid.",
+                            code=GiftCardErrorCode.INVALID.value,
+                        )
+                    }
+                )
 
         return cleaned_input
 
@@ -210,18 +222,18 @@ class GiftCardCreate(ModelMutation):
             user=info.context.user,
             app=info.context.app,
         )
-        events.gift_card_sent(
-            gift_card_id=instance.id,
-            user_id=info.context.user.id if info.context.user else None,
-            app_id=info.context.app.id if info.context.app else None,
-            email=cleaned_input["user_email"],
-        )
         send_gift_card_notification(
             cleaned_input.get("created_by"),
             cleaned_input.get("app"),
             cleaned_input["user_email"],
             instance,
             info.context.plugins,
+        )
+        events.gift_card_sent(
+            gift_card_id=instance.id,
+            user_id=info.context.user.id if info.context.user else None,
+            app_id=info.context.app.id if info.context.app else None,
+            email=cleaned_input["user_email"],
         )
 
 
@@ -344,3 +356,73 @@ class GiftCardActivate(BaseMutation):
                 gift_card=gift_card, user=info.context.user, app=info.context.app
             )
         return GiftCardActivate(gift_card=gift_card)
+
+
+class GiftCardResendInput(graphene.InputObjectType):
+    id = graphene.ID(required=True, description="ID of a gift card to resend.")
+    email = graphene.String(
+        required=False, description="Email to which gift card should be send."
+    )
+
+
+class GiftCardResend(BaseMutation):
+    gift_card = graphene.Field(GiftCard, description="Gift card which has been sent.")
+
+    class Arguments:
+        input = GiftCardResendInput(
+            required=True, description="Fields required to resend a gift card."
+        )
+
+    class Meta:
+        description = "Resend a gift card."
+        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
+
+    @classmethod
+    def clean_input(cls, data):
+        if email := data.get("email"):
+            try:
+                validate_email(email)
+            except ValidationError:
+                raise ValidationError(
+                    {
+                        "email": ValidationError(
+                            "Provided email is invalid.",
+                            code=GiftCardErrorCode.INVALID.value,
+                        )
+                    }
+                )
+
+    @classmethod
+    def get_target_email(cls, data, gift_card):
+        return (
+            data.get("email") or gift_card.used_by_email or gift_card.created_by_email
+        )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        data = data.get("input")
+        cls.clean_input(data)
+        gift_card_id = data["id"]
+        gift_card = cls.get_node_or_error(
+            info, gift_card_id, field="gift_card_id", only_type=GiftCard
+        )
+        target_email = cls.get_target_email(data, gift_card)
+        user = None
+        if user_is_valid(info.context.user):
+            user = info.context.user
+        send_gift_card_notification(
+            user,
+            info.context.app,
+            target_email,
+            gift_card,
+            info.context.plugins,
+        )
+        events.gift_card_resent(
+            gift_card_id=gift_card.id,
+            user_id=user.id if user else None,
+            app_id=info.context.app.id if info.context.app else None,
+            email=target_email,
+        )
+        return GiftCardResend(gift_card=gift_card)

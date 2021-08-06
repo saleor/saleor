@@ -43,6 +43,18 @@ def gift_card_sent(
     )
 
 
+def gift_card_resent(
+    gift_card_id: int, user_id: Optional[int], app_id: Optional[int], email: str
+):
+    return GiftCardEvent.objects.create(
+        gift_card_id=gift_card_id,
+        user_id=user_id,
+        app_id=app_id,
+        type=GiftCardEvents.RESENT,
+        parameters={"email": email},
+    )
+
+
 def gift_card_balance_reset(
     gift_card: GiftCard,
     old_gift_card: GiftCard,
