@@ -4307,6 +4307,7 @@ input ProductFilterInput {
   minimalPrice: PriceRangeInput
   productTypes: [ID]
   ids: [ID]
+  hasPreorderedVariants: Boolean
 }
 
 type ProductImage {
@@ -4666,6 +4667,7 @@ input ProductVariantFilterInput {
   search: String
   sku: [String]
   metadata: [MetadataFilter]
+  isPreorder: Boolean
 }
 
 input ProductVariantInput {
