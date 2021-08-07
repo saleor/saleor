@@ -2171,6 +2171,17 @@ type GiftCardActivate {
   errors: [GiftCardError!]!
 }
 
+type GiftCardAddNote {
+  giftCard: GiftCard
+  event: GiftCardEvent
+  giftCardErrors: [GiftCardError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [GiftCardError!]!
+}
+
+input GiftCardAddNoteInput {
+  message: String!
+}
+
 type GiftCardBulkActivate {
   count: Int!
   errors: [GiftCardError!]!
@@ -2278,6 +2289,7 @@ enum GiftCardEventsEnum {
   EXPIRY_SETTINGS_UPDATED
   SENT_TO_CUSTOMER
   RESENT
+  NOTE_ADDED
 }
 
 input GiftCardExpirySettingsInput {
@@ -2985,6 +2997,7 @@ type Mutation {
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
   giftCardBulkDelete(ids: [ID]!): GiftCardBulkDelete
   giftCardBulkActivate(ids: [ID]!): GiftCardBulkActivate
+  giftCardAddNote(id: ID!, input: GiftCardAddNoteInput!): GiftCardAddNote
   pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
