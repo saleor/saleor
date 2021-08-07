@@ -24,6 +24,7 @@ class GiftCardEvents:
     EXPIRY_SETTINGS_UPDATED = "expiry_settings_updated"
     SENT_TO_CUSTOMER = "sent_to_customer"
     RESENT = "resent"
+    NOTE_ADDED = "note_added"
 
     CHOICES = [
         (ISSUED, "The gift card was created be staff user or app."),
@@ -35,4 +36,5 @@ class GiftCardEvents:
         (EXPIRY_SETTINGS_UPDATED, "The gift card expiry settings was updated."),
         (SENT_TO_CUSTOMER, "The gift card was sent to the customer."),
         (RESENT, "The gift card was resent to the customer."),
+        (NOTE_ADDED, "A note was added to the gift card."),
     ]
