@@ -173,3 +173,15 @@ def gift_cards_deactivated(
         for gift_card_id in gift_card_ids
     ]
     return GiftCardEvent.objects.bulk_create(events)
+
+
+def gift_card_note_added(
+    gift_card: GiftCard, user: UserType, app: AppType, message: str
+) -> GiftCardEvent:
+    return GiftCardEvent.objects.create(
+        gift_card=gift_card,
+        user=user,
+        app=app,
+        type=GiftCardEvents.NOTE_ADDED,
+        parameters={"message": message},
+    )
