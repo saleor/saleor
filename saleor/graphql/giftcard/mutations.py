@@ -14,9 +14,10 @@ from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import GiftCardError, PriceInput, TimePeriodInputType
+from ..core.utils import validate_required_string_field
 from ..core.validators import validate_price_precision
 from .enums import GiftCardExpiryTypeEnum
-from .types import GiftCard
+from .types import GiftCard, GiftCardEvent
 
 
 class GiftCardExpirySettingsInput(graphene.InputObjectType):
@@ -425,3 +426,56 @@ class GiftCardResend(BaseMutation):
             email=target_email,
         )
         return GiftCardResend(gift_card=gift_card)
+
+
+class GiftCardAddNoteInput(graphene.InputObjectType):
+    message = graphene.String(
+        description="Note message.", name="message", required=True
+    )
+
+
+class GiftCardAddNote(BaseMutation):
+    gift_card = graphene.Field(GiftCard, description="Gift card with the note added.")
+    event = graphene.Field(GiftCardEvent, description="Gift card note created.")
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="ID of the gift card to add a note for."
+        )
+        input = GiftCardAddNoteInput(
+            required=True,
+            description="Fields required to create a note for the gift card.",
+        )
+
+    class Meta:
+        description = "Adds note to the gift card."
+        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
+
+    @classmethod
+    def clean_input(cls, _info, _instance, data):
+        try:
+            cleaned_input = validate_required_string_field(data["input"], "message")
+        except ValidationError:
+            raise ValidationError(
+                {
+                    "message": ValidationError(
+                        "Message can't be empty.",
+                        code=GiftCardErrorCode.REQUIRED,
+                    )
+                }
+            )
+        return cleaned_input
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        gift_card = cls.get_node_or_error(info, data.get("id"), only_type=GiftCard)
+        cleaned_input = cls.clean_input(info, gift_card, data)
+        event = events.gift_card_note_added(
+            gift_card=gift_card,
+            user=info.context.user,
+            app=info.context.app,
+            message=cleaned_input["message"],
+        )
+        return GiftCardAddNote(gift_card=gift_card, event=event)
