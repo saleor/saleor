@@ -377,7 +377,6 @@ class GiftCardResend(BaseMutation):
         description = "Resend a gift card."
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
-        error_type_field = "gift_card_errors"
 
     @classmethod
     def clean_input(cls, data):

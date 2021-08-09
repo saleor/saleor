@@ -2317,7 +2317,6 @@ input GiftCardFilterInput {
 
 type GiftCardResend {
   giftCard: GiftCard
-  giftCardErrors: [GiftCardError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [GiftCardError!]!
 }
 
