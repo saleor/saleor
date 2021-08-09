@@ -5,13 +5,18 @@ from ..core.utils.promo_code import InvalidPromoCode
 from .models import GiftCard
 
 
-def add_gift_card_code_to_checkout(checkout: Checkout, promo_code: str):
+def add_gift_card_code_to_checkout(checkout: Checkout, promo_code: str, currency: str):
     """Add gift card data to checkout by code.
 
     Raise InvalidPromoCode if gift card cannot be applied.
     """
     try:
-        gift_card = GiftCard.objects.active(date=date.today()).get(code=promo_code)
+        # only active gift card with currency the same as channel currency can be used
+        gift_card = (
+            GiftCard.objects.active(date=date.today())
+            .filter(currency=currency)
+            .get(code=promo_code)
+        )
     except GiftCard.DoesNotExist:
         raise InvalidPromoCode()
     checkout.gift_cards.add(gift_card)
