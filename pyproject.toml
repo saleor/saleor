@@ -83,7 +83,7 @@ documentation = "https://docs.saleor.io/"
 
   [tool.poetry.dev-dependencies]
   black = "21.7b0"
-  codecov = "^2.1.11"
+  codecov = "^2.1.12"
   coverage = "^5.5"
   django-debug-toolbar = "^3.2"
   django-debug-toolbar-request-history = "^0"
