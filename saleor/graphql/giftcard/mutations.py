@@ -331,9 +331,7 @@ class GiftCardActivate(BaseMutation):
 
 
 class GiftCardAddNoteInput(graphene.InputObjectType):
-    message = graphene.String(
-        description="Note message.", name="message", required=True
-    )
+    message = graphene.String(description="Note message.", required=True)
 
 
 class GiftCardAddNote(BaseMutation):
@@ -353,7 +351,6 @@ class GiftCardAddNote(BaseMutation):
         description = "Adds note to the gift card."
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
-        error_type_field = "gift_card_errors"
 
     @classmethod
     def clean_input(cls, _info, _instance, data):
