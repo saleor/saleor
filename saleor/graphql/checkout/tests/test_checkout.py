@@ -78,7 +78,7 @@ def test_update_checkout_shipping_method_if_invalid(
     other_shipping_method,
     shipping_zone_without_countries,
 ):
-    """If the shipping method is invalid, it should replace it."""
+    # If the shipping method is invalid, it should be removed.
 
     checkout = checkout_with_single_item
     checkout.shipping_address = address
@@ -92,18 +92,13 @@ def test_update_checkout_shipping_method_if_invalid(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
-    assert checkout.shipping_method == other_shipping_method
-    assert checkout_info.shipping_method == other_shipping_method
-    assert (
-        checkout_info.shipping_method_channel_listings
-        == shipping_models.ShippingMethodChannelListing.objects.filter(
-            shipping_method=other_shipping_method, channel=checkout_info.channel
-        ).first()
-    )
+    assert checkout.shipping_method is None
+    assert checkout_info.shipping_method is None
+    assert checkout_info.shipping_method_channel_listings is None
 
     # Ensure the checkout's shipping method was saved
     checkout.refresh_from_db(fields=["shipping_method"])
-    assert checkout.shipping_method == other_shipping_method
+    assert checkout.shipping_method is None
 
 
 MUTATION_CHECKOUT_CREATE = """
