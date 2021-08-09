@@ -41,6 +41,13 @@ def test_gift_card_bulk_deactivate_by_staff(
     content = get_graphql_content(response)
     data = content["data"]["giftCardBulkDeactivate"]
 
+    assert (
+        GiftCard.objects.filter(
+            id__in=[card.id for card in gift_cards], is_active=False
+        ).count()
+        == 3
+    )
+
     assert data["count"] == len(ids)
     events = GiftCardEvent.objects.all()
     assert events.count() == 3
@@ -75,6 +82,13 @@ def test_gift_card_bulk_deactivate_by_app(
     # then
     content = get_graphql_content(response)
     data = content["data"]["giftCardBulkDeactivate"]
+
+    assert (
+        GiftCard.objects.filter(
+            id__in=[card.id for card in gift_cards], is_active=False
+        ).count()
+        == 3
+    )
 
     assert data["count"] == len(ids)
     events = GiftCardEvent.objects.all()
