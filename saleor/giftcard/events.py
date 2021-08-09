@@ -144,6 +144,20 @@ def gift_cards_activated(
     return GiftCardEvent.objects.bulk_create(events)
 
 
+def gift_card_note_added(
+    gift_card: GiftCard, user: UserType, app: AppType, message: str
+) -> GiftCardEvent:
+    if not user_is_valid(user):
+        user = None
+    return GiftCardEvent.objects.create(
+        gift_card=gift_card,
+        user=user,
+        app=app,
+        type=GiftCardEvents.NOTE_ADDED,
+        parameters={"message": message},
+    )
+
+
 def gift_cards_deactivated(
     gift_card_ids: Iterable[int],
     user: UserType,

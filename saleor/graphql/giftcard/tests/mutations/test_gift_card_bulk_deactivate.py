@@ -41,12 +41,9 @@ def test_gift_card_bulk_deactivate_by_staff(
     content = get_graphql_content(response)
     data = content["data"]["giftCardBulkDeactivate"]
 
-    assert (
-        GiftCard.objects.filter(
-            id__in=[card.id for card in gift_cards], is_active=False
-        ).count()
-        == 3
-    )
+    assert GiftCard.objects.filter(
+        id__in=[card.id for card in gift_cards], is_active=False
+    ).count() == len(gift_cards)
 
     assert data["count"] == len(ids)
     events = GiftCardEvent.objects.all()
@@ -83,12 +80,9 @@ def test_gift_card_bulk_deactivate_by_app(
     content = get_graphql_content(response)
     data = content["data"]["giftCardBulkDeactivate"]
 
-    assert (
-        GiftCard.objects.filter(
-            id__in=[card.id for card in gift_cards], is_active=False
-        ).count()
-        == 3
-    )
+    assert GiftCard.objects.filter(
+        id__in=[card.id for card in gift_cards], is_active=False
+    ).count() == len(gift_cards)
 
     assert data["count"] == len(ids)
     events = GiftCardEvent.objects.all()
@@ -128,6 +122,10 @@ def test_gift_card_bulk_deactivate_all_cards_already_inactive(
     events = GiftCardEvent.objects.all()
     assert events.count() == 0
 
+    assert GiftCard.objects.filter(
+        id__in=[card.id for card in gift_cards], is_active=False
+    ).count() == len(gift_cards)
+
 
 def test_gift_card_bulk_deactivate_by_customer(
     api_client, gift_card, gift_card_expiry_period
@@ -146,3 +144,6 @@ def test_gift_card_bulk_deactivate_by_customer(
 
     # then
     assert_no_permission(response)
+    assert GiftCard.objects.filter(
+        id__in=[card.id for card in gift_cards], is_active=True
+    ).count() == len(gift_cards)

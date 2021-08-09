@@ -12,6 +12,7 @@ from .bulk_mutations import (
 from .filters import GiftCardFilterInput
 from .mutations import (
     GiftCardActivate,
+    GiftCardAddNote,
     GiftCardCreate,
     GiftCardDeactivate,
     GiftCardDelete,
@@ -55,3 +56,5 @@ class GiftCardMutations(graphene.ObjectType):
     gift_card_bulk_delete = GiftCardBulkDelete.Field()
     gift_card_bulk_activate = GiftCardBulkActivate.Field()
     gift_card_bulk_deactivate = GiftCardBulkDeactivate.Field()
+
+    gift_card_add_note = GiftCardAddNote.Field()
