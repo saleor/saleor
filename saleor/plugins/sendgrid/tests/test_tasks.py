@@ -733,17 +733,24 @@ def test_send_gift_card_email_task_by_user(
     mocked_send_email, staff_user, gift_card, sendgrid_email_plugin
 ):
     template_id = "ABC1"
-
     recipient_email = "user@example.com"
+    recipient_name = "John Doe"
+
     payload = {
         "requester": {
-            "user_id": staff_user.pk,
             "email": staff_user.email,
-            "app_id": None,
             "app_name": None,
         },
-        "recipient_email": recipient_email,
-        "gift_card": {"id": gift_card.id, "code": gift_card.code},
+        "recipient": {
+            "email": recipient_email,
+            "name": recipient_name,
+        },
+        "gift_card": {
+            "id": gift_card.id,
+            "code": gift_card.code,
+            "balance": gift_card.current_balance_amount,
+            "currency": gift_card.currency,
+        },
     }
 
     plugin = sendgrid_email_plugin(
