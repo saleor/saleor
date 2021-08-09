@@ -3794,6 +3794,7 @@ type Mutation {
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   productVariantChannelListingUpdate(id: ID!, input: [ProductVariantChannelListingAddInput!]!): ProductVariantChannelListingUpdate
   productVariantReorderAttributeValues(attributeId: ID!, moves: [ReorderInput]!, variantId: ID!): ProductVariantReorderAttributeValues
+  productVariantPreorderDeactivate(id: ID!): ProductVariantPreorderDeactivate
   variantMediaAssign(mediaId: ID!, variantId: ID!): VariantMediaAssign
   variantMediaUnassign(mediaId: ID!, variantId: ID!): VariantMediaUnassign
   paymentCapture(amount: PositiveDecimal, paymentId: ID!): PaymentCapture
@@ -5325,6 +5326,7 @@ enum ProductErrorCode {
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
   UNSUPPORTED_MEDIA_PROVIDER
+  PREORDER_VARIANT_CANNOT_BE_DEACTIVATED
 }
 
 enum ProductFieldEnum {
@@ -5737,6 +5739,12 @@ input ProductVariantInput {
   trackInventory: Boolean
   weight: WeightScalar
   preorder: PreorderSettingsInput
+}
+
+type ProductVariantPreorderDeactivate {
+  productVariant: ProductVariant
+  productErrors: [ProductError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [ProductError!]!
 }
 
 type ProductVariantReorder {

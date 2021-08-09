@@ -4,7 +4,12 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, ca
 from django.db import transaction
 from django.db.models import F, Sum
 
-from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
+from ..core.exceptions import (
+    AllocationError,
+    InsufficientStock,
+    InsufficientStockData,
+    PreorderAllocationError,
+)
 from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
 from ..plugins.manager import PluginsManager
@@ -568,4 +573,97 @@ def _create_preorder_allocation(
             quantity=quantity,
         ),
         None,
+    )
+
+
+@traced_atomic_transaction()
+def deactivate_preorder_for_variant(product_variant: ProductVariant):
+    """Complete preorder for product variant.
+
+    All preorder settings should be cleared and all preorder allocations
+    should be replaced by regular allocations.
+    """
+    if not product_variant.is_preorder:
+        return
+    channel_listings = ProductVariantChannelListing.objects.filter(
+        variant_id=product_variant.pk
+    )
+    channel_listings_pk = (channel_listing.id for channel_listing in channel_listings)
+    preorder_allocations = PreorderAllocation.objects.filter(
+        product_variant_channel_listing_id__in=channel_listings_pk
+    ).select_related("order_line", "order_line__order")
+
+    allocations_to_create = []
+    stocks_to_create = []
+    for preorder_allocation in preorder_allocations:
+        stock = _get_stock_for_preorder_allocation(preorder_allocation, product_variant)
+        if stock._state.adding:
+            stocks_to_create.append(stock)
+        allocations_to_create.append(
+            Allocation(
+                order_line=preorder_allocation.order_line,
+                stock=stock,
+                quantity_allocated=preorder_allocation.quantity,
+            )
+        )
+
+    if stocks_to_create:
+        Stock.objects.bulk_create(stocks_to_create)
+
+    if allocations_to_create:
+        Allocation.objects.bulk_create(allocations_to_create)
+
+    if preorder_allocations:
+        preorder_allocations.delete()
+
+    product_variant.preorder_global_threshold = None
+    product_variant.preorder_end_date = None
+    product_variant.is_preorder = False
+    product_variant.save(
+        update_fields=["preorder_global_threshold", "preorder_end_date", "is_preorder"]
+    )
+
+    ProductVariantChannelListing.objects.filter(variant_id=product_variant.pk).update(
+        preorder_quantity_threshold=None
+    )
+
+
+def _get_stock_for_preorder_allocation(
+    preorder_allocation: PreorderAllocation, product_variant: ProductVariant
+) -> Stock:
+    """Return stock where preordered variant should be allocated.
+
+    By default this function uses any warehouse from the shipping zone that matches
+    order's shipping method. If order has no shipping method set, it uses any warehouse
+    that matches order's country. Function returns existing stock for selected warehouse
+    or creates a new one unsaved `Stock` instance. Function raises an error if there is
+    no warehouse assigned to any shipping zone handles order's country.
+    """
+    order = preorder_allocation.order_line.order
+    shipping_method_id = order.shipping_method_id
+    if shipping_method_id is not None:
+        warehouse = Warehouse.objects.filter(
+            shipping_zones__id=order.shipping_method.shipping_zone_id  # type: ignore
+        ).first()
+    else:
+        from ..order.utils import get_order_country
+
+        country = get_order_country(order)
+        warehouse = Warehouse.objects.filter(
+            shipping_zones__countries__contains=country
+        ).first()
+
+    if not warehouse:
+        raise PreorderAllocationError(preorder_allocation.order_line)
+
+    stock = list(
+        (
+            Stock.objects.select_for_update(of=("self",)).filter(
+                warehouse=warehouse, product_variant=product_variant
+            )
+        )
+    )
+
+    return (stock[0] if stock else None) or Stock(
+        warehouse=warehouse, product_variant=product_variant, quantity=0
     )

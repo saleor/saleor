@@ -10,7 +10,7 @@ from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
-from ....core.exceptions import PermissionDenied
+from ....core.exceptions import PermissionDenied, PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.editorjs import clean_editor_js
@@ -33,6 +33,7 @@ from ....product.thumbnails import (
 )
 from ....product.utils import delete_categories, get_products_ids_without_variants
 from ....product.utils.variants import generate_and_set_variant_name
+from ....warehouse.management import deactivate_preorder_for_variant
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
@@ -1705,3 +1706,55 @@ class VariantMediaUnassign(BaseMutation):
             lambda: info.context.plugins.product_variant_updated(variant.node)
         )
         return VariantMediaUnassign(product_variant=variant, media=media)
+
+
+class ProductVariantPreorderDeactivate(BaseMutation):
+    product_variant = graphene.Field(
+        ProductVariant, description="Product variant with ended preorder."
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            required=True,
+            description="ID of a variant which preorder should be deactivated.",
+        )
+
+    class Meta:
+        description = (
+            "Deactivates product variant preorder."
+            "It changes all preorder allocation into regular allocation."
+        )
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, id):
+        qs = models.ProductVariant.objects.prefetched_for_webhook()
+        variant = cls.get_node_or_error(
+            info, id, field="id", only_type=ProductVariant, qs=qs
+        )
+        if not variant.is_preorder:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "This variant is not in preorder.",
+                        code=ProductErrorCode.INVALID,
+                    )
+                }
+            )
+
+        try:
+            deactivate_preorder_for_variant(variant)
+        except PreorderAllocationError as error:
+            raise ValidationError(
+                str(error),
+                code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED,
+            )
+
+        variant = ChannelContext(node=variant, channel_slug=None)
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_updated(variant.node)
+        )
+        return ProductVariantPreorderDeactivate(product_variant=variant)
