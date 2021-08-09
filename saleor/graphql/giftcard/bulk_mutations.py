@@ -62,7 +62,7 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
     def bulk_action(cls, info, queryset):
         queryset = queryset.filter(is_active=True)
         gift_card_ids = [gift_card.id for gift_card in queryset]
-        queryset.update(is_active=True)
+        queryset.update(is_active=False)
         events.gift_cards_deactivated(
             gift_card_ids, user=info.context.user, app=info.context.app
         )
