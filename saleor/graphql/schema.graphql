@@ -2188,7 +2188,6 @@ type GiftCardActivate {
 type GiftCardAddNote {
   giftCard: GiftCard
   event: GiftCardEvent
-  giftCardErrors: [GiftCardError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [GiftCardError!]!
 }
 

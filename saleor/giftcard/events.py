@@ -178,6 +178,8 @@ def gift_cards_deactivated(
 def gift_card_note_added(
     gift_card: GiftCard, user: UserType, app: AppType, message: str
 ) -> GiftCardEvent:
+    if not user_is_valid(user):
+        user = None
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
         user=user,
