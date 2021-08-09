@@ -5,7 +5,6 @@ from ...channel.models import Channel
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
@@ -77,13 +76,13 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def clean_payment_amount(cls, info, checkout_total, amount):
-        if amount != checkout_total.gross.amount:
+        # TODO: Check against uncovered amount rather than total
+        if amount > checkout_total.gross.amount:
             raise ValidationError(
                 {
                     "amount": ValidationError(
-                        "Partial payments are not allowed, amount should be "
-                        "equal checkout's total.",
-                        code=PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED,
+                        "Amount should not exceed= checkout's total.",
+                        code=PaymentErrorCode.PARTIAL_PAYMENT_TOTAL_EXCEEDED,
                     )
                 }
             )
@@ -180,8 +179,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
         }
-
-        cancel_active_payments(checkout)
 
         payment = create_payment(
             gateway=gateway,

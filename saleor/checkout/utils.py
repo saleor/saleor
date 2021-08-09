@@ -654,10 +654,6 @@ def is_fully_paid(
     return total_paid >= checkout_total.amount
 
 
-def cancel_active_payments(checkout: Checkout):
-    checkout.payments.filter(is_active=True).update(is_active=False)
-
-
 def is_shipping_required(lines: Iterable["CheckoutLineInfo"]):
     """Check if shipping is required for given checkout lines."""
     return any(

@@ -27,7 +27,6 @@ from ..models import Checkout
 from ..utils import (
     add_voucher_to_checkout,
     calculate_checkout_quantity,
-    cancel_active_payments,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_shipping_method,
@@ -1194,16 +1193,3 @@ def test_is_fully_paid_no_payment(checkout_with_item):
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     is_paid = is_fully_paid(manager, checkout_info, lines, None)
     assert not is_paid
-
-
-def test_cancel_active_payments(checkout_with_payments):
-    # given
-    checkout = checkout_with_payments
-    count_active = checkout.payments.filter(is_active=True).count()
-    assert count_active != 0
-
-    # when
-    cancel_active_payments(checkout)
-
-    # then
-    assert checkout.payments.filter(is_active=True).count() == 0
