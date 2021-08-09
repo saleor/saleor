@@ -325,7 +325,7 @@ def test_checkout_add_payment_bad_amount(
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert (
-        data["errors"][0]["code"] == PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED.name
+        data["errors"][0]["code"] == PaymentErrorCode.PARTIAL_PAYMENT_TOTAL_EXCEEDED.name
     )
 
 
@@ -414,11 +414,8 @@ def test_create_payment_for_checkout_with_active_payments(
     }
 
     payments_count = checkout.payments.count()
-    previous_active_payments = checkout.payments.filter(is_active=True)
-    previous_active_payments_ids = list(
-        previous_active_payments.values_list("pk", flat=True)
-    )
-    assert len(previous_active_payments_ids) > 0
+    previous_active_payments_count = checkout.payments.filter(is_active=True).count()
+    assert previous_active_payments_count > 0
 
     # when
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
@@ -431,8 +428,7 @@ def test_create_payment_for_checkout_with_active_payments(
     checkout.refresh_from_db()
     assert checkout.payments.all().count() == payments_count + 1
     active_payments = checkout.payments.all().filter(is_active=True)
-    assert active_payments.count() == 1
-    assert active_payments.first().pk not in previous_active_payments_ids
+    assert active_payments.count() == previous_active_payments_count + 1
 
 
 CAPTURE_QUERY = """
