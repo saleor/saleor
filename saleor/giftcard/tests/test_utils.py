@@ -11,7 +11,7 @@ def test_add_gift_card_code_to_checkout(checkout, gift_card):
     assert checkout.gift_cards.count() == 0
 
     # when
-    add_gift_card_code_to_checkout(checkout, gift_card.code)
+    add_gift_card_code_to_checkout(checkout, gift_card.code, gift_card.currency)
 
     # then
     assert checkout.gift_cards.count() == 1
@@ -27,7 +27,7 @@ def test_add_gift_card_code_to_checkout_inactive_card(checkout, gift_card):
     # when
     # then
     with pytest.raises(InvalidPromoCode):
-        add_gift_card_code_to_checkout(checkout, gift_card.code)
+        add_gift_card_code_to_checkout(checkout, gift_card.code, gift_card.currency)
 
 
 def test_add_gift_card_code_to_checkout_expired_card(checkout, gift_card):
@@ -40,7 +40,20 @@ def test_add_gift_card_code_to_checkout_expired_card(checkout, gift_card):
     # when
     # then
     with pytest.raises(InvalidPromoCode):
-        add_gift_card_code_to_checkout(checkout, gift_card.code)
+        add_gift_card_code_to_checkout(checkout, gift_card.code, gift_card.currency)
+
+
+def test_add_gift_card_code_to_checkout_invalid_currency(checkout, gift_card):
+    # given
+    currency = "EUR"
+
+    assert gift_card.currency != currency
+    assert checkout.gift_cards.count() == 0
+
+    # when
+    # then
+    with pytest.raises(InvalidPromoCode):
+        add_gift_card_code_to_checkout(checkout, gift_card.code, currency)
 
 
 def test_remove_gift_card_code_from_checkout(checkout, gift_card):
