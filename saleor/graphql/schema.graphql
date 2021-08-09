@@ -2312,6 +2312,16 @@ input GiftCardFilterInput {
   tag: String
 }
 
+type GiftCardResend {
+  giftCard: GiftCard
+  errors: [GiftCardError!]!
+}
+
+input GiftCardResendInput {
+  id: ID!
+  email: String
+}
+
 type GiftCardSettings {
   expiryType: GiftCardSettingsExpiryTypeEnum!
   expiryPeriod: TimePeriod
@@ -2999,6 +3009,7 @@ type Mutation {
   giftCardDelete(id: ID!): GiftCardDelete
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
+  giftCardResend(input: GiftCardResendInput!): GiftCardResend
   giftCardBulkDelete(ids: [ID]!): GiftCardBulkDelete
   giftCardBulkActivate(ids: [ID]!): GiftCardBulkActivate
   giftCardBulkDeactivate(ids: [ID]!): GiftCardBulkDeactivate
