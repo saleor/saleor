@@ -1198,7 +1198,7 @@ def test_staff_notification_update_mutation_with_empty_email(
 
 
 ORDER_SETTINGS_UPDATE_MUTATION = """
-    mutation orderSettings($confirmOrders: Boolean!, $fulfillGiftCards: Boolean!) {
+    mutation orderSettings($confirmOrders: Boolean, $fulfillGiftCards: Boolean) {
         orderSettingsUpdate(
             input: {
                 automaticallyConfirmAllNewOrders: $confirmOrders
@@ -1230,6 +1230,24 @@ def test_order_settings_update_by_staff(
     site_settings.refresh_from_db()
     assert site_settings.automatically_confirm_all_new_orders is False
     assert site_settings.automatically_fulfill_non_shippable_gift_card is False
+
+
+def test_order_settings_update_by_staff_nothing_changed(
+    staff_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION,
+        {},
+    )
+    content = get_graphql_content(response)
+    response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
+    assert response_settings["automaticallyConfirmAllNewOrders"] is True
+    assert response_settings["automaticallyFulfillNonShippableGiftCard"] is True
+    site_settings.refresh_from_db()
+    assert site_settings.automatically_confirm_all_new_orders is True
+    assert site_settings.automatically_fulfill_non_shippable_gift_card is True
 
 
 def test_order_settings_update_by_app(

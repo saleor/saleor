@@ -293,15 +293,15 @@ class StaffNotificationRecipientDelete(ModelDeleteMutation):
 
 class OrderSettingsUpdateInput(graphene.InputObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
-        required=True,
+        required=False,
         description="When disabled, all new orders from checkout "
         "will be marked as unconfirmed. When enabled orders from checkout will "
         "become unfulfilled immediately.",
     )
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
-        required=True,
-        description="When disabled, all new non shippable gift cards "
-        "will require manual fulfillment.",
+        required=False,
+        description="When enabled, all non-shippable gift card orders "
+        "will be fulfilled automatically.",
     )
 
 
@@ -321,19 +321,21 @@ class OrderSettingsUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
+        FIELDS = [
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
+        ]
+
         instance = info.context.site.settings
-        instance.automatically_confirm_all_new_orders = data["input"][
-            "automatically_confirm_all_new_orders"
-        ]
-        instance.automatically_fulfill_non_shippable_gift_card = data["input"][
-            "automatically_fulfill_non_shippable_gift_card"
-        ]
-        instance.save(
-            update_fields=[
-                "automatically_confirm_all_new_orders",
-                "automatically_fulfill_non_shippable_gift_card",
-            ]
-        )
+        update_fields = []
+        for field in FIELDS:
+            value = data["input"].get(field)
+            if value is not None:
+                setattr(instance, field, value)
+                update_fields.append(field)
+
+        if update_fields:
+            instance.save(update_fields=update_fields)
         return OrderSettingsUpdate(order_settings=instance)
 
 
