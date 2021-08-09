@@ -21,6 +21,9 @@ from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django.utils import timezone
 from django_countries import countries
+from django.db import connection
+from django.db.models.signals import pre_migrate
+from django.dispatch import receiver
 from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
@@ -4223,3 +4226,11 @@ def app_export_event(app_export_file):
         app=app_export_file.app,
         parameters={"message": "Example error message"},
     )
+
+
+@receiver(pre_migrate)
+def install_extensions(sender, **kwargs):
+    with connection.cursor() as cursor:
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;")
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS hstore;")
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS btree_gin;")
