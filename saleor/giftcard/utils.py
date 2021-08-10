@@ -5,7 +5,9 @@ from ..core.utils.promo_code import InvalidPromoCode
 from .models import GiftCard
 
 
-def add_gift_card_code_to_checkout(checkout: Checkout, promo_code: str, currency: str):
+def add_gift_card_code_to_checkout(
+    checkout: Checkout, email: str, promo_code: str, currency: str
+):
     """Add gift card data to checkout by code.
 
     Raise InvalidPromoCode if gift card cannot be applied.
@@ -19,6 +21,12 @@ def add_gift_card_code_to_checkout(checkout: Checkout, promo_code: str, currency
         )
     except GiftCard.DoesNotExist:
         raise InvalidPromoCode()
+
+    used_by_email = gift_card.used_by_email
+    # gift card can be used only by one user
+    if used_by_email and used_by_email != email:
+        raise InvalidPromoCode()
+
     checkout.gift_cards.add(gift_card)
 
 
