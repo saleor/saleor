@@ -63,7 +63,7 @@ execnet==1.9.0; python_version >= "3.6" and python_full_version < "3.0.0" or pyt
 faker==8.11.0; python_version >= "3.6"
 filelock==3.0.12; python_full_version >= "3.6.1"
 flake8==3.9.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
-fonttools==4.26.1; python_version >= "3.6"
+fonttools==4.26.2; python_version >= "3.6"
 freezegun==1.1.0; python_version >= "3.5"
 gitdb==4.0.7; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.6"
 gitpython==3.1.20; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.6"
