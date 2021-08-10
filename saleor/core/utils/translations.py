@@ -48,3 +48,6 @@ class Translation(models.Model):
         raise NotImplementedError(
             "Models extending Translation should implement get_translated_keys"
         )
+
+    def get_translation_context(self) -> Dict[str, Any]:
+        return {}
