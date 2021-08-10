@@ -150,6 +150,9 @@ class Attribute(CountableDjangoObjectType):
     storefront_search_position = graphene.Int(
         description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION, required=True
     )
+    with_choices = graphene.Boolean(
+        description=AttributeDescriptions.WITH_CHOICES, required=True
+    )
 
     class Meta:
         description = (
@@ -195,6 +198,10 @@ class Attribute(CountableDjangoObjectType):
     @check_attribute_required_permissions()
     def resolve_available_in_grid(root: models.Attribute, *_args):
         return root.available_in_grid
+
+    @staticmethod
+    def resolve_with_choices(root: models.Attribute, *_args):
+        return root.input_type in AttributeInputType.TYPES_WITH_CHOICES
 
 
 class SelectedAttribute(graphene.ObjectType):
