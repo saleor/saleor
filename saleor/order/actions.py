@@ -319,6 +319,9 @@ def cancel_fulfillment(
     Return products to corresponding stocks if warehouse was defined.
     """
     fulfillment = Fulfillment.objects.select_for_update().get(pk=fulfillment.pk)
+    events.fulfillment_canceled_event(
+        order=fulfillment.order, user=user, app=app, fulfillment=fulfillment
+    )
     if warehouse:
         restock_fulfillment_lines(fulfillment, warehouse)
         events.fulfillment_restocked_items_event(
@@ -328,9 +331,6 @@ def cancel_fulfillment(
             fulfillment=fulfillment,
             warehouse_pk=warehouse.pk,
         )
-    events.fulfillment_canceled_event(
-        order=fulfillment.order, user=user, app=app, fulfillment=fulfillment
-    )
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save(update_fields=["status"])
     update_order_status(fulfillment.order)
