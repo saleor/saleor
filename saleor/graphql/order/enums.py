@@ -16,3 +16,4 @@ class OrderStatusFilter(graphene.Enum):
     PARTIALLY_FULFILLED = "partially fulfilled"
     FULFILLED = "fulfilled"
     CANCELED = "canceled"
+    OVERPAID = "overpaid"

@@ -5599,6 +5599,57 @@ def test_order_query_with_filter_status(
     assert order_id in orders_ids_from_response
 
 
+def test_order_query_with_ready_to_fulfill_filter_status(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    order_fully_paid,
+    order_overpaid,
+    order_underpaid,
+    channel_USD,
+):
+    order_underpaid.status = OrderStatus.UNFULFILLED
+    order_underpaid.save()
+    order_fully_paid.status = OrderStatus.UNFULFILLED
+    order_fully_paid.save()
+    order_overpaid.status = OrderStatus.PARTIALLY_FULFILLED
+    order_overpaid.save()
+    Order.objects.create(channel=channel_USD)
+
+    variables = {"filter": {"status": "READY_TO_FULFILL"}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    order_id = graphene.Node.to_global_id("Order", order_overpaid.pk)
+
+    orders_ids_from_response = [o["node"]["id"] for o in orders]
+    assert len(orders) == 2
+    assert order_id in orders_ids_from_response
+
+
+def test_order_query_with_overpaid_filter_status(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    order_fully_paid,
+    order_overpaid,
+    channel_USD,
+):
+    Order.objects.create(channel=channel_USD)
+
+    variables = {"filter": {"status": "OVERPAID"}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    order_id = graphene.Node.to_global_id("Order", order_overpaid.pk)
+
+    orders_ids_from_response = [o["node"]["id"] for o in orders]
+    assert len(orders) == 1
+    assert order_id in orders_ids_from_response
+
+
 @pytest.mark.parametrize(
     "orders_filter, user_field, user_value",
     [

@@ -49,11 +49,15 @@ def filter_status(qs, _, value):
     if OrderStatusFilter.READY_TO_FULFILL in value:
         # to use & between queries both of them need to have applied the same
         # annotate
-        qs = qs.annotate(amount_paid=Sum("payments__captured_amount"))
+        qs = qs.annotate(amount_paid=Sum("payments__captured_amount", distinct=True))
         query_objects |= qs.ready_to_fulfill()
 
     if OrderStatusFilter.READY_TO_CAPTURE in value:
         query_objects |= qs.ready_to_capture()
+
+    if OrderStatusFilter.OVERPAID in value:
+        qs = qs.annotate(amount_paid=Sum("payments__captured_amount", distinct=True))
+        query_objects |= qs.overpaid()
 
     return qs & query_objects
 
