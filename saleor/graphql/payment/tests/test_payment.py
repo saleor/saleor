@@ -7,6 +7,8 @@ import pytest
 
 from ....checkout import calculations
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.models import Checkout
+from ....order.models import Order
 from ....payment import PaymentError
 from ....payment.error_codes import PaymentErrorCode
 from ....payment.gateways.dummy_credit_card import (
@@ -325,7 +327,8 @@ def test_checkout_add_payment_bad_amount(
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert (
-        data["errors"][0]["code"] == PaymentErrorCode.PARTIAL_PAYMENT_TOTAL_EXCEEDED.name
+        data["errors"][0]["code"]
+        == PaymentErrorCode.PARTIAL_PAYMENT_TOTAL_EXCEEDED.name
     )
 
 
@@ -429,6 +432,106 @@ def test_create_payment_for_checkout_with_active_payments(
     assert checkout.payments.all().count() == payments_count + 1
     active_payments = checkout.payments.all().filter(is_active=True)
     assert active_payments.count() == previous_active_payments_count + 1
+
+
+CHECKOUT_PAYMENT_COMPLETE_MUTATION = """
+    mutation CheckoutPaymentComplete(
+        $token: UUID,
+        $paymentId: ID!,
+        $redirectUrl: String
+    ) {
+        checkoutPaymentComplete(
+            token: $token,
+            paymentId: $paymentId,
+            redirectUrl: $redirectUrl
+        ) {
+            checkout {
+                id,
+                token
+            },
+            errors {
+                field,
+                message,
+                variants,
+                code
+            }
+            confirmationNeeded
+            confirmationData
+        }
+    }
+    """
+
+
+@pytest.mark.integration
+def test_checkout_payment_complete(
+    site_settings,
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    assert not payment.transactions.exists()
+
+    orders_count_before = Order.objects.count()
+    redirect_url = "https://www.example.com"
+    variables = {
+        "token": checkout.token,
+        "paymentId": payment_id,
+        "redirectUrl": redirect_url,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        CHECKOUT_PAYMENT_COMPLETE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentComplete"]
+    assert not data["errors"]
+
+    # then
+    checkout_token = data["checkout"]["token"]
+    assert checkout_token == str(checkout.token)
+    assert Order.objects.count() == orders_count_before
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 1
+
+    gift_card.refresh_from_db()
+    assert gift_card.current_balance == gift_card.initial_balance
+    assert not gift_card.last_used_on
+
+    assert Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should be present until completed"
 
 
 CAPTURE_QUERY = """

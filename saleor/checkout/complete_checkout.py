@@ -553,6 +553,81 @@ def _process_payment(
     return txn
 
 
+def _complete_checkout_payment(
+    payment: "Optional[Payment]",
+    manager: "PluginsManager",
+    channel_slug,
+    order_data,
+    payment_data,
+    store_source,
+    user,
+):
+    customer_id = None
+    if payment and user.is_authenticated:
+        customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
+
+    txn = _process_payment(
+        payment=payment,  # type: ignore
+        customer_id=customer_id,
+        store_source=store_source,
+        payment_data=payment_data,
+        order_data=order_data,
+        manager=manager,
+        channel_slug=channel_slug,
+    )
+
+    if txn.customer_id and user.is_authenticated:
+        store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
+
+    action_required = txn.action_required
+    action_data = txn.action_required_data if action_required else {}
+
+    return action_data, action_required
+
+
+def complete_checkout_payment(
+    payment: "Payment",
+    manager: "PluginsManager",
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    payment_data,
+    store_source,
+    discounts,
+    user,
+    tracking_code=None,
+    redirect_url=None,
+) -> Tuple[bool, dict]:
+    """Logic required to finalize a single checkout payment.
+
+    Should be used with transaction_with_commit_on_errors, as there is a possibility
+    for thread race.
+    :raises ValidationError
+    """
+    channel_slug = checkout_info.channel.slug
+    _prepare_checkout(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        discounts=discounts,
+        tracking_code=tracking_code,
+        redirect_url=redirect_url,
+        payment=payment,
+    )
+
+    try:
+        order_data = _get_order_data(manager, checkout_info, lines, discounts)
+    except ValidationError as exc:
+        # TODO: confirm that this line should be gone
+        # gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        raise exc
+
+    action_data, action_required = _complete_checkout_payment(
+        payment, manager, channel_slug, order_data, payment_data, store_source, user
+    )
+
+    return action_required, action_data
+
+
 def complete_checkout(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
@@ -591,25 +666,9 @@ def complete_checkout(
         gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
         raise exc
 
-    customer_id = None
-    if payment and user.is_authenticated:
-        customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
-
-    txn = _process_payment(
-        payment=payment,  # type: ignore
-        customer_id=customer_id,
-        store_source=store_source,
-        payment_data=payment_data,
-        order_data=order_data,
-        manager=manager,
-        channel_slug=channel_slug,
+    action_data, action_required = _complete_checkout_payment(
+        payment, manager, channel_slug, order_data, payment_data, store_source, user
     )
-
-    if txn.customer_id and user.is_authenticated:
-        store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
-
-    action_required = txn.action_required
-    action_data = txn.action_required_data if action_required else {}
 
     order = None
     if not action_required:

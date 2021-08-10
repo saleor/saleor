@@ -1104,6 +1104,15 @@ type CheckoutLinesUpdate {
   errors: [CheckoutError!]!
 }
 
+type CheckoutPaymentComplete {
+  checkout: Checkout
+  payment: Payment
+  confirmationNeeded: Boolean!
+  confirmationData: JSONString
+  checkoutErrors: [CheckoutError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [CheckoutError!]!
+}
+
 type CheckoutPaymentCreate {
   checkout: Checkout
   payment: Payment
@@ -3634,6 +3643,7 @@ type Mutation {
   checkoutLinesUpdate(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesUpdate
   checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
   checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
+  checkoutPaymentComplete(paymentData: JSONString, paymentId: ID!, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutPaymentComplete
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate
   checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
@@ -4604,7 +4614,7 @@ enum PaymentErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
-  PARTIAL_PAYMENT_NOT_ALLOWED
+  PARTIAL_PAYMENT_TOTAL_EXCEEDED
   SHIPPING_ADDRESS_NOT_SET
   INVALID_SHIPPING_METHOD
   SHIPPING_METHOD_NOT_SET

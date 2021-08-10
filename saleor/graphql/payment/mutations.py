@@ -4,11 +4,17 @@ from django.core.exceptions import ValidationError
 from ...channel.models import Channel
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
+from ...checkout.complete_checkout import complete_checkout_payment
+from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...checkout.utils import validate_variants_in_checkout_lines
+from ...core import analytics
 from ...core.permissions import OrderPermissions
+from ...core.transactions import transaction_with_commit_on_errors
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
-from ...payment import PaymentError, gateway
+from ...order import models as order_models
+from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
@@ -17,6 +23,7 @@ from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
+from ..core.types.common import CheckoutError
 from ..core.validators import validate_one_of_args_is_in_mutation
 from .types import Payment, PaymentInitialized
 
@@ -193,6 +200,125 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             return_url=data.get("return_url"),
         )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
+
+
+class CheckoutPaymentComplete(BaseMutation, I18nMixin):
+    checkout = graphene.Field(Checkout, description="Related checkout object.")
+    payment = graphene.Field(Payment, description="Related payment object.")
+    confirmation_needed = graphene.Boolean(
+        required=True,
+        default_value=False,
+        description=(
+            "Set to true if payment needs to be confirmed"
+            " before checkout is complete."
+        ),
+    )
+    confirmation_data = graphene.JSONString(
+        required=False,
+        description=(
+            "Confirmation data used to process additional authorization steps."
+        ),
+    )
+
+    class Arguments:
+        token = UUID(description="Checkout token.", required=False)
+        payment_id = graphene.ID(required=True, description="Payment ID.")
+        payment_data = graphene.JSONString(
+            required=False,
+            description=(
+                "Client-side generated data required to finalize the payment."
+            ),
+        )
+        store_source = graphene.Boolean(
+            default_value=False,
+            description=(
+                "Determines whether to store the payment source for future usage."
+            ),
+        )
+        redirect_url = graphene.String(
+            required=False,
+            description=(
+                "URL of a view where users should be redirected to "
+                "see the order details. URL in RFC 1808 format."
+            ),
+        )
+
+    class Meta:
+        description = "Complete a payment for given checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
+
+    @classmethod
+    def validate_token(cls, manager, gateway: str, input_data: dict, channel_slug: str):
+        token = input_data.get("token")
+        is_required = manager.token_is_required_as_payment_input(gateway, channel_slug)
+        if not token and is_required:
+            raise ValidationError(
+                {
+                    "token": ValidationError(
+                        f"Token is required for {gateway}.",
+                        code=PaymentErrorCode.REQUIRED.value,
+                    ),
+                }
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, store_source, token, payment_id, **data):
+        tracking_code = analytics.get_client_id(info.context)
+        with transaction_with_commit_on_errors():
+            try:
+                checkout = get_checkout_by_token(token)
+                qs = models.Payment.objects.filter(checkout=checkout)
+                payment = cls.get_node_or_error(
+                    info, payment_id, field="payment_id", only_type=Payment, qs=qs
+                )
+
+            except ValidationError as e:
+                order = order_models.Order.objects.get_by_checkout_token(token)
+                if order:
+                    if not order.channel.is_active:
+                        raise ValidationError(
+                            {
+                                "channel": ValidationError(
+                                    "Cannot complete checkout with inactive channel.",
+                                    code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
+                                )
+                            }
+                        )
+                    # The order is already created. We return it as a success
+                    # checkoutComplete response. Order is anonymized for not logged in
+                    # user
+                    return CheckoutPaymentComplete(
+                        order=order, confirmation_needed=False, confirmation_data={}
+                    )
+                raise e
+
+            manager = info.context.plugins
+            lines = fetch_checkout_lines(checkout)
+            validate_variants_in_checkout_lines(lines)
+            checkout_info = fetch_checkout_info(
+                checkout, lines, info.context.discounts, manager
+            )
+            action_required, action_data = complete_checkout_payment(
+                payment=payment,
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                payment_data=data.get("payment_data", {}),
+                store_source=store_source,
+                discounts=info.context.discounts,
+                user=info.context.user,
+                tracking_code=tracking_code,
+                redirect_url=data.get("redirect_url"),
+            )
+        # If gateway returns information that additional steps are required we need
+        # to inform the frontend and pass all required data
+        return CheckoutPaymentComplete(
+            checkout=checkout,
+            payment=payment,
+            confirmation_needed=action_required,
+            confirmation_data=action_data,
+        )
 
 
 class PaymentCapture(BaseMutation):

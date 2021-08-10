@@ -4,7 +4,7 @@ from ...core.permissions import CheckoutPermissions
 from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..decorators import permission_required
-from ..payment.mutations import CheckoutPaymentCreate
+from ..payment.mutations import CheckoutPaymentComplete, CheckoutPaymentCreate
 from .mutations import (
     CheckoutAddPromoCode,
     CheckoutBillingAddressUpdate,
@@ -68,6 +68,7 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_lines_update = CheckoutLinesUpdate.Field()
     checkout_remove_promo_code = CheckoutRemovePromoCode.Field()
     checkout_payment_create = CheckoutPaymentCreate.Field()
+    checkout_payment_complete = CheckoutPaymentComplete.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
     checkout_language_code_update = CheckoutLanguageCodeUpdate.Field()
