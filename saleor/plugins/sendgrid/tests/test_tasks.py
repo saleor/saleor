@@ -738,13 +738,16 @@ def test_send_gift_card_email_task_by_user(
 
     payload = {
         "requester": {
+            "user_id": staff_user.id,
             "email": staff_user.email,
+            "app_id": None,
             "app_name": None,
         },
         "recipient": {
             "email": recipient_email,
             "name": recipient_name,
         },
+        "recipient_email": recipient_email,
         "gift_card": {
             "id": gift_card.id,
             "code": gift_card.code,
