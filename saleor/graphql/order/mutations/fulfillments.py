@@ -159,9 +159,9 @@ class OrderFulfill(BaseMutation):
 
     @classmethod
     def clean_input(cls, info, order, data):
-        if (
-            not info.context.site.settings.fulfillment_allow_unpaid
-            and not order.is_fully_paid()
+        if not order.is_fully_paid() and (
+            info.context.site.settings.fulfillment_auto_approve
+            and not info.context.site.settings.fulfillment_allow_unpaid
         ):
             raise ValidationError(
                 {
