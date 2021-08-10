@@ -1,4 +1,5 @@
-from typing import Iterable, Optional
+from datetime import date
+from typing import Iterable, Optional, Tuple
 
 from ..account.models import User
 from ..app.models import App
@@ -187,3 +188,51 @@ def gift_card_note_added(
         type=GiftCardEvents.NOTE_ADDED,
         parameters={"message": message},
     )
+
+
+def gift_cards_expiry_date_set(
+    expiry_data: Iterable[Tuple[int, date]],
+    user: UserType,
+    app: AppType,
+):
+    if not user_is_valid(user):
+        user = None
+    events = [
+        GiftCardEvent(
+            gift_card_id=gift_card_id,
+            user=user,
+            app=app,
+            type=GiftCardEvents.EXPIRY_DATE_SET,
+            parameters={"expiry": {"expiry_date": expiry_date}},
+        )
+        for gift_card_id, expiry_date in expiry_data
+    ]
+    return GiftCardEvent.objects.bulk_create(events)
+
+
+def gift_cards_used_in_order(
+    balance_data: Iterable[Tuple[GiftCard, float]],
+    order_id: int,
+    user: UserType,
+    app: AppType,
+):
+    if not user_is_valid(user):
+        user = None
+    events = [
+        GiftCardEvent(
+            gift_card=gift_card,
+            user=user,
+            app=app,
+            type=GiftCardEvents.USED_IN_ORDER,
+            parameters={
+                "order_id": order_id,
+                "balance": {
+                    "currency": gift_card.currency,
+                    "current_balance": gift_card.current_balance.amount,
+                    "old_current_balance": previous_balance,
+                },
+            },
+        )
+        for gift_card, previous_balance in balance_data
+    ]
+    return GiftCardEvent.objects.bulk_create(events)
