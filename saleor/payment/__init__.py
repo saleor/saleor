@@ -108,6 +108,7 @@ class ChargeStatus:
     FULLY_REFUNDED = "fully-refunded"
     REFUSED = "refused"
     CANCELLED = "cancelled"
+    OVERPAID = "overpaid"
 
     CHOICES = [
         (NOT_CHARGED, "Not charged"),
@@ -118,4 +119,5 @@ class ChargeStatus:
         (FULLY_REFUNDED, "Fully refunded"),
         (REFUSED, "Refused"),
         (CANCELLED, "Cancelled"),
+        (OVERPAID, "Overpaid"),
     ]
