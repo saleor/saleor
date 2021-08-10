@@ -1156,6 +1156,49 @@ def test_order_fulfill_warehouse_duplicated_order_line_id(
     mock_create_fulfillments.assert_not_called()
 
 
+@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
+def test_order_fulfill_preorder(
+    mock_create_fulfillments,
+    staff_api_client,
+    staff_user,
+    order_with_lines,
+    permission_manage_orders,
+    warehouse,
+):
+    query = ORDER_FULFILL_QUERY
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    order_line = order_with_lines.lines.first()
+    variant = order_line.variant
+    variant.is_preorder = True
+    variant.save(update_fields=["is_preorder"])
+
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 0, "warehouse": warehouse_id}],
+                }
+            ]
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfill"]
+    assert data["errors"]
+    error = data["errors"][0]
+    assert error["field"] == "orderLineId"
+    assert error["code"] == OrderErrorCode.FULFILL_ORDER_LINE.name
+    assert error["orderLines"]
+
+    mock_create_fulfillments.assert_not_called()
+
+
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_fulfillment_update_tracking(
     send_fulfillment_update_mock,
