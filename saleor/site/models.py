@@ -78,6 +78,7 @@ class SiteSettings(models.Model):
         max_length=32, choices=TimePeriodType.CHOICES, null=True, blank=True
     )
     gift_card_expiry_period = models.PositiveIntegerField(null=True, blank=True)
+    automatically_fulfill_non_shippable_gift_card = models.BooleanField(default=True)
 
     translated = TranslationProxy()
 

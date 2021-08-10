@@ -3606,6 +3606,7 @@ input OrderReturnProductsInput {
 
 type OrderSettings {
   automaticallyConfirmAllNewOrders: Boolean!
+  automaticallyFulfillNonShippableGiftCard: Boolean!
 }
 
 type OrderSettingsError {
@@ -3625,7 +3626,8 @@ type OrderSettingsUpdate {
 }
 
 input OrderSettingsUpdateInput {
-  automaticallyConfirmAllNewOrders: Boolean!
+  automaticallyConfirmAllNewOrders: Boolean
+  automaticallyFulfillNonShippableGiftCard: Boolean
 }
 
 enum OrderSortField {

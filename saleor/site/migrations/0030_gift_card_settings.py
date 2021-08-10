@@ -12,6 +12,11 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="sitesettings",
+            name="automatically_fulfill_non_shippable_gift_card",
+            field=models.BooleanField(default=True),
+        ),
+        migrations.AddField(
+            model_name="sitesettings",
             name="gift_card_expiry_period",
             field=models.PositiveIntegerField(blank=True, null=True),
         ),
