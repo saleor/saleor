@@ -16,6 +16,8 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
+from django.db.models.signals import pre_migrate
+from django.dispatch import receiver
 from django.forms import ModelForm
 from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
@@ -568,9 +570,9 @@ def user_checkout_with_items(user_checkout, product_list):
 
 
 @pytest.fixture
-def order(customer_user, channel_USD):
+def order_kwargs(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
-    return Order.objects.create(
+    return dict(
         billing_address=address,
         channel=channel_USD,
         currency=channel_USD.currency_code,
@@ -579,6 +581,95 @@ def order(customer_user, channel_USD):
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
     )
+
+
+@pytest.fixture
+def order(order_kwargs):
+    return Order.objects.create(**order_kwargs)
+
+
+@pytest.fixture
+def order_fully_paid(order_kwargs):
+    order = Order.objects.create(
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        **order_kwargs,
+    )
+    Payment.objects.bulk_create(
+        [
+            Payment(
+                gateway="mirumee.payments.dummy",
+                is_active=True,
+                order=order,
+                total=Decimal("76.00"),
+                captured_amount=Decimal("75.00"),
+            ),
+            Payment(
+                gateway="mirumee.payments.dummy",
+                is_active=False,
+                order=order,
+                total=Decimal("26.00"),
+                captured_amount=Decimal("25.00"),
+            ),
+        ]
+    )
+    return order
+
+
+@pytest.fixture
+def order_overpaid(order_kwargs):
+    order = Order.objects.create(
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        **order_kwargs,
+    )
+    Payment.objects.bulk_create(
+        [
+            Payment(
+                gateway="mirumee.payments.dummy",
+                is_active=True,
+                order=order,
+                total=Decimal("76.00"),
+                captured_amount=Decimal("75.00"),
+            ),
+            Payment(
+                gateway="mirumee.payments.dummy",
+                is_active=False,
+                order=order,
+                total=Decimal("26.00"),
+                captured_amount=Decimal("25.01"),
+            ),
+        ]
+    )
+    return order
+
+
+@pytest.fixture
+def order_underpaid(order_kwargs):
+    order = Order.objects.create(
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        **order_kwargs,
+    )
+    Payment.objects.bulk_create(
+        [
+            Payment(
+                gateway="mirumee.payments.dummy",
+                is_active=True,
+                order=order,
+                total=Decimal("76.00"),
+                captured_amount=Decimal("75.00"),
+            ),
+            Payment(
+                gateway="mirumee.payments.dummy",
+                is_active=False,
+                order=order,
+                total=Decimal("26.00"),
+                captured_amount=Decimal("24.99"),
+            ),
+        ]
+    )
+    return order
 
 
 @pytest.fixture

@@ -58,7 +58,7 @@ class OrderQueryset(models.QuerySet):
         """
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         payments = Payment.objects.filter(is_active=True).values("id")
-        qs = self.annotate(amount_paid=Sum("payments__captured_amount"))
+        qs = self.annotate(amount_paid=Sum("payments__captured_amount", distinct=True))
         return qs.filter(
             Exists(payments.filter(order_id=OuterRef("id"))),
             status__in=statuses,
@@ -81,6 +81,12 @@ class OrderQueryset(models.QuerySet):
     def ready_to_confirm(self):
         """Return unconfirmed orders."""
         return self.filter(status=OrderStatus.UNCONFIRMED)
+
+    def overpaid(self):
+        """Return orders that are overpaid."""
+        # TODO: check what (captured_amount and not is_active) means
+        qs = self.annotate(amount_paid=Sum("payments__captured_amount", distinct=True))
+        return qs.filter(amount_paid__gt=F("total_gross_amount"))
 
 
 class Order(ModelWithMetadata):
