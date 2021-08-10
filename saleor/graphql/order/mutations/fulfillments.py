@@ -79,7 +79,7 @@ class OrderFulfill(BaseMutation):
             description="ID of the order to be fulfilled.", name="order"
         )
         input = OrderFulfillInput(
-            required=True, description="Fields required to create an fulfillment."
+            required=True, description="Fields required to create a fulfillment."
         )
 
     class Meta:
@@ -246,9 +246,9 @@ class FulfillmentUpdateTracking(BaseMutation):
     )
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an fulfillment to update.")
+        id = graphene.ID(required=True, description="ID of a fulfillment to update.")
         input = FulfillmentUpdateTrackingInput(
-            required=True, description="Fields required to update an fulfillment."
+            required=True, description="Fields required to update a fulfillment."
         )
 
     class Meta:
@@ -289,9 +289,9 @@ class FulfillmentCancel(BaseMutation):
     order = graphene.Field(Order, description="Order which fulfillment was cancelled.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an fulfillment to cancel.")
+        id = graphene.ID(required=True, description="ID of a fulfillment to cancel.")
         input = FulfillmentCancelInput(
-            required=False, description="Fields required to cancel an fulfillment."
+            required=False, description="Fields required to cancel a fulfillment."
         )
 
     class Meta:
@@ -354,7 +354,7 @@ class FulfillmentApprove(BaseMutation):
     order = graphene.Field(Order, description="Order which fulfillment was approved.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an fulfillment to approve.")
+        id = graphene.ID(required=True, description="ID of a fulfillment to approve.")
         notify_customer = graphene.Boolean(
             required=True, description="True if confirmation email should be send."
         )
