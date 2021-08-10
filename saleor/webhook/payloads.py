@@ -39,6 +39,7 @@ if TYPE_CHECKING:
     from ..account.models import User
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData
+    from ..translation.models import Translation
 
 
 ADDRESS_FIELDS = (
@@ -261,11 +262,11 @@ def generate_customer_payload(customer: "User"):
         ],
         additional_fields={
             "default_shipping_address": (
-                lambda c: c.default_billing_address,
+                lambda c: c.default_shipping_address,
                 ADDRESS_FIELDS,
             ),
             "default_billing_address": (
-                lambda c: c.default_shipping_address,
+                lambda c: c.default_billing_address,
                 ADDRESS_FIELDS,
             ),
             "addresses": (
@@ -609,3 +610,20 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
     else:
         payload = _generate_sample_order_payload(event_name)
     return json.loads(payload) if payload else None
+
+
+def generate_translation_payload(translation: "Translation"):
+    object_type, object_id = translation.get_translated_object_id()
+    translated_keys = [
+        {"key": key, "value": value}
+        for key, value in translation.get_translated_keys().items()
+    ]
+
+    translation_data = {
+        "id": graphene.Node.to_global_id(object_type, object_id),
+        "type": object_type,
+        "language_code": translation.language_code,
+        "keys": translated_keys,
+    }
+
+    return json.dumps(translation_data)

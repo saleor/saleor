@@ -50,7 +50,7 @@ class OrderLineCreateInput(OrderLineInput):
 class DraftOrderInput(InputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
     user = graphene.ID(
-        descripton="Customer associated with the draft order.", name="user"
+        description="Customer associated with the draft order.", name="user"
     )
     user_email = graphene.String(description="Email address of the customer.")
     discount = PositiveDecimal(description="Discount amount for the order.")

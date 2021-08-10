@@ -389,7 +389,7 @@ class VatlayerPlugin(BasePlugin):
         if not taxes or not tax_rate:
             return previous_value
         tax = taxes.get(tax_rate) or taxes.get(DEFAULT_TAX_RATE_NAME)
-        # tax value is given in precentage so it need be be converted into decimal value
+        # tax value is given in percentage so it need be be converted into decimal value
         return Decimal(tax["value"] / 100)
 
     def get_checkout_shipping_tax_rate(
@@ -416,7 +416,7 @@ class VatlayerPlugin(BasePlugin):
         if not taxes:
             return previous_value
         tax = taxes.get(DEFAULT_TAX_RATE_NAME)
-        # tax value is given in precentage so it need be be converted into decimal value
+        # tax value is given in percentage so it need be be converted into decimal value
         return Decimal(tax["value"]) / 100
 
     def get_tax_rate_type_choices(
