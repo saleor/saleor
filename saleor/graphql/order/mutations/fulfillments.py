@@ -68,12 +68,6 @@ class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
     )
 
 
-class FulfillmentCancelInput(graphene.InputObjectType):
-    warehouse_id = graphene.ID(
-        description="ID of warehouse where items will be restock.", required=True
-    )
-
-
 class OrderFulfill(BaseMutation):
     fulfillments = graphene.List(
         Fulfillment, description="List of created fulfillments."
@@ -284,6 +278,12 @@ class FulfillmentUpdateTracking(BaseMutation):
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
+class FulfillmentCancelInput(graphene.InputObjectType):
+    warehouse_id = graphene.ID(
+        description="ID of warehouse where items will be restock.", required=False
+    )
+
+
 class FulfillmentCancel(BaseMutation):
     fulfillment = graphene.Field(Fulfillment, description="A canceled fulfillment.")
     order = graphene.Field(Order, description="Order which fulfillment was cancelled.")
@@ -291,7 +291,7 @@ class FulfillmentCancel(BaseMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an fulfillment to cancel.")
         input = FulfillmentCancelInput(
-            required=True, description="Fields required to cancel an fulfillment."
+            required=False, description="Fields required to cancel an fulfillment."
         )
 
     class Meta:
@@ -301,22 +301,40 @@ class FulfillmentCancel(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        warehouse_id = data.get("input").get("warehouse_id")
-        warehouse = cls.get_node_or_error(
-            info, warehouse_id, only_type="Warehouse", field="warehouse_id"
-        )
-        fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
-
+    def validate_fulfillment(cls, fulfillment, warehouse):
         if not fulfillment.can_edit():
-            err_msg = "This fulfillment can't be canceled"
             raise ValidationError(
                 {
                     "fulfillment": ValidationError(
-                        err_msg, code=OrderErrorCode.CANNOT_CANCEL_FULFILLMENT
+                        "This fulfillment can't be canceled",
+                        code=OrderErrorCode.CANNOT_CANCEL_FULFILLMENT,
                     )
                 }
             )
+        if (
+            fulfillment.status != FulfillmentStatus.WAITING_FOR_APPROVAL
+            and not warehouse
+        ):
+            raise ValidationError(
+                {
+                    "warehouseId": ValidationError(
+                        "This parameter is required for fulfillments which are not in "
+                        "waiting for approval state.",
+                        code=OrderErrorCode.REQUIRED,
+                    )
+                }
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        warehouse = None
+        if warehouse_id := data.get("input").get("warehouse_id"):
+            warehouse = cls.get_node_or_error(
+                info, warehouse_id, only_type="Warehouse", field="warehouse_id"
+            )
+        fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
+
+        cls.validate_fulfillment(fulfillment, warehouse)
 
         order = fulfillment.order
         cancel_fulfillment(
