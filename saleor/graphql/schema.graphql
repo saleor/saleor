@@ -4588,6 +4588,7 @@ enum PaymentChargeStatusEnum {
   FULLY_REFUNDED
   REFUSED
   CANCELLED
+  OVERPAID
 }
 
 type PaymentCountableConnection {
