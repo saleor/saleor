@@ -9,6 +9,8 @@ from ...account.models import CustomerEvent
 from ...core.exceptions import InsufficientStock
 from ...core.notify_events import NotifyEventType
 from ...core.taxes import zero_money, zero_taxed_money
+from ...giftcard import GiftCardEvents
+from ...giftcard.models import GiftCardEvent
 from ...order import OrderEvents
 from ...order.models import OrderEvent
 from ...order.notifications import get_default_order_payload
@@ -638,8 +640,12 @@ def test_create_order_with_gift_card(
     )
 
     assert order.gift_cards.count() == 1
-    assert order.gift_cards.first().current_balance.amount == 0
+    gift_card = order.gift_cards.first()
+    assert gift_card.current_balance.amount == 0
     assert order.total.gross == (total_gross_without_gift_cards - gift_cards_balance)
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
+    )
 
 
 def test_create_order_with_gift_card_partial_use(
@@ -691,6 +697,9 @@ def test_create_order_with_gift_card_partial_use(
     assert order.gift_cards.count() > 0
     assert order.total == zero_taxed_money(order.currency)
     assert gift_card_balance_before_order == expected_old_balance
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card_used, type=GiftCardEvents.USED_IN_ORDER
+    )
 
 
 def test_create_order_with_many_gift_cards(
@@ -749,6 +758,12 @@ def test_create_order_with_many_gift_cards(
     assert gift_card.current_balance == zero_price
     assert price_without_gift_card.gross.amount == (
         gift_cards_balance_before_order + order.total.gross.amount
+    )
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card_created_by_staff, type=GiftCardEvents.USED_IN_ORDER
+    )
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
 
 

@@ -1,9 +1,15 @@
 from datetime import date, timedelta
 
 import pytest
+from dateutil.relativedelta import relativedelta
+from django.utils import timezone
 
 from ...core.utils.promo_code import InvalidPromoCode
-from ..utils import add_gift_card_code_to_checkout, remove_gift_card_code_from_checkout
+from ..utils import (
+    add_gift_card_code_to_checkout,
+    calculate_expiry_date,
+    remove_gift_card_code_from_checkout,
+)
 
 
 def test_add_gift_card_code_to_checkout(checkout, gift_card):
@@ -121,3 +127,35 @@ def test_remove_gift_card_code_from_checkout_no_checkout_gift_cards(
 
     # then
     assert checkout.gift_cards.count() == 0
+
+
+@pytest.mark.parametrize(
+    "period_type, period", [("years", 5), ("months", 13), ("days", 100)]
+)
+def test_calculate_expiry_settings(period_type, period, gift_card_expiry_period):
+    # given
+    gift_card_expiry_period.expiry_period_type = period_type.rstrip("s")
+    gift_card_expiry_period.expiry_period = period
+    gift_card_expiry_period.save(update_fields=["expiry_period_type", "expiry_period"])
+
+    # when
+    expiry_date = calculate_expiry_date(gift_card_expiry_period)
+
+    # then
+    assert expiry_date == timezone.now().date() + relativedelta(**{period_type: period})
+
+
+def test_calculate_expiry_settings_for_never_expire_gift_card(gift_card):
+    # when
+    expiry_date = calculate_expiry_date(gift_card)
+
+    # then
+    assert expiry_date is None
+
+
+def test_calculate_expiry_settings_for_expire_date_gift_card(gift_card_expiry_date):
+    # when
+    expiry_date = calculate_expiry_date(gift_card_expiry_date)
+
+    # then
+    assert expiry_date is None

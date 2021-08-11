@@ -12,6 +12,8 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.exceptions import InsufficientStock, InsufficientStockData
 from ....core.taxes import zero_money, zero_taxed_money
+from ....giftcard import GiftCardEvents
+from ....giftcard.models import GiftCardEvent
 from ....order import OrderOrigin, OrderStatus
 from ....order.models import Order
 from ....payment import ChargeStatus, PaymentError, TransactionKind
@@ -266,6 +268,9 @@ def test_checkout_complete(
     gift_card.refresh_from_db()
     assert gift_card.current_balance == zero_money(gift_card.currency)
     assert gift_card.last_used_on
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
+    )
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
