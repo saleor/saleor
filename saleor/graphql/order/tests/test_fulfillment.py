@@ -711,13 +711,17 @@ def test_fulfillment_update_tracking_send_notification_false(
 
 
 CANCEL_FULFILLMENT_MUTATION = """
-    mutation cancelFulfillment($id: ID!, $warehouseId: ID!) {
+    mutation cancelFulfillment($id: ID!, $warehouseId: ID) {
         orderFulfillmentCancel(id: $id, input: {warehouseId: $warehouseId}) {
             fulfillment {
                 status
             }
             order {
                 status
+            }
+            errors {
+                code
+                field
             }
         }
     }
@@ -749,6 +753,78 @@ def test_cancel_fulfillment(
         "warehouse": str(warehouse.pk),
     }
     assert event_restocked_items.user == staff_user
+
+
+def test_cancel_fulfillment_no_warehouse_id(
+    staff_api_client, fulfillment, permission_manage_orders
+):
+    query = """
+        mutation cancelFulfillment($id: ID!) {
+            orderFulfillmentCancel(id: $id) {
+                fulfillment {
+                    status
+                }
+                order {
+                    status
+                }
+                errors {
+                    code
+                    field
+                }
+            }
+        }
+    """
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    variables = {"id": fulfillment_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["orderFulfillmentCancel"]["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "warehouseId"
+    assert error["code"] == OrderErrorCode.REQUIRED.name
+
+
+def test_cancel_fulfillment_awaiting_approval(
+    staff_api_client, fulfillment, permission_manage_orders
+):
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
+    query = CANCEL_FULFILLMENT_MUTATION
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    variables = {"id": fulfillment_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentCancel"]
+    assert data["fulfillment"]["status"] == FulfillmentStatus.CANCELED.upper()
+    event_cancelled = fulfillment.order.events.get()
+    assert event_cancelled.type == (OrderEvents.FULFILLMENT_CANCELED)
+    assert event_cancelled.parameters == {"composed_id": fulfillment.composed_id}
+    assert event_cancelled.user == staff_api_client.user
+
+
+def test_cancel_fulfillment_cancelled_state(
+    staff_api_client, fulfillment, permission_manage_orders, warehouse
+):
+    query = CANCEL_FULFILLMENT_MUTATION
+    fulfillment.status = FulfillmentStatus.CANCELED
+    fulfillment.save(update_fields=["status"])
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    variables = {"id": fulfillment_id, "warehouseId": warehouse_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["orderFulfillmentCancel"]["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "fulfillment"
+    assert error["code"] == OrderErrorCode.CANNOT_CANCEL_FULFILLMENT.name
 
 
 def test_cancel_fulfillment_warehouse_without_stock(
