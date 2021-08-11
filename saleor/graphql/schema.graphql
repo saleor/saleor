@@ -5361,8 +5361,8 @@ input ProductFilterInput {
   productTypes: [ID]
   giftCard: Boolean
   ids: [ID]
-  channel: String
   hasPreorderedVariants: Boolean
+  channel: String
 }
 
 type ProductImage {
