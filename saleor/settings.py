@@ -72,6 +72,10 @@ DATABASES = {
     )
 }
 
+DATABASES["default"]["HOST"] = (
+    DATABASES["default"]["HOST"].replace("%3a", ":").replace("%3A", ":")
+)
+
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 TIME_ZONE = "UTC"
