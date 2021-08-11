@@ -5255,8 +5255,8 @@ input ProductFilterInput {
   minimalPrice: PriceRangeInput
   productTypes: [ID]
   ids: [ID]
-  channel: String
   hasPreorderedVariants: Boolean
+  channel: String
 }
 
 type ProductImage {
