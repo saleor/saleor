@@ -29,7 +29,6 @@ class GiftCardEventBalance(graphene.ObjectType):
     initial_balance = graphene.Field(
         Money,
         description="Initial balance of the gift card.",
-        required=True,
     )
     current_balance = graphene.Field(
         Money,

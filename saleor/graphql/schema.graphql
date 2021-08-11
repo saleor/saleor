@@ -2282,7 +2282,7 @@ type GiftCardEvent implements Node {
 }
 
 type GiftCardEventBalance {
-  initialBalance: Money!
+  initialBalance: Money
   currentBalance: Money!
   oldInitialBalance: Money
   oldCurrentBalance: Money
