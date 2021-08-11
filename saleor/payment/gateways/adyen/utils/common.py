@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 import Adyen
 import opentracing
 import opentracing.tags
-from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
 
@@ -18,12 +17,12 @@ from .....checkout.calculations import (
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import is_shipping_required
-from .....core.prices import quantize_price
 from .....discount.utils import fetch_active_discounts
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
 from ....interface import PaymentMethodInfo
+from ....utils import price_to_minor_unit
 
 if TYPE_CHECKING:
     from ....interface import PaymentData
@@ -35,26 +34,6 @@ logger = logging.getLogger(__name__)
 FAILED_STATUSES = ["refused", "error", "cancelled"]
 PENDING_STATUSES = ["pending", "received"]
 AUTH_STATUS = "authorised"
-
-
-def from_adyen_price(value: str, currency: str):
-    value = Decimal(value)
-    precision = get_currency_precision(currency)
-    number_places = Decimal(10) ** -precision
-    return value * number_places
-
-
-def to_adyen_price(value: Decimal, currency: str):
-    """Adyen doesn't use values with comma.
-
-    Take the value, discover the precision of currency and multiply value by
-    Decimal('10.0'), then change quantization to remove the comma.
-    """
-    value = quantize_price(value, currency=currency)
-    precision = get_currency_precision(currency)
-    number_places = Decimal("10.0") ** precision
-    value_without_comma = value * number_places
-    return str(value_without_comma.quantize(Decimal("1")))
 
 
 def get_tax_percentage_in_adyen_format(total_gross, total_net):
@@ -131,7 +110,7 @@ def request_data_for_payment(
     extra_request_params["shopperEmail"] = payment_information.customer_email
     request_data = {
         "amount": {
-            "value": to_adyen_price(
+            "value": price_to_minor_unit(
                 payment_information.amount, payment_information.currency
             ),
             "currency": payment_information.currency,
@@ -166,12 +145,12 @@ def get_shipping_data(manager, checkout_info, lines, discounts):
     )
     return {
         "quantity": 1,
-        "amountExcludingTax": to_adyen_price(total_net, currency),
+        "amountExcludingTax": price_to_minor_unit(total_net, currency),
         "taxPercentage": tax_percentage_in_adyen_format,
         "description": f"Shipping - {checkout_info.shipping_method.name}",
         "id": f"Shipping:{checkout_info.shipping_method.id}",
-        "taxAmount": to_adyen_price(tax_amount, currency),
-        "amountIncludingTax": to_adyen_price(total_gross, currency),
+        "taxAmount": price_to_minor_unit(tax_amount, currency),
+        "amountIncludingTax": price_to_minor_unit(total_gross, currency),
     }
 
 
@@ -225,14 +204,14 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
 
         line_data = {
             "quantity": line_info.line.quantity,
-            "amountExcludingTax": to_adyen_price(unit_net, currency),
+            "amountExcludingTax": price_to_minor_unit(unit_net, currency),
             "taxPercentage": tax_percentage_in_adyen_format,
             "description": (
                 f"{line_info.variant.product.name}, {line_info.variant.name}"
             ),
             "id": line_info.variant.sku,
-            "taxAmount": to_adyen_price(tax_amount, currency),
-            "amountIncludingTax": to_adyen_price(unit_gross, currency),
+            "taxAmount": price_to_minor_unit(tax_amount, currency),
+            "amountIncludingTax": price_to_minor_unit(unit_gross, currency),
         }
         line_items.append(line_data)
 
@@ -295,7 +274,7 @@ def request_data_for_gateway_config(
         "countryCode": country_code,
         "channel": channel,
         "amount": {
-            "value": to_adyen_price(total.gross.amount, checkout.currency),
+            "value": price_to_minor_unit(total.gross.amount, checkout.currency),
             "currency": checkout.currency,
         },
     }
@@ -307,7 +286,7 @@ def request_for_payment_refund(
     return {
         "merchantAccount": merchant_account,
         "modificationAmount": {
-            "value": to_adyen_price(
+            "value": price_to_minor_unit(
                 payment_information.amount, payment_information.currency
             ),
             "currency": payment_information.currency,
@@ -323,7 +302,7 @@ def request_for_payment_capture(
     return {
         "merchantAccount": merchant_account,
         "modificationAmount": {
-            "value": to_adyen_price(
+            "value": price_to_minor_unit(
                 payment_information.amount, payment_information.currency
             ),
             "currency": payment_information.currency,

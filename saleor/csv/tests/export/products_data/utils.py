@@ -50,6 +50,10 @@ def get_attribute_value(assigned_attribute):
         )
     elif attribute.input_type == AttributeInputType.BOOLEAN:
         value = str(value_instance.boolean)
+    elif attribute.input_type == AttributeInputType.DATE:
+        value = str(value_instance.date_time.date())
+    elif attribute.input_type == AttributeInputType.DATE_TIME:
+        value = str(value_instance.date_time)
     else:
         value = value_instance.name or value_instance.slug
     return value

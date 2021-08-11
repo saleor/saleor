@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import graphene
@@ -56,17 +57,23 @@ def serialize_product_or_variant_attributes(
             "input_type": attribute.input_type,
             "slug": attribute.slug,
             "entity_type": attribute.entity_type,
+            "unit": attribute.unit,
             "id": attr_id,
             "values": [],
         }
 
         for attr_value in attr.values.all():
             attr_slug = attr_value.slug
-            value: Dict[str, Optional[Union[str, Dict[str, Any]]]] = {
+            value: Dict[
+                str, Optional[Union[str, datetime, date, bool, Dict[str, Any]]]
+            ] = {
                 "name": attr_value.name,
                 "slug": attr_slug,
                 "value": attr_value.value,
                 "rich_text": attr_value.rich_text,
+                "boolean": attr_value.boolean,
+                "date_time": attr_value.date_time,
+                "date": attr_value.date_time,
                 "reference": _prepare_reference(attribute, attr_slug),
                 "file": None,
             }

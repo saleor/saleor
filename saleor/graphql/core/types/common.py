@@ -381,7 +381,6 @@ class File(graphene.ObjectType):
     )
 
     @staticmethod
-    @traced_resolver
     def resolve_url(root, info):
         return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
 

@@ -9,7 +9,7 @@ from ...core.db.fields import SanitizedJSONField
 from ...core.models import ModelWithMetadata, SortableModel
 from ...core.units import MeasurementUnits
 from ...core.utils.editorjs import clean_editor_js
-from ...core.utils.translations import TranslationProxy
+from ...core.utils.translations import Translation, TranslationProxy
 from ...page.models import PageType
 from ...product.models import ProductType
 from .. import AttributeEntityType, AttributeInputType, AttributeType
@@ -167,8 +167,7 @@ class Attribute(ModelWithMetadata):
         return self.values.exists()
 
 
-class AttributeTranslation(models.Model):
-    language_code = models.CharField(max_length=10)
+class AttributeTranslation(Translation):
     attribute = models.ForeignKey(
         Attribute, related_name="translations", on_delete=models.CASCADE
     )
@@ -189,6 +188,12 @@ class AttributeTranslation(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    def get_translated_object_id(self):
+        return "Attribute", self.attribute_id
+
+    def get_translated_keys(self):
+        return {"name": self.name}
+
 
 class AttributeValue(SortableModel):
     name = models.CharField(max_length=250)
@@ -202,6 +207,7 @@ class AttributeValue(SortableModel):
     )
     rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     boolean = models.BooleanField(blank=True, null=True)
+    date_time = models.DateTimeField(blank=True, null=True)
 
     translated = TranslationProxy()
 
@@ -221,8 +227,7 @@ class AttributeValue(SortableModel):
         return self.attribute.values.all()
 
 
-class AttributeValueTranslation(models.Model):
-    language_code = models.CharField(max_length=10)
+class AttributeValueTranslation(Translation):
     attribute_value = models.ForeignKey(
         AttributeValue, related_name="translations", on_delete=models.CASCADE
     )
@@ -243,3 +248,37 @@ class AttributeValueTranslation(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def get_translated_object_id(self):
+        return "AttributeValue", self.attribute_value_id
+
+    def get_translated_keys(self):
+        return {"name": self.name, "rich_text": self.rich_text}
+
+    def get_translation_context(self):
+        context = {}
+        attribute_value = self.attribute_value
+        attribute = attribute_value.attribute
+        context["attribute_id"] = attribute.id
+        if attribute.input_type in AttributeInputType.TYPES_WITH_UNIQUE_VALUES:
+            if attribute.type == AttributeType.PRODUCT_TYPE:
+                if assigned_variant_attribute_value := (
+                    attribute_value.variantvalueassignment.first()
+                ):
+                    if variant := assigned_variant_attribute_value.assignment.variant:
+                        context["product_variant_id"] = variant.id
+                        context["product_id"] = variant.product_id
+                elif assigned_product_attribute_value := (
+                    attribute_value.productvalueassignment.first()
+                ):
+                    if product_id := (
+                        assigned_product_attribute_value.assignment.product_id
+                    ):
+                        context["product_id"] = product_id
+            elif attribute.type == AttributeType.PAGE_TYPE:
+                if assigned_page_attribute_value := (
+                    attribute_value.pagevalueassignment.first()
+                ):
+                    if page_id := assigned_page_attribute_value.assignment.page_id:
+                        context["page_id"] = page_id
+        return context

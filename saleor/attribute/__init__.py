@@ -12,6 +12,8 @@ class AttributeInputType:
     RICH_TEXT = "rich-text"
     SWATCH = "swatch"
     BOOLEAN = "boolean"
+    DATE = "date"
+    DATE_TIME = "date-time"
 
     CHOICES = [
         (DROPDOWN, "Dropdown"),
@@ -22,6 +24,8 @@ class AttributeInputType:
         (RICH_TEXT, "Rich Text"),
         (SWATCH, "Swatch"),
         (BOOLEAN, "Boolean"),
+        (DATE, "Date"),
+        (DATE_TIME, "Date Time"),
     ]
 
     # list of the input types that can be used in variant selection
@@ -34,11 +38,11 @@ class AttributeInputType:
     ]
 
     # list of the input types that are unique per instances
-    TYPES_WITH_UNIQUE_VALUES = [
-        FILE,
-        REFERENCE,
+    TYPES_WITH_UNIQUE_VALUES = [FILE, REFERENCE, RICH_TEXT, NUMERIC, DATE, DATE_TIME]
+
+    # list of the translatable attributes, excluding attributes with choices.
+    TRANSLATABLE_ATTRIBUTES = [
         RICH_TEXT,
-        NUMERIC,
     ]
 
 
@@ -49,6 +53,8 @@ ATTRIBUTE_PROPERTIES_CONFIGURATION = {
         AttributeInputType.NUMERIC,
         AttributeInputType.SWATCH,
         AttributeInputType.BOOLEAN,
+        AttributeInputType.DATE,
+        AttributeInputType.DATE_TIME,
     ],
     "filterable_in_dashboard": [
         AttributeInputType.DROPDOWN,
@@ -56,6 +62,8 @@ ATTRIBUTE_PROPERTIES_CONFIGURATION = {
         AttributeInputType.NUMERIC,
         AttributeInputType.SWATCH,
         AttributeInputType.BOOLEAN,
+        AttributeInputType.DATE,
+        AttributeInputType.DATE_TIME,
     ],
     "available_in_grid": [
         AttributeInputType.DROPDOWN,
@@ -63,11 +71,15 @@ ATTRIBUTE_PROPERTIES_CONFIGURATION = {
         AttributeInputType.NUMERIC,
         AttributeInputType.SWATCH,
         AttributeInputType.BOOLEAN,
+        AttributeInputType.DATE,
+        AttributeInputType.DATE_TIME,
     ],
     "storefront_search_position": [
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.BOOLEAN,
+        AttributeInputType.DATE,
+        AttributeInputType.DATE_TIME,
     ],
 }
 

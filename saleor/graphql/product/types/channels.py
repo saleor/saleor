@@ -18,7 +18,7 @@ from ...channel.dataloaders import ChannelByIdLoader
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
-from ...utils import get_user_country_context
+from ...warehouse.dataloaders import WarehouseCountryCodeByChannelLoader
 from ..dataloaders import (
     CollectionsByProductIdLoader,
     ProductByIdLoader,
@@ -73,11 +73,11 @@ class ProductChannelListing(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    @traced_resolver
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
+    @traced_resolver
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_purchase_cost(root: models.ProductChannelListing, info, *_kwargs):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
@@ -115,6 +115,7 @@ class ProductChannelListing(CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductChannelListing, info, *_kwargs):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
@@ -156,11 +157,11 @@ class ProductChannelListing(CountableDjangoObjectType):
         return root.is_available_for_purchase()
 
     @staticmethod
+    @traced_resolver
     def resolve_pricing(root: models.ProductChannelListing, info, address=None):
         context = info.context
-        country_code = get_user_country_context(
-            address, info.context.site.settings.company_address
-        )
+
+        country_code = address.country if address is not None else None
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -170,25 +171,41 @@ class ProductChannelListing(CountableDjangoObjectType):
                             variants_channel_listing,
                         ):
                             def calculate_pricing_with_collections(collections):
-                                if not variants_channel_listing:
-                                    return None
-                                availability = get_product_availability(
-                                    product=product,
-                                    product_channel_listing=root,
-                                    variants=variants,
-                                    variants_channel_listing=variants_channel_listing,
-                                    collections=collections,
-                                    discounts=discounts,
-                                    channel=channel,
-                                    manager=context.plugins,
-                                    country=Country(country_code),
-                                    local_currency=get_currency_for_country(
-                                        country_code
-                                    ),
-                                )
-                                from .products import ProductPricingInfo
+                                def calculate_pricing_with_country_code(country_code):
+                                    if not variants_channel_listing:
+                                        return None
 
-                                return ProductPricingInfo(**asdict(availability))
+                                    vc_listing = variants_channel_listing
+                                    local_currency = None
+                                    if country_code:
+                                        local_currency = get_currency_for_country(
+                                            country_code
+                                        )
+
+                                    availability = get_product_availability(
+                                        product=product,
+                                        product_channel_listing=root,
+                                        variants=variants,
+                                        variants_channel_listing=vc_listing,
+                                        collections=collections,
+                                        discounts=discounts,
+                                        channel=channel,
+                                        manager=context.plugins,
+                                        country=Country(country_code),
+                                        local_currency=local_currency,
+                                    )
+                                    from .products import ProductPricingInfo
+
+                                    return ProductPricingInfo(**asdict(availability))
+
+                                if not country_code:
+                                    return (
+                                        WarehouseCountryCodeByChannelLoader(context)
+                                        .load(channel.slug)
+                                        .then(calculate_pricing_with_country_code)
+                                    )
+
+                                return calculate_pricing_with_country_code(country_code)
 
                             return (
                                 CollectionsByProductIdLoader(context)

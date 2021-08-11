@@ -37,9 +37,18 @@ class BaseTranslateMutation(ModelMutation):
 
         model_type = registry.get_type_for_model(cls._meta.model)
         instance = cls.get_node_or_error(info, data["id"], only_type=model_type)
-        instance.translations.update_or_create(
+        translation, created = instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
+
+        def on_commit():
+            if created:
+                info.context.plugins.translation_created(translation)
+            else:
+                info.context.plugins.translation_updated(translation)
+
+        transaction.on_commit(on_commit)
+
         return cls(**{cls._meta.return_field_name: instance})
 
 
@@ -98,6 +107,7 @@ class ProductTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         if "id" in data and not data["id"]:
             raise ValidationError(
@@ -106,10 +116,19 @@ class ProductTranslate(BaseTranslateMutation):
 
         product_pk = cls.get_global_id_or_error(data["id"], only_type=Product)
         product = product_models.Product.objects.get(pk=product_pk)
-        product.translations.update_or_create(
+        translation, created = product.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
         product = ChannelContext(node=product, channel_slug=None)
+
+        def on_commit():
+            if created:
+                info.context.plugins.translation_created(translation)
+            else:
+                info.context.plugins.translation_updated(translation)
+
+        transaction.on_commit(on_commit)
+
         return cls(**{cls._meta.return_field_name: product})
 
 
@@ -162,14 +181,20 @@ class ProductVariantTranslate(BaseTranslateMutation):
         variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
         )
-        variant.translations.update_or_create(
+        translation, created = variant.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
         variant = ChannelContext(node=variant, channel_slug=None)
 
-        transaction.on_commit(
-            lambda: info.context.plugins.product_variant_updated(variant)
-        )
+        def on_commit():
+            info.context.plugins.product_variant_updated(variant.node)
+
+            if created:
+                info.context.plugins.translation_created(translation)
+            else:
+                info.context.plugins.translation_updated(translation)
+
+        transaction.on_commit(on_commit)
 
         return cls(**{cls._meta.return_field_name: variant})
 
@@ -339,9 +364,19 @@ class ShopSettingsTranslate(BaseMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, language_code, **data):
         instance = info.context.site.settings
-        instance.translations.update_or_create(
+        translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=data.get("input")
         )
+
+        def on_commit():
+            if created:
+                info.context.plugins.translation_created(translation)
+            else:
+                info.context.plugins.translation_updated(translation)
+
+        transaction.on_commit(on_commit)
+
         return ShopSettingsTranslate(shop=Shop())

@@ -15,6 +15,9 @@ query customerEvents($customerId: ID!) {
       user {
         id
       }
+      app {
+        name
+      }
       message
       count
       order {
@@ -55,9 +58,11 @@ def _model_to_node_id(instance: models.Model) -> str:
     return graphene.Node.to_global_id(instance.__class__.__name__, instance.pk)
 
 
-def _get_event_from_graphql(staff_api_client, requested_user: User, permission) -> dict:
+def _get_event_from_graphql(
+    staff_api_client, requested_user: User, permissions
+) -> dict:
 
-    staff_api_client.user.user_permissions.add(permission)
+    staff_api_client.user.user_permissions.add(*permissions)
     received_events = get_graphql_content(
         staff_api_client.post_graphql(
             QUERY_CUSTOMER_EVENTS,
@@ -73,12 +78,13 @@ def _get_event_from_graphql(staff_api_client, requested_user: User, permission) 
 
 
 def test_account_event_customer_account_was_created(
-    staff_api_client, customer_user, permission_manage_users
+    staff_api_client, customer_user, permission_manage_users, permission_manage_apps
 ):
     event = account_events.customer_account_created_event(user=customer_user)
     expected_data = {
         "id": _model_to_node_id(event),
         "user": {"id": _model_to_node_id(customer_user)},
+        "app": None,
         "count": None,
         "message": None,
         "order": None,
@@ -87,14 +93,16 @@ def test_account_event_customer_account_was_created(
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, customer_user, permission_manage_users
+        staff_api_client,
+        customer_user,
+        (permission_manage_users, permission_manage_apps),
     )
 
     assert expected_data == received_data
 
 
 def test_account_event_sent_password_reset_email_to_customer_event(
-    staff_api_client, customer_user, permission_manage_users
+    staff_api_client, customer_user, permission_manage_users, permission_manage_apps
 ):
     event = account_events.customer_password_reset_link_sent_event(
         user_id=customer_user.pk
@@ -102,6 +110,7 @@ def test_account_event_sent_password_reset_email_to_customer_event(
     expected_data = {
         "id": _model_to_node_id(event),
         "user": {"id": _model_to_node_id(customer_user)},
+        "app": None,
         "count": None,
         "message": None,
         "order": None,
@@ -110,19 +119,22 @@ def test_account_event_sent_password_reset_email_to_customer_event(
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, customer_user, permission_manage_users
+        staff_api_client,
+        customer_user,
+        (permission_manage_users, permission_manage_apps),
     )
 
     assert expected_data == received_data
 
 
 def test_account_event_customer_reset_password_from_link_event(
-    staff_api_client, customer_user, permission_manage_users
+    staff_api_client, customer_user, permission_manage_users, permission_manage_apps
 ):
     event = account_events.customer_password_reset_event(user=customer_user)
     expected_data = {
         "id": _model_to_node_id(event),
         "user": {"id": _model_to_node_id(customer_user)},
+        "app": None,
         "count": None,
         "message": None,
         "order": None,
@@ -131,20 +143,27 @@ def test_account_event_customer_reset_password_from_link_event(
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, customer_user, permission_manage_users
+        staff_api_client,
+        customer_user,
+        (permission_manage_users, permission_manage_apps),
     )
 
     assert expected_data == received_data
 
 
 def test_account_event_customer_placed_order_event_resolves_properly(
-    staff_api_client, customer_user, order_line, permission_manage_users
+    staff_api_client,
+    customer_user,
+    order_line,
+    permission_manage_users,
+    permission_manage_apps,
 ):
     order = order_line.order
     event = account_events.customer_placed_order_event(user=customer_user, order=order)
     expected_data = {
         "id": _model_to_node_id(event),
         "user": {"id": _model_to_node_id(customer_user)},
+        "app": None,
         "count": None,
         "message": None,
         "order": {"id": _model_to_node_id(order)},
@@ -153,14 +172,20 @@ def test_account_event_customer_placed_order_event_resolves_properly(
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, customer_user, permission_manage_users
+        staff_api_client,
+        customer_user,
+        (permission_manage_users, permission_manage_apps),
     )
 
     assert expected_data == received_data
 
 
 def test_account_event_customer_added_to_note_order_event_resolves_properly(
-    staff_api_client, customer_user, order_line, permission_manage_users
+    staff_api_client,
+    customer_user,
+    order_line,
+    permission_manage_users,
+    permission_manage_apps,
 ):
     order = order_line.order
     event = account_events.customer_added_to_note_order_event(
@@ -169,6 +194,7 @@ def test_account_event_customer_added_to_note_order_event_resolves_properly(
     expected_data = {
         "id": _model_to_node_id(event),
         "user": {"id": _model_to_node_id(customer_user)},
+        "app": None,
         "count": None,
         "message": "418 - I'm a teapot.",
         "order": {"id": _model_to_node_id(order)},
@@ -177,14 +203,20 @@ def test_account_event_customer_added_to_note_order_event_resolves_properly(
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, customer_user, permission_manage_users
+        staff_api_client,
+        customer_user,
+        (permission_manage_users, permission_manage_apps),
     )
 
     assert expected_data == received_data
 
 
 def test_account_event_customer_downloaded_a_digital_link_event_resolves_properly(
-    staff_api_client, customer_user, order_line, permission_manage_users
+    staff_api_client,
+    customer_user,
+    order_line,
+    permission_manage_users,
+    permission_manage_apps,
 ):
     order = order_line.order
     event = account_events.customer_downloaded_a_digital_link_event(
@@ -193,6 +225,7 @@ def test_account_event_customer_downloaded_a_digital_link_event_resolves_properl
     expected_data = {
         "id": _model_to_node_id(event),
         "user": {"id": _model_to_node_id(customer_user)},
+        "app": None,
         "count": None,
         "message": None,
         "order": {"id": _model_to_node_id(order)},
@@ -201,21 +234,24 @@ def test_account_event_customer_downloaded_a_digital_link_event_resolves_properl
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, customer_user, permission_manage_users
+        staff_api_client,
+        customer_user,
+        (permission_manage_users, permission_manage_apps),
     )
 
     assert expected_data == received_data
 
 
-def test_account_event_staff_user_deleted_a_customer_event_resolves_properly(
-    staff_api_client, staff_user, permission_manage_staff
+def test_account_event_customer_deleted_event_resolves_properly(
+    staff_api_client, staff_user, permission_manage_staff, permission_manage_apps
 ):
-    event = account_events.staff_user_deleted_a_customer_event(
-        staff_user=staff_user, deleted_count=123
+    event = account_events.customer_deleted_event(
+        staff_user=staff_user, app=None, deleted_count=123
     )
     expected_data = {
         "id": _model_to_node_id(event),
         "user": {"id": _model_to_node_id(staff_user)},
+        "app": None,
         "count": 123,
         "message": None,
         "order": None,
@@ -224,7 +260,7 @@ def test_account_event_staff_user_deleted_a_customer_event_resolves_properly(
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, staff_user, permission_manage_staff
+        staff_api_client, staff_user, (permission_manage_staff, permission_manage_apps)
     )
 
     assert expected_data == received_data
@@ -272,15 +308,16 @@ def test_account_invalid_or_deleted_order_line_return_null(
     assert received_customer_events == [{"orderLine": None}]
 
 
-def test_account_event_staff_user_assigned_new_name_to_customer_event_resolves_properly(
-    staff_api_client, staff_user, permission_manage_staff
+def test_event_staff_user_assigned_new_name_to_customer_event_resolves_properly(
+    staff_api_client, staff_user, permission_manage_staff, permission_manage_apps
 ):
-    event = account_events.staff_user_assigned_name_to_a_customer_event(
-        staff_user=staff_user, new_name="Hello World!"
+    event = account_events.assigned_name_to_a_customer_event(
+        staff_user=staff_user, app=None, new_name="Hello World!"
     )
     expected_data = {
         "id": _model_to_node_id(event),
         "user": {"id": _model_to_node_id(staff_user)},
+        "app": None,
         "count": None,
         "message": "Hello World!",
         "order": None,
@@ -289,21 +326,22 @@ def test_account_event_staff_user_assigned_new_name_to_customer_event_resolves_p
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, staff_user, permission_manage_staff
+        staff_api_client, staff_user, (permission_manage_staff, permission_manage_apps)
     )
 
     assert expected_data == received_data
 
 
 def test_account_event_staff_user_assigned_email_to_customer_event_resolves_properly(
-    staff_api_client, staff_user, permission_manage_staff
+    staff_api_client, staff_user, permission_manage_staff, permission_manage_apps
 ):
-    event = account_events.staff_user_assigned_email_to_a_customer_event(
-        staff_user=staff_user, new_email="hello@example.com"
+    event = account_events.assigned_email_to_a_customer_event(
+        staff_user=staff_user, app=None, new_email="hello@example.com"
     )
     expected_data = {
         "id": _model_to_node_id(event),
         "user": {"id": _model_to_node_id(staff_user)},
+        "app": None,
         "count": None,
         "message": "hello@example.com",
         "order": None,
@@ -312,7 +350,7 @@ def test_account_event_staff_user_assigned_email_to_customer_event_resolves_prop
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, staff_user, permission_manage_staff
+        staff_api_client, staff_user, (permission_manage_staff, permission_manage_apps)
     )
 
     assert expected_data == received_data
