@@ -130,6 +130,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add date & date time attributes - #7500 by @piotrgrundas
 - Add `withChoices` flag for Attribute type - #7733 by @dexon44
 - Drop assigning cheapest shipping method in checkout - #7767 by @maarcingebala
+- Add `product_id`, `product_variant_id`, `attribute_id` and `page_id` when it's possible for `AttributeValue` translations webhook. - #7783 by @fowczarek
 - Allow translating objects by translatable content ID - #7803 by @maarcingebala
 
 ### Breaking
