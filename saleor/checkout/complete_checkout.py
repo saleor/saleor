@@ -318,8 +318,6 @@ def _prepare_order_data(
     # Get voucher data (last) as they require a transaction
     order_data.update(_get_voucher_data_for_order(checkout_info))
 
-    # assign gift cards to the order
-
     order_data["total_price_left"] = (
         manager.calculate_checkout_subtotal(checkout_info, lines, address, discounts)
         + shipping_total
@@ -351,7 +349,7 @@ def _create_order(
     Current user's language is saved in the order so we can later determine
     which language to use when sending email.
     """
-    from ..order.utils import add_gift_card_to_order
+    from ..order.utils import add_gift_cards_to_order
 
     checkout = checkout_info.checkout
     order = Order.objects.filter(checkout_token=checkout.token).first()
@@ -401,9 +399,7 @@ def _create_order(
     country_code = checkout_info.get_country()
     allocate_stocks(order_lines_info, country_code, checkout_info.channel.slug)
 
-    # Add gift cards to the order
-    for gift_card in checkout.gift_cards.select_for_update():
-        total_price_left = add_gift_card_to_order(order, gift_card, total_price_left)
+    add_gift_cards_to_order(checkout_info, order, total_price_left, user, app)
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
