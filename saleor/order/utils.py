@@ -14,6 +14,9 @@ from ..core.weight import zero_weight
 from ..discount import DiscountValueType, OrderDiscountType
 from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
+from ..giftcard import events as gift_card_events
+from ..giftcard.models import GiftCard
+from ..giftcard.utils import calculate_expiry_date
 from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
@@ -29,6 +32,10 @@ from ..warehouse.models import Warehouse
 from . import events
 
 if TYPE_CHECKING:
+    from datetime import date
+
+    from ..app.models import App
+    from ..checkout.fetch import CheckoutInfo
     from ..plugins.manager import PluginsManager
 
 
@@ -398,22 +405,76 @@ def add_variant_to_order(
     return line
 
 
-def add_gift_card_to_order(order, gift_card, total_price_left):
-    """Add gift card to order.
+def add_gift_cards_to_order(
+    checkout_info: "CheckoutInfo",
+    order: Order,
+    total_price_left: Money,
+    user: Optional[User],
+    app: Optional["App"],
+):
+    order_gift_cards = []
+    gift_cards_to_update = []
+    expiry_date_data: List[Tuple[int, "date"]] = []
+    balance_data: List[Tuple[GiftCard, float]] = []
+    used_by_user = checkout_info.user
+    used_by_email = checkout_info.get_customer_email()
+    for gift_card in checkout_info.checkout.gift_cards.select_for_update():
+        if total_price_left > zero_money(total_price_left.currency):
+            order_gift_cards.append(gift_card)
 
-    Return a total price left after applying the gift cards.
-    """
-    if total_price_left > zero_money(total_price_left.currency):
-        order.gift_cards.add(gift_card)
-        if total_price_left < gift_card.current_balance:
-            gift_card.current_balance = gift_card.current_balance - total_price_left
-            total_price_left = zero_money(total_price_left.currency)
-        else:
-            total_price_left = total_price_left - gift_card.current_balance
-            gift_card.current_balance_amount = 0
-        gift_card.last_used_on = timezone.now()
-        gift_card.save(update_fields=["current_balance_amount", "last_used_on"])
-    return total_price_left
+            update_gift_card_balance(gift_card, total_price_left, balance_data)
+
+            # set user and expiry date value when gift card is used for the first time
+            set_gift_card_user_and_expiry_date(
+                gift_card, used_by_user, used_by_email, expiry_date_data
+            )
+
+            gift_card.last_used_on = timezone.now()
+            gift_cards_to_update.append(gift_card)
+
+    order.gift_cards.add(*order_gift_cards)
+    update_fields = [
+        "current_balance_amount",
+        "last_used_on",
+        "used_by",
+        "used_by_email",
+    ]
+    if expiry_date_data:
+        update_fields.append("expiry_date")
+    GiftCard.objects.bulk_update(gift_cards_to_update, update_fields)
+    gift_card_events.gift_cards_used_in_order(balance_data, order.id, user, app)
+    if expiry_date_data:
+        gift_card_events.gift_cards_expiry_date_set(expiry_date_data, user, app)
+
+
+def update_gift_card_balance(
+    gift_card: GiftCard,
+    total_price_left: Money,
+    balance_data: List[Tuple[GiftCard, float]],
+):
+    previous_balance = gift_card.current_balance
+    if total_price_left < gift_card.current_balance:
+        gift_card.current_balance = gift_card.current_balance - total_price_left
+        total_price_left = zero_money(total_price_left.currency)
+    else:
+        total_price_left = total_price_left - gift_card.current_balance
+        gift_card.current_balance_amount = 0
+    balance_data.append((gift_card, previous_balance.amount))
+
+
+def set_gift_card_user_and_expiry_date(
+    gift_card: GiftCard,
+    used_by_user: Optional[User],
+    used_by_email: str,
+    expiry_date_data: List[Tuple[int, "date"]],
+):
+    if gift_card.used_by_email is None:
+        gift_card.used_by = used_by_user
+        gift_card.used_by_email = used_by_email
+        expiry_date = calculate_expiry_date(gift_card)
+        if expiry_date is not None:
+            gift_card.expiry_date = expiry_date
+            expiry_date_data.append((gift_card.id, expiry_date))
 
 
 def _update_allocations_for_line(
