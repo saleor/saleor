@@ -2092,6 +2092,28 @@ type ExternalLogout {
   errors: [AccountError!]!
 }
 
+type ExternalNotificationError {
+  field: String
+  message: String
+  code: ExternalNotificationErrorCodes!
+}
+
+enum ExternalNotificationErrorCodes {
+  CANNOT_ASSIGN_NODE
+  GRAPHQL_ERROR
+  WRONG_PLUGIN_ID
+}
+
+type ExternalNotificationTrigger {
+  errors: [ExternalNotificationError!]!
+}
+
+input ExternalNotificationTriggerInput {
+  ids: [ID]!
+  extraPayloads: JSONString!
+  externalEventType: String!
+}
+
 type ExternalObtainAccessTokens {
   token: String
   refreshToken: String
@@ -3751,6 +3773,7 @@ type Mutation {
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
   pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
+  externalNotificationTrigger(input: ExternalNotificationTriggerInput!, pluginId: String): ExternalNotificationTrigger
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete

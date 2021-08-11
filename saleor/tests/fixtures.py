@@ -78,6 +78,7 @@ from ..payment.interface import AddressData, GatewayConfig, PaymentData
 from ..payment.models import Payment
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
+from ..plugins.sendgrid.plugin import SendgridEmailPlugin
 from ..plugins.vatlayer.plugin import VatlayerPlugin
 from ..plugins.webhook.utils import to_payment_app_id
 from ..product import ProductMediaTypes
