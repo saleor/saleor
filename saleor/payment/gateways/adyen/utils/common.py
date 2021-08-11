@@ -154,6 +154,8 @@ def request_data_for_payment(
     if native_3d_secure and "scheme" == method:
         extra_request_params["additionalData"] = {"allow3DS2": "true"}
 
+    order_reference = payment_information.checkout_token
+
     extra_request_params["shopperEmail"] = payment_information.customer_email
 
     if payment_information.billing:
@@ -174,6 +176,7 @@ def request_data_for_payment(
         "merchantAccount": merchant_account,
         "shopperEmail": payment_information.customer_email,
         "shopperReference": payment_information.customer_email,
+        "merchantOrderReference": order_reference,
         **extra_request_params,
     }
 
