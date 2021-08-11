@@ -14,6 +14,7 @@ from django.db.models import (
 )
 from django.db.models.expressions import Window
 from django.db.models.functions import Coalesce, DenseRank
+from graphql.error import GraphQLError
 
 from ...product.models import (
     Category,
@@ -21,7 +22,7 @@ from ...product.models import (
     Product,
     ProductChannelListing,
 )
-from ..core.types import SortInputObjectType
+from ..core.types import ChannelSortInputObjectType, SortInputObjectType
 
 
 class CategorySortField(graphene.Enum):
@@ -62,7 +63,7 @@ class CategorySortField(graphene.Enum):
         return queryset.annotate(subcategory_count=Count("children__id"))
 
 
-class CategorySortingInput(SortInputObjectType):
+class CategorySortingInput(ChannelSortInputObjectType):
     class Meta:
         sort_enum = CategorySortField
         type_name = "categories"
@@ -114,7 +115,7 @@ class CollectionSortField(graphene.Enum):
         )
 
 
-class CollectionSortingInput(SortInputObjectType):
+class CollectionSortingInput(ChannelSortInputObjectType):
     class Meta:
         sort_enum = CollectionSortField
         type_name = "collections"
@@ -211,8 +212,14 @@ class ProductOrderField(graphene.Enum):
             )
         )
 
+    @staticmethod
+    def qs_with_rank(queryset: QuerySet, **_kwargs) -> QuerySet:
+        if "rank" in queryset.query.annotations.keys():
+            return queryset
+        raise GraphQLError("Sorting by Rank is available only with searching.")
 
-class ProductOrder(SortInputObjectType):
+
+class ProductOrder(ChannelSortInputObjectType):
     attribute_id = graphene.Argument(
         graphene.ID,
         description=(

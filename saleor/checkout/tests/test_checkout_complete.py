@@ -60,6 +60,7 @@ def test_create_order_captured_payment_creates_expected_events(
             discounts=None,
         ),
         user=customer_user,
+        app=None,
         manager=manager,
     )
     flush_post_commit_hooks()
@@ -207,6 +208,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
             discounts=None,
         ),
         user=AnonymousUser(),
+        app=None,
         manager=manager,
     )
     flush_post_commit_hooks()
@@ -349,6 +351,7 @@ def test_create_order_preauth_payment_creates_expected_events(
             discounts=None,
         ),
         user=customer_user,
+        app=None,
         manager=manager,
     )
     flush_post_commit_hooks()
@@ -459,6 +462,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
             discounts=None,
         ),
         user=AnonymousUser(),
+        app=None,
         manager=manager,
     )
     flush_post_commit_hooks()
@@ -570,6 +574,7 @@ def test_create_order_doesnt_duplicate_order(
         checkout_info=checkout_info,
         order_data=order_data,
         user=customer_user,
+        app=None,
         manager=manager,
     )
     assert order_1.checkout_token == checkout.token
@@ -578,6 +583,7 @@ def test_create_order_doesnt_duplicate_order(
         checkout_info=checkout_info,
         order_data=order_data,
         user=customer_user,
+        app=None,
         manager=manager,
     )
     assert order_1.pk == order_2.pk
@@ -627,6 +633,7 @@ def test_create_order_with_gift_card(
             discounts=None,
         ),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
+        app=None,
         manager=manager,
     )
 
@@ -671,6 +678,7 @@ def test_create_order_with_gift_card_partial_use(
             discounts=None,
         ),
         user=customer_user,
+        app=None,
         manager=manager,
     )
 
@@ -729,6 +737,7 @@ def test_create_order_with_many_gift_cards(
             discounts=None,
         ),
         user=customer_user,
+        app=None,
         manager=manager,
     )
 
@@ -761,6 +770,7 @@ def test_note_in_created_order(checkout_with_item, address, customer_user):
             discounts=None,
         ),
         user=customer_user,
+        app=None,
         manager=manager,
     )
     assert order.customer_note == checkout_with_item.note
@@ -789,6 +799,7 @@ def test_create_order_with_variant_tracking_false(
         checkout_info=checkout_info,
         order_data=order_data,
         user=customer_user,
+        app=None,
         manager=manager,
     )
     assert order_1.checkout_token == checkout.token

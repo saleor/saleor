@@ -27,7 +27,7 @@ def api_post_request_task(transaction_url, data, config, order_id):
     if not data.get("createTransactionModel", {}).get("lines"):
         msg = "The order doesn't have any line which should be sent to Avatax."
         external_notification_event(
-            order=order, user=None, message=msg, parameters=None
+            order=order, user=None, app=None, message=msg, parameters=None
         )
         return
 
@@ -46,6 +46,8 @@ def api_post_request_task(transaction_url, data, config, order_id):
             "Unable to send order %s to Avatax. Response %s", order.token, response
         )
 
-    external_notification_event(order=order, user=None, message=msg, parameters=None)
+    external_notification_event(
+        order=order, user=None, app=None, message=msg, parameters=None
+    )
     if not response or "error" in response:
         raise TaxError

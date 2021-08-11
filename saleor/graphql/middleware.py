@@ -70,6 +70,7 @@ class ReadOnlyMiddleware:
         "checkoutShippingMethodUpdate",
         "tokenCreate",
         "tokenVerify",
+        "tokenRefresh",
     ]
 
     @staticmethod

@@ -145,7 +145,7 @@ def api_client():
 
 @pytest.fixture
 def schema_context():
-    params = {"user": AnonymousUser(), "plugins": get_plugins_manager()}
+    params = {"user": AnonymousUser(), "app": None, "plugins": get_plugins_manager()}
     return graphene.types.Context(**params)
 
 

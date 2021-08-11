@@ -1,4 +1,3 @@
-from ...core.tracing import traced_resolver
 from ...discount import models
 from ..channel import ChannelContext, ChannelQsContext
 
@@ -11,7 +10,6 @@ def resolve_voucher(id, channel):
     return ChannelContext(node=sale, channel_slug=channel) if sale else None
 
 
-@traced_resolver
 def resolve_vouchers(info, channel_slug, **_kwargs) -> ChannelQsContext:
     qs = models.Voucher.objects.all()
     if channel_slug:
@@ -24,7 +22,6 @@ def resolve_sale(id, channel):
     return ChannelContext(node=sale, channel_slug=channel) if sale else None
 
 
-@traced_resolver
 def resolve_sales(info, channel_slug, **_kwargs) -> ChannelQsContext:
     qs = models.Sale.objects.all()
     if channel_slug:
