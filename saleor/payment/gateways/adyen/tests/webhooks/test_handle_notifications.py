@@ -384,6 +384,30 @@ def test_handle_capture_for_order(notification, adyen_plugin, payment_adyen_for_
     assert external_events.count() == 1
 
 
+def test_handle_capture_for_order_with_overpayment(
+    notification, adyen_plugin, payment_adyen_for_order
+):
+    payment = payment_adyen_for_order
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        merchant_reference=payment_id,
+        # Notification value results in overpayment
+        value=price_to_minor_unit(payment.total + 100, payment.currency),
+    )
+    config = adyen_plugin().config
+    handle_capture(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.filter(kind=TransactionKind.CAPTURE).get()
+    assert transaction.is_success is True
+    assert payment.charge_status == ChargeStatus.OVERPAID
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
+    )
+    assert external_events.count() == 1
+
+
 def test_handle_capture_for_checkout(
     notification,
     adyen_plugin,
@@ -480,6 +504,8 @@ def test_handle_capture_with_payment_already_charged(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
     assert external_events.count() == 1
+    # FIXME: this test records the captured amount twice, resulting in an overpayment
+    # assert payment.charge_status != ChargeStatus.OVERPAID
 
 
 @pytest.mark.parametrize(

@@ -190,6 +190,7 @@ class Payment(models.Model):
             ChargeStatus.PARTIALLY_CHARGED,
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.PARTIALLY_REFUNDED,
+            ChargeStatus.OVERPAID,
         )
         return self.is_active and self.charge_status in can_refund_charge_status
 
