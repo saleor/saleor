@@ -1,7 +1,11 @@
 from datetime import date
 
+from dateutil.relativedelta import relativedelta
+from django.utils import timezone
+
 from ..checkout.models import Checkout
 from ..core.utils.promo_code import InvalidPromoCode
+from . import GiftCardExpiryType
 from .models import GiftCard
 
 
@@ -49,3 +53,16 @@ def activate_gift_card(gift_card: GiftCard):
     if not gift_card.is_active:
         gift_card.is_active = True
         gift_card.save(update_fields=["is_active"])
+
+
+def calculate_expiry_date(gift_card: GiftCard):
+    """Calculate gift card expiry date for gift card with expiry period settings.
+
+    Return None for gift card with different expiry settings.
+    """
+    today = timezone.now().date()
+    expiry_date = None
+    if gift_card.expiry_type == GiftCardExpiryType.EXPIRY_PERIOD:
+        time_delta = {f"{gift_card.expiry_period_type}s": gift_card.expiry_period}
+        expiry_date = today + relativedelta(**time_delta)  # type: ignore
+    return expiry_date
