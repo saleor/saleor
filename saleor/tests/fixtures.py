@@ -3338,6 +3338,7 @@ def dummy_payment_data(payment_dummy):
         order_id=None,
         customer_ip_address=None,
         customer_email="example@test.com",
+        checkout_token="1-2-3-4",
     )
 
 
