@@ -578,6 +578,97 @@ def test_order_query_in_pln_channel(
     assert expected_method.type.upper() == method["type"]
 
 
+@pytest.mark.parametrize(
+    "p1,p2,expected",
+    [
+        [
+            ChargeStatus.NOT_CHARGED,
+            ChargeStatus.NOT_CHARGED,
+            PaymentChargeStatusEnum.NOT_CHARGED,
+        ],
+        [
+            ChargeStatus.NOT_CHARGED,
+            ChargeStatus.PARTIALLY_CHARGED,
+            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+        ],
+        [
+            ChargeStatus.NOT_CHARGED,
+            ChargeStatus.PENDING,
+            PaymentChargeStatusEnum.NOT_CHARGED,
+        ],
+        [
+            ChargeStatus.PARTIALLY_CHARGED,
+            ChargeStatus.PARTIALLY_CHARGED,
+            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+        ],
+        [
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.PARTIALLY_CHARGED,
+            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+        ],
+        [
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.NOT_CHARGED,
+            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+        ],
+        [
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.PENDING,
+            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+        ],
+    ],
+)
+def test_order_query_payment_status_depending_on_charge_statuses(
+    staff_api_client, p1, p2, expected, payment_kwargs, order, permission_manage_orders
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    Payment.objects.create(
+        **{**payment_kwargs, **{"order": order, "charge_status": p1}}
+    )
+    Payment.objects.create(
+        **{**payment_kwargs, **{"order": order, "charge_status": p2}}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    # then
+    assert order_data["paymentStatus"] == expected.name
+
+
+@pytest.mark.parametrize(
+    "total_paid_amount,total_gross_amount,expected",
+    [
+        [Decimal("200"), Decimal("100"), PaymentChargeStatusEnum.FULLY_CHARGED],
+        [Decimal("100"), Decimal("100"), PaymentChargeStatusEnum.FULLY_CHARGED],
+    ],
+)
+def test_order_query_payment_status_depending_on_balance(
+    staff_api_client,
+    total_paid_amount,
+    total_gross_amount,
+    expected,
+    order,
+    permission_manage_orders,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    order.total_paid_amount = total_paid_amount
+    order.total_paid_amount = total_gross_amount
+    order.save()
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    # then
+    assert order_data["paymentStatus"] == expected.name
+
+
 ORDERS_QUERY_SHIPPING_METHODS = """
     query OrdersQuery {
         orders(first: 1) {

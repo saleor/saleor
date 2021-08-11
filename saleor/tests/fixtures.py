@@ -3813,8 +3813,8 @@ def menu_item_translation_fr(menu_item):
 
 
 @pytest.fixture
-def payment_dummy(db, order_with_lines):
-    return Payment.objects.create(
+def payment_kwargs(db, order_with_lines):
+    return dict(
         gateway="mirumee.payments.dummy",
         order=order_with_lines,
         is_active=True,
@@ -3836,6 +3836,11 @@ def payment_dummy(db, order_with_lines):
         billing_country_area=order_with_lines.billing_address.country_area,
         billing_email=order_with_lines.user_email,
     )
+
+
+@pytest.fixture
+def payment_dummy(payment_kwargs):
+    return Payment.objects.create(**payment_kwargs)
 
 
 @pytest.fixture

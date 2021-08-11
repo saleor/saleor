@@ -941,9 +941,30 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
+        def _map(payments, status_list):
+            return map(lambda p: p.charge_status in status_list, payments)
+
         def _resolve_payment_status(payments):
-            if last_payment := max(payments, default=None, key=attrgetter("pk")):
-                return last_payment.charge_status
+            # TODO: change to overpaid
+            if root.total_paid_amount > root.total_gross_amount:
+                return ChargeStatus.FULLY_CHARGED
+
+            if root.total_paid_amount == root.total_gross_amount:
+                return ChargeStatus.FULLY_CHARGED
+
+            if any(_map(payments, [ChargeStatus.FULLY_REFUNDED])):
+                if all(_map(payments, [ChargeStatus.FULLY_REFUNDED])):
+                    return ChargeStatus.FULLY_REFUNDED
+                return ChargeStatus.PARTIALLY_REFUNDED
+
+            if any(
+                _map(
+                    payments,
+                    [ChargeStatus.FULLY_CHARGED, ChargeStatus.PARTIALLY_CHARGED],
+                )
+            ):
+                return ChargeStatus.PARTIALLY_CHARGED
+
             return ChargeStatus.NOT_CHARGED
 
         return (
