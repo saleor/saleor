@@ -758,7 +758,22 @@ def test_cancel_fulfillment(
 def test_cancel_fulfillment_no_warehouse_id(
     staff_api_client, fulfillment, permission_manage_orders
 ):
-    query = CANCEL_FULFILLMENT_MUTATION
+    query = """
+        mutation cancelFulfillment($id: ID!) {
+            orderFulfillmentCancel(id: $id) {
+                fulfillment {
+                    status
+                }
+                order {
+                    status
+                }
+                errors {
+                    code
+                    field
+                }
+            }
+        }
+    """
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
     variables = {"id": fulfillment_id}
     response = staff_api_client.post_graphql(

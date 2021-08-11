@@ -159,9 +159,10 @@ class OrderFulfill(BaseMutation):
 
     @classmethod
     def clean_input(cls, info, order, data):
+        site_settings = info.context.site.settings
         if not order.is_fully_paid() and (
-            info.context.site.settings.fulfillment_auto_approve
-            and not info.context.site.settings.fulfillment_allow_unpaid
+            site_settings.fulfillment_auto_approve
+            and not site_settings.fulfillment_allow_unpaid
         ):
             raise ValidationError(
                 {
@@ -280,7 +281,9 @@ class FulfillmentUpdateTracking(BaseMutation):
 
 class FulfillmentCancelInput(graphene.InputObjectType):
     warehouse_id = graphene.ID(
-        description="ID of warehouse where items will be restock.", required=False
+        description="ID of a warehouse where items will be restocked. Optional "
+        "when fulfillment is in WAITING_FOR_APPROVAL state.",
+        required=False,
     )
 
 
@@ -319,7 +322,7 @@ class FulfillmentCancel(BaseMutation):
                 {
                     "warehouseId": ValidationError(
                         "This parameter is required for fulfillments which are not in "
-                        "waiting for approval state.",
+                        "WAITING_FOR_APPROVAL state.",
                         code=OrderErrorCode.REQUIRED,
                     )
                 }
@@ -328,7 +331,7 @@ class FulfillmentCancel(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         warehouse = None
-        if warehouse_id := data.get("input").get("warehouse_id"):
+        if warehouse_id := data.get("input", {}).get("warehouse_id"):
             warehouse = cls.get_node_or_error(
                 info, warehouse_id, only_type="Warehouse", field="warehouse_id"
             )
