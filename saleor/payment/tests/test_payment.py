@@ -469,6 +469,9 @@ def test_can_refund(payment_dummy: Payment):
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     assert payment_dummy.can_refund()
 
+    payment_dummy.charge_status = ChargeStatus.OVERPAID
+    assert payment_dummy.can_refund()
+
 
 def test_payment_get_authorized_amount(payment_txn_preauth):
     payment = payment_txn_preauth

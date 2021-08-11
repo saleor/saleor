@@ -290,8 +290,11 @@ def gateway_postprocess(transaction, payment):
         # Set payment charge status to fully charged
         # only if there is no more amount needs to charge
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
-        if payment.get_charge_amount() <= 0:
+        charge_amount = payment.get_charge_amount()
+        if charge_amount == 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
+        elif charge_amount < 0:
+            payment.charge_status = ChargeStatus.OVERPAID
         changed_fields += ["charge_status", "captured_amount", "modified"]
 
     elif transaction_kind == TransactionKind.VOID:
@@ -302,7 +305,9 @@ def gateway_postprocess(transaction, payment):
         changed_fields += ["captured_amount", "modified"]
         payment.captured_amount -= transaction.amount
         payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
-        if payment.captured_amount <= 0:
+        if payment.get_charge_amount() < 0:
+            payment.charge_status = ChargeStatus.OVERPAID
+        elif payment.captured_amount <= 0:
             payment.captured_amount = Decimal("0.0")
             payment.charge_status = ChargeStatus.FULLY_REFUNDED
             payment.is_active = False
