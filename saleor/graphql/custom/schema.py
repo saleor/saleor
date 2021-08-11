@@ -18,10 +18,6 @@ class CustomQueries(graphene.ObjectType):
         Custom, description="List custom"
     )
 
-    # def resolve_custom(self, info, id=None):
-    #     # Querying a single question
-    #     return models.Custom.objects.get(pk=id)
-
     def resolve_custom(self, info, **kwargs):
         custom_id = kwargs.get("id")
         print("custom_id: ", custom_id)
