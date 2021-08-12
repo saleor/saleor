@@ -124,13 +124,6 @@ class Checkout(ModelWithMetadata):
             return zero_money(currency=self.currency)
         return Money(balance, self.currency)
 
-    def get_covered_balance(self):
-        """Return the amount covered by its payments."""
-        covered_amount = Decimal("0")
-        for payment in filter(lambda p: p.is_active, self.payments.all()):
-            covered_amount += payment.get_covered_amount()
-        return Money(covered_amount, self.currency)
-
     def get_total_weight(self, lines: Iterable["CheckoutLineInfo"]) -> "Weight":
         weights = zero_weight()
         for checkout_line_info in lines:
