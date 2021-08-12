@@ -619,6 +619,7 @@ def process_translation_context(context):
         ("product_variant_id", "ProductVariant"),
         ("attribute_id", "Attribute"),
         ("page_id", "Page"),
+        ("page_type_id", "PageType"),
     ]
     result = {}
     for key, type_name in additional_id_fields:
