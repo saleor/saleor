@@ -1733,6 +1733,12 @@ type DeletePrivateMetadata {
   item: ObjectWithMetadata
 }
 
+type DeprecatedDraftOrderLinesBulkDelete {
+  count: Int!
+  orderErrors: [OrderError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [OrderError!]!
+}
+
 type DigitalContent implements Node & ObjectWithMetadata {
   useDefaultSettings: Boolean!
   automaticFulfillment: Boolean!
@@ -1905,12 +1911,6 @@ input DraftOrderInput {
   customerNote: String
   channelId: ID
   redirectUrl: String
-}
-
-type DraftOrderLinesBulkDelete {
-  count: Int!
-  orderErrors: [OrderError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
-  errors: [OrderError!]!
 }
 
 type DraftOrderUpdate {
@@ -2820,7 +2820,7 @@ type Mutation {
   draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
   draftOrderDelete(id: ID!): DraftOrderDelete
   draftOrderBulkDelete(ids: [ID]!): DraftOrderBulkDelete
-  draftOrderLinesBulkDelete(ids: [ID]!): DraftOrderLinesBulkDelete
+  draftOrderLinesBulkDelete(ids: [ID]!): DeprecatedDraftOrderLinesBulkDelete
   draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!): OrderCancel

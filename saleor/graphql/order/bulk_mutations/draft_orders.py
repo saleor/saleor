@@ -34,14 +34,14 @@ class DraftOrderBulkDelete(ModelBulkDeleteMutation):
             )
 
 
-class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
+class DeprecatedDraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of order lines IDs to delete."
         )
 
     class Meta:
-        description = "Deletes order lines."
+        description = "DEPRECATED: Will be removed in Saleor 4.0."
         model = models.OrderLine
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
