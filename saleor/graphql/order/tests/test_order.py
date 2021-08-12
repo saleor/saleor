@@ -6541,6 +6541,7 @@ mutation OrderUpdateShipping(
     "input, response_msg",
     [
         ({"shippingMethod": ""}, "Shipping method cannot be empty."),
+        ({}, "Shipping method must be provided to perform mutation."),
     ],
 )
 def test_order_shipping_update_mutation_return_error_for_empty_value(
@@ -6579,7 +6580,4 @@ def test_order_shipping_update_mutation_properly_recalculate_total(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    if data["order"]["shippingMethod"] is None:
-        assert True
-    else:
-        assert False
+    assert data["order"]["shippingMethod"] is None

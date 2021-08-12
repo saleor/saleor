@@ -7,10 +7,7 @@ from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
-from .bulk_mutations.draft_orders import (
-    DeprecatedDraftOrderLinesBulkDelete,
-    DraftOrderBulkDelete,
-)
+from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.orders import OrderBulkCancel
 from .filters import DraftOrderFilter, OrderFilter
 from .mutations.discount_order import (
@@ -142,7 +139,9 @@ class OrderMutations(graphene.ObjectType):
     draft_order_create = DraftOrderCreate.Field()
     draft_order_delete = DraftOrderDelete.Field()
     draft_order_bulk_delete = DraftOrderBulkDelete.Field()
-    draft_order_lines_bulk_delete = DeprecatedDraftOrderLinesBulkDelete.Field()
+    draft_order_lines_bulk_delete = DraftOrderLinesBulkDelete.Field(
+        deprecation_reason="DEPRECATED: Will be removed in Saleor 4.0."
+    )
     draft_order_update = DraftOrderUpdate.Field()
 
     order_add_note = OrderAddNote.Field()

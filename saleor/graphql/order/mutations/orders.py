@@ -221,7 +221,7 @@ class OrderUpdate(DraftOrderCreate):
 class OrderUpdateShippingInput(graphene.InputObjectType):
     shipping_method = graphene.ID(
         description="ID of the selected shipping method,"
-        " pass null to remove currently assigned shippingMethod.",
+        " pass null to remove currently assigned shipping method.",
         name="shippingMethod",
     )
 
@@ -260,7 +260,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
     class Meta:
         description = (
             "Updates a shipping method of the order."
-            " Requires shipping Id to update, when null is passed "
+            " Requires shipping method ID to update, when null is passed "
             "then currently assigned shipping method is removed."
         )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
@@ -299,6 +299,8 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                         )
                     }
                 )
+
+            # Shipping method is detached only when null is passed in input.
             if data["shipping_method"] == "":
                 raise ValidationError(
                     {
@@ -852,28 +854,19 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         delete_order_line(line_info)
         line.id = db_id
 
-        if order.is_shipping_required():
-            events.order_removed_products_event(
-                order=order,
-                user=info.context.user,
-                app=info.context.app,
-                order_lines=[(line.quantity, line)],
+        if not order.is_shipping_required():
+            order.shipping_method = None
+            order.shipping_price = zero_taxed_money(order.currency)
+            order.shipping_method_name = None
+            order.save(
+                update_fields=[
+                    "currency",
+                    "shipping_method",
+                    "shipping_price_net_amount",
+                    "shipping_price_gross_amount",
+                    "shipping_method_name",
+                ]
             )
-            recalculate_order(order)
-            return OrderLineDelete(order=order, order_line=line)
-
-        order.shipping_method = None
-        order.shipping_price = zero_taxed_money(order.currency)
-        order.shipping_method_name = None
-        order.save(
-            update_fields=[
-                "currency",
-                "shipping_method",
-                "shipping_price_net_amount",
-                "shipping_price_gross_amount",
-                "shipping_method_name",
-            ]
-        )
         # Create the removal event
         events.order_removed_products_event(
             order=order,
