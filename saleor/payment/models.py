@@ -118,6 +118,19 @@ class Payment(models.Model):
     def get_total(self):
         return Money(self.total, self.currency)
 
+    def get_covered_amount(self):
+        """Return an amount that is covered by this payment (but not necessarily captured).
+
+        Refund subtract from the covered amount.
+        """
+        if self.charge_status in [ChargeStatus.PARTIALLY_REFUNDED]:
+            return self.captured_amount
+        # TODO include overpaid
+        # TODO does authorized, not captured count here? it has to
+        if self.charge_status in [ChargeStatus.FULLY_CHARGED]:
+            return self.total
+        return Decimal("0")
+
     def get_authorized_amount(self):
         money = zero_money(self.currency)
 

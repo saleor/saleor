@@ -82,13 +82,14 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         error_type_field = "payment_errors"
 
     @classmethod
-    def clean_payment_amount(cls, info, checkout_total, amount):
-        # TODO: Check against uncovered amount rather than total
-        if amount > checkout_total.gross.amount:
+    def clean_payment_amount(cls, info, checkout, checkout_total, amount):
+        remaining = checkout_total.gross - checkout.get_covered_balance()
+
+        if amount > remaining.amount:
             raise ValidationError(
                 {
                     "amount": ValidationError(
-                        "Amount should not exceed= checkout's total.",
+                        "Amount should not exceed checkout's total.",
                         code=PaymentErrorCode.PARTIAL_PAYMENT_TOTAL_EXCEEDED,
                     )
                 }
@@ -182,7 +183,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         amount = data.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
         clean_billing_address(checkout_info, PaymentErrorCode)
-        cls.clean_payment_amount(info, checkout_total, amount)
+        cls.clean_payment_amount(info, checkout, checkout_total, amount)
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
         }
