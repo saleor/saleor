@@ -137,7 +137,7 @@ def add_variants_to_checkout(
     # check quantities
     country_code = checkout.get_country()
     if not skip_stock_check:
-        check_stock_quantity_bulk(variants, country_code, quantities, channel_slug)
+        check_stock_quantity_bulk(variants, country_code, quantities, [], channel_slug)
 
     channel_listings = product_models.ProductChannelListing.objects.filter(
         channel_id=checkout.channel.id,
