@@ -45,6 +45,7 @@ def check_stock_quantity_bulk(
     variants: Iterable["ProductVariant"],
     country_code: str,
     quantities: Iterable[int],
+    existing_lines: Iterable,
     channel_slug: str,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
 ):
@@ -67,7 +68,13 @@ def check_stock_quantity_bulk(
         variant_stocks[stock.product_variant_id].append(stock)
 
     insufficient_stocks: List[InsufficientStockData] = []
-    for variant, quantity in zip(variants, quantities):
+    for variant, input_quantity in zip(variants, quantities):
+
+        quantity = input_quantity
+        for line_info in existing_lines:
+            if line_info.variant.sku == variant.sku:
+                quantity += line_info.line.quantity
+
         stocks = variant_stocks.get(variant.pk, [])
         available_quantity = sum(
             [stock.available_quantity for stock in stocks]  # type: ignore

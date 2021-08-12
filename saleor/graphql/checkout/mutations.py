@@ -121,7 +121,12 @@ def update_checkout_shipping_method_if_invalid(
 
 
 def check_lines_quantity(
-    variants, quantities, country, channel_slug, allow_zero_quantity=False
+    variants,
+    quantities,
+    existing_lines,
+    country,
+    channel_slug,
+    allow_zero_quantity=False,
 ):
     """Clean quantities and check if stock is sufficient for each checkout line.
 
@@ -163,7 +168,9 @@ def check_lines_quantity(
                 }
             )
     try:
-        check_stock_quantity_bulk(variants, country, quantities, channel_slug)
+        check_stock_quantity_bulk(
+            variants, country, quantities, existing_lines, channel_slug
+        )
     except InsufficientStock as e:
         errors = [
             ValidationError(
@@ -295,7 +302,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         validate_variants_available_in_channel(
             variant_db_ids, channel.id, CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
         )
-        check_lines_quantity(variants, quantities, country, channel.slug)
+        check_lines_quantity(variants, quantities, [], country, channel.slug)
         return variants, quantities
 
     @classmethod
@@ -444,16 +451,26 @@ class CheckoutLinesAdd(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def validate_checkout_lines(cls, variants, quantities, country, channel_slug):
-        check_lines_quantity(variants, quantities, country, channel_slug)
+    def validate_checkout_lines(
+        cls, variants, quantities, lines, country, channel_slug
+    ):
+        check_lines_quantity(variants, quantities, lines, country, channel_slug)
 
     @classmethod
     def clean_input(
-        cls, checkout, variants, quantities, checkout_info, manager, discounts, replace
+        cls,
+        checkout,
+        variants,
+        quantities,
+        checkout_info,
+        lines,
+        manager,
+        discounts,
+        replace,
     ):
         channel_slug = checkout_info.channel.slug
         cls.validate_checkout_lines(
-            variants, quantities, checkout.get_country(), channel_slug
+            variants, quantities, lines, checkout.get_country(), channel_slug
         )
         variants_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variants_db_ids, checkout.channel_id)
@@ -516,11 +533,19 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
-        cls.clean_input(
-            checkout, variants, quantities, checkout_info, manager, discounts, replace
-        )
 
         lines = fetch_checkout_lines(checkout)
+        cls.clean_input(
+            checkout,
+            variants,
+            quantities,
+            checkout_info,
+            lines,
+            manager,
+            discounts,
+            replace,
+        )
+
         checkout_info.valid_shipping_methods = (
             get_valid_shipping_method_list_for_checkout_info(
                 checkout_info, checkout_info.shipping_address, lines, discounts, manager
@@ -551,7 +576,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
     @classmethod
     def validate_checkout_lines(cls, variants, quantities, country, channel_slug):
         check_lines_quantity(
-            variants, quantities, country, channel_slug, allow_zero_quantity=True
+            variants, quantities, country, channel_slug, [], allow_zero_quantity=True
         )
 
     @classmethod
@@ -761,7 +786,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             ).prefetch_related("product__product_type")
         )  # FIXME: is this prefetch needed?
         quantities = [line_info.line.quantity for line_info in lines]
-        check_lines_quantity(variants, quantities, country, channel_slug)
+        check_lines_quantity(variants, quantities, country, [], channel_slug)
 
     @classmethod
     def perform_mutation(
