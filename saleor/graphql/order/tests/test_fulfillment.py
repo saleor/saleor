@@ -807,6 +807,33 @@ def test_cancel_fulfillment_awaiting_approval(
     assert event_cancelled.user == staff_api_client.user
 
 
+@patch("saleor.order.actions.restock_fulfillment_lines")
+def test_cancel_fulfillment_awaiting_approval_warehouse_specified(
+    mock_restock_lines,
+    staff_api_client,
+    fulfillment,
+    permission_manage_orders,
+    warehouse,
+):
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
+    query = CANCEL_FULFILLMENT_MUTATION
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    variables = {"id": fulfillment_id, "warehouseId": warehouse_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentCancel"]
+    assert data["fulfillment"]["status"] == FulfillmentStatus.CANCELED.upper()
+    mock_restock_lines.assert_not_called()
+    event_cancelled = fulfillment.order.events.get()
+    assert event_cancelled.type == (OrderEvents.FULFILLMENT_CANCELED)
+    assert event_cancelled.parameters == {"composed_id": fulfillment.composed_id}
+    assert event_cancelled.user == staff_api_client.user
+
+
 def test_cancel_fulfillment_cancelled_state(
     staff_api_client, fulfillment, permission_manage_orders, warehouse
 ):
