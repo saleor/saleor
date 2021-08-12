@@ -331,6 +331,8 @@ class FulfillmentCancel(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
+
+        warehouse = None
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
             warehouse = None
         elif warehouse_id := data.get("input", {}).get("warehouse_id"):
