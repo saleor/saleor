@@ -562,8 +562,15 @@ def _complete_checkout_payment(
     store_source,
     user,
 ):
+    """Complete processing a payment.
+
+    If no payment was provided, it means that it was processed by this function earlier.
+    """
     customer_id = None
-    if payment and user.is_authenticated:
+    if not payment:
+        return {}, False
+
+    if user.is_authenticated:
         customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
 
     txn = _process_payment(
@@ -649,7 +656,18 @@ def complete_checkout(
     """
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
-    payment = checkout.get_last_active_payment()
+    payments = [payment for payment in checkout.payments.all() if payment.is_active]
+
+    # For individual payments, checkoutComplete will process the payment
+    if len(payments) == 1:
+        payment = payments[0]
+
+    # For multi payments, individual payments need to be completed
+    # using paymentCheckoutComplete. In case of insufficient funds
+    # an exception will be raised by `clean_checkout_payment`
+    else:
+        payment = None  # type: ignore
+
     _prepare_checkout(
         manager=manager,
         checkout_info=checkout_info,

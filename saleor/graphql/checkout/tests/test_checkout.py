@@ -2699,7 +2699,7 @@ def test_clean_checkout_no_billing_address(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
-    payment = checkout.get_last_active_payment()
+    payment = checkout.payments.filter(is_active=True).last()
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
@@ -2718,7 +2718,7 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
-    payment = checkout.get_last_active_payment()
+    payment = checkout.payments.filter(is_active=True).last()
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)

@@ -1,4 +1,5 @@
 """Checkout-related ORM models."""
+from decimal import Decimal
 from operator import attrgetter
 from typing import TYPE_CHECKING, Iterable, Optional
 from uuid import uuid4
@@ -123,6 +124,13 @@ class Checkout(ModelWithMetadata):
             return zero_money(currency=self.currency)
         return Money(balance, self.currency)
 
+    def get_covered_balance(self):
+        """Return the amount covered by its payments."""
+        covered_amount = Decimal("0")
+        for payment in filter(lambda p: p.is_active, self.payments.all()):
+            covered_amount += payment.get_covered_amount()
+        return Money(covered_amount, self.currency)
+
     def get_total_weight(self, lines: Iterable["CheckoutLineInfo"]) -> "Weight":
         weights = zero_weight()
         for checkout_line_info in lines:
@@ -134,10 +142,6 @@ class Checkout(ModelWithMetadata):
         """Return a line matching the given variant and data if any."""
         matching_lines = (line for line in self if line.variant.pk == variant.pk)
         return next(matching_lines, None)
-
-    def get_last_active_payment(self) -> Optional["Payment"]:
-        payments = [payment for payment in self.payments.all() if payment.is_active]
-        return max(payments, default=None, key=attrgetter("pk"))
 
     def set_country(
         self, country_code: str, commit: bool = False, replace: bool = True

@@ -268,6 +268,58 @@ def test_checkout_add_payment(
     assert payment.billing_email == customer_user.email
 
 
+def test_checkout_add_partial_payment(
+    user_api_client, checkout_without_shipping_required, address, customer_user
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.email = "old@example"
+    checkout.user = customer_user
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    quarter_total = total.gross / 4
+    assert quarter_total.amount > 0
+
+    Payment.objects.create(
+        is_active=True,
+        charge_status=ChargeStatus.FULLY_CHARGED,
+        total=3 * quarter_total.amount,
+        checkout=checkout,
+    )
+
+    # when
+    return_url = "https://www.example.com"
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": quarter_total.amount,
+            "returnUrl": return_url,
+        },
+    }
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+
+    # then
+    assert not data["errors"]
+    transactions = data["payment"]["transactions"]
+    assert not transactions
+    payment = Payment.objects.latest("pk")
+    assert payment.checkout == checkout
+    assert payment.is_active
+    assert payment.token == "sample-token"
+    assert payment.total == quarter_total.amount
+
+
 def test_checkout_add_payment_default_amount(
     user_api_client, checkout_without_shipping_required, address
 ):
@@ -326,6 +378,50 @@ def test_checkout_add_payment_bad_amount(
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
+    assert (
+        data["errors"][0]["code"]
+        == PaymentErrorCode.PARTIAL_PAYMENT_TOTAL_EXCEEDED.name
+    )
+
+
+def test_checkout_add_payment_bad_partial_amount(
+    user_api_client, checkout_without_shipping_required, address
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    half_total = total.gross / 2
+    assert half_total.amount > 0
+
+    Payment.objects.create(
+        is_active=True,
+        charge_status=ChargeStatus.FULLY_CHARGED,
+        total=half_total.amount,
+        checkout=checkout,
+    )
+
+    # when
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": str(half_total.amount + Decimal(1)),
+        },
+    }
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+
+    # then
     assert (
         data["errors"][0]["code"]
         == PaymentErrorCode.PARTIAL_PAYMENT_TOTAL_EXCEEDED.name
