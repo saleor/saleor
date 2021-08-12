@@ -153,6 +153,7 @@ def test_authorize_payment(update_payment_mock, fake_payment_interface, payment_
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE
     update_payment_mock.assert_called_once_with(payment_dummy, AUTHORIZE_RESPONSE)
+    assert transaction.payment.charge_status == ChargeStatus.AUTHORIZED
 
 
 @patch("saleor.payment.gateway.update_payment")

@@ -185,7 +185,7 @@ class StripeGatewayPlugin(BasePlugin):
         payment_method_types = data.get("payment_method_types") if data else None
 
         customer = None
-        # confirm that we creates customer on stripe side only for log-in customers
+        # confirm that we create customer on stripe side only for log-in customers
         # Stripe doesn't allow to search users by email, so each create customer
         # call creates new customer on Stripe side.
         if payment_information.graphql_customer_id:

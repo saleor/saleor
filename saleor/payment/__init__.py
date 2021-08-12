@@ -101,6 +101,7 @@ class ChargeStatus:
     """
 
     NOT_CHARGED = "not-charged"
+    AUTHORIZED = "authorized"
     PENDING = "pending"
     PARTIALLY_CHARGED = "partially-charged"
     FULLY_CHARGED = "fully-charged"
