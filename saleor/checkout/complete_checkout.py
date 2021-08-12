@@ -41,7 +41,7 @@ from ..warehouse.management import allocate_stocks
 from . import AddressType
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
-from .utils import get_voucher_for_checkout
+from .utils import get_only_active_payment, get_voucher_for_checkout
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -445,7 +445,7 @@ def _prepare_checkout(
         lines,
         discounts,
         CheckoutErrorCode,
-        last_payment=payment,
+        current_payment=payment,
     )
     if not checkout_info.channel.is_active:
         raise ValidationError(
@@ -656,17 +656,9 @@ def complete_checkout(
     """
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
-    payments = [payment for payment in checkout.payments.all() if payment.is_active]
 
     # For individual payments, checkoutComplete will process the payment
-    if len(payments) == 1:
-        payment = payments[0]
-
-    # For multi payments, individual payments need to be completed
-    # using paymentCheckoutComplete. In case of insufficient funds
-    # an exception will be raised by `clean_checkout_payment`
-    else:
-        payment = None  # type: ignore
+    payment = get_only_active_payment(checkout)
 
     _prepare_checkout(
         manager=manager,

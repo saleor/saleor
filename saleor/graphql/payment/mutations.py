@@ -7,7 +7,7 @@ from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_s
 from ...checkout.complete_checkout import complete_checkout_payment
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...checkout.utils import validate_variants_in_checkout_lines
+from ...checkout.utils import get_covered_balance, validate_variants_in_checkout_lines
 from ...core import analytics
 from ...core.permissions import OrderPermissions
 from ...core.transactions import transaction_with_commit_on_errors
@@ -83,7 +83,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def clean_payment_amount(cls, info, checkout, checkout_total, amount):
-        remaining = checkout_total.gross - checkout.get_covered_balance()
+        remaining = checkout_total.gross - get_covered_balance(checkout)
 
         if amount > remaining.amount:
             raise ValidationError(

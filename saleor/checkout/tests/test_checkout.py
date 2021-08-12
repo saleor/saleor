@@ -13,6 +13,7 @@ from ...account.utils import store_user_address
 from ...core.taxes import zero_money
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
+from ...payment import ChargeStatus
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingZone
 from .. import AddressType, calculations
@@ -31,7 +32,7 @@ from ..utils import (
     clear_shipping_method,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
-    is_fully_paid,
+    is_fully_covered,
     is_valid_shipping_method,
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
@@ -1096,7 +1097,7 @@ def test_store_user_address_create_new_address_if_not_associated(address):
     assert user.default_billing_address_id != address.pk
 
 
-def test_is_fully_paid(checkout_with_item, payment_dummy):
+def test_is_fully_covered(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
@@ -1114,11 +1115,11 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = is_fully_paid(manager, checkout_info, lines, None)
+    is_paid = is_fully_covered(manager, checkout_info, lines, None, payment)
     assert is_paid
 
 
-def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
+def test_is_fully_covered_many_payments(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
@@ -1135,6 +1136,7 @@ def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
     payment.total = total.gross.amount - 1
     payment.currency = total.gross.currency
     payment.checkout = checkout
+    payment.charge_status = ChargeStatus.AUTHORIZED
     payment.save()
     payment2 = payment_dummy
     payment2.pk = None
@@ -1143,12 +1145,13 @@ def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
     payment2.total = 1
     payment2.currency = total.gross.currency
     payment2.checkout = checkout
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment2.save()
-    is_paid = is_fully_paid(manager, checkout_info, lines, None)
+    is_paid = is_fully_covered(manager, checkout_info, lines, None)
     assert is_paid
 
 
-def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
+def test_is_fully_covered_partially_paid(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
@@ -1166,14 +1169,14 @@ def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = is_fully_paid(manager, checkout_info, lines, None)
+    is_paid = is_fully_covered(manager, checkout_info, lines, None)
     assert not is_paid
 
 
-def test_is_fully_paid_no_payment(checkout_with_item):
+def test_is_fully_covered_no_payment(checkout_with_item):
     checkout = checkout_with_item
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    is_paid = is_fully_paid(manager, checkout_info, lines, None)
+    is_paid = is_fully_covered(manager, checkout_info, lines, None)
     assert not is_paid

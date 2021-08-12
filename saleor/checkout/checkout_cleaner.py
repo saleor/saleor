@@ -8,7 +8,13 @@ from ..payment import models as payment_models
 from ..payment.error_codes import PaymentErrorCode
 from ..plugins.manager import PluginsManager
 from .error_codes import CheckoutErrorCode
-from .utils import is_fully_paid, is_shipping_required, is_valid_shipping_method
+from .utils import (
+    get_active_payments,
+    get_only_active_payment,
+    is_fully_covered,
+    is_shipping_required,
+    is_valid_shipping_method,
+)
 
 if TYPE_CHECKING:
     from .fetch import CheckoutInfo, CheckoutLineInfo
@@ -70,12 +76,26 @@ def clean_checkout_payment(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     error_code: Type[CheckoutErrorCode],
-    last_payment: Optional[payment_models.Payment],
+    current_payment: Optional[payment_models.Payment],
 ):
     clean_billing_address(checkout_info, error_code)
-    if not is_fully_paid(manager, checkout_info, lines, discounts):
+    if current_payment:
+        if current_payment != get_only_active_payment(checkout_info.checkout):
+            raise ValidationError(
+                "When using multiple payment methods,"
+                "each one has to be confirmed separately.",
+                code=error_code.CHECKOUT_NOT_FULLY_PAID.value,
+            )
+
+    if len(get_active_payments(checkout_info.checkout)) == 0:
+        raise ValidationError(
+            "Payment has not been initiated.",
+            code=error_code.CHECKOUT_NOT_FULLY_PAID.value,
+        )
+
+    if not is_fully_covered(manager, checkout_info, lines, discounts, current_payment):
         gateway.payment_refund_or_void(
-            last_payment, manager, channel_slug=checkout_info.channel.slug
+            current_payment, manager, channel_slug=checkout_info.channel.slug
         )
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",

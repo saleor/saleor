@@ -123,11 +123,13 @@ class Payment(models.Model):
 
         Refund subtract from the covered amount.
         """
-        if self.charge_status in [ChargeStatus.PARTIALLY_REFUNDED]:
+        if self.charge_status == ChargeStatus.PARTIALLY_REFUNDED:
             return self.captured_amount
         # TODO include overpaid
-        # TODO does authorized, not captured count here? it has to
-        if self.charge_status in [ChargeStatus.FULLY_CHARGED]:
+        if self.charge_status in {
+            ChargeStatus.AUTHORIZED,
+            ChargeStatus.FULLY_CHARGED,
+        }:
             return self.total
         return Decimal("0")
 
