@@ -330,12 +330,15 @@ class FulfillmentCancel(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
+        fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
+
         warehouse = None
-        if warehouse_id := data.get("input", {}).get("warehouse_id"):
+        if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
+            warehouse = None
+        elif warehouse_id := data.get("input", {}).get("warehouse_id"):
             warehouse = cls.get_node_or_error(
                 info, warehouse_id, only_type="Warehouse", field="warehouse_id"
             )
-        fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
 
         cls.validate_fulfillment(fulfillment, warehouse)
 
