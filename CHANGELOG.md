@@ -135,6 +135,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `product_id`, `product_variant_id`, `attribute_id` and `page_id` when it's possible for `AttributeValue` translations webhook. - #7783 by @fowczarek
 - Deprecate `query` argument in `sales` and `vouchers` queries - #7806 by @maarcingebala
 - Allow translating objects by translatable content ID - #7803 by @maarcingebala
+- Add `page_type_id` when it's possible for `AttributeValue` translations webhook. - #7825 by @fowczarek
+
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
