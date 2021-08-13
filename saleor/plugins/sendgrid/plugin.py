@@ -4,6 +4,7 @@ from dataclasses import asdict
 from django.core.exceptions import ValidationError
 
 from ...core.notify_events import NotifyEventType, UserNotifyEvent
+from ...plugins.sendgrid.tasks import send_email_with_dynamic_template_id
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration
@@ -213,10 +214,17 @@ class SendgridEmailPlugin(BasePlugin):
         if not self.active:
             return previous_value
 
-        if event not in UserNotifyEvent.CHOICES:
-            return previous_value
+        event_in_notify_event = event in UserNotifyEvent.CHOICES
+        event_in_event_map = event in EVENT_MAP
 
-        if event not in EVENT_MAP:
+        if not event_in_notify_event or not event_in_event_map:
+            logger.warning(f"Send email with event {event} as dynamic template ID.")
+            send_email_with_dynamic_template_id.delay(
+                payload, event, asdict(self.config)
+            )
+            return
+
+        if not event_in_notify_event:
             logger.warning(f"Missing handler for event {event}")
             return previous_value
 

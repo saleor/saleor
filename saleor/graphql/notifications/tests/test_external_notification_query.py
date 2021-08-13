@@ -4,11 +4,11 @@ from unittest.mock import patch
 import pytest
 from graphql_relay.node.node import to_global_id
 
-from .conftest import query_test_data
 from ....account.models import User
 from ....core.notify_events import UserNotifyEvent
 from ....graphql.tests.utils import assert_no_permission
 from ....product.models import ProductVariant
+from .conftest import query_test_data
 
 
 @pytest.mark.parametrize("variables, status_code", query_test_data)

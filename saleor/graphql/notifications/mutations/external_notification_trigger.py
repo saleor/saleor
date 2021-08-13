@@ -14,8 +14,7 @@ from saleor.graphql.core.types.common import ExternalNotificationError
 from saleor.invoice.models import Invoice
 from saleor.order.models import Fulfillment, Order
 from saleor.product.models import Product, ProductVariant
-from ..inputs import ExternalNotificationTriggerInput
-from ...core.mutations import BaseMutation
+
 from ....core.permissions import AccountPermissions
 from ....graphql.utils import resolve_global_ids_to_primary_keys
 from ....webhook.payloads import (
@@ -27,6 +26,8 @@ from ....webhook.payloads import (
     generate_product_payload,
     generate_product_variant_payload,
 )
+from ...core.mutations import BaseMutation
+from ..inputs import ExternalNotificationTriggerInput
 
 
 class ExternalNotificationTrigger(BaseMutation):
