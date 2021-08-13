@@ -233,3 +233,33 @@ def test_gift_cards_create(
     send_notification_mock.assert_called_once_with(
         staff_user, None, user_email, non_shippable_gift_card, manager
     )
+
+
+@patch("saleor.giftcard.utils.send_gift_card_notification")
+def test_gift_cards_create_multiple_quantity(
+    send_notification_mock,
+    order,
+    gift_card_non_shippable_order_line,
+    site_settings,
+    staff_user,
+):
+    # given
+    manager = get_plugins_manager()
+    quantity = 3
+    gift_card_non_shippable_order_line.quantity = quantity
+    gift_card_non_shippable_order_line.save(update_fields=["quantity"])
+    order_lines = [gift_card_non_shippable_order_line]
+
+    # when
+    gift_cards = gift_cards_create(
+        order, order_lines, site_settings, staff_user, None, manager
+    )
+
+    # then
+    assert len(gift_cards) == quantity
+    assert GiftCardEvent.objects.filter(type=GiftCardEvents.BOUGHT).count() == quantity
+    assert (
+        GiftCardEvent.objects.filter(type=GiftCardEvents.SENT_TO_CUSTOMER).count()
+        == quantity
+    )
+    assert send_notification_mock.call_count == 3
