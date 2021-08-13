@@ -73,6 +73,7 @@ class Migration(migrations.Migration):
                     ("expiry_period", "Expiry period"),
                     ("expiry_date", "Expiry date"),
                 ],
+                default="expiry_date",
                 max_length=32,
             ),
         ),
