@@ -542,7 +542,7 @@ class BasePlugin:
         """
         return NotImplemented
 
-    def fulfillment_cancelled(
+    def fulfillment_canceled(
         self, fulfillment: "Fulfillment", previous_value: Any
     ) -> Any:
         """Trigger when fulfillemnt is cancelled.
