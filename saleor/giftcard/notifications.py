@@ -1,12 +1,5 @@
-from ..account.models import User
 from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
-
-
-def _get_recipient_name(email):
-    if user := User.objects.filter(email=email).first():
-        return user.get_full_name()
-    return email
 
 
 def send_gift_card_notification(user, app, email, gift_card, manager):
@@ -19,7 +12,8 @@ def send_gift_card_notification(user, app, email, gift_card, manager):
             "app_name": app.name if app else None,
         },
         "recipient": {
-            "name": _get_recipient_name(email),
+            "first_name": user.first_name if user else None,
+            "last_name": user.last_name if user else None,
         },
         "recipient_email": email,
         "gift_card": {
