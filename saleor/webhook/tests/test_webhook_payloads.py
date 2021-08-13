@@ -445,6 +445,7 @@ def test_generate_unique_product_attribute_value_translation_payload(
         "Attribute", rich_text_attribute.id
     )
     assert data["page_id"] is None
+    assert data["page_type_id"] is None
     translation_keys = {i["key"]: i["value"] for i in data["keys"]}
     assert translation_keys["rich_text"] == translated_attribute_value.rich_text
 
@@ -469,6 +470,7 @@ def test_generate_unique_variant_attribute_value_translation_payload(
         "Attribute", rich_text_attribute.id
     )
     assert data["page_id"] is None
+    assert data["page_type_id"] is None
     translation_keys = {i["key"]: i["value"] for i in data["keys"]}
     assert translation_keys["rich_text"] == translated_attribute_value.rich_text
 
@@ -491,6 +493,9 @@ def test_generate_unique_page_attribute_value_translation_payload(
         "Attribute", rich_text_attribute_page_type.id
     )
     assert data["page_id"] == graphene.Node.to_global_id("Page", page.id)
+    assert data["page_type_id"] == graphene.Node.to_global_id(
+        "PageType", page.page_type_id
+    )
     translation_keys = {i["key"]: i["value"] for i in data["keys"]}
     assert translation_keys["rich_text"] == translated_attribute_value.rich_text
 

@@ -278,6 +278,8 @@ class AttributeValueTranslation(Translation):
                 if assigned_page_attribute_value := (
                     attribute_value.pagevalueassignment.first()
                 ):
-                    if page_id := assigned_page_attribute_value.assignment.page_id:
-                        context["page_id"] = page_id
+                    if page := assigned_page_attribute_value.assignment.page:
+                        context["page_id"] = page.id
+                        if page_type_id := page.page_type_id:
+                            context["page_type_id"] = page_type_id
         return context
