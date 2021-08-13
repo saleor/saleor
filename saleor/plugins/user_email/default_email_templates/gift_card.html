@@ -119,7 +119,11 @@
 
                         <div
                           style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">
-                          Hi, {{ recipient.name }}<br>
+                          {{#if recipient.first_name}}
+                          Hi, {{ recipient.first_name }} {{ recipient.first_name }}<br>
+                          {{else}}
+                          Hi, {{ recipient_email }}
+                          {{/if}}
                           Here is your gift card!<br></div>
 
                       </td>

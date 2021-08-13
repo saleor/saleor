@@ -734,7 +734,6 @@ def test_send_gift_card_email_task_by_user(
 ):
     template_id = "ABC1"
     recipient_email = "user@example.com"
-    recipient_name = "John Doe"
 
     payload = {
         "requester": {
@@ -744,8 +743,8 @@ def test_send_gift_card_email_task_by_user(
             "app_name": None,
         },
         "recipient": {
-            "email": recipient_email,
-            "name": recipient_name,
+            "first_name": staff_user.first_name,
+            "last_name": staff_user.last_name,
         },
         "recipient_email": recipient_email,
         "gift_card": {
