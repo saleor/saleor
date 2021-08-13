@@ -1410,6 +1410,30 @@ def product_type(color_attribute, size_attribute):
 
 
 @pytest.fixture
+def non_shippable_gift_card_product_type(db):
+    product_type = ProductType.objects.create(
+        name="Gift card type no shipping",
+        slug="gift-card-type-no-shipping",
+        kind=ProductTypeKind.GIFT_CARD,
+        has_variants=True,
+        is_shipping_required=False,
+    )
+    return product_type
+
+
+@pytest.fixture
+def shippable_gift_card_product_type(db):
+    product_type = ProductType.objects.create(
+        name="Gift card type with shipping",
+        slug="gift-card-type-with-shipping",
+        kind=ProductTypeKind.GIFT_CARD,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    return product_type
+
+
+@pytest.fixture
 def product_type_with_rich_text_attribute(
     rich_text_attribute, color_attribute, size_attribute
 ):
@@ -1474,6 +1498,80 @@ def product(product_type, category, warehouse, channel_USD):
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    return product
+
+
+@pytest.fixture
+def shippable_gift_card_product(
+    shippable_gift_card_product_type, category, warehouse, channel_USD
+):
+    product_type = shippable_gift_card_product_type
+
+    product = Product.objects.create(
+        name="Shippable gift card",
+        slug="shippable-gift-card",
+        product_type=product_type,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        discounted_price_amount="100.00",
+        currency=channel_USD.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+    )
+
+    variant = ProductVariant.objects.create(
+        product=product, sku="958", track_inventory=False
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(100),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=1)
+
+    return product
+
+
+@pytest.fixture
+def non_shippable_gift_card_product(
+    non_shippable_gift_card_product_type, category, warehouse, channel_USD
+):
+    product_type = non_shippable_gift_card_product_type
+
+    product = Product.objects.create(
+        name="Non shippable gift card",
+        slug="non-shippable-gift-card",
+        product_type=product_type,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        discounted_price_amount="200.00",
+        currency=channel_USD.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+    )
+
+    variant = ProductVariant.objects.create(
+        product=product, sku="785", track_inventory=False
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(250),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=1)
+
     return product
 
 
@@ -1911,6 +2009,34 @@ def variant_with_many_stocks_different_shipping_zones(
         ]
     )
     return variant
+
+
+@pytest.fixture
+def gift_card_shippable_variant(shippable_gift_card_product, channel_USD):
+    product = shippable_gift_card_product
+    product_variant = ProductVariant.objects.create(product=product, sku="SKU_CARD_A")
+    ProductVariantChannelListing.objects.create(
+        variant=product_variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    return product_variant
+
+
+@pytest.fixture
+def gift_card_non_shippable_variant(non_shippable_gift_card_product, channel_USD):
+    product = non_shippable_gift_card_product
+    product_variant = ProductVariant.objects.create(product=product, sku="SKU_CARD_B")
+    ProductVariantChannelListing.objects.create(
+        variant=product_variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    return product_variant
 
 
 @pytest.fixture
@@ -2453,6 +2579,58 @@ def order_line(order, variant):
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+    return order.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+
+
+@pytest.fixture
+def gift_card_non_shippable_order_line(order, gift_card_non_shippable_variant):
+    variant = gift_card_non_shippable_variant
+    product = variant.product
+    channel = order.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 1
+    unit_price = TaxedMoney(net=net, gross=gross)
+    return order.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+
+
+@pytest.fixture
+def gift_card_shippable_order_line(order, gift_card_shippable_variant):
+    variant = gift_card_shippable_variant
+    product = variant.product
+    channel = order.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 1
     unit_price = TaxedMoney(net=net, gross=gross)
     return order.lines.create(
         product_name=str(product),
