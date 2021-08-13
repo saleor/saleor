@@ -334,6 +334,7 @@ def cancel_fulfillment(
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save(update_fields=["status"])
     update_order_status(fulfillment.order)
+    transaction.on_commit(lambda: manager.fulfillment_cancelled(fulfillment))
     transaction.on_commit(lambda: manager.order_updated(fulfillment.order))
 
 
