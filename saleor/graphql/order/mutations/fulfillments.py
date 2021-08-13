@@ -2,10 +2,13 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models.expressions import Exists, OuterRef
 from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
+from ....core.tracing import traced_atomic_transaction
+from ....giftcard.utils import gift_cards_create
 from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
@@ -17,10 +20,13 @@ from ....order.actions import (
 )
 from ....order.error_codes import OrderErrorCode
 from ....order.notifications import send_fulfillment_update
+from ....product import ProductTypeKind
+from ....product import models as product_models
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import get_duplicated_values
+from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..utils import prepare_insufficient_stock_order_validation_errors
@@ -197,28 +203,63 @@ class OrderFulfill(BaseMutation):
                     )
 
         data["order_lines"] = order_lines
+        data["gift_card_lines"] = cls.get_gift_card_lines(lines_ids)
         data["quantities"] = quantities_for_lines
         data["lines_for_warehouses"] = lines_for_warehouses
         return data
 
+    @staticmethod
+    def get_gift_card_lines(lines_ids):
+        _, pks = resolve_global_ids_to_primary_keys(
+            lines_ids, OrderLine, raise_error=True
+        )
+        product_types = product_models.ProductType.objects.filter(
+            kind=ProductTypeKind.GIFT_CARD
+        ).values("id")
+        products = product_models.Product.objects.filter(
+            Exists(product_types.filter(pk=OuterRef("product_type_id")))
+        )
+        variants = product_models.ProductVariant.objects.filter(
+            Exists(products.filter(pk=OuterRef("product_id")))
+        )
+        gift_card_lines = order_models.OrderLine.objects.filter(id__in=pks).filter(
+            Exists(variants.filter(pk=OuterRef("variant_id")))
+        )
+
+        return gift_card_lines
+
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, order, **data):
         order = cls.get_node_or_error(info, order, field="order", only_type=Order)
         data = data.get("input")
 
         cleaned_input = cls.clean_input(data)
 
-        user = info.context.user
+        context = info.context
+        user = context.user if not context.user.is_anonymous else None
+        app = context.app
+        manager = context.plugins
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
         notify_customer = cleaned_input.get("notify_customer", True)
+        gift_card_lines = cleaned_input["gift_card_lines"]
+
+        gift_cards_create(
+            order,
+            gift_card_lines,
+            context.site.settings,
+            user,
+            app,
+            manager,
+        )
 
         try:
             fulfillments = create_fulfillments(
                 user,
-                info.context.app,
+                app,
                 order,
                 dict(lines_for_warehouses),
-                info.context.plugins,
+                manager,
                 notify_customer,
             )
         except InsufficientStock as exc:

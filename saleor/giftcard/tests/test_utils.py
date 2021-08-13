@@ -1,9 +1,17 @@
 from datetime import date, timedelta
+from unittest.mock import patch
 
 import pytest
 
 from ...core.utils.promo_code import InvalidPromoCode
-from ..utils import add_gift_card_code_to_checkout, remove_gift_card_code_from_checkout
+from ...plugins.manager import get_plugins_manager
+from .. import GiftCardEvents
+from ..models import GiftCardEvent
+from ..utils import (
+    add_gift_card_code_to_checkout,
+    gift_cards_create,
+    remove_gift_card_code_from_checkout,
+)
 
 
 def test_add_gift_card_code_to_checkout(checkout, gift_card):
@@ -121,3 +129,72 @@ def test_remove_gift_card_code_from_checkout_no_checkout_gift_cards(
 
     # then
     assert checkout.gift_cards.count() == 0
+
+
+@patch("saleor.giftcard.utils.send_gift_card_notification")
+def test_gift_cards_create(
+    send_notification_mock,
+    order,
+    gift_card_shippable_order_line,
+    gift_card_non_shippable_order_line,
+    site_settings,
+    staff_user,
+):
+    # given
+    manager = get_plugins_manager()
+    order_lines = [gift_card_shippable_order_line, gift_card_non_shippable_order_line]
+    user_email = order.user_email
+
+    # when
+    gift_cards = gift_cards_create(
+        order, order_lines, site_settings, staff_user, None, manager
+    )
+
+    # then
+    assert len(gift_cards) == len(order_lines)
+
+    shippable_gift_card = gift_cards[0]
+    shippable_price = gift_card_shippable_order_line.total_price_gross
+    assert shippable_gift_card.initial_balance == shippable_price
+    assert shippable_gift_card.current_balance == shippable_price
+    assert shippable_gift_card.created_by == order.user
+    assert shippable_gift_card.created_by_email == user_email
+    assert shippable_gift_card.expiry_type == site_settings.gift_card_expiry_type
+    assert shippable_gift_card.expiry_period_type is None
+    assert shippable_gift_card.expiry_period is None
+
+    bought_event_for_shippable_card = GiftCardEvent.objects.get(
+        gift_card=shippable_gift_card
+    )
+    assert bought_event_for_shippable_card.user == staff_user
+    assert bought_event_for_shippable_card.app is None
+    assert bought_event_for_shippable_card.type == GiftCardEvents.BOUGHT
+    assert bought_event_for_shippable_card.parameters == {"order_id": order.id}
+
+    non_shippable_gift_card = gift_cards[1]
+    non_shippable_price = gift_card_non_shippable_order_line.total_price_gross
+    assert non_shippable_gift_card.initial_balance == non_shippable_price
+    assert non_shippable_gift_card.current_balance == non_shippable_price
+    assert non_shippable_gift_card.created_by == order.user
+    assert non_shippable_gift_card.created_by_email == user_email
+    assert non_shippable_gift_card.expiry_type == site_settings.gift_card_expiry_type
+    assert non_shippable_gift_card.expiry_period_type is None
+    assert non_shippable_gift_card.expiry_period is None
+
+    sent_to_customer_event = GiftCardEvent.objects.get(
+        gift_card=non_shippable_gift_card, type=GiftCardEvents.SENT_TO_CUSTOMER
+    )
+    assert sent_to_customer_event.user == staff_user
+    assert sent_to_customer_event.app is None
+    assert sent_to_customer_event.parameters == {"email": user_email}
+
+    shippable_event = GiftCardEvent.objects.get(
+        gift_card=non_shippable_gift_card, type=GiftCardEvents.BOUGHT
+    )
+    assert shippable_event.user == staff_user
+    assert shippable_event.app is None
+    assert shippable_event.parameters == {"order_id": order.id}
+
+    send_notification_mock.assert_called_once_with(
+        staff_user, None, user_email, non_shippable_gift_card, manager
+    )
