@@ -642,6 +642,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
                 cleaned_input,
                 whitelisted_statuses=[
                     FulfillmentStatus.FULFILLED,
+                    FulfillmentStatus.WAITING_FOR_APPROVAL,
                     FulfillmentStatus.RETURNED,
                 ],
             )

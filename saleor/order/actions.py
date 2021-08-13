@@ -668,7 +668,8 @@ def _get_fulfillment_line_if_exists(
     fulfillment_lines: List[FulfillmentLine], order_line_id, stock_id=None
 ):
     for line in fulfillment_lines:
-        if line.order_line_id == order_line_id and line.stock_id == stock_id:
+        # TODO: compare stock only if fulfillment is in WAITING_FOR_APPROVAL state
+        if line.order_line_id == order_line_id:
             return line
     return None
 
@@ -777,7 +778,11 @@ def _move_fulfillment_lines_to_target_fulfillment(
         # calculate the quantity fulfilled/unfulfilled/to move
         fulfilled_to_move = min(fulfillment_line.quantity, quantity_to_move)
         quantity_to_move -= fulfilled_to_move
-        moved_line.quantity += fulfilled_to_move
+        if (
+            fulfillment_line.fulfillment.status
+            != FulfillmentStatus.WAITING_FOR_APPROVAL
+        ):
+            moved_line.quantity += fulfilled_to_move
         fulfillment_line.quantity -= fulfilled_to_move
 
         if fulfillment_line.quantity == 0:
@@ -792,7 +797,7 @@ def _move_fulfillment_lines_to_target_fulfillment(
             # line
             fulfillment_lines_to_create.append(moved_line)
         elif fulfillment_line_existed:
-            # if target fulfillment already have the same line, we  just update the
+            # if target fulfillment already have the same line, we just update the
             # quantity
             fulfillment_lines_to_update.append(moved_line)
 
@@ -832,7 +837,7 @@ def create_refund_fulfillment(
     """Proceed with all steps required for refunding products.
 
     Calculate refunds for products based on the order's lines and fulfillment
-    lines.  The logic takes the list of order lines, fulfillment lines, and their
+    lines. The logic takes the list of order lines, fulfillment lines, and their
     quantities which is used to create the refund fulfillment. The stock for
     unfulfilled lines will be deallocated.
     """
@@ -872,7 +877,12 @@ def create_refund_fulfillment(
         )
 
         Fulfillment.objects.filter(
-            order=order, lines=None, status=FulfillmentStatus.FULFILLED
+            order=order,
+            lines=None,
+            status__in=[
+                FulfillmentStatus.FULFILLED,
+                FulfillmentStatus.WAITING_FOR_APPROVAL,
+            ],
         ).delete()
         transaction.on_commit(lambda: manager.order_updated(order))
 
