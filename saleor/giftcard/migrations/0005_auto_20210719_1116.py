@@ -76,6 +76,7 @@ class Migration(migrations.Migration):
                 default="expiry_date",
                 max_length=32,
             ),
+            preserve_default=False,
         ),
         migrations.AddField(
             model_name="giftcard",
