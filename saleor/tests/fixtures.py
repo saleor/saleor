@@ -2014,7 +2014,9 @@ def variant_with_many_stocks_different_shipping_zones(
 @pytest.fixture
 def gift_card_shippable_variant(shippable_gift_card_product, channel_USD):
     product = shippable_gift_card_product
-    product_variant = ProductVariant.objects.create(product=product, sku="SKU_CARD_A")
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_CARD_A", track_inventory=False
+    )
     ProductVariantChannelListing.objects.create(
         variant=product_variant,
         channel=channel_USD,
@@ -2028,7 +2030,9 @@ def gift_card_shippable_variant(shippable_gift_card_product, channel_USD):
 @pytest.fixture
 def gift_card_non_shippable_variant(non_shippable_gift_card_product, channel_USD):
     product = non_shippable_gift_card_product
-    product_variant = ProductVariant.objects.create(product=product, sku="SKU_CARD_B")
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_CARD_B", track_inventory=False
+    )
     ProductVariantChannelListing.objects.create(
         variant=product_variant,
         channel=channel_USD,
