@@ -44,6 +44,24 @@ def gift_card_sent(
     )
 
 
+def gift_cards_sent(
+    gift_cards: Iterable[GiftCard], user: UserType, app: AppType, email: str
+):
+    if not user_is_valid(user):
+        user = None
+    gift_cards_events = [
+        GiftCardEvent(
+            gift_card=gift_card,
+            user=user,
+            app=app,
+            type=GiftCardEvents.SENT_TO_CUSTOMER,
+            parameters={"email": email},
+        )
+        for gift_card in gift_cards
+    ]
+    return GiftCardEvent.objects.bulk_create(gift_cards_events)
+
+
 def gift_card_resent(
     gift_card_id: int, user_id: Optional[int], app_id: Optional[int], email: str
 ):
@@ -234,5 +252,23 @@ def gift_cards_used_in_order(
             },
         )
         for gift_card, previous_balance in balance_data
+    ]
+    return GiftCardEvent.objects.bulk_create(events)
+
+
+def gift_cards_bought(
+    gift_cards: Iterable[GiftCard], order_id: int, user: UserType, app: AppType
+):
+    if not user_is_valid(user):
+        user = None
+    events = [
+        GiftCardEvent(
+            gift_card=gift_card,
+            user=user,
+            app=app,
+            type=GiftCardEvents.BOUGHT,
+            parameters={"order_id": order_id},
+        )
+        for gift_card in gift_cards
     ]
     return GiftCardEvent.objects.bulk_create(events)
