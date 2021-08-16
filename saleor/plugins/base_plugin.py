@@ -542,6 +542,16 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def fulfillment_canceled(
+        self, fulfillment: "Fulfillment", previous_value: Any
+    ) -> Any:
+        """Trigger when fulfillemnt is cancelled.
+
+        Overwrite this method if you need to trigger specific logic when a fulfillment is
+        cancelled.
+        """
+        return NotImplemented
+
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         """Trigger when checkout is created.
 

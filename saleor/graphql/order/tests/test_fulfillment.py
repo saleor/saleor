@@ -834,7 +834,7 @@ def test_cancel_fulfillment_awaiting_approval_warehouse_specified(
     assert event_cancelled.user == staff_api_client.user
 
 
-def test_cancel_fulfillment_cancelled_state(
+def test_cancel_fulfillment_canceled_state(
     staff_api_client, fulfillment, permission_manage_orders, warehouse
 ):
     query = CANCEL_FULFILLMENT_MUTATION
