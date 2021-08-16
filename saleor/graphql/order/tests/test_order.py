@@ -3701,6 +3701,12 @@ ORDER_LINE_DELETE_MUTATION = """
             }
             order {
                 id
+                total{
+                    gross{
+                        currency
+                        amount
+                    }
+                }
             }
         }
     }
@@ -6483,3 +6489,95 @@ def test_get_variant_from_order_line_variant_not_exists_as_staff(
     content = get_graphql_content(response)
     orders = content["data"]["me"]["orders"]["edges"]
     assert orders[0]["node"]["lines"][0]["variant"] is None
+
+
+def test_draft_order_properly_recalculate_total_after_shipping_product_removed(
+    staff_api_client,
+    draft_order,
+    permission_manage_orders,
+):
+    order = draft_order
+    line = order.lines.get(product_sku="SKU_AA")
+    line.is_shipping_required = True
+    line.save()
+
+    query = ORDER_LINE_DELETE_MUTATION
+    line = order.lines.get(product_sku="SKU_B")
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"id": line_id}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDelete"]
+
+    assert data["order"]["total"]["gross"]["amount"] == float(
+        order.total_gross_amount
+    ) - float(line.total_price_gross_amount)
+
+
+ORDER_UPDATE_SHIPPING_QUERY_WITH_TOTAL = """
+mutation OrderUpdateShipping(
+    $orderId: ID!
+    $shippingMethod: OrderUpdateShippingInput!
+) {
+    orderUpdateShipping(order: $orderId, input: $shippingMethod) {
+        order {
+            shippingMethod {
+                id
+            }
+        }
+        errors {
+            field
+            message
+        }
+    }
+}
+"""
+
+
+@pytest.mark.parametrize(
+    "input, response_msg",
+    [
+        ({"shippingMethod": ""}, "Shipping method cannot be empty."),
+        ({}, "Shipping method must be provided to perform mutation."),
+    ],
+)
+def test_order_shipping_update_mutation_return_error_for_empty_value(
+    draft_order, permission_manage_orders, staff_api_client, input, response_msg
+):
+    query = ORDER_UPDATE_SHIPPING_QUERY_WITH_TOTAL
+
+    order = draft_order
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"orderId": order_id, "shippingMethod": input}
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+
+    assert data["errors"][0]["message"] == response_msg
+
+
+def test_order_shipping_update_mutation_properly_recalculate_total(
+    draft_order,
+    permission_manage_orders,
+    staff_api_client,
+):
+    query = ORDER_UPDATE_SHIPPING_QUERY_WITH_TOTAL
+
+    order = draft_order
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"orderId": order_id, "shippingMethod": {"shippingMethod": None}}
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    assert data["order"]["shippingMethod"] is None
