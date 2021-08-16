@@ -1,6 +1,7 @@
 import graphene
 from promise import Promise
 
+from ..payment.types import CheckoutActivePayment
 from ...checkout import calculations, models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.exceptions import PermissionDenied
@@ -202,6 +203,11 @@ class Checkout(CountableDjangoObjectType):
     )
     language_code = graphene.Field(
         LanguageCodeEnum, required=True, description="Checkout language code."
+    )
+
+    payments = graphene.List(
+        CheckoutActivePayment,
+        description=("A list of payments."),
     )
 
     class Meta:
@@ -478,3 +484,7 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_language_code(root, _info, **_kwargs):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
+
+    @staticmethod
+    def resolve_payments(root: models.Checkout, _info):
+        return root.payments.filter(is_active=True)

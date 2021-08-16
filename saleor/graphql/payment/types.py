@@ -175,3 +175,33 @@ class PaymentInitialized(graphene.ObjectType):
     data = graphene.JSONString(
         description="Initialized data by gateway.", required=False
     )
+
+class CheckoutActivePayment(CountableDjangoObjectType):
+    charge_status = PaymentChargeStatusEnum(
+        description="Internal payment status.", required=True
+    )
+    actions = graphene.List(
+        OrderAction,
+        description=(
+            "List of actions that can be performed in the current state of a payment."
+        ),
+        required=True,
+    )
+    total = graphene.Field(Money, description="Total amount of the payment.")
+
+    class Meta:
+        description = "Represents a payment of a given type. Restricted fields to this ones that should contain enough info to allow finalize a multiple payments."
+        interfaces = [relay.Node]
+        model = models.Payment
+        filter_fields = ["id"]
+        only_fields = [
+            "id",
+            "gateway",
+            "is_active",
+        ]
+
+    @staticmethod
+    @traced_resolver
+    def resolve_total(root: models.Payment, _info):
+        return root.get_total()
+
