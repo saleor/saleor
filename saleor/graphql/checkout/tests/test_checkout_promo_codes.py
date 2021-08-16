@@ -553,9 +553,8 @@ def test_checkout_add_many_gift_card_code(
 
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_gift_card.token)
-    gift_card_data = data["checkout"]["giftCards"][-1]
-    assert gift_card_data["id"] == gift_card_id
-    assert gift_card_data["displayCode"] == gift_card_created_by_staff.display_code
+    gift_card_data = data["checkout"]["giftCards"]
+    assert gift_card_id in {gift_card["id"] for gift_card in gift_card_data}
 
 
 def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_card):
@@ -651,7 +650,7 @@ def test_checkout_add_gift_card_code_in_active_gift_card(
 def test_checkout_add_gift_card_code_in_expired_gift_card(
     api_client, checkout_with_item, gift_card
 ):
-    gift_card.end_date = date.today() - timedelta(days=1)
+    gift_card.expiry_date = date.today() - timedelta(days=1)
     gift_card.save()
 
     variables = {"token": checkout_with_item.token, "promoCode": gift_card.code}
