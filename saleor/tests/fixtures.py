@@ -2018,7 +2018,7 @@ def variant_with_many_stocks_different_shipping_zones(
 
 
 @pytest.fixture
-def gift_card_shippable_variant(shippable_gift_card_product, channel_USD):
+def gift_card_shippable_variant(shippable_gift_card_product, channel_USD, warehouse):
     product = shippable_gift_card_product
     product_variant = ProductVariant.objects.create(
         product=product, sku="SKU_CARD_A", track_inventory=False
@@ -2030,11 +2030,16 @@ def gift_card_shippable_variant(shippable_gift_card_product, channel_USD):
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
+    Stock.objects.create(
+        warehouse=warehouse, product_variant=product_variant, quantity=1
+    )
     return product_variant
 
 
 @pytest.fixture
-def gift_card_non_shippable_variant(non_shippable_gift_card_product, channel_USD):
+def gift_card_non_shippable_variant(
+    non_shippable_gift_card_product, channel_USD, warehouse
+):
     product = non_shippable_gift_card_product
     product_variant = ProductVariant.objects.create(
         product=product, sku="SKU_CARD_B", track_inventory=False
@@ -2045,6 +2050,9 @@ def gift_card_non_shippable_variant(non_shippable_gift_card_product, channel_USD
         price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(
+        warehouse=warehouse, product_variant=product_variant, quantity=1
     )
     return product_variant
 
@@ -2640,7 +2648,7 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant):
     net = variant.get_price(product, [], channel, channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
-    quantity = 1
+    quantity = 3
     unit_price = TaxedMoney(net=net, gross=gross)
     return order.lines.create(
         product_name=str(product),

@@ -267,16 +267,16 @@ def test_order_fulfill_with_gift_cards(
         product_id=gift_card_shippable_order_line.variant.product_id
     )
     assert non_shippable_gift_card.initial_balance.amount == round(
-        gift_card_non_shippable_order_line.total_price_gross.amount, 2
+        gift_card_non_shippable_order_line.unit_price_gross.amount, 2
     )
     assert non_shippable_gift_card.current_balance.amount == round(
-        gift_card_non_shippable_order_line.total_price_gross.amount, 2
+        gift_card_non_shippable_order_line.unit_price_gross.amount, 2
     )
     assert shippable_gift_card.initial_balance.amount == round(
-        gift_card_shippable_order_line.total_price_gross.amount, 2
+        gift_card_shippable_order_line.unit_price_gross.amount, 2
     )
     assert shippable_gift_card.current_balance.amount == round(
-        gift_card_shippable_order_line.total_price_gross.amount, 2
+        gift_card_shippable_order_line.unit_price_gross.amount, 2
     )
 
     assert GiftCardEvent.objects.filter(
@@ -327,6 +327,7 @@ def test_order_fulfill_with_gift_cards_by_app(
     order_line = gift_card_shippable_order_line
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    quantity = 2
     variables = {
         "order": order_id,
         "input": {
@@ -334,7 +335,7 @@ def test_order_fulfill_with_gift_cards_by_app(
             "lines": [
                 {
                     "orderLineId": order_line_id,
-                    "stocks": [{"quantity": 1, "warehouse": warehouse_id}],
+                    "stocks": [{"quantity": quantity, "warehouse": warehouse_id}],
                 },
             ],
         },
@@ -345,25 +346,101 @@ def test_order_fulfill_with_gift_cards_by_app(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
-    shippable_gift_card = GiftCard.objects.get()
-    assert shippable_gift_card.initial_balance.amount == round(
-        gift_card_shippable_order_line.total_price_gross.amount, 2
-    )
-    assert shippable_gift_card.current_balance.amount == round(
-        gift_card_shippable_order_line.total_price_gross.amount, 2
-    )
+    gift_cards = GiftCard.objects.all()
+    assert gift_cards.count() == quantity
+    for card in gift_cards:
+        assert card.initial_balance.amount == round(
+            gift_card_shippable_order_line.unit_price_gross.amount, 2
+        )
+        assert card.current_balance.amount == round(
+            gift_card_shippable_order_line.unit_price_gross.amount, 2
+        )
 
-    assert GiftCardEvent.objects.filter(
-        gift_card=shippable_gift_card,
-        type=GiftCardEvents.BOUGHT,
-        user=None,
-        app=app_api_client.app,
-    )
+        assert GiftCardEvent.objects.filter(
+            gift_card=card,
+            type=GiftCardEvents.BOUGHT,
+            user=None,
+            app=app_api_client.app,
+        )
 
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [
-            {"order_line": order_line, "quantity": 1},
+            {"order_line": order_line, "quantity": 2},
         ]
+    }
+    mock_create_fulfillments.assert_called_once_with(
+        None, app, order, fulfillment_lines_for_warehouses, ANY, True, approved=True
+    )
+
+    mock_send_notification.assert_not_called
+
+
+@patch("saleor.giftcard.utils.send_gift_card_notification")
+@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
+def test_order_fulfill_with_gift_cards_multiple_warehouses(
+    mock_create_fulfillments,
+    mock_send_notification,
+    app_api_client,
+    order,
+    gift_card_shippable_order_line,
+    permission_manage_orders,
+    warehouses,
+):
+    query = ORDER_FULFILL_QUERY
+    app = app_api_client.app
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_line = gift_card_shippable_order_line
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    warehouse1, warehouse2 = warehouses
+    warehouse1_id = graphene.Node.to_global_id("Warehouse", warehouse1.pk)
+    warehouse2_id = graphene.Node.to_global_id("Warehouse", warehouse2.pk)
+    quantity_1 = 2
+    quantity_2 = 1
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": True,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [
+                        {"quantity": quantity_1, "warehouse": warehouse1_id},
+                        {"quantity": quantity_2, "warehouse": warehouse2_id},
+                    ],
+                },
+            ],
+        },
+    }
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfill"]
+    assert not data["errors"]
+    gift_cards = GiftCard.objects.all()
+    assert gift_cards.count() == quantity_1 + quantity_2
+    for card in gift_cards:
+        assert card.initial_balance.amount == round(
+            gift_card_shippable_order_line.unit_price_gross.amount, 2
+        )
+        assert card.current_balance.amount == round(
+            gift_card_shippable_order_line.unit_price_gross.amount, 2
+        )
+
+        assert GiftCardEvent.objects.filter(
+            gift_card=card,
+            type=GiftCardEvents.BOUGHT,
+            user=None,
+            app=app_api_client.app,
+        )
+
+    fulfillment_lines_for_warehouses = {
+        str(warehouse1.pk): [
+            {"order_line": order_line, "quantity": quantity_1},
+        ],
+        str(warehouse2.pk): [
+            {"order_line": order_line, "quantity": quantity_2},
+        ],
     }
     mock_create_fulfillments.assert_called_once_with(
         None, app, order, fulfillment_lines_for_warehouses, ANY, True, approved=True
