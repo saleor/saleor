@@ -2,10 +2,15 @@ from datetime import date
 from typing import TYPE_CHECKING, Dict, Iterable, Optional
 
 from dateutil.relativedelta import relativedelta
+from django.db.models.expressions import Exists, OuterRef
 from django.utils import timezone
 
 from ..checkout.models import Checkout
 from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
+from ..core.utils.validators import user_is_valid
+from ..order.models import OrderLine
+from ..product import ProductTypeKind
+from ..product.models import Product, ProductType, ProductVariant
 from . import GiftCardExpiryType, events
 from .models import GiftCard
 from .notifications import send_gift_card_notification
@@ -13,7 +18,7 @@ from .notifications import send_gift_card_notification
 if TYPE_CHECKING:
     from ..account.models import User
     from ..app.models import App
-    from ..order.models import Order, OrderLine
+    from ..order.models import Order
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
 
@@ -75,6 +80,49 @@ def calculate_expiry_date(gift_card: GiftCard):
         time_delta = {f"{gift_card.expiry_period_type}s": gift_card.expiry_period}
         expiry_date = today + relativedelta(**time_delta)  # type: ignore
     return expiry_date
+
+
+def create_non_shippable_gift_cards(
+    order: "Order",
+    order_lines: Iterable[OrderLine],
+    settings: "SiteSettings",
+    requestor_user: Optional["User"],
+    app: Optional["App"],
+    manager: "PluginsManager",
+):
+    if not user_is_valid(requestor_user):
+        requestor_user = None
+    line_pks = [line.pk for line in order_lines]
+    gift_card_lines = get_non_shippable_gift_card_lines(line_pks)
+    if not gift_card_lines:
+        return
+    quantities = {line.pk: line.quantity for line in gift_card_lines}
+    return gift_cards_create(
+        order, gift_card_lines, quantities, settings, requestor_user, app, manager
+    )
+
+
+def get_non_shippable_gift_card_lines(line_ids: Iterable[int]):
+    gift_card_lines = get_gift_card_lines(line_ids)
+    gift_card_lines = gift_card_lines.filter(
+        is_shipping_required=False,
+    )
+    return gift_card_lines
+
+
+def get_gift_card_lines(line_pks: Iterable[int]):
+    product_types = ProductType.objects.filter(kind=ProductTypeKind.GIFT_CARD)
+    products = Product.objects.filter(
+        Exists(product_types.filter(pk=OuterRef("product_type_id")))
+    )
+    variants = ProductVariant.objects.filter(
+        Exists(products.filter(pk=OuterRef("product_id")))
+    )
+    gift_card_lines = OrderLine.objects.filter(id__in=line_pks).filter(
+        Exists(variants.filter(pk=OuterRef("variant_id")))
+    )
+
+    return gift_card_lines
 
 
 def gift_cards_create(

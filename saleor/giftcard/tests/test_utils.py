@@ -12,6 +12,9 @@ from ..models import GiftCardEvent
 from ..utils import (
     add_gift_card_code_to_checkout,
     calculate_expiry_date,
+    create_non_shippable_gift_cards,
+    get_gift_card_lines,
+    get_non_shippable_gift_card_lines,
     gift_cards_create,
     remove_gift_card_code_from_checkout,
 )
@@ -273,3 +276,105 @@ def test_gift_cards_create_multiple_quantity(
         == quantity
     )
     assert send_notification_mock.call_count == 3
+
+
+def test_get_gift_card_lines(
+    gift_card_non_shippable_order_line, gift_card_shippable_order_line, order_line
+):
+    # given
+    ids = [
+        line.pk
+        for line in [
+            gift_card_non_shippable_order_line,
+            gift_card_shippable_order_line,
+            order_line,
+        ]
+    ]
+
+    # when
+    gift_card_lines = get_gift_card_lines(ids)
+
+    # then
+    assert set(gift_card_lines) == {
+        gift_card_non_shippable_order_line,
+        gift_card_shippable_order_line,
+    }
+
+
+def test_get_gift_card_lines_no_gift_card_lines(
+    order_line_with_one_allocation, order_line
+):
+    # given
+    ids = [line.pk for line in [order_line_with_one_allocation, order_line]]
+
+    # when
+    gift_card_lines = get_gift_card_lines(ids)
+
+    # then
+    assert not gift_card_lines
+
+
+def test_get_non_shippable_gift_card_lines(
+    gift_card_non_shippable_order_line, gift_card_shippable_order_line, order_line
+):
+    # given
+    ids = [
+        line.pk
+        for line in [
+            gift_card_non_shippable_order_line,
+            gift_card_shippable_order_line,
+            order_line,
+        ]
+    ]
+
+    # when
+    gift_card_lines = get_non_shippable_gift_card_lines(ids)
+
+    # then
+    assert set(gift_card_lines) == {gift_card_non_shippable_order_line}
+
+
+def test_get_non_shippable_gift_card_lines_no_gift_card_lines(
+    order_line_with_one_allocation, order_line
+):
+    # given
+    ids = [line.pk for line in [order_line_with_one_allocation, order_line]]
+
+    # when
+    gift_card_lines = get_gift_card_lines(ids)
+
+    # then
+    assert not gift_card_lines
+
+
+@patch("saleor.giftcard.utils.gift_cards_create")
+def test_create_non_shippable_gift_cards(
+    gift_cards_create_mock,
+    order,
+    gift_card_shippable_order_line,
+    gift_card_non_shippable_order_line,
+    site_settings,
+    staff_user,
+):
+    # given
+    manager = get_plugins_manager()
+    order_lines = [gift_card_shippable_order_line, gift_card_non_shippable_order_line]
+    quantities = {
+        gift_card_non_shippable_order_line.pk: 1,
+    }
+
+    # when
+    create_non_shippable_gift_cards(
+        order, order_lines, site_settings, staff_user, None, manager
+    )
+
+    # then
+    gift_cards_create_mock.assert_called_once()
+    args, _kwargs = gift_cards_create_mock.call_args
+    assert args[0] == order
+    assert {line.pk for line in args[1]} == {gift_card_non_shippable_order_line.pk}
+    assert args[2] == quantities
+    assert args[3] == site_settings
+    assert args[4] == staff_user
+    assert args[5] is None
+    assert args[6] == manager
