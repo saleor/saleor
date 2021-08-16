@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 from graphql_relay.node.node import to_global_id
 
-from ....product.models import ProductVariant
 from ....core.notify_events import UserNotifyEvent
+from ....product.models import ProductVariant
 
 
 @patch("saleor.plugins.sendgrid.tasks.send_email_with_dynamic_template_id.delay")
@@ -13,7 +13,7 @@ def test_notify_sendgrid_via_external_notification_trigger_for_sendgrid_plugin(
     product_with_single_variant,
     external_notification_trigger_query,
     staff_api_client,
-    product_permission,
+    permission_manage_products,
     sendgrid_email_plugin,
     caplog,
 ):
@@ -39,7 +39,9 @@ def test_notify_sendgrid_via_external_notification_trigger_for_sendgrid_plugin(
     }
 
     response = staff_api_client.post_graphql(
-        external_notification_trigger_query, variables, permissions=[product_permission]
+        external_notification_trigger_query,
+        variables,
+        permissions=[permission_manage_products],
     )
 
     assert response.status_code == 200
@@ -51,13 +53,13 @@ def test_notify_sendgrid_via_external_notification_trigger_for_sendgrid_plugin(
 
 
 @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
-def test_notify_sendgrid_via_external_notification_trigger_for_all_plugins_args_checking(
+def test_external_notification_trigger_for_all_plugins_args_checking(
     webhook_plugin_notify,
     settings,
     product_with_single_variant,
     external_notification_trigger_query,
     staff_api_client,
-    product_permission,
+    permission_manage_products,
 ):
 
     settings.PLUGINS = [
@@ -83,7 +85,9 @@ def test_notify_sendgrid_via_external_notification_trigger_for_all_plugins_args_
     }
 
     response = staff_api_client.post_graphql(
-        external_notification_trigger_query, variables, permissions=[product_permission]
+        external_notification_trigger_query,
+        variables,
+        permissions=[permission_manage_products],
     )
 
     assert response.status_code == 200
@@ -91,12 +95,12 @@ def test_notify_sendgrid_via_external_notification_trigger_for_all_plugins_args_
     assert webhook_plugin_notify.call_args[0][0] == test_template_id
 
 
-def test_notify_sendgrid_via_external_notification_trigger_for_all_plugins_logs_checking(
+def test_notification_trigger_for_all_plugins_logs_checking(
     settings,
     product_with_single_variant,
     external_notification_trigger_query,
     staff_api_client,
-    product_permission,
+    permission_manage_products,
     caplog,
 ):
 
@@ -123,7 +127,9 @@ def test_notify_sendgrid_via_external_notification_trigger_for_all_plugins_logs_
     }
 
     response = staff_api_client.post_graphql(
-        external_notification_trigger_query, variables, permissions=[product_permission]
+        external_notification_trigger_query,
+        variables,
+        permissions=[permission_manage_products],
     )
 
     assert response.status_code == 200
@@ -138,7 +144,7 @@ def test_notify_sendgrid_via_external_notification_trigger_for_all_plugins_lack_
     product_with_single_variant,
     external_notification_trigger_query,
     staff_api_client,
-    product_permission,
+    permission_manage_products,
     caplog,
 ):
 
@@ -165,7 +171,9 @@ def test_notify_sendgrid_via_external_notification_trigger_for_all_plugins_lack_
     }
 
     response = staff_api_client.post_graphql(
-        external_notification_trigger_query, variables, permissions=[product_permission]
+        external_notification_trigger_query,
+        variables,
+        permissions=[permission_manage_products],
     )
 
     assert response.status_code == 200

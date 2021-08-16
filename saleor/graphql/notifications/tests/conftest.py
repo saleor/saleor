@@ -1,7 +1,6 @@
 import json
 
 import pytest
-from django.contrib.auth.models import Permission
 
 
 @pytest.fixture
@@ -21,26 +20,6 @@ def external_notification_trigger_query():
           }
       }
     """
-
-
-@pytest.fixture
-def manage_users_permission():
-    return Permission.objects.get(codename="manage_users")
-
-
-@pytest.fixture
-def checkout_permission():
-    return Permission.objects.get(codename="manage_checkouts")
-
-
-@pytest.fixture
-def order_permission():
-    return Permission.objects.get(codename="manage_orders")
-
-
-@pytest.fixture
-def product_permission():
-    return Permission.objects.get(codename="manage_products")
 
 
 query_test_data = [

@@ -17,12 +17,12 @@ def test_query(
     status_code,
     external_notification_trigger_query,
     staff_api_client,
-    manage_users_permission,
+    permission_manage_users,
 ):
     response = staff_api_client.post_graphql(
         external_notification_trigger_query,
         variables,
-        permissions=[manage_users_permission],
+        permissions=[permission_manage_users],
         check_no_permissions=False,
     )
     assert response.status_code == status_code
@@ -41,7 +41,7 @@ def test_notify_sendgrid_via_external_notification_trigger_for_all_plugins(
     product_with_single_variant,
     external_notification_trigger_query,
     staff_api_client,
-    product_permission,
+    permission_manage_products,
 ):
 
     settings.PLUGINS = [
@@ -65,7 +65,9 @@ def test_notify_sendgrid_via_external_notification_trigger_for_all_plugins(
     }
 
     response = staff_api_client.post_graphql(
-        external_notification_trigger_query, variables, permissions=[product_permission]
+        external_notification_trigger_query,
+        variables,
+        permissions=[permission_manage_products],
     )
 
     assert response.status_code == 200
@@ -124,7 +126,7 @@ def test_notify_via_external_notification_trigger_with_extra_payload(
     sendgrid_email_plugin,
     external_notification_trigger_query,
     staff_api_client,
-    product_permission,
+    permission_manage_products,
 ):
 
     test_json = {"TEST": "VALUE", "TEST_LIST": ["GUEST1", "GUEST2"]}
@@ -146,7 +148,9 @@ def test_notify_via_external_notification_trigger_with_extra_payload(
     }
 
     response = staff_api_client.post_graphql(
-        external_notification_trigger_query, variables, permissions=[product_permission]
+        external_notification_trigger_query,
+        variables,
+        permissions=[permission_manage_products],
     )
 
     assert response.status_code == 200
@@ -163,7 +167,7 @@ def test_notify_via_external_notification_trigger_with_extra_payload_for_custome
     sendgrid_email_plugin,
     external_notification_trigger_query,
     staff_api_client,
-    manage_users_permission,
+    permission_manage_users,
 ):
 
     test_json = {"TEST": "VALUE", "TEST_LIST": ["GUEST1", "GUEST2"]}
@@ -182,7 +186,7 @@ def test_notify_via_external_notification_trigger_with_extra_payload_for_custome
     response = staff_api_client.post_graphql(
         external_notification_trigger_query,
         variables,
-        permissions=[manage_users_permission],
+        permissions=[permission_manage_users],
     )
 
     assert response.status_code == 200
@@ -207,7 +211,7 @@ class TestSetWithVariousDataTypes:
         external_notification_trigger_query,
         sendgrid_email_plugin,
         fulfilled_order,
-        order_permission,
+        permission_manage_orders,
     ):
         ids = [to_global_id(fulfilled_order.__class__.__name__, fulfilled_order.id)]
         self._common_part(
@@ -219,7 +223,7 @@ class TestSetWithVariousDataTypes:
             external_notification_trigger_query,
             sendgrid_email_plugin,
             ids,
-            order_permission,
+            permission_manage_orders,
         )
 
     @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
@@ -236,7 +240,7 @@ class TestSetWithVariousDataTypes:
         external_notification_trigger_query,
         sendgrid_email_plugin,
         fulfillment,
-        order_permission,
+        permission_manage_orders,
     ):
         ids = [to_global_id(fulfillment.__class__.__name__, fulfillment.id)]
         self._common_part(
@@ -248,7 +252,7 @@ class TestSetWithVariousDataTypes:
             external_notification_trigger_query,
             sendgrid_email_plugin,
             ids,
-            order_permission,
+            permission_manage_orders,
         )
 
     @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
@@ -265,7 +269,7 @@ class TestSetWithVariousDataTypes:
         external_notification_trigger_query,
         sendgrid_email_plugin,
         checkouts_list,
-        checkout_permission,
+        permission_manage_checkouts,
     ):
         ids = [
             to_global_id(checkout.__class__.__name__, checkout.token)
@@ -280,7 +284,7 @@ class TestSetWithVariousDataTypes:
             external_notification_trigger_query,
             sendgrid_email_plugin,
             ids,
-            checkout_permission,
+            permission_manage_checkouts,
         )
 
     @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
@@ -297,7 +301,7 @@ class TestSetWithVariousDataTypes:
         external_notification_trigger_query,
         sendgrid_email_plugin,
         checkout_with_item,
-        checkout_permission,
+        permission_manage_checkouts,
     ):
         ids = [
             to_global_id(
@@ -313,7 +317,7 @@ class TestSetWithVariousDataTypes:
             external_notification_trigger_query,
             sendgrid_email_plugin,
             ids,
-            checkout_permission,
+            permission_manage_checkouts,
         )
 
     @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
@@ -330,7 +334,7 @@ class TestSetWithVariousDataTypes:
         external_notification_trigger_query,
         sendgrid_email_plugin,
         fulfilled_order,
-        order_permission,
+        permission_manage_orders,
     ):
         invoice = fulfilled_order.invoices.last()
         ids = [to_global_id(invoice.__class__.__name__, invoice.id)]
@@ -343,7 +347,7 @@ class TestSetWithVariousDataTypes:
             external_notification_trigger_query,
             sendgrid_email_plugin,
             ids,
-            order_permission,
+            permission_manage_orders,
         )
 
     @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
@@ -360,7 +364,7 @@ class TestSetWithVariousDataTypes:
         external_notification_trigger_query,
         sendgrid_email_plugin,
         product,
-        product_permission,
+        permission_manage_products,
     ):
         ids = [to_global_id(product.__class__.__name__, product.id)]
         self._common_part(
@@ -372,7 +376,7 @@ class TestSetWithVariousDataTypes:
             external_notification_trigger_query,
             sendgrid_email_plugin,
             ids,
-            product_permission,
+            permission_manage_products,
         )
 
     @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
@@ -389,7 +393,7 @@ class TestSetWithVariousDataTypes:
         external_notification_trigger_query,
         sendgrid_email_plugin,
         product_with_two_variants,
-        product_permission,
+        permission_manage_products,
     ):
         ids = [
             to_global_id(ProductVariant.__name__, pk)
@@ -404,7 +408,7 @@ class TestSetWithVariousDataTypes:
             external_notification_trigger_query,
             sendgrid_email_plugin,
             ids,
-            product_permission,
+            permission_manage_products,
         )
 
     @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
@@ -421,7 +425,7 @@ class TestSetWithVariousDataTypes:
         external_notification_trigger_query,
         sendgrid_email_plugin,
         product_with_single_variant,
-        product_permission,
+        permission_manage_products,
     ):
         ids = [
             to_global_id(ProductVariant.__name__, pk)
@@ -436,7 +440,7 @@ class TestSetWithVariousDataTypes:
             external_notification_trigger_query,
             sendgrid_email_plugin,
             ids,
-            product_permission,
+            permission_manage_products,
         )
 
     @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
@@ -453,7 +457,7 @@ class TestSetWithVariousDataTypes:
         external_notification_trigger_query,
         sendgrid_email_plugin,
         staff_users,
-        manage_users_permission,
+        permission_manage_users,
     ):
         ids = [to_global_id(User.__name__, user.id) for user in staff_users]
         self._common_part(
@@ -465,7 +469,7 @@ class TestSetWithVariousDataTypes:
             external_notification_trigger_query,
             sendgrid_email_plugin,
             ids,
-            manage_users_permission,
+            permission_manage_users,
         )
 
     def _common_part(
