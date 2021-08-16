@@ -434,6 +434,19 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
 
 
 @pytest.fixture
+def checkout_with_gift_card_items(
+    checkout, non_shippable_gift_card_product, shippable_gift_card_product
+):
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    non_shippable_variant = non_shippable_gift_card_product.variants.get()
+    shippable_variant = shippable_gift_card_product.variants.get()
+    add_variant_to_checkout(checkout_info, non_shippable_variant, 1)
+    add_variant_to_checkout(checkout_info, shippable_variant, 2)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_voucher_percentage_and_shipping(
     checkout_with_voucher_percentage, shipping_method, address
 ):

@@ -2,13 +2,12 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models.expressions import Exists, OuterRef
 from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
-from ....giftcard.utils import gift_cards_create
+from ....giftcard.utils import get_gift_card_lines, gift_cards_create
 from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
@@ -20,8 +19,6 @@ from ....order.actions import (
 )
 from ....order.error_codes import OrderErrorCode
 from ....order.notifications import send_fulfillment_update
-from ....product import ProductTypeKind
-from ....product import models as product_models
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
@@ -218,20 +215,7 @@ class OrderFulfill(BaseMutation):
         _, pks = resolve_global_ids_to_primary_keys(
             lines_ids, OrderLine, raise_error=True
         )
-        product_types = product_models.ProductType.objects.filter(
-            kind=ProductTypeKind.GIFT_CARD
-        ).values("id")
-        products = product_models.Product.objects.filter(
-            Exists(product_types.filter(pk=OuterRef("product_type_id")))
-        )
-        variants = product_models.ProductVariant.objects.filter(
-            Exists(products.filter(pk=OuterRef("product_id")))
-        )
-        gift_card_lines = order_models.OrderLine.objects.filter(id__in=pks).filter(
-            Exists(variants.filter(pk=OuterRef("variant_id")))
-        )
-
-        return gift_card_lines
+        return get_gift_card_lines(pks)
 
     @classmethod
     @traced_atomic_transaction()
