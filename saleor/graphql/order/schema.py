@@ -139,7 +139,9 @@ class OrderMutations(graphene.ObjectType):
     draft_order_create = DraftOrderCreate.Field()
     draft_order_delete = DraftOrderDelete.Field()
     draft_order_bulk_delete = DraftOrderBulkDelete.Field()
-    draft_order_lines_bulk_delete = DraftOrderLinesBulkDelete.Field()
+    draft_order_lines_bulk_delete = DraftOrderLinesBulkDelete.Field(
+        deprecation_reason="DEPRECATED: Will be removed in Saleor 4.0."
+    )
     draft_order_update = DraftOrderUpdate.Field()
 
     order_add_note = OrderAddNote.Field()
