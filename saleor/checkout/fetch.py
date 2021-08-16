@@ -4,9 +4,7 @@ from functools import singledispatch
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 from django.utils.encoding import smart_text
-from prices import TaxedMoney
 
-from ..core.taxes import zero_taxed_money
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
@@ -145,15 +143,10 @@ class CollectionPointInfo(DeliveryMethodBase):
 
     def get_warehouse_filter_lookup(self) -> Dict[str, Any]:
         return (
-            {"warehouse__pk": self.delivery_method.pk}
+            {"warehouse_id": self.delivery_method.pk}
             if self.is_local_collection_point
             else {}
         )
-
-    def calculate_checkout_shipping(
-        self, checkout_info: "CheckoutInfo", lines=None
-    ) -> TaxedMoney:
-        return zero_taxed_money(checkout_info.checkout.currency)
 
     def is_valid_delivery_method(self) -> bool:
         return (

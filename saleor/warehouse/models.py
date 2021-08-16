@@ -2,7 +2,6 @@ import itertools
 import uuid
 from typing import Set
 
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Count, Exists, F, OuterRef, Prefetch, Q, Sum
 from django.db.models.expressions import Subquery
@@ -130,21 +129,6 @@ class Warehouse(ModelWithMetadata):
         address = self.address
         super().delete(*args, **kwargs)
         address.delete()
-
-    def clean(self) -> None:
-        if (
-            self.click_and_collect_option == WarehouseClickAndCollectOption.LOCAL_STOCK
-            and self.is_private
-        ):
-            raise ValidationError(
-                {
-                    "click_and_collect_option": (
-                        "Cannot set click&collect to 'LOCAL STOCK'"
-                        "when warehouse is private"
-                    )
-                }
-            )
-        return super().clean()
 
 
 class StockQuerySet(models.QuerySet):

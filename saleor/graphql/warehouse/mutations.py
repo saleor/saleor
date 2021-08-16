@@ -65,7 +65,11 @@ class WarehouseMixin:
         ):
             msg = "Local warehouse can be toggled only for non-private warehouse stocks"
             raise ValidationError(
-                {"click_and_collect_option": msg}, code=WarehouseErrorCode.INVALID
+                {
+                    "click_and_collect_option": ValidationError(
+                        msg, code=WarehouseErrorCode.INVALID.value
+                    )
+                },
             )
         return cleaned_input
 

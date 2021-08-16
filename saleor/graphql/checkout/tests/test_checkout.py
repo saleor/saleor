@@ -2501,7 +2501,7 @@ def test_checkout_delivery_method_update(
         assert getattr(checkout, attribute_name) == delivery_method
     else:
         assert len(errors) == 1
-        assert errors[0]["field"] == "deliveryMethod"
+        assert errors[0]["field"] == "deliveryMethodId"
         assert (
             errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
         )
@@ -2534,7 +2534,7 @@ def test_checkout_delivery_method_update_with_id_of_different_type_causes_and_er
 
     errors = data["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "deliveryMethod"
+    assert errors[0]["field"] == "deliveryMethodId"
     assert errors[0]["code"] == CheckoutErrorCode.INVALID.name
     assert checkout.shipping_method is None
     assert checkout.collection_point is None
@@ -2629,7 +2629,7 @@ def test_checkout_delivery_method_update_excluded_postal_code(
 
     errors = data["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "deliveryMethod"
+    assert errors[0]["field"] == "deliveryMethodId"
     assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
     assert checkout.shipping_method is None
     assert (
@@ -2690,7 +2690,7 @@ def test_checkout_delivery_method_update_shipping_zone_without_channel(
 
     errors = data["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "deliveryMethod"
+    assert errors[0]["field"] == "deliveryMethodId"
     assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
     assert checkout.shipping_method is None
 
