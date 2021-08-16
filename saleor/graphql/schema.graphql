@@ -2152,18 +2152,31 @@ type GatewayConfigLine {
 
 scalar GenericScalar
 
-type GiftCard implements Node {
-  code: String
-  user: User
-  created: DateTime!
-  startDate: Date!
-  endDate: Date
-  lastUsedOn: DateTime
+type GiftCard implements Node & ObjectWithMetadata {
+  code: String!
   isActive: Boolean!
+  expiryDate: Date
+  expiryType: GiftCardExpiryTypeEnum!
+  tag: String
+  created: DateTime!
+  lastUsedOn: DateTime
   initialBalance: Money
   currentBalance: Money
   id: ID!
-  displayCode: String
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  displayCode: String!
+  createdBy: User
+  usedBy: User
+  createdByEmail: String
+  usedByEmail: String
+  app: App
+  expiryPeriod: TimePeriod
+  product: Product
+  events: [GiftCardEvent!]!
+  user: User @deprecated(reason: "Will be removed in Saleor 4.0. Use created_by field instead")
+  endDate: DateTime @deprecated(reason: "Will be removed in Saleor 4.0. Use expiry_date field instead.")
+  startDate: DateTime @deprecated(reason: "Will be removed in Saleor 4.0.")
 }
 
 type GiftCardActivate {
@@ -2190,17 +2203,26 @@ type GiftCardCreate {
 }
 
 input GiftCardCreateInput {
+  tag: String
   startDate: Date
   endDate: Date
-  balance: PositiveDecimal
+  balance: PriceInput!
   userEmail: String
+  expirySettings: GiftCardExpirySettingsInput!
   code: String
+  note: String
 }
 
 type GiftCardDeactivate {
   giftCard: GiftCard
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [GiftCardError!]!
+}
+
+type GiftCardDelete {
+  giftCardErrors: [GiftCardError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [GiftCardError!]!
+  giftCard: GiftCard
 }
 
 type GiftCardError {
@@ -2218,6 +2240,66 @@ enum GiftCardErrorCode {
   UNIQUE
 }
 
+type GiftCardEvent implements Node {
+  id: ID!
+  date: DateTime
+  type: GiftCardEventsEnum
+  user: User
+  app: App
+  message: String
+  email: String
+  orderId: ID
+  orderNumber: String
+  tag: String
+  oldTag: String
+  balance: GiftCardEventBalance
+  expiry: GiftCardEventExpiry
+}
+
+type GiftCardEventBalance {
+  initialBalance: Money!
+  currentBalance: Money!
+  oldInitialBalance: Money
+  oldCurrentBalance: Money
+}
+
+type GiftCardEventExpiry {
+  expiryType: GiftCardExpiryTypeEnum
+  expiryPeriod: TimePeriod
+  expiryDate: Date
+  oldExpiryType: GiftCardExpiryTypeEnum
+  oldExpiryPeriod: TimePeriod
+  oldExpiryDate: Date
+}
+
+enum GiftCardEventsEnum {
+  ISSUED
+  BOUGHT
+  UPDATED
+  ACTIVATED
+  DEACTIVATED
+  BALANCE_RESET
+  EXPIRY_SETTINGS_UPDATED
+  SENT_TO_CUSTOMER
+  RESENT
+}
+
+input GiftCardExpirySettingsInput {
+  expiryType: GiftCardExpiryTypeEnum!
+  expiryDate: Date
+  expiryPeriod: TimePeriodInputType
+}
+
+enum GiftCardExpiryTypeEnum {
+  NEVER_EXPIRE
+  EXPIRY_PERIOD
+  EXPIRY_DATE
+}
+
+input GiftCardFilterInput {
+  tag: String
+}
+
 type GiftCardUpdate {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [GiftCardError!]!
@@ -2225,10 +2307,11 @@ type GiftCardUpdate {
 }
 
 input GiftCardUpdateInput {
+  tag: String
   startDate: Date
   endDate: Date
-  balance: PositiveDecimal
-  userEmail: String
+  balanceAmount: PositiveDecimal
+  expirySettings: GiftCardExpirySettingsInput
 }
 
 type Group implements Node {
@@ -2868,6 +2951,7 @@ type Mutation {
   invoiceSendNotification(id: ID!): InvoiceSendNotification
   giftCardActivate(id: ID!): GiftCardActivate
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
+  giftCardDelete(id: ID!): GiftCardDelete
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
   pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
@@ -4102,6 +4186,11 @@ enum PostalCodeRuleInclusionTypeEnum {
   EXCLUDE
 }
 
+input PriceInput {
+  currency: String!
+  amount: PositiveDecimal!
+}
+
 input PriceRangeInput {
   gte: Float
   lte: Float
@@ -4787,7 +4876,7 @@ type Query {
   menuItem(id: ID!, channel: String): MenuItem
   menuItems(channel: String, sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
-  giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
+  giftCards(filter: GiftCardFilterInput, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   plugin(id: ID!): Plugin
   plugins(filter: PluginFilterInput, sortBy: PluginSortingInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!, channel: String): Sale
@@ -5258,6 +5347,7 @@ type Shop {
   availablePaymentGateways(currency: String, channel: String): [PaymentGateway!]!
   availableExternalAuthentications: [ExternalAuthentication!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
+  channelCurrencies: [String!]!
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
@@ -5523,6 +5613,22 @@ type TaxedMoney {
 type TaxedMoneyRange {
   start: TaxedMoney
   stop: TaxedMoney
+}
+
+type TimePeriod {
+  amount: Int!
+  type: TimePeriodTypeEnum!
+}
+
+input TimePeriodInputType {
+  amount: Int!
+  type: TimePeriodTypeEnum!
+}
+
+enum TimePeriodTypeEnum {
+  DAY
+  MONTH
+  YEAR
 }
 
 type Transaction implements Node {
