@@ -13,7 +13,7 @@ from ....checkout.models import Checkout
 from ....core.exceptions import InsufficientStock, InsufficientStockData
 from ....core.taxes import zero_money, zero_taxed_money
 from ....giftcard import GiftCardEvents
-from ....giftcard.models import GiftCardEvent
+from ....giftcard.models import GiftCard, GiftCardEvent
 from ....order import OrderOrigin, OrderStatus
 from ....order.models import Order
 from ....payment import ChargeStatus, PaymentError, TransactionKind
@@ -275,6 +275,64 @@ def test_checkout_complete(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+    order_confirmed_mock.assert_called_once_with(order)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_gift_card_bought(
+    order_confirmed_mock,
+    site_settings,
+    user_api_client,
+    checkout_with_gift_card_items,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    checkout = checkout_with_gift_card_items
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.automatically_fulfill_non_shippable_gift_card = True
+    site_settings.save()
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    redirect_url = "https://www.example.com"
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNFULFILLED
+
+    gift_card = GiftCard.objects.get()
+    assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.SENT_TO_CUSTOMER
+    )
     order_confirmed_mock.assert_called_once_with(order)
 
 
