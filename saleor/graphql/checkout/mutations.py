@@ -14,10 +14,8 @@ from ...checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_delivery_method_info,
     get_valid_collection_points_for_checkout_info,
     get_valid_shipping_method_list_for_checkout_info,
-    update_checkout_info_delivery_method,
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -25,6 +23,7 @@ from ...checkout.utils import (
     calculate_checkout_quantity,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
+    clear_delivery_method,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
@@ -98,15 +97,11 @@ def clean_delivery_method(
 def update_checkout_shipping_method_if_invalid(
     checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
 ):
-    checkout = checkout_info.checkout
     quantity = calculate_checkout_quantity(lines)
 
     # remove shipping method when empty checkout
     if quantity == 0 or not is_shipping_required(lines):
-        checkout.shipping_method = None
-        checkout_info.delivery_method_info = get_delivery_method_info(None)
-        checkout_info.shipping_method_channel_listings = None
-        checkout.save(update_fields=["shipping_method", "last_change"])
+        clear_delivery_method(checkout_info)
 
     is_valid = clean_delivery_method(
         checkout_info=checkout_info,
@@ -115,11 +110,7 @@ def update_checkout_shipping_method_if_invalid(
     )
 
     if not is_valid:
-        cheapest_alternative = checkout_info.valid_shipping_methods
-        new_shipping_method = cheapest_alternative[0] if cheapest_alternative else None
-        checkout.shipping_method = new_shipping_method
-        update_checkout_info_delivery_method(checkout_info, new_shipping_method)
-        checkout.save(update_fields=["shipping_method", "last_change"])
+        clear_delivery_method(checkout_info)
 
 
 def check_lines_quantity(

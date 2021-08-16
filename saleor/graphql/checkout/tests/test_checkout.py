@@ -97,14 +97,9 @@ def test_update_checkout_shipping_method_if_invalid(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
-    assert checkout.shipping_method == other_shipping_method
-    assert checkout_info.delivery_method_info.delivery_method == other_shipping_method
-    assert (
-        checkout_info.shipping_method_channel_listings
-        == shipping_models.ShippingMethodChannelListing.objects.filter(
-            shipping_method=other_shipping_method, channel=checkout_info.channel
-        ).first()
-    )
+    assert checkout.shipping_method is None
+    assert checkout_info.delivery_method_info.delivery_method is None
+    assert checkout_info.shipping_method_channel_listings is None
 
     # Ensure the checkout's shipping method was saved
     checkout.refresh_from_db(fields=["shipping_method"])
