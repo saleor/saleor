@@ -96,6 +96,9 @@ class OrderFulfill(BaseMutation):
     @classmethod
     def clean_lines(cls, order_lines, quantities):
         for order_line, line_quantities in zip(order_lines, quantities):
+            if not order_line.variant.track_inventory:
+                continue
+
             line_quantity_unfulfilled = order_line.quantity_unfulfilled
 
             if sum(line_quantities) > line_quantity_unfulfilled:

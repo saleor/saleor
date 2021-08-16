@@ -82,6 +82,62 @@ def test_order_fulfill(
 
 
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
+def test_order_fulfill_inventory_not_tracked(
+    mock_create_fulfillments,
+    staff_api_client,
+    staff_user,
+    order_with_lines,
+    permission_manage_orders,
+    warehouse,
+):
+    order = order_with_lines
+    query = ORDER_FULFILL_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    order_line, order_line2 = order.lines.all()
+    variant = order_line.variant
+    variant.track_inventory = False
+    variant.save(update_fields=["track_inventory"])
+
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": True,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 100, "warehouse": warehouse_id}],
+                },
+                {
+                    "orderLineId": order_line2_id,
+                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                },
+            ],
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfill"]
+    assert not data["errors"]
+
+    fulfillment_lines_for_warehouses = {
+        str(warehouse.pk): [
+            {"order_line": order_line, "quantity": 100},
+            {"order_line": order_line2, "quantity": 2},
+        ]
+    }
+    mock_create_fulfillments.assert_called_once_with(
+        staff_user, None, order, fulfillment_lines_for_warehouses, ANY, True
+    )
+
+
+@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
 def test_order_fulfill_as_app(
     mock_create_fulfillments,
     app_api_client,
