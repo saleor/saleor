@@ -2,7 +2,9 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-## [Unreleased]
+# 3.1.0 [Unreleased]
+
+# 3.0.0 [Unreleased]
 
 - Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
