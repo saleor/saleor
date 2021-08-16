@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from django.utils.encoding import smart_text
 from prices import TaxedMoney
 
-from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..warehouse import WarehouseClickAndCollectOption
@@ -86,11 +85,6 @@ class DeliveryMethodBase:
     def get_warehouse_filter_lookup(self) -> Dict[str, Any]:
         return {}
 
-    def calculate_checkout_shipping(
-        self, checkout_info: "CheckoutInfo", lines=None
-    ) -> TaxedMoney:
-        return zero_taxed_money(checkout_info.checkout.currency)
-
     def is_valid_delivery_method(self) -> bool:
         return False
 
@@ -110,33 +104,6 @@ class ShippingMethodInfo(DeliveryMethodBase):
     @property
     def delivery_method_name(self) -> Dict[str, Optional[str]]:
         return {"shipping_method_name": smart_text(self.delivery_method)}
-
-    def calculate_checkout_shipping(self, checkout_info, lines=None) -> TaxedMoney:
-        """Return checkout shipping price."""
-        # FIXME: Optimize checkout.is_shipping_required
-
-        shipping_method = self.delivery_method
-
-        if lines is not None and all(
-            isinstance(line, CheckoutLineInfo) for line in lines
-        ):
-            from .utils import is_shipping_required
-
-            shipping_required = is_shipping_required(lines)
-        else:
-            shipping_required = checkout_info.checkout.is_shipping_required()
-
-            if not shipping_method or not shipping_required:
-                return zero_taxed_money(checkout_info.checkout.currency)
-
-        shipping_price = shipping_method.channel_listings.get(
-            channel_id=checkout_info.checkout.channel_id,
-        ).get_total()
-
-        return quantize_price(
-            TaxedMoney(net=shipping_price, gross=shipping_price),
-            shipping_price.currency,
-        )
 
     def is_valid_delivery_method(self) -> bool:
         return bool(self.shipping_address)
