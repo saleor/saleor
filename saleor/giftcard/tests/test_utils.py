@@ -178,18 +178,22 @@ def test_gift_cards_create(
     # given
     manager = get_plugins_manager()
     order_lines = [gift_card_shippable_order_line, gift_card_non_shippable_order_line]
+    quantities = {
+        gift_card_shippable_order_line.pk: 1,
+        gift_card_non_shippable_order_line.pk: 1,
+    }
     user_email = order.user_email
 
     # when
     gift_cards = gift_cards_create(
-        order, order_lines, site_settings, staff_user, None, manager
+        order, order_lines, quantities, site_settings, staff_user, None, manager
     )
 
     # then
     assert len(gift_cards) == len(order_lines)
 
     shippable_gift_card = gift_cards[0]
-    shippable_price = gift_card_shippable_order_line.total_price_gross
+    shippable_price = gift_card_shippable_order_line.unit_price_gross
     assert shippable_gift_card.initial_balance == shippable_price
     assert shippable_gift_card.current_balance == shippable_price
     assert shippable_gift_card.created_by == order.user
@@ -249,14 +253,20 @@ def test_gift_cards_create_multiple_quantity(
     gift_card_non_shippable_order_line.quantity = quantity
     gift_card_non_shippable_order_line.save(update_fields=["quantity"])
     order_lines = [gift_card_non_shippable_order_line]
+    quantities = {gift_card_non_shippable_order_line.pk: quantity}
 
     # when
     gift_cards = gift_cards_create(
-        order, order_lines, site_settings, staff_user, None, manager
+        order, order_lines, quantities, site_settings, staff_user, None, manager
     )
 
     # then
     assert len(gift_cards) == quantity
+    price = gift_card_non_shippable_order_line.unit_price_gross
+    for gift_card in gift_cards:
+        assert gift_card.initial_balance == price
+        assert gift_card.current_balance == price
+
     assert GiftCardEvent.objects.filter(type=GiftCardEvents.BOUGHT).count() == quantity
     assert (
         GiftCardEvent.objects.filter(type=GiftCardEvents.SENT_TO_CUSTOMER).count()
