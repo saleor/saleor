@@ -86,6 +86,10 @@ def test_order_fulfill_with_gift_cards(
         gift_card_non_shippable_order_line,
         gift_card_shippable_order_line,
     )
+
+    order_line2.quantity = 10
+    order_line2.save(update_fields=["quantity"])
+
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
     order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
@@ -100,7 +104,7 @@ def test_order_fulfill_with_gift_cards(
                 },
                 {
                     "orderLineId": order_line2_id,
-                    "stocks": [{"quantity": 1, "warehouse": warehouse_id}],
+                    "stocks": [{"quantity": 10, "warehouse": warehouse_id}],
                 },
             ],
         },

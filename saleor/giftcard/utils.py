@@ -1,5 +1,5 @@
 from datetime import date
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Dict, Iterable, Optional
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
@@ -80,6 +80,7 @@ def calculate_expiry_date(gift_card: GiftCard):
 def gift_cards_create(
     order: "Order",
     gift_card_lines: Iterable["OrderLine"],
+    quantities: Dict[int, int],
     settings: "SiteSettings",
     requestor_user: Optional["User"],
     app: Optional["App"],
@@ -91,7 +92,7 @@ def gift_cards_create(
     gift_cards = []
     non_shippable_gift_cards = []
     for order_line in gift_card_lines:
-        price = order_line.total_price_gross
+        price = order_line.unit_price_gross
         line_gift_cards = [
             GiftCard(  # type: ignore
                 code=generate_promo_code(),
@@ -104,7 +105,7 @@ def gift_cards_create(
                 expiry_period_type=settings.gift_card_expiry_period_type,
                 expiry_period=settings.gift_card_expiry_period,
             )
-            for _ in range(order_line.quantity)
+            for _ in range(quantities[order_line.pk])
         ]
         gift_cards.extend(line_gift_cards)
         if not order_line.is_shipping_required:
