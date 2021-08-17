@@ -1,6 +1,7 @@
 from decimal import Decimal
 from operator import attrgetter
 from typing import Optional
+from uuid import UUID
 
 import graphene
 import prices
@@ -320,7 +321,7 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_warehouse(root: models.OrderEvent, info):
         if warehouse_pk := root.parameters.get("warehouse"):
-            return WarehouseByIdLoader(info.context).load(warehouse_pk)
+            return WarehouseByIdLoader(info.context).load(UUID(warehouse_pk))
         return None
 
     @staticmethod

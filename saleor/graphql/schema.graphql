@@ -1073,7 +1073,6 @@ type CheckoutCustomerDetach {
 
 type CheckoutDeliveryMethodUpdate {
   checkout: Checkout
-  checkoutError: [CheckoutError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [CheckoutError!]!
 }
 
