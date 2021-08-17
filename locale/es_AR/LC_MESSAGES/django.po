@@ -4,7 +4,7 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Nix Nix <nixnix33@hotmail.com>, 2018
+# Emi <nagyemilio@hotmail.com>, 2021
 #
 #, fuzzy
 msgid ""
@@ -13,19 +13,19 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-08-17 12:51+0000\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Nix Nix <nixnix33@hotmail.com>, 2018\n"
-"Language-Team: Slovenian (https://www.transifex.com/mirumee/teams/34782/sl/)\n"
+"Last-Translator: Emi <nagyemilio@hotmail.com>, 2021\n"
+"Language-Team: Spanish (Argentina) (https://www.transifex.com/mirumee/teams/34782/es_AR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: sl\n"
-"Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);\n"
+"Language: es_AR\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:14
 #, python-format
 msgctxt "Address data"
 msgid "%(first_name)s %(last_name)s"
-msgstr "%(first_name)s %(last_name)s"
+msgstr "%(first_name)s%(last_name)s"
 
 #: saleor/account/templatetags/i18n_address_tags.py:18
 #, python-format
