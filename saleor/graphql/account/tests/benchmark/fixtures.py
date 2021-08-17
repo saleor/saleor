@@ -27,7 +27,7 @@ def _prepare_events_for_user(user):
 def _prepare_gift_cards_for_user(user):
     gift_cards = [
         GiftCard(
-            user=user,
+            created_by=user,
             initial_balance_amount=random.randint(10, 20),
             current_balance_amount=random.randint(10, 20),
             code=str(uuid.uuid4())[:16],

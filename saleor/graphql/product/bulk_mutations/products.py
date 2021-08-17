@@ -182,7 +182,7 @@ class BulkAttributeValueInput(InputObjectType):
     boolean = graphene.Boolean(
         required=False,
         description=(
-            "The boolean value of an attribute to resolve."
+            "The boolean value of an attribute to resolve. "
             "If the passed value is non-existent, it will be created."
         ),
     )

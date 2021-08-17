@@ -18,6 +18,7 @@ from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
     generate_checkout_payload,
+    generate_customer_payload,
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -382,6 +383,10 @@ def test_generate_product_translation_payload(product_translation_fr):
         "Product", product_translation_fr.product_id
     )
     assert data["language_code"] == product_translation_fr.language_code
+    assert "product_id" not in data.keys()
+    assert "product_variant_id" not in data.keys()
+    assert "attribute_id" not in data.keys()
+    assert "page_id" not in data.keys()
 
     translation_keys = {i["key"]: i["value"] for i in data["keys"]}
     assert translation_keys["name"] == product_translation_fr.name
@@ -395,6 +400,175 @@ def test_generate_product_variant_translation_payload(variant_translation_fr):
         "ProductVariant", variant_translation_fr.product_variant_id
     )
     assert data["language_code"] == variant_translation_fr.language_code
+    assert "product_id" not in data.keys()
+    assert "product_variant_id" not in data.keys()
+    assert "attribute_id" not in data.keys()
+    assert "page_id" not in data.keys()
 
     translation_keys = {i["key"]: i["value"] for i in data["keys"]}
     assert translation_keys["name"] == variant_translation_fr.name
+
+
+def test_generate_choices_attribute_value_translation_payload(
+    translated_attribute_value, color_attribute
+):
+    payload = generate_translation_payload(translated_attribute_value)
+    data = json.loads(payload)
+    assert data["id"] == graphene.Node.to_global_id(
+        "AttributeValue", translated_attribute_value.attribute_value_id
+    )
+    assert data["language_code"] == translated_attribute_value.language_code
+    assert data["product_id"] is None
+    assert data["product_variant_id"] is None
+    assert data["attribute_id"] == graphene.Node.to_global_id(
+        "Attribute", color_attribute.id
+    )
+    assert data["page_id"] is None
+
+    translation_keys = {i["key"]: i["value"] for i in data["keys"]}
+    assert translation_keys["name"] == translated_attribute_value.name
+
+
+def test_generate_unique_product_attribute_value_translation_payload(
+    translated_product_unique_attribute_value, product, rich_text_attribute
+):
+    translated_attribute_value = translated_product_unique_attribute_value
+    payload = generate_translation_payload(translated_attribute_value)
+    data = json.loads(payload)
+    assert data["id"] == graphene.Node.to_global_id(
+        "AttributeValue", translated_attribute_value.attribute_value_id
+    )
+    assert data["language_code"] == translated_attribute_value.language_code
+    assert data["product_id"] == graphene.Node.to_global_id("Product", product.id)
+    assert data["product_variant_id"] is None
+    assert data["attribute_id"] == graphene.Node.to_global_id(
+        "Attribute", rich_text_attribute.id
+    )
+    assert data["page_id"] is None
+    assert data["page_type_id"] is None
+    translation_keys = {i["key"]: i["value"] for i in data["keys"]}
+    assert translation_keys["rich_text"] == translated_attribute_value.rich_text
+
+
+def test_generate_unique_variant_attribute_value_translation_payload(
+    translated_variant_unique_attribute_value, variant, rich_text_attribute
+):
+    translated_attribute_value = translated_variant_unique_attribute_value
+    payload = generate_translation_payload(translated_attribute_value)
+    data = json.loads(payload)
+    assert data["id"] == graphene.Node.to_global_id(
+        "AttributeValue", translated_attribute_value.attribute_value_id
+    )
+    assert data["language_code"] == translated_attribute_value.language_code
+    assert data["product_id"] == graphene.Node.to_global_id(
+        "Product", variant.product_id
+    )
+    assert data["product_variant_id"] == graphene.Node.to_global_id(
+        "ProductVariant", variant.id
+    )
+    assert data["attribute_id"] == graphene.Node.to_global_id(
+        "Attribute", rich_text_attribute.id
+    )
+    assert data["page_id"] is None
+    assert data["page_type_id"] is None
+    translation_keys = {i["key"]: i["value"] for i in data["keys"]}
+    assert translation_keys["rich_text"] == translated_attribute_value.rich_text
+
+
+def test_generate_unique_page_attribute_value_translation_payload(
+    translated_page_unique_attribute_value,
+    page,
+    rich_text_attribute_page_type,
+):
+    translated_attribute_value = translated_page_unique_attribute_value
+    payload = generate_translation_payload(translated_attribute_value)
+    data = json.loads(payload)
+    assert data["id"] == graphene.Node.to_global_id(
+        "AttributeValue", translated_attribute_value.attribute_value_id
+    )
+    assert data["language_code"] == translated_attribute_value.language_code
+    assert data["product_id"] is None
+    assert data["product_variant_id"] is None
+    assert data["attribute_id"] == graphene.Node.to_global_id(
+        "Attribute", rich_text_attribute_page_type.id
+    )
+    assert data["page_id"] == graphene.Node.to_global_id("Page", page.id)
+    assert data["page_type_id"] == graphene.Node.to_global_id(
+        "PageType", page.page_type_id
+    )
+    translation_keys = {i["key"]: i["value"] for i in data["keys"]}
+    assert translation_keys["rich_text"] == translated_attribute_value.rich_text
+
+
+def test_generate_customer_payload(customer_user, address_other_country, address):
+
+    customer = customer_user
+    customer.default_billing_address = address_other_country
+    customer.save()
+    payload = json.loads(generate_customer_payload(customer))[0]
+    expected_payload = {
+        "type": "User",
+        "id": graphene.Node.to_global_id("User", customer.id),
+        "default_shipping_address": {
+            "type": "Address",
+            "id": graphene.Node.to_global_id(
+                "Address", customer.default_shipping_address_id
+            ),
+            "first_name": customer.default_shipping_address.first_name,
+            "last_name": customer.default_shipping_address.last_name,
+            "company_name": customer.default_shipping_address.company_name,
+            "street_address_1": customer.default_shipping_address.street_address_1,
+            "street_address_2": customer.default_shipping_address.street_address_2,
+            "city": customer.default_shipping_address.city,
+            "city_area": customer.default_shipping_address.city_area,
+            "postal_code": customer.default_shipping_address.postal_code,
+            "country": customer.default_shipping_address.country,
+            "country_area": customer.default_shipping_address.country_area,
+            "phone": customer.default_shipping_address.phone,
+        },
+        "default_billing_address": {
+            "type": "Address",
+            "id": graphene.Node.to_global_id(
+                "Address", customer.default_billing_address_id
+            ),
+            "first_name": customer.default_billing_address.first_name,
+            "last_name": customer.default_billing_address.last_name,
+            "company_name": customer.default_billing_address.company_name,
+            "street_address_1": customer.default_billing_address.street_address_1,
+            "street_address_2": customer.default_billing_address.street_address_2,
+            "city": customer.default_billing_address.city,
+            "city_area": customer.default_billing_address.city_area,
+            "postal_code": customer.default_billing_address.postal_code,
+            "country": customer.default_billing_address.country,
+            "country_area": customer.default_billing_address.country_area,
+            "phone": customer.default_billing_address.phone,
+        },
+        "addresses": [
+            {
+                "type": "Address",
+                "id": graphene.Node.to_global_id(
+                    "Address", customer.default_shipping_address_id
+                ),
+                "first_name": customer.default_shipping_address.first_name,
+                "last_name": customer.default_shipping_address.last_name,
+                "company_name": customer.default_shipping_address.company_name,
+                "street_address_1": customer.default_shipping_address.street_address_1,
+                "street_address_2": customer.default_shipping_address.street_address_2,
+                "city": customer.default_shipping_address.city,
+                "city_area": customer.default_shipping_address.city_area,
+                "postal_code": customer.default_shipping_address.postal_code,
+                "country": customer.default_shipping_address.country,
+                "country_area": customer.default_shipping_address.country_area,
+                "phone": customer.default_shipping_address.phone,
+            }
+        ],
+        "private_metadata": customer.private_metadata,
+        "metadata": customer.metadata,
+        "email": customer.email,
+        "first_name": customer.first_name,
+        "last_name": customer.last_name,
+        "is_active": customer.is_active,
+        "date_joined": ANY,
+    }
+
+    assert payload == expected_payload
