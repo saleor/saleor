@@ -1202,6 +1202,32 @@ def test_get_checkout_shipping_tax_rate(
 
 
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test__get_shipping_tax_rate_handles_multiple_tax_districts(
+    avalara_response_for_checkout_with_items_and_shipping, channel_USD
+):
+    manager = get_plugins_manager()
+    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+
+    # 0.46 == sum of two tax districts
+    assert Decimal("0.46") == plugin._get_shipping_tax_rate(
+        avalara_response_for_checkout_with_items_and_shipping, Decimal(0.0)
+    ).quantize(Decimal(".01"))
+
+
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test__get_unit_tax_rate_handles_multiple_tax_districts(
+    avalara_response_for_checkout_with_items_and_shipping, channel_USD
+):
+    manager = get_plugins_manager()
+    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+
+    # 0.36 == sum of two tax districts
+    assert Decimal("0.36") == plugin._get_unit_tax_rate(
+        avalara_response_for_checkout_with_items_and_shipping, "123", Decimal(0.0)
+    ).quantize(Decimal(".01"))
+
+
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_get_checkout_shipping_tax_rate_checkout_not_valid_default_value_returned(
     monkeypatch, checkout_with_item, address, plugin_configuration
 ):
