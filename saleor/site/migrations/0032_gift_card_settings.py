@@ -25,7 +25,12 @@ class Migration(migrations.Migration):
             name="gift_card_expiry_period_type",
             field=models.CharField(
                 blank=True,
-                choices=[("day", "day"), ("month", "Month"), ("year", "Year")],
+                choices=[
+                    ("day", "Day"),
+                    ("week", "Week"),
+                    ("month", "Month"),
+                    ("year", "Year"),
+                ],
                 max_length=32,
                 null=True,
             ),
