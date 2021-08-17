@@ -6515,6 +6515,7 @@ input TimePeriodInputType {
 
 enum TimePeriodTypeEnum {
   DAY
+  WEEK
   MONTH
   YEAR
 }
