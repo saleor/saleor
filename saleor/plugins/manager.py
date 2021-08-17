@@ -334,6 +334,7 @@ class PluginsManager(PaymentInterface):
                 order_line,
                 variant,
                 product,
+                channel_slug=order.channel.slug,
             ),
             order.currency,
         )
