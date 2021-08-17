@@ -123,7 +123,10 @@ class Shop(graphene.ObjectType):
         graphene.NonNull(CountryDisplay),
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="A language code to return the translation for.",
+            description=(
+                "DEPRECATED: This argument will be removed in Saleor 4.0. "
+                "A language code to return the translation for."
+            ),
         ),
         description="List of countries available in the shop.",
         required=True,
@@ -221,6 +224,8 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_countries(_, _info, language_code=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
+
+        # DEPRECATED: translation.override will be dropped in Saleor 4.0
         with translation.override(language_code):
             return [
                 CountryDisplay(
