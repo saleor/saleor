@@ -13,6 +13,7 @@ class ProductExportFields:
             "variant sku": "variants__sku",
             "variant weight": "variant_weight",
             "variant is preorder": "variants__is_preorder",
+            "variant preorder global threshold": "variants__preorder_global_threshold",
             "variant preorder end date": "variants__preorder_end_date",
         },
         "product_many_to_many": {
