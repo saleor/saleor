@@ -34,7 +34,7 @@ class TranslationProxy:
 
 
 class Translation(models.Model):
-    language_code = models.CharField(max_length=10)
+    language_code = models.CharField(max_length=35)
 
     class Meta:
         abstract = True
