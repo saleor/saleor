@@ -5746,7 +5746,6 @@ input ProductVariantInput {
 
 type ProductVariantPreorderDeactivate {
   productVariant: ProductVariant
-  productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
 }
 
@@ -6846,6 +6845,7 @@ type VariantMediaAssign {
 type VariantMediaUnassign {
   productVariant: ProductVariant
   media: ProductMedia
+  productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
 }
 
