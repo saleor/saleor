@@ -47,10 +47,8 @@ documentation = "https://docs.saleor.io/"
   sentry-sdk = "^1.0"
   stripe = "^2.58.0"
   text-unidecode = "^1.2"
-  # To support weasyprint > 52.5,
-  # libpango needs to be upgraded on container images from 1.42 to 1.44.
-  # More information about availabilities at https://tracker.debian.org/pkg/pango1.0
-  weasyprint = ">=48,<=52.5"
+  # libpango >=1.44 is required
+  weasyprint = ">=53.0"
   oauthlib = "^3.1"
   jaeger-client = "^4.5.0"
   openpyxl = "^3.0.3"
