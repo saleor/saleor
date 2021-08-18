@@ -6,7 +6,8 @@ from django.utils import timezone
 
 from ..checkout.models import Checkout
 from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
-from . import GiftCardExpiryType, events
+from ..site import GiftCardSettingsExpiryType
+from . import events
 from .models import GiftCard
 from .notifications import send_gift_card_notification
 
@@ -64,19 +65,6 @@ def activate_gift_card(gift_card: GiftCard):
         gift_card.save(update_fields=["is_active"])
 
 
-def calculate_expiry_date(gift_card: GiftCard):
-    """Calculate gift card expiry date for gift card with expiry period settings.
-
-    Return None for gift card with different expiry settings.
-    """
-    today = timezone.now().date()
-    expiry_date = None
-    if gift_card.expiry_type == GiftCardExpiryType.EXPIRY_PERIOD:
-        time_delta = {f"{gift_card.expiry_period_type}s": gift_card.expiry_period}
-        expiry_date = today + relativedelta(**time_delta)  # type: ignore
-    return expiry_date
-
-
 def gift_cards_create(
     order: "Order",
     gift_card_lines: Iterable["OrderLine"],
@@ -91,6 +79,7 @@ def gift_cards_create(
     user_email = order.user_email
     gift_cards = []
     non_shippable_gift_cards = []
+    expiry_date = calculate_expiry_date(settings)
     for order_line in gift_card_lines:
         price = order_line.unit_price_gross
         line_gift_cards = [
@@ -101,9 +90,7 @@ def gift_cards_create(
                 created_by=customer_user,
                 created_by_email=user_email,
                 product=order_line.variant.product if order_line.variant else None,
-                expiry_type=settings.gift_card_expiry_type,
-                expiry_period_type=settings.gift_card_expiry_period_type,
-                expiry_period=settings.gift_card_expiry_period,
+                expiry_date=expiry_date,
             )
             for _ in range(quantities[order_line.pk])
         ]
@@ -119,6 +106,17 @@ def gift_cards_create(
         non_shippable_gift_cards, user_email, requestor_user, app, manager
     )
     return gift_cards
+
+
+def calculate_expiry_date(settings):
+    """Calculate expiry date based on gift card settings."""
+    today = timezone.now().date()
+    expiry_date = None
+    if settings.gift_card_expiry_type == GiftCardSettingsExpiryType.EXPIRY_PERIOD:
+        expiry_period_type = settings.gift_card_expiry_period_type
+        time_delta = {f"{expiry_period_type}s": settings.gift_card_expiry_period}
+        expiry_date = today + relativedelta(**time_delta)  # type: ignore
+    return expiry_date
 
 
 def send_gift_cards_to_customer(

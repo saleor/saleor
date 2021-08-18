@@ -8,11 +8,10 @@ from django.utils import timezone
 from django_prices.models import MoneyField
 
 from ..app.models import App
-from ..core import TimePeriodType
 from ..core.models import ModelWithMetadata
 from ..core.permissions import GiftcardPermissions
 from ..core.utils.json_serializer import CustomJsonEncoder
-from . import GiftCardEvents, GiftCardExpiryType
+from . import GiftCardEvents
 
 
 class GiftCardQueryset(models.QuerySet):
@@ -51,14 +50,6 @@ class GiftCard(ModelWithMetadata):
     )
 
     expiry_date = models.DateField(null=True, blank=True)
-    expiry_type = models.CharField(
-        max_length=32,
-        choices=GiftCardExpiryType.CHOICES,
-    )
-    expiry_period_type = models.CharField(
-        max_length=32, choices=TimePeriodType.CHOICES, null=True, blank=True
-    )
-    expiry_period = models.PositiveIntegerField(null=True, blank=True)
 
     tag = models.CharField(max_length=255, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)

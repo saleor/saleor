@@ -54,7 +54,7 @@ from ..discount.models import (
     VoucherCustomer,
     VoucherTranslation,
 )
-from ..giftcard import GiftCardEvents, GiftCardExpiryType
+from ..giftcard import GiftCardEvents
 from ..giftcard.models import GiftCard, GiftCardEvent
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderLineData, OrderOrigin, OrderStatus
@@ -2764,23 +2764,7 @@ def gift_card(customer_user):
         created_by_email=customer_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
-        expiry_type=GiftCardExpiryType.NEVER_EXPIRE,
         tag="test-tag",
-    )
-
-
-@pytest.fixture
-def gift_card_expiry_period(customer_user):
-    return GiftCard.objects.create(
-        code="expiry_period",
-        created_by=customer_user,
-        created_by_email=customer_user.email,
-        initial_balance=Money(10, "USD"),
-        current_balance=Money(10, "USD"),
-        expiry_type=GiftCardExpiryType.EXPIRY_PERIOD,
-        expiry_period_type=TimePeriodType.YEAR,
-        expiry_period=2,
-        tag="another-tag",
     )
 
 
@@ -2792,7 +2776,6 @@ def gift_card_expiry_date(customer_user):
         created_by_email=customer_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
-        expiry_type=GiftCardExpiryType.EXPIRY_DATE,
         expiry_date=datetime.date.today() + datetime.timedelta(days=100),
         tag="another-tag",
     )
@@ -2808,7 +2791,6 @@ def gift_card_used(staff_user, customer_user):
         used_by_email=customer_user.email,
         initial_balance=Money(100, "USD"),
         current_balance=Money(100, "USD"),
-        expiry_type=GiftCardExpiryType.NEVER_EXPIRE,
         tag="tag",
     )
 
@@ -2821,9 +2803,6 @@ def gift_card_created_by_staff(staff_user):
         created_by_email=staff_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
-        expiry_type=GiftCardExpiryType.EXPIRY_PERIOD,
-        expiry_period_type=TimePeriodType.YEAR,
-        expiry_period=2,
         tag="test-tag",
     )
 
@@ -2843,13 +2822,8 @@ def gift_card_event(gift_card, order, app, staff_user):
             "current_balance": 10,
             "old_current_balance": 5,
         },
-        "expiry": {
-            "expiry_type": GiftCardExpiryType.EXPIRY_PERIOD,
-            "old_expiry_type": GiftCardExpiryType.EXPIRY_DATE,
-            "expiry_period_type": TimePeriodType.MONTH,
-            "expiry_period": 10,
-            "expiry_date": datetime.date(2050, 1, 1),
-        },
+        "expiry_date": datetime.date(2050, 1, 1),
+        "old_expiry_date": datetime.date(2010, 1, 1),
     }
     return GiftCardEvent.objects.create(
         user=staff_user,

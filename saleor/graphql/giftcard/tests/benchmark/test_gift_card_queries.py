@@ -38,20 +38,8 @@ FRAGMENT_EVENTS = """
                 currency
             }
         }
-        expiry {
-            expiryType
-            oldExpiryType
-            expiryPeriod {
-                type
-                amount
-            }
-            oldExpiryPeriod {
-                type
-                amount
-            }
-            expiryDate
-            oldExpiryDate
-        }
+        expiryDate
+        oldExpiryDate
     }
 """
 
@@ -64,11 +52,6 @@ FRAGMENT_GIFT_CARD_DETAILS = (
             displayCode
             isActive
             expiryDate
-            expiryType
-            expiryPeriod {
-                amount
-                type
-            }
             tag
             created
             lastUsedOn

@@ -5,8 +5,10 @@ import pytest
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
+from ...core import TimePeriodType
 from ...core.utils.promo_code import InvalidPromoCode
 from ...plugins.manager import get_plugins_manager
+from ...site import GiftCardSettingsExpiryType
 from .. import GiftCardEvents
 from ..models import GiftCardEvent
 from ..utils import (
@@ -137,30 +139,32 @@ def test_remove_gift_card_code_from_checkout_no_checkout_gift_cards(
 @pytest.mark.parametrize(
     "period_type, period", [("years", 5), ("weeks", 1), ("months", 13), ("days", 100)]
 )
-def test_calculate_expiry_settings(period_type, period, gift_card_expiry_period):
+def test_calculate_expiry_settings(period_type, period, site_settings):
     # given
-    gift_card_expiry_period.expiry_period_type = period_type.rstrip("s")
-    gift_card_expiry_period.expiry_period = period
-    gift_card_expiry_period.save(update_fields=["expiry_period_type", "expiry_period"])
+    site_settings.gift_card_expiry_type = GiftCardSettingsExpiryType.EXPIRY_PERIOD
+    site_settings.gift_card_expiry_period_type = period_type.rstrip("s")
+    site_settings.gift_card_expiry_period = period
+    site_settings.save(
+        update_fields=[
+            "gift_card_expiry_type",
+            "gift_card_expiry_period_type",
+            "gift_card_expiry_period",
+        ]
+    )
 
     # when
-    expiry_date = calculate_expiry_date(gift_card_expiry_period)
+    expiry_date = calculate_expiry_date(site_settings)
 
     # then
     assert expiry_date == timezone.now().date() + relativedelta(**{period_type: period})
 
 
-def test_calculate_expiry_settings_for_never_expire_gift_card(gift_card):
+def test_calculate_expiry_settings_for_never_expire_settings(site_settings):
+    # given
+    site_settings.gift_card_expiry_type = GiftCardSettingsExpiryType.NEVER_EXPIRE
+
     # when
-    expiry_date = calculate_expiry_date(gift_card)
-
-    # then
-    assert expiry_date is None
-
-
-def test_calculate_expiry_settings_for_expire_date_gift_card(gift_card_expiry_date):
-    # when
-    expiry_date = calculate_expiry_date(gift_card_expiry_date)
+    expiry_date = calculate_expiry_date(site_settings)
 
     # then
     assert expiry_date is None
@@ -198,9 +202,7 @@ def test_gift_cards_create(
     assert shippable_gift_card.current_balance == shippable_price
     assert shippable_gift_card.created_by == order.user
     assert shippable_gift_card.created_by_email == user_email
-    assert shippable_gift_card.expiry_type == site_settings.gift_card_expiry_type
-    assert shippable_gift_card.expiry_period_type is None
-    assert shippable_gift_card.expiry_period is None
+    assert shippable_gift_card.expiry_date is None
 
     bought_event_for_shippable_card = GiftCardEvent.objects.get(
         gift_card=shippable_gift_card
@@ -208,7 +210,10 @@ def test_gift_cards_create(
     assert bought_event_for_shippable_card.user == staff_user
     assert bought_event_for_shippable_card.app is None
     assert bought_event_for_shippable_card.type == GiftCardEvents.BOUGHT
-    assert bought_event_for_shippable_card.parameters == {"order_id": order.id}
+    assert bought_event_for_shippable_card.parameters == {
+        "order_id": order.id,
+        "expiry_date": None,
+    }
 
     non_shippable_gift_card = gift_cards[1]
     non_shippable_price = gift_card_non_shippable_order_line.total_price_gross
@@ -216,9 +221,7 @@ def test_gift_cards_create(
     assert non_shippable_gift_card.current_balance == non_shippable_price
     assert non_shippable_gift_card.created_by == order.user
     assert non_shippable_gift_card.created_by_email == user_email
-    assert non_shippable_gift_card.expiry_type == site_settings.gift_card_expiry_type
-    assert non_shippable_gift_card.expiry_period_type is None
-    assert non_shippable_gift_card.expiry_period is None
+    assert non_shippable_gift_card.expiry_date is None
 
     sent_to_customer_event = GiftCardEvent.objects.get(
         gift_card=non_shippable_gift_card, type=GiftCardEvents.SENT_TO_CUSTOMER
@@ -232,7 +235,73 @@ def test_gift_cards_create(
     )
     assert shippable_event.user == staff_user
     assert shippable_event.app is None
-    assert shippable_event.parameters == {"order_id": order.id}
+    assert shippable_event.parameters == {"order_id": order.id, "expiry_date": None}
+
+    send_notification_mock.assert_called_once_with(
+        staff_user, None, user_email, non_shippable_gift_card, manager
+    )
+
+
+@patch("saleor.giftcard.utils.send_gift_card_notification")
+def test_gift_cards_create_expiry_date_set(
+    send_notification_mock,
+    order,
+    gift_card_shippable_order_line,
+    gift_card_non_shippable_order_line,
+    site_settings,
+    staff_user,
+):
+    # given
+    manager = get_plugins_manager()
+    site_settings.gift_card_expiry_type = GiftCardSettingsExpiryType.EXPIRY_PERIOD
+    site_settings.gift_card_expiry_period_type = TimePeriodType.WEEK
+    site_settings.gift_card_expiry_period = 20
+    site_settings.save(
+        update_fields=[
+            "gift_card_expiry_type",
+            "gift_card_expiry_period_type",
+            "gift_card_expiry_period",
+        ]
+    )
+    order_lines = [gift_card_non_shippable_order_line]
+    quantities = {
+        gift_card_shippable_order_line.pk: 1,
+        gift_card_non_shippable_order_line.pk: 1,
+    }
+    user_email = order.user_email
+
+    # when
+    gift_cards = gift_cards_create(
+        order, order_lines, quantities, site_settings, staff_user, None, manager
+    )
+
+    # then
+    assert len(gift_cards) == len(order_lines)
+
+    non_shippable_gift_card = gift_cards[0]
+    non_shippable_price = gift_card_non_shippable_order_line.total_price_gross
+    assert non_shippable_gift_card.initial_balance == non_shippable_price
+    assert non_shippable_gift_card.current_balance == non_shippable_price
+    assert non_shippable_gift_card.created_by == order.user
+    assert non_shippable_gift_card.created_by_email == user_email
+    assert non_shippable_gift_card.expiry_date
+
+    sent_to_customer_event = GiftCardEvent.objects.get(
+        gift_card=non_shippable_gift_card, type=GiftCardEvents.SENT_TO_CUSTOMER
+    )
+    assert sent_to_customer_event.user == staff_user
+    assert sent_to_customer_event.app is None
+    assert sent_to_customer_event.parameters == {"email": user_email}
+
+    shippable_event = GiftCardEvent.objects.get(
+        gift_card=non_shippable_gift_card, type=GiftCardEvents.BOUGHT
+    )
+    assert shippable_event.user == staff_user
+    assert shippable_event.app is None
+    assert shippable_event.parameters == {
+        "order_id": order.id,
+        "expiry_date": non_shippable_gift_card.expiry_date.isoformat(),
+    }
 
     send_notification_mock.assert_called_once_with(
         staff_user, None, user_email, non_shippable_gift_card, manager
