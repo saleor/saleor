@@ -582,12 +582,9 @@ class AvataxPlugin(BasePlugin):
                     return base_rate
                 # when tax is equal to 0 tax rate for product is still provided
                 # in the response
-                tax = Decimal(details[0].get("tax", 0.0))
-                return (
-                    Decimal(details[0].get("rate", 0.0))
-                    if tax != Decimal(0.0)
-                    else base_rate
-                )
+                tax = Decimal(sum([detail.get("tax", 0.0) for detail in details]))
+                rate = Decimal(sum([detail.get("rate", 0.0) for detail in details]))
+                return rate if tax != Decimal(0.0) else base_rate
         return base_rate
 
     @staticmethod
@@ -602,8 +599,10 @@ class AvataxPlugin(BasePlugin):
             if line["itemCode"] == "Shipping":
                 line_details = line.get("details")
                 if not line_details:
-                    return
-                return Decimal(line_details[0].get("rate", 0.0))
+                    return base_rate
+                return sum(
+                    [Decimal(detail.get("rate", 0.0)) for detail in line_details]
+                )
         return base_rate
 
     def assign_tax_code_to_object_meta(
