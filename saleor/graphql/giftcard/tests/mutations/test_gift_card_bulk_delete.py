@@ -21,11 +21,10 @@ def test_gift_card_bulk_delete_by_staff(
     staff_api_client,
     permission_manage_gift_card,
     gift_card,
-    gift_card_expiry_period,
     gift_card_expiry_date,
 ):
     # given
-    gift_card_pks = [gift_card.pk, gift_card_expiry_period.pk, gift_card_expiry_date.pk]
+    gift_card_pks = [gift_card.pk, gift_card_expiry_date.pk]
     ids = [graphene.Node.to_global_id("GiftCard", pk) for pk in gift_card_pks]
     variables = {"ids": ids}
 
@@ -49,11 +48,10 @@ def test_gift_card_bulk_delete_by_app(
     app_api_client,
     permission_manage_gift_card,
     gift_card,
-    gift_card_expiry_period,
     gift_card_expiry_date,
 ):
     # given
-    gift_card_pks = [gift_card.pk, gift_card_expiry_period.pk, gift_card_expiry_date.pk]
+    gift_card_pks = [gift_card.pk, gift_card_expiry_date.pk]
     ids = [graphene.Node.to_global_id("GiftCard", pk) for pk in gift_card_pks]
     variables = {"ids": ids}
 
@@ -74,10 +72,10 @@ def test_gift_card_bulk_delete_by_app(
 
 
 def test_gift_card_bulk_delete_by_customer(
-    app_api_client, gift_card, gift_card_expiry_period, gift_card_expiry_date
+    app_api_client, gift_card, gift_card_expiry_date
 ):
     # given
-    gift_card_pks = [gift_card.pk, gift_card_expiry_period.pk, gift_card_expiry_date.pk]
+    gift_card_pks = [gift_card.pk, gift_card_expiry_date.pk]
     ids = [graphene.Node.to_global_id("GiftCard", pk) for pk in gift_card_pks]
     variables = {"ids": ids}
 

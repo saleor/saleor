@@ -47,8 +47,8 @@ def test_query_gift_cards(
     "filter_value, expected_gift_card_indexes",
     [
         ("test-tag", [0]),
-        ("another-tag", [1, 2]),
-        ("tag", [0, 1, 2, 3]),
+        ("another-tag", [1]),
+        ("tag", [0, 1, 2]),
         ("not existing", []),
     ],
 )
@@ -57,7 +57,6 @@ def test_query_filter_gift_cards(
     expected_gift_card_indexes,
     staff_api_client,
     gift_card,
-    gift_card_expiry_period,
     gift_card_expiry_date,
     gift_card_used,
     permission_manage_gift_card,
@@ -66,7 +65,6 @@ def test_query_filter_gift_cards(
     query = QUERY_GIFT_CARDS
     gift_cards = [
         gift_card,
-        gift_card_expiry_period,
         gift_card_expiry_date,
         gift_card_used,
     ]
