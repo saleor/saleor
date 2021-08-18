@@ -1,20 +1,24 @@
 from datetime import date, timedelta
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import pytest
 from dateutil.relativedelta import relativedelta
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from ...core import TimePeriodType
 from ...core.utils.promo_code import InvalidPromoCode
+from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
 from ...site import GiftCardSettingsExpiryType
+from ...warehouse.models import Allocation
 from .. import GiftCardEvents
 from ..models import GiftCardEvent
 from ..utils import (
     add_gift_card_code_to_checkout,
     calculate_expiry_date,
-    create_non_shippable_gift_cards,
+    fulfill_gift_card_lines,
+    fulfill_non_shippable_gift_cards,
     get_gift_card_lines,
     get_non_shippable_gift_card_lines,
     gift_cards_create,
@@ -416,14 +420,17 @@ def test_get_non_shippable_gift_card_lines_no_gift_card_lines(
     assert not gift_card_lines
 
 
+@patch("saleor.giftcard.utils.create_fulfillments")
 @patch("saleor.giftcard.utils.gift_cards_create")
-def test_create_non_shippable_gift_cards(
+def test_fulfill_non_shippable_gift_cards(
     gift_cards_create_mock,
+    create_fulfillments_mock,
     order,
     gift_card_shippable_order_line,
     gift_card_non_shippable_order_line,
     site_settings,
     staff_user,
+    warehouse,
 ):
     # given
     manager = get_plugins_manager()
@@ -433,7 +440,7 @@ def test_create_non_shippable_gift_cards(
     }
 
     # when
-    create_non_shippable_gift_cards(
+    fulfill_non_shippable_gift_cards(
         order, order_lines, site_settings, staff_user, None, manager
     )
 
@@ -447,3 +454,138 @@ def test_create_non_shippable_gift_cards(
     assert args[4] == staff_user
     assert args[5] is None
     assert args[6] == manager
+
+    fulfillment_lines_for_warehouses = {
+        str(warehouse.pk): [
+            {
+                "order_line": gift_card_non_shippable_order_line,
+                "quantity": gift_card_non_shippable_order_line.quantity,
+            },
+        ]
+    }
+
+    create_fulfillments_mock.assert_called_once_with(
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        ANY,
+        notify_customer=True,
+    )
+
+
+@patch("saleor.giftcard.utils.create_fulfillments")
+@patch("saleor.giftcard.utils.gift_cards_create")
+def test_fulfill_non_shippable_gift_cards_line_with_allocation(
+    gift_cards_create_mock,
+    create_fulfillments_mock,
+    order,
+    gift_card_shippable_order_line,
+    gift_card_non_shippable_order_line,
+    site_settings,
+    staff_user,
+    warehouse,
+):
+    # given
+    manager = get_plugins_manager()
+    order_lines = [gift_card_shippable_order_line, gift_card_non_shippable_order_line]
+    quantities = {
+        gift_card_non_shippable_order_line.pk: 1,
+    }
+
+    order = gift_card_non_shippable_order_line.order
+    non_shippable_variant = gift_card_non_shippable_order_line.variant
+    non_shippable_variant.track_inventory = True
+    non_shippable_variant.save(update_fields=["track_inventory"])
+
+    stock = non_shippable_variant.stocks.first()
+    Allocation.objects.create(
+        order_line=gift_card_non_shippable_order_line,
+        stock=stock,
+        quantity_allocated=gift_card_non_shippable_order_line.quantity,
+    )
+
+    # when
+    fulfill_non_shippable_gift_cards(
+        order, order_lines, site_settings, staff_user, None, manager
+    )
+
+    # then
+    gift_cards_create_mock.assert_called_once()
+    args, kwargs = gift_cards_create_mock.call_args
+    assert args[0] == order
+    assert {line.pk for line in args[1]} == {gift_card_non_shippable_order_line.pk}
+    assert args[2] == quantities
+    assert args[3] == site_settings
+    assert args[4] == staff_user
+    assert args[5] is None
+    assert args[6] == manager
+
+    fulfillment_lines_for_warehouses = {
+        str(stock.warehouse.pk): [
+            {
+                "order_line": gift_card_non_shippable_order_line,
+                "quantity": gift_card_non_shippable_order_line.quantity,
+            },
+        ]
+    }
+
+    create_fulfillments_mock.assert_called_once_with(
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        ANY,
+        notify_customer=True,
+    )
+
+
+def test_fulfill_gift_card_lines(
+    staff_user, gift_card_non_shippable_order_line, gift_card_shippable_order_line
+):
+    # given
+    manager = get_plugins_manager()
+    order = gift_card_non_shippable_order_line.order
+    non_shippable_variant = gift_card_non_shippable_order_line.variant
+    non_shippable_variant.track_inventory = True
+    non_shippable_variant.save(update_fields=["track_inventory"])
+
+    Allocation.objects.create(
+        order_line=gift_card_non_shippable_order_line,
+        stock=non_shippable_variant.stocks.first(),
+        quantity_allocated=gift_card_non_shippable_order_line.quantity,
+    )
+
+    lines = OrderLine.objects.filter(
+        pk__in=[
+            gift_card_non_shippable_order_line.pk,
+            gift_card_shippable_order_line.pk,
+        ]
+    )
+
+    # when
+    fulfillments = fulfill_gift_card_lines(lines, staff_user, None, order, manager)
+
+    # then
+    assert len(fulfillments) == 1
+    assert fulfillments[0].lines.count() == len(lines)
+
+
+def test_fulfill_gift_card_lines_lack_of_stock(
+    staff_user, gift_card_non_shippable_order_line, gift_card_shippable_order_line
+):
+    # given
+    manager = get_plugins_manager()
+    order = gift_card_non_shippable_order_line.order
+    gift_card_non_shippable_order_line.variant.stocks.all().delete()
+
+    lines = OrderLine.objects.filter(
+        pk__in=[
+            gift_card_non_shippable_order_line.pk,
+            gift_card_shippable_order_line.pk,
+        ]
+    )
+
+    # when
+    with pytest.raises(ValidationError):
+        fulfill_gift_card_lines(lines, staff_user, None, order, manager)

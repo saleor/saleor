@@ -15,7 +15,7 @@ from ....core.taxes import zero_money, zero_taxed_money
 from ....giftcard import GiftCardEvents
 from ....giftcard.models import GiftCard, GiftCardEvent
 from ....order import OrderOrigin, OrderStatus
-from ....order.models import Order
+from ....order.models import Fulfillment, Order
 from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from ....payment.interface import GatewayResponse
@@ -326,7 +326,7 @@ def test_checkout_complete_gift_card_bought(
 
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.status == OrderStatus.UNFULFILLED
+    assert order.status == OrderStatus.PARTIALLY_FULFILLED
 
     gift_card = GiftCard.objects.get()
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
@@ -334,6 +334,7 @@ def test_checkout_complete_gift_card_bought(
         gift_card=gift_card, type=GiftCardEvents.SENT_TO_CUSTOMER
     )
     order_confirmed_mock.assert_called_once_with(order)
+    assert Fulfillment.objects.count() == 1
 
 
 def test_checkout_complete_with_variant_without_price(
