@@ -1672,6 +1672,7 @@ class VariantMediaUnassign(BaseMutation):
         description = "Unassign an media from a product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     @traced_atomic_transaction()
@@ -1725,7 +1726,6 @@ class ProductVariantPreorderDeactivate(BaseMutation):
         )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
-        error_type_field = "product_errors"
 
     @classmethod
     @traced_atomic_transaction()
