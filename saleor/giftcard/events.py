@@ -1,4 +1,3 @@
-from datetime import date
 from typing import Iterable, Optional, Tuple
 
 from ..account.models import User
@@ -28,7 +27,7 @@ def gift_card_issued_event(
         user=user,
         app=app,
         type=GiftCardEvents.ISSUED,
-        parameters={"balance": balance_data},
+        parameters={"balance": balance_data, "expiry_date": gift_card.expiry_date},
     )
 
 
@@ -99,7 +98,7 @@ def gift_card_balance_reset(
     )
 
 
-def gift_card_expiry_settings_updated(
+def gift_card_expiry_date_updated(
     gift_card: GiftCard,
     old_gift_card: GiftCard,
     user: UserType,
@@ -107,22 +106,15 @@ def gift_card_expiry_settings_updated(
 ):
     if not user_is_valid(user):
         user = None
-    expiry_data = {
-        "expiry_type": gift_card.expiry_type,
-        "expiry_period": gift_card.expiry_period,
-        "expiry_period_type": gift_card.expiry_period_type,
-        "expiry_date": gift_card.expiry_date,
-        "old_expiry_type": old_gift_card.expiry_type,
-        "old_expiry_period": old_gift_card.expiry_period,
-        "old_expiry_period_type": old_gift_card.expiry_period_type,
-        "old_expiry_date": old_gift_card.expiry_date,
-    }
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
         user=user,
         app=app,
-        type=GiftCardEvents.EXPIRY_SETTINGS_UPDATED,
-        parameters={"expiry": expiry_data},
+        type=GiftCardEvents.EXPIRY_DATE_UPDATED,
+        parameters={
+            "expiry_date": gift_card.expiry_date,
+            "old_expiry_date": old_gift_card.expiry_date,
+        },
     )
 
 
@@ -208,26 +200,6 @@ def gift_card_note_added(
     )
 
 
-def gift_cards_expiry_date_set(
-    expiry_data: Iterable[Tuple[int, date]],
-    user: UserType,
-    app: AppType,
-):
-    if not user_is_valid(user):
-        user = None
-    events = [
-        GiftCardEvent(
-            gift_card_id=gift_card_id,
-            user=user,
-            app=app,
-            type=GiftCardEvents.EXPIRY_DATE_SET,
-            parameters={"expiry": {"expiry_date": expiry_date}},
-        )
-        for gift_card_id, expiry_date in expiry_data
-    ]
-    return GiftCardEvent.objects.bulk_create(events)
-
-
 def gift_cards_used_in_order(
     balance_data: Iterable[Tuple[GiftCard, float]],
     order_id: int,
@@ -267,7 +239,7 @@ def gift_cards_bought(
             user=user,
             app=app,
             type=GiftCardEvents.BOUGHT,
-            parameters={"order_id": order_id},
+            parameters={"order_id": order_id, "expiry_date": gift_card.expiry_date},
         )
         for gift_card in gift_cards
     ]
