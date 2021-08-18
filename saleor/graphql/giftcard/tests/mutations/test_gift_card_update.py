@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 import graphene
+import pytest
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
@@ -341,7 +342,9 @@ def test_update_gift_card_by_customer(api_client, customer_user, gift_card):
     assert_no_permission(response)
 
 
+@pytest.mark.parametrize("initial_balance", [100.0, 0.0])
 def test_update_gift_card_balance(
+    initial_balance,
     staff_api_client,
     gift_card,
     permission_manage_gift_card,
@@ -352,7 +355,6 @@ def test_update_gift_card_balance(
     old_initial_balance = float(gift_card.initial_balance.amount)
     old_current_balance = float(gift_card.current_balance.amount)
 
-    initial_balance = 100.0
     currency = gift_card.currency
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
