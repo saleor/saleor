@@ -5,27 +5,21 @@ import pytest
 
 from .....giftcard.models import GiftCard
 from ....tests.utils import get_graphql_content
-from ...enums import GiftCardExpiryTypeEnum
 
 CREATE_GIFT_CARD_MUTATION = """
     mutation giftCardCreate(
         $balance: PriceInput!, $userEmail: String, $tag: String,
-        $expirySettings: GiftCardExpirySettingsInput!, $note: String
+        $note: String, $expiryDate: Date
     ){
         giftCardCreate(input: {
                 balance: $balance, userEmail: $userEmail, tag: $tag,
-                expirySettings: $expirySettings, note: $note }) {
+                expiryDate: $expiryDate, note: $note }) {
             giftCard {
                 id
                 code
                 displayCode
                 isActive
                 expiryDate
-                expiryType
-                expiryPeriod {
-                    amount
-                    type
-                }
                 tag
                 created
                 lastUsedOn
@@ -102,7 +96,6 @@ def test_create_never_expiry_gift_card(
     # given
     initial_balance = 100
     currency = "USD"
-    expiry_type = GiftCardExpiryTypeEnum.NEVER_EXPIRE.name
     tag = "gift-card-tag"
     variables = {
         "balance": {
@@ -112,9 +105,7 @@ def test_create_never_expiry_gift_card(
         "userEmail": customer_user.email,
         "tag": tag,
         "note": "This is gift card note that will be save in gift card event.",
-        "expirySettings": {
-            "expiryType": expiry_type,
-        },
+        "expiry_date": None,
     }
 
     # when
@@ -146,11 +137,6 @@ UPDATE_GIFT_CARD_MUTATION = """
                 displayCode
                 isActive
                 expiryDate
-                expiryType
-                expiryPeriod {
-                    amount
-                    type
-                }
                 tag
                 created
                 lastUsedOn
@@ -202,20 +188,8 @@ UPDATE_GIFT_CARD_MUTATION = """
                             currency
                         }
                     }
-                    expiry {
-                        expiryType
-                        oldExpiryType
-                        expiryPeriod {
-                            type
-                            amount
-                        }
-                        oldExpiryPeriod {
-                            type
-                            amount
-                        }
-                        expiryDate
-                        oldExpiryDate
-                    }
+                    expiryDate
+                    oldExpiryDate
                 }
             }
             errors {
@@ -240,7 +214,6 @@ def test_update_gift_card(
 ):
     # given
     initial_balance = 100.0
-    expiry_type = GiftCardExpiryTypeEnum.EXPIRY_DATE.name
     date_value = date.today() + timedelta(days=365)
     tag = "new-gift-card-tag"
     variables = {
@@ -248,10 +221,7 @@ def test_update_gift_card(
         "input": {
             "balanceAmount": initial_balance,
             "tag": tag,
-            "expirySettings": {
-                "expiryType": expiry_type,
-                "expiryDate": date_value,
-            },
+            "expiryDate": date_value,
         },
     }
 

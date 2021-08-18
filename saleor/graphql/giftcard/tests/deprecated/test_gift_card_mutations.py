@@ -1,18 +1,17 @@
 from datetime import date
 
 from ....tests.utils import get_graphql_content
-from ...enums import GiftCardExpiryTypeEnum
 
 CREATE_GIFT_CARD_MUTATION = """
     mutation giftCardCreate(
-        $startDate: Date, $endDate: Date, $expirySettings: GiftCardExpirySettingsInput!
+        $startDate: Date, $endDate: Date, $expiryDate: Date
         $balance: PriceInput!, $userEmail: String
     ){
         giftCardCreate(input: {
                 startDate: $startDate,
                 endDate: $endDate,
                 balance: $balance, userEmail: $userEmail,
-                expirySettings: $expirySettings
+                expiryDate: $expiryDate
             }) {
             giftCard {
                 id
@@ -22,11 +21,6 @@ CREATE_GIFT_CARD_MUTATION = """
                 startDate
                 endDate
                 expiryDate
-                expiryType
-                expiryPeriod {
-                    amount
-                    type
-                }
                 tag
                 created
                 lastUsedOn
@@ -61,7 +55,6 @@ def test_create_never_expiry_gift_card(
 ):
     initial_balance = 100
     currency = "USD"
-    expiry_type = GiftCardExpiryTypeEnum.NEVER_EXPIRE.name
     tag = "gift-card-tag"
     start_date = date(day=1, month=1, year=2018)
     end_date = date(day=1, month=1, year=2019)
@@ -74,9 +67,6 @@ def test_create_never_expiry_gift_card(
         "userEmail": customer_user.email,
         "tag": tag,
         "note": "This is gift card note that will be save in gift card event.",
-        "expirySettings": {
-            "expiryType": expiry_type,
-        },
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
     }

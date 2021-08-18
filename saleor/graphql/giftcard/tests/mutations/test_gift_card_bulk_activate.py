@@ -20,15 +20,13 @@ MUTATION_GIFT_CARD_BULK_ACTIVATE = """
 def test_gift_card_bulk_activate_by_staff(
     staff_api_client,
     gift_card,
-    gift_card_expiry_period,
     gift_card_expiry_date,
     permission_manage_gift_card,
 ):
     # given
     gift_card.is_active = False
-    gift_card_expiry_period.is_active = False
     gift_card_expiry_date.is_active = True
-    gift_cards = [gift_card, gift_card_expiry_period, gift_card_expiry_date]
+    gift_cards = [gift_card, gift_card_expiry_date]
     GiftCard.objects.bulk_update(gift_cards, ["is_active"])
 
     ids = [graphene.Node.to_global_id("GiftCard", card.pk) for card in gift_cards]
@@ -47,10 +45,9 @@ def test_gift_card_bulk_activate_by_staff(
 
     assert data["count"] == len(ids)
     events = GiftCardEvent.objects.all()
-    assert events.count() == 2
+    assert events.count() == 1
     assert {event.gift_card_id for event in events} == {
         gift_card.id,
-        gift_card_expiry_period.id,
     }
     assert {event.type for event in events} == {GiftCardEvents.ACTIVATED}
 
@@ -58,15 +55,13 @@ def test_gift_card_bulk_activate_by_staff(
 def test_gift_card_bulk_activate_by_app(
     app_api_client,
     gift_card,
-    gift_card_expiry_period,
     gift_card_expiry_date,
     permission_manage_gift_card,
 ):
     # given
     gift_card.is_active = False
-    gift_card_expiry_period.is_active = False
     gift_card_expiry_date.is_active = False
-    gift_cards = [gift_card, gift_card_expiry_period, gift_card_expiry_date]
+    gift_cards = [gift_card, gift_card_expiry_date]
     GiftCard.objects.bulk_update(gift_cards, ["is_active"])
 
     ids = [graphene.Node.to_global_id("GiftCard", card.pk) for card in gift_cards]
@@ -93,12 +88,11 @@ def test_gift_card_bulk_activate_by_app(
 def test_gift_card_bulk_activate_all_cards_already_active(
     staff_api_client,
     gift_card,
-    gift_card_expiry_period,
     gift_card_expiry_date,
     permission_manage_gift_card,
 ):
     # given
-    gift_cards = [gift_card, gift_card_expiry_period, gift_card_expiry_date]
+    gift_cards = [gift_card, gift_card_expiry_date]
     GiftCard.objects.bulk_update(gift_cards, ["is_active"])
 
     ids = [graphene.Node.to_global_id("GiftCard", card.pk) for card in gift_cards]
@@ -121,12 +115,12 @@ def test_gift_card_bulk_activate_all_cards_already_active(
 
 
 def test_gift_card_bulk_activate_by_customer(
-    api_client, gift_card, gift_card_expiry_period
+    api_client, gift_card, gift_card_expiry_date
 ):
     # given
     gift_card.is_active = False
-    gift_card_expiry_period.is_active = False
-    gift_cards = [gift_card, gift_card_expiry_period]
+    gift_card_expiry_date.is_active = False
+    gift_cards = [gift_card, gift_card_expiry_date]
     GiftCard.objects.bulk_update(gift_cards, ["is_active"])
 
     ids = [graphene.Node.to_global_id("GiftCard", card.pk) for card in gift_cards]
