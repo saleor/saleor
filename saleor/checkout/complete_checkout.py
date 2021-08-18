@@ -25,7 +25,7 @@ from ..discount.utils import (
     remove_voucher_usage_by_customer,
 )
 from ..giftcard.models import GiftCard
-from ..giftcard.utils import create_non_shippable_gift_cards
+from ..giftcard.utils import fulfill_non_shippable_gift_cards
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
@@ -413,7 +413,7 @@ def _create_order(
     order.save()
 
     if site_settings.automatically_fulfill_non_shippable_gift_card:
-        create_non_shippable_gift_cards(
+        fulfill_non_shippable_gift_cards(
             order, order_lines, site_settings, user, app, manager
         )
 

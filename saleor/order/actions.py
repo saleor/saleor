@@ -211,7 +211,7 @@ def order_returned(
 @traced_atomic_transaction()
 def order_fulfilled(
     fulfillments: List["Fulfillment"],
-    user: "User",
+    user: Optional["User"],
     app: Optional["App"],
     fulfillment_lines: List["FulfillmentLine"],
     manager: "PluginsManager",
@@ -526,7 +526,7 @@ def _create_fulfillment_lines(
 
 @traced_atomic_transaction()
 def create_fulfillments(
-    user: "User",
+    user: Optional["User"],
     app: Optional["App"],
     order: "Order",
     fulfillment_lines_for_warehouses: Dict,
