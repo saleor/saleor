@@ -256,7 +256,7 @@ class GiftCardUpdate(GiftCardCreate):
     def clean_balance(cleaned_input, instance):
         amount = cleaned_input.pop("balance_amount", None)
 
-        if not amount:
+        if amount is None:
             return
 
         currency = instance.currency
