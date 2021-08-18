@@ -68,7 +68,8 @@ def test_order_fulfill_with_out_of_stock_webhook(
         query, variables, permissions=[permission_manage_orders]
     )
 
-    product_variant_out_of_stock_webhooks.assert_called_once()
+    product_variant_out_of_stock_webhooks.assert_called_once_with(Stock.objects.last())
+
 
 @pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")

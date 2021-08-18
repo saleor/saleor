@@ -73,6 +73,7 @@ def test_product_variants_stocks_create(
         == stocks_count + len(stocks)
     )
     assert product_variant_back_in_stock_webhook_mock.call_count == 2
+    product_variant_back_in_stock_webhook_mock.assert_called_with(Stock.objects.last())
 
 
 @pytest.mark.django_db
@@ -136,7 +137,7 @@ def test_product_variants_stocks_create_with_single_webhook_called(
         == variant.stocks.count()
         == stocks_count + len(stocks)
     )
-    product_variant_back_in_stock_webhook_mock.assert_called_once()
+    product_variant_back_in_stock_webhook_mock.assert_called_with(Stock.objects.last())
 
 
 @pytest.mark.django_db
@@ -233,7 +234,6 @@ def test_product_variants_stocks_delete(
             }
         }
     """
-
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
     second_warehouse.slug = "second warehouse"
@@ -246,6 +246,7 @@ def test_product_variants_stocks_delete(
             Stock(product_variant=variant, warehouse=second_warehouse, quantity=140),
         ]
     )
+    stock_to_delete = Stock.objects.last()
     stocks_count = variant.stocks.count()
 
     warehouse_ids = [graphene.Node.to_global_id("Warehouse", second_warehouse.id)]
@@ -265,8 +266,8 @@ def test_product_variants_stocks_delete(
         == variant.stocks.count()
         == stocks_count - 1
     )
-
-    product_variant_out_of_stock_webhook_mock.assert_called_once()
+    assert stock_to_delete not in Stock.objects.all()
+    product_variant_out_of_stock_webhook_mock.assert_called_once_with(stock_to_delete)
 
 
 @pytest.mark.django_db
@@ -308,7 +309,6 @@ def test_product_variants_stocks_delete_with_out_of_stock_webhook_many_calls(
     second_warehouse.slug = "second warehouse"
     second_warehouse.pk = None
     second_warehouse.save()
-
     Stock.objects.bulk_create(
         [
             Stock(product_variant=variant, warehouse=warehouse, quantity=10),

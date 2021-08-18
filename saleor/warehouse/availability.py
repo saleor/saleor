@@ -72,15 +72,15 @@ def check_stock_quantity_bulk(
             insufficient_stocks.append(
                 InsufficientStockData(
                     variant=variant,
-                    available_quantity=available_quantity,  # type: ignore
+                    available_quantity=available_quantity,
                 )
             )
         elif variant.track_inventory:
-            if quantity > available_quantity:  # type: ignore
+            if quantity > available_quantity:
                 insufficient_stocks.append(
                     InsufficientStockData(
                         variant=variant,
-                        available_quantity=available_quantity,  # type: ignore
+                        available_quantity=available_quantity,
                     )
                 )
 

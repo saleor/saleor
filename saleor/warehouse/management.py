@@ -1,17 +1,13 @@
 from collections import defaultdict, namedtuple
 from typing import TYPE_CHECKING, Dict, Iterable, List, cast
 
+from django.db import transaction
 from django.db.models import F, Sum
 
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
 from ..plugins.manager import PluginsManager
-from ..product.actions import (
-    check_and_trigger_back_in_stock_webhook,
-    trigger_back_in_stock_webhook,
-    trigger_out_of_stock_webhook,
-)
 from ..product.models import ProductVariant
 from .models import Allocation, Stock, Warehouse
 
@@ -95,13 +91,15 @@ def allocate_stocks(
 
         for allocation in allocations:
             allocated_stock = (
-                allocation.stock.allocations.aggregate(Sum("quantity_allocated"))[
-                    "quantity_allocated__sum"
-                ]
+                Allocation.objects.filter(stock_id=allocation.stock_id).aggregate(
+                    Sum("quantity_allocated")
+                )["quantity_allocated__sum"]
                 or 0
             )
             if not max(allocation.stock.quantity - allocated_stock, 0):
-                trigger_out_of_stock_webhook(allocation.stock, manager)
+                transaction.on_commit(
+                    lambda: manager.product_variant_out_of_stock(allocation.stock)
+                )
 
 
 def _create_allocations(
@@ -199,17 +197,27 @@ def deallocate_stock(
     if not_dellocated_lines:
         raise AllocationError(not_dellocated_lines)
 
-    available_stock_before = [
-        (allocation, allocation.stock.available_quantity())
-        for allocation in allocations_to_update
-    ]
+    allocations_before_update = list(
+        Allocation.objects.filter(
+            id__in=[a.id for a in allocations_to_update]
+        ).annotate_stock_available_quantity()
+    )
 
     Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
 
-    for allocation, allocation_quantity_before in available_stock_before:
-        check_and_trigger_back_in_stock_webhook(
-            allocation, allocation_quantity_before, manager
+    for allocation_before_update in allocations_before_update:
+        available_stock_now = Allocation.objects.available_quantity_for_stock(
+            allocation_before_update.stock
         )
+        if (
+            allocation_before_update.stock_available_quantity == 0
+            and available_stock_now > 0
+        ):
+            transaction.on_commit(
+                lambda: manager.product_variant_back_in_stock(
+                    allocation_before_update.stock
+                )
+            )
 
 
 @traced_atomic_transaction()
@@ -350,9 +358,14 @@ def decrease_stock(
             quantity_allocation_for_stocks,
         )
 
-        for stock in stocks:
-            if stock.available_quantity() <= 0:
-                trigger_out_of_stock_webhook(stock, manager)
+        stock_ids = (s.id for s in stocks)
+        for stock in Stock.objects.filter(
+            id__in=stock_ids
+        ).annotate_available_quantity():
+            if stock.available_quantity <= 0:
+                transaction.on_commit(
+                    lambda: manager.product_variant_out_of_stock(stock)
+                )
 
 
 def _decrease_stocks_quantity(
@@ -412,10 +425,12 @@ def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
     """Remove all allocations for given order."""
     allocations = Allocation.objects.filter(
         order_line__order=order, quantity_allocated__gt=0
-    ).select_for_update(of=("self",))
+    )
 
-    for allocation in allocations:
-        if allocation.stock.available_quantity() <= 0:
-            trigger_back_in_stock_webhook(allocation.stock, manager)
+    for allocation in allocations.annotate_stock_available_quantity():
+        if allocation.stock_available_quantity <= 0:
+            transaction.on_commit(
+                lambda: manager.product_variant_back_in_stock(allocation.stock)
+            )
 
     allocations.update(quantity_allocated=0)

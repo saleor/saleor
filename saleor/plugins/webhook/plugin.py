@@ -38,8 +38,8 @@ if TYPE_CHECKING:
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
     from ...product.models import Product, ProductVariant
-    from ...warehouse.models import Stock
     from ...translation.models import Translation
+    from ...warehouse.models import Stock
 
 
 logger = logging.getLogger(__name__)

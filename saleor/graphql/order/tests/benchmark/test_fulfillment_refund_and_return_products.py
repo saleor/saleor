@@ -4,6 +4,7 @@ import graphene
 import pytest
 
 from .....payment import ChargeStatus
+from .....warehouse.models import Stock
 from ....tests.utils import get_graphql_content
 
 
@@ -169,4 +170,5 @@ def test_fulfillment_return_products_order_lines(
     data = content["data"]["orderFulfillmentReturnProducts"]
     assert data["returnFulfillment"]
     assert data["replaceFulfillment"]
-    back_in_stock_webhook_mock.assert_called_once()
+
+    back_in_stock_webhook_mock.assert_called_once_with(Stock.objects.last())

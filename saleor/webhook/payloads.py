@@ -400,13 +400,13 @@ def generate_product_variant_with_stock_payload(stocks: Iterable["Stock"]):
     serializer = PayloadSerializer()
     extra_dict_data = {
         "product_id": lambda v: graphene.Node.to_global_id(
-            "Product", v.product_variant.product.id
+            "Product", v.product_variant.product_id
         ),
         "product_variant_id": lambda v: graphene.Node.to_global_id(
-            "ProductVariant", v.product_variant.id
+            "ProductVariant", v.product_variant_id
         ),
         "warehouse_id": lambda v: graphene.Node.to_global_id(
-            "Warehouse", v.warehouse.id
+            "Warehouse", v.warehouse_id
         ),
         "product_slug": lambda v: v.product_variant.product.slug,
     }
@@ -425,7 +425,6 @@ def generate_product_variant_payload(product_variants: Iterable["ProductVariant"
             "channel_listings": lambda v: json.loads(
                 generate_product_variant_listings_payload(v.channel_listings.all())
             ),
-            "quantity_in_stocks": lambda v: generate_product_variant_stocks_payload(v),
         },
     )
     return payload

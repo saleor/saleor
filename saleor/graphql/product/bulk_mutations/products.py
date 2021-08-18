@@ -14,10 +14,6 @@ from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import models
-from ....product.actions import (
-    trigger_back_in_stock_webhook,
-    trigger_out_of_stock_webhook,
-)
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
@@ -640,6 +636,7 @@ class ProductVariantStocksCreate(BaseMutation):
         error_type_field = "bulk_stock_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         manager = info.context.plugins
         errors = defaultdict(list)
@@ -654,7 +651,9 @@ class ProductVariantStocksCreate(BaseMutation):
             new_stocks = create_stocks(variant, stocks, warehouses)
 
             for stock in new_stocks:
-                trigger_back_in_stock_webhook(stock, manager)
+                transaction.on_commit(
+                    lambda: manager.product_variant_back_in_stock(stock)
+                )
 
         variant = ChannelContext(node=variant, channel_slug=None)
 
@@ -743,10 +742,14 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             )
 
             if is_created or (stock.quantity == 0 and stock_data["quantity"] > 0):
-                trigger_back_in_stock_webhook(stock, manager)
+                transaction.on_commit(
+                    lambda: manager.product_variant_back_in_stock(stock)
+                )
 
             if stock_data["quantity"] <= 0:
-                trigger_out_of_stock_webhook(stock, manager)
+                transaction.on_commit(
+                    lambda: manager.product_variant_out_of_stock(stock)
+                )
 
             stock.quantity = stock_data["quantity"]
             stocks.append(stock)
@@ -791,7 +794,7 @@ class ProductVariantStocksDelete(BaseMutation):
         variant = ChannelContext(node=variant, channel_slug=None)
 
         for stock in stocks_to_delete:
-            trigger_out_of_stock_webhook(stock, manager)
+            transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
 
         stocks_to_delete.delete()
 

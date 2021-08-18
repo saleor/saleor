@@ -74,7 +74,7 @@ def test_fulfillment_refund_products_with_back_in_stock_webhook(
     errors = data["errors"]
     assert not errors
     assert refund_fulfillment["status"] == FulfillmentStatus.REFUNDED.upper()
-    back_in_stock_webhook_trigger.assert_called_once()
+    back_in_stock_webhook_trigger.assert_called_once_with(Stock.objects.first())
 
 
 def test_fulfillment_refund_products_order_without_payment(

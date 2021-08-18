@@ -2953,7 +2953,9 @@ def test_draft_order_complete(
     assert matching_events.count() == 2
     assert matching_events[0].type != matching_events[1].type
     assert not OrderEvent.objects.exclude(**event_params).exists()
-    product_variant_out_of_stock_webhook_mock.assert_called_once()
+    product_variant_out_of_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.last()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
@@ -2982,6 +2984,7 @@ def test_draft_order_complete_with_out_of_stock_webhook(
     )["quantity_allocated__sum"]
     assert total_stock == total_allocation
     assert product_variant_out_of_stock_webhook_mock.call_count == 2
+    product_variant_out_of_stock_webhook_mock.assert_called_with(Stock.objects.last())
 
 
 def test_draft_order_from_reissue_complete(
@@ -3390,7 +3393,9 @@ def test_order_lines_create_with_out_of_stock_webhook(
         "stock__quantity__sum"
     ]
     assert quantity_allocated == stock_quantity
-    product_variant_out_of_stock_webhook_mock.assert_called_once()
+    product_variant_out_of_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.first()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
@@ -3413,8 +3418,9 @@ def test_order_lines_create_for_variant_with_many_stocks_with_out_of_stock_webho
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     staff_api_client.post_graphql(query, variables)
-
-    product_variant_out_of_stock_webhook_mock.assert_called_once()
+    product_variant_out_of_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.all()[3]
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
@@ -3649,6 +3655,7 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
     staff_api_client.post_graphql(query, variables)
 
     assert out_of_stock_mock.call_count == 2
+    out_of_stock_mock.assert_called_with(Stock.objects.last())
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
@@ -3671,12 +3678,12 @@ def test_order_line_update_with_out_of_stock_webhook_success_scenario(
     variables = {"lineId": line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
 
-    out_of_stock_mock.assert_called_once()
+    out_of_stock_mock.assert_called_once_with(Stock.objects.first())
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 def test_order_line_update_with_back_in_stock_webhook_fail_scenario(
-    back_in_stock_mock,
+    product_variant_back_in_stock_webhook_mock,
     order_with_lines,
     permission_manage_orders,
     staff_api_client,
@@ -3694,7 +3701,7 @@ def test_order_line_update_with_back_in_stock_webhook_fail_scenario(
     variables = {"lineId": line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
 
-    back_in_stock_mock.assert_not_called()
+    product_variant_back_in_stock_webhook_mock.assert_not_called()
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
@@ -3720,12 +3727,12 @@ def test_order_line_update_with_back_in_stock_webhook_called_once_success_scenar
     staff_api_client.user.user_permissions.add(permission_manage_orders)
 
     staff_api_client.post_graphql(query, variables)
-    back_in_stock_mock.assert_called_once()
+    back_in_stock_mock.assert_called_once_with(first_allocated.stock)
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 def test_order_line_update_with_back_in_stock_webhook_called_twice_success_scenario(
-    back_in_stock_mock,
+    product_variant_back_in_stock_webhook_mock,
     order_with_lines,
     permission_manage_orders,
     staff_api_client,
@@ -3751,7 +3758,8 @@ def test_order_line_update_with_back_in_stock_webhook_called_twice_success_scena
     variables = {"lineId": second_line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
 
-    assert back_in_stock_mock.call_count == 2
+    assert product_variant_back_in_stock_webhook_mock.call_count == 2
+    product_variant_back_in_stock_webhook_mock.assert_called_with(Stock.objects.last())
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
@@ -3943,7 +3951,16 @@ def test_order_line_remove_with_back_in_stock_webhook(
     staff_api_client,
 ):
     Stock.objects.update(quantity=3)
-    assert Stock.objects.first().available_quantity() == 0
+    first_stock = Stock.objects.first()
+    assert (
+        first_stock.quantity
+        - (
+            first_stock.allocations.aggregate(Sum("quantity_allocated"))[
+                "quantity_allocated__sum"
+            ]
+            or 0
+        )
+    ) == 0
 
     query = ORDER_LINE_DELETE_MUTATION
     order = order_with_lines
@@ -3964,8 +3981,17 @@ def test_order_line_remove_with_back_in_stock_webhook(
     assert OrderEvent.objects.last().type == order_events.OrderEvents.REMOVED_PRODUCTS
     assert data["orderLine"]["id"] == line_id
     assert line not in order.lines.all()
-    assert Stock.objects.first().available_quantity() == 3
-    back_in_stock_webhook_mock.assert_called_once()
+    first_stock.refresh_from_db()
+    assert (
+        first_stock.quantity
+        - (
+            first_stock.allocations.aggregate(Sum("quantity_allocated"))[
+                "quantity_allocated__sum"
+            ]
+            or 0
+        )
+    ) == 3
+    back_in_stock_webhook_mock.assert_called_once_with(Stock.objects.first())
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))

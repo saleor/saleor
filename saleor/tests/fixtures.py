@@ -10,7 +10,6 @@ from unittest.mock import MagicMock, Mock
 import graphene
 import pytest
 import pytz
-from PIL import Image
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
@@ -22,14 +21,12 @@ from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django.utils import timezone
 from django_countries import countries
+from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
-from .utils import dummy_editorjs
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App, AppInstallation
-from ..app.models import AppExtension
-from ..app.types import AppExtensionTarget, AppExtensionType, AppExtensionView
-from ..app.types import AppType
+from ..app.models import App, AppExtension, AppInstallation
+from ..app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
@@ -115,6 +112,7 @@ from ..warehouse.models import Allocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
 from ..webhook.models import Webhook, WebhookEvent
 from ..wishlist.models import Wishlist
+from .utils import dummy_editorjs
 
 
 class CaptureQueriesContext(BaseCaptureQueriesContext):

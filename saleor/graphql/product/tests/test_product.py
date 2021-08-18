@@ -10059,7 +10059,9 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
 
     flush_post_commit_hooks()
-    product_variant_back_in_stock_webhook.assert_called_once()
+    product_variant_back_in_stock_webhook.assert_called_once_with(
+        Stock.objects.all()[1]
+    )
     product_variant_stock_out_of_stock_webhook.assert_not_called()
 
 
@@ -10096,7 +10098,9 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
 
     flush_post_commit_hooks()
     product_variant_back_in_stock_webhook.assert_not_called()
-    product_variant_stock_out_of_stock_webhook.assert_called_once()
+    product_variant_stock_out_of_stock_webhook.assert_called_once_with(
+        Stock.objects.all()[1]
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
@@ -10136,7 +10140,9 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
 
     flush_post_commit_hooks()
 
-    product_variant_stock_out_of_stock_webhook.assert_called_once()
+    product_variant_stock_out_of_stock_webhook.assert_called_once_with(
+        Stock.objects.last()
+    )
     product_variant_back_in_stock_webhook.assert_not_called()
 
 

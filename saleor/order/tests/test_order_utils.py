@@ -4,8 +4,7 @@ from unittest.mock import Mock
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.plugins.manager import get_plugins_manager
-
+from ...plugins.manager import get_plugins_manager
 from .. import OrderLineData, OrderStatus
 from ..events import OrderEvents
 from ..models import Order, OrderEvent

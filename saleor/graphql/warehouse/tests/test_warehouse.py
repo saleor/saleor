@@ -851,7 +851,7 @@ def test_delete_warehouse_mutation_with_webhooks(
     permission_manage_products,
     variant_with_many_stocks,
 ):
-
+    old_first_stock = Stock.objects.first()
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     assert Warehouse.objects.count() == 3
     assert Stock.objects.count() == 3
@@ -865,7 +865,7 @@ def test_delete_warehouse_mutation_with_webhooks(
     assert len(errors) == 0
     assert Warehouse.objects.count() == 2
     assert Stock.objects.count() == 2
-    product_variant_out_of_stock_webhook.assert_called_once()
+    product_variant_out_of_stock_webhook.assert_called_once_with(old_first_stock)
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")

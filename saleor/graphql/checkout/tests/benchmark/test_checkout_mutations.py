@@ -716,7 +716,9 @@ def test_complete_checkout_with_out_of_stock_webhook(
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutComplete"]["errors"]
-    product_variant_out_of_stock_webhook_mock.assert_called_once()
+    product_variant_out_of_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.last()
+    )
 
 
 @pytest.mark.django_db

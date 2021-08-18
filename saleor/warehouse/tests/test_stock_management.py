@@ -4,11 +4,10 @@ import pytest
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
-from saleor.plugins.manager import get_plugins_manager
-
 from ...core.exceptions import InsufficientStock
 from ...order import OrderLineData
 from ...order.models import OrderLine
+from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Stock
 from ..management import (
