@@ -66,9 +66,9 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         stocks = Stock.objects.filter(product_variant_id__in=variant_ids)
         WarehouseShippingZone = Warehouse.shipping_zones.through  # type: ignore
         warehouse_shipping_zones = WarehouseShippingZone.objects.all()
-        additional_warhouse_filter = False
+        additional_warehouse_filter = False
         if country_code or channel_slug:
-            additional_warhouse_filter = True
+            additional_warehouse_filter = True
             if country_code:
                 shipping_zones = ShippingZone.objects.filter(
                     countries__contains=country_code
@@ -94,7 +94,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             warehouse_shipping_zones_map[warehouse_shipping_zone.warehouse_id].append(
                 warehouse_shipping_zone.shippingzone_id
             )
-        if additional_warhouse_filter:
+        if additional_warehouse_filter:
             stocks = stocks.filter(warehouse_id__in=warehouse_shipping_zones_map.keys())
         stocks = stocks.annotate_available_quantity()
 
@@ -108,8 +108,8 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             quantity = stock.available_quantity
             variant_id = stock.product_variant_id
             warehouse_id = stock.warehouse_id
-            shippin_zone_ids = warehouse_shipping_zones_map[warehouse_id]
-            for shipping_zone_id in shippin_zone_ids:
+            shipping_zone_ids = warehouse_shipping_zones_map[warehouse_id]
+            for shipping_zone_id in shipping_zone_ids:
                 quantity_by_shipping_zone_by_product_variant[variant_id][
                     shipping_zone_id
                 ] += quantity
