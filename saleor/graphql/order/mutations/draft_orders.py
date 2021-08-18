@@ -419,7 +419,12 @@ class DraftOrderComplete(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, id):
         manager = info.context.plugins
-        order = cls.get_node_or_error(info, id, only_type=Order)
+        order = cls.get_node_or_error(
+            info,
+            id,
+            only_type=Order,
+            qs=models.Order.objects.prefetch_related("lines__variant"),
+        )
         country = get_order_country(order)
         validate_draft_order(order, country)
         cls.update_user_fields(order)
