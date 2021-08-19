@@ -86,7 +86,7 @@ class WarehouseQueryset(models.QuerySet):
             self.for_country(country)
             .prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
             .filter(stock__in=stocks_qs)
-            .annotate(stock_num=Count("stock__id"))
+            .annotate(stock_num=Count("stock__id", distinct=True))
             .filter(
                 Q(stock_num=lines_qs.count())
                 & Q(click_and_collect_option=warehouse_cc_option_enum.LOCAL_STOCK)

@@ -162,3 +162,18 @@ def test_applicable_for_click_and_collect_returns_empty_collection_if_different_
     )
 
     assert not result
+
+
+def test_applicable_for_click_and_collect_when_country_is_duplicated_within_zones(
+    warehouse_for_cc, checkout_with_items_for_cc
+):
+    shipping_zone = ShippingZone.objects.create(name="Poland", countries=["PL"])
+    warehouse_for_cc.shipping_zones.add(shipping_zone)
+
+    lines = checkout_with_items_for_cc.lines.all()
+
+    result = Warehouse.objects.applicable_for_click_and_collect(
+        lines, checkout_with_items_for_cc.shipping_address.country.code
+    )
+
+    assert result.count() == 1
