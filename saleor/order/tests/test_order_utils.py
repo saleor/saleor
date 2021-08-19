@@ -2,8 +2,6 @@ from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
-from dateutil.relativedelta import relativedelta
-from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -282,11 +280,11 @@ def test_add_variant_to_order(order, customer_user, variant):
 
 
 def test_add_gift_cards_to_order(
-    checkout_with_item, gift_card, gift_card_expiry_period, order, staff_user
+    checkout_with_item, gift_card, gift_card_expiry_date, order, staff_user
 ):
     # given
     checkout = checkout_with_item
-    checkout.gift_cards.add(gift_card, gift_card_expiry_period)
+    checkout.gift_cards.add(gift_card, gift_card_expiry_date)
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
@@ -298,9 +296,9 @@ def test_add_gift_cards_to_order(
 
     # then
     gift_card.refresh_from_db()
-    gift_card_expiry_period.refresh_from_db()
+    gift_card_expiry_date.refresh_from_db()
     assert gift_card.current_balance_amount == 0
-    assert gift_card_expiry_period.current_balance_amount == 0
+    assert gift_card_expiry_date.current_balance_amount == 0
 
     gift_card_events = GiftCardEvent.objects.filter(gift_card_id=gift_card.id)
     assert gift_card_events.count() == 1
@@ -317,12 +315,8 @@ def test_add_gift_cards_to_order(
         "order_id": order.id,
     }
 
-    gift_card_expiry_period_events = GiftCardEvent.objects.filter(
-        gift_card_id=gift_card_expiry_period.id
-    )
-    assert len(gift_card_expiry_period_events) == 2
-    order_created_event = gift_card_expiry_period_events.get(
-        type=GiftCardEvents.USED_IN_ORDER
+    order_created_event = GiftCardEvent.objects.get(
+        gift_card_id=gift_card_expiry_date.id
     )
     assert order_created_event.user == staff_user
     assert order_created_event.app is None
@@ -333,14 +327,4 @@ def test_add_gift_cards_to_order(
             "old_current_balance": "10.000",
         },
         "order_id": order.id,
-    }
-    expiry_date_set_event = gift_card_expiry_period_events.get(
-        type=GiftCardEvents.EXPIRY_DATE_SET
-    )
-    assert expiry_date_set_event.user == staff_user
-    assert expiry_date_set_event.app is None
-    assert expiry_date_set_event.parameters == {
-        "expiry": {
-            "expiry_date": (timezone.now().date() + relativedelta(years=2)).isoformat()
-        }
     }
