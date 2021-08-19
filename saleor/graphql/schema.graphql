@@ -2307,6 +2307,7 @@ input GiftCardCreateInput {
   endDate: Date
   balance: PriceInput!
   userEmail: String
+  isActive: Boolean!
   code: String
   note: String
 }

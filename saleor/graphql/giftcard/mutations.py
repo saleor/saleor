@@ -46,6 +46,9 @@ class GiftCardCreateInput(GiftCardInput):
         required=False,
         description="Email of the customer to whom gift card will be sent.",
     )
+    is_active = graphene.Boolean(
+        required=True, description="Determine if gift card is active."
+    )
     code = graphene.String(
         required=False,
         description=(
