@@ -2099,9 +2099,9 @@ type ExternalNotificationError {
 }
 
 enum ExternalNotificationErrorCodes {
-  CANNOT_ASSIGN_NODE
-  GRAPHQL_ERROR
-  WRONG_PLUGIN_ID
+  INPUT_MISSING
+  IDS_MISSING
+  EXTERNAL_EVENT_TYPE_MISSING
 }
 
 type ExternalNotificationTrigger {
@@ -2110,7 +2110,7 @@ type ExternalNotificationTrigger {
 
 input ExternalNotificationTriggerInput {
   ids: [ID]!
-  extraPayloads: JSONString!
+  extraPayload: JSONString
   externalEventType: String!
 }
 

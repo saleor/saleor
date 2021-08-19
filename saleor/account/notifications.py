@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 
 from django.contrib.auth.tokens import default_token_generator
 
-from ..core.notifications import get_site_context
+from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils.url import prepare_url
 from .models import User

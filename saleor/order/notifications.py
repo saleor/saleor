@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 from django.forms import model_to_dict
 
 from ..account.models import StaffNotificationRecipient
-from ..core.notifications import get_site_context
+from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils.url import prepare_url
 from ..discount import OrderDiscountType

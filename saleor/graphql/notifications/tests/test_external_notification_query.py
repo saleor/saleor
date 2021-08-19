@@ -8,7 +8,55 @@ from ....account.models import User
 from ....core.notify_events import UserNotifyEvent
 from ....graphql.tests.utils import assert_no_permission
 from ....product.models import ProductVariant
-from .conftest import query_test_data
+
+query_test_data = [
+    (
+        {
+            "input": {
+                "ids": [],
+                "extraPayload": json.dumps("{}"),
+                "externalEventType": {},
+            },
+            "pluginId": "",
+        },
+        200,
+    ),
+    (
+        {
+            "input": {
+                "ids": [],
+                "extraPayload": json.dumps("{}"),
+                "externalEventType": {},
+            },
+            "pluginId": "WRONG-TEST-PLUGIN",
+        },
+        200,
+    ),
+    (
+        {
+            "input": {
+                "ids": [],
+                "extraPayload": json.dumps("{}"),
+                "externalEventType": {},
+            }
+        },
+        200,
+    ),
+    (
+        {"input": {"extraPayload": json.dumps("{}"), "externalEventType": {}}},
+        400,
+    ),
+    ({"input": {"ids": [], "externalEventType": {}}}, 200),
+    (
+        {
+            "input": {
+                "ids": [],
+                "extraPayload": json.dumps("{}"),
+            }
+        },
+        400,
+    ),
+]
 
 
 @pytest.mark.parametrize("variables, status_code", query_test_data)
@@ -59,7 +107,7 @@ def test_notify_sendgrid_via_external_notification_trigger_for_all_plugins(
                     "pk", flat=True
                 )
             ],
-            "extraPayloads": "{}",
+            "extraPayload": "{}",
             "externalEventType": UserNotifyEvent.ORDER_CANCELED,
         }
     }
@@ -102,7 +150,7 @@ def test_notify_via_external_notification_trigger_without_permission(
                     "pk", flat=True
                 )
             ],
-            "extraPayloads": "{}",
+            "extraPayload": "{}",
             "externalEventType": UserNotifyEvent.ORDER_CANCELED,
         },
         "pluginId": plugin.PLUGIN_ID,
@@ -141,7 +189,7 @@ def test_notify_via_external_notification_trigger_with_extra_payload(
                     "pk", flat=True
                 )
             ],
-            "extraPayloads": json.dumps(test_json),
+            "extraPayload": json.dumps(test_json),
             "externalEventType": UserNotifyEvent.ORDER_CANCELED,
         },
         "pluginId": plugin.PLUGIN_ID,
@@ -154,7 +202,7 @@ def test_notify_via_external_notification_trigger_with_extra_payload(
     )
 
     assert response.status_code == 200
-    payload = sendgrid_plugin_notify.call_args[1]["payload"]
+    payload = sendgrid_plugin_notify.call_args[1]["payload"]["extra_payload"]
     assert "TEST" in payload.keys()
     assert "TEST_LIST" in payload.keys()
     assert ["GUEST1", "GUEST2"] == payload.get("TEST_LIST")
@@ -177,7 +225,7 @@ def test_notify_via_external_notification_trigger_with_extra_payload_for_custome
     variables = {
         "input": {
             "ids": [to_global_id(User.__name__, user.id) for user in staff_users],
-            "extraPayloads": json.dumps(test_json),
+            "extraPayload": json.dumps(test_json),
             "externalEventType": UserNotifyEvent.ORDER_CANCELED,
         },
         "pluginId": plugin.PLUGIN_ID,
@@ -190,7 +238,7 @@ def test_notify_via_external_notification_trigger_with_extra_payload_for_custome
     )
 
     assert response.status_code == 200
-    payload = sendgrid_plugin_notify.call_args[1]["payload"]
+    payload = sendgrid_plugin_notify.call_args[1]["payload"]["extra_payload"]
     assert "TEST" in payload.keys()
     assert "TEST_LIST" in payload.keys()
     assert ["GUEST1", "GUEST2"] == payload.get("TEST_LIST")
@@ -224,159 +272,6 @@ class TestSetWithVariousDataTypes:
             sendgrid_email_plugin,
             ids,
             permission_manage_orders,
-        )
-
-    @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
-    @patch("saleor.plugins.admin_email.plugin.AdminEmailPlugin.notify")
-    @patch("saleor.plugins.user_email.plugin.UserEmailPlugin.notify")
-    @patch("saleor.plugins.sendgrid.plugin.SendgridEmailPlugin.notify")
-    def test_for_fulfillment(
-        self,
-        sendgrid_plugin_notify,
-        user_email_plugin_notify,
-        admin_email_plugin_notify,
-        webhook_plugin_notify,
-        staff_api_client,
-        external_notification_trigger_query,
-        sendgrid_email_plugin,
-        fulfillment,
-        permission_manage_orders,
-    ):
-        ids = [to_global_id(fulfillment.__class__.__name__, fulfillment.id)]
-        self._common_part(
-            sendgrid_plugin_notify,
-            user_email_plugin_notify,
-            admin_email_plugin_notify,
-            webhook_plugin_notify,
-            staff_api_client,
-            external_notification_trigger_query,
-            sendgrid_email_plugin,
-            ids,
-            permission_manage_orders,
-        )
-
-    @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
-    @patch("saleor.plugins.admin_email.plugin.AdminEmailPlugin.notify")
-    @patch("saleor.plugins.user_email.plugin.UserEmailPlugin.notify")
-    @patch("saleor.plugins.sendgrid.plugin.SendgridEmailPlugin.notify")
-    def test_for_list_of_checkouts(
-        self,
-        sendgrid_plugin_notify,
-        user_email_plugin_notify,
-        admin_email_plugin_notify,
-        webhook_plugin_notify,
-        staff_api_client,
-        external_notification_trigger_query,
-        sendgrid_email_plugin,
-        checkouts_list,
-        permission_manage_checkouts,
-    ):
-        ids = [
-            to_global_id(checkout.__class__.__name__, checkout.token)
-            for checkout in checkouts_list
-        ]
-        self._common_part(
-            sendgrid_plugin_notify,
-            user_email_plugin_notify,
-            admin_email_plugin_notify,
-            webhook_plugin_notify,
-            staff_api_client,
-            external_notification_trigger_query,
-            sendgrid_email_plugin,
-            ids,
-            permission_manage_checkouts,
-        )
-
-    @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
-    @patch("saleor.plugins.admin_email.plugin.AdminEmailPlugin.notify")
-    @patch("saleor.plugins.user_email.plugin.UserEmailPlugin.notify")
-    @patch("saleor.plugins.sendgrid.plugin.SendgridEmailPlugin.notify")
-    def test_for_checkout(
-        self,
-        sendgrid_plugin_notify,
-        user_email_plugin_notify,
-        admin_email_plugin_notify,
-        webhook_plugin_notify,
-        staff_api_client,
-        external_notification_trigger_query,
-        sendgrid_email_plugin,
-        checkout_with_item,
-        permission_manage_checkouts,
-    ):
-        ids = [
-            to_global_id(
-                checkout_with_item.__class__.__name__, checkout_with_item.token
-            )
-        ]
-        self._common_part(
-            sendgrid_plugin_notify,
-            user_email_plugin_notify,
-            admin_email_plugin_notify,
-            webhook_plugin_notify,
-            staff_api_client,
-            external_notification_trigger_query,
-            sendgrid_email_plugin,
-            ids,
-            permission_manage_checkouts,
-        )
-
-    @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
-    @patch("saleor.plugins.admin_email.plugin.AdminEmailPlugin.notify")
-    @patch("saleor.plugins.user_email.plugin.UserEmailPlugin.notify")
-    @patch("saleor.plugins.sendgrid.plugin.SendgridEmailPlugin.notify")
-    def test_for_invoice(
-        self,
-        sendgrid_plugin_notify,
-        user_email_plugin_notify,
-        admin_email_plugin_notify,
-        webhook_plugin_notify,
-        staff_api_client,
-        external_notification_trigger_query,
-        sendgrid_email_plugin,
-        fulfilled_order,
-        permission_manage_orders,
-    ):
-        invoice = fulfilled_order.invoices.last()
-        ids = [to_global_id(invoice.__class__.__name__, invoice.id)]
-        self._common_part(
-            sendgrid_plugin_notify,
-            user_email_plugin_notify,
-            admin_email_plugin_notify,
-            webhook_plugin_notify,
-            staff_api_client,
-            external_notification_trigger_query,
-            sendgrid_email_plugin,
-            ids,
-            permission_manage_orders,
-        )
-
-    @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
-    @patch("saleor.plugins.admin_email.plugin.AdminEmailPlugin.notify")
-    @patch("saleor.plugins.user_email.plugin.UserEmailPlugin.notify")
-    @patch("saleor.plugins.sendgrid.plugin.SendgridEmailPlugin.notify")
-    def test_for_product(
-        self,
-        sendgrid_plugin_notify,
-        user_email_plugin_notify,
-        admin_email_plugin_notify,
-        webhook_plugin_notify,
-        staff_api_client,
-        external_notification_trigger_query,
-        sendgrid_email_plugin,
-        product,
-        permission_manage_products,
-    ):
-        ids = [to_global_id(product.__class__.__name__, product.id)]
-        self._common_part(
-            sendgrid_plugin_notify,
-            user_email_plugin_notify,
-            admin_email_plugin_notify,
-            webhook_plugin_notify,
-            staff_api_client,
-            external_notification_trigger_query,
-            sendgrid_email_plugin,
-            ids,
-            permission_manage_products,
         )
 
     @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
@@ -491,7 +386,7 @@ class TestSetWithVariousDataTypes:
         variables = {
             "input": {
                 "ids": ids,
-                "extraPayloads": "{}",
+                "extraPayload": "{}",
                 "externalEventType": UserNotifyEvent.ORDER_CANCELED,
             },
             "pluginId": plugin.PLUGIN_ID,

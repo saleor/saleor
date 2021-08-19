@@ -16,7 +16,11 @@ CELERY_RETRY_MAX = 5
 
 
 def send_email(configuration: SendgridConfiguration, template_id, payload):
-    recipient_email = payload["recipient_email"]
+    recipient_email = (
+        payload.get("extra_payload", {}).get("recipient_email")
+        or payload.get("email")
+        or payload.get("recipient_email")
+    )
     sendgrid_client = SendGridAPIClient(configuration.api_key)
     from_email = (configuration.sender_address, configuration.sender_name)
     message = Mail(from_email=from_email, to_emails=recipient_email)

@@ -1,7 +1,6 @@
 from graphene_federation import build_schema
 
-from saleor.graphql.notifications.schema import ExternalNotificationMutations
-
+from ..graphql.notifications.schema import ExternalNotificationMutations
 from .account.schema import AccountMutations, AccountQueries
 from .app.schema import AppMutations, AppQueries
 from .attribute.schema import AttributeMutations, AttributeQueries

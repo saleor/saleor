@@ -1,21 +1,22 @@
+import json
 from unittest.mock import patch
 
 from graphql_relay.node.node import to_global_id
 
 from ....core.notify_events import UserNotifyEvent
 from ....product.models import ProductVariant
+from ....webhook.payloads import generate_product_variant_payload
 
 
-@patch("saleor.plugins.sendgrid.tasks.send_email_with_dynamic_template_id.delay")
+@patch("saleor.plugins.manager.PluginsManager.notify_in_single_plugin")
 def test_notify_sendgrid_via_external_notification_trigger_for_sendgrid_plugin(
-    send_email_with_dynamic_template_id,
+    notify_single_plugin_mock,
     settings,
     product_with_single_variant,
     external_notification_trigger_query,
     staff_api_client,
     permission_manage_products,
     sendgrid_email_plugin,
-    caplog,
 ):
 
     settings.PLUGINS = [
@@ -32,7 +33,7 @@ def test_notify_sendgrid_via_external_notification_trigger_for_sendgrid_plugin(
                     "pk", flat=True
                 )
             ],
-            "extraPayloads": '{"recipient_email":"test@gmail.com"}',
+            "extraPayload": '{"recipient_email":"test@gmail.com"}',
             "externalEventType": test_template_id,
         },
         "pluginId": "mirumee.notifications.sendgrid_email",
@@ -45,11 +46,7 @@ def test_notify_sendgrid_via_external_notification_trigger_for_sendgrid_plugin(
     )
 
     assert response.status_code == 200
-    send_email_with_dynamic_template_id.assert_called_once()
-    assert (
-        f"Send email with event {test_template_id} as dynamic template ID."
-        in caplog.text
-    )
+    notify_single_plugin_mock.assert_called_once()
 
 
 @patch("saleor.plugins.webhook.plugin.WebhookPlugin.notify")
@@ -79,7 +76,7 @@ def test_external_notification_trigger_for_all_plugins_args_checking(
                     "pk", flat=True
                 )
             ],
-            "extraPayloads": '{"recipient_email":"test@gmail.com"}',
+            "extraPayload": '{"recipient_email":"test@gmail.com"}',
             "externalEventType": test_template_id,
         },
     }
@@ -89,10 +86,16 @@ def test_external_notification_trigger_for_all_plugins_args_checking(
         variables,
         permissions=[permission_manage_products],
     )
+    expected_payload = json.loads(
+        generate_product_variant_payload(product_with_single_variant.variants.all())
+    )
+    for payload in expected_payload:
+        payload["extra_payload"] = {"recipient_email": "test@gmail.com"}
 
     assert response.status_code == 200
-    webhook_plugin_notify.assert_called_once()
-    assert webhook_plugin_notify.call_args[0][0] == test_template_id
+    webhook_plugin_notify.assert_called_once_with(
+        test_template_id, expected_payload[0], previous_value=None
+    )
 
 
 def test_notification_trigger_for_all_plugins_logs_checking(
@@ -121,7 +124,7 @@ def test_notification_trigger_for_all_plugins_logs_checking(
                     "pk", flat=True
                 )
             ],
-            "extraPayloads": '{"recipient_email":"test@gmail.com"}',
+            "extraPayload": '{"recipient_email":"test@gmail.com"}',
             "externalEventType": test_template_id,
         },
     }
@@ -165,7 +168,7 @@ def test_notify_sendgrid_via_external_notification_trigger_for_all_plugins_lack_
                     "pk", flat=True
                 )
             ],
-            "extraPayloads": '{"recipient_email":"test@gmail.com"}',
+            "extraPayload": '{"recipient_email":"test@gmail.com"}',
             "externalEventType": UserNotifyEvent.ORDER_CANCELED,
         },
     }
