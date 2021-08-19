@@ -30,16 +30,17 @@ class AppManifestExtension(graphene.ObjectType):
         required=True,
     )
     label = graphene.String(
-        description="Label of the extension show on dashboard side.", required=True
+        description="Label of the extension to show in the dashboard.", required=True
     )
     url = graphene.String(
-        description="URL where iframe of extension is placed.", required=True
+        description="URL of a view where extension's iframe is placed.", required=True
     )
     view = AppExtensionViewEnum(
-        description="View where extension's iframe will be mounted.", required=True
+        description="Name of a view where extension's iframe will be mounted.",
+        required=True,
     )
     type = AppExtensionTypeEnum(
-        description="Type of view where extension's iframe will be mounted.",
+        description="Type of a view where extension's iframe will be mounted.",
         required=True,
     )
     target = AppExtensionTargetEnum(
