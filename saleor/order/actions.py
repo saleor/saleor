@@ -653,9 +653,9 @@ def create_fulfillments(
         order_fulfilled if approved else order_awaits_fulfillment_approval
     )
     transaction.on_commit(
-        lambda: post_creation_func(  # type: ignore
+        lambda: post_creation_func(
             fulfillments,
-            user,
+            user,  # type: ignore
             app,
             fulfillment_lines,
             manager,
