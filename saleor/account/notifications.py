@@ -23,6 +23,15 @@ def get_default_user_payload(user: User):
     }
 
 
+def get_user_custom_payload(user: User):
+    payload = {
+        "user": get_default_user_payload(user),
+        "recipient_email": user.email,
+        **get_site_context(),
+    }
+    return payload
+
+
 def send_password_reset_notification(
     redirect_url, user, manager, channel_slug: Optional[str], staff=False
 ):

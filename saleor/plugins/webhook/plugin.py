@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from ...app.models import App
 from ...core.notify_events import NotifyEventType
@@ -239,7 +239,9 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.CHECKOUT_UPDATED, checkout_data
         )
 
-    def notify(self, event: NotifyEventType, payload: dict, previous_value) -> Any:
+    def notify(
+        self, event: Union[NotifyEventType, str], payload: dict, previous_value
+    ) -> Any:
         if not self.active:
             return previous_value
 
@@ -247,7 +249,7 @@ class WebhookPlugin(BasePlugin):
         data = {"notify_event": event, "payload": payload}
 
         if event not in NotifyEventType.CHOICES:
-            logger.warning(
+            logger.info(
                 f"Webhook {notify_user_event} triggered for {event} notify event."
             )
 

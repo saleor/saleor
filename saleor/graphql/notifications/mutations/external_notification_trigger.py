@@ -25,14 +25,14 @@ class ExternalNotificationTriggerInput(graphene.InputObjectType):
     )
     extra_payload = graphene.JSONString(
         description=(
-            "Additional payload that will be merged with"
+            "Additional payload that will be merged with "
             "the one based on the bussines object ID."
         )
     )
     external_event_type = graphene.String(
         required=True,
         description=(
-            "External event type. In case of invalid type,"
+            "External event type. In case of invalid type, "
             "Saleor will consider the content"
             "of that field like a ID of dynamic template."
         ),
@@ -42,15 +42,15 @@ class ExternalNotificationTriggerInput(graphene.InputObjectType):
 class ExternalNotificationTrigger(BaseMutation):
     class Arguments:
         input = ExternalNotificationTriggerInput(
-            required=True, description="Input for External Notification Trigger."
+            required=True, description="Input for External Notification Trigger. "
         )
         plugin_id = graphene.String(description="The ID of notification plugin.")
 
     class Meta:
         description = (
-            "Trigger sending a notification with the notify plugin method."
-            " Serializes nodes provided as ids parameter and includes this data in"
-            " the notification payload."
+            "Trigger sending a notification with the notify plugin method. "
+            "Serializes nodes provided as ids parameter and includes this data in "
+            "the notification payload."
         )
         error_type_class = ExternalNotificationError
 
@@ -65,7 +65,7 @@ class ExternalNotificationTrigger(BaseMutation):
             model, payload_function, permission_type = validate_and_get_payload_params(
                 model_type
             )
-            if cls._is_user_has_permission(info.context, permission_type):
+            if cls._requestor_has_permission(info.context, permission_type):
                 objects = model.objects.filter(pk__in=pks)
                 payload = get_external_notification_payload(
                     objects, extra_payload, payload_function
@@ -76,7 +76,7 @@ class ExternalNotificationTrigger(BaseMutation):
         return cls()
 
     @classmethod
-    def _is_user_has_permission(cls, context, permission_type):
+    def _requestor_has_permission(cls, context, permission_type):
         if cls.check_permissions(context, (permission_type,)):
             return True
         raise PermissionDenied()

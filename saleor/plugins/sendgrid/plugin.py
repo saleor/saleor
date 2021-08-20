@@ -1,5 +1,6 @@
 import logging
 from dataclasses import asdict
+from typing import Union
 
 from django.core.exceptions import ValidationError
 
@@ -210,21 +211,20 @@ class SendgridEmailPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = SendgridConfiguration(**configuration)
 
-    def notify(self, event: NotifyEventType, payload: dict, previous_value):
+    def notify(self, event: Union[NotifyEventType, str], payload: dict, previous_value):
         if not self.active:
             return previous_value
 
         event_in_notify_event = event in UserNotifyEvent.CHOICES
-        event_in_event_map = event in EVENT_MAP
 
-        if not event_in_notify_event or not event_in_event_map:
+        if not event_in_notify_event:
             logger.info(f"Send email with event {event} as dynamic template ID.")
             send_email_with_dynamic_template_id.delay(
                 payload, event, asdict(self.config)
             )
             return previous_value
 
-        if not event_in_notify_event:
+        if event not in EVENT_MAP:
             logger.warning(f"Missing handler for event {event}")
             return previous_value
 
