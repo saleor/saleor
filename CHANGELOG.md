@@ -4,6 +4,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 
 # 3.1.0 [Unreleased]
+# 3.1.0 [Unreleased]
+- Extend app by `AppExtension` - #7701 by @korycins
 
 # 3.0.0 [Unreleased]
 
@@ -130,6 +132,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix failing account mutations for app - #7569 by @IKarbowiak
 - Modify order of auth middleware calls - #7572 by @tomaszszymanski129
 - Add app support for events - #7622 by @IKarbowiak
+- Fulfillment confirmation - #7675 by @tomaszszymanski129
 - Add date & date time attributes - #7500 by @piotrgrundas
 - Add `withChoices` flag for Attribute type - #7733 by @dexon44
 - Drop assigning cheapest shipping method in checkout - #7767 by @maarcingebala
@@ -137,6 +140,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate `query` argument in `sales` and `vouchers` queries - #7806 by @maarcingebala
 - Allow translating objects by translatable content ID - #7803 by @maarcingebala
 - Add `page_type_id` when it's possible for `AttributeValue` translations webhook. - #7825 by @fowczarek
+- Optimize available quantity loader. - #7802 by @fowczarek
 
 
 ### Breaking

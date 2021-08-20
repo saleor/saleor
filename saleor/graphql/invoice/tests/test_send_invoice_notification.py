@@ -46,7 +46,11 @@ def test_invoice_send_notification_by_user(
         "site_name": "mirumee.com",
     }
 
-    mock_notify.assert_called_once_with(NotifyEventType.INVOICE_READY, expected_payload)
+    mock_notify.assert_called_once_with(
+        NotifyEventType.INVOICE_READY,
+        expected_payload,
+        channel_slug=invoice.order.channel.slug,
+    )
     assert not content["data"]["invoiceSendNotification"]["errors"]
 
 
@@ -73,7 +77,11 @@ def test_invoice_send_notification_by_app(
         "site_name": "mirumee.com",
     }
 
-    mock_notify.assert_called_once_with(NotifyEventType.INVOICE_READY, expected_payload)
+    mock_notify.assert_called_once_with(
+        NotifyEventType.INVOICE_READY,
+        expected_payload,
+        channel_slug=invoice.order.channel.slug,
+    )
     assert not content["data"]["invoiceSendNotification"]["errors"]
 
 

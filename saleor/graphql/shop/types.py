@@ -129,7 +129,10 @@ class Shop(graphene.ObjectType):
         graphene.NonNull(CountryDisplay),
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="A language code to return the translation for.",
+            description=(
+                "DEPRECATED: This argument will be removed in Saleor 4.0. "
+                "A language code to return the translation for."
+            ),
         ),
         description="List of countries available in the shop.",
         required=True,
@@ -160,6 +163,12 @@ class Shop(graphene.ObjectType):
     header_text = graphene.String(description="Header text.")
     include_taxes_in_prices = graphene.Boolean(
         description="Include taxes in prices.", required=True
+    )
+    fulfillment_auto_approve = graphene.Boolean(
+        description="Automatically approve all new fulfillments.", required=True
+    )
+    fulfillment_allow_unpaid = graphene.Boolean(
+        description="Allow to approve fulfillments which are unpaid.", required=True
     )
     display_gross_prices = graphene.Boolean(
         description="Display prices with tax in store.", required=True
@@ -234,6 +243,8 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_countries(_, _info, language_code=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
+
+        # DEPRECATED: translation.override will be dropped in Saleor 4.0
         with translation.override(language_code):
             return [
                 CountryDisplay(
@@ -285,6 +296,14 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_include_taxes_in_prices(_, info):
         return info.context.site.settings.include_taxes_in_prices
+
+    @staticmethod
+    def resolve_fulfillment_auto_approve(_, info):
+        return info.context.site.settings.fulfillment_auto_approve
+
+    @staticmethod
+    def resolve_fulfillment_allow_unpaid(_, info):
+        return info.context.site.settings.fulfillment_allow_unpaid
 
     @staticmethod
     def resolve_display_gross_prices(_, info):

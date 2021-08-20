@@ -25,8 +25,8 @@ from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App, AppInstallation
-from ..app.types import AppType
+from ..app.models import App, AppExtension, AppInstallation
+from ..app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
@@ -64,11 +64,17 @@ from ..order.events import (
     fulfillment_refunded_event,
     order_added_products_event,
 )
-from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
+from ..order.models import (
+    FulfillmentLine,
+    FulfillmentStatus,
+    Order,
+    OrderEvent,
+    OrderLine,
+)
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.interface import GatewayConfig, PaymentData
+from ..payment.interface import AddressData, GatewayConfig, PaymentData
 from ..payment.models import Payment
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
@@ -2985,7 +2991,7 @@ def order_events(order):
 @pytest.fixture
 def fulfilled_order(order_with_lines):
     order = order_with_lines
-    invoice = order.invoices.create(
+    order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
         created=datetime.datetime.now(tz=pytz.utc),
@@ -3057,6 +3063,25 @@ def fulfilled_order_with_all_cancelled_fulfillments(
 @pytest.fixture
 def fulfillment(fulfilled_order):
     return fulfilled_order.fulfillments.first()
+
+
+@pytest.fixture
+def fulfillment_awaiting_approval(fulfilled_order):
+    order_line = fulfilled_order.lines.first()
+    order_line.quantity_fulfilled = 0
+    order_line.save(update_fields=["quantity_fulfilled"])
+
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
+
+    fulfillment_lines_to_update = []
+    for f_line in fulfillment.lines.all():
+        f_line.quantity = 1
+        fulfillment_lines_to_update.append(f_line)
+    FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
+
+    return fulfillment
 
 
 @pytest.fixture
@@ -3220,6 +3245,23 @@ def dummy_payment_data(payment_dummy):
         order_id=None,
         customer_ip_address=None,
         customer_email="example@test.com",
+    )
+
+
+@pytest.fixture
+def dummy_address_data(address):
+    return AddressData(
+        first_name=address.first_name,
+        last_name=address.last_name,
+        company_name=address.company_name,
+        street_address_1=address.street_address_1,
+        street_address_2=address.street_address_2,
+        city=address.city,
+        city_area=address.city_area,
+        postal_code=address.postal_code,
+        country=address.country,
+        country_area=address.country_area,
+        phone=address.phone,
     )
 
 
@@ -4038,6 +4080,33 @@ def app(db):
 
 
 @pytest.fixture
+def app_with_extensions(app, permission_manage_products):
+    first_app_extension = AppExtension(
+        app=app,
+        label="Create product with App",
+        url="www.example.com/app-product",
+        view=AppExtensionView.PRODUCT,
+        type=AppExtensionType.OVERVIEW,
+        target=AppExtensionTarget.MORE_ACTIONS,
+    )
+    extensions = AppExtension.objects.bulk_create(
+        [
+            first_app_extension,
+            AppExtension(
+                app=app,
+                label="Update product with App",
+                url="www.example.com/app-product-update",
+                view=AppExtensionView.PRODUCT,
+                type=AppExtensionType.DETAILS,
+                target=AppExtensionTarget.MORE_ACTIONS,
+            ),
+        ]
+    )
+    first_app_extension.permissions.add(permission_manage_products)
+    return app, extensions
+
+
+@pytest.fixture
 def payment_app(db, permission_manage_payments):
     app = App.objects.create(name="Payment App", is_active=True)
     app.tokens.create(name="Default")
@@ -4346,3 +4415,21 @@ def app_export_event(app_export_file):
         app=app_export_file.app,
         parameters={"message": "Example error message"},
     )
+
+
+@pytest.fixture
+def app_manifest():
+    return {
+        "name": "Sample Saleor App",
+        "version": "0.1",
+        "about": "Sample Saleor App serving as an example.",
+        "dataPrivacy": "",
+        "dataPrivacyUrl": "",
+        "homepageUrl": "http://172.17.0.1:5000/homepageUrl",
+        "supportUrl": "http://172.17.0.1:5000/supportUrl",
+        "id": "saleor-complex-sample",
+        "permissions": ["MANAGE_PRODUCTS", "MANAGE_USERS"],
+        "appUrl": "",
+        "configurationUrl": "http://127.0.0.1:5000/configuration/",
+        "tokenTargetUrl": "http://127.0.0.1:5000/configuration/install",
+    }
