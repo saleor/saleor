@@ -325,18 +325,17 @@ def validate_format_of_provided_templates(
 
 
 def get_email_template(
-    plugin_configuration: PluginConfiguration, template_field_name: str, default: str
+    plugin_configuration: list, template_field_name: str, default: str
 ) -> str:
     """Get email template from plugin configuration."""
-    configuration = plugin_configuration.configuration
-    for config_field in configuration:
+    for config_field in plugin_configuration:
         if config_field["name"] == template_field_name:
             return config_field["value"] or default
     return default
 
 
 def get_email_template_or_default(
-    plugin_configuration: Optional[PluginConfiguration],
+    plugin_configuration: Optional[list],
     template_field_name: str,
     default_template_file_name: str,
     default_template_path: str,
@@ -356,15 +355,14 @@ def get_email_template_or_default(
 
 
 def get_email_subject(
-    plugin_configuration: Optional["PluginConfiguration"],
+    plugin_configuration: Optional[list],
     subject_field_name: str,
     default: str,
 ) -> str:
     """Get email subject from plugin configuration."""
     if not plugin_configuration:
         return default
-    configuration = plugin_configuration.configuration
-    for config_field in configuration:
+    for config_field in plugin_configuration:
         if config_field["name"] == subject_field_name:
             return config_field["value"] or default
     return default
