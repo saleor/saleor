@@ -7,7 +7,7 @@ from oauthlib.common import generate_token
 from ..core.models import Job, ModelWithMetadata
 from ..core.permissions import AppPermission
 from ..webhook.event_types import WebhookEventType
-from .types import AppType
+from .types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
 
 
 class AppQueryset(models.QuerySet):
@@ -101,6 +101,20 @@ class AppToken(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="tokens")
     name = models.CharField(blank=True, default="", max_length=128)
     auth_token = models.CharField(default=generate_token, unique=True, max_length=30)
+
+
+class AppExtension(models.Model):
+    app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="extensions")
+    label = models.CharField(max_length=256)
+    url = models.URLField()
+    view = models.CharField(choices=AppExtensionView.CHOICES, max_length=128)
+    type = models.CharField(choices=AppExtensionType.CHOICES, max_length=128)
+    target = models.CharField(choices=AppExtensionTarget.CHOICES, max_length=128)
+    permissions = models.ManyToManyField(
+        Permission,
+        blank=True,
+        help_text="Specific permissions for this app extension.",
+    )
 
 
 class AppInstallation(Job):

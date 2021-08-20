@@ -1,13 +1,14 @@
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Iterable, Optional
 
 import graphene
 import jwt
 from django.conf import settings
+from django.contrib.auth.models import Permission
 from django.core.handlers.wsgi import WSGIRequest
 
 from ..account.models import User
-from ..app.models import App
+from ..app.models import App, AppExtension
 from .permissions import (
     get_permission_names,
     get_permissions_from_codenames,
@@ -179,24 +180,22 @@ def get_user_from_access_payload(payload: dict) -> Optional[User]:
     return user
 
 
-def create_access_token_for_app(app: "App", user: "User"):
-    """Create access token for app.
-
-    App can use user jwt token to proceed given operation on the Saleor side.
-    The token which can be used by App has additional field defining the permissions
-    assigned to it. The permissions set is the intersection of user permissions and
-    app permissions.
-    """
-    app_permissions = app.permissions.all()
-    app_permission_enums = get_permission_names(app_permissions)
+def _create_access_token_for_third_party_actions(
+    permissions: Iterable["Permission"],
+    user: "User",
+    type: str,
+    object_id: int,
+    object_payload_key: str,
+):
+    app_permission_enums = get_permission_names(permissions)
 
     permissions = user.effective_permissions
     user_permission_enums = get_permission_names(permissions)
-    app_id = graphene.Node.to_global_id("App", app.id)
     additional_payload = {
-        "app": app_id,
+        object_payload_key: graphene.Node.to_global_id(type, object_id),
         PERMISSIONS_FIELD: list(app_permission_enums & user_permission_enums),
     }
+
     payload = jwt_user_payload(
         user,
         JWT_THIRDPARTY_ACCESS_TYPE,
@@ -204,3 +203,33 @@ def create_access_token_for_app(app: "App", user: "User"):
         additional_payload=additional_payload,
     )
     return jwt_encode(payload)
+
+
+def create_access_token_for_app(app: "App", user: "User"):
+    """Create access token for app.
+
+    App can use user's JWT token to proceed given operation in Saleor.
+    The token which can be used by App has additional field defining the permissions
+    assigned to it. The permissions set is the intersection of user permissions and
+    app permissions.
+    """
+    app_permissions = app.permissions.all()
+    return _create_access_token_for_third_party_actions(
+        permissions=app_permissions,
+        user=user,
+        type="App",
+        object_id=app.id,
+        object_payload_key="app",
+    )
+
+
+def create_access_token_for_app_extension(
+    app_extension: "AppExtension", permissions: Iterable["Permission"], user: "User"
+):
+    return _create_access_token_for_third_party_actions(
+        permissions=permissions,
+        user=user,
+        type="AppExtension",
+        object_id=app_extension.id,
+        object_payload_key="app_extension",
+    )
