@@ -825,7 +825,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ImagesByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    @traced_resolver
     def resolve_variants(root: ChannelContext[models.Product], info, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
         is_staff = requestor_is_staff_member_or_app(requestor)

@@ -2,7 +2,6 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-
 # 3.1.0 [Unreleased]
 
 # 3.0.0 [Unreleased]
@@ -137,6 +136,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate `query` argument in `sales` and `vouchers` queries - #7806 by @maarcingebala
 - Allow translating objects by translatable content ID - #7803 by @maarcingebala
 - Add `page_type_id` when it's possible for `AttributeValue` translations webhook. - #7825 by @fowczarek
+- Optimize available quantity loader. - #7802 by @fowczarek
 
 
 ### Breaking

@@ -3,8 +3,10 @@ from typing import DefaultDict, Iterable, List, Optional, Tuple
 from uuid import UUID
 
 from django.conf import settings
+from django.db.models import Exists, OuterRef
 
-from ...warehouse.models import Stock, Warehouse
+from ...channel.models import Channel
+from ...warehouse.models import ShippingZone, Stock, Warehouse
 from ..account.dataloaders import AddressByIdLoader
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
@@ -62,18 +64,39 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         # get stocks only for warehouses assigned to the shipping zones
         # that are available in the given channel
         stocks = Stock.objects.filter(product_variant_id__in=variant_ids)
-        if country_code:
-            stocks = stocks.filter(
-                warehouse__shipping_zones__countries__contains=country_code
+        WarehouseShippingZone = Warehouse.shipping_zones.through  # type: ignore
+        warehouse_shipping_zones = WarehouseShippingZone.objects.all()
+        additional_warehouse_filter = False
+        if country_code or channel_slug:
+            additional_warehouse_filter = True
+            if country_code:
+                shipping_zones = ShippingZone.objects.filter(
+                    countries__contains=country_code
+                ).values("pk")
+                warehouse_shipping_zones = warehouse_shipping_zones.filter(
+                    Exists(shipping_zones.filter(pk=OuterRef("shippingzone_id")))
+                )
+            if channel_slug:
+                ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
+                channels = Channel.objects.filter(slug=channel_slug).values("pk")
+                shipping_zone_channels = ShippingZoneChannel.objects.filter(
+                    Exists(channels.filter(pk=OuterRef("channel_id")))
+                ).values("shippingzone_id")
+                warehouse_shipping_zones = warehouse_shipping_zones.filter(
+                    Exists(
+                        shipping_zone_channels.filter(
+                            shippingzone_id=OuterRef("shippingzone_id")
+                        )
+                    )
+                )
+        warehouse_shipping_zones_map = defaultdict(list)
+        for warehouse_shipping_zone in warehouse_shipping_zones:
+            warehouse_shipping_zones_map[warehouse_shipping_zone.warehouse_id].append(
+                warehouse_shipping_zone.shippingzone_id
             )
-        if channel_slug:
-            stocks = stocks.filter(
-                warehouse__shipping_zones__channels__slug=channel_slug
-            )
+        if additional_warehouse_filter:
+            stocks = stocks.filter(warehouse_id__in=warehouse_shipping_zones_map.keys())
         stocks = stocks.annotate_available_quantity()
-        stocks = stocks.values_list(
-            "product_variant_id", "warehouse__shipping_zones", "available_quantity"
-        )
 
         # A single country code (or a missing country code) can return results from
         # multiple shipping zones. We want to combine all quantities within a single
@@ -81,10 +104,16 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         quantity_by_shipping_zone_by_product_variant: DefaultDict[
             int, DefaultDict[int, int]
         ] = defaultdict(lambda: defaultdict(int))
-        for variant_id, shipping_zone_id, quantity in stocks:
-            quantity_by_shipping_zone_by_product_variant[variant_id][
-                shipping_zone_id
-            ] += quantity
+        for stock in stocks:
+            quantity = stock.available_quantity
+            variant_id = stock.product_variant_id
+            warehouse_id = stock.warehouse_id
+            shipping_zone_ids = warehouse_shipping_zones_map[warehouse_id]
+            for shipping_zone_id in shipping_zone_ids:
+                quantity_by_shipping_zone_by_product_variant[variant_id][
+                    shipping_zone_id
+                ] += quantity
+
         quantity_map: DefaultDict[int, int] = defaultdict(int)
         for (
             variant_id,
