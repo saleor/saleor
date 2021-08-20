@@ -1,3 +1,4 @@
+import graphene
 import pytest
 from freezegun import freeze_time
 
@@ -32,6 +33,17 @@ QUERY_APPS_WITH_FILTER = """
                     supportUrl
                     configurationUrl
                     appUrl
+                    extensions{
+                        id
+                        label
+                        url
+                        view
+                        type
+                        target
+                        permissions{
+                            code
+                        }
+                    }
                 }
             }
         }
@@ -53,11 +65,12 @@ def test_apps_query(
     staff_api_client,
     permission_manage_apps,
     permission_manage_orders,
-    app,
+    app_with_extensions,
     external_app,
     app_filter,
     count,
 ):
+    app, app_extensions = app_with_extensions
     external_app.is_active = False
     external_app.save()
     webhooks = Webhook.objects.bulk_create(
@@ -85,6 +98,50 @@ def test_apps_query(
         assert len(webhooks) == 1
         assert webhooks[0]["name"] in webhooks_names
     assert len(apps_data) == count
+
+
+def test_apps_with_extensions_query(
+    staff_api_client,
+    permission_manage_apps,
+    permission_manage_orders,
+    app_with_extensions,
+):
+    # given
+    app, app_extensions = app_with_extensions
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APPS_WITH_FILTER,
+        permissions=[permission_manage_apps, permission_manage_orders],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    apps_data = content["data"]["apps"]["edges"]
+
+    assert len(apps_data) == 1
+    app_data = apps_data[0]["node"]
+
+    extensions_data = app_data["extensions"]
+    returned_ids = {e["id"] for e in extensions_data}
+    returned_labels = {e["label"] for e in extensions_data}
+    returned_urls = {e["url"] for e in extensions_data}
+    returned_views = {e["view"].lower() for e in extensions_data}
+    returned_types = {e["type"].lower() for e in extensions_data}
+    returned_targets = {e["target"].lower() for e in extensions_data}
+    returned_permission_codes = [e["permissions"] for e in extensions_data]
+    for app_extension in app_extensions:
+        global_id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+        assert global_id in returned_ids
+        assert app_extension.label in returned_labels
+        assert app_extension.url in returned_urls
+        assert app_extension.view in returned_views
+        assert app_extension.type in returned_types
+        assert app_extension.target in returned_targets
+        assigned_permissions = [p.codename for p in app_extension.permissions.all()]
+        assigned_permissions = [{"code": p.upper()} for p in assigned_permissions]
+        assert assigned_permissions in returned_permission_codes
 
 
 QUERY_APPS_WITH_SORT = """

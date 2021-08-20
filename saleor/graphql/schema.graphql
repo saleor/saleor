@@ -222,6 +222,7 @@ type App implements Node & ObjectWithMetadata {
   appUrl: String
   version: String
   accessToken: String
+  extensions: [AppExtension!]!
 }
 
 type AppActivate {
@@ -289,6 +290,49 @@ enum AppErrorCode {
   OUT_OF_SCOPE_PERMISSION
 }
 
+type AppExtension implements Node {
+  id: ID!
+  app: App!
+  label: String!
+  url: String!
+  view: AppExtensionViewEnum!
+  type: AppExtensionTypeEnum!
+  target: AppExtensionTargetEnum!
+  permissions: [Permission!]!
+  accessToken: String
+}
+
+type AppExtensionCountableConnection {
+  pageInfo: PageInfo!
+  edges: [AppExtensionCountableEdge!]!
+  totalCount: Int
+}
+
+type AppExtensionCountableEdge {
+  node: AppExtension!
+  cursor: String!
+}
+
+input AppExtensionFilterInput {
+  view: AppExtensionViewEnum
+  type: AppExtensionTypeEnum
+  target: AppExtensionTargetEnum
+}
+
+enum AppExtensionTargetEnum {
+  MORE_ACTIONS
+  CREATE
+}
+
+enum AppExtensionTypeEnum {
+  OVERVIEW
+  DETAILS
+}
+
+enum AppExtensionViewEnum {
+  PRODUCT
+}
+
 type AppFetchManifest {
   manifest: Manifest
   appErrors: [AppError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
@@ -327,6 +371,15 @@ type AppInstallation implements Node & Job {
   createdAt: DateTime!
   updatedAt: DateTime!
   message: String
+}
+
+type AppManifestExtension {
+  permissions: [Permission!]!
+  label: String!
+  url: String!
+  view: AppExtensionViewEnum!
+  type: AppExtensionTypeEnum!
+  target: AppExtensionTargetEnum!
 }
 
 type AppRetryInstall {
@@ -3243,6 +3296,7 @@ type Manifest {
   dataPrivacyUrl: String
   homepageUrl: String
   supportUrl: String
+  extensions: [AppManifestExtension!]!
 }
 
 type Margin {
@@ -5626,6 +5680,8 @@ type Query {
   appsInstallations: [AppInstallation!]!
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
   app(id: ID): App
+  appExtensions(filter: AppExtensionFilterInput, before: String, after: String, first: Int, last: Int): AppExtensionCountableConnection
+  appExtension(id: ID!): AppExtension
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
   address(id: ID!): Address
   customers(filter: CustomerFilterInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
