@@ -2848,7 +2848,7 @@ def gift_card_used(staff_user, customer_user):
         created_by_email=staff_user.email,
         used_by_email=customer_user.email,
         initial_balance=Money(100, "USD"),
-        current_balance=Money(100, "USD"),
+        current_balance=Money(80, "USD"),
         tag="tag",
     )
 
