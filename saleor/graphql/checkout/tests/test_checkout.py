@@ -31,7 +31,7 @@ from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
-from ....warehouse.models import Stock, Warehouse
+from ....warehouse.models import Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
     clean_shipping_method,
@@ -1030,11 +1030,10 @@ def test_checkout_create_sets_country_when_no_shipping_address_is_given(
     }
     assert not Checkout.objects.exists()
 
-    # should set address of a first warehouse in the channel
+    # should set channel's default_country
     api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     checkout = Checkout.objects.first()
-    first_warehouse = Warehouse.objects.get_first_warehouse_for_channel(channel_USD.pk)
-    assert checkout.country == first_warehouse.address.country
+    assert checkout.country == channel_USD.default_country
 
 
 @override_settings(DEFAULT_COUNTRY="DE")
