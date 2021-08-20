@@ -1,3 +1,5 @@
+from ..email_common import get_email_subject, get_email_template_or_default
+from . import constants
 from .tasks import (
     send_account_confirmation_email_task,
     send_account_delete_confirmation_email_task,
@@ -14,11 +16,6 @@ from .tasks import (
     send_set_user_password_email_task,
     send_user_change_email_notification_task,
 )
-from ..email_common import (
-    get_email_subject,
-    get_email_template_or_default,
-)
-from . import constants
 
 
 def send_account_password_reset_event(
