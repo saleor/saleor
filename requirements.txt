@@ -27,6 +27,7 @@ dj-database-url==0.5.0
 dj-email-url==1.0.2
 django-appconf==1.0.4
 django-cache-url==3.2.3
+django-celery-beat==2.2.1
 django-countries==7.2.1
 django-filter==2.4.0; python_version >= "3.5"
 django-js-asset==1.2.2; python_version >= "3.6"
@@ -38,6 +39,7 @@ django-prices-vatlayer==1.1.0
 django-prices==2.2.0
 django-redis==5.0.0; python_version >= "3.6"
 django-storages==1.11.1; python_version >= "3.5"
+django-timezone-field==4.2.1; python_version >= "3.5"
 django-versatileimagefield==2.1
 django==3.2.6; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
@@ -45,9 +47,9 @@ enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
 faker==8.11.0; python_version >= "3.6"
 freezegun==1.1.0; python_version >= "3.5"
-google-api-core==1.31.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+google-api-core==2.0.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-auth==1.34.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-google-cloud-core==1.7.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+google-cloud-core==2.0.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-pubsub==2.7.0; python_version >= "3.6"
 google-cloud-storage==1.42.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
 google-crc32c==1.1.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
@@ -84,7 +86,7 @@ mypy-extensions==0.4.3; python_version >= "3.6"
 oauthlib==3.1.1; python_version >= "3.6"
 openpyxl==3.0.7; python_version >= "3.6"
 opentracing==2.4.0
-packaging==21.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+packaging==21.0; python_version >= "3.6"
 petl==1.7.4; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 phonenumberslite==8.12.29
 pillow==8.3.1; python_version >= "3.6"
@@ -102,6 +104,7 @@ pyjwt==2.1.0; python_version >= "3.6"
 pymeta3==0.5.1
 pyparsing==2.4.7; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" and python_version >= "3.6"
 pyphen==0.11.0; python_version >= "3.6"
+python-crontab==2.5.1
 python-dateutil==2.8.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" and python_version >= "3.6"
 python-dotenv==0.19.0; python_version >= "3.5"
 python-http-client==3.3.2; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
@@ -109,7 +112,7 @@ python-json-logger==2.0.2; python_version >= "3.5"
 python-magic-bin==0.4.14; sys_platform == "win32"
 python-magic==0.4.24; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
 pytimeparse==1.1.8
-pytz==2021.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+pytz==2021.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.6"
 pyxb==1.2.5
 pyyaml==5.4.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 razorpay==1.2.0

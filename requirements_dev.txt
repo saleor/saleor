@@ -38,6 +38,7 @@ dj-database-url==0.5.0
 dj-email-url==1.0.2
 django-appconf==1.0.4
 django-cache-url==3.2.3
+django-celery-beat==2.2.1
 django-countries==7.2.1
 django-debug-toolbar-request-history==0.1.3
 django-debug-toolbar==3.2.2; python_version >= "3.6"
@@ -55,6 +56,7 @@ django-redis==5.0.0; python_version >= "3.6"
 django-storages==1.11.1; python_version >= "3.5"
 django-stubs-ext==0.2.0; python_version >= "3.6"
 django-stubs==1.8.0; python_version >= "3.6"
+django-timezone-field==4.2.1; python_version >= "3.5"
 django-versatileimagefield==2.1
 django==3.2.6; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
@@ -67,9 +69,9 @@ flake8==3.9.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (p
 freezegun==1.1.0; python_version >= "3.5"
 gitdb==4.0.7; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.6"
 gitpython==3.1.20; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.6"
-google-api-core==1.31.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+google-api-core==2.0.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-auth==1.34.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-google-cloud-core==1.7.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+google-cloud-core==2.0.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-pubsub==2.7.0; python_version >= "3.6"
 google-cloud-storage==1.42.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
 google-crc32c==1.1.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
@@ -116,7 +118,7 @@ nodeenv==1.6.0; python_full_version >= "3.6.1"
 oauthlib==3.1.1; python_version >= "3.6"
 openpyxl==3.0.7; python_version >= "3.6"
 opentracing==2.4.0
-packaging==21.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+packaging==21.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 pathspec==0.9.0; python_full_version >= "3.6.2"
 petl==1.7.4; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 phonenumberslite==8.12.29
@@ -155,6 +157,7 @@ pytest-mock==3.6.1; python_version >= "3.6"
 pytest-vcr==1.0.2
 pytest-xdist==2.3.0; python_version >= "3.6"
 pytest==6.2.4; python_version >= "3.6"
+python-crontab==2.5.1
 python-dateutil==2.8.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" and python_version >= "3.6"
 python-dotenv==0.19.0; python_version >= "3.5"
 python-http-client==3.3.2; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
@@ -163,7 +166,7 @@ python-magic-bin==0.4.14; sys_platform == "win32"
 python-magic==0.4.24; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
 python-slugify==4.0.1; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version < "3.10"
 pytimeparse==1.1.8
-pytz==2021.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+pytz==2021.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.6"
 pywatchman==1.4.1
 pyxb==1.2.5
 pyyaml==5.4.1; python_full_version >= "3.6.1" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6") and (python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.5")
