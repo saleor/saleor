@@ -2,10 +2,7 @@ from ...account import events as account_events
 from ...celeryconf import app
 from ...invoice import events as invoice_events
 from ...order import events as order_events
-from ..email_common import (
-    EmailConfig,
-    send_email,
-)
+from ..email_common import EmailConfig, send_email
 
 
 @app.task(compression="zlib")

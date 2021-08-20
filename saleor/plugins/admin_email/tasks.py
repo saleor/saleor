@@ -1,11 +1,6 @@
-from typing import Optional
-
 from ...celeryconf import app
 from ...csv.events import export_failed_info_sent_event, export_file_sent_event
-from ..email_common import (
-    EmailConfig,
-    send_email,
-)
+from ..email_common import EmailConfig, send_email
 
 
 @app.task(compression="zlib")
