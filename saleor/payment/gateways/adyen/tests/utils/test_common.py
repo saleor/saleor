@@ -230,6 +230,146 @@ def test_request_data_for_payment(dummy_payment_data, dummy_address_data):
     }
 
 
+def test_request_data_for_payment_when_missing_city_address_field(
+    dummy_payment_data, dummy_address_data
+):
+    # given
+    return_url = "https://www.example.com"
+    merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
+    data = {
+        "is_valid": True,
+        "riskData": {"clientData": "test_client_data"},
+        "paymentMethod": {"type": "scheme"},
+        "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
+        "shopperIP": "123",
+        "originUrl": origin_url,
+    }
+    dummy_payment_data.data = data
+
+    dummy_address_data.city = ""
+    dummy_address_data.country_area = "Fallback_for_city"
+    dummy_payment_data.billing = dummy_address_data
+    dummy_payment_data.shipping = dummy_address_data
+    native_3d_secure = False
+
+    # when
+    result = request_data_for_payment(
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
+    )
+
+    # then
+    assert result["deliveryAddress"] == {
+        "city": dummy_address_data.country_area,
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "53-601",
+        "stateOrProvince": dummy_address_data.country_area,
+        "street": "Tęczowa 7",
+    }
+    assert result["billingAddress"] == {
+        "city": dummy_address_data.country_area,
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "53-601",
+        "stateOrProvince": dummy_address_data.country_area,
+        "street": "Tęczowa 7",
+    }
+
+
+def test_request_data_for_payment_when_missing_city_and_count_area(
+    dummy_payment_data, dummy_address_data
+):
+    # given
+    return_url = "https://www.example.com"
+    merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
+    data = {
+        "is_valid": True,
+        "riskData": {"clientData": "test_client_data"},
+        "paymentMethod": {"type": "scheme"},
+        "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
+        "shopperIP": "123",
+        "originUrl": origin_url,
+    }
+    dummy_payment_data.data = data
+
+    dummy_address_data.city = ""
+    dummy_address_data.country_area = ""
+    dummy_payment_data.billing = dummy_address_data
+    dummy_payment_data.shipping = dummy_address_data
+    native_3d_secure = False
+
+    # when
+    result = request_data_for_payment(
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
+    )
+
+    # then
+    assert result["deliveryAddress"] == {
+        "city": "ZZ",
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "53-601",
+        "stateOrProvince": "",
+        "street": "Tęczowa 7",
+    }
+    assert result["billingAddress"] == {
+        "city": "ZZ",
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "53-601",
+        "stateOrProvince": "",
+        "street": "Tęczowa 7",
+    }
+
+
+def test_request_data_for_payment_when_missing_postal_code(
+    dummy_payment_data, dummy_address_data
+):
+    # given
+    return_url = "https://www.example.com"
+    merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
+    data = {
+        "is_valid": True,
+        "riskData": {"clientData": "test_client_data"},
+        "paymentMethod": {"type": "scheme"},
+        "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
+        "shopperIP": "123",
+        "originUrl": origin_url,
+    }
+    dummy_payment_data.data = data
+
+    dummy_address_data.postal_code = ""
+    dummy_payment_data.billing = dummy_address_data
+    dummy_payment_data.shipping = dummy_address_data
+    native_3d_secure = False
+
+    # when
+    result = request_data_for_payment(
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
+    )
+
+    # then
+    assert result["deliveryAddress"] == {
+        "city": "WROCŁAW",
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "ZZ",
+        "stateOrProvince": "",
+        "street": "Tęczowa 7",
+    }
+    assert result["billingAddress"] == {
+        "city": "WROCŁAW",
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "ZZ",
+        "stateOrProvince": "",
+        "street": "Tęczowa 7",
+    }
+
+
 def test_request_data_for_payment_without_shipping(
     dummy_payment_data, dummy_address_data
 ):

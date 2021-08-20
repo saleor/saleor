@@ -73,6 +73,10 @@ def prepare_address_request_data(address: Optional["AddressData"]) -> Optional[d
     if not address:
         return None
 
+    city = address.city or address.country_area or "ZZ"
+    country = str(address.country) if address.country else "ZZ"
+    postal_code = address.postal_code or "ZZ"
+
     if address.company_name:
         house_number_or_name = address.company_name
         street = address.street_address_1
@@ -85,10 +89,10 @@ def prepare_address_request_data(address: Optional["AddressData"]) -> Optional[d
         street = address.street_address_1
 
     return {
-        "city": address.city,
-        "country": str(address.country),
+        "city": city,
+        "country": country,
         "houseNumberOrName": house_number_or_name,
-        "postalCode": address.postal_code,
+        "postalCode": postal_code,
         "stateOrProvince": address.country_area,
         "street": street,
     }
