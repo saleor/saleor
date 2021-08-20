@@ -2099,9 +2099,8 @@ type ExternalNotificationError {
 }
 
 enum ExternalNotificationErrorCodes {
-  INPUT_MISSING
-  IDS_MISSING
-  EXTERNAL_EVENT_TYPE_MISSING
+  REQUIRED
+  INVALID_MODEL_TYPE
 }
 
 type ExternalNotificationTrigger {
