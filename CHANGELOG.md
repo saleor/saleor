@@ -130,6 +130,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix failing account mutations for app - #7569 by @IKarbowiak
 - Modify order of auth middleware calls - #7572 by @tomaszszymanski129
 - Add app support for events - #7622 by @IKarbowiak
+- Fulfillment confirmation - #7675 by @tomaszszymanski129
 - Add date & date time attributes - #7500 by @piotrgrundas
 - Add `withChoices` flag for Attribute type - #7733 by @dexon44
 - Drop assigning cheapest shipping method in checkout - #7767 by @maarcingebala
