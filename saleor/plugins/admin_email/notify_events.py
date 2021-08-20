@@ -1,3 +1,5 @@
+from ..email_common import get_email_subject, get_email_template_or_default
+from . import constants
 from .tasks import (
     send_email_with_link_to_download_file_task,
     send_export_failed_email_task,
@@ -5,11 +7,6 @@ from .tasks import (
     send_staff_order_confirmation_email_task,
     send_staff_password_reset_email_task,
 )
-from ..email_common import (
-    get_email_subject,
-    get_email_template_or_default,
-)
-from . import constants
 
 
 def send_set_staff_password_email(
