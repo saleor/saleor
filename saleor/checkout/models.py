@@ -97,6 +97,7 @@ class Checkout(ModelWithMetadata):
     language_code = models.CharField(
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
     )
+    requested_shipment_date = models.DateField(null=True)
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-last_change", "pk")
@@ -159,6 +160,9 @@ class Checkout(ModelWithMetadata):
         if not country_code == saved_country.code:
             self.set_country(country_code, commit=True)
         return country_code
+
+    def get_requested_shipment_date(self):
+        return self.requested_shipment_date
 
 
 class CheckoutLine(models.Model):

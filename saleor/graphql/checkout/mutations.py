@@ -142,29 +142,6 @@ def check_lines_quantity(
                 }
             )
 
-        if quantity > settings.MAX_CHECKOUT_LINE_QUANTITY:
-            raise ValidationError(
-                {
-                    "quantity": ValidationError(
-                        "Cannot add more than %d times this item."
-                        "" % settings.MAX_CHECKOUT_LINE_QUANTITY,
-                        code=CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
-                    )
-                }
-            )
-    try:
-        check_stock_quantity_bulk(variants, country, quantities, channel_slug)
-    except InsufficientStock as e:
-        errors = [
-            ValidationError(
-                f"Could not add items {item.variant}. "
-                f"Only {item.available_quantity} remaining in stock.",
-                code=e.code,
-            )
-            for item in e.items
-        ]
-        raise ValidationError({"quantity": errors})
-
 
 def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
     today = datetime.date.today()
@@ -240,6 +217,7 @@ class CheckoutCreateInput(graphene.InputObjectType):
     language_code = graphene.Argument(
         LanguageCodeEnum, required=False, description="Checkout language code."
     )
+    requested_shipment_date = graphene.Date(description="Shipment date")
 
 
 class CheckoutCreate(ModelMutation, I18nMixin):
@@ -367,7 +345,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         quantities = cleaned_input.get("quantities")
         if variants and quantities:
             try:
-                add_variants_to_checkout(instance, variants, quantities, channel.slug)
+                add_variants_to_checkout(instance, variants, quantities, channel.slug,
+                                         True)
             except InsufficientStock as exc:
                 error = prepare_insufficient_stock_checkout_validation_error(exc)
                 raise ValidationError({"lines": error})
