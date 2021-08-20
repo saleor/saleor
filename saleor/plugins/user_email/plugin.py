@@ -422,7 +422,11 @@ class UserEmailPlugin(BasePlugin):
         template_map = get_user_template_map(self.templates)
         if not template_map.get(event):
             return previous_value
-        event_map[event](payload, asdict(self.config))  # type: ignore
+        event_map[event](
+            payload,
+            asdict(self.config),  # type: ignore
+            self.configuration,
+        )
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
