@@ -2368,7 +2368,14 @@ enum GiftCardEventsEnum {
 }
 
 input GiftCardFilterInput {
+  isActive: Boolean
   tag: String
+  tags: [String]
+  products: [ID]
+  usedBy: [ID]
+  currency: String
+  currentBalance: PriceRangeInput
+  initialBalance: PriceRangeInput
 }
 
 type GiftCardResend {
