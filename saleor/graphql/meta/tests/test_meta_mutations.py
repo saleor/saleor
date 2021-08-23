@@ -11,6 +11,10 @@ from ....core.models import ModelWithMetadata
 from ....invoice.models import Invoice
 from ...tests.utils import assert_no_permission, get_graphql_content
 
+# this statement adds payment fixture
+pytest_plugins = ["saleor.plugins.webhook.tests.test_payment_webhook"]
+
+
 PRIVATE_KEY = "private_key"
 PRIVATE_VALUE = "private_vale"
 
