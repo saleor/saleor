@@ -732,6 +732,59 @@ def test_update_public_metadata_for_item_without_meta(api_client, address):
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
+def test_update_metadata_for_payment_by_logged_user(user_api_client, payment):
+    # given
+    payment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    payment.order.user = user_api_client.user
+    payment.save()
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        user_api_client, None, payment_id, "Payment", value="NewMetaValue"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"],
+        payment,
+        payment_id,
+        value="NewMetaValue",
+    )
+
+
+def test_update_metadata_for_payment_by_different_logged_user(user_api_client, payment):
+    # given
+    payment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    payment.save(update_fields=["metadata"])
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        user_api_client, None, payment_id, "Payment", value="NewMetaValue"
+    )
+
+    # then
+    errors = response["data"]["updateMetadata"]["errors"]
+    assert errors[0]["field"] == "field"
+    assert errors[0]["code"] == "code"
+
+
+def test_update_metadata_for_payment_by_non_logged_user(api_client, payment):
+    # given
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client, None, payment_id, "Payment"
+    )
+
+    # then
+    errors = response["data"]["updateMetadata"]["errors"]
+    assert errors[0]["field"] == "field"
+    assert errors[0]["code"] == "code"
+
+
 DELETE_PUBLIC_METADATA_MUTATION = """
 mutation DeletePublicMetadata($id: ID!, $keys: [String!]!) {
     deleteMetadata(
@@ -2097,6 +2150,88 @@ def test_update_private_metadata_for_item_without_meta(api_client, address):
     errors = response["data"]["updatePrivateMetadata"]["errors"]
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
+
+
+def test_update_private_metadata_for_payment_by_staff(
+    staff_api_client, permission_manage_payments, payment
+):
+    # given
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_payments,
+        payment_id,
+        "Payment",
+        value="NewMetaValue",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        payment,
+        payment_id,
+        value="NewMetaValue",
+    )
+
+
+def test_update_private_metadata_for_payment_by_app(
+    app_api_client, permission_manage_payments, payment
+):
+    # given
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        app_api_client,
+        permission_manage_payments,
+        payment_id,
+        "Payment",
+        value="NewMetaValue",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        payment,
+        payment_id,
+        value="NewMetaValue",
+    )
+
+
+def test_update_private_metadata_for_payment_by_staff_without_permission(
+    staff_api_client, payment
+):
+    # given
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, None, payment_id, "Payment", value="NewMetaValue"
+    )
+
+    # then
+    errors = response["data"]["updatePrivateMetadata"]["errors"]
+    assert errors[0]["field"] == "field"
+    assert errors[0]["code"] == "code"
+
+
+def test_update_private_metadata_for_payment_by_app_without_permission(
+    app_api_client, payment
+):
+    # given
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        app_api_client, None, payment_id, "Payment", value="NewMetaValue"
+    )
+
+    # then
+    errors = response["data"]["updatePrivateMetadata"]["errors"]
+    assert errors[0]["field"] == "field"
+    assert errors[0]["code"] == "code"
 
 
 DELETE_PRIVATE_METADATA_MUTATION = """
