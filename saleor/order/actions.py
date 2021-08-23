@@ -336,6 +336,25 @@ def cancel_fulfillment(
     update_order_status(fulfillment.order)
     transaction.on_commit(lambda: manager.fulfillment_canceled(fulfillment))
     transaction.on_commit(lambda: manager.order_updated(fulfillment.order))
+    return fulfillment
+
+
+@traced_atomic_transaction()
+def cancel_waiting_fulfillment(
+    fulfillment: "Fulfillment",
+    user: "User",
+    app: Optional["App"],
+    manager: "PluginsManager",
+):
+    """Cancel fulfillment which is in waiting for approval state."""
+    fulfillment = Fulfillment.objects.get(pk=fulfillment.pk)
+    events.fulfillment_canceled_event(
+        order=fulfillment.order, user=user, app=app, fulfillment=None
+    )
+    fulfillment.delete()
+    update_order_status(fulfillment.order)
+    transaction.on_commit(lambda: manager.fulfillment_canceled(fulfillment))
+    transaction.on_commit(lambda: manager.order_updated(fulfillment.order))
 
 
 @traced_atomic_transaction()

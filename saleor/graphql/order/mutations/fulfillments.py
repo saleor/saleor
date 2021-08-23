@@ -11,6 +11,7 @@ from ....order import models as order_models
 from ....order.actions import (
     approve_fulfillment,
     cancel_fulfillment,
+    cancel_waiting_fulfillment,
     create_fulfillments,
     create_fulfillments_for_returned_products,
     create_refund_fulfillment,
@@ -343,14 +344,21 @@ class FulfillmentCancel(BaseMutation):
         cls.validate_fulfillment(fulfillment, warehouse)
 
         order = fulfillment.order
-        cancel_fulfillment(
-            fulfillment,
-            info.context.user,
-            info.context.app,
-            warehouse,
-            info.context.plugins,
-        )
-        fulfillment.refresh_from_db(fields=["status"])
+        if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
+            fulfillment = cancel_waiting_fulfillment(
+                fulfillment,
+                info.context.user,
+                info.context.app,
+                info.context.plugins,
+            )
+        else:
+            fulfillment = cancel_fulfillment(
+                fulfillment,
+                info.context.user,
+                info.context.app,
+                warehouse,
+                info.context.plugins,
+            )
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)
 

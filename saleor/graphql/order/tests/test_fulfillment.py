@@ -787,8 +787,9 @@ def test_cancel_fulfillment_no_warehouse_id(
     assert error["code"] == OrderErrorCode.REQUIRED.name
 
 
+@patch("saleor.order.actions.restock_fulfillment_lines")
 def test_cancel_fulfillment_awaiting_approval(
-    staff_api_client, fulfillment, permission_manage_orders
+    mock_restock_lines, staff_api_client, fulfillment, permission_manage_orders
 ):
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
@@ -800,10 +801,11 @@ def test_cancel_fulfillment_awaiting_approval(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentCancel"]
-    assert data["fulfillment"]["status"] == FulfillmentStatus.CANCELED.upper()
+    assert data["fulfillment"] is None
+    mock_restock_lines.assert_not_called()
     event_cancelled = fulfillment.order.events.get()
     assert event_cancelled.type == (OrderEvents.FULFILLMENT_CANCELED)
-    assert event_cancelled.parameters == {"composed_id": fulfillment.composed_id}
+    assert event_cancelled.parameters == {}
     assert event_cancelled.user == staff_api_client.user
 
 
@@ -826,11 +828,11 @@ def test_cancel_fulfillment_awaiting_approval_warehouse_specified(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentCancel"]
-    assert data["fulfillment"]["status"] == FulfillmentStatus.CANCELED.upper()
+    assert data["fulfillment"] is None
     mock_restock_lines.assert_not_called()
     event_cancelled = fulfillment.order.events.get()
     assert event_cancelled.type == (OrderEvents.FULFILLMENT_CANCELED)
-    assert event_cancelled.parameters == {"composed_id": fulfillment.composed_id}
+    assert event_cancelled.parameters == {}
     assert event_cancelled.user == staff_api_client.user
 
 
