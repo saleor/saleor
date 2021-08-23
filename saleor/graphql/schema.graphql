@@ -3805,7 +3805,7 @@ type PasswordChange {
   errors: [AccountError!]!
 }
 
-type Payment implements Node {
+type Payment implements Node & ObjectWithMetadata {
   id: ID!
   gateway: String!
   isActive: Boolean!
@@ -3816,6 +3816,8 @@ type Payment implements Node {
   order: Order
   paymentMethodType: String!
   customerIpAddress: String
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
   total: Money

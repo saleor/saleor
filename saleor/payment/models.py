@@ -10,12 +10,13 @@ from django.db.models import JSONField  # type: ignore
 from prices import Money
 
 from ..checkout.models import Checkout
+from ..core.models import ModelWithMetadata
 from ..core.permissions import PaymentPermissions
 from ..core.taxes import zero_money
 from . import ChargeStatus, CustomPaymentChoices, TransactionKind
 
 
-class Payment(models.Model):
+class Payment(ModelWithMetadata):
     """A model that represents a single payment.
 
     This might be a transactable payment information such as credit card

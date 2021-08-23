@@ -102,6 +102,16 @@ def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [DiscountPermissions.MANAGE_DISCOUNTS]
 
 
+# todo: stub function, add actual logic
+def public_payment_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return []
+
+
+# todo: stub function, add actual logic
+def private_payment_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return []
+
+
 PUBLIC_META_PERMISSION_MAP = {
     "App": app_permissions,
     "Attribute": attribute_permissions,
@@ -116,6 +126,7 @@ PUBLIC_META_PERMISSION_MAP = {
     "Order": no_permissions,
     "Page": page_permissions,
     "PageType": page_type_permissions,
+    "Payment": public_payment_permissions,
     "Product": product_permissions,
     "ProductType": product_type_permissions,
     "ProductVariant": product_permissions,
@@ -142,6 +153,7 @@ PRIVATE_META_PERMISSION_MAP = {
     "Order": order_permissions,
     "Page": page_permissions,
     "PageType": page_type_permissions,
+    "Payment": private_payment_permissions,
     "Product": product_permissions,
     "ProductType": product_type_permissions,
     "ProductVariant": product_permissions,
