@@ -753,6 +753,9 @@ def test_cancel_fulfillment(
         "warehouse": str(warehouse.pk),
     }
     assert event_restocked_items.user == staff_user
+    assert Fulfillment.objects.filter(
+        pk=fulfillment.pk, status=FulfillmentStatus.CANCELED
+    ).exists()
 
 
 def test_cancel_fulfillment_no_warehouse_id(
@@ -807,6 +810,7 @@ def test_cancel_fulfillment_awaiting_approval(
     assert event_cancelled.type == (OrderEvents.FULFILLMENT_CANCELED)
     assert event_cancelled.parameters == {}
     assert event_cancelled.user == staff_api_client.user
+    assert not Fulfillment.objects.filter(pk=fulfillment.pk).exists()
 
 
 @patch("saleor.order.actions.restock_fulfillment_lines")
@@ -834,6 +838,7 @@ def test_cancel_fulfillment_awaiting_approval_warehouse_specified(
     assert event_cancelled.type == (OrderEvents.FULFILLMENT_CANCELED)
     assert event_cancelled.parameters == {}
     assert event_cancelled.user == staff_api_client.user
+    assert not Fulfillment.objects.filter(pk=fulfillment.pk).exists()
 
 
 def test_cancel_fulfillment_canceled_state(
