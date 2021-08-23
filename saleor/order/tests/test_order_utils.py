@@ -326,7 +326,7 @@ def test_add_gift_cards_to_order(
         "balance": {
             "currency": "USD",
             "current_balance": "0",
-            "old_current_balance": "10.000",
+            "old_current_balance": "20.000",
         },
         "order_id": order.id,
     }
