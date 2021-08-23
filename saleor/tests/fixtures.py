@@ -2787,8 +2787,8 @@ def gift_card_expiry_date(customer_user):
         code="expiry_date",
         created_by=customer_user,
         created_by_email=customer_user.email,
-        initial_balance=Money(10, "USD"),
-        current_balance=Money(10, "USD"),
+        initial_balance=Money(20, "USD"),
+        current_balance=Money(20, "USD"),
         expiry_date=datetime.date.today() + datetime.timedelta(days=100),
         tag="another-tag",
     )
