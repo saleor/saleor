@@ -736,7 +736,7 @@ def test_update_public_metadata_for_item_without_meta(api_client, address):
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
-def test_update_metadata_for_payment_by_logged_user(user_api_client, payment):
+def test_update_public_metadata_for_payment_by_logged_user(user_api_client, payment):
     # given
     payment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     payment.order.user = user_api_client.user
@@ -757,7 +757,9 @@ def test_update_metadata_for_payment_by_logged_user(user_api_client, payment):
     )
 
 
-def test_update_metadata_for_payment_by_different_logged_user(user_api_client, payment):
+def test_update_public_metadata_for_payment_by_different_logged_user(
+    user_api_client, payment
+):
     # given
     payment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     payment.save(update_fields=["metadata"])
@@ -774,7 +776,7 @@ def test_update_metadata_for_payment_by_different_logged_user(user_api_client, p
     assert errors[0]["code"] == "code"
 
 
-def test_update_metadata_for_payment_by_non_logged_user(api_client, payment):
+def test_update_public_metadata_for_payment_by_non_logged_user(api_client, payment):
     # given
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
