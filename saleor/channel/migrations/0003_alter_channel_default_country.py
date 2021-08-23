@@ -28,6 +28,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("channel", "0002_channel_default_country"),
+        ("shipping", "0029_shippingzone_channels"),
     ]
 
     operations = [
