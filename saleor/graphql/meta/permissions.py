@@ -14,10 +14,12 @@ from ...core.permissions import (
     OrderPermissions,
     PagePermissions,
     PageTypePermissions,
+    PaymentPermissions,
     ProductPermissions,
     ProductTypePermissions,
     ShippingPermissions,
 )
+from ...payment.models import Payment
 
 
 def no_permissions(_info, _object_pk: Any) -> List[None]:
@@ -102,14 +104,22 @@ def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [DiscountPermissions.MANAGE_DISCOUNTS]
 
 
-# todo: stub function, add actual logic
-def public_payment_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
-    return []
+def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum]:
+    user = info.context.user
+    payment = Payment.objects.get(pk=payment_pk)
+    if user is None:
+        raise PermissionDenied()
+    if (
+        (order := payment.order) is not None
+        and (user := order.user) is not None
+        and user.pk == user.pk
+    ):
+        return []
+    return [PaymentPermissions.HANDLE_PAYMENTS]
 
 
-# todo: stub function, add actual logic
 def private_payment_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
-    return []
+    return [PaymentPermissions.HANDLE_PAYMENTS]
 
 
 PUBLIC_META_PERMISSION_MAP = {
