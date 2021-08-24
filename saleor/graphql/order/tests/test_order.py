@@ -37,7 +37,9 @@ from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
     clean_refund_payment,
-    try_payment_action,
+    try_payment_capture_action,
+    try_payment_refund_action,
+    try_payment_void_action,
 )
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import (
@@ -4477,7 +4479,17 @@ def test_clean_payment_without_payment_associated_to_order(
     assert not OrderEvent.objects.exists()
 
 
-def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
+@pytest.mark.parametrize(
+    "try_payment_action, exp_type",
+    (
+        (try_payment_capture_action, order_events.OrderEvents.PAYMENT_CAPTURE_FAILED),
+        (try_payment_void_action, order_events.OrderEvents.PAYMENT_VOID_FAILED),
+        (try_payment_refund_action, order_events.OrderEvents.PAYMENT_REFUND_FAILED),
+    ),
+)
+def test_try_payment_action_generates_event(
+    order, try_payment_action, exp_type, staff_user, payment_dummy
+):
     message = "The payment did a oopsie!"
     assert not OrderEvent.objects.exists()
 
@@ -4496,7 +4508,7 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
     assert exc.value.args[0]["payment"].message == message
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
+    assert error_event.type == exp_type
     assert error_event.user == staff_user
     assert not error_event.app
     assert error_event.parameters == {
@@ -4514,14 +4526,14 @@ def test_try_payment_action_generates_app_event(order, app, payment_dummy):
         raise PaymentError(message)
 
     with pytest.raises(ValidationError) as exc:
-        try_payment_action(
+        try_payment_capture_action(
             order=order, user=None, app=app, payment=payment_dummy, func=_test_operation
         )
 
     assert exc.value.args[0]["payment"].message == message
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
+    assert error_event.type == order_events.OrderEvents.PAYMENT_CAPTURE_FAILED
     assert not error_event.user
     assert error_event.app == app
     assert error_event.parameters == {

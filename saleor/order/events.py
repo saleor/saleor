@@ -412,24 +412,40 @@ def payment_voided_event(
     )
 
 
-def payment_failed_event(
-    *, order: Order, user: UserType, app: AppType, message: str, payment: Payment
-) -> OrderEvent:
+def payment_failed_event_factory(event_type):
+    def payment_failed_event(
+        *, order: Order, user: UserType, app: AppType, message: str, payment: Payment
+    ) -> OrderEvent:
 
-    if not user_is_valid(user):
-        user = None
-    parameters = {"message": message}
+        if not user_is_valid(user):
+            user = None
+        parameters = {"message": message}
 
-    if payment:
-        parameters.update({"gateway": payment.gateway, "payment_id": payment.token})
+        if payment:
+            parameters.update({"gateway": payment.gateway, "payment_id": payment.token})
 
-    return OrderEvent.objects.create(
-        order=order,
-        type=OrderEvents.PAYMENT_FAILED,
-        user=user,
-        app=app,
-        parameters=parameters,
-    )
+        return OrderEvent.objects.create(
+            order=order,
+            type=event_type,
+            user=user,
+            app=app,
+            parameters=parameters,
+        )
+
+    return payment_failed_event
+
+
+payment_capture_failed_event = payment_failed_event_factory(
+    OrderEvents.PAYMENT_CAPTURE_FAILED
+)
+
+payment_refund_failed_event = payment_failed_event_factory(
+    OrderEvents.PAYMENT_REFUND_FAILED
+)
+
+payment_void_failed_event = payment_failed_event_factory(
+    OrderEvents.PAYMENT_VOID_FAILED
+)
 
 
 def external_notification_event(

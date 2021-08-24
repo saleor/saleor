@@ -139,20 +139,34 @@ def clean_refund_payment(payment):
         )
 
 
-def try_payment_action(order, user, app, payment, func, *args, **kwargs):
-    try:
-        result = func(*args, **kwargs)
-        # provided order might alter it's total_paid.
-        order.refresh_from_db()
-        return result
-    except (PaymentError, ValueError) as e:
-        message = str(e)
-        events.payment_failed_event(
-            order=order, user=user, app=app, message=message, payment=payment
-        )
-        raise ValidationError(
-            {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
-        )
+def try_payment_action_factory(payment_failed_event_func):
+    def try_payment_action(order, user, app, payment, func, *args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+            # provided order might alter it's total_paid.
+            order.refresh_from_db()
+            return result
+        except (PaymentError, ValueError) as e:
+            message = str(e)
+            payment_failed_event_func(
+                order=order, user=user, app=app, message=message, payment=payment
+            )
+            raise ValidationError(
+                {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
+            )
+
+    return try_payment_action
+
+
+try_payment_capture_action = try_payment_action_factory(
+    events.payment_capture_failed_event
+)
+
+try_payment_refund_action = try_payment_action_factory(
+    events.payment_refund_failed_event
+)
+
+try_payment_void_action = try_payment_action_factory(events.payment_void_failed_event)
 
 
 class OrderUpdateInput(graphene.InputObjectType):
@@ -444,7 +458,9 @@ class OrderMarkAsPaid(BaseMutation):
         cls.clean_billing_address(order)
         user = info.context.user
         app = info.context.app
-        try_payment_action(order, user, app, None, clean_mark_order_as_paid, order)
+        try_payment_capture_action(
+            order, user, app, None, clean_mark_order_as_paid, order
+        )
 
         mark_order_as_paid(
             order, user, app, info.context.plugins, transaction_reference
@@ -483,7 +499,7 @@ class OrderCapture(BaseMutation):
         payment = order.get_last_payment()
         clean_order_capture(payment)
 
-        transaction = try_payment_action(
+        transaction = try_payment_capture_action(
             order,
             info.context.user,
             info.context.app,
@@ -526,7 +542,7 @@ class OrderVoid(BaseMutation):
         payment = order.get_last_payment()
         clean_void_payment(payment)
 
-        transaction = try_payment_action(
+        transaction = try_payment_void_action(
             order,
             info.context.user,
             info.context.app,
@@ -580,7 +596,7 @@ class OrderRefund(BaseMutation):
         payment = order.get_last_payment()
         clean_refund_payment(payment)
 
-        transaction = try_payment_action(
+        transaction = try_payment_refund_action(
             order,
             info.context.user,
             info.context.app,
