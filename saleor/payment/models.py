@@ -101,6 +101,7 @@ class Payment(ModelWithMetadata):
             ),
         )
         indexes = [
+            *ModelWithMetadata.Meta.indexes,
             # Orders filtering by status index
             GinIndex(fields=["order_id", "is_active", "charge_status"]),
         ]
