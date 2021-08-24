@@ -50,11 +50,11 @@ class GiftCardQueries(graphene.ObjectType):
 
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
     def resolve_gift_cards(self, info, **data):
-        sorting_by_balace = "sort_by" in data and "current_balance_amount" in data[
+        sorting_by_balance = "sort_by" in data and "current_balance_amount" in data[
             "sort_by"
         ].get("field", [])
         filtering_by_currency = "filter" in data and "currency" in data["filter"]
-        if sorting_by_balace and not filtering_by_currency:
+        if sorting_by_balance and not filtering_by_currency:
             raise GraphQLError("Sorting by balance requires filtering by currency.")
         return resolve_gift_cards()
 
