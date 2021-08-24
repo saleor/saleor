@@ -2155,6 +2155,54 @@ def test_products_query_with_filter_category_and_search(
     assert products[0]["node"]["name"] == product.name
 
 
+def test_products_query_with_filter_gift_card_false(
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    shippable_gift_card_product,
+    permission_manage_products,
+):
+    # given
+    variables = {"filter": {"giftCard": False}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product.pk
+    )
+
+
+def test_products_query_with_filter_gift_card_true(
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    shippable_gift_card_product,
+    permission_manage_products,
+):
+    # given
+    variables = {"filter": {"giftCard": True}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", shippable_gift_card_product.pk
+    )
+
+
 def test_products_with_variants_query_as_app(
     query_products_with_attributes,
     app_api_client,
@@ -9707,6 +9755,8 @@ def test_categories_query_with_sort(
         ({"configurable": "SIMPLE"}, 1),  # !has_variants
         ({"productType": "DIGITAL"}, 1),
         ({"productType": "SHIPPABLE"}, 2),  # is_shipping_required
+        ({"kind": "NORMAL"}, 2),
+        ({"kind": "GIFT_CARD"}, 1),
     ],
 )
 def test_product_type_query_with_filter(
@@ -9732,6 +9782,7 @@ def test_product_type_query_with_filter(
                 has_variants=True,
                 is_shipping_required=False,
                 is_digital=True,
+                kind=ProductTypeKind.NORMAL,
             ),
             ProductType(
                 name="Tools",
@@ -9739,6 +9790,7 @@ def test_product_type_query_with_filter(
                 has_variants=True,
                 is_shipping_required=True,
                 is_digital=False,
+                kind=ProductTypeKind.NORMAL,
             ),
             ProductType(
                 name="Books",
@@ -9746,6 +9798,7 @@ def test_product_type_query_with_filter(
                 has_variants=False,
                 is_shipping_required=True,
                 is_digital=False,
+                kind=ProductTypeKind.GIFT_CARD,
             ),
         ]
     )
