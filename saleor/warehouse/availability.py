@@ -45,8 +45,8 @@ def check_stock_quantity_bulk(
     variants: Iterable["ProductVariant"],
     country_code: str,
     quantities: Iterable[int],
-    existing_lines: Iterable,
     channel_slug: str,
+    existing_lines: Iterable = None,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
 ):
     """Validate if there is stock available for given variants in given country.
@@ -71,9 +71,10 @@ def check_stock_quantity_bulk(
     for variant, input_quantity in zip(variants, quantities):
 
         quantity = input_quantity
-        for line_info in existing_lines:
-            if line_info.variant.sku == variant.sku:
-                quantity += line_info.line.quantity
+        if existing_lines:
+            for line_info in existing_lines:
+                if line_info.variant.sku == variant.sku:
+                    quantity += line_info.line.quantity
 
         stocks = variant_stocks.get(variant.pk, [])
         available_quantity = sum(
