@@ -22,6 +22,9 @@ from ..utils import (
     validate_gateway_response,
 )
 
+pytest_plugins = ["saleor.plugins.webhook.tests.test_payment_webhook"]
+
+
 NOT_ACTIVE_PAYMENT_ERROR = "This payment is no longer active."
 EXAMPLE_ERROR = "Example dummy error"
 
@@ -87,6 +90,15 @@ def dummy_response(payment_dummy, transaction_token, payment_method_details):
         raw_response=None,
         payment_method_info=payment_method_details,
     )
+
+
+@pytest.fixture
+def customer_user2(customer_user):
+    customer_user.pk = None
+    customer_user._state.adding = True
+    customer_user.email = "test2@example.com"
+    customer_user.save()
+    return customer_user
 
 
 def test_create_payment(checkout_with_item, address):
@@ -550,3 +562,57 @@ def test_update_payment(gateway_response, payment_txn_captured):
     assert payment.cc_exp_year == gateway_response.payment_method_info.exp_year
     assert payment.cc_exp_month == gateway_response.payment_method_info.exp_month
     assert payment.payment_method_type == gateway_response.payment_method_info.type
+
+
+def test_get_user_from_order(payment, customer_user2):
+    # given
+    assert payment.checkout is None
+    assert payment.order.user != customer_user2
+    payment.order.user = customer_user2
+    payment.save()
+
+    # when
+    payment_user = payment.get_user()
+
+    # then
+    assert payment_user == customer_user2
+
+
+def test_get_user_from_checkout(payment, checkout, customer_user2):
+    # given
+    assert checkout.user != customer_user2
+    checkout.user = customer_user2
+    checkout.save()
+    payment.checkout = checkout
+    payment.order = None
+    payment.save()
+
+    # when
+    payment_user = payment.get_user()
+
+    # then
+    assert payment_user == customer_user2
+
+
+@pytest.mark.parametrize(
+    ["not_none", "none"],
+    [(["order"], ["checkout"]), (["checkout"], ["order"]), ([], ["checkout", "order"])],
+)
+def test_get_none_user(payment, checkout, not_none, none):
+    # given
+    for attr in none:
+        setattr(payment, attr, None)
+    for attr in not_none:
+        if attr == "checkout":
+            payment.checkout = checkout
+        elif attr == "order":
+            payment.order.user = None
+        payment.save()
+        assert getattr(payment, attr) is not None
+        assert getattr(payment, attr).user is None
+
+    # when
+    payment_user = payment.get_user()
+
+    # then
+    assert payment_user is None

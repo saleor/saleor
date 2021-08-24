@@ -161,6 +161,12 @@ class Payment(ModelWithMetadata):
         """Retrieve the maximum capture possible."""
         return self.total - self.captured_amount
 
+    def get_user(self):
+        if (order := self.order) is not None and (user := order.user) is not None:
+            return user
+        if (checkout := self.checkout) is not None:
+            return checkout.user
+
     @property
     def is_authorized(self):
         return any(
