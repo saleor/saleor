@@ -5286,6 +5286,7 @@ input ProductFilterInput {
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
+  giftCard: Boolean
   ids: [ID]
   channel: String
 }
@@ -5500,6 +5501,7 @@ input ProductTypeFilterInput {
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
   metadata: [MetadataFilter]
+  kind: ProductTypeKindEnum
   ids: [ID]
 }
 
