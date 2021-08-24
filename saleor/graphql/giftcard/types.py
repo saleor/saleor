@@ -13,6 +13,7 @@ from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import requestor_has_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
+from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.types.money import Money
@@ -361,7 +362,10 @@ class GiftCard(CountableDjangoObjectType):
     def resolve_product(root: models.GiftCard, info):
         if root.product_id is None:
             return None
-        return ProductByIdLoader(info.context).load(root.product_id)
+        product = ProductByIdLoader(info.context).load(root.product_id)
+        return product.then(
+            lambda product: ChannelContext(node=product, channel_slug=None)
+        )
 
     @staticmethod
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)

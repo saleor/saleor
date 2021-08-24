@@ -11,6 +11,9 @@ QUERY_GIFT_CARDS = """
                 node {
                     id
                     displayCode
+                    product {
+                        name
+                    }
                 }
             }
             totalCount
