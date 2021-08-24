@@ -4190,6 +4190,11 @@ def test_order_capture(
         "amount": str(amount),
         "payment_gateway": "mirumee.payments.dummy",
         "payment_id": "",
+        "graphql_payment_id": graphene.Node.to_global_id(
+            "Payment", payment_txn_preauth.pk
+        ),
+        "psp_reference": None,
+
     }
 
     assert event_order_fully_paid.type == order_events.OrderEvents.ORDER_FULLY_PAID

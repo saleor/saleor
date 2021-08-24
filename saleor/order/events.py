@@ -1,5 +1,6 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Tuple, Union
+import graphene
 
 from ..account import events as account_events
 from ..account.models import User
@@ -32,6 +33,8 @@ def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> Dict:
             "amount": amount,
             "payment_id": payment.token,
             "payment_gateway": payment.gateway,
+            "graphql_payment_id": graphene.Node.to_global_id("Payment", payment.pk),
+            "psp_reference": payment.psp_reference,
         }
     }
 
