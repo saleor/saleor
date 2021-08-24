@@ -198,9 +198,10 @@ def gift_cards_create(
     gift_cards = GiftCard.objects.bulk_create(gift_cards)
     events.gift_cards_bought(gift_cards, order.id, requestor_user, app)
 
+    channel_slug = order.channel.slug
     # send to customer all non-shippable gift cards
     send_gift_cards_to_customer(
-        non_shippable_gift_cards, user_email, requestor_user, app, manager
+        non_shippable_gift_cards, user_email, requestor_user, app, manager, channel_slug
     )
     return gift_cards
 
@@ -222,8 +223,11 @@ def send_gift_cards_to_customer(
     requestor_user: Optional["User"],
     app: Optional["App"],
     manager: "PluginsManager",
+    channel_slug: str,
 ):
     for gift_card in gift_cards:
-        send_gift_card_notification(requestor_user, app, user_email, gift_card, manager)
+        send_gift_card_notification(
+            requestor_user, app, user_email, gift_card, manager, channel_slug
+        )
 
     events.gift_cards_sent(gift_cards, requestor_user, app, user_email)

@@ -245,7 +245,12 @@ def test_gift_cards_create(
     assert shippable_event.parameters == {"order_id": order.id, "expiry_date": None}
 
     send_notification_mock.assert_called_once_with(
-        staff_user, None, user_email, non_shippable_gift_card, manager
+        staff_user,
+        None,
+        user_email,
+        non_shippable_gift_card,
+        manager,
+        order.channel.slug,
     )
 
 
@@ -311,7 +316,12 @@ def test_gift_cards_create_expiry_date_set(
     }
 
     send_notification_mock.assert_called_once_with(
-        staff_user, None, user_email, non_shippable_gift_card, manager
+        staff_user,
+        None,
+        user_email,
+        non_shippable_gift_card,
+        manager,
+        order.channel.slug,
     )
 
 
