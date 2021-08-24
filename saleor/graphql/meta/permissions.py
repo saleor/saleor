@@ -105,15 +105,14 @@ def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 
 def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum]:
-    user = info.context.user
+    context_user = info.context.user
     payment = Payment.objects.get(pk=payment_pk)
-    if user is None:
+    if context_user is None:
         raise PermissionDenied()
+
     if (
-        (order := payment.order) is not None
-        and (user := order.user) is not None
-        and user.pk == user.pk
-    ):
+        payment_user := payment.get_user()
+    ) is not None and payment_user.pk == context_user.pk:
         return []
     return [PaymentPermissions.HANDLE_PAYMENTS]
 

@@ -11,8 +11,7 @@ from ....core.models import ModelWithMetadata
 from ....invoice.models import Invoice
 from ...tests.utils import assert_no_permission, get_graphql_content
 
-# this statement adds payment fixture
-pytest_plugins = ["saleor.plugins.webhook.tests.test_payment_webhook"]
+pytest_plugins = ["saleor.graphql.meta.tests"]
 
 
 PRIVATE_KEY = "private_key"
@@ -736,12 +735,13 @@ def test_update_public_metadata_for_item_without_meta(api_client, address):
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
-def test_update_public_metadata_for_payment_by_logged_user(user_api_client, payment):
+def test_update_public_metadata_for_payment_by_logged_user(
+    user_api_client, payment_with_public_metadata
+):
     # given
-    payment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    payment.order.user = user_api_client.user
-    payment.save()
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    payment_with_public_metadata.order.user = user_api_client.user
+    payment_with_public_metadata.save()
+    payment_id = graphene.Node.to_global_id("Payment", payment_with_public_metadata.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -751,44 +751,48 @@ def test_update_public_metadata_for_payment_by_logged_user(user_api_client, paym
     # then
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"],
-        payment,
+        payment_with_public_metadata,
         payment_id,
         value="NewMetaValue",
     )
 
 
 def test_update_public_metadata_for_payment_by_different_logged_user(
-    user_api_client, payment
+    user_api_client, payment_with_public_metadata
 ):
     # given
-    payment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    payment.save(update_fields=["metadata"])
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment_with_public_metadata.pk)
+    variables = {
+        "id": payment_id,
+        "input": [{"key": PUBLIC_KEY, "value": "NewMetaValue"}],
+    }
 
     # when
-    response = execute_update_public_metadata_for_item(
-        user_api_client, None, payment_id, "Payment", value="NewMetaValue"
+    response = user_api_client.post_graphql(
+        UPDATE_PUBLIC_METADATA_MUTATION % "Payment", variables, permissions=None
     )
 
     # then
-    errors = response["data"]["updateMetadata"]["errors"]
-    assert errors[0]["field"] == "field"
-    assert errors[0]["code"] == "code"
+    assert_no_permission(response)
 
 
-def test_update_public_metadata_for_payment_by_non_logged_user(api_client, payment):
+def test_update_public_metadata_for_payment_by_non_logged_user(
+    api_client, payment_with_public_metadata
+):
     # given
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment_with_public_metadata.pk)
+    variables = {
+        "id": payment_id,
+        "input": [{"key": PUBLIC_KEY, "value": "NewMetaValue"}],
+    }
 
     # when
-    response = execute_update_public_metadata_for_item(
-        api_client, None, payment_id, "Payment"
+    response = api_client.post_graphql(
+        UPDATE_PUBLIC_METADATA_MUTATION % "Payment", variables, permissions=None
     )
 
     # then
-    errors = response["data"]["updateMetadata"]["errors"]
-    assert errors[0]["field"] == "field"
-    assert errors[0]["code"] == "code"
+    assert_no_permission(response)
 
 
 DELETE_PUBLIC_METADATA_MUTATION = """
@@ -2159,10 +2163,10 @@ def test_update_private_metadata_for_item_without_meta(api_client, address):
 
 
 def test_update_private_metadata_for_payment_by_staff(
-    staff_api_client, permission_manage_payments, payment
+    staff_api_client, permission_manage_payments, payment_with_private_metadata
 ):
     # given
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment_with_private_metadata.pk)
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -2176,17 +2180,17 @@ def test_update_private_metadata_for_payment_by_staff(
     # then
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"],
-        payment,
+        payment_with_private_metadata,
         payment_id,
         value="NewMetaValue",
     )
 
 
 def test_update_private_metadata_for_payment_by_app(
-    app_api_client, permission_manage_payments, payment
+    app_api_client, permission_manage_payments, payment_with_private_metadata
 ):
     # given
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment_with_private_metadata.pk)
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -2200,27 +2204,29 @@ def test_update_private_metadata_for_payment_by_app(
     # then
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"],
-        payment,
+        payment_with_private_metadata,
         payment_id,
         value="NewMetaValue",
     )
 
 
 def test_update_private_metadata_for_payment_by_staff_without_permission(
-    staff_api_client, payment
+    staff_api_client, payment_with_private_metadata
 ):
     # given
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment_with_private_metadata.pk)
+    variables = {
+        "id": payment_id,
+        "input": [{"key": PRIVATE_KEY, "value": "NewMetaValue"}],
+    }
 
     # when
-    response = execute_update_private_metadata_for_item(
-        staff_api_client, None, payment_id, "Payment", value="NewMetaValue"
+    response = staff_api_client.post_graphql(
+        UPDATE_PRIVATE_METADATA_MUTATION % "Payment", variables, permissions=None
     )
 
     # then
-    errors = response["data"]["updatePrivateMetadata"]["errors"]
-    assert errors[0]["field"] == "field"
-    assert errors[0]["code"] == "code"
+    assert_no_permission(response)
 
 
 def test_update_private_metadata_for_payment_by_app_without_permission(
@@ -2228,16 +2234,18 @@ def test_update_private_metadata_for_payment_by_app_without_permission(
 ):
     # given
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    variables = {
+        "id": payment_id,
+        "input": [{"key": PRIVATE_KEY, "value": "NewMetaValue"}],
+    }
 
     # when
-    response = execute_update_private_metadata_for_item(
-        app_api_client, None, payment_id, "Payment", value="NewMetaValue"
+    response = app_api_client.post_graphql(
+        UPDATE_PRIVATE_METADATA_MUTATION % "Payment", variables, permissions=None
     )
 
     # then
-    errors = response["data"]["updatePrivateMetadata"]["errors"]
-    assert errors[0]["field"] == "field"
-    assert errors[0]["code"] == "code"
+    assert_no_permission(response)
 
 
 DELETE_PRIVATE_METADATA_MUTATION = """
