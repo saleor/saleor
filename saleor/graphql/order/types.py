@@ -43,7 +43,7 @@ from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import DEPRECATED_IN_3X
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
@@ -676,7 +676,7 @@ class Order(CountableDjangoObjectType):
     )
     language_code = graphene.String(
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X} "
+            f"{DEPRECATED_IN_3X_FIELD} "
             "Use the `languageCodeEnum` field to fetch the language code. "
         ),
         required=True,
@@ -687,16 +687,16 @@ class Order(CountableDjangoObjectType):
     discount = graphene.Field(
         Money,
         description="Returns applied discount.",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use discounts field.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
     )
     discount_name = graphene.String(
         description="Discount name.",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use discounts field.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
     )
 
     translated_discount_name = graphene.String(
         description="Translated discount name.",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use discounts field. ",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field. ",
     )
 
     discounts = graphene.List(

@@ -9,7 +9,7 @@ from ...core.utils.validators import date_passed, user_is_valid
 from ...giftcard import GiftCardExpiryType, events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
-from ..core.descriptions import DEPRECATED_IN_3X
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import GiftCardError, PriceInput, TimePeriodInputType
@@ -32,13 +32,13 @@ class GiftCardInput(graphene.InputObjectType):
     # DEPRECATED
     start_date = graphene.types.datetime.Date(
         description=(
-            f"Start date of the gift card in ISO 8601 format. {DEPRECATED_IN_3X}"
+            f"Start date of the gift card in ISO 8601 format. {DEPRECATED_IN_3X_INPUT}"
         )
     )
     end_date = graphene.types.datetime.Date(
         description=(
             "End date of the gift card in ISO 8601 format. "
-            f"{DEPRECATED_IN_3X} Use `expiryDate` from `expirySettings` instead."
+            f"{DEPRECATED_IN_3X_INPUT} Use `expiryDate` from `expirySettings` instead."
         )
     )
 
@@ -58,7 +58,7 @@ class GiftCardCreateInput(GiftCardInput):
         required=False,
         description=(
             "Code to use the gift card. "
-            f"{DEPRECATED_IN_3X} The code is now auto generated."
+            f"{DEPRECATED_IN_3X_INPUT} The code is now auto generated."
         ),
     )
     note = graphene.String(description="The gift card note from the staff member.")

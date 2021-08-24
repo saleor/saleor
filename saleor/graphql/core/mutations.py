@@ -20,7 +20,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ..decorators import staff_member_or_app_required
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
-from .descriptions import DEPRECATED_IN_3X
+from .descriptions import DEPRECATED_IN_3X_FIELD
 from .types import File, Upload
 from .types.common import UploadError
 from .utils import from_global_id_or_error, snake_to_camel_case
@@ -135,7 +135,7 @@ class BaseMutation(graphene.Mutation):
             description=description, _meta=_meta, **options
         )
         if error_type_field:
-            deprecated_msg = f"{DEPRECATED_IN_3X} Use `errors` field instead."
+            deprecated_msg = f"{DEPRECATED_IN_3X_FIELD} Use `errors` field instead."
             cls._meta.fields.update(
                 get_error_fields(
                     error_type_class,

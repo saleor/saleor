@@ -1,7 +1,7 @@
 import graphene
 from graphene.types.objecttype import ObjectTypeOptions
 
-from ..descriptions import DEPRECATED_IN_3X
+from ..descriptions import DEPRECATED_IN_3X_INPUT
 from ..enums import OrderDirection
 
 
@@ -43,7 +43,7 @@ class ChannelSortInputObjectType(SortInputObjectType):
         graphene.String,
         description=(
             "Specifies the channel in which to sort the data. "
-            f"{DEPRECATED_IN_3X} Use root-level channel argument instead."
+            f"{DEPRECATED_IN_3X_INPUT} Use root-level channel argument instead."
         ),
     )
 

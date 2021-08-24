@@ -15,7 +15,7 @@ from ..account.utils import requestor_has_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import DEPRECATED_IN_3X
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.types.common import TimePeriod
 from ..core.types.money import Money
 from ..decorators import permission_required
@@ -257,15 +257,15 @@ class GiftCard(CountableDjangoObjectType):
     user = graphene.Field(
         "saleor.graphql.account.types.User",
         description="The customer who bought a gift card.",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use `createdBy` field instead.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `createdBy` field instead.",
     )
     end_date = graphene.types.datetime.DateTime(
         description="End date of gift card.",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use `expiryDate` field instead.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `expiryDate` field instead.",
     )
     start_date = graphene.types.datetime.DateTime(
         description="Start date of gift card.",
-        deprecation_reason=f"{DEPRECATED_IN_3X}",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD}",
     )
 
     class Meta:

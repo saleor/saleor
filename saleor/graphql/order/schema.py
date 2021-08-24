@@ -1,7 +1,7 @@
 import graphene
 
 from ...core.permissions import OrderPermissions
-from ..core.descriptions import DEPRECATED_IN_3X
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
@@ -142,7 +142,7 @@ class OrderMutations(graphene.ObjectType):
     draft_order_delete = DraftOrderDelete.Field()
     draft_order_bulk_delete = DraftOrderBulkDelete.Field()
     draft_order_lines_bulk_delete = DraftOrderLinesBulkDelete.Field(
-        deprecation_reason=DEPRECATED_IN_3X
+        deprecation_reason=DEPRECATED_IN_3X_FIELD
     )
     draft_order_update = DraftOrderUpdate.Field()
 

@@ -31,7 +31,7 @@ from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
-from ...core.descriptions import DEPRECATED_IN_3X
+from ...core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_INPUT
 from ...core.enums import ReportingPeriod
 from ...core.fields import (
     ChannelContextFilterConnectionField,
@@ -206,7 +206,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     images = graphene.List(
         lambda: ProductImage,
         description="List of images for the product variant.",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use the `media` field instead.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `media` field instead.",
     )
     media = graphene.List(
         graphene.NonNull(lambda: ProductMedia),
@@ -228,7 +228,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             CountryCodeEnum,
             description=(
                 "Two-letter ISO 3166-1 country code. "
-                f"{DEPRECATED_IN_3X} Use `address` argument instead."
+                f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
             ),
         ),
     )
@@ -243,7 +243,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 "from a warehouse operating in shipping zones that contain this "
                 "country will be returned. Otherwise, it will return the maximum "
                 "quantity from all shipping zones. "
-                f"{DEPRECATED_IN_3X} Use `address` argument instead."
+                f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
             ),
         ),
     )
@@ -504,7 +504,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     description_json = graphene.JSONString(
         description="Description of the product (JSON).",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use the `description` field instead.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
+        ),
     )
     thumbnail = graphene.Field(
         Image,
@@ -544,7 +546,9 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         lambda: ProductImage,
         id=graphene.Argument(graphene.ID, description="ID of a product image."),
         description="Get a single product image by ID.",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use the `mediaById` field instead.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `mediaById` field instead."
+        ),
     )
     variants = graphene.List(
         ProductVariant, description="List of variants for the product."
@@ -556,7 +560,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     images = graphene.List(
         lambda: ProductImage,
         description="List of images for the product.",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use the `media` field instead.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `media` field instead.",
     )
     collections = graphene.List(
         lambda: Collection, description="List of collections for the product."
@@ -953,7 +957,7 @@ class ProductType(CountableDjangoObjectType):
         ),
         description="List of products of this type.",
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X} "
+            f"{DEPRECATED_IN_3X_FIELD} "
             "Use the top-level `products` query with the `productTypes` filter."
         ),
     )
@@ -1052,7 +1056,9 @@ class ProductType(CountableDjangoObjectType):
 class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     description_json = graphene.JSONString(
         description="Description of the collection (JSON).",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use the `description` field instead.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
+        ),
     )
     products = ChannelContextFilterConnectionField(
         Product,
@@ -1130,7 +1136,9 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 class Category(CountableDjangoObjectType):
     description_json = graphene.JSONString(
         description="Description of the category (JSON).",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use the `description` field instead.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
+        ),
     )
     ancestors = PrefetchingConnectionField(
         lambda: Category, description="List of ancestors of the category."

@@ -16,7 +16,7 @@ from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import DEPRECATED_IN_3X
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import PrefetchingConnectionField
 from ..core.scalars import UUID
@@ -213,7 +213,7 @@ class User(CountableDjangoObjectType):
         Checkout,
         description="Returns the last open checkout of this user.",
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X} "
+            f"{DEPRECATED_IN_3X_FIELD} "
             "Use the `checkout_tokens` field to fetch the user checkouts."
         ),
     )

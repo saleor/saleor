@@ -7,7 +7,7 @@ from ...warehouse import models
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import DEPRECATED_IN_3X
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
 
@@ -42,7 +42,9 @@ class Warehouse(CountableDjangoObjectType):
     company_name = graphene.String(
         required=True,
         description="Warehouse company name.",
-        deprecation_reason=f"{DEPRECATED_IN_3X} Use `Address.companyName` instead.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `Address.companyName` instead."
+        ),
     )
 
     class Meta:

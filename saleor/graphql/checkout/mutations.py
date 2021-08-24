@@ -41,7 +41,7 @@ from ...warehouse.models import Warehouse
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..channel.utils import clean_channel
-from ..core.descriptions import DEPRECATED_IN_3X
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_INPUT
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import UUID
@@ -249,9 +249,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         description=(
             "Whether the checkout was created or the current active one was returned. "
             "Refer to checkoutLinesAdd and checkoutLinesUpdate to merge a cart "
-            "with an active checkout. "
-            f"{DEPRECATED_IN_3X} Always returns True."
+            "with an active checkout."
         ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `True`.",
     )
 
     class Arguments:
@@ -417,7 +417,7 @@ class CheckoutLinesAdd(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -553,7 +553,7 @@ class CheckoutLineDelete(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -607,7 +607,7 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout_id = graphene.ID(
             required=False,
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
         )
         token = UUID(description="Checkout token.", required=False)
@@ -657,7 +657,7 @@ class CheckoutCustomerDetach(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -705,7 +705,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         checkout_id = graphene.ID(
             required=False,
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
         )
         token = UUID(description="Checkout token.", required=False)
@@ -813,7 +813,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         checkout_id = graphene.ID(
             required=False,
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
         )
         token = UUID(description="Checkout token.", required=False)
@@ -863,7 +863,7 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
         checkout_id = graphene.ID(
             required=False,
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
         )
         token = UUID(description="Checkout token.", required=False)
@@ -903,7 +903,7 @@ class CheckoutEmailUpdate(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -943,7 +943,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -1041,7 +1041,7 @@ class CheckoutComplete(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -1162,7 +1162,7 @@ class CheckoutAddPromoCode(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -1229,7 +1229,7 @@ class CheckoutRemovePromoCode(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )

@@ -1,7 +1,7 @@
 import graphene
 
 from ...core.permissions import DiscountPermissions
-from ..core.descriptions import DEPRECATED_IN_3X
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.fields import ChannelContextFilterConnectionField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
@@ -54,7 +54,7 @@ class DiscountQueries(graphene.ObjectType):
         query=graphene.String(
             description=(
                 "Search sales by name, value or type. "
-                f"{DEPRECATED_IN_3X} Use `filter.search` input instead."
+                f"{DEPRECATED_IN_3X_INPUT} Use `filter.search` input instead."
             )
         ),
         channel=graphene.String(
@@ -79,7 +79,7 @@ class DiscountQueries(graphene.ObjectType):
         query=graphene.String(
             description=(
                 "Search vouchers by name or code. "
-                f"{DEPRECATED_IN_3X} Use `filter.search` input instead."
+                f"{DEPRECATED_IN_3X_INPUT} Use `filter.search` input instead."
             )
         ),
         channel=graphene.String(
