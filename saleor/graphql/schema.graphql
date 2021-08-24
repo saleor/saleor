@@ -3215,6 +3215,8 @@ type OrderEvent implements Node {
   shippingCostsIncluded: Boolean
   relatedOrder: Order
   discount: OrderEventDiscountObject
+  pspReference: String
+  grapqhlPaymentId: String
 }
 
 type OrderEventCountableConnection {
