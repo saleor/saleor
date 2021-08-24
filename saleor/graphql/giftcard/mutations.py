@@ -173,6 +173,7 @@ class GiftCardCreate(ModelMutation):
             cleaned_input["user_email"],
             instance,
             info.context.plugins,
+            channel_slug=None,
         )
         events.gift_card_sent(
             gift_card_id=instance.id,
@@ -362,6 +363,8 @@ class GiftCardResend(BaseMutation):
             target_email,
             gift_card,
             info.context.plugins,
+            # TODO: should be fulfill with channel_slug from input
+            channel_slug="",
         )
         events.gift_card_resent(
             gift_card_id=gift_card.id,
