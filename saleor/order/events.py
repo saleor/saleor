@@ -1,5 +1,6 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Tuple, Union
+
 import graphene
 
 from ..account import events as account_events

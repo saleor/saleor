@@ -4194,7 +4194,6 @@ def test_order_capture(
             "Payment", payment_txn_preauth.pk
         ),
         "psp_reference": None,
-
     }
 
     assert event_order_fully_paid.type == order_events.OrderEvents.ORDER_FULLY_PAID
