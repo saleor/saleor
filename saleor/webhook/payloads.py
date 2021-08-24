@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Iterable, Optional
 import graphene
 from django.db.models import F, QuerySet
 
+from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
@@ -612,6 +613,23 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
     return json.loads(payload) if payload else None
 
 
+def process_translation_context(context):
+    additional_id_fields = [
+        ("product_id", "Product"),
+        ("product_variant_id", "ProductVariant"),
+        ("attribute_id", "Attribute"),
+        ("page_id", "Page"),
+        ("page_type_id", "PageType"),
+    ]
+    result = {}
+    for key, type_name in additional_id_fields:
+        if object_id := context.get(key, None):
+            result[key] = graphene.Node.to_global_id(type_name, object_id)
+        else:
+            result[key] = None
+    return result
+
+
 def generate_translation_payload(translation: "Translation"):
     object_type, object_id = translation.get_translated_object_id()
     translated_keys = [
@@ -619,11 +637,18 @@ def generate_translation_payload(translation: "Translation"):
         for key, value in translation.get_translated_keys().items()
     ]
 
+    context = None
+    if isinstance(translation, AttributeValueTranslation):
+        context = process_translation_context(translation.get_translation_context())
+
     translation_data = {
         "id": graphene.Node.to_global_id(object_type, object_id),
-        "type": object_type,
         "language_code": translation.language_code,
+        "type": object_type,
         "keys": translated_keys,
     }
+
+    if context:
+        translation_data.update(context)
 
     return json.dumps(translation_data)

@@ -2,7 +2,10 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-## [Unreleased]
+# 3.1.0 [Unreleased]
+- Extend app by `AppExtension` - #7701 by @korycins
+
+# 3.0.0 [Unreleased]
 
 - Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
@@ -131,6 +134,13 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add date & date time attributes - #7500 by @piotrgrundas
 - Add `withChoices` flag for Attribute type - #7733 by @dexon44
 - Drop assigning cheapest shipping method in checkout - #7767 by @maarcingebala
+- Add `product_id`, `product_variant_id`, `attribute_id` and `page_id` when it's possible for `AttributeValue` translations webhook. - #7783 by @fowczarek
+- Deprecate `query` argument in `sales` and `vouchers` queries - #7806 by @maarcingebala
+- Allow translating objects by translatable content ID - #7803 by @maarcingebala
+- Add `page_type_id` when it's possible for `AttributeValue` translations webhook. - #7825 by @fowczarek
+- Optimize available quantity loader. - #7802 by @fowczarek
+- Configure a periodic task for removing empty allocations - #7885 by @fowczarek
+
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki

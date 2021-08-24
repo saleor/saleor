@@ -253,3 +253,33 @@ class AttributeValueTranslation(Translation):
 
     def get_translated_keys(self):
         return {"name": self.name, "rich_text": self.rich_text}
+
+    def get_translation_context(self):
+        context = {}
+        attribute_value = self.attribute_value
+        attribute = attribute_value.attribute
+        context["attribute_id"] = attribute.id
+        if attribute.input_type in AttributeInputType.TYPES_WITH_UNIQUE_VALUES:
+            if attribute.type == AttributeType.PRODUCT_TYPE:
+                if assigned_variant_attribute_value := (
+                    attribute_value.variantvalueassignment.first()
+                ):
+                    if variant := assigned_variant_attribute_value.assignment.variant:
+                        context["product_variant_id"] = variant.id
+                        context["product_id"] = variant.product_id
+                elif assigned_product_attribute_value := (
+                    attribute_value.productvalueassignment.first()
+                ):
+                    if product_id := (
+                        assigned_product_attribute_value.assignment.product_id
+                    ):
+                        context["product_id"] = product_id
+            elif attribute.type == AttributeType.PAGE_TYPE:
+                if assigned_page_attribute_value := (
+                    attribute_value.pagevalueassignment.first()
+                ):
+                    if page := assigned_page_attribute_value.assignment.page:
+                        context["page_id"] = page.id
+                        if page_type_id := page.page_type_id:
+                            context["page_type_id"] = page_type_id
+        return context

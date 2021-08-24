@@ -131,6 +131,14 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.FULFILLMENT_CREATED, fulfillment_data
         )
 
+    def fulfillment_canceled(self, fulfillment: "Fulfillment", previous_value):
+        if not self.active:
+            return previous_value
+        fulfillment_data = generate_fulfillment_payload(fulfillment)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.FULFILLMENT_CANCELED, fulfillment_data
+        )
+
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
             return previous_value

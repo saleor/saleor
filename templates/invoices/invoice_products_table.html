@@ -1,19 +1,18 @@
-{% load i18n %}
 {% load price from taxed_prices %}
 <table class="products-table">
     <tbody>
         <tr class="row-category">
             <td class="cell-product">
-                <span class="header-category-small">{% trans "Products" context "Invoice PDF table" %}</span>
+                <span class="header-category-small">Products</span>
             </td>
             <td class="cell-price">
-                <span class="header-category-small cell-price-content">{% trans "Price" context "Invoice PDF table" %}</span>
+                <span class="header-category-small cell-price-content">Price</span>
             </td>
             <td class="cell-quantity">
-                <span class="header-category-small cell-quantity-content">{% trans "Quantity" context "Invoice PDF table" %}</span>
+                <span class="header-category-small cell-quantity-content">Quantity</span>
             </td>
             <td class="cell-total-price">
-                <span class="header-category-small">{% trans "Total Price" context "Invoice PDF table" %}</span>
+                <span class="header-category-small">Total Price</span>
             </td>
         </tr>
         {% for product in products %}

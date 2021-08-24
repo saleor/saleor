@@ -34,7 +34,7 @@ class TranslationProxy:
 
 
 class Translation(models.Model):
-    language_code = models.CharField(max_length=10)
+    language_code = models.CharField(max_length=35)
 
     class Meta:
         abstract = True
@@ -48,3 +48,6 @@ class Translation(models.Model):
         raise NotImplementedError(
             "Models extending Translation should implement get_translated_keys"
         )
+
+    def get_translation_context(self) -> Dict[str, Any]:
+        return {}

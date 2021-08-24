@@ -3,7 +3,7 @@ import uuid
 from typing import Set
 
 from django.db import models
-from django.db.models import Exists, F, OuterRef, Sum
+from django.db.models import Exists, F, OuterRef, Q, Sum
 from django.db.models.functions import Coalesce
 
 from ..account.models import Address
@@ -62,7 +62,13 @@ class StockQuerySet(models.QuerySet):
     def annotate_available_quantity(self):
         return self.annotate(
             available_quantity=F("quantity")
-            - Coalesce(Sum("allocations__quantity_allocated"), 0)
+            - Coalesce(
+                Sum(
+                    "allocations__quantity_allocated",
+                    filter=Q(allocations__quantity_allocated__gt=0),
+                ),
+                0,
+            )
         )
 
     def for_channel(self, channel_slug: str):
