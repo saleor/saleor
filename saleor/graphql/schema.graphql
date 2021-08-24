@@ -906,6 +906,7 @@ type Channel implements Node {
   slug: String!
   currencyCode: String!
   hasOrders: Boolean!
+  defaultCountry: CountryDisplay!
 }
 
 type ChannelActivate {
@@ -925,6 +926,7 @@ input ChannelCreateInput {
   name: String!
   slug: String!
   currencyCode: String!
+  defaultCountry: CountryCode!
   addShippingZones: [ID!]
 }
 
@@ -973,6 +975,7 @@ input ChannelUpdateInput {
   isActive: Boolean
   name: String
   slug: String
+  defaultCountry: CountryCode
   addShippingZones: [ID!]
   removeShippingZones: [ID!]
 }
