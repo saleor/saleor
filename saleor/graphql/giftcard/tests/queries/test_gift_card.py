@@ -112,16 +112,17 @@ def test_query_gift_card_no_permissions(staff_api_client, gift_card):
 def test_query_gift_card_by_app(
     app_api_client,
     gift_card,
+    non_shippable_gift_card_product,
     permission_manage_gift_card,
     permission_manage_users,
-    permission_manage_apps,
 ):
     # given
     query = QUERY_GIFT_CARD_BY_ID
 
     app = app_api_client.app
     gift_card.app = app
-    gift_card.save(update_fields=["app"])
+    gift_card.product = non_shippable_gift_card_product
+    gift_card.save(update_fields=["app", "product"])
 
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     variables = {"id": gift_card_id}
@@ -155,7 +156,7 @@ def test_query_gift_card_by_app(
     assert data["usedBy"] is None
     assert data["createdByEmail"] == gift_card.created_by_email
     assert data["usedByEmail"] == gift_card.used_by_email
-    assert data["product"] is None
+    assert data["product"]["name"] == non_shippable_gift_card_product.name
     assert data["app"]["name"] == app.name
 
 
