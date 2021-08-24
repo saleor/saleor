@@ -532,6 +532,22 @@ def customer_user(address):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def customer_user2(address):
+    default_address = address.get_copy()
+    user = User.objects.create_user(
+        "test2@example.com",
+        "password",
+        default_billing_address=default_address,
+        default_shipping_address=default_address,
+        first_name="Jane",
+        last_name="Doe",
+    )
+    user.addresses.add(default_address)
+    user._password = "password"
+    return user
+
+
+@pytest.fixture
 def user_checkout(customer_user, channel_USD):
     checkout = Checkout.objects.create(
         user=customer_user,

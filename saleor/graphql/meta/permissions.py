@@ -107,18 +107,19 @@ def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum]:
     context_user = info.context.user
     payment = Payment.objects.get(pk=payment_pk)
-    if context_user is None:
-        raise PermissionDenied()
-
+    if info.context.app is not None or info.context.user.is_staff:
+        return [PaymentPermissions.HANDLE_PAYMENTS]
     if (
         payment_user := payment.get_user()
-    ) is not None and payment_user.pk == context_user.pk:
+    ) is not None and payment_user == context_user:
         return []
-    return [PaymentPermissions.HANDLE_PAYMENTS]
+    raise PermissionDenied()
 
 
-def private_payment_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
-    return [PaymentPermissions.HANDLE_PAYMENTS]
+def private_payment_permissions(info, _object_pk: Any) -> List[BasePermissionEnum]:
+    if info.context.app is not None or info.context.user.is_staff:
+        return [PaymentPermissions.HANDLE_PAYMENTS]
+    raise PermissionDenied()
 
 
 PUBLIC_META_PERMISSION_MAP = {

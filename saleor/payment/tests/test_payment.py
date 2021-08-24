@@ -92,15 +92,6 @@ def dummy_response(payment_dummy, transaction_token, payment_method_details):
     )
 
 
-@pytest.fixture
-def customer_user2(customer_user):
-    customer_user.pk = None
-    customer_user._state.adding = True
-    customer_user.email = "test2@example.com"
-    customer_user.save()
-    return customer_user
-
-
 def test_create_payment(checkout_with_item, address):
     checkout_with_item.billing_address = address
     checkout_with_item.save()

@@ -758,9 +758,12 @@ def test_update_public_metadata_for_payment_by_logged_user(
 
 
 def test_update_public_metadata_for_payment_by_different_logged_user(
-    user_api_client, payment_with_public_metadata
+    user_api_client, payment_with_public_metadata, customer_user2
 ):
     # given
+    payment_with_public_metadata.order.user = customer_user2
+    payment_with_public_metadata.save()
+    assert payment_with_public_metadata.get_user() != user_api_client.user
     payment_id = graphene.Node.to_global_id("Payment", payment_with_public_metadata.pk)
     variables = {
         "id": payment_id,
