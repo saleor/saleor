@@ -49,6 +49,7 @@ def test_resend_gift_card(
     notify_mock,
     staff_api_client,
     gift_card,
+    channel_USD,
     permission_manage_gift_card,
     permission_manage_users,
     permission_manage_apps,
@@ -59,6 +60,7 @@ def test_resend_gift_card(
         "input": {
             "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
             "email": email,
+            "channel": channel_USD.slug,
         }
     }
 
@@ -96,6 +98,7 @@ def test_resend_gift_card_as_app(
     notify_mock,
     app_api_client,
     gift_card,
+    channel_USD,
     permission_manage_gift_card,
     permission_manage_users,
     permission_manage_apps,
@@ -104,6 +107,7 @@ def test_resend_gift_card_as_app(
     variables = {
         "input": {
             "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
+            "channel": channel_USD.slug,
         }
     }
 
@@ -142,11 +146,13 @@ def test_update_gift_card_no_permission(
     notify_mock,
     staff_api_client,
     gift_card,
+    channel_USD,
 ):
     # given
     variables = {
         "input": {
             "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
+            "channel": channel_USD.slug,
         }
     }
 
@@ -171,12 +177,14 @@ def test_resend_gift_card_malformed_email(
     permission_manage_gift_card,
     permission_manage_users,
     permission_manage_apps,
+    channel_USD,
 ):
     # given
     variables = {
         "input": {
             "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
             "email": "malformed",
+            "channel": channel_USD.slug,
         }
     }
 
