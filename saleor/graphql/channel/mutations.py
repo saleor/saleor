@@ -12,6 +12,7 @@ from ...core.tracing import traced_atomic_transaction
 from ...order.models import Order
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..account.enums import CountryCodeEnum
+from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import ChannelError, ChannelErrorCode
 from ..core.utils import get_duplicated_values, get_duplicates_ids
@@ -31,9 +32,9 @@ class ChannelCreateInput(ChannelInput):
     )
     default_country = CountryCodeEnum(
         description=(
-            "Default country for the channel. Default country can be used in checkout "
-            "to determine the stock quantities or calculate taxes when the country was "
-            "not explicitly provided."
+            f"{ADDED_IN_31} Default country for the channel. Default country can be "
+            "used in checkout to determine the stock quantities or calculate taxes "
+            "when the country was not explicitly provided."
         ),
         required=True,
     )
@@ -84,9 +85,9 @@ class ChannelUpdateInput(ChannelInput):
     slug = graphene.String(description="Slug of the channel.")
     default_country = CountryCodeEnum(
         description=(
-            "Default country for the channel. Default country can be used in checkout "
-            "to determine the stock quantities or calculate taxes when the country was "
-            "not explicitly provided."
+            f"{ADDED_IN_31} Default country for the channel. Default country can be "
+            "used in checkout to determine the stock quantities or calculate taxes "
+            "when the country was not explicitly provided."
         )
     )
     add_shipping_zones = graphene.List(
