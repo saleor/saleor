@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from decimal import Decimal
+from unittest import mock
 from unittest.mock import ANY, Mock, patch
 
 import graphene
@@ -163,6 +164,7 @@ QUERY_PRODUCT = """
             }
             availableForPurchase
             isAvailableForPurchase
+            isAvailable
         }
     }
     """
@@ -1010,6 +1012,7 @@ def test_product_query_is_available_for_purchase_false(
         "%Y-%m-%d"
     )
     assert product_data["isAvailableForPurchase"] is False
+    assert product_data["isAvailable"] is False
 
 
 def test_product_query_is_available_for_purchase_false_no_available_for_purchase_date(
@@ -1032,6 +1035,7 @@ def test_product_query_is_available_for_purchase_false_no_available_for_purchase
 
     assert not product_data["availableForPurchase"]
     assert product_data["isAvailableForPurchase"] is False
+    assert product_data["isAvailable"] is False
 
 
 def test_product_query_unpublished_products_by_slug(
@@ -1673,6 +1677,87 @@ def test_query_products_no_channel_shipping_zones(
     product_data = product_edges_data[0]["node"]
     assert product_data["name"] == product.name
     assert product_data["isAvailable"] is False
+
+
+QUERY_PRODUCT_IS_AVAILABLE = """
+    query Product($id: ID, $channel: String, $address: AddressInput) {
+        product(id: $id, channel: $channel) {
+            isAvailableNoAddress: isAvailable
+            isAvailableAddress: isAvailable(address: $address)
+        }
+    }
+"""
+
+
+def test_query_product_is_available(
+    api_client, channel_USD, variant_with_many_stocks_different_shipping_zones
+):
+    # given
+    variant = variant_with_many_stocks_different_shipping_zones
+    product = variant.product
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "PL"},
+    }
+
+    # when
+    response = api_client.post_graphql(QUERY_PRODUCT_IS_AVAILABLE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_data = content["data"]["product"]
+    assert product_data["isAvailableNoAddress"] is True
+    assert product_data["isAvailableAddress"] is True
+
+
+def test_query_product_is_available_with_one_variant(
+    api_client, channel_USD, product_with_two_variants
+):
+    # given
+    product = product_with_two_variants
+
+    # remove stock for 2nd variant
+    variant_2 = product.variants.all()[1]
+    Stock.objects.filter(product_variant=variant_2).delete()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "PL"},
+    }
+
+    # when
+    response = api_client.post_graphql(QUERY_PRODUCT_IS_AVAILABLE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_data = content["data"]["product"]
+    assert product_data["isAvailableNoAddress"] is True
+    assert product_data["isAvailableAddress"] is True
+
+
+def test_query_product_is_available_no_shipping_zones(
+    api_client, channel_USD, variant_with_many_stocks_different_shipping_zones
+):
+    # given
+    channel_USD.shipping_zones.clear()
+    variant = variant_with_many_stocks_different_shipping_zones
+    product = variant.product
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "PL"},
+    }
+
+    # when
+    response = api_client.post_graphql(QUERY_PRODUCT_IS_AVAILABLE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_data = content["data"]["product"]
+    assert product_data["isAvailableNoAddress"] is False
+    assert product_data["isAvailableAddress"] is False
 
 
 def test_products_query_with_filter_attributes(
@@ -8885,11 +8970,38 @@ def test_product_variants_no_ids_list(user_api_client, variant, channel_USD):
     assert len(data["edges"]) == ProductVariant.objects.count()
 
 
+QUERY_GET_PRODUCT_VARIANTS_PRICING = """
+    query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
+        product(id: $id, channel: $channel) {
+            variants {
+                id
+                pricingNoAddress: pricing {
+                    priceUndiscounted {
+                        gross {
+                            amount
+                        }
+                    }
+                }
+                pricing(address: $address) {
+                    priceUndiscounted {
+                        gross {
+                            amount
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+@mock.patch("saleor.graphql.product.types.products.WarehouseCountryCodeByChannelLoader")
 @pytest.mark.parametrize(
     "variant_price_amount, api_variant_price",
     [(200, 200), (0, 0)],
 )
 def test_product_variant_price(
+    warehouse_country_code_loader,
     variant_price_amount,
     api_variant_price,
     user_api_client,
@@ -8902,32 +9014,20 @@ def test_product_variant_price(
         channel=channel_USD, variant__product_id=product.pk
     ).update(price_amount=variant_price_amount)
 
-    query = """
-        query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
-            product(id: $id, channel: $channel) {
-                variants {
-                    pricing(address: $address) {
-                        priceUndiscounted {
-                            gross {
-                                amount
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        """
     product_id = graphene.Node.to_global_id("Product", variant.product.id)
     variables = {
         "id": product_id,
         "channel": channel_USD.slug,
         "address": {"country": "US"},
     }
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(
+        QUERY_GET_PRODUCT_VARIANTS_PRICING, variables
+    )
     content = get_graphql_content(response)
     data = content["data"]["product"]
     variant_price = data["variants"][0]["pricing"]["priceUndiscounted"]["gross"]
     assert variant_price["amount"] == api_variant_price
+    assert warehouse_country_code_loader.called
 
 
 def test_product_variant_without_price_as_user(
@@ -8937,23 +9037,6 @@ def test_product_variant_without_price_as_user(
     channel_USD,
 ):
     variant.channel_listings.filter(channel=channel_USD).update(price_amount=None)
-
-    query = """
-        query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
-            product(id: $id, channel: $channel) {
-                variants {
-                    id
-                    pricing(address: $address) {
-                        priceUndiscounted {
-                            gross {
-                                amount
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        """
     product_id = graphene.Node.to_global_id("Product", variant.product.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {
@@ -8962,7 +9045,9 @@ def test_product_variant_without_price_as_user(
         "address": {"country": "US"},
     }
 
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(
+        QUERY_GET_PRODUCT_VARIANTS_PRICING, variables
+    )
     content = get_graphql_content(response)
 
     variants_data = content["data"]["product"]["variants"]
@@ -8981,22 +9066,6 @@ def test_product_variant_without_price_as_staff(
     variant_channel_listing.price_amount = None
     variant_channel_listing.save()
 
-    query = """
-        query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
-            product(id: $id, channel: $channel) {
-                variants {
-                    id
-                    pricing(address: $address) {
-                        priceUndiscounted {
-                            gross {
-                                amount
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        """
     product_id = graphene.Node.to_global_id("Product", variant.product.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {
@@ -9004,7 +9073,9 @@ def test_product_variant_without_price_as_staff(
         "channel": channel_USD.slug,
         "address": {"country": "US"},
     }
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_GET_PRODUCT_VARIANTS_PRICING, variables
+    )
     content = get_graphql_content(response)
     variants_data = content["data"]["product"]["variants"]
 

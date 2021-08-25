@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
@@ -17,7 +17,12 @@ from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
 from ...models import Payment
-from ...utils import create_transaction, gateway_postprocess, price_from_minor_unit
+from ...utils import (
+    create_transaction,
+    gateway_postprocess,
+    price_from_minor_unit,
+    update_payment_method_details,
+)
 from .consts import (
     WEBHOOK_AUTHORIZED_EVENT,
     WEBHOOK_CANCELED_EVENT,
@@ -26,13 +31,19 @@ from .consts import (
     WEBHOOK_REFUND_EVENT,
     WEBHOOK_SUCCESS_EVENT,
 )
-from .stripe_api import construct_stripe_event
+from .stripe_api import (
+    construct_stripe_event,
+    get_payment_method_details,
+    update_payment_method,
+)
 
 logger = logging.getLogger(__name__)
 
 
 @transaction_with_commit_on_errors()
-def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
+def handle_webhook(
+    request: WSGIRequest, gateway_config: "GatewayConfig", channel_slug: str
+):
     payload = request.body
     sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
     endpoint_secret = gateway_config.connection_params["webhook_secret"]
@@ -68,7 +79,7 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
             "Processing new Stripe webhook",
             extra={"event_type": event.type, "event_id": event.id},
         )
-        webhook_handlers[event.type](event.data.object, gateway_config)
+        webhook_handlers[event.type](event.data.object, gateway_config, channel_slug)
     else:
         logger.warning(
             "Received unhandled webhook events", extra={"event_type": event.type}
@@ -182,7 +193,7 @@ def _process_payment_with_checkout(
 
 
 def handle_authorized_payment_intent(
-    payment_intent: StripeObject, gateway_config: "GatewayConfig"
+    payment_intent: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
 ):
     payment = _get_payment(payment_intent.id)
 
@@ -215,7 +226,7 @@ def handle_authorized_payment_intent(
 
 
 def handle_failed_payment_intent(
-    payment_intent: StripeObject, gateway_config: "GatewayConfig"
+    payment_intent: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
 ):
     payment = _get_payment(payment_intent.id)
 
@@ -237,7 +248,7 @@ def handle_failed_payment_intent(
 
 
 def handle_processing_payment_intent(
-    payment_intent: StripeObject, gateway_config: "GatewayConfig"
+    payment_intent: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
 ):
     payment = _get_payment(payment_intent.id)
 
@@ -262,7 +273,7 @@ def handle_processing_payment_intent(
 
 
 def handle_successful_payment_intent(
-    payment_intent: StripeObject, gateway_config: "GatewayConfig"
+    payment_intent: StripeObject, gateway_config: "GatewayConfig", channel_slug: str
 ):
     payment = _get_payment(payment_intent.id)
 
@@ -272,6 +283,19 @@ def handle_successful_payment_intent(
             extra={"payment_intent": payment_intent.id},
         )
         return
+
+    api_key = gateway_config.connection_params["secret_api_key"]
+
+    if payment_intent.setup_future_usage:
+        update_payment_method(api_key, payment_intent.payment_method, channel_slug)
+
+    payment_method_info = get_payment_method_details(payment_intent)
+    if payment_method_info:
+        changed_fields: List[str] = []
+        update_payment_method_details(payment, payment_method_info, changed_fields)
+        if changed_fields:
+            payment.save(update_fields=changed_fields)
+
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:
             capture_transaction = _update_payment_with_new_transaction(
@@ -301,7 +325,9 @@ def handle_successful_payment_intent(
         )
 
 
-def handle_refund(charge: StripeObject, gateway_config: "GatewayConfig"):
+def handle_refund(
+    charge: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
+):
     payment_intent_id = charge.payment_intent
     payment = _get_payment(payment_intent_id)
 

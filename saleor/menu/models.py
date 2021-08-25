@@ -4,7 +4,7 @@ from mptt.models import MPTTModel
 
 from ..core.models import ModelWithMetadata, SortableModel
 from ..core.permissions import MenuPermissions
-from ..core.utils.translations import TranslationProxy
+from ..core.utils.translations import Translation, TranslationProxy
 from ..page.models import Page
 from ..product.models import Category, Collection
 
@@ -61,8 +61,7 @@ class MenuItem(ModelWithMetadata, MPTTModel, SortableModel):
         return self.category or self.collection or self.page
 
 
-class MenuItemTranslation(models.Model):
-    language_code = models.CharField(max_length=10)
+class MenuItemTranslation(Translation):
     menu_item = models.ForeignKey(
         MenuItem, related_name="translations", on_delete=models.CASCADE
     )
@@ -83,3 +82,11 @@ class MenuItemTranslation(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_translated_object_id(self):
+        return "MenuItem", self.menu_item_id
+
+    def get_translated_keys(self):
+        return {
+            "name": self.name,
+        }
