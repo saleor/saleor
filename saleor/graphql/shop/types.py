@@ -16,6 +16,7 @@ from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
 from ..core.utils import str_to_enum
@@ -84,9 +85,8 @@ class Shop(graphene.ObjectType):
         currency=graphene.Argument(
             graphene.String,
             description=(
-                "DEPRECATED: use `channel` argument instead. This argument will be "
-                "removed in Saleor 4.0."
-                "A currency for which gateways will be returned."
+                "A currency for which gateways will be returned. "
+                f"{DEPRECATED_IN_3X_INPUT} Use `channel` argument instead."
             ),
             required=False,
         ),
@@ -130,8 +130,8 @@ class Shop(graphene.ObjectType):
         language_code=graphene.Argument(
             LanguageCodeEnum,
             description=(
-                "DEPRECATED: This argument will be removed in Saleor 4.0. "
-                "A language code to return the translation for."
+                "A language code to return the translation for. "
+                f"{DEPRECATED_IN_3X_INPUT}"
             ),
         ),
         description="List of countries available in the shop.",
