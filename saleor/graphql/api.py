@@ -8,6 +8,7 @@ from .checkout.schema import CheckoutMutations, CheckoutQueries
 from .core.enums import unit_enums
 from .core.schema import CoreMutations, CoreQueries
 from .csv.schema import CsvMutations, CsvQueries
+from .custom.schema import CustomQueries, CustomMutations
 from .discount.schema import DiscountMutations, DiscountQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
 from .invoice.schema import InvoiceMutations
@@ -47,6 +48,7 @@ class Query(
     TranslationQueries,
     WarehouseQueries,
     WebhookQueries,
+    CustomQueries
 ):
     pass
 
@@ -73,6 +75,7 @@ class Mutation(
     ShopMutations,
     WarehouseMutations,
     WebhookMutations,
+    CustomMutations
 ):
     pass
 
