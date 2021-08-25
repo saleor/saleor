@@ -345,7 +345,12 @@ def test_order_fulfill_with_gift_cards(
     )
 
     mock_send_notification.assert_called_once_with(
-        staff_user, None, order.user_email, non_shippable_gift_card, ANY
+        staff_user,
+        None,
+        order.user_email,
+        non_shippable_gift_card,
+        ANY,
+        order.channel.slug,
     )
 
 
