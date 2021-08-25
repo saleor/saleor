@@ -37,7 +37,6 @@ from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import models as shipping_models
 from ...warehouse.availability import check_stock_quantity_bulk
-from ...warehouse.models import Warehouse
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..channel.utils import clean_channel
@@ -324,12 +323,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if shipping_address:
             country = shipping_address.country.code
         else:
-            warehouse = Warehouse.objects.get_first_warehouse_for_channel(channel.pk)
-            if warehouse:
-                country = warehouse.address.country.code
-            else:
-                # fallback when channel has no warehouses
-                country = settings.DEFAULT_COUNTRY
+            country = channel.default_country
 
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
