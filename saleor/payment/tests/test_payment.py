@@ -6,7 +6,7 @@ import pytest
 from ...checkout.calculations import checkout_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import PluginsManager, get_plugins_manager
-from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
+from .. import ChargeStatus, GatewayError, PaymentError, Store, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
 from ..interface import GatewayResponse, PaymentMethodInfo
 from ..models import Payment
@@ -114,6 +114,7 @@ def test_create_payment(checkout_with_item, address):
     }
     payment = create_payment(**data)
     assert payment.gateway == "Dummy"
+    assert payment.store == Store.NONE
 
     same_payment = create_payment(**data)
     assert payment == same_payment

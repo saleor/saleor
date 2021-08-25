@@ -13,7 +13,7 @@ from ..checkout.models import Checkout
 from ..core.models import ModelWithMetadata
 from ..core.permissions import PaymentPermissions
 from ..core.taxes import zero_money
-from . import ChargeStatus, CustomPaymentChoices, TransactionKind
+from . import ChargeStatus, CustomPaymentChoices, Store, TransactionKind
 
 
 class Payment(ModelWithMetadata):
@@ -60,6 +60,7 @@ class Payment(ModelWithMetadata):
     order = models.ForeignKey(
         "order.Order", null=True, related_name="payments", on_delete=models.PROTECT
     )
+    store = models.CharField(max_length=11, choices=Store.CHOICES, default=Store.NONE)
 
     billing_email = models.EmailField(blank=True)
     billing_first_name = models.CharField(max_length=256, blank=True)
