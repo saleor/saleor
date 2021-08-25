@@ -1,7 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ...core.permissions import ProductPermissions
+from ...core.tracing import traced_atomic_transaction
 from ...warehouse import models
 from ...warehouse.error_codes import WarehouseErrorCode
 from ...warehouse.validation import validate_warehouse_count  # type: ignore
@@ -165,3 +167,16 @@ class WarehouseDelete(ModelDeleteMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of a warehouse to delete.", required=True)
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, **data):
+        manager = info.context.plugins
+        node_id = data.get("id")
+        model_type = cls.get_type_for_model()
+        instance = cls.get_node_or_error(info, node_id, only_type=model_type)
+        stocks = (stock for stock in instance.stock_set.only("product_variant"))
+        result = super(WarehouseDelete, cls).perform_mutation(_root, info, **data)
+        for stock in stocks:
+            transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
+        return result

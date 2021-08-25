@@ -4,7 +4,7 @@ from dataclasses import asdict
 from typing import TYPE_CHECKING, Iterable, Optional
 
 import graphene
-from django.db.models import F, QuerySet
+from django.db.models import F, QuerySet, Sum
 
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
@@ -23,7 +23,7 @@ from ..payment import ChargeStatus
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
-from ..warehouse.models import Warehouse
+from ..warehouse.models import Stock, Warehouse
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
 from .serializers import (
@@ -396,6 +396,23 @@ def generate_product_variant_media_payload(product_variant):
     ]
 
 
+def generate_product_variant_with_stock_payload(stocks: Iterable["Stock"]):
+    serializer = PayloadSerializer()
+    extra_dict_data = {
+        "product_id": lambda v: graphene.Node.to_global_id(
+            "Product", v.product_variant.product_id
+        ),
+        "product_variant_id": lambda v: graphene.Node.to_global_id(
+            "ProductVariant", v.product_variant_id
+        ),
+        "warehouse_id": lambda v: graphene.Node.to_global_id(
+            "Warehouse", v.warehouse_id
+        ),
+        "product_slug": lambda v: v.product_variant.product.slug,
+    }
+    return serializer.serialize(stocks, fields=[], extra_dict_data=extra_dict_data)
+
+
 def generate_product_variant_payload(product_variants: Iterable["ProductVariant"]):
     serializer = PayloadSerializer()
     payload = serializer.serialize(
@@ -411,6 +428,10 @@ def generate_product_variant_payload(product_variants: Iterable["ProductVariant"
         },
     )
     return payload
+
+
+def generate_product_variant_stocks_payload(product_variant: "ProductVariant"):
+    return product_variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] or 0
 
 
 def generate_fulfillment_lines_payload(fulfillment: Fulfillment):

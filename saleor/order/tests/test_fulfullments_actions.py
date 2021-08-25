@@ -541,3 +541,56 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
     )
 
     mock_email_fulfillment.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_create_fullfilment_with_out_of_stock_webhook(
+    product_variant_out_of_stock_webhook, staff_user, order_with_lines, warehouse
+):
+
+    order = order_with_lines
+    order_line1, order_line2 = order.lines.all()
+    fulfillment_lines_for_warehouses = {
+        str(warehouse.pk): [
+            {"order_line": order_line1, "quantity": 3},
+            {"order_line": order_line2, "quantity": 2},
+        ]
+    }
+    manager = get_plugins_manager()
+    create_fulfillments(
+        user=staff_user,
+        app=None,
+        order=order,
+        fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
+        manager=manager,
+    )
+    flush_post_commit_hooks()
+
+    product_variant_out_of_stock_webhook.assert_called_once()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
+    product_variant_out_of_stock_webhook, staff_user, order_with_lines, warehouse
+):
+
+    order = order_with_lines
+    order_line1, order_line2 = order.lines.all()
+    fulfillment_lines_for_warehouses = {
+        str(warehouse.pk): [
+            {"order_line": order_line1, "quantity": 1},
+            {"order_line": order_line2, "quantity": 1},
+        ]
+    }
+    manager = get_plugins_manager()
+    create_fulfillments(
+        user=staff_user,
+        app=None,
+        order=order,
+        fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
+        manager=manager,
+        approved=False,
+    )
+    flush_post_commit_hooks()
+
+    product_variant_out_of_stock_webhook.assert_not_called()

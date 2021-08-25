@@ -3015,6 +3015,7 @@ def fulfilled_order(order_with_lines):
                 line=line_2, quantity=line_2.quantity, warehouse_pk=warehouse_2_pk
             ),
         ],
+        manager=get_plugins_manager(),
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
@@ -3032,7 +3033,8 @@ def fulfilled_order_without_inventory_tracking(
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)]
+        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        get_plugins_manager(),
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
