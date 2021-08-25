@@ -1,5 +1,5 @@
 from ...checkout import models
-from ...core.permissions import CheckoutPermissions
+from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.tracing import traced_resolver
 from ..utils import get_user_or_app_from_context
 
@@ -35,7 +35,10 @@ def resolve_checkout(info, token):
 
     # resolve checkout for staff user
     requester = get_user_or_app_from_context(info.context)
-    if requester.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS):
+
+    has_manage_checkout = requester.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
+    has_impersonate_user = requester.has_perm(AccountPermissions.IMPERSONATE_USER)
+    if has_manage_checkout or has_impersonate_user:
         return checkout
 
     return None
