@@ -56,6 +56,7 @@ FRAGMENT_GIFT_CARD_DETAILS = (
             tag
             created
             lastUsedOn
+            boughtInChannel
             initialBalance {
                 currency
                 amount

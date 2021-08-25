@@ -23,6 +23,7 @@ QUERY_GIFT_CARD_BY_ID = """
             tag
             created
             lastUsedOn
+            boughtInChannel
             initialBalance {
                 currency
                 amount
@@ -84,6 +85,7 @@ def test_query_gift_card_with_permissions(
     assert data["tag"] == gift_card.tag
     assert data["created"] == gift_card.created.isoformat()
     assert data["lastUsedOn"] == gift_card.last_used_on
+    assert data["boughtInChannel"] is None
     assert data["initialBalance"]["currency"] == gift_card.initial_balance.currency
     assert data["initialBalance"]["amount"] == gift_card.initial_balance.amount
     assert data["currentBalance"]["currency"] == gift_card.current_balance.currency
@@ -364,6 +366,7 @@ QUERY_GIFT_CARD_EVENTS = """
     query giftCard($id: ID!) {
         giftCard(id: $id){
             id
+            boughtInChannel
             events {
                 id
                 date
@@ -584,3 +587,42 @@ def test_query_gift_card_used_in_order_event(
     assert events_data[0]["user"] is None
     assert events_data[0]["app"]["name"] == app.name
     assert event_data["type"] == GiftCardEvents.USED_IN_ORDER.upper()
+
+
+def test_query_gift_card_bought_event(
+    staff_api_client,
+    gift_card_expiry_date,
+    order,
+    app,
+    permission_manage_gift_card,
+    permission_manage_apps,
+    permission_manage_users,
+):
+    # given
+    events.gift_cards_bought([gift_card_expiry_date], order.id, None, app)
+    variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card_expiry_date.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_GIFT_CARD_EVENTS,
+        variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_apps,
+            permission_manage_users,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCard"]
+    events_data = data["events"]
+    assert data["boughtInChannel"] == order.channel.slug
+    assert len(events_data) == gift_card_expiry_date.events.count()
+    event_data = events_data[0]
+    assert event_data["balance"] is None
+    assert event_data["expiryDate"] == gift_card_expiry_date.expiry_date.isoformat()
+    assert event_data["orderId"] == graphene.Node.to_global_id("Order", order.id)
+    assert event_data["type"] == GiftCardEvents.BOUGHT.upper()
+    assert event_data["user"] is None
+    assert event_data["app"]["name"] == app.name
