@@ -154,6 +154,13 @@ FULL_USER_QUERY = """
             editableGroups {
                 name
             }
+            giftCards(first: 10) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
         }
     }
 """
@@ -162,6 +169,8 @@ FULL_USER_QUERY = """
 def test_query_customer_user(
     staff_api_client,
     customer_user,
+    gift_card_used,
+    gift_card_expiry_date,
     address,
     permission_manage_users,
     media_root,
@@ -240,6 +249,10 @@ def test_query_customer_user(
     assert address["phone"] == user_address.phone.as_e164
     assert address["isDefaultShippingAddress"] is None
     assert address["isDefaultBillingAddress"] is None
+    assert len(data["giftCards"]) == 1
+    assert data["giftCards"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "GiftCard", gift_card_used.pk
+    )
 
 
 def test_query_customer_user_with_orders(
