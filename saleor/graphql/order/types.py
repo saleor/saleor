@@ -43,6 +43,7 @@ from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
@@ -69,6 +70,7 @@ from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentLinesAwaitingApprovalByOrderLineIdLoader,
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
@@ -440,6 +442,9 @@ class OrderLine(CountableDjangoObjectType):
         graphene.NonNull(Allocation),
         description="List of allocations across warehouses.",
     )
+    quantity_to_fulfill = graphene.Int(
+        required=True, description="A quantity of items remaining to be fulfilled."
+    )
     unit_discount_type = graphene.Field(
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
@@ -509,6 +514,18 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_unit_price(root: models.OrderLine, _info):
         return root.unit_price
+
+    @staticmethod
+    def resolve_quantity_to_fulfill(root: models.OrderLine, info):
+        def _resolve_quantity_to_fulfill(fulfillment_lines):
+            awaiting_quantity = sum(map(lambda f: f.quantity, fulfillment_lines)) or 0
+            return root.quantity - root.quantity_fulfilled - awaiting_quantity
+
+        return (
+            FulfillmentLinesAwaitingApprovalByOrderLineIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_quantity_to_fulfill)
+        )
 
     @staticmethod
     def resolve_undiscounted_unit_price(root: models.OrderLine, _info):
@@ -659,8 +676,8 @@ class Order(CountableDjangoObjectType):
     )
     language_code = graphene.String(
         deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
             "Use the `languageCodeEnum` field to fetch the language code. "
-            "This field will be removed in Saleor 4.0."
         ),
         required=True,
     )
@@ -670,22 +687,16 @@ class Order(CountableDjangoObjectType):
     discount = graphene.Field(
         Money,
         description="Returns applied discount.",
-        deprecation_reason=(
-            "Use discounts field. This field will be removed in Saleor 4.0."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
     )
     discount_name = graphene.String(
         description="Discount name.",
-        deprecation_reason=(
-            "Use discounts field. This field will be removed in Saleor 4.0."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
     )
 
     translated_discount_name = graphene.String(
         description="Translated discount name.",
-        deprecation_reason=(
-            "Use discounts field. This field will be removed in Saleor 4.0."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field. ",
     )
 
     discounts = graphene.List(

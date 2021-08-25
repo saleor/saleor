@@ -18,6 +18,8 @@ from ...webhook.payloads import (
     generate_product_deleted_payload,
     generate_product_payload,
     generate_product_variant_payload,
+    generate_product_variant_with_stock_payload,
+    generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
 from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
@@ -36,6 +38,8 @@ if TYPE_CHECKING:
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
     from ...product.models import Product, ProductVariant
+    from ...translation.models import Translation
+    from ...warehouse.models import Stock
 
 
 logger = logging.getLogger(__name__)
@@ -129,6 +133,14 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.FULFILLMENT_CREATED, fulfillment_data
         )
 
+    def fulfillment_canceled(self, fulfillment: "Fulfillment", previous_value):
+        if not self.active:
+            return previous_value
+        fulfillment_data = generate_fulfillment_payload(fulfillment)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.FULFILLMENT_CANCELED, fulfillment_data
+        )
+
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
@@ -195,6 +207,22 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.PRODUCT_VARIANT_DELETED, product_variant_data
         )
 
+    def product_variant_out_of_stock(self, stock: "Stock", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        product_variant_data = generate_product_variant_with_stock_payload([stock])
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.PRODUCT_VARIANT_OUT_OF_STOCK, product_variant_data
+        )
+
+    def product_variant_back_in_stock(self, stock: "Stock", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        product_variant_data = generate_product_variant_with_stock_payload([stock])
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.PRODUCT_VARIANT_BACK_IN_STOCK, product_variant_data
+        )
+
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
@@ -236,6 +264,22 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         page_data = generate_page_payload(page)
         trigger_webhooks_for_event.delay(WebhookEventType.PAGE_DELETED, page_data)
+
+    def translation_created(self, translation: "Translation", previous_value: Any):
+        if not self.active:
+            return previous_value
+        translation_data = generate_translation_payload(translation)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.TRANSLATION_CREATED, translation_data
+        )
+
+    def translation_updated(self, translation: "Translation", previous_value: Any):
+        if not self.active:
+            return previous_value
+        translation_data = generate_translation_payload(translation)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.TRANSLATION_UPDATED, translation_data
+        )
 
     def __run_payment_webhook(
         self,

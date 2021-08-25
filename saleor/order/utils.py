@@ -327,6 +327,7 @@ def add_variant_to_order(
             old_quantity,
             new_quantity,
             channel.slug,
+            manager=manager,
             send_event=False,
         )
     except OrderLine.DoesNotExist:
@@ -393,6 +394,7 @@ def add_variant_to_order(
                 )
             ],
             channel.slug,
+            manager=manager,
         )
 
     return line
@@ -417,7 +419,11 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
 
 
 def _update_allocations_for_line(
-    line_info: OrderLineData, old_quantity: int, new_quantity: int, channel_slug: str
+    line_info: OrderLineData,
+    old_quantity: int,
+    new_quantity: int,
+    channel_slug: str,
+    manager: "PluginsManager",
 ):
     if old_quantity == new_quantity:
         return
@@ -427,10 +433,10 @@ def _update_allocations_for_line(
 
     if old_quantity < new_quantity:
         line_info.quantity = new_quantity - old_quantity
-        increase_allocations([line_info], channel_slug)
+        increase_allocations([line_info], channel_slug, manager)
     else:
         line_info.quantity = old_quantity - new_quantity
-        decrease_allocations([line_info])
+        decrease_allocations([line_info], manager)
 
 
 def change_order_line_quantity(
@@ -440,6 +446,7 @@ def change_order_line_quantity(
     old_quantity: int,
     new_quantity: int,
     channel_slug: str,
+    manager: "PluginsManager",
     send_event=True,
 ):
     """Change the quantity of ordered items in a order line."""
@@ -447,7 +454,7 @@ def change_order_line_quantity(
     if new_quantity:
         if line.order.is_unconfirmed():
             _update_allocations_for_line(
-                line_info, old_quantity, new_quantity, channel_slug
+                line_info, old_quantity, new_quantity, channel_slug, manager
             )
         line.quantity = new_quantity
         total_price_net_amount = line.quantity * line.unit_price_net_amount
@@ -478,7 +485,7 @@ def change_order_line_quantity(
             ]
         )
     else:
-        delete_order_line(line_info)
+        delete_order_line(line_info, manager)
 
     quantity_diff = old_quantity - new_quantity
 
@@ -500,14 +507,14 @@ def create_order_event(line, user, app, quantity_diff):
         )
 
 
-def delete_order_line(line_info):
+def delete_order_line(line_info, manager):
     """Delete an order line from an order."""
     if line_info.line.order.is_unconfirmed():
-        decrease_allocations([line_info])
+        decrease_allocations([line_info], manager)
     line_info.line.delete()
 
 
-def restock_order_lines(order):
+def restock_order_lines(order, manager):
     """Return ordered products to corresponding stocks."""
     country = get_order_country(order)
     default_warehouse = Warehouse.objects.filter(
@@ -533,7 +540,7 @@ def restock_order_lines(order):
             line.save(update_fields=["quantity_fulfilled"])
 
     if dellocating_stock_lines:
-        deallocate_stock(dellocating_stock_lines)
+        deallocate_stock(dellocating_stock_lines, manager)
 
 
 def restock_fulfillment_lines(fulfillment, warehouse):

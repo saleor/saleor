@@ -42,6 +42,8 @@ def description(enum):
         return "An order is fulfilled."
     elif enum == WebhookEventTypeEnum.FULFILLMENT_CREATED:
         return "A new fulfillment is created."
+    elif enum == WebhookEventTypeEnum.FULFILLMENT_CANCELED:
+        return "A fulfillment is cancelled."
     elif enum == WebhookEventTypeEnum.PAGE_CREATED:
         return "A new page is created."
     elif enum == WebhookEventTypeEnum.PAGE_UPDATED:

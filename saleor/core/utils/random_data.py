@@ -1288,7 +1288,7 @@ def create_gift_card():
     gift_card, created = GiftCard.objects.get_or_create(
         code="Gift_card_10",
         defaults={
-            "user": user,
+            "created_by": user,
             "initial_balance": Money(10, DEFAULT_CURRENCY),
             "current_balance": Money(10, DEFAULT_CURRENCY),
         },

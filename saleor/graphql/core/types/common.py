@@ -32,6 +32,7 @@ from ..enums import (
     ShippingErrorCode,
     ShopErrorCode,
     StockErrorCode,
+    TimePeriodTypeEnum,
     TranslationErrorCode,
     UploadErrorCode,
     WarehouseErrorCode,
@@ -39,6 +40,7 @@ from ..enums import (
     WeightUnitsEnum,
     WishlistErrorCode,
 )
+from ..scalars import PositiveDecimal
 from .money import VAT
 
 
@@ -385,6 +387,11 @@ class File(graphene.ObjectType):
         return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
 
 
+class PriceInput(graphene.InputObjectType):
+    currency = graphene.String(description="Currency code.", required=True)
+    amount = PositiveDecimal(description="Amount of money.", required=True)
+
+
 class PriceRangeInput(graphene.InputObjectType):
     gte = graphene.Float(description="Price greater than or equal to.", required=False)
     lte = graphene.Float(description="Price less than or equal to.", required=False)
@@ -403,6 +410,11 @@ class DateTimeRangeInput(graphene.InputObjectType):
 class IntRangeInput(graphene.InputObjectType):
     gte = graphene.Int(description="Value greater than or equal to.", required=False)
     lte = graphene.Int(description="Value less than or equal to.", required=False)
+
+
+class TimePeriodInputType(graphene.InputObjectType):
+    amount = graphene.Int(description="The length of the period.", required=True)
+    type = TimePeriodTypeEnum(description="The type of the period.", required=True)
 
 
 class TaxType(graphene.ObjectType):
@@ -432,3 +444,8 @@ class Job(graphene.Interface):
             # <DjangoModel>: <GrapheneType>
         }
         return MODEL_TO_TYPE_MAP.get(type(instance))
+
+
+class TimePeriod(graphene.ObjectType):
+    amount = graphene.Int(description="The length of the period.", required=True)
+    type = TimePeriodTypeEnum(description="The type of the period.", required=True)
