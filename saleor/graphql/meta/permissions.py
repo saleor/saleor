@@ -109,9 +109,7 @@ def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum
     payment = Payment.objects.get(pk=payment_pk)
     if info.context.app is not None or info.context.user.is_staff:
         return [PaymentPermissions.HANDLE_PAYMENTS]
-    if (
-        payment_user := payment.get_user()
-    ) is not None and payment_user == context_user:
+    if payment.get_user() == context_user:
         return []
     raise PermissionDenied()
 
