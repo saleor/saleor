@@ -18,6 +18,7 @@ from ....order.actions import (
 )
 from ....order.error_codes import OrderErrorCode
 from ....order.notifications import send_fulfillment_update
+from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
@@ -366,7 +367,7 @@ class FulfillmentApprove(BaseMutation):
         )
 
     class Meta:
-        description = "Approve existing fulfillment."
+        description = f"{ADDED_IN_31} Approve existing fulfillment."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

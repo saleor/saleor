@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import GiftcardPermissions
+from ..core.descriptions import ADDED_IN_31
 from ..core.fields import FilterInputConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
@@ -26,7 +27,9 @@ class GiftCardQueries(graphene.ObjectType):
     )
     gift_cards = FilterInputConnectionField(
         GiftCard,
-        filter=GiftCardFilterInput(description="Filtering options for gift cards."),
+        filter=GiftCardFilterInput(
+            description=f"{ADDED_IN_31} Filtering options for gift cards."
+        ),
         description="List of gift cards.",
     )
 
