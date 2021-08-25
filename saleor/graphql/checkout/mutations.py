@@ -655,7 +655,7 @@ class CheckoutCustomerAttach(BaseMutation):
 
         if customer_id:
             requestor = get_user_or_app_from_context(info.context)
-            if not requestor.has_perm(AccountPermissions.MANAGE_USERS):
+            if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
                 raise PermissionDenied()
             customer = cls.get_node_or_error(info, customer_id, only_type="User")
         else:
@@ -707,7 +707,7 @@ class CheckoutCustomerDetach(BaseMutation):
             )
 
         requestor = get_user_or_app_from_context(info.context)
-        if not requestor.has_perm(AccountPermissions.MANAGE_USERS):
+        if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
             # Raise error if the current user doesn't own the checkout of the given ID.
             if checkout.user and checkout.user != info.context.user:
                 raise PermissionDenied()
@@ -1162,6 +1162,13 @@ class CheckoutComplete(BaseMutation):
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )
+
+            requestor = get_user_or_app_from_context(info.context)
+            if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+                customer = checkout.user
+            else:
+                customer = info.context.user
+
             order, action_required, action_data = complete_checkout(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -1169,7 +1176,7 @@ class CheckoutComplete(BaseMutation):
                 payment_data=data.get("payment_data", {}),
                 store_source=store_source,
                 discounts=info.context.discounts,
-                user=info.context.user,
+                user=customer,
                 app=info.context.app,
                 site_settings=info.context.site.settings,
                 tracking_code=tracking_code,

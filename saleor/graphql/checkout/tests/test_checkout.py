@@ -1507,7 +1507,7 @@ def test_checkout_customer_attach(
 
 
 def test_checkout_customer_attach_by_app(
-    app_api_client, checkout_with_item, customer_user, permission_manage_users
+    app_api_client, checkout_with_item, customer_user, permission_impersonate_user
 ):
     checkout = checkout_with_item
     checkout.email = "old@email.com"
@@ -1532,7 +1532,7 @@ def test_checkout_customer_attach_by_app(
 
     # Mutation should succeed for authenticated customer
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users]
+        query, variables, permissions=[permission_impersonate_user]
     )
     content = get_graphql_content(response)
     data = content["data"]["checkoutCustomerAttach"]
@@ -1655,7 +1655,7 @@ def test_checkout_customer_detach(user_api_client, checkout_with_item, customer_
 
 
 def test_checkout_customer_detach_by_app(
-    app_api_client, checkout_with_item, customer_user, permission_manage_users
+    app_api_client, checkout_with_item, customer_user, permission_impersonate_user
 ):
     checkout = checkout_with_item
     checkout.user = customer_user
@@ -1667,7 +1667,7 @@ def test_checkout_customer_detach_by_app(
     response = app_api_client.post_graphql(
         MUTATION_CHECKOUT_CUSTOMER_DETACH,
         variables,
-        permissions=[permission_manage_users],
+        permissions=[permission_impersonate_user],
     )
     content = get_graphql_content(response)
     data = content["data"]["checkoutCustomerDetach"]
