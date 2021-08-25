@@ -1,4 +1,4 @@
-from graphene import InputField, InputObjectType
+from graphene import Argument, InputField, InputObjectType, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_django.filter.utils import get_filterset_class
@@ -62,3 +62,17 @@ class FilterInputObjectType(InputObjectType):
             field_type.kwargs = kwargs
             args[name] = field_type
         return args
+
+
+class ChannelFilterInputObjectType(FilterInputObjectType):
+    channel = Argument(
+        String,
+        description=(
+            "Specifies the channel by which the data should be filtered. "
+            "DEPRECATED: Will be removed in Saleor 4.0."
+            "Use root-level channel argument instead."
+        ),
+    )
+
+    class Meta:
+        abstract = True

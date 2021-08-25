@@ -1,12 +1,9 @@
-{% load i18n %}
 {% load price from taxed_prices %}
 <table class="summary-table">
     <tbody>
         <tr class="summary-row">
             <td class="cell-summary">
-                <span class="normal-text-table">
-                    {% trans "Subtotal" context "Invoice PDF summary" %}
-                </span>
+                <span class="normal-text-table">Subtotal</span>
             </td>
             <td class="cell-quantity"></td>
             <td class="cell-total-price">
@@ -17,9 +14,7 @@
         </tr>
         <tr class="summary-row">
             <td class="cell-summary">
-                <span class="normal-text-table">
-                    {% trans "Delivery Cost" context "Invoice PDF summary" %}
-                </span>
+                <span class="normal-text-table">Delivery Cost</span>
             </td>
             <td class="cell-quantity"></td>
             <td class="cell-total-price">
@@ -30,9 +25,7 @@
         </tr>
         <tr class="summary-row">
             <td class="cell-summary">
-                <span class="normal-text-table">
-                    {% trans "Tax" context "Invoice PDF summary" %}
-                </span>
+                <span class="normal-text-table">Tax</span>
             </td>
             <td class="cell-quantity"></td>
             <td class="cell-total-price">
@@ -43,9 +36,7 @@
         </tr>
         <tr class="summary-row">
             <td class="cell-summary">
-                <span class="normal-text-table">
-                    <b>{% trans "Grand Total" context "Invoice PDF summary" %}</b>
-                </span>
+                <span class="normal-text-table"><b>Grand Total</b></span>
             </td>
             <td class="cell-quantity"></td>
             <td class="cell-total-price">

@@ -10,6 +10,7 @@ from ...core.permissions import (
     BasePermissionEnum,
     CheckoutPermissions,
     DiscountPermissions,
+    GiftcardPermissions,
     MenuPermissions,
     OrderPermissions,
     PagePermissions,
@@ -120,6 +121,10 @@ def private_payment_permissions(info, _object_pk: Any) -> List[BasePermissionEnu
     raise PermissionDenied()
 
 
+def gift_card_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [GiftcardPermissions.MANAGE_GIFT_CARD]
+
+
 PUBLIC_META_MUTATION_PERMISSION_MAP = {
     "App": app_permissions,
     "Attribute": attribute_permissions,
@@ -128,6 +133,7 @@ PUBLIC_META_MUTATION_PERMISSION_MAP = {
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "GiftCard": gift_card_permissions,
     "Invoice": invoice_permissions,
     "Menu": menu_permissions,
     "MenuItem": menu_permissions,
@@ -154,6 +160,7 @@ PUBLIC_META_QUERY_PERMISSION_MAP = {
     "Collection": no_permissions,
     "DigitalContent": no_permissions,
     "Fulfillment": no_permissions,
+    "GiftCard": no_permissions,
     "Invoice": no_permissions,
     "Menu": no_permissions,
     "MenuItem": no_permissions,
@@ -180,6 +187,7 @@ PRIVATE_META_PERMISSION_MAP = {
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "GiftCard": gift_card_permissions,
     "Invoice": invoice_permissions,
     "Menu": menu_permissions,
     "MenuItem": menu_permissions,

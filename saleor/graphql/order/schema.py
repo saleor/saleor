@@ -24,6 +24,7 @@ from .mutations.draft_orders import (
     DraftOrderUpdate,
 )
 from .mutations.fulfillments import (
+    FulfillmentApprove,
     FulfillmentCancel,
     FulfillmentRefundProducts,
     FulfillmentReturnProducts,
@@ -139,7 +140,9 @@ class OrderMutations(graphene.ObjectType):
     draft_order_create = DraftOrderCreate.Field()
     draft_order_delete = DraftOrderDelete.Field()
     draft_order_bulk_delete = DraftOrderBulkDelete.Field()
-    draft_order_lines_bulk_delete = DraftOrderLinesBulkDelete.Field()
+    draft_order_lines_bulk_delete = DraftOrderLinesBulkDelete.Field(
+        deprecation_reason="DEPRECATED: Will be removed in Saleor 4.0."
+    )
     draft_order_update = DraftOrderUpdate.Field()
 
     order_add_note = OrderAddNote.Field()
@@ -149,6 +152,7 @@ class OrderMutations(graphene.ObjectType):
 
     order_fulfill = OrderFulfill.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
+    order_fulfillment_approve = FulfillmentApprove.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
     order_fulfillment_refund_products = FulfillmentRefundProducts.Field()
     order_fulfillment_return_products = FulfillmentReturnProducts.Field()

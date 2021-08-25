@@ -36,6 +36,7 @@ def test_handle_successful_payment_intent_for_checkout(
     payment_stripe_for_checkout,
     checkout_with_items,
     stripe_plugin,
+    channel_USD,
 ):
     payment = payment_stripe_for_checkout
     payment.to_confirm = True
@@ -54,9 +55,11 @@ def test_handle_successful_payment_intent_for_checkout(
     payment_intent["amount_received"] = price_to_minor_unit(
         payment.total, payment.currency
     )
+    payment_intent["setup_future_usage"] = None
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = SUCCESS_STATUS
-    handle_successful_payment_intent(payment_intent, plugin.config)
+
+    handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     payment.refresh_from_db()
 
@@ -68,13 +71,54 @@ def test_handle_successful_payment_intent_for_checkout(
     assert transaction.token == payment_intent.id
 
 
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentMethod.modify")
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
+def test_handle_successful_payment_intent_with_future_usage(
+    _wrapped_checkout_complete,
+    mocked_payment_method_modify,
+    payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+):
+    payment = payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount_received"] = price_to_minor_unit(
+        payment.total, payment.currency
+    )
+    payment_intent["payment_method"] = "payment_method_id"
+    payment_intent["setup_future_usage"] = "off_line"
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = SUCCESS_STATUS
+
+    handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
+
+    mocked_payment_method_modify.assert_called_once_with(
+        "payment_method_id",
+        api_key="secret_key",
+        metadata={"channel": channel_USD.slug},
+    )
+
+
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
 def test_handle_successful_payment_intent_for_order(
-    wrapped_checkout_complete,
-    payment_stripe_for_order,
-    stripe_plugin,
+    wrapped_checkout_complete, payment_stripe_for_order, stripe_plugin, channel_USD
 ):
 
     payment = payment_stripe_for_order
@@ -83,7 +127,7 @@ def test_handle_successful_payment_intent_for_order(
     payment_intent["amount"] = payment.total
     payment_intent["currency"] = payment.currency
     payment_intent["capture_method"] = "automatic"
-    handle_successful_payment_intent(payment_intent, plugin.config)
+    handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     assert wrapped_checkout_complete.called is False
 
@@ -92,9 +136,7 @@ def test_handle_successful_payment_intent_for_order(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
 def test_handle_successful_payment_intent_for_order_with_auth_payment(
-    wrapped_checkout_complete,
-    payment_stripe_for_order,
-    stripe_plugin,
+    wrapped_checkout_complete, payment_stripe_for_order, stripe_plugin, channel_USD
 ):
     payment = payment_stripe_for_order
 
@@ -105,9 +147,10 @@ def test_handle_successful_payment_intent_for_order_with_auth_payment(
         payment.total, payment.currency
     )
     payment_intent["currency"] = payment.currency
+    payment_intent["setup_future_usage"] = None
     payment_intent["status"] = SUCCESS_STATUS
 
-    handle_successful_payment_intent(payment_intent, plugin.config)
+    handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     payment.refresh_from_db()
 
@@ -122,9 +165,7 @@ def test_handle_successful_payment_intent_for_order_with_auth_payment(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
 def test_handle_successful_payment_intent_for_order_with_pending_payment(
-    wrapped_checkout_complete,
-    payment_stripe_for_order,
-    stripe_plugin,
+    wrapped_checkout_complete, payment_stripe_for_order, stripe_plugin, channel_USD
 ):
     payment = payment_stripe_for_order
     transaction = payment.transactions.first()
@@ -138,9 +179,10 @@ def test_handle_successful_payment_intent_for_order_with_pending_payment(
         payment.total, payment.currency
     )
     payment_intent["currency"] = payment.currency
+    payment_intent["setup_future_usage"] = None
     payment_intent["status"] = SUCCESS_STATUS
 
-    handle_successful_payment_intent(payment_intent, plugin.config)
+    handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     payment.refresh_from_db()
 
@@ -159,6 +201,7 @@ def test_handle_authorized_payment_intent_for_checkout(
     payment_stripe_for_checkout,
     checkout_with_items,
     stripe_plugin,
+    channel_USD,
 ):
     payment = payment_stripe_for_checkout
     payment.to_confirm = True
@@ -177,7 +220,7 @@ def test_handle_authorized_payment_intent_for_checkout(
     payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = AUTHORIZED_STATUS
-    handle_authorized_payment_intent(payment_intent, plugin.config)
+    handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     payment.refresh_from_db()
 
@@ -197,6 +240,7 @@ def test_handle_authorized_payment_intent_for_order(
     payment_stripe_for_order,
     checkout_with_items,
     stripe_plugin,
+    channel_USD,
 ):
 
     payment = payment_stripe_for_order
@@ -205,7 +249,7 @@ def test_handle_authorized_payment_intent_for_order(
     payment_intent["amount"] = payment.total
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = AUTHORIZED_STATUS
-    handle_authorized_payment_intent(payment_intent, plugin.config)
+    handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     assert wrapped_checkout_complete.called is False
 
@@ -218,6 +262,7 @@ def test_handle_authorized_payment_intent_for_processing_order_payment(
     payment_stripe_for_order,
     checkout_with_items,
     stripe_plugin,
+    channel_USD,
 ):
 
     payment = payment_stripe_for_order
@@ -227,7 +272,7 @@ def test_handle_authorized_payment_intent_for_processing_order_payment(
     payment_intent["amount"] = payment.total
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = AUTHORIZED_STATUS
-    handle_authorized_payment_intent(payment_intent, plugin.config)
+    handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     assert wrapped_checkout_complete.called is False
 
@@ -240,6 +285,7 @@ def test_handle_processing_payment_intent_for_order(
     payment_stripe_for_order,
     checkout_with_items,
     stripe_plugin,
+    channel_USD,
 ):
 
     payment = payment_stripe_for_order
@@ -248,7 +294,7 @@ def test_handle_processing_payment_intent_for_order(
     payment_intent["amount"] = payment.total
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = PROCESSING_STATUS
-    handle_processing_payment_intent(payment_intent, plugin.config)
+    handle_processing_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     assert wrapped_checkout_complete.called is False
 
@@ -261,6 +307,7 @@ def test_handle_processing_payment_intent_for_checkout(
     payment_stripe_for_checkout,
     checkout_with_items,
     stripe_plugin,
+    channel_USD,
 ):
     payment = payment_stripe_for_checkout
     payment.to_confirm = True
@@ -279,7 +326,7 @@ def test_handle_processing_payment_intent_for_checkout(
     payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = PROCESSING_STATUS
-    handle_processing_payment_intent(payment_intent, plugin.config)
+    handle_processing_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     payment.refresh_from_db()
 
@@ -292,7 +339,7 @@ def test_handle_processing_payment_intent_for_checkout(
 
 
 def test_handle_failed_payment_intent_for_checkout(
-    stripe_plugin, payment_stripe_for_checkout
+    stripe_plugin, payment_stripe_for_checkout, channel_USD
 ):
     payment = payment_stripe_for_checkout
     payment.transactions.create(
@@ -312,7 +359,7 @@ def test_handle_failed_payment_intent_for_checkout(
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = FAILED_STATUSES[0]
 
-    handle_failed_payment_intent(payment_intent, plugin.config)
+    handle_failed_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     payment.refresh_from_db()
 
@@ -323,7 +370,7 @@ def test_handle_failed_payment_intent_for_checkout(
 
 
 def test_handle_failed_payment_intent_for_order(
-    stripe_plugin, payment_stripe_for_order
+    stripe_plugin, payment_stripe_for_order, channel_USD
 ):
     payment = payment_stripe_for_order
     payment.transactions.create(
@@ -343,7 +390,7 @@ def test_handle_failed_payment_intent_for_order(
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = FAILED_STATUSES[0]
 
-    handle_failed_payment_intent(payment_intent, plugin.config)
+    handle_failed_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     payment.refresh_from_db()
 
@@ -352,7 +399,7 @@ def test_handle_failed_payment_intent_for_order(
     assert payment.transactions.filter(kind=TransactionKind.CANCEL).exists()
 
 
-def test_handle_fully_refund(stripe_plugin, payment_stripe_for_order):
+def test_handle_fully_refund(stripe_plugin, payment_stripe_for_order, channel_USD):
     payment = payment_stripe_for_order
     payment.captured_amount = payment.total
     payment.save()
@@ -377,7 +424,7 @@ def test_handle_fully_refund(stripe_plugin, payment_stripe_for_order):
     charge["refunds"] = StripeObject()
     charge["refunds"]["data"] = [refund]
 
-    handle_refund(charge, plugin.config)
+    handle_refund(charge, plugin.config, channel_USD.slug)
 
     payment.refresh_from_db()
 
@@ -386,7 +433,7 @@ def test_handle_fully_refund(stripe_plugin, payment_stripe_for_order):
     assert payment.captured_amount == Decimal("0")
 
 
-def test_handle_partial_refund(stripe_plugin, payment_stripe_for_order):
+def test_handle_partial_refund(stripe_plugin, payment_stripe_for_order, channel_USD):
     payment = payment_stripe_for_order
     payment.captured_amount = payment.total
     payment.save()
@@ -411,7 +458,7 @@ def test_handle_partial_refund(stripe_plugin, payment_stripe_for_order):
     charge["refunds"] = StripeObject()
     charge["refunds"]["data"] = [refund]
 
-    handle_refund(charge, plugin.config)
+    handle_refund(charge, plugin.config, channel_USD.slug)
 
     payment.refresh_from_db()
 
@@ -420,7 +467,9 @@ def test_handle_partial_refund(stripe_plugin, payment_stripe_for_order):
     assert payment.captured_amount == payment.total - Decimal("10")
 
 
-def test_handle_refund_already_processed(stripe_plugin, payment_stripe_for_order):
+def test_handle_refund_already_processed(
+    stripe_plugin, payment_stripe_for_order, channel_USD
+):
     payment = payment_stripe_for_order
     payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
     payment.captured_amount = payment.total - Decimal("10")
@@ -448,7 +497,7 @@ def test_handle_refund_already_processed(stripe_plugin, payment_stripe_for_order
     charge["refunds"] = StripeObject()
     charge["refunds"]["data"] = [refund]
 
-    handle_refund(charge, plugin.config)
+    handle_refund(charge, plugin.config, channel_USD.slug)
 
     payment.refresh_from_db()
 
@@ -469,7 +518,7 @@ def test_handle_refund_already_processed(stripe_plugin, payment_stripe_for_order
 )
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.Webhook.construct_event")
 def test_handle_webhook_events(
-    mocked_webhook_event, webhook_type, fun_to_mock, stripe_plugin, rf
+    mocked_webhook_event, webhook_type, fun_to_mock, stripe_plugin, rf, channel_USD
 ):
     dummy_payload = {
         "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
@@ -492,7 +541,9 @@ def test_handle_webhook_events(
 
     with patch(f"saleor.payment.gateways.stripe.webhooks.{fun_to_mock}") as mocked_fun:
         plugin.webhook(request, "/webhooks/", None)
-        mocked_fun.assert_called_once_with(event.data.object, plugin.config)
+        mocked_fun.assert_called_once_with(
+            event.data.object, plugin.config, channel_USD.slug
+        )
 
     api_key = plugin.config.connection_params["secret_api_key"]
     endpoint_secret = plugin.config.connection_params["webhook_secret"]
