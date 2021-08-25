@@ -8,17 +8,19 @@ from ...core.anonymize import obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, AppPermission, GiftcardPermissions
 from ...core.tracing import traced_resolver
-from ...giftcard import models
+from ...giftcard import GiftCardEvents, models
 from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import requestor_has_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
+from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.types.money import Money
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
+from ..order.dataloaders import OrderByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader
 from ..utils import get_user_or_app_from_context
 from .dataloaders import GiftCardEventsByGiftCardIdLoader
@@ -217,6 +219,12 @@ class GiftCard(CountableDjangoObjectType):
         required=True,
     )
     tag = graphene.String(description=f"{ADDED_IN_31} The gift card tag.")
+    bought_in_channel = graphene.String(
+        description=(
+            "{ADDED_IN_31} Slug of the channel where the gift card was bought."
+        ),
+        required=False,
+    )
 
     # DEPRECATED
     user = graphene.Field(
@@ -371,6 +379,41 @@ class GiftCard(CountableDjangoObjectType):
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
     def resolve_events(root: models.GiftCard, _info):
         return GiftCardEventsByGiftCardIdLoader(_info.context).load(root.id)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_bought_in_channel(root: models.GiftCard, info):
+        def with_bought_event(events):
+            bought_event = None
+            for event in events:
+                if event.type == GiftCardEvents.BOUGHT:
+                    bought_event = event
+                    break
+
+            if bought_event is None:
+                return None
+
+            def with_order(order):
+                if not order or not order.channel_id:
+                    return None
+
+                def get_channel_slug(channel):
+                    return channel.slug if channel else None
+
+                return (
+                    ChannelByIdLoader(info.context)
+                    .load(order.channel_id)
+                    .then(get_channel_slug)
+                )
+
+            order_id = bought_event.parameters["order_id"]
+            return OrderByIdLoader(info.context).load(order_id).then(with_order)
+
+        return (
+            GiftCardEventsByGiftCardIdLoader(info.context)
+            .load(root.id)
+            .then(with_bought_event)
+        )
 
     # DEPRECATED
     @staticmethod
