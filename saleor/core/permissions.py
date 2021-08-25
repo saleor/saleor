@@ -100,10 +100,6 @@ def split_permission_codename(permissions):
     return [permission.split(".")[1] for permission in permissions]
 
 
-def get_all_permissions():
-    return [enum for permission_enum in PERMISSIONS_ENUMS for enum in permission_enum]
-
-
 def get_permissions_codename():
     permissions_values = [
         enum.codename
