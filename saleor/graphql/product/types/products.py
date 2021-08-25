@@ -67,7 +67,6 @@ from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
-    WarehouseCountryCodeByChannelLoader,
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (

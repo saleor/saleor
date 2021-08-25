@@ -18,7 +18,6 @@ from ...channel.dataloaders import ChannelByIdLoader
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
-from ...warehouse.dataloaders import WarehouseCountryCodeByChannelLoader
 from ..dataloaders import (
     CollectionsByProductIdLoader,
     ProductByIdLoader,

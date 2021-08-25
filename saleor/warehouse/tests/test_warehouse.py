@@ -1,9 +1,9 @@
 import pytest
 from django.db.models import Sum
 
-from saleor.warehouse import WarehouseClickAndCollectOption
-
-from ..models import Warehouse
+from ...shipping.models import ShippingZone
+from .. import WarehouseClickAndCollectOption
+from ..models import Stock, Warehouse
 
 
 def test_applicable_for_click_and_collect_finds_warehouse_with_all_and_local(
