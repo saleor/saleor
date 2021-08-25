@@ -2307,6 +2307,7 @@ input GiftCardCreateInput {
   endDate: Date
   balance: PriceInput!
   userEmail: String
+  channel: String
   isActive: Boolean!
   code: String
   note: String
@@ -2396,6 +2397,7 @@ type GiftCardResend {
 input GiftCardResendInput {
   id: ID!
   email: String
+  channel: String!
 }
 
 type GiftCardSettings {
