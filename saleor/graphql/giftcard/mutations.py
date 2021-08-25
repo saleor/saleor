@@ -46,6 +46,9 @@ class GiftCardCreateInput(GiftCardInput):
         required=False,
         description="Email of the customer to whom gift card will be sent.",
     )
+    channel = graphene.String(
+        description="Slug of a channel from which the email should be sent."
+    )
     is_active = graphene.Boolean(
         required=True, description="Determine if gift card is active."
     )
@@ -99,6 +102,16 @@ class GiftCardCreate(ModelMutation):
                         "email": ValidationError(
                             "Provided email is invalid.",
                             code=GiftCardErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            if not data.get("channel"):
+                raise ValidationError(
+                    {
+                        "channel": ValidationError(
+                            "Channel slug must be specified "
+                            "when user_email is provided.",
+                            code=GiftCardErrorCode.REQUIRED.value,
                         )
                     }
                 )
@@ -167,20 +180,23 @@ class GiftCardCreate(ModelMutation):
             user=info.context.user,
             app=info.context.app,
         )
-        send_gift_card_notification(
-            cleaned_input.get("created_by"),
-            cleaned_input.get("app"),
-            cleaned_input["user_email"],
-            instance,
-            info.context.plugins,
-            channel_slug=None,
-        )
-        events.gift_card_sent(
-            gift_card_id=instance.id,
-            user_id=info.context.user.id if info.context.user else None,
-            app_id=info.context.app.id if info.context.app else None,
-            email=cleaned_input["user_email"],
-        )
+        if email := cleaned_input.get("user_email"):
+            user = cleaned_input.get("created_by")
+            app = cleaned_input.get("app")
+            send_gift_card_notification(
+                user,
+                app,
+                email,
+                instance,
+                info.context.plugins,
+                channel_slug=cleaned_input["channel"],
+            )
+            events.gift_card_sent(
+                gift_card_id=instance.id,
+                user_id=user.id if user else None,
+                app_id=app.id if app else None,
+                email=email,
+            )
 
 
 class GiftCardUpdate(GiftCardCreate):
@@ -309,6 +325,10 @@ class GiftCardResendInput(graphene.InputObjectType):
     email = graphene.String(
         required=False, description="Email to which gift card should be send."
     )
+    channel = graphene.String(
+        description="Slug of a channel from which the email should be sent.",
+        required=True,
+    )
 
 
 class GiftCardResend(BaseMutation):
@@ -354,22 +374,22 @@ class GiftCardResend(BaseMutation):
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
         target_email = cls.get_target_email(data, gift_card)
-        user = None
-        if user_is_valid(info.context.user):
-            user = info.context.user
+        user = info.context.user
+        if not user_is_valid(user):
+            user = None
+        app = info.context.app
         send_gift_card_notification(
             user,
-            info.context.app,
+            app,
             target_email,
             gift_card,
             info.context.plugins,
-            # TODO: should be fulfill with channel_slug from input
-            channel_slug="",
+            channel_slug=data.get("channel"),
         )
         events.gift_card_resent(
             gift_card_id=gift_card.id,
             user_id=user.id if user else None,
-            app_id=info.context.app.id if info.context.app else None,
+            app_id=app.id if app else None,
             email=target_email,
         )
         return GiftCardResend(gift_card=gift_card)
