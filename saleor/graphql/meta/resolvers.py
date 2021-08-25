@@ -14,7 +14,7 @@ from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...warehouse import models as warehouse_models
 from ..utils import get_user_or_app_from_context
-from .permissions import PRIVATE_META_PERMISSION_MAP
+from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_QUERY_PERMISSION_MAP
 
 
 def resolve_object_with_metadata_type(instance: ModelWithMetadata):
@@ -63,14 +63,16 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     return MODEL_TO_TYPE_MAP.get(instance.__class__, None)
 
 
-def resolve_metadata(metadata: dict):
+def _resolve_metadata(metadata: dict):
     return sorted(
         [{"key": k, "value": v} for k, v in metadata.items()],
         key=itemgetter("key"),
     )
 
 
-def resolve_private_metadata(root: ModelWithMetadata, info):
+def _resolve_metadata_with_permissions(
+    permission_map, root: ModelWithMetadata, metadata: dict, info
+):
     item_type = resolve_object_with_metadata_type(root)
     if not item_type:
         raise NotImplementedError(
@@ -78,16 +80,29 @@ def resolve_private_metadata(root: ModelWithMetadata, info):
             "Make sure that model exists inside MODEL_TO_TYPE_MAP."
         )
 
-    get_required_permission = PRIVATE_META_PERMISSION_MAP[item_type.__name__]
+    get_required_permission = permission_map[item_type.__name__]
     if not get_required_permission:
         raise PermissionDenied()
 
     required_permission = get_required_permission(info, root.pk)
+
     if not required_permission:
-        raise PermissionDenied()
+        return _resolve_metadata(metadata)
 
     requester = get_user_or_app_from_context(info.context)
     if not requester.has_perms(required_permission):
         raise PermissionDenied()
 
-    return resolve_metadata(root.private_metadata)
+    return _resolve_metadata(metadata)
+
+
+def resolve_metadata(root: ModelWithMetadata, info):
+    return _resolve_metadata_with_permissions(
+        PUBLIC_META_QUERY_PERMISSION_MAP, root, root.metadata, info
+    )
+
+
+def resolve_private_metadata(root: ModelWithMetadata, info):
+    return _resolve_metadata_with_permissions(
+        PRIVATE_META_PERMISSION_MAP, root, root.private_metadata, info
+    )

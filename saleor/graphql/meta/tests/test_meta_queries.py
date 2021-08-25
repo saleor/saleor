@@ -1060,6 +1060,42 @@ def assert_payment_contains_metadata(response):
     assert_model_contains_metadata(response, "payment")
 
 
+def test_query_public_meta_for_payment_as_customer(
+    user_api_client, payment_with_public_metadata, permission_manage_orders
+):
+    # given
+    assert user_api_client.user == payment_with_public_metadata.get_user()
+
+    # when
+    response = execute_query_public_metadata_for_payment(
+        user_api_client,
+        payment_with_public_metadata,
+        permissions=[permission_manage_orders],
+    )
+
+    # then
+    assert_payment_contains_metadata(response)
+
+
+def test_query_public_meta_for_payment_as_another_customer(
+    user2_api_client,
+    payment_with_public_metadata,
+    permission_manage_orders,
+):
+    # given
+    assert user2_api_client.user != payment_with_public_metadata.get_user()
+
+    # when
+    response = execute_query_public_metadata_for_payment(
+        user2_api_client,
+        payment_with_public_metadata,
+        permissions=[permission_manage_orders],
+    )
+
+    # then
+    assert_no_permission(response)
+
+
 def test_query_public_meta_for_payment_as_staff_with_permission(
     staff_api_client,
     payment_with_public_metadata,
