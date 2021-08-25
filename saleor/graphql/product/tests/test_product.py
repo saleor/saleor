@@ -41,6 +41,7 @@ from ....product.models import (
 )
 from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....product.utils.availability import get_variant_availability
 from ....product.utils.costs import get_product_costs_data
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.models import Allocation, Stock, Warehouse
@@ -8996,13 +8997,11 @@ QUERY_GET_PRODUCT_VARIANTS_PRICING = """
 """
 
 
-@mock.patch("saleor.graphql.product.types.products.WarehouseCountryCodeByChannelLoader")
 @pytest.mark.parametrize(
     "variant_price_amount, api_variant_price",
     [(200, 200), (0, 0)],
 )
 def test_product_variant_price(
-    warehouse_country_code_loader,
     variant_price_amount,
     api_variant_price,
     user_api_client,
@@ -9028,7 +9027,6 @@ def test_product_variant_price(
     data = content["data"]["product"]
     variant_price = data["variants"][0]["pricing"]["priceUndiscounted"]["gross"]
     assert variant_price["amount"] == api_variant_price
-    assert warehouse_country_code_loader.called
 
 
 def test_product_variant_without_price_as_user(
@@ -9086,6 +9084,44 @@ def test_product_variant_without_price_as_staff(
     assert variants_data[1]["pricing"] is None
 
     assert len(variants_data) == 2
+
+
+QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS = """
+    query getProductVariants($id: ID!, $channel: String) {
+        product(id: $id, channel: $channel) {
+            variants {
+                id
+                pricing {
+                    priceUndiscounted {
+                        gross {
+                            amount
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+@mock.patch(
+    "saleor.graphql.product.types.products.get_variant_availability",
+    wraps=get_variant_availability,
+)
+def test_product_variant_price_no_address(
+    mock_get_variant_availability, user_api_client, variant, stock, channel_USD
+):
+    channel_USD.default_country = "FR"
+    channel_USD.save()
+    product_id = graphene.Node.to_global_id("Product", variant.product.id)
+    variables = {"id": product_id, "channel": channel_USD.slug}
+    user_api_client.post_graphql(
+        QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS, variables
+    )
+    assert (
+        mock_get_variant_availability.call_args[1]["country"]
+        == channel_USD.default_country
+    )
 
 
 QUERY_REPORT_PRODUCT_SALES = """
