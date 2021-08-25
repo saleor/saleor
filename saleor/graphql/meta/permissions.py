@@ -120,7 +120,7 @@ def private_payment_permissions(info, _object_pk: Any) -> List[BasePermissionEnu
     raise PermissionDenied()
 
 
-PUBLIC_META_PERMISSION_MAP = {
+PUBLIC_META_MUTATION_PERMISSION_MAP = {
     "App": app_permissions,
     "Attribute": attribute_permissions,
     "Category": product_permissions,
@@ -146,6 +146,31 @@ PUBLIC_META_PERMISSION_MAP = {
     "Warehouse": product_permissions,
 }
 
+PUBLIC_META_QUERY_PERMISSION_MAP = {
+    "App": no_permissions,
+    "Attribute": no_permissions,
+    "Category": no_permissions,
+    "Checkout": no_permissions,
+    "Collection": no_permissions,
+    "DigitalContent": no_permissions,
+    "Fulfillment": no_permissions,
+    "Invoice": no_permissions,
+    "Menu": no_permissions,
+    "MenuItem": no_permissions,
+    "Order": no_permissions,
+    "Page": no_permissions,
+    "PageType": no_permissions,
+    "Payment": public_payment_permissions,
+    "Product": no_permissions,
+    "ProductType": no_permissions,
+    "ProductVariant": no_permissions,
+    "Sale": no_permissions,
+    "ShippingMethod": no_permissions,
+    "ShippingZone": no_permissions,
+    "User": no_permissions,
+    "Voucher": no_permissions,
+    "Warehouse": no_permissions,
+}
 
 PRIVATE_META_PERMISSION_MAP = {
     "App": app_permissions,
