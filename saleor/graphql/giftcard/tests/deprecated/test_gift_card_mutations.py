@@ -4,13 +4,13 @@ from ....tests.utils import get_graphql_content
 
 CREATE_GIFT_CARD_MUTATION = """
     mutation giftCardCreate(
-        $startDate: Date, $endDate: Date, $expiryDate: Date
+        $startDate: Date, $endDate: Date, $expiryDate: Date, $channel: String,
         $balance: PriceInput!, $userEmail: String, $isActive: Boolean!
     ){
         giftCardCreate(input: {
                 startDate: $startDate,
                 endDate: $endDate,
-                balance: $balance, userEmail: $userEmail,
+                balance: $balance, userEmail: $userEmail, channel: $channel
                 expiryDate: $expiryDate, isActive: $isActive
             }) {
             giftCard {
@@ -49,6 +49,7 @@ CREATE_GIFT_CARD_MUTATION = """
 def test_create_never_expiry_gift_card(
     staff_api_client,
     customer_user,
+    channel_USD,
     permission_manage_gift_card,
     permission_manage_users,
     permission_manage_apps,
@@ -65,6 +66,7 @@ def test_create_never_expiry_gift_card(
             "currency": currency,
         },
         "userEmail": customer_user.email,
+        "channel": channel_USD.slug,
         "tag": tag,
         "note": "This is gift card note that will be save in gift card event.",
         "startDate": start_date.isoformat(),

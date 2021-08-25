@@ -2234,6 +2234,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   app: App
   product: Product
   events: [GiftCardEvent!]!
+  boughtInChannel: String
   user: User @deprecated(reason: "Will be removed in Saleor 4.0. Use created_by field instead")
   endDate: DateTime @deprecated(reason: "Will be removed in Saleor 4.0. Use expiry_date field instead.")
   startDate: DateTime @deprecated(reason: "Will be removed in Saleor 4.0.")
