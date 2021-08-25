@@ -1,9 +1,11 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
 
 from ....account.models import Address
 from ....warehouse.error_codes import WarehouseErrorCode
-from ....warehouse.models import Warehouse
+from ....warehouse.models import Stock, Warehouse
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -839,6 +841,56 @@ def test_delete_warehouse_mutation(
     errors = content["data"]["deleteWarehouse"]["errors"]
     assert len(errors) == 0
     assert not Warehouse.objects.exists()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_delete_warehouse_mutation_with_webhooks(
+    product_variant_out_of_stock_webhook,
+    staff_api_client,
+    warehouse,
+    permission_manage_products,
+    variant_with_many_stocks,
+):
+    old_first_stock = Stock.objects.first()
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    assert Warehouse.objects.count() == 3
+    assert Stock.objects.count() == 3
+    response = staff_api_client.post_graphql(
+        MUTATION_DELETE_WAREHOUSE,
+        variables={"id": warehouse_id},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["deleteWarehouse"]["errors"]
+    assert len(errors) == 0
+    assert Warehouse.objects.count() == 2
+    assert Stock.objects.count() == 2
+    product_variant_out_of_stock_webhook.assert_called_once_with(old_first_stock)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_delete_warehouse_mutation_with_webhooks_for_many_product_variants(
+    product_variant_out_of_stock_webhook,
+    staff_api_client,
+    warehouse,
+    permission_manage_products,
+    product_with_two_variants,
+):
+
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    assert Warehouse.objects.count() == 1
+    assert Stock.objects.count() == 2
+    response = staff_api_client.post_graphql(
+        MUTATION_DELETE_WAREHOUSE,
+        variables={"id": warehouse_id},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["deleteWarehouse"]["errors"]
+    assert len(errors) == 0
+    assert Warehouse.objects.count() == 0
+    assert Stock.objects.count() == 0
+    assert product_variant_out_of_stock_webhook.call_count == 2
 
 
 def test_delete_warehouse_deletes_associated_address(

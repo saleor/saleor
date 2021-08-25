@@ -9,6 +9,7 @@ import graphene
 import pytest
 import pytz
 from django.core.exceptions import ValidationError
+from django.db.models import Sum
 from django.utils.dateparse import parse_datetime
 from django.utils.html import strip_tags
 from django.utils.text import slugify
@@ -24,7 +25,7 @@ from ....core.taxes import TaxType
 from ....core.units import WeightUnits
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
-from ....plugins.manager import PluginsManager
+from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product import ProductMediaTypes
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
@@ -41,7 +42,7 @@ from ....product.models import (
 from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.costs import get_product_costs_data
-from ....tests.utils import dummy_editorjs
+from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import generate_product_deleted_payload
@@ -9995,7 +9996,7 @@ def test_update_or_create_variant_stocks(variant, warehouses):
     ]
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses
+        variant, stocks_data, warehouses, get_plugins_manager()
     )
 
     variant.refresh_from_db()
@@ -10015,13 +10016,134 @@ def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
         quantity=5,
     )
 
-    ProductVariantStocksUpdate.update_or_create_variant_stocks(variant, [], warehouses)
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, [], warehouses, get_plugins_manager()
+    )
 
     variant.refresh_from_db()
     assert variant.stocks.count() == 1
     stock = variant.stocks.first()
     assert stock.warehouse == warehouses[0]
     assert stock.quantity == 5
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
+    product_variant_stock_out_of_stock_webhook,
+    product_variant_back_in_stock_webhook,
+    settings,
+    variant,
+    warehouses,
+    info,
+):
+
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse)
+            for warehouse in warehouses
+        ]
+    )
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    info.context.plugins = get_plugins_manager()
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+    ]
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses, info.context.plugins
+    )
+
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
+
+    flush_post_commit_hooks()
+    product_variant_back_in_stock_webhook.assert_called_once_with(
+        Stock.objects.all()[1]
+    )
+    product_variant_stock_out_of_stock_webhook.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
+    product_variant_stock_out_of_stock_webhook,
+    product_variant_back_in_stock_webhook,
+    settings,
+    variant,
+    warehouses,
+    info,
+):
+
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse)
+            for warehouse in warehouses
+        ]
+    )
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    info.context.plugins = get_plugins_manager()
+    stocks_data = [
+        {"quantity": 0, "warehouse": "123"},
+    ]
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses, info.context.plugins
+    )
+
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
+
+    flush_post_commit_hooks()
+    product_variant_back_in_stock_webhook.assert_not_called()
+    product_variant_stock_out_of_stock_webhook.assert_called_once_with(
+        Stock.objects.all()[1]
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
+    product_variant_stock_out_of_stock_webhook,
+    product_variant_back_in_stock_webhook,
+    settings,
+    variant,
+    warehouses,
+    info,
+):
+
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse, quantity=5)
+            for warehouse in warehouses
+        ]
+    )
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    info.context.plugins = get_plugins_manager()
+
+    stocks_data = [
+        {"quantity": 0, "warehouse": "123"},
+        {"quantity": 2, "warehouse": "321"},
+    ]
+
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses, info.context.plugins
+    )
+
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 2
+
+    flush_post_commit_hooks()
+
+    product_variant_stock_out_of_stock_webhook.assert_called_once_with(
+        Stock.objects.last()
+    )
+    product_variant_back_in_stock_webhook.assert_not_called()
 
 
 # Because we use Scalars for Weight this test query tests only a scenario when weight

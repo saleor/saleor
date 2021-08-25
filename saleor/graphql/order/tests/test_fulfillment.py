@@ -32,6 +32,45 @@ ORDER_FULFILL_QUERY = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_order_fulfill_with_out_of_stock_webhook(
+    product_variant_out_of_stock_webhooks,
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
+    warehouse,
+):
+    order = order_with_lines
+
+    query = ORDER_FULFILL_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_line, order_line2 = order.lines.all()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": True,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
+                },
+                {
+                    "orderLineId": order_line2_id,
+                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                },
+            ],
+        },
+    }
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    product_variant_out_of_stock_webhooks.assert_called_once_with(Stock.objects.last())
+
+
 @pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
 def test_order_fulfill(

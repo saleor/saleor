@@ -1,11 +1,13 @@
 from collections import defaultdict, namedtuple
 from typing import TYPE_CHECKING, Dict, Iterable, List, cast
 
+from django.db import transaction
 from django.db.models import F, Sum
 
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
+from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant
 from .models import Allocation, Stock, Warehouse
 
@@ -18,7 +20,10 @@ StockData = namedtuple("StockData", ["pk", "quantity"])
 
 @traced_atomic_transaction()
 def allocate_stocks(
-    order_lines_info: Iterable["OrderLineData"], country_code: str, channel_slug: str
+    order_lines_info: Iterable["OrderLineData"],
+    country_code: str,
+    channel_slug: str,
+    manager: PluginsManager,
 ):
     """Allocate stocks for given `order_lines` in given country.
 
@@ -84,6 +89,18 @@ def allocate_stocks(
     if allocations:
         Allocation.objects.bulk_create(allocations)
 
+        for allocation in allocations:
+            allocated_stock = (
+                Allocation.objects.filter(stock_id=allocation.stock_id).aggregate(
+                    Sum("quantity_allocated")
+                )["quantity_allocated__sum"]
+                or 0
+            )
+            if not max(allocation.stock.quantity - allocated_stock, 0):
+                transaction.on_commit(
+                    lambda: manager.product_variant_out_of_stock(allocation.stock)
+                )
+
 
 def _create_allocations(
     line_info: "OrderLineData",
@@ -127,7 +144,9 @@ def _create_allocations(
 
 
 @traced_atomic_transaction()
-def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
+def deallocate_stock(
+    order_lines_data: Iterable["OrderLineData"], manager: PluginsManager
+):
     """Deallocate stocks for given `order_lines`.
 
     Function lock for update stocks and allocations related to given `order_lines`.
@@ -178,7 +197,27 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
     if not_dellocated_lines:
         raise AllocationError(not_dellocated_lines)
 
+    allocations_before_update = list(
+        Allocation.objects.filter(
+            id__in=[a.id for a in allocations_to_update]
+        ).annotate_stock_available_quantity()
+    )
+
     Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
+
+    for allocation_before_update in allocations_before_update:
+        available_stock_now = Allocation.objects.available_quantity_for_stock(
+            allocation_before_update.stock
+        )
+        if (
+            allocation_before_update.stock_available_quantity == 0
+            and available_stock_now > 0
+        ):
+            transaction.on_commit(
+                lambda: manager.product_variant_back_in_stock(
+                    allocation_before_update.stock
+                )
+            )
 
 
 @traced_atomic_transaction()
@@ -221,7 +260,9 @@ def increase_stock(
 
 
 @traced_atomic_transaction()
-def increase_allocations(lines_info: Iterable["OrderLineData"], channel_slug: str):
+def increase_allocations(
+    lines_info: Iterable["OrderLineData"], channel_slug: str, manager: PluginsManager
+):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
     allocations = list(
@@ -247,19 +288,22 @@ def increase_allocations(lines_info: Iterable["OrderLineData"], channel_slug: st
         lines_info,
         lines_info[0].line.order.shipping_address.country.code,  # type: ignore
         channel_slug,
+        manager,
     )
 
 
-def decrease_allocations(lines_info: Iterable["OrderLineData"]):
+def decrease_allocations(lines_info: Iterable["OrderLineData"], manager):
     """Decreate allocations for provided order lines."""
     tracked_lines = get_order_lines_with_track_inventory(lines_info)
     if not tracked_lines:
         return
-    decrease_stock(tracked_lines, update_stocks=False)
+    decrease_stock(tracked_lines, update_stocks=False, manager=manager)
 
 
 @traced_atomic_transaction()
-def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=True):
+def decrease_stock(
+    order_lines_info: Iterable["OrderLineData"], manager, update_stocks=True
+):
     """Decrease stocks quantities for given `order_lines` in given warehouses.
 
     Function deallocate as many quantities as requested if order_line has less quantity
@@ -273,7 +317,7 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=Tr
     variants = [line_info.variant for line_info in order_lines_info]
     warehouse_pks = [line_info.warehouse_pk for line_info in order_lines_info]
     try:
-        deallocate_stock(order_lines_info)
+        deallocate_stock(order_lines_info, manager)
     except AllocationError as exc:
         Allocation.objects.filter(order_line__in=exc.order_lines).update(
             quantity_allocated=0
@@ -307,13 +351,21 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=Tr
         quantity_allocation_for_stocks[allocation["stock"]] += allocation[
             "quantity_allocated__sum"
         ]
-
     if update_stocks:
         _decrease_stocks_quantity(
             order_lines_info,
             variant_and_warehouse_to_stock,
             quantity_allocation_for_stocks,
         )
+
+        stock_ids = (s.id for s in stocks)
+        for stock in Stock.objects.filter(
+            id__in=stock_ids
+        ).annotate_available_quantity():
+            if stock.available_quantity <= 0:
+                transaction.on_commit(
+                    lambda: manager.product_variant_out_of_stock(stock)
+                )
 
 
 def _decrease_stocks_quantity(
@@ -348,7 +400,6 @@ def _decrease_stocks_quantity(
                 )
             )
             continue
-
         stock.quantity = stock.quantity - line_info.quantity
         stocks_to_update.append(stock)
 
@@ -370,9 +421,16 @@ def get_order_lines_with_track_inventory(
 
 
 @traced_atomic_transaction()
-def deallocate_stock_for_order(order: "Order"):
+def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
     """Remove all allocations for given order."""
     allocations = Allocation.objects.filter(
         order_line__order=order, quantity_allocated__gt=0
-    ).select_for_update(of=("self",))
+    )
+
+    for allocation in allocations.annotate_stock_available_quantity():
+        if allocation.stock_available_quantity <= 0:
+            transaction.on_commit(
+                lambda: manager.product_variant_back_in_stock(allocation.stock)
+            )
+
     allocations.update(quantity_allocated=0)

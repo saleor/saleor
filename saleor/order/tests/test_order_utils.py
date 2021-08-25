@@ -4,6 +4,7 @@ from unittest.mock import Mock
 import pytest
 from prices import Money, TaxedMoney
 
+from ...plugins.manager import get_plugins_manager
 from .. import OrderLineData, OrderStatus
 from ..events import OrderEvents
 from ..models import Order, OrderEvent
@@ -58,6 +59,7 @@ def test_change_quantity_generates_proper_event(
         previous_quantity,
         new_quantity,
         order_with_lines.channel.slug,
+        get_plugins_manager(),
     )
 
     if removed_count:
@@ -104,6 +106,7 @@ def test_change_quantity_update_line_fields(
         line.quantity,
         new_quantity,
         order_with_lines.channel.slug,
+        get_plugins_manager(),
     )
 
     # then
