@@ -2319,6 +2319,23 @@ def test_update_private_metadata_for_payment_by_app_without_permission(
     assert_no_permission(response)
 
 
+def test_update_private_metadata_by_customer(user_api_client, payment):
+    # given
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    variables = {
+        "id": payment_id,
+        "input": [{"key": PRIVATE_KEY, "value": "NewMetaValue"}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        UPDATE_PRIVATE_METADATA_MUTATION % "Payment", variables, permissions=None
+    )
+
+    # then
+    assert_no_permission(response)
+
+
 def test_add_private_metadata_for_warehouse(
     staff_api_client, permission_manage_products, warehouse
 ):
