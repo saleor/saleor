@@ -16,10 +16,7 @@ from ..core.mutations import BaseMutation
 from ..core.types.common import MetadataError
 from ..core.utils import from_global_id_or_error
 from .extra_methods import MODEL_EXTRA_METHODS, MODEL_EXTRA_PREFETCH
-from .permissions import (
-    PRIVATE_META_PERMISSION_MAP,
-    PUBLIC_META_MUTATION_PERMISSION_MAP,
-)
+from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from .types import ObjectWithMetadata
 
 
@@ -168,7 +165,7 @@ class MetadataInput(graphene.InputObjectType):
 class UpdateMetadata(BaseMetadataMutation):
     class Meta:
         description = "Updates metadata of an object."
-        permission_map = PUBLIC_META_MUTATION_PERMISSION_MAP
+        permission_map = PUBLIC_META_PERMISSION_MAP
         error_type_class = MetadataError
         error_type_field = "metadata_errors"
 
@@ -195,7 +192,7 @@ class UpdateMetadata(BaseMetadataMutation):
 class DeleteMetadata(BaseMetadataMutation):
     class Meta:
         description = "Delete metadata of an object."
-        permission_map = PUBLIC_META_MUTATION_PERMISSION_MAP
+        permission_map = PUBLIC_META_PERMISSION_MAP
         error_type_class = MetadataError
         error_type_field = "metadata_errors"
 

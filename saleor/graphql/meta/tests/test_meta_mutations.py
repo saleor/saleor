@@ -9,10 +9,8 @@ from django.core.exceptions import ValidationError
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
 from ....invoice.models import Invoice
+from ....payment.utils import payment_has_user
 from ...tests.utils import assert_no_permission, get_graphql_content
-
-pytest_plugins = ["saleor.graphql.meta.tests"]
-
 
 PRIVATE_KEY = "private_key"
 PRIVATE_VALUE = "private_vale"
@@ -740,7 +738,7 @@ def test_update_public_metadata_for_payment_by_logged_user(
 ):
     # given
     payment_with_public_metadata.order.user = user_api_client.user
-    payment_with_public_metadata.save()
+    payment_with_public_metadata.order.save()
     payment_id = graphene.Node.to_global_id("Payment", payment_with_public_metadata.pk)
 
     # when
@@ -761,7 +759,7 @@ def test_update_public_metadata_for_payment_by_different_logged_user(
     user2_api_client, payment_with_public_metadata
 ):
     # given
-    assert payment_with_public_metadata.get_user() != user2_api_client.user
+    assert not payment_has_user(payment_with_public_metadata.pk, user2_api_client.user)
     payment_id = graphene.Node.to_global_id("Payment", payment_with_public_metadata.pk)
     variables = {
         "id": payment_id,
