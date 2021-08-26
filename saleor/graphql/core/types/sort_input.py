@@ -35,3 +35,17 @@ class SortInputObjectType(graphene.InputObjectType):
                 description=f"Sort {type_name} by the selected field.",
             )
             cls._meta.fields.update({"field": field})
+
+
+class ChannelSortInputObjectType(SortInputObjectType):
+    channel = graphene.Argument(
+        graphene.String,
+        description=(
+            "Specifies the channel in which to sort the data. "
+            "DEPRECATED: Will be removed in Saleor 4.0."
+            "Use root-level channel argument instead."
+        ),
+    )
+
+    class Meta:
+        abstract = True

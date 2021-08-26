@@ -15,7 +15,6 @@ from ...checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
     get_valid_shipping_method_list_for_checkout_info,
-    update_checkout_info_shipping_method,
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -23,6 +22,7 @@ from ...checkout.utils import (
     calculate_checkout_quantity,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
+    clear_shipping_method,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
@@ -37,6 +37,7 @@ from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import models as shipping_models
 from ...warehouse.availability import check_stock_quantity_bulk
+from ...warehouse.models import Warehouse
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..channel.utils import clean_channel
@@ -51,7 +52,6 @@ from ..core.validators import (
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
-from ..utils import get_user_country_context
 from .types import Checkout, CheckoutLine
 from .utils import prepare_insufficient_stock_checkout_validation_error
 
@@ -93,14 +93,11 @@ def clean_shipping_method(
 def update_checkout_shipping_method_if_invalid(
     checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
 ):
-    checkout = checkout_info.checkout
     quantity = calculate_checkout_quantity(lines)
+
     # remove shipping method when empty checkout
     if quantity == 0 or not is_shipping_required(lines):
-        checkout.shipping_method = None
-        checkout_info.shipping_method = None
-        checkout_info.shipping_method_channel_listings = None
-        checkout.save(update_fields=["shipping_method", "last_change"])
+        clear_shipping_method(checkout_info)
 
     is_valid = clean_shipping_method(
         checkout_info=checkout_info,
@@ -109,11 +106,8 @@ def update_checkout_shipping_method_if_invalid(
     )
 
     if not is_valid:
-        cheapest_alternative = checkout_info.valid_shipping_methods
-        new_shipping_method = cheapest_alternative[0] if cheapest_alternative else None
-        checkout.shipping_method = new_shipping_method
-        update_checkout_info_shipping_method(checkout_info, new_shipping_method)
-        checkout.save(update_fields=["shipping_method", "last_change"])
+        # remove shipping method when it is no longer valid
+        clear_shipping_method(checkout_info)
 
 
 def check_lines_quantity(
@@ -325,10 +319,16 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         shipping_address = cls.retrieve_shipping_address(user, data)
         billing_address = cls.retrieve_billing_address(user, data)
-        country = get_user_country_context(
-            destination_address=shipping_address,
-            company_address=info.context.site.settings.company_address,
-        )
+
+        if shipping_address:
+            country = shipping_address.country.code
+        else:
+            warehouse = Warehouse.objects.get_first_warehouse_for_channel(channel.pk)
+            if warehouse:
+                country = warehouse.address.country.code
+            else:
+                # fallback when channel has no warehouses
+                country = settings.DEFAULT_COUNTRY
 
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
@@ -790,10 +790,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         manager = info.context.plugins
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
-        country = get_user_country_context(
-            destination_address=shipping_address,
-            company_address=info.context.site.settings.company_address,
-        )
+        country = shipping_address.country.code
         checkout.set_country(country, commit=True)
 
         # Resolve and process the lines, validating variants quantities
@@ -1205,10 +1202,9 @@ class CheckoutAddPromoCode(BaseMutation):
             )
 
         manager = info.context.plugins
+        discounts = info.context.discounts
         lines = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(
-            checkout, lines, info.context.discounts, manager
-        )
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
         if info.context.user and checkout.user == info.context.user:
             # reassign user from request to make sure that we will take into account
@@ -1221,8 +1217,16 @@ class CheckoutAddPromoCode(BaseMutation):
             checkout_info,
             lines,
             promo_code,
-            info.context.discounts,
+            discounts,
         )
+
+        checkout_info.valid_shipping_methods = (
+            get_valid_shipping_method_list_for_checkout_info(
+                checkout_info, checkout_info.shipping_address, lines, discounts, manager
+            )
+        )
+
+        update_checkout_shipping_method_if_invalid(checkout_info, lines)
         manager.checkout_updated(checkout)
         return CheckoutAddPromoCode(checkout=checkout)
 

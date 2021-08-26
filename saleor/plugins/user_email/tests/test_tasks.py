@@ -43,7 +43,7 @@ def test_send_account_confirmation_email_task_default_template(
     }
 
     send_account_confirmation_email_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email, payload, user_email_dict_config, "subject", "template"
     )
 
     # confirm that mail has correct structure and email was sent
@@ -52,14 +52,10 @@ def test_send_account_confirmation_email_task_default_template(
 
 @mock.patch("saleor.plugins.user_email.tasks.send_email")
 def test_send_account_confirmation_email_task_custom_template(
-    mocked_send_email, user_email_dict_config, user_email_plugin, customer_user
+    mocked_send_email, user_email_dict_config, customer_user
 ):
     expected_template_str = "<html><body>Template body</body></html>"
     expected_subject = "Test Email Subject"
-    user_email_plugin(
-        account_confirmation_template=expected_template_str,
-        account_confirmation_subject=expected_subject,
-    )
     recipient_email = "admin@example.com"
     token = "token123"
     payload = {
@@ -72,7 +68,11 @@ def test_send_account_confirmation_email_task_custom_template(
     }
 
     send_account_confirmation_email_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
     )
 
     email_config = EmailConfig(**user_email_dict_config)
@@ -100,7 +100,13 @@ def test_send_password_reset_email_task_default_template(
         "site_name": "Saleor",
     }
 
-    send_password_reset_email_task(recipient_email, payload, user_email_dict_config)
+    send_password_reset_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        "subject",
+        "template",
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -127,7 +133,13 @@ def test_send_password_reset_email_task_custom_template(
         "site_name": "Saleor",
     }
 
-    send_password_reset_email_task(recipient_email, payload, user_email_dict_config)
+    send_password_reset_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
 
     email_config = EmailConfig(**user_email_dict_config)
     mocked_send_email.assert_called_with(
@@ -157,7 +169,7 @@ def test_send_request_email_change_email_task_default_template(
     }
 
     send_request_email_change_email_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email, payload, user_email_dict_config, "subject", "template"
     )
 
     # confirm that mail has correct structure and email was sent
@@ -188,7 +200,11 @@ def test_send_request_email_change_email_task_custom_template(
     }
 
     send_request_email_change_email_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
     )
 
     email_config = EmailConfig(**user_email_dict_config)
@@ -216,7 +232,7 @@ def test_send_user_change_email_notification_task_default_template(
     }
 
     send_user_change_email_notification_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email, payload, user_email_dict_config, "subject", "template"
     )
 
     # confirm that mail has correct structure and email was sent
@@ -244,7 +260,11 @@ def test_send_user_change_email_notification_task_custom_template(
     }
 
     send_user_change_email_notification_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
     )
 
     email_config = EmailConfig(**user_email_dict_config)
@@ -273,7 +293,7 @@ def test_send_account_delete_confirmation_email_task_default_template(
     }
 
     send_account_delete_confirmation_email_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email, payload, user_email_dict_config, "subject", "template"
     )
 
     # confirm that mail has correct structure and email was sent
@@ -302,7 +322,11 @@ def test_send_account_delete_confirmation_email_task_custom_template(
     }
 
     send_account_delete_confirmation_email_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
     )
 
     email_config = EmailConfig(**user_email_dict_config)
@@ -330,7 +354,9 @@ def test_send_set_user_password_email_task_default_template(
         "domain": "localhost:8000",
     }
 
-    send_set_user_password_email_task(recipient_email, payload, user_email_dict_config)
+    send_set_user_password_email_task(
+        recipient_email, payload, user_email_dict_config, "subject", "template"
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -357,7 +383,13 @@ def test_send_set_user_password_email_task_custom_template(
         "domain": "localhost:8000",
     }
 
-    send_set_user_password_email_task(recipient_email, payload, user_email_dict_config)
+    send_set_user_password_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
 
     email_config = EmailConfig(**user_email_dict_config)
     mocked_send_email.assert_called_with(
@@ -392,7 +424,9 @@ def test_send_invoice_email_task_default_template_by_user(
         "requester_app_id": None,
     }
 
-    send_invoice_email_task(recipient_email, payload, user_email_dict_config)
+    send_invoice_email_task(
+        recipient_email, payload, user_email_dict_config, "subject", "template"
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -433,7 +467,9 @@ def test_send_invoice_email_task_default_template_by_app(
         "requester_app_id": app.pk,
     }
 
-    send_invoice_email_task(recipient_email, payload, user_email_dict_config)
+    send_invoice_email_task(
+        recipient_email, payload, user_email_dict_config, "subject", "template"
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -477,7 +513,13 @@ def test_send_invoice_email_task_custom_template(
         "requester_app_id": None,
     }
 
-    send_invoice_email_task(recipient_email, payload, user_email_dict_config)
+    send_invoice_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
 
     email_config = EmailConfig(**user_email_dict_config)
     mocked_send_email.assert_called_with(
@@ -513,7 +555,9 @@ def test_send_order_confirmation_email_task_default_template(
         "domain": "localhost:8000",
     }
 
-    send_order_confirmation_email_task(recipient_email, payload, user_email_dict_config)
+    send_order_confirmation_email_task(
+        recipient_email, payload, user_email_dict_config, "subject", "template"
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -537,7 +581,13 @@ def test_send_order_confirmation_email_task_custom_template(
         "domain": "localhost:8000",
     }
 
-    send_order_confirmation_email_task(recipient_email, payload, user_email_dict_config)
+    send_order_confirmation_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
 
     email_config = EmailConfig(**user_email_dict_config)
     mocked_send_email.assert_called_with(
@@ -558,7 +608,11 @@ def test_send_fulfillment_confirmation_email_task_default_template(
     payload["requester_app_id"] = None
 
     send_fulfillment_confirmation_email_task(
-        payload["recipient_email"], payload, user_email_dict_config
+        payload["recipient_email"],
+        payload,
+        user_email_dict_config,
+        "subject",
+        "template",
     )
 
     # confirm that mail has correct structure and email was sent
@@ -594,7 +648,11 @@ def test_send_fulfillment_confirmation_email_task_custom_template_by_user(
     recipient_email = payload["recipient_email"]
 
     send_fulfillment_confirmation_email_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
     )
 
     email_config = EmailConfig(**user_email_dict_config)
@@ -643,7 +701,11 @@ def test_send_fulfillment_confirmation_email_task_custom_template_by_app(
     recipient_email = payload["recipient_email"]
 
     send_fulfillment_confirmation_email_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
     )
 
     email_config = EmailConfig(**user_email_dict_config)
@@ -677,7 +739,11 @@ def test_send_fulfillment_update_email_task_default_template(
     payload = get_default_fulfillment_payload(order, fulfillment)
 
     send_fulfillment_update_email_task(
-        payload["recipient_email"], payload, user_email_dict_config
+        payload["recipient_email"],
+        payload,
+        user_email_dict_config,
+        "subject",
+        "template",
     )
 
     # confirm that mail has correct structure and email was sent
@@ -701,7 +767,13 @@ def test_send_fulfillment_update_email_task_custom_template(
     )
     payload = get_default_fulfillment_payload(order, fulfillment)
     recipient_email = payload["recipient_email"]
-    send_fulfillment_update_email_task(recipient_email, payload, user_email_dict_config)
+    send_fulfillment_update_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
 
     email_config = EmailConfig(**user_email_dict_config)
     mocked_send_email.assert_called_with(
@@ -734,7 +806,7 @@ def test_send_payment_confirmation_email_task_default_template(
     }
 
     send_payment_confirmation_email_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email, payload, user_email_dict_config, "subject", "template"
     )
 
     # confirm that mail has correct structure and email was sent
@@ -773,7 +845,11 @@ def test_send_payment_confirmation_email_task_custom_template(
         "domain": "localhost:8000",
     }
     send_payment_confirmation_email_task(
-        recipient_email, payload, user_email_dict_config
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
     )
 
     email_config = EmailConfig(**user_email_dict_config)
@@ -800,7 +876,9 @@ def test_send_order_canceled_email_task_default_template_by_user(
         "requester_app_id": None,
     }
 
-    send_order_canceled_email_task(recipient_email, payload, user_email_dict_config)
+    send_order_canceled_email_task(
+        recipient_email, payload, user_email_dict_config, "subject", "template"
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -820,7 +898,9 @@ def test_send_order_canceled_email_task_default_template_by_app(
         "requester_app_id": app.pk,
     }
 
-    send_order_canceled_email_task(recipient_email, payload, user_email_dict_config)
+    send_order_canceled_email_task(
+        recipient_email, payload, user_email_dict_config, "subject", "template"
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -845,7 +925,13 @@ def test_send_order_canceled_email_task_custom_template(
         "requester_user_id": staff_user.pk,
         "requester_app_id": None,
     }
-    send_order_canceled_email_task(recipient_email, payload, user_email_dict_config)
+    send_order_canceled_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
 
     email_config = EmailConfig(**user_email_dict_config)
     mocked_send_email.assert_called_with(
@@ -873,7 +959,9 @@ def test_send_order_refund_email_task_default_template_by_user(
         "requester_app_id": None,
     }
 
-    send_order_refund_email_task(recipient_email, payload, user_email_dict_config)
+    send_order_refund_email_task(
+        recipient_email, payload, user_email_dict_config, "subject", "template"
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -901,7 +989,9 @@ def test_send_order_refund_email_task_default_template_by_app(
         "requester_app_id": app.pk,
     }
 
-    send_order_refund_email_task(recipient_email, payload, user_email_dict_config)
+    send_order_refund_email_task(
+        recipient_email, payload, user_email_dict_config, "subject", "template"
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -934,7 +1024,13 @@ def test_send_order_refund_email_task_custom_template(
         "requester_user_id": staff_user.pk,
         "requester_app_id": None,
     }
-    send_order_refund_email_task(recipient_email, payload, user_email_dict_config)
+    send_order_refund_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
 
     email_config = EmailConfig(**user_email_dict_config)
     mocked_send_email.assert_called_with(
@@ -965,7 +1061,9 @@ def test_send_order_confirmed_email_task_default_template_by_user(
         "domain": "localhost:8000",
     }
 
-    send_order_confirmed_email_task(recipient_email, payload, user_email_dict_config)
+    send_order_confirmed_email_task(
+        recipient_email, payload, user_email_dict_config, "subject", "template"
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -993,7 +1091,9 @@ def test_send_order_confirmed_email_task_default_template_by_app(
         "domain": "localhost:8000",
     }
 
-    send_order_confirmed_email_task(recipient_email, payload, user_email_dict_config)
+    send_order_confirmed_email_task(
+        recipient_email, payload, user_email_dict_config, "subject", "template"
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -1027,7 +1127,13 @@ def test_send_order_confirmed_email_task_custom_template(
         "domain": "localhost:8000",
     }
 
-    send_order_confirmed_email_task(recipient_email, payload, user_email_dict_config)
+    send_order_confirmed_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
 
     email_config = EmailConfig(**user_email_dict_config)
     mocked_send_email.assert_called_with(

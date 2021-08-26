@@ -8,7 +8,7 @@ from prices import Money, TaxedMoney
 from saleor.core.prices import quantize_price
 from saleor.payment import PaymentError
 from saleor.payment.gateways.adyen.utils.common import (
-    append_klarna_data,
+    append_checkout_details,
     get_payment_method_info,
     get_shopper_locale_value,
     request_data_for_gateway_config,
@@ -32,7 +32,7 @@ def test_get_shopper_locale_value(country_code, shopper_locale, settings):
     assert result == shopper_locale
 
 
-def test_append_klarna_data(
+def test_append_checkout_details(
     dummy_payment_data, payment_dummy, checkout_ready_to_complete
 ):
     # given
@@ -45,7 +45,7 @@ def test_append_klarna_data(
     country_code = checkout_ready_to_complete.get_country()
 
     # when
-    result = append_klarna_data(dummy_payment_data, payment_data)
+    result = append_checkout_details(dummy_payment_data, payment_data)
 
     # then
     variant_channel_listing = line.variant.channel_listings.get(channel_id=channel_id)
@@ -56,7 +56,6 @@ def test_append_klarna_data(
     assert result == {
         "reference": "test",
         "shopperLocale": get_shopper_locale_value(country_code),
-        "shopperReference": dummy_payment_data.customer_email,
         "countryCode": country_code,
         "lineItems": [
             {
@@ -83,7 +82,7 @@ def test_append_klarna_data(
 
 @mock.patch("saleor.payment.gateways.adyen.utils.common.get_plugins_manager")
 @mock.patch("saleor.payment.gateways.adyen.utils.common.checkout_line_total")
-def test_append_klarna_data_tax_included(
+def test_append_checkout_details_tax_included(
     mocked_checkout_line_total,
     mocked_plugins_manager,
     dummy_payment_data,
@@ -111,14 +110,13 @@ def test_append_klarna_data_tax_included(
     }
 
     # when
-    result = append_klarna_data(dummy_payment_data, payment_data)
+    result = append_checkout_details(dummy_payment_data, payment_data)
 
     # then
 
     expected_result = {
         "reference": "test",
         "shopperLocale": get_shopper_locale_value(country_code),
-        "shopperReference": dummy_payment_data.customer_email,
         "countryCode": country_code,
         "lineItems": [
             {
@@ -144,12 +142,15 @@ def test_append_klarna_data_tax_included(
     assert result == expected_result
 
 
-def test_request_data_for_payment_payment_not_valid(dummy_payment_data):
+def test_request_data_for_payment_payment_not_valid(
+    dummy_payment_data, dummy_address_data
+):
     # given
     dummy_payment_data.data = {
         "originUrl": "https://www.example.com",
         "is_valid": False,
     }
+    dummy_payment_data.billing = dummy_address_data
     native_3d_secure = False
 
     # when
@@ -165,7 +166,7 @@ def test_request_data_for_payment_payment_not_valid(dummy_payment_data):
     assert str(e._excinfo[1]) == "Payment data are not valid."
 
 
-def test_request_data_for_payment(dummy_payment_data):
+def test_request_data_for_payment(dummy_payment_data, dummy_address_data):
     # given
     return_url = "https://www.example.com"
     merchant_account = "MerchantTestAccount"
@@ -175,11 +176,12 @@ def test_request_data_for_payment(dummy_payment_data):
         "riskData": {"clientData": "test_client_data"},
         "paymentMethod": {"type": "scheme"},
         "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
-        "billingAddress": {"address": "test_address"},
         "shopperIP": "123",
         "originUrl": origin_url,
     }
     dummy_payment_data.data = data
+    dummy_payment_data.billing = dummy_address_data
+    dummy_payment_data.shipping = dummy_address_data
     native_3d_secure = False
 
     # when
@@ -201,14 +203,36 @@ def test_request_data_for_payment(dummy_payment_data):
         "merchantAccount": merchant_account,
         "origin": return_url,
         "shopperIP": data["shopperIP"],
-        "billingAddress": data["billingAddress"],
         "browserInfo": data["browserInfo"],
         "channel": "web",
         "shopperEmail": "example@test.com",
+        "shopperName": {
+            "firstName": dummy_payment_data.billing.first_name,
+            "lastName": dummy_payment_data.billing.last_name,
+        },
+        "shopperReference": "example@test.com",
+        "deliveryAddress": {
+            "city": "WROCŁAW",
+            "country": "PL",
+            "houseNumberOrName": "Mirumee Software",
+            "postalCode": "53-601",
+            "stateOrProvince": "",
+            "street": "Tęczowa 7",
+        },
+        "billingAddress": {
+            "city": "WROCŁAW",
+            "country": "PL",
+            "houseNumberOrName": "Mirumee Software",
+            "postalCode": "53-601",
+            "stateOrProvince": "",
+            "street": "Tęczowa 7",
+        },
     }
 
 
-def test_request_data_for_payment_native_3d_secure(dummy_payment_data):
+def test_request_data_for_payment_when_missing_city_address_field(
+    dummy_payment_data, dummy_address_data
+):
     # given
     return_url = "https://www.example.com"
     merchant_account = "MerchantTestAccount"
@@ -218,11 +242,210 @@ def test_request_data_for_payment_native_3d_secure(dummy_payment_data):
         "riskData": {"clientData": "test_client_data"},
         "paymentMethod": {"type": "scheme"},
         "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
-        "billingAddress": {"address": "test_address"},
         "shopperIP": "123",
         "originUrl": origin_url,
     }
     dummy_payment_data.data = data
+
+    dummy_address_data.city = ""
+    dummy_address_data.country_area = "Fallback_for_city"
+    dummy_payment_data.billing = dummy_address_data
+    dummy_payment_data.shipping = dummy_address_data
+    native_3d_secure = False
+
+    # when
+    result = request_data_for_payment(
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
+    )
+
+    # then
+    assert result["deliveryAddress"] == {
+        "city": dummy_address_data.country_area,
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "53-601",
+        "stateOrProvince": dummy_address_data.country_area,
+        "street": "Tęczowa 7",
+    }
+    assert result["billingAddress"] == {
+        "city": dummy_address_data.country_area,
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "53-601",
+        "stateOrProvince": dummy_address_data.country_area,
+        "street": "Tęczowa 7",
+    }
+
+
+def test_request_data_for_payment_when_missing_city_and_count_area(
+    dummy_payment_data, dummy_address_data
+):
+    # given
+    return_url = "https://www.example.com"
+    merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
+    data = {
+        "is_valid": True,
+        "riskData": {"clientData": "test_client_data"},
+        "paymentMethod": {"type": "scheme"},
+        "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
+        "shopperIP": "123",
+        "originUrl": origin_url,
+    }
+    dummy_payment_data.data = data
+
+    dummy_address_data.city = ""
+    dummy_address_data.country_area = ""
+    dummy_payment_data.billing = dummy_address_data
+    dummy_payment_data.shipping = dummy_address_data
+    native_3d_secure = False
+
+    # when
+    result = request_data_for_payment(
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
+    )
+
+    # then
+    assert result["deliveryAddress"] == {
+        "city": "ZZ",
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "53-601",
+        "stateOrProvince": "",
+        "street": "Tęczowa 7",
+    }
+    assert result["billingAddress"] == {
+        "city": "ZZ",
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "53-601",
+        "stateOrProvince": "",
+        "street": "Tęczowa 7",
+    }
+
+
+def test_request_data_for_payment_when_missing_postal_code(
+    dummy_payment_data, dummy_address_data
+):
+    # given
+    return_url = "https://www.example.com"
+    merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
+    data = {
+        "is_valid": True,
+        "riskData": {"clientData": "test_client_data"},
+        "paymentMethod": {"type": "scheme"},
+        "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
+        "shopperIP": "123",
+        "originUrl": origin_url,
+    }
+    dummy_payment_data.data = data
+
+    dummy_address_data.postal_code = ""
+    dummy_payment_data.billing = dummy_address_data
+    dummy_payment_data.shipping = dummy_address_data
+    native_3d_secure = False
+
+    # when
+    result = request_data_for_payment(
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
+    )
+
+    # then
+    assert result["deliveryAddress"] == {
+        "city": "WROCŁAW",
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "ZZ",
+        "stateOrProvince": "",
+        "street": "Tęczowa 7",
+    }
+    assert result["billingAddress"] == {
+        "city": "WROCŁAW",
+        "country": "PL",
+        "houseNumberOrName": "Mirumee Software",
+        "postalCode": "ZZ",
+        "stateOrProvince": "",
+        "street": "Tęczowa 7",
+    }
+
+
+def test_request_data_for_payment_without_shipping(
+    dummy_payment_data, dummy_address_data
+):
+    # given
+    return_url = "https://www.example.com"
+    merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
+    data = {
+        "is_valid": True,
+        "riskData": {"clientData": "test_client_data"},
+        "paymentMethod": {"type": "scheme"},
+        "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
+        "shopperIP": "123",
+        "originUrl": origin_url,
+    }
+    dummy_payment_data.data = data
+    dummy_payment_data.billing = dummy_address_data
+    dummy_payment_data.shipping = None
+    native_3d_secure = False
+
+    # when
+    result = request_data_for_payment(
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
+    )
+
+    # then
+    assert result == {
+        "amount": {
+            "value": price_to_minor_unit(
+                dummy_payment_data.amount, dummy_payment_data.currency
+            ),
+            "currency": dummy_payment_data.currency,
+        },
+        "reference": dummy_payment_data.graphql_payment_id,
+        "paymentMethod": {"type": "scheme"},
+        "returnUrl": return_url,
+        "merchantAccount": merchant_account,
+        "origin": return_url,
+        "shopperIP": data["shopperIP"],
+        "browserInfo": data["browserInfo"],
+        "channel": "web",
+        "shopperEmail": "example@test.com",
+        "shopperName": {
+            "firstName": dummy_payment_data.billing.first_name,
+            "lastName": dummy_payment_data.billing.last_name,
+        },
+        "shopperReference": "example@test.com",
+        "billingAddress": {
+            "city": "WROCŁAW",
+            "country": "PL",
+            "houseNumberOrName": "Mirumee Software",
+            "postalCode": "53-601",
+            "stateOrProvince": "",
+            "street": "Tęczowa 7",
+        },
+    }
+
+
+def test_request_data_for_payment_native_3d_secure(
+    dummy_payment_data, dummy_address_data
+):
+    # given
+    return_url = "https://www.example.com"
+    merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
+    data = {
+        "is_valid": True,
+        "riskData": {"clientData": "test_client_data"},
+        "paymentMethod": {"type": "scheme"},
+        "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
+        "shopperIP": "123",
+        "originUrl": origin_url,
+    }
+    dummy_payment_data.data = data
+    dummy_payment_data.shipping = dummy_address_data
+    dummy_payment_data.billing = dummy_address_data
     native_3d_secure = True
 
     # when
@@ -242,22 +465,46 @@ def test_request_data_for_payment_native_3d_secure(dummy_payment_data):
         "paymentMethod": {"type": "scheme"},
         "returnUrl": return_url,
         "merchantAccount": merchant_account,
-        "origin": origin_url,
+        "origin": return_url,
         "shopperIP": data["shopperIP"],
-        "billingAddress": data["billingAddress"],
         "browserInfo": data["browserInfo"],
         "channel": "web",
         "additionalData": {"allow3DS2": "true"},
         "shopperEmail": "example@test.com",
+        "shopperName": {
+            "firstName": dummy_payment_data.billing.first_name,
+            "lastName": dummy_payment_data.billing.last_name,
+        },
+        "shopperReference": "example@test.com",
+        "deliveryAddress": {
+            "city": "WROCŁAW",
+            "country": "PL",
+            "houseNumberOrName": "Mirumee Software",
+            "postalCode": "53-601",
+            "stateOrProvince": "",
+            "street": "Tęczowa 7",
+        },
+        "billingAddress": {
+            "city": "WROCŁAW",
+            "country": "PL",
+            "houseNumberOrName": "Mirumee Software",
+            "postalCode": "53-601",
+            "stateOrProvince": "",
+            "street": "Tęczowa 7",
+        },
     }
 
 
-def test_request_data_for_payment_channel_different_than_web(dummy_payment_data):
+def test_request_data_for_payment_channel_different_than_web(
+    dummy_payment_data, dummy_address_data
+):
     # given
     return_url = "https://www.example.com"
     merchant_account = "MerchantTestAccount"
     data = {"is_valid": True, "paymentMethod": {"type": "scheme"}, "channel": "iOS"}
     dummy_payment_data.data = data
+    dummy_payment_data.billing = dummy_address_data
+    dummy_payment_data.shipping = dummy_address_data
     native_3d_secure = True
 
     # when
@@ -280,12 +527,34 @@ def test_request_data_for_payment_channel_different_than_web(dummy_payment_data)
         "channel": "iOS",
         "additionalData": {"allow3DS2": "true"},
         "shopperEmail": "example@test.com",
+        "shopperName": {
+            "firstName": dummy_payment_data.billing.first_name,
+            "lastName": dummy_payment_data.billing.last_name,
+        },
+        "shopperReference": "example@test.com",
+        "deliveryAddress": {
+            "city": "WROCŁAW",
+            "country": "PL",
+            "houseNumberOrName": "Mirumee Software",
+            "postalCode": "53-601",
+            "stateOrProvince": "",
+            "street": "Tęczowa 7",
+        },
+        "billingAddress": {
+            "city": "WROCŁAW",
+            "country": "PL",
+            "houseNumberOrName": "Mirumee Software",
+            "postalCode": "53-601",
+            "stateOrProvince": "",
+            "street": "Tęczowa 7",
+        },
     }
 
 
-@mock.patch("saleor.payment.gateways.adyen.utils.common.append_klarna_data")
-def test_request_data_for_payment_append_klarna_data(
-    append_klarna_data_mock, dummy_payment_data
+@pytest.mark.parametrize("method_type", ["klarna", "clearpay", "afterpaytouch"])
+@mock.patch("saleor.payment.gateways.adyen.utils.common.append_checkout_details")
+def test_request_data_for_payment_append_checkout_details(
+    append_checkout_details_mock, method_type, dummy_payment_data, dummy_address_data
 ):
     # given
     return_url = "https://www.example.com"
@@ -294,14 +563,16 @@ def test_request_data_for_payment_append_klarna_data(
     data = {
         "is_valid": True,
         "riskData": {"clientData": "test_client_data"},
-        "paymentMethod": {"type": "klarna"},
+        "paymentMethod": {"type": method_type},
         "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
-        "billingAddress": {"address": "test_address"},
         "shopperIP": "123",
         "originUrl": origin_url,
     }
     dummy_payment_data.data = data
-    klarna_result = {
+    dummy_payment_data.billing = dummy_address_data
+    dummy_payment_data.shipping = dummy_address_data
+
+    checkout_details_result = {
         "amount": {
             "value": price_to_minor_unit(
                 dummy_payment_data.amount, dummy_payment_data.currency
@@ -314,11 +585,31 @@ def test_request_data_for_payment_append_klarna_data(
         "merchantAccount": merchant_account,
         "origin": return_url,
         "shopperIP": data["shopperIP"],
-        "billingAddress": data["billingAddress"],
         "browserInfo": data["browserInfo"],
         "shopperLocale": "test_shopper",
+        "shopperName": {
+            "firstName": dummy_payment_data.billing.first_name,
+            "lastName": dummy_payment_data.billing.last_name,
+        },
+        "shopperReference": "example@test.com",
+        "deliveryAddress": {
+            "city": "WROCŁAW",
+            "country": "PL",
+            "houseNumberOrName": "Mirumee Software",
+            "postalCode": "53-601",
+            "stateOrProvince": "",
+            "street": "Tęczowa 7",
+        },
+        "billingAddress": {
+            "city": "WROCŁAW",
+            "country": "PL",
+            "houseNumberOrName": "Mirumee Software",
+            "postalCode": "53-601",
+            "stateOrProvince": "",
+            "street": "Tęczowa 7",
+        },
     }
-    append_klarna_data_mock.return_value = klarna_result
+    append_checkout_details_mock.return_value = checkout_details_result
     native_3d_secure = False
     # when
     result = request_data_for_payment(
@@ -326,7 +617,7 @@ def test_request_data_for_payment_append_klarna_data(
     )
 
     # then
-    assert result == klarna_result
+    assert result == checkout_details_result
 
 
 @pytest.mark.parametrize(

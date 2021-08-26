@@ -163,8 +163,8 @@ def cancel_order(
     order.status = OrderStatus.CANCELED
     order.save(update_fields=["status"])
 
-    manager.order_cancelled(order)
-    manager.order_updated(order)
+    transaction.on_commit(lambda: manager.order_cancelled(order))
+    transaction.on_commit(lambda: manager.order_updated(order))
 
     send_order_canceled_confirmation(order, user, app, manager)
 
@@ -222,19 +222,36 @@ def order_fulfilled(
     events.fulfillment_fulfilled_items_event(
         order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
     )
-    manager.order_updated(order)
+    transaction.on_commit(lambda: manager.order_updated(order))
 
     for fulfillment in fulfillments:
-        manager.fulfillment_created(fulfillment)
+        transaction.on_commit(lambda: manager.fulfillment_created(fulfillment))
 
     if order.status == OrderStatus.FULFILLED:
-        manager.order_fulfilled(order)
+        transaction.on_commit(lambda: manager.order_fulfilled(order))
 
     if notify_customer:
         for fulfillment in fulfillments:
             send_fulfillment_confirmation_to_customer(
                 order, fulfillment, user, app, manager
             )
+
+
+@traced_atomic_transaction()
+def order_awaits_fulfillment_approval(
+    fulfillments: List["Fulfillment"],
+    user: "User",
+    app: Optional["App"],
+    fulfillment_lines: List["FulfillmentLine"],
+    manager: "PluginsManager",
+    _notify_customer=True,
+):
+    order = fulfillments[0].order
+    update_order_status(order)
+    events.fulfillment_awaits_approval_event(
+        order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
+    )
+    transaction.on_commit(lambda: manager.order_updated(order))
 
 
 def order_shipping_updated(order: "Order", manager: "PluginsManager"):
@@ -294,29 +311,69 @@ def cancel_fulfillment(
     fulfillment: "Fulfillment",
     user: "User",
     app: Optional["App"],
-    warehouse: "Warehouse",
+    warehouse: Optional["Warehouse"],
     manager: "PluginsManager",
 ):
     """Cancel fulfillment.
 
-    Return products to corresponding stocks.
+    Return products to corresponding stocks if warehouse was defined.
     """
     fulfillment = Fulfillment.objects.select_for_update().get(pk=fulfillment.pk)
-    restock_fulfillment_lines(fulfillment, warehouse)
     events.fulfillment_canceled_event(
         order=fulfillment.order, user=user, app=app, fulfillment=fulfillment
     )
-    events.fulfillment_restocked_items_event(
-        order=fulfillment.order,
-        user=user,
-        app=app,
-        fulfillment=fulfillment,
-        warehouse_pk=warehouse.pk,
-    )
+    if warehouse:
+        restock_fulfillment_lines(fulfillment, warehouse)
+        events.fulfillment_restocked_items_event(
+            order=fulfillment.order,
+            user=user,
+            app=app,
+            fulfillment=fulfillment,
+            warehouse_pk=warehouse.pk,
+        )
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save(update_fields=["status"])
     update_order_status(fulfillment.order)
-    manager.order_updated(fulfillment.order)
+    transaction.on_commit(lambda: manager.fulfillment_canceled(fulfillment))
+    transaction.on_commit(lambda: manager.order_updated(fulfillment.order))
+
+
+@traced_atomic_transaction()
+def approve_fulfillment(
+    fulfillment: Fulfillment,
+    user: "User",
+    app: Optional["App"],
+    manager: "PluginsManager",
+    notify_customer=True,
+):
+    fulfillment.status = FulfillmentStatus.FULFILLED
+    fulfillment.save()
+    order = fulfillment.order
+    if notify_customer:
+        send_fulfillment_confirmation_to_customer(
+            fulfillment.order, fulfillment, user, app, manager
+        )
+    events.fulfillment_fulfilled_items_event(
+        order=order, user=user, app=app, fulfillment_lines=list(fulfillment.lines.all())
+    )
+    lines_to_fulfill = [
+        OrderLineData(
+            line=f_line.order_line,
+            quantity=f_line.quantity,
+            variant=f_line.order_line.variant,
+            warehouse_pk=str(f_line.stock.warehouse_id),  # type: ignore
+        )
+        for f_line in fulfillment.lines.all()
+    ]
+    fulfill_order_lines(lines_to_fulfill)
+    order.refresh_from_db()
+    update_order_status(order)
+
+    transaction.on_commit(lambda: manager.order_updated(order))
+    if order.status == OrderStatus.FULFILLED:
+        transaction.on_commit(lambda: manager.order_fulfilled(order))
+
+    return fulfillment
 
 
 @traced_atomic_transaction()
@@ -442,6 +499,7 @@ def _create_fulfillment_lines(
     warehouse_pk: str,
     lines_data: List[Dict],
     channel_slug: str,
+    decrease_stock: bool = True,
 ) -> List[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
 
@@ -458,6 +516,7 @@ def _create_fulfillment_lines(
                     ...
                 ]
         channel_slug (str): Channel for which fulfillment lines should be created.
+        decrease_stock (Bool): Stocks will get decreased if this is True.
 
     Return:
         List[FulfillmentLine]: Unsaved fulfillmet lines created for this fulfillment
@@ -518,7 +577,7 @@ def _create_fulfillment_lines(
     if insufficient_stocks:
         raise InsufficientStock(insufficient_stocks)
 
-    if lines_info:
+    if lines_info and decrease_stock:
         fulfill_order_lines(lines_info)
 
     return fulfillment_lines
@@ -532,6 +591,7 @@ def create_fulfillments(
     fulfillment_lines_for_warehouses: Dict,
     manager: "PluginsManager",
     notify_customer: bool = True,
+    approved: bool = True,
 ) -> List[Fulfillment]:
     """Fulfill order.
 
@@ -556,6 +616,8 @@ def create_fulfillments(
         manager (PluginsManager): Base manager for handling plugins logic.
         notify_customer (bool): If `True` system send email about
             fulfillments to customer.
+        approved (Boolean): fulfillments will have status fulfilled if it's True,
+            otherwise waiting_for_approval.
 
     Return:
         List[Fulfillment]: Fulfillmet with lines created for this order
@@ -568,8 +630,13 @@ def create_fulfillments(
     """
     fulfillments: List[Fulfillment] = []
     fulfillment_lines: List[FulfillmentLine] = []
+    status = (
+        FulfillmentStatus.FULFILLED
+        if approved
+        else FulfillmentStatus.WAITING_FOR_APPROVAL
+    )
     for warehouse_pk in fulfillment_lines_for_warehouses:
-        fulfillment = Fulfillment.objects.create(order=order)
+        fulfillment = Fulfillment.objects.create(order=order, status=status)
         fulfillments.append(fulfillment)
         fulfillment_lines.extend(
             _create_fulfillment_lines(
@@ -577,12 +644,16 @@ def create_fulfillments(
                 warehouse_pk,
                 fulfillment_lines_for_warehouses[warehouse_pk],
                 order.channel.slug,
+                decrease_stock=approved,
             )
         )
 
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
+    post_creation_func = (
+        order_fulfilled if approved else order_awaits_fulfillment_approval
+    )
     transaction.on_commit(
-        lambda: order_fulfilled(
+        lambda: post_creation_func(  # type: ignore
             fulfillments,
             user,
             app,

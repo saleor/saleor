@@ -7,13 +7,15 @@ from ...checkout import models as checkout_models
 from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
 from ...discount import models as discount_models
+from ...giftcard import models as giftcard_models
 from ...order import models as order_models
 from ...page import models as page_models
+from ...payment import models as payment_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...warehouse import models as warehouse_models
 from ..utils import get_user_or_app_from_context
-from .permissions import PRIVATE_META_PERMISSION_MAP
+from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_QUERY_PERMISSION_MAP
 
 
 def resolve_object_with_metadata_type(instance: ModelWithMetadata):
@@ -25,25 +27,30 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ..attribute import types as attribute_types
     from ..checkout import types as checkout_types
     from ..discount import types as discount_types
+    from ..giftcard import types as giftcard_types
     from ..invoice import types as invoice_types
     from ..menu import types as menu_types
     from ..order import types as order_types
     from ..page import types as page_types
+    from ..payment import types as payment_types
     from ..product import types as product_types
     from ..shipping import types as shipping_types
     from ..warehouse import types as warehouse_types
 
     MODEL_TO_TYPE_MAP = {
+        app_models.App: app_types.App,
         attribute_models.Attribute: attribute_types.Attribute,
         product_models.Category: product_types.Category,
         checkout_models.Checkout: checkout_types.Checkout,
         product_models.Collection: product_types.Collection,
         product_models.DigitalContent: product_types.DigitalContent,
         order_models.Fulfillment: order_types.Fulfillment,
+        giftcard_models.GiftCard: giftcard_types.GiftCard,
         order_models.Order: order_types.Order,
         invoice_models.Invoice: invoice_types.Invoice,
         page_models.Page: page_types.Page,
         page_models.PageType: page_types.PageType,
+        payment_models.Payment: payment_types.Payment,
         product_models.Product: product_types.Product,
         product_models.ProductType: product_types.ProductType,
         product_models.ProductVariant: product_types.ProductVariant,
@@ -51,7 +58,6 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         menu_models.MenuItem: menu_types.MenuItem,
         shipping_models.ShippingMethod: shipping_types.ShippingMethod,
         shipping_models.ShippingZone: shipping_types.ShippingZone,
-        app_models.App: app_types.App,
         account_models.User: account_types.User,
         warehouse_models.Warehouse: warehouse_types.Warehouse,
         discount_models.Sale: discount_types.Sale,
@@ -60,14 +66,16 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     return MODEL_TO_TYPE_MAP.get(instance.__class__, None)
 
 
-def resolve_metadata(metadata: dict):
+def _resolve_metadata(metadata: dict):
     return sorted(
         [{"key": k, "value": v} for k, v in metadata.items()],
         key=itemgetter("key"),
     )
 
 
-def resolve_private_metadata(root: ModelWithMetadata, info):
+def _resolve_metadata_with_permissions(
+    permission_map, root: ModelWithMetadata, metadata: dict, info
+):
     item_type = resolve_object_with_metadata_type(root)
     if not item_type:
         raise NotImplementedError(
@@ -75,16 +83,29 @@ def resolve_private_metadata(root: ModelWithMetadata, info):
             "Make sure that model exists inside MODEL_TO_TYPE_MAP."
         )
 
-    get_required_permission = PRIVATE_META_PERMISSION_MAP[item_type.__name__]
+    get_required_permission = permission_map[item_type.__name__]
     if not get_required_permission:
         raise PermissionDenied()
 
     required_permission = get_required_permission(info, root.pk)
+
     if not required_permission:
-        raise PermissionDenied()
+        return _resolve_metadata(metadata)
 
     requester = get_user_or_app_from_context(info.context)
     if not requester.has_perms(required_permission):
         raise PermissionDenied()
 
-    return resolve_metadata(root.private_metadata)
+    return _resolve_metadata(metadata)
+
+
+def resolve_metadata(root: ModelWithMetadata, info):
+    return _resolve_metadata_with_permissions(
+        PUBLIC_META_QUERY_PERMISSION_MAP, root, root.metadata, info
+    )
+
+
+def resolve_private_metadata(root: ModelWithMetadata, info):
+    return _resolve_metadata_with_permissions(
+        PRIVATE_META_PERMISSION_MAP, root, root.private_metadata, info
+    )

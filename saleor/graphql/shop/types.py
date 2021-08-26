@@ -9,6 +9,7 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ... import __version__
 from ...account import models as account_models
+from ...channel import models as channel_models
 from ...core.permissions import SitePermissions, get_permissions
 from ...core.tracing import traced_resolver
 from ...site import models as site_models
@@ -119,11 +120,19 @@ class Shop(graphene.ObjectType):
         required=False,
         description="Shipping methods that are available for the shop.",
     )
+    channel_currencies = graphene.List(
+        graphene.NonNull(graphene.String),
+        description="List of all currencies supported by shop's channels.",
+        required=True,
+    )
     countries = graphene.List(
         graphene.NonNull(CountryDisplay),
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="A language code to return the translation for.",
+            description=(
+                "DEPRECATED: This argument will be removed in Saleor 4.0. "
+                "A language code to return the translation for."
+            ),
         ),
         description="List of countries available in the shop.",
         required=True,
@@ -154,6 +163,12 @@ class Shop(graphene.ObjectType):
     header_text = graphene.String(description="Header text.")
     include_taxes_in_prices = graphene.Boolean(
         description="Include taxes in prices.", required=True
+    )
+    fulfillment_auto_approve = graphene.Boolean(
+        description="Automatically approve all new fulfillments.", required=True
+    )
+    fulfillment_allow_unpaid = graphene.Boolean(
+        description="Allow to approve fulfillments which are unpaid.", required=True
     )
     display_gross_prices = graphene.Boolean(
         description="Display prices with tax in store.", required=True
@@ -219,8 +234,17 @@ class Shop(graphene.ObjectType):
         return resolve_available_shipping_methods(info, channel, address)
 
     @staticmethod
+    @staff_member_or_app_required
+    def resolve_channel_currencies(_, info):
+        return set(
+            channel_models.Channel.objects.values_list("currency_code", flat=True)
+        )
+
+    @staticmethod
     def resolve_countries(_, _info, language_code=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
+
+        # DEPRECATED: translation.override will be dropped in Saleor 4.0
         with translation.override(language_code):
             return [
                 CountryDisplay(
@@ -272,6 +296,14 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_include_taxes_in_prices(_, info):
         return info.context.site.settings.include_taxes_in_prices
+
+    @staticmethod
+    def resolve_fulfillment_auto_approve(_, info):
+        return info.context.site.settings.fulfillment_auto_approve
+
+    @staticmethod
+    def resolve_fulfillment_allow_unpaid(_, info):
+        return info.context.site.settings.fulfillment_allow_unpaid
 
     @staticmethod
     def resolve_display_gross_prices(_, info):
