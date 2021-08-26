@@ -15,6 +15,7 @@ from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
@@ -184,7 +185,7 @@ class Checkout(CountableDjangoObjectType):
     available_collection_points = graphene.List(
         graphene.NonNull(Warehouse),
         required=True,
-        description="Collection points that can be used for this order.",
+        description=f"{ADDED_IN_31} Collection points that can be used for this order.",
     )
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),
@@ -213,14 +214,12 @@ class Checkout(CountableDjangoObjectType):
     shipping_method = graphene.Field(
         ShippingMethod,
         description="The shipping method related with checkout.",
-        deprecation_reason=(
-            "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead."
-        ),
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
 
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description="The delivery method selected for this checkout",
+        description=f"{ADDED_IN_31} The delivery method selected for this checkout.",
     )
 
     subtotal_price = graphene.Field(

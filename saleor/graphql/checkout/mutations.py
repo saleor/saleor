@@ -42,7 +42,11 @@ from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..channel.utils import clean_channel
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import (
+    ADDED_IN_31,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
+)
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import UUID
@@ -820,7 +824,8 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         checkout_id = graphene.ID(
             required=False,
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} "
+                "Use token instead."
             ),
         )
         token = UUID(description="Checkout token.", required=False)
@@ -1040,8 +1045,8 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
 
     class Meta:
         description = (
-            "Updates the delivery method (shipping method or pick up point)"
-            "of the checkout."
+            f"{ADDED_IN_31} Updates the delivery method "
+            "(shipping method or pick up point) of the checkout."
         )
         error_type_class = CheckoutError
 

@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import CheckoutPermissions
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..decorators import permission_required
@@ -72,8 +73,7 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field(
         deprecation_reason=(
-            "This field will be removed in Saleor 4.0. "
-            "Use `checkoutDeliveryMethodUpdate` instead."
+            f"{DEPRECATED_IN_3X_FIELD} " "Use `checkoutDeliveryMethodUpdate` instead."
         )
     )
     checkout_delivery_method_update = CheckoutDeliveryMethodUpdate.Field()

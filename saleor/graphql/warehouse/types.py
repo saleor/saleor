@@ -7,7 +7,7 @@ from ...warehouse import models
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
 from .enums import WarehouseClickAndCollectOptionEnum
@@ -38,10 +38,11 @@ class WarehouseUpdateInput(WarehouseInput):
         required=False,
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
-        description="Click and collect options: local, all or disabled", required=False
+        description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
+        required=False,
     )
     is_private = graphene.Boolean(
-        description="Visibility of warehouse stocks", required=False
+        description="{ADDED_IN_31} Visibility of warehouse stocks", required=False
     )
 
 
@@ -54,7 +55,8 @@ class Warehouse(CountableDjangoObjectType):
         ),
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
-        description="Click and collect options: local, all or disabled", required=True
+        description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
+        required=True,
     )
 
     class Meta:

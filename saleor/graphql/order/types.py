@@ -623,7 +623,7 @@ class Order(CountableDjangoObjectType):
     available_collection_points = graphene.List(
         graphene.NonNull(Warehouse),
         required=True,
-        description="Collection points that can be used for this order.",
+        description=f"{ADDED_IN_31} Collection points that can be used for this order.",
     )
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
@@ -653,9 +653,7 @@ class Order(CountableDjangoObjectType):
     shipping_method = graphene.Field(
         ShippingMethod,
         description="The shipping method related with order.",
-        deprecation_reason=(
-            "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead."
-        ),
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
 
     shipping_price = graphene.Field(
@@ -697,7 +695,7 @@ class Order(CountableDjangoObjectType):
     )
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description="The delivery method selected for this checkout",
+        description=f"{ADDED_IN_31} The delivery method selected for this checkout.",
     )
     language_code = graphene.String(
         deprecation_reason=(
