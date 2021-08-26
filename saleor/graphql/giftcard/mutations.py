@@ -4,6 +4,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
+from ...account.models import User
 from ...core.permissions import GiftcardPermissions
 from ...core.utils.promo_code import generate_promo_code
 from ...core.utils.validators import date_passed, user_is_valid
@@ -115,6 +116,7 @@ class GiftCardCreate(ModelMutation):
                         )
                     }
                 )
+            cleaned_input["customer_user"] = User.objects.filter(email=email).first()
 
         return cleaned_input
 
@@ -181,21 +183,15 @@ class GiftCardCreate(ModelMutation):
             app=info.context.app,
         )
         if email := cleaned_input.get("user_email"):
-            user = cleaned_input.get("created_by")
-            app = cleaned_input.get("app")
             send_gift_card_notification(
-                user,
-                app,
+                cleaned_input.get("created_by"),
+                cleaned_input.get("app"),
+                cleaned_input["customer_user"],
                 email,
                 instance,
                 info.context.plugins,
                 channel_slug=cleaned_input["channel"],
-            )
-            events.gift_card_sent(
-                gift_card_id=instance.id,
-                user_id=user.id if user else None,
-                app_id=app.id if app else None,
-                email=email,
+                resending=False,
             )
 
 
@@ -359,6 +355,8 @@ class GiftCardResend(BaseMutation):
                     }
                 )
 
+        return data
+
     @classmethod
     def get_target_email(cls, data, gift_card):
         return (
@@ -366,31 +364,31 @@ class GiftCardResend(BaseMutation):
         )
 
     @classmethod
+    def get_customer_user(cls, email):
+        return User.objects.filter(email=email).first()
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         data = data.get("input")
-        cls.clean_input(data)
+        data = cls.clean_input(data)
         gift_card_id = data["id"]
         gift_card = cls.get_node_or_error(
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
         target_email = cls.get_target_email(data, gift_card)
+        customer_user = cls.get_customer_user(target_email)
         user = info.context.user
         if not user_is_valid(user):
             user = None
-        app = info.context.app
         send_gift_card_notification(
             user,
-            app,
+            info.context.app,
+            customer_user,
             target_email,
             gift_card,
             info.context.plugins,
             channel_slug=data.get("channel"),
-        )
-        events.gift_card_resent(
-            gift_card_id=gift_card.id,
-            user_id=user.id if user else None,
-            app_id=app.id if app else None,
-            email=target_email,
+            resending=True,
         )
         return GiftCardResend(gift_card=gift_card)
 

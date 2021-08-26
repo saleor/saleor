@@ -736,16 +736,11 @@ def test_send_gift_card_email_task_by_user(
     recipient_email = "user@example.com"
 
     payload = {
-        "requester": {
-            "user_id": staff_user.id,
-            "email": staff_user.email,
-            "app_id": None,
-            "app_name": None,
-        },
-        "recipient": {
-            "first_name": staff_user.first_name,
-            "last_name": staff_user.last_name,
-        },
+        "user": get_default_user_payload(staff_user),
+        "requester_user_id": staff_user.id,
+        "requester_app_id": None,
+        "recipient_email": recipient_email,
+        "resending": False,
         "recipient_email": recipient_email,
         "gift_card": {
             "id": gift_card.id,
@@ -780,6 +775,52 @@ def test_send_gift_card_email_task_by_user(
 
 
 @patch("saleor.plugins.sendgrid.tasks.send_email")
+def test_send_gift_card_email_task_by_user_resending(
+    mocked_send_email, staff_user, gift_card, sendgrid_email_plugin
+):
+    template_id = "ABC1"
+    recipient_email = "user@example.com"
+
+    payload = {
+        "user": get_default_user_payload(staff_user),
+        "requester_user_id": staff_user.id,
+        "requester_app_id": None,
+        "recipient_email": recipient_email,
+        "resending": True,
+        "recipient_email": recipient_email,
+        "gift_card": {
+            "id": gift_card.id,
+            "code": gift_card.code,
+            "balance": gift_card.current_balance_amount,
+            "currency": gift_card.currency,
+        },
+    }
+
+    plugin = sendgrid_email_plugin(
+        api_key="A12",
+        send_gift_card_template_id=template_id,
+        sender_name="Sender Name",
+        sender_address="sender@example.com",
+    )
+
+    send_gift_card_email_task(payload, asdict(plugin.config))
+
+    mocked_send_email.assert_called_with(
+        configuration=plugin.config,
+        template_id=template_id,
+        payload=payload,
+    )
+
+    gift_card_event = GiftCardEvent.objects.get()
+    assert gift_card_event.type == GiftCardEvents.RESENT
+    assert gift_card_event.parameters == {
+        "email": recipient_email,
+    }
+    assert gift_card_event.user == staff_user
+    assert not gift_card_event.app
+
+
+@patch("saleor.plugins.sendgrid.tasks.send_email")
 def test_send_gift_card_email_task_by_app(
     mocked_send_email, app, gift_card, sendgrid_email_plugin
 ):
@@ -787,14 +828,19 @@ def test_send_gift_card_email_task_by_app(
 
     recipient_email = "user@example.com"
     payload = {
-        "requester": {
-            "user_id": None,
-            "email": None,
-            "app_id": app.id,
-            "app_name": app.name,
+        "user": None,
+        "requester_user_id": None,
+        "requester_app_id": app.id,
+        "recipient_email": recipient_email,
+        "resending": False,
+        "recipient_email": recipient_email,
+        "gift_card": {
+            "id": gift_card.id,
+            "code": gift_card.code,
+            "balance": gift_card.current_balance_amount,
+            "currency": gift_card.currency,
         },
         "recipient_email": recipient_email,
-        "gift_card": {"id": gift_card.id, "code": gift_card.code},
     }
 
     plugin = sendgrid_email_plugin(

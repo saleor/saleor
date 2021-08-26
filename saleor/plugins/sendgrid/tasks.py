@@ -5,7 +5,7 @@ from sendgrid.helpers.mail import Mail
 
 from ...account import events as account_events
 from ...celeryconf import app
-from ...giftcard import events as giftcard_events
+from ...giftcard import events as gift_card_events
 from ...invoice import events as invoice_events
 from ...order import events as order_events
 from . import SendgridConfiguration
@@ -303,12 +303,16 @@ def send_gift_card_email_task(payload: dict, configuration: dict):
         template_id=configuration.send_gift_card_template_id,
         payload=payload,
     )
-    giftcard_events.gift_card_sent(
-        payload["gift_card"]["id"],
-        payload["requester"]["user_id"],
-        payload["requester"]["app_id"],
-        payload["recipient_email"],
-    )
+    email_data = {
+        "gift_card_id": payload["gift_card"]["id"],
+        "user_id": payload["requester_user_id"],
+        "app_id": payload["requester_app_id"],
+        "email": payload["recipient_email"],
+    }
+    if payload["resending"] is True:
+        gift_card_events.gift_card_resent(**email_data)
+    else:
+        gift_card_events.gift_card_sent(**email_data)
 
 
 @app.task(
