@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 choices=[
                     ("not-charged", "Not charged"),
+                    ("authorized", "Authorized"),
                     ("pending", "Pending"),
                     ("partially-charged", "Partially charged"),
                     ("fully-charged", "Fully charged"),
