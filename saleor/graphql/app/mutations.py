@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 import graphene
 import requests
@@ -7,25 +7,20 @@ from django.core.exceptions import ValidationError
 from ...app import models
 from ...app.error_codes import AppErrorCode
 from ...app.installation_utils import REQUEST_TIMEOUT
+from ...app.manifest_validations import clean_manifest_data, clean_manifest_url
 from ...app.tasks import install_app_task
-from ...app.validators import AppURLValidator
 from ...core import JobStatus
-from ...core.permissions import (
-    AppPermission,
-    get_permissions,
-    get_permissions_enum_list,
-)
+from ...core.permissions import AppPermission, get_permissions
 from ..account.utils import can_manage_app
+from ..core import types as grapqhl_types
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import AppError
-from ..utils import (
-    format_permissions_for_display,
-    get_user_or_app_from_context,
-    requestor_is_superuser,
-)
+from ..utils import get_user_or_app_from_context, requestor_is_superuser
 from .types import App, AppToken, Manifest
 from .utils import ensure_can_manage_permissions
+
+T_ERRORS = Dict[str, List[ValidationError]]
 
 
 class AppInput(graphene.InputObjectType):
@@ -372,19 +367,9 @@ class AppInstall(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def clean_manifest_url(self, url):
-        url_validator = AppURLValidator()
-        try:
-            url_validator(url)
-        except (ValidationError, AttributeError):
-            msg = "Enter a valid URL."
-            code = AppErrorCode.INVALID_URL_FORMAT.value
-            raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
-
-    @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         manifest_url = data.get("manifest_url")
-        cls.clean_manifest_url(manifest_url)
+        clean_manifest_url(manifest_url)
 
         cleaned_input = super().clean_input(info, instance, data, input_cls)
 
@@ -443,16 +428,6 @@ class AppFetchManifest(BaseMutation):
             raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
 
     @classmethod
-    def clean_manifest_url(cls, manifest_url):
-        url_validator = AppURLValidator()
-        try:
-            url_validator(manifest_url)
-        except (ValidationError, AttributeError):
-            msg = "Enter a valid URL."
-            code = AppErrorCode.INVALID_URL_FORMAT.value
-            raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
-
-    @classmethod
     def construct_instance(cls, instance, cleaned_data):
         return Manifest(
             identifier=cleaned_data.get("id"),
@@ -467,35 +442,34 @@ class AppFetchManifest(BaseMutation):
             version=cleaned_data.get("version"),
             token_target_url=cleaned_data.get("tokenTargetUrl"),
             permissions=cleaned_data.get("permissions"),
+            extensions=cleaned_data.get("extensions", []),
         )
 
     @classmethod
-    def clean_permissions(cls, required_permissions: List[str]):
-        missing_permissions = []
-        all_permissions = {perm[0]: perm[1] for perm in get_permissions_enum_list()}
-        for perm in required_permissions:
-            if not all_permissions.get(perm):
-                missing_permissions.append(perm)
-        if missing_permissions:
-            error_msg = "Given permissions don't exist"
-            code = AppErrorCode.INVALID_PERMISSION.value
-            params = {"permissions": missing_permissions}
-            raise ValidationError(
-                {"permissions": ValidationError(error_msg, code=code, params=params)}
-            )
+    def clean_manifest_data(cls, info, manifest_data):
+        clean_manifest_data(manifest_data)
 
-        permissions = get_permissions(
-            [all_permissions[perm] for perm in required_permissions]
-        )
-        return format_permissions_for_display(permissions)
+        manifest_data["permissions"] = [
+            grapqhl_types.Permission(
+                code=PermissionEnum.get(p.formated_codename), name=p.name
+            )
+            for p in manifest_data["permissions"]
+        ]
+        for extension in manifest_data.get("extensions", []):
+            extension["permissions"] = [
+                grapqhl_types.Permission(
+                    code=PermissionEnum.get(p.formated_codename),
+                    name=p.name,
+                )
+                for p in extension["permissions"]
+            ]
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         manifest_url = data.get("manifest_url")
-        cls.clean_manifest_url(manifest_url)
+        clean_manifest_url(manifest_url)
         manifest_data = cls.fetch_manifest(manifest_url)
-        manifest_data["permissions"] = cls.clean_permissions(
-            manifest_data.get("permissions")
-        )
+        cls.clean_manifest_data(info, manifest_data)
+
         instance = cls.construct_instance(instance=None, cleaned_data=manifest_data)
         return cls.success_response(instance)

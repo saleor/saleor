@@ -10,14 +10,17 @@ from ...core.permissions import (
     BasePermissionEnum,
     CheckoutPermissions,
     DiscountPermissions,
+    GiftcardPermissions,
     MenuPermissions,
     OrderPermissions,
     PagePermissions,
     PageTypePermissions,
+    PaymentPermissions,
     ProductPermissions,
     ProductTypePermissions,
     ShippingPermissions,
 )
+from ...payment.models import Payment
 
 
 def no_permissions(_info, _object_pk: Any) -> List[None]:
@@ -102,7 +105,27 @@ def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [DiscountPermissions.MANAGE_DISCOUNTS]
 
 
-PUBLIC_META_PERMISSION_MAP = {
+def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum]:
+    context_user = info.context.user
+    payment = Payment.objects.get(pk=payment_pk)
+    if info.context.app is not None or info.context.user.is_staff:
+        return [PaymentPermissions.HANDLE_PAYMENTS]
+    if payment.get_user() == context_user:
+        return []
+    raise PermissionDenied()
+
+
+def private_payment_permissions(info, _object_pk: Any) -> List[BasePermissionEnum]:
+    if info.context.app is not None or info.context.user.is_staff:
+        return [PaymentPermissions.HANDLE_PAYMENTS]
+    raise PermissionDenied()
+
+
+def gift_card_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [GiftcardPermissions.MANAGE_GIFT_CARD]
+
+
+PUBLIC_META_MUTATION_PERMISSION_MAP = {
     "App": app_permissions,
     "Attribute": attribute_permissions,
     "Category": product_permissions,
@@ -110,12 +133,14 @@ PUBLIC_META_PERMISSION_MAP = {
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "GiftCard": gift_card_permissions,
     "Invoice": invoice_permissions,
     "Menu": menu_permissions,
     "MenuItem": menu_permissions,
     "Order": no_permissions,
     "Page": page_permissions,
     "PageType": page_type_permissions,
+    "Payment": public_payment_permissions,
     "Product": product_permissions,
     "ProductType": product_type_permissions,
     "ProductVariant": product_permissions,
@@ -127,6 +152,32 @@ PUBLIC_META_PERMISSION_MAP = {
     "Warehouse": product_permissions,
 }
 
+PUBLIC_META_QUERY_PERMISSION_MAP = {
+    "App": no_permissions,
+    "Attribute": no_permissions,
+    "Category": no_permissions,
+    "Checkout": no_permissions,
+    "Collection": no_permissions,
+    "DigitalContent": no_permissions,
+    "Fulfillment": no_permissions,
+    "GiftCard": no_permissions,
+    "Invoice": no_permissions,
+    "Menu": no_permissions,
+    "MenuItem": no_permissions,
+    "Order": no_permissions,
+    "Page": no_permissions,
+    "PageType": no_permissions,
+    "Payment": public_payment_permissions,
+    "Product": no_permissions,
+    "ProductType": no_permissions,
+    "ProductVariant": no_permissions,
+    "Sale": no_permissions,
+    "ShippingMethod": no_permissions,
+    "ShippingZone": no_permissions,
+    "User": no_permissions,
+    "Voucher": no_permissions,
+    "Warehouse": no_permissions,
+}
 
 PRIVATE_META_PERMISSION_MAP = {
     "App": app_permissions,
@@ -136,12 +187,14 @@ PRIVATE_META_PERMISSION_MAP = {
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "GiftCard": gift_card_permissions,
     "Invoice": invoice_permissions,
     "Menu": menu_permissions,
     "MenuItem": menu_permissions,
     "Order": order_permissions,
     "Page": page_permissions,
     "PageType": page_type_permissions,
+    "Payment": private_payment_permissions,
     "Product": product_permissions,
     "ProductType": product_type_permissions,
     "ProductVariant": product_permissions,

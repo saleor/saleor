@@ -102,6 +102,7 @@ class Payment(ModelWithMetadata):
             ),
         )
         indexes = [
+            *ModelWithMetadata.Meta.indexes,
             # Orders filtering by status index
             GinIndex(fields=["order_id", "is_active", "charge_status"]),
         ]
@@ -160,6 +161,12 @@ class Payment(ModelWithMetadata):
     def get_charge_amount(self):
         """Retrieve the maximum capture possible."""
         return self.total - self.captured_amount
+
+    def get_user(self):
+        if (order := self.order) is not None and (user := order.user) is not None:
+            return user
+        if (checkout := self.checkout) is not None:
+            return checkout.user
 
     @property
     def is_authorized(self):

@@ -1,3 +1,4 @@
+from unittest import mock
 from unittest.mock import Mock
 
 from django_countries.fields import Country
@@ -9,31 +10,37 @@ from ....product.utils.availability import get_variant_availability
 from ...tests.utils import get_graphql_content
 
 QUERY_GET_VARIANT_PRICING = """
+fragment VariantPricingInfo on VariantPricingInfo {
+  onSale
+  discount {
+    currency
+    net {
+      amount
+    }
+  }
+  priceUndiscounted {
+    currency
+    net {
+      amount
+    }
+  }
+  price {
+    currency
+    net {
+      amount
+    }
+  }
+}
 query ($channel: String, $address: AddressInput) {
   products(first: 1, channel: $channel) {
     edges {
       node {
         variants {
           pricing(address: $address) {
-            onSale
-            discount {
-              currency
-              net {
-                amount
-              }
-            }
-            priceUndiscounted {
-              currency
-              net {
-                amount
-              }
-            }
-            price {
-              currency
-              net {
-                amount
-              }
-            }
+            ...VariantPricingInfo
+          }
+          pricingNoAddress: pricing {
+            ...VariantPricingInfo
           }
         }
       }
@@ -73,7 +80,10 @@ def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
     assert pricing["price"]["net"]["amount"] == discounted_price
 
 
-def test_get_variant_pricing_not_on_sale(api_client, product, channel_USD):
+@mock.patch("saleor.graphql.product.types.products.WarehouseCountryCodeByChannelLoader")
+def test_get_variant_pricing_not_on_sale(
+    warehouse_country_code_loader, api_client, product, channel_USD
+):
     price = product.variants.first().channel_listings.get().price
 
     variables = {"channel": channel_USD.slug, "address": {"country": "US"}}
@@ -99,6 +109,9 @@ def test_get_variant_pricing_not_on_sale(api_client, product, channel_USD):
     assert pricing["price"]["currency"] == price.currency
     assert pricing["price"]["net"]["amount"] == price.amount
 
+    # check that country_code loader was called for pricing without address
+    assert warehouse_country_code_loader.called
+
 
 def test_variant_pricing(
     variant: ProductVariant, monkeypatch, settings, stock, channel_USD
@@ -122,6 +135,7 @@ def test_variant_pricing(
         discounts=[],
         channel=channel_USD,
         plugins=manager,
+        country=Country("US"),
     )
     assert pricing.price == taxed_price
     assert pricing.price_local_currency is None
@@ -131,7 +145,6 @@ def test_variant_pricing(
         lambda c: {"PLN": Mock(rate=2)},
     )
 
-    settings.DEFAULT_COUNTRY = "PL"
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
 
     pricing = get_variant_availability(
@@ -157,6 +170,7 @@ def test_variant_pricing(
         discounts=[],
         channel=channel_USD,
         plugins=manager,
+        country=Country("PL"),
     )
     assert pricing.price.tax.amount
     assert pricing.price_undiscounted.tax.amount

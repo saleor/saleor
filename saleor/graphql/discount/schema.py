@@ -50,7 +50,12 @@ class DiscountQueries(graphene.ObjectType):
         Sale,
         filter=SaleFilterInput(description="Filtering options for sales."),
         sort_by=SaleSortingInput(description="Sort sales."),
-        query=graphene.String(description="Search sales by name, value or type."),
+        query=graphene.String(
+            description=(
+                "Search sales by name, value or type. DEPRECATED: Will be removed in "
+                "Saleor 4.0. Use `filter.search` input instead."
+            )
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -70,7 +75,12 @@ class DiscountQueries(graphene.ObjectType):
         Voucher,
         filter=VoucherFilterInput(description="Filtering options for vouchers."),
         sort_by=VoucherSortingInput(description="Sort voucher."),
-        query=graphene.String(description="Search vouchers by name or code."),
+        query=graphene.String(
+            description=(
+                "Search vouchers by name or code. DEPRECATED: Will be removed in "
+                "Saleor 4.0. Use `filter.search` input instead."
+            )
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),

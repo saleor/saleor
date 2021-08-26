@@ -5,6 +5,7 @@ from ...core.tracing import traced_resolver
 from ...payment import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Money
+from ..meta.types import ObjectWithMetadata
 from .enums import OrderAction, PaymentChargeStatusEnum
 
 
@@ -94,7 +95,7 @@ class Payment(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a payment of a given type."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Payment
         filter_fields = ["id"]
         only_fields = [
