@@ -20,7 +20,7 @@ from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
-from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
+from ....order import FulfillmentStatus, OrderOrigin, OrderPaymentStatus, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
@@ -47,6 +47,7 @@ from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
+from ..enums import OrderPaymentStatusEnum
 from ..utils import validate_draft_order
 
 
@@ -586,52 +587,52 @@ def test_order_query_in_pln_channel(
         [
             ChargeStatus.NOT_CHARGED,
             ChargeStatus.NOT_CHARGED,
-            PaymentChargeStatusEnum.NOT_CHARGED,
+            OrderPaymentStatusEnum.NOT_CHARGED,
         ],
         [
             ChargeStatus.NOT_CHARGED,
             ChargeStatus.PARTIALLY_CHARGED,
-            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+            OrderPaymentStatusEnum.PARTIALLY_CHARGED,
         ],
         [
             ChargeStatus.NOT_CHARGED,
             ChargeStatus.PENDING,
-            PaymentChargeStatusEnum.NOT_CHARGED,
+            OrderPaymentStatusEnum.NOT_CHARGED,
         ],
         [
             ChargeStatus.PARTIALLY_CHARGED,
             ChargeStatus.PARTIALLY_CHARGED,
-            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+            OrderPaymentStatusEnum.PARTIALLY_CHARGED,
         ],
         [
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.PARTIALLY_CHARGED,
-            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+            OrderPaymentStatusEnum.PARTIALLY_CHARGED,
         ],
         [
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.NOT_CHARGED,
-            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+            OrderPaymentStatusEnum.PARTIALLY_CHARGED,
         ],
         [
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.PENDING,
-            PaymentChargeStatusEnum.PARTIALLY_CHARGED,
+            OrderPaymentStatusEnum.PARTIALLY_CHARGED,
         ],
         [
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.PARTIALLY_REFUNDED,
-            PaymentChargeStatusEnum.PARTIALLY_REFUNDED,
+            OrderPaymentStatusEnum.PARTIALLY_REFUNDED,
         ],
         [
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.FULLY_REFUNDED,
-            PaymentChargeStatusEnum.PARTIALLY_REFUNDED,
+            OrderPaymentStatusEnum.PARTIALLY_REFUNDED,
         ],
         [
             ChargeStatus.FULLY_REFUNDED,
             ChargeStatus.FULLY_REFUNDED,
-            PaymentChargeStatusEnum.FULLY_REFUNDED,
+            OrderPaymentStatusEnum.FULLY_REFUNDED,
         ],
     ],
 )
@@ -646,8 +647,8 @@ def test_order_query_payment_status_depending_on_charge_statuses(
     Payment.objects.create(
         **{**payment_kwargs, **{"order": order, "charge_status": p2}}
     )
-    choices = dict(ChargeStatus.CHOICES)
-    expected_display = choices.get(getattr(ChargeStatus, expected.name))
+    choices = dict(OrderPaymentStatus.CHOICES)
+    expected_display = choices.get(getattr(OrderPaymentStatus, expected.name))
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -662,9 +663,8 @@ def test_order_query_payment_status_depending_on_charge_statuses(
 @pytest.mark.parametrize(
     "total_paid_amount,total_gross_amount,expected",
     [
-        # TODO: change to overpaid
-        [Decimal("200"), Decimal("100"), PaymentChargeStatusEnum.FULLY_CHARGED],
-        [Decimal("100"), Decimal("100"), PaymentChargeStatusEnum.FULLY_CHARGED],
+        [Decimal("200"), Decimal("100"), OrderPaymentStatusEnum.OVERPAID],
+        [Decimal("100"), Decimal("100"), OrderPaymentStatusEnum.FULLY_CHARGED],
     ],
 )
 def test_order_query_payment_status_depending_on_balance(
@@ -678,10 +678,10 @@ def test_order_query_payment_status_depending_on_balance(
     # given
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     order.total_paid_amount = total_paid_amount
-    order.total_paid_amount = total_gross_amount
+    order.total_gross_amount = total_gross_amount
     order.save()
-    choices = dict(ChargeStatus.CHOICES)
-    expected_display = choices.get(getattr(ChargeStatus, expected.name))
+    choices = dict(OrderPaymentStatus.CHOICES)
+    expected_display = choices.get(getattr(OrderPaymentStatus, expected.name))
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -4200,8 +4200,10 @@ def test_order_capture(
     content = get_graphql_content(response)
     data = content["data"]["orderCapture"]["order"]
     order.refresh_from_db()
-    assert data["paymentStatus"] == PaymentChargeStatusEnum.FULLY_CHARGED.name
-    payment_status_display = dict(ChargeStatus.CHOICES).get(ChargeStatus.FULLY_CHARGED)
+    assert data["paymentStatus"] == OrderPaymentStatusEnum.FULLY_CHARGED.name
+    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
+        OrderPaymentStatus.FULLY_CHARGED
+    )
     assert data["paymentStatusDisplay"] == payment_status_display
     assert data["isPaid"]
     assert data["totalCaptured"]["amount"] == float(amount)
@@ -4389,8 +4391,10 @@ def test_order_void(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderVoid"]["order"]
-    assert data["paymentStatus"] == PaymentChargeStatusEnum.CANCELLED.name
-    payment_status_display = dict(ChargeStatus.CHOICES).get(ChargeStatus.CANCELLED)
+    assert data["paymentStatus"] == OrderPaymentStatusEnum.NOT_CHARGED.name
+    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
+        OrderPaymentStatus.NOT_CHARGED
+    )
     assert data["paymentStatusDisplay"] == payment_status_display
     event_payment_voided = order.events.last()
     assert event_payment_voided.type == order_events.OrderEvents.PAYMENT_VOIDED
@@ -4444,8 +4448,10 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
     data = content["data"]["orderRefund"]["order"]
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
-    assert data["paymentStatus"] == PaymentChargeStatusEnum.FULLY_REFUNDED.name
-    payment_status_display = dict(ChargeStatus.CHOICES).get(ChargeStatus.FULLY_REFUNDED)
+    assert data["paymentStatus"] == OrderPaymentStatusEnum.FULLY_REFUNDED.name
+    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
+        OrderPaymentStatus.FULLY_REFUNDED
+    )
     assert data["paymentStatusDisplay"] == payment_status_display
     assert data["isPaid"] is False
 

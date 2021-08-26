@@ -35,6 +35,26 @@ class OrderStatus:
     ]
 
 
+class OrderPaymentStatus:
+    """Represents possible payment statuses an order."""
+
+    NOT_CHARGED = "not-charged"
+    PARTIALLY_CHARGED = "partially-charged"
+    FULLY_CHARGED = "fully-charged"
+    OVERPAID = "overpaid"
+    PARTIALLY_REFUNDED = "partially-refunded"
+    FULLY_REFUNDED = "fully-refunded"
+
+    CHOICES = [
+        (NOT_CHARGED, "Not charged"),
+        (PARTIALLY_CHARGED, "Partially charged"),
+        (FULLY_CHARGED, "Fully charged"),
+        (OVERPAID, "Overpaid"),
+        (PARTIALLY_REFUNDED, "Partially refunded"),
+        (FULLY_REFUNDED, "Fully refunded"),
+    ]
+
+
 class OrderOrigin:
     CHECKOUT = "checkout"  # order created from checkout
     DRAFT = "draft"  # order created from draft order
