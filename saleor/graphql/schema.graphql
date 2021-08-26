@@ -4586,6 +4586,7 @@ type PaymentCapture {
 
 enum PaymentChargeStatusEnum {
   NOT_CHARGED
+  AUTHORIZED
   PENDING
   PARTIALLY_CHARGED
   FULLY_CHARGED

@@ -4383,8 +4383,8 @@ def test_order_void(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderVoid"]["order"]
-    assert data["paymentStatus"] == PaymentChargeStatusEnum.NOT_CHARGED.name
-    payment_status_display = dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
+    assert data["paymentStatus"] == PaymentChargeStatusEnum.CANCELLED.name
+    payment_status_display = dict(ChargeStatus.CHOICES).get(ChargeStatus.CANCELLED)
     assert data["paymentStatusDisplay"] == payment_status_display
     event_payment_voided = order.events.last()
     assert event_payment_voided.type == order_events.OrderEvents.PAYMENT_VOIDED

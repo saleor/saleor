@@ -1016,9 +1016,7 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     assert data["errors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
-    gateway_void_mock.assert_called_once_with(
-        payment, ANY, channel_slug=checkout_info.channel.slug
-    )
+    assert gateway_void_mock.call_count == 0
 
 
 def test_checkout_complete_without_redirect_url(

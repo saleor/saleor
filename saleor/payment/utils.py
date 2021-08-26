@@ -298,8 +298,9 @@ def gateway_postprocess(transaction, payment):
         changed_fields += ["charge_status", "captured_amount", "modified"]
 
     elif transaction_kind == TransactionKind.VOID:
+        payment.charge_status = ChargeStatus.CANCELLED
         payment.is_active = False
-        changed_fields += ["is_active", "modified"]
+        changed_fields += ["charge_status", "is_active", "modified"]
 
     elif transaction_kind == TransactionKind.REFUND:
         changed_fields += ["captured_amount", "modified"]
@@ -331,6 +332,7 @@ def gateway_postprocess(transaction, payment):
             changed_fields += ["charge_status", "captured_amount", "modified"]
     elif transaction_kind == TransactionKind.AUTH:
         payment.charge_status = ChargeStatus.AUTHORIZED
+        changed_fields += ["charge_status"]
 
     if changed_fields:
         payment.save(update_fields=changed_fields)
