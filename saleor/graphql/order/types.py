@@ -964,7 +964,12 @@ class Order(CountableDjangoObjectType):
             if root.total_paid_amount == root.total_gross_amount:
                 return ChargeStatus.FULLY_CHARGED
 
-            if any(_map(payments, [ChargeStatus.FULLY_REFUNDED])):
+            if any(
+                _map(
+                    payments,
+                    [ChargeStatus.FULLY_REFUNDED, ChargeStatus.PARTIALLY_REFUNDED],
+                )
+            ):
                 if all(_map(payments, [ChargeStatus.FULLY_REFUNDED])):
                     return ChargeStatus.FULLY_REFUNDED
                 return ChargeStatus.PARTIALLY_REFUNDED

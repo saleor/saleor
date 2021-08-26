@@ -618,6 +618,21 @@ def test_order_query_in_pln_channel(
             ChargeStatus.PENDING,
             PaymentChargeStatusEnum.PARTIALLY_CHARGED,
         ],
+        [
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.PARTIALLY_REFUNDED,
+            PaymentChargeStatusEnum.PARTIALLY_REFUNDED,
+        ],
+        [
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.FULLY_REFUNDED,
+            PaymentChargeStatusEnum.PARTIALLY_REFUNDED,
+        ],
+        [
+            ChargeStatus.FULLY_REFUNDED,
+            ChargeStatus.FULLY_REFUNDED,
+            PaymentChargeStatusEnum.FULLY_REFUNDED,
+        ],
     ],
 )
 def test_order_query_payment_status_depending_on_charge_statuses(
@@ -644,6 +659,7 @@ def test_order_query_payment_status_depending_on_charge_statuses(
 @pytest.mark.parametrize(
     "total_paid_amount,total_gross_amount,expected",
     [
+        # TODO: change to overpaid
         [Decimal("200"), Decimal("100"), PaymentChargeStatusEnum.FULLY_CHARGED],
         [Decimal("100"), Decimal("100"), PaymentChargeStatusEnum.FULLY_CHARGED],
     ],
