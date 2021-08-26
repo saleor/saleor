@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 
 import graphene
 from babel.numbers import get_currency_precision
+from django.contrib.auth.models import AnonymousUser
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Q
 
 from ..account.models import User
 from ..checkout.models import Checkout
@@ -427,3 +429,14 @@ def price_to_minor_unit(value: Decimal, currency: str):
     number_places = Decimal("10.0") ** precision
     value_without_comma = value * number_places
     return str(value_without_comma.quantize(Decimal("1")))
+
+
+def payment_has_user(payment_pk: int, user) -> bool:
+    if user == AnonymousUser():
+        return False
+    return (
+        Payment.objects.filter(
+            (Q(order__user=user) | Q(checkout__user=user)) & Q(pk=payment_pk)
+        ).first()
+        is not None
+    )
