@@ -163,9 +163,9 @@ class CheckoutLine(CountableDjangoObjectType):
 class DeliveryMethod(graphene.Union):
     class Meta:
         description = (
-            "Represents a delivery method chosen for the checkout. `Warehouse` ",
-            'type is used when checkout is marked as "click and collect" and ',
-            "`ShippingMethod` otherwise.",
+            "Represents a delivery method chosen for the checkout. `Warehouse` "
+            'type is used when checkout is marked as "click and collect" and '
+            "`ShippingMethod` otherwise."
         )
         types = (Warehouse, ShippingMethod)
 

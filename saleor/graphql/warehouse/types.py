@@ -42,7 +42,7 @@ class WarehouseUpdateInput(WarehouseInput):
         required=False,
     )
     is_private = graphene.Boolean(
-        description="{ADDED_IN_31} Visibility of warehouse stocks", required=False
+        description=f"{ADDED_IN_31} Visibility of warehouse stocks", required=False
     )
 
 
