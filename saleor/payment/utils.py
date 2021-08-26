@@ -12,7 +12,7 @@ from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..order.models import Order
-from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
+from . import ChargeStatus, GatewayError, PaymentError, Store, TransactionKind
 from .error_codes import PaymentErrorCode
 from .interface import AddressData, GatewayResponse, PaymentData, PaymentMethodInfo
 from .models import Payment, Transaction
@@ -94,6 +94,8 @@ def create_payment(
     order: Order = None,
     return_url: str = None,
     external_reference: Optional[str] = None,
+    store: str = Store.NONE,
+    metadata: Optional[Dict[str, str]] = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -142,6 +144,8 @@ def create_payment(
         "total": total,
         "return_url": return_url,
         "psp_reference": external_reference or "",
+        "store": store,
+        "metadata": {} if metadata is None else metadata,
     }
 
     payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)

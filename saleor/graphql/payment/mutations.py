@@ -9,16 +9,18 @@ from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
-from ...payment import PaymentError, gateway
+from ...payment import PaymentError, Store, gateway
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..checkout.mutations import get_checkout_by_token
 from ..checkout.types import Checkout
+from ..core.enums import to_enum
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
 from ..core.validators import validate_one_of_args_is_in_mutation
+from ..meta.mutations import BaseMetadataMutation, MetadataInput
 from .types import Payment, PaymentInitialized
 
 
@@ -53,6 +55,9 @@ class PaymentInput(graphene.InputObjectType):
     )
 
 
+StoreEnum = to_enum(Store)
+
+
 class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="Related checkout object.")
     payment = graphene.Field(Payment, description="A newly created payment.")
@@ -68,6 +73,16 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         token = UUID(description="Checkout token.", required=False)
         input = PaymentInput(
             description="Data required to create a new payment.", required=True
+        )
+        store = StoreEnum(
+            description="Payment store type.",
+            required=False,
+            default_value=Store.NONE,
+        )
+        metadata = graphene.List(
+            graphene.NonNull(MetadataInput),
+            description="User public metadata.",
+            required=False,
         )
 
     class Meta:
@@ -133,7 +148,16 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id=None, token=None, **data):
+    def perform_mutation(
+        cls,
+        _root,
+        info,
+        checkout_id=None,
+        token=None,
+        store=Store.NONE,
+        metadata=None,
+        **data
+    ):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
             PaymentErrorCode, "checkout_id", checkout_id, "token", token
@@ -183,6 +207,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
         cancel_active_payments(checkout)
 
+        if metadata is not None:
+            BaseMetadataMutation.validate_metadata_keys(metadata)
+            metadata = {data.key: data.value for data in metadata}
+
         payment = create_payment(
             gateway=gateway,
             payment_token=data.get("token", ""),
@@ -194,6 +222,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
             return_url=data.get("return_url"),
+            store=store,
+            metadata=metadata,
         )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
 
