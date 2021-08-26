@@ -9,7 +9,7 @@ from ...core.utils.validators import date_passed, user_is_valid
 from ...giftcard import GiftCardExpiryType, events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import GiftCardError, PriceInput, TimePeriodInputType
@@ -27,7 +27,7 @@ class GiftCardExpirySettingsInput(graphene.InputObjectType):
 
 
 class GiftCardInput(graphene.InputObjectType):
-    tag = graphene.String(description="The gift card tag.")
+    tag = graphene.String(description=f"{ADDED_IN_31} The gift card tag.")
 
     # DEPRECATED
     start_date = graphene.types.datetime.Date(
@@ -52,7 +52,7 @@ class GiftCardCreateInput(GiftCardInput):
         description="Email of the customer to whom gift card will be sent.",
     )
     expiry_settings = GiftCardExpirySettingsInput(
-        description="The gift card expiry settings.", required=True
+        description=f"{ADDED_IN_31} The gift card expiry settings.", required=True
     )
     code = graphene.String(
         required=False,
@@ -66,10 +66,10 @@ class GiftCardCreateInput(GiftCardInput):
 
 class GiftCardUpdateInput(GiftCardInput):
     balance_amount = PositiveDecimal(
-        description="The gift card balance amount.", required=False
+        description=f"{ADDED_IN_31} The gift card balance amount.", required=False
     )
     expiry_settings = GiftCardExpirySettingsInput(
-        description="The gift card expiry settings.", required=False
+        description=f"{ADDED_IN_31} The gift card expiry settings.", required=False
     )
 
 
@@ -247,7 +247,7 @@ class GiftCardDelete(ModelDeleteMutation):
         id = graphene.ID(description="ID of the gift card to delete.", required=True)
 
     class Meta:
-        description = "Delete gift card."
+        description = f"{ADDED_IN_31} Delete gift card."
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
