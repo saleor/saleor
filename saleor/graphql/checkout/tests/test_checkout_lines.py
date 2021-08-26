@@ -99,10 +99,11 @@ def test_checkout_lines_add_existing_variant_over_allowed_stock(
     checkout = checkout_with_item
     line = checkout.lines.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    current_stock = line.variant.stocks.first()
 
     variables = {
         "token": checkout.token,
-        "lines": [{"variantId": variant_id, "quantity": 9}],
+        "lines": [{"variantId": variant_id, "quantity": current_stock.quantity - 1}],
         "channelSlug": checkout.channel.slug,
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
