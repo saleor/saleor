@@ -643,21 +643,56 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
                 whitelisted_statuses=[
                     FulfillmentStatus.FULFILLED,
                     FulfillmentStatus.RETURNED,
+                    FulfillmentStatus.WAITING_FOR_APPROVAL,
                 ],
             )
         return cleaned_input
 
     @classmethod
+    def remove_waiting_fulfillments(cls, lines_info):
+        """Delete fulfillment lines which fulfillments are `WAITING_FOR_APPROVAL`.
+
+        Delete fulfillments themselves if metioned lines were only lines inside.
+        """
+        lines_to_remove = []
+        remaining_lines = []
+        for line_data in lines_info:
+            if (
+                line_data.line.fulfillment.status
+                == FulfillmentStatus.WAITING_FOR_APPROVAL
+            ):
+                lines_to_remove.append(line_data.line.id)
+            else:
+                remaining_lines.append(line_data)
+
+        lines_to_delete = order_models.FulfillmentLine.objects.filter(
+            id__in=set(lines_to_remove)
+        ).select_related("fulfillment")
+        related_fulfillment_ids = [f.fulfillment.pk for f in lines_to_delete]
+        lines_to_delete.delete()
+        order_models.Fulfillment.objects.filter(
+            pk__in=related_fulfillment_ids, lines=None
+        ).delete()
+
+        return remaining_lines
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
+
+        if fulfillment_lines := cleaned_input.get("fulfillment_lines", []):
+            cleaned_input["fulfillment_lines"] = cls.remove_waiting_fulfillments(
+                fulfillment_lines
+            )
+
         refund_fulfillment = create_refund_fulfillment(
             info.context.user,
             info.context.app,
             order,
             cleaned_input["payment"],
             cleaned_input.get("order_lines", []),
-            cleaned_input.get("fulfillment_lines", []),
+            fulfillment_lines,
             info.context.plugins,
             cleaned_input["amount_to_refund"],
             cleaned_input["include_shipping_costs"],
