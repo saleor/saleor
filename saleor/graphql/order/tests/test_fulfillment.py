@@ -324,9 +324,6 @@ def test_order_fulfill_with_gift_cards(
     assert GiftCardEvent.objects.filter(
         gift_card=non_shippable_gift_card, type=GiftCardEvents.BOUGHT
     )
-    assert GiftCardEvent.objects.filter(
-        gift_card=non_shippable_gift_card, type=GiftCardEvents.SENT_TO_CUSTOMER
-    )
 
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [
@@ -347,10 +344,12 @@ def test_order_fulfill_with_gift_cards(
     mock_send_notification.assert_called_once_with(
         staff_user,
         None,
+        order.user,
         order.user_email,
         non_shippable_gift_card,
         ANY,
         order.channel.slug,
+        resending=False,
     )
 
 

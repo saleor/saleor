@@ -1,6 +1,8 @@
 from unittest import mock
 
 from ....account.notifications import get_default_user_payload
+from ....giftcard import GiftCardEvents
+from ....giftcard.models import GiftCardEvent
 from ....invoice import InvoiceEvents
 from ....invoice.models import Invoice, InvoiceEvent
 from ....order import OrderEvents, OrderEventsEmails
@@ -14,6 +16,7 @@ from ...user_email.tasks import (
     send_account_delete_confirmation_email_task,
     send_fulfillment_confirmation_email_task,
     send_fulfillment_update_email_task,
+    send_gift_card_email_task,
     send_invoice_email_task,
     send_order_canceled_email_task,
     send_order_confirmation_email_task,
@@ -1150,3 +1153,165 @@ def test_send_order_confirmed_email_task_custom_template(
         parameters__email=recipient_email,
         parameters__email_type=OrderEventsEmails.CONFIRMED,
     ).exists()
+
+
+@mock.patch("saleor.plugins.user_email.tasks.send_email")
+def test_send_gift_card_email_task_by_user(
+    mocked_send_email, user_email_dict_config, staff_user, gift_card, user_email_plugin
+):
+    expected_template_str = "<html><body>Template body</body></html>"
+    expected_subject = "Test Email Subject"
+    recipient_email = "user@example.com"
+
+    payload = {
+        "user": get_default_user_payload(staff_user),
+        "requester_user_id": staff_user.id,
+        "requester_app_id": None,
+        "recipient_email": recipient_email,
+        "resending": False,
+        "recipient_email": recipient_email,
+        "gift_card": {
+            "id": gift_card.id,
+            "code": gift_card.code,
+            "balance": gift_card.current_balance_amount,
+            "currency": gift_card.currency,
+        },
+    }
+
+    user_email_plugin(
+        order_confirmed_template=expected_template_str,
+        order_confirmed_subject=expected_subject,
+    )
+
+    send_gift_card_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
+
+    email_config = EmailConfig(**user_email_dict_config)
+    mocked_send_email.assert_called_with(
+        config=email_config,
+        recipient_list=[recipient_email],
+        context=payload,
+        subject=expected_subject,
+        template_str=expected_template_str,
+    )
+
+    gift_card_event = GiftCardEvent.objects.get()
+    assert gift_card_event.type == GiftCardEvents.SENT_TO_CUSTOMER
+    assert gift_card_event.parameters == {
+        "email": recipient_email,
+    }
+    assert gift_card_event.user == staff_user
+    assert not gift_card_event.app
+
+
+@mock.patch("saleor.plugins.user_email.tasks.send_email")
+def test_send_gift_card_email_task_by_user_resending(
+    mocked_send_email, user_email_dict_config, staff_user, gift_card, user_email_plugin
+):
+    expected_template_str = "<html><body>Template body</body></html>"
+    expected_subject = "Test Email Subject"
+    recipient_email = "user@example.com"
+
+    payload = {
+        "user": get_default_user_payload(staff_user),
+        "requester_user_id": staff_user.id,
+        "requester_app_id": None,
+        "recipient_email": recipient_email,
+        "resending": True,
+        "recipient_email": recipient_email,
+        "gift_card": {
+            "id": gift_card.id,
+            "code": gift_card.code,
+            "balance": gift_card.current_balance_amount,
+            "currency": gift_card.currency,
+        },
+    }
+
+    user_email_plugin(
+        order_confirmed_template=expected_template_str,
+        order_confirmed_subject=expected_subject,
+    )
+
+    send_gift_card_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
+
+    email_config = EmailConfig(**user_email_dict_config)
+    mocked_send_email.assert_called_with(
+        config=email_config,
+        recipient_list=[recipient_email],
+        context=payload,
+        subject=expected_subject,
+        template_str=expected_template_str,
+    )
+
+    gift_card_event = GiftCardEvent.objects.get()
+    assert gift_card_event.type == GiftCardEvents.RESENT
+    assert gift_card_event.parameters == {
+        "email": recipient_email,
+    }
+    assert gift_card_event.user == staff_user
+    assert not gift_card_event.app
+
+
+@mock.patch("saleor.plugins.user_email.tasks.send_email")
+def test_send_gift_card_email_task_by_app(
+    mocked_send_email, user_email_dict_config, app, gift_card, user_email_plugin
+):
+    expected_template_str = "<html><body>Template body</body></html>"
+    expected_subject = "Test Email Subject"
+    recipient_email = "user@example.com"
+    payload = {
+        "user": None,
+        "requester_user_id": None,
+        "requester_app_id": app.id,
+        "recipient_email": recipient_email,
+        "resending": False,
+        "recipient_email": recipient_email,
+        "gift_card": {
+            "id": gift_card.id,
+            "code": gift_card.code,
+            "balance": gift_card.current_balance_amount,
+            "currency": gift_card.currency,
+        },
+        "recipient_email": recipient_email,
+    }
+
+    user_email_plugin(
+        order_confirmed_template=expected_template_str,
+        order_confirmed_subject=expected_subject,
+    )
+
+    send_gift_card_email_task(
+        recipient_email,
+        payload,
+        user_email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
+
+    email_config = EmailConfig(**user_email_dict_config)
+    mocked_send_email.assert_called_with(
+        config=email_config,
+        recipient_list=[recipient_email],
+        context=payload,
+        subject=expected_subject,
+        template_str=expected_template_str,
+    )
+
+    gift_card_event = GiftCardEvent.objects.get()
+    assert gift_card_event.type == GiftCardEvents.SENT_TO_CUSTOMER
+    assert gift_card_event.parameters == {
+        "email": recipient_email,
+    }
+    assert not gift_card_event.user
+    assert gift_card_event.app == app
