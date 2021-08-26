@@ -92,10 +92,10 @@ class ChargeStatus:
 
     The following statuses are possible:
     - NOT_CHARGED - no successful payment has been made.
-    - AUTHORIZED - no funds were captured from the customer founding source yet.
+    - AUTHORIZED - no funds have been captured from the customer funding source.
     - PARTIALLY_CHARGED - funds were taken off the customer's funding source,
     partly covering the payment amount.
-    - FULLY_CHARGED - funds were taken off the customer founding source,
+    - FULLY_CHARGED - funds were taken off the customer funding source,
     partly or completely covering the payment amount.
     - PARTIALLY_REFUNDED - part of charged funds were returned to the customer.
     - FULLY_REFUNDED - all charged funds were returned to the customer.
