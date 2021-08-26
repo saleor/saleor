@@ -2,7 +2,6 @@ from unittest import mock
 
 import graphene
 
-from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
 from .....giftcard.models import GiftCardEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -44,9 +43,9 @@ GIFT_CARD_RESEND_MUTATION = """
 """
 
 
-@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+@mock.patch("saleor.graphql.giftcard.mutations.send_gift_card_notification")
 def test_resend_gift_card(
-    notify_mock,
+    send_notification_mock,
     staff_api_client,
     gift_card,
     channel_USD,
@@ -81,21 +80,23 @@ def test_resend_gift_card(
     errors = content["data"]["giftCardResend"]["errors"]
 
     assert not errors
-    events = data["events"]
-    assert len(events) == 1
-    event = events[0]
-    assert event["type"] == GiftCardEvents.RESENT.upper()
-    assert event["user"]["email"] == staff_api_client.user.email
+    assert data
 
-    db_event = GiftCardEvent.objects.get()
-    assert db_event.parameters["email"] == email
+    send_notification_mock.assert_called_once_with(
+        staff_api_client.user,
+        None,
+        None,
+        email,
+        gift_card,
+        mock.ANY,
+        channel_slug=channel_USD.slug,
+        resending=True,
+    )
 
-    assert notify_mock.call_count == 1
 
-
-@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+@mock.patch("saleor.graphql.giftcard.mutations.send_gift_card_notification")
 def test_resend_gift_card_as_app(
-    notify_mock,
+    send_notification_mock,
     app_api_client,
     gift_card,
     channel_USD,
@@ -127,23 +128,23 @@ def test_resend_gift_card_as_app(
     data = content["data"]["giftCardResend"]["giftCard"]
     errors = content["data"]["giftCardResend"]["errors"]
 
+    assert data
     assert not errors
-    events = data["events"]
-    assert len(events) == 1
-    event = events[0]
-    assert event["type"] == GiftCardEvents.RESENT.upper()
-    assert event["user"] is None
-    assert event["app"]["name"] == app_api_client.app.name
+    send_notification_mock.assert_called_once_with(
+        None,
+        app_api_client.app,
+        gift_card.created_by,
+        gift_card.created_by_email,
+        gift_card,
+        mock.ANY,
+        channel_slug=channel_USD.slug,
+        resending=True,
+    )
 
-    db_event = GiftCardEvent.objects.get()
-    assert db_event.parameters["email"] == gift_card.created_by_email
 
-    assert notify_mock.call_count == 1
-
-
-@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+@mock.patch("saleor.graphql.giftcard.mutations.send_gift_card_notification")
 def test_update_gift_card_no_permission(
-    notify_mock,
+    send_notification_mock,
     staff_api_client,
     gift_card,
     channel_USD,
@@ -166,12 +167,12 @@ def test_update_gift_card_no_permission(
     assert not GiftCardEvent.objects.exists()
     assert_no_permission(response)
 
-    notify_mock.assert_not_called()
+    send_notification_mock.assert_not_called()
 
 
-@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+@mock.patch("saleor.graphql.giftcard.mutations.send_gift_card_notification")
 def test_resend_gift_card_malformed_email(
-    notify_mock,
+    send_notification_mock,
     staff_api_client,
     gift_card,
     permission_manage_gift_card,
@@ -211,4 +212,4 @@ def test_resend_gift_card_malformed_email(
     assert error["field"] == "email"
     assert error["code"] == GiftCardErrorCode.INVALID.name
 
-    notify_mock.assert_not_called()
+    send_notification_mock.assert_not_called()

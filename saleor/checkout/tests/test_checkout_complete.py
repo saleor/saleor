@@ -767,8 +767,10 @@ def test_create_order_with_many_gift_cards(
     )
 
 
+@mock.patch("saleor.giftcard.utils.send_gift_card_notification")
 @pytest.mark.parametrize("is_anonymous_user", (True, False))
 def test_create_order_gift_card_bought(
+    send_notification_mock,
     checkout_with_gift_card_items,
     customer_user,
     shipping_method,
@@ -824,14 +826,22 @@ def test_create_order_gift_card_bought(
             variant=non_shippable_gift_card_product.variants.first()
         ).unit_price_gross
     )
-    assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
-    assert GiftCardEvent.objects.filter(
-        gift_card=gift_card, type=GiftCardEvents.SENT_TO_CUSTOMER
+    send_notification_mock.assert_called_once_with(
+        checkout_user,
+        None,
+        checkout_user,
+        order.user_email,
+        gift_card,
+        manager,
+        order.channel.slug,
+        resending=False,
     )
 
 
+@mock.patch("saleor.giftcard.utils.send_gift_card_notification")
 @pytest.mark.parametrize("is_anonymous_user", (True, False))
 def test_create_order_gift_card_bought_only_shippable_gift_card(
+    send_notification_mock,
     checkout,
     shippable_gift_card_product,
     customer_user,

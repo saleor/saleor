@@ -277,10 +277,13 @@ def test_checkout_complete(
     order_confirmed_mock.assert_called_once_with(order)
 
 
+@patch("saleor.giftcard.utils.send_gift_card_notification")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete_gift_card_bought(
     order_confirmed_mock,
+    send_notification_mock,
     site_settings,
+    customer_user,
     user_api_client,
     checkout_with_gift_card_items,
     payment_dummy,
@@ -293,6 +296,7 @@ def test_checkout_complete_gift_card_bought(
     checkout.billing_address = address
     checkout.store_value_in_metadata(items={"accepted": "true"})
     checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.user = customer_user
     checkout.save()
 
     manager = get_plugins_manager()
@@ -329,8 +333,15 @@ def test_checkout_complete_gift_card_bought(
 
     gift_card = GiftCard.objects.get()
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
-    assert GiftCardEvent.objects.filter(
-        gift_card=gift_card, type=GiftCardEvents.SENT_TO_CUSTOMER
+    send_notification_mock.assert_called_once_with(
+        customer_user,
+        None,
+        customer_user,
+        customer_user.email,
+        gift_card,
+        ANY,
+        checkout.channel.slug,
+        resending=False,
     )
     order_confirmed_mock.assert_called_once_with(order)
     assert Fulfillment.objects.count() == 1

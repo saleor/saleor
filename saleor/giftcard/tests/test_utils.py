@@ -230,13 +230,6 @@ def test_gift_cards_create(
     assert non_shippable_gift_card.created_by_email == user_email
     assert non_shippable_gift_card.expiry_date is None
 
-    sent_to_customer_event = GiftCardEvent.objects.get(
-        gift_card=non_shippable_gift_card, type=GiftCardEvents.SENT_TO_CUSTOMER
-    )
-    assert sent_to_customer_event.user == staff_user
-    assert sent_to_customer_event.app is None
-    assert sent_to_customer_event.parameters == {"email": user_email}
-
     shippable_event = GiftCardEvent.objects.get(
         gift_card=non_shippable_gift_card, type=GiftCardEvents.BOUGHT
     )
@@ -247,10 +240,12 @@ def test_gift_cards_create(
     send_notification_mock.assert_called_once_with(
         staff_user,
         None,
+        order.user,
         user_email,
         non_shippable_gift_card,
         manager,
         order.channel.slug,
+        resending=False,
     )
 
 
@@ -298,13 +293,6 @@ def test_gift_cards_create_expiry_date_set(
     assert non_shippable_gift_card.created_by_email == user_email
     assert non_shippable_gift_card.expiry_date
 
-    sent_to_customer_event = GiftCardEvent.objects.get(
-        gift_card=non_shippable_gift_card, type=GiftCardEvents.SENT_TO_CUSTOMER
-    )
-    assert sent_to_customer_event.user == staff_user
-    assert sent_to_customer_event.app is None
-    assert sent_to_customer_event.parameters == {"email": user_email}
-
     shippable_event = GiftCardEvent.objects.get(
         gift_card=non_shippable_gift_card, type=GiftCardEvents.BOUGHT
     )
@@ -318,10 +306,12 @@ def test_gift_cards_create_expiry_date_set(
     send_notification_mock.assert_called_once_with(
         staff_user,
         None,
+        order.user,
         user_email,
         non_shippable_gift_card,
         manager,
         order.channel.slug,
+        resending=False,
     )
 
 
@@ -354,11 +344,7 @@ def test_gift_cards_create_multiple_quantity(
         assert gift_card.current_balance == price
 
     assert GiftCardEvent.objects.filter(type=GiftCardEvents.BOUGHT).count() == quantity
-    assert (
-        GiftCardEvent.objects.filter(type=GiftCardEvents.SENT_TO_CUSTOMER).count()
-        == quantity
-    )
-    assert send_notification_mock.call_count == 3
+    assert send_notification_mock.call_count == quantity
 
 
 def test_get_gift_card_lines(

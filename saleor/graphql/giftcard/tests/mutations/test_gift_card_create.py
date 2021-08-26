@@ -1,7 +1,9 @@
 from datetime import date, timedelta
+from unittest import mock
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
+from .....giftcard.models import GiftCard
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 CREATE_GIFT_CARD_MUTATION = """
@@ -76,7 +78,9 @@ CREATE_GIFT_CARD_MUTATION = """
 """
 
 
+@mock.patch("saleor.graphql.giftcard.mutations.send_gift_card_notification")
 def test_create_never_expiry_gift_card(
+    send_notification_mock,
     staff_api_client,
     customer_user,
     channel_USD,
@@ -133,8 +137,8 @@ def test_create_never_expiry_gift_card(
     assert data["initialBalance"]["amount"] == initial_balance
     assert data["currentBalance"]["amount"] == initial_balance
 
-    assert len(data["events"]) == 2
-    created_event, sent_event = data["events"]
+    assert len(data["events"]) == 1
+    created_event = data["events"][0]
 
     assert created_event["type"] == GiftCardEvents.ISSUED.upper()
     assert created_event["user"]["email"] == staff_api_client.user.email
@@ -146,12 +150,22 @@ def test_create_never_expiry_gift_card(
     assert not created_event["balance"]["oldInitialBalance"]
     assert not created_event["balance"]["oldCurrentBalance"]
 
-    assert sent_event["type"] == GiftCardEvents.SENT_TO_CUSTOMER.upper()
-    assert sent_event["user"]["email"] == staff_api_client.user.email
-    assert not created_event["app"]
+    gift_card = GiftCard.objects.get()
+    send_notification_mock.assert_called_once_with(
+        staff_api_client.user,
+        None,
+        customer_user,
+        customer_user.email,
+        gift_card,
+        mock.ANY,
+        channel_slug=channel_USD.slug,
+        resending=False,
+    )
 
 
+@mock.patch("saleor.graphql.giftcard.mutations.send_gift_card_notification")
 def test_create_gift_card_by_app(
+    send_notification_mock,
     app_api_client,
     customer_user,
     permission_manage_gift_card,
@@ -213,6 +227,8 @@ def test_create_gift_card_by_app(
     assert created_event["balance"]["currentBalance"]["currency"] == currency
     assert not created_event["balance"]["oldInitialBalance"]
     assert not created_event["balance"]["oldCurrentBalance"]
+
+    send_notification_mock.assert_not_called()
 
 
 def test_create_gift_card_by_customer(api_client, customer_user, channel_USD):
@@ -457,7 +473,9 @@ def test_create_gift_card_with_zero_balance_amount(
     assert errors[0]["code"] == GiftCardErrorCode.INVALID.name
 
 
+@mock.patch("saleor.graphql.giftcard.mutations.send_gift_card_notification")
 def test_create_gift_card_with_expiry_date(
+    send_notification_mock,
     staff_api_client,
     customer_user,
     channel_USD,
@@ -506,8 +524,8 @@ def test_create_gift_card_with_expiry_date(
     assert data["displayCode"]
     assert data["expiryDate"] == date_value.isoformat()
 
-    assert len(data["events"]) == 2
-    created_event, sent_event = data["events"]
+    assert len(data["events"]) == 1
+    created_event = data["events"][0]
 
     assert created_event["type"] == GiftCardEvents.ISSUED.upper()
     assert created_event["user"]["email"] == staff_api_client.user.email
@@ -519,9 +537,17 @@ def test_create_gift_card_with_expiry_date(
     assert not created_event["balance"]["oldInitialBalance"]
     assert not created_event["balance"]["oldCurrentBalance"]
 
-    assert sent_event["type"] == GiftCardEvents.SENT_TO_CUSTOMER.upper()
-    assert sent_event["user"]["email"] == staff_api_client.user.email
-    assert not created_event["app"]
+    gift_card = GiftCard.objects.get()
+    send_notification_mock.assert_called_once_with(
+        staff_api_client.user,
+        None,
+        customer_user,
+        customer_user.email,
+        gift_card,
+        mock.ANY,
+        channel_slug=channel_USD.slug,
+        resending=False,
+    )
 
 
 def test_create_gift_card_with_expiry_date_type_date_in_past(
