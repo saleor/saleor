@@ -72,8 +72,8 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 4.0. "
-            "Use `checkoutDeliveryMethodUpdate` instead"
+            "This field will be removed in Saleor 4.0. "
+            "Use `checkoutDeliveryMethodUpdate` instead."
         )
     )
     checkout_delivery_method_update = CheckoutDeliveryMethodUpdate.Field()

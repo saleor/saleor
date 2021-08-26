@@ -213,7 +213,9 @@ class Checkout(CountableDjangoObjectType):
     shipping_method = graphene.Field(
         ShippingMethod,
         description="The shipping method related with checkout.",
-        deprecation_reason="Use delivery method instead",
+        deprecation_reason=(
+            "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead."
+        ),
     )
 
     delivery_method = graphene.Field(

@@ -2780,6 +2780,7 @@ def order_with_lines(
     stock = Stock.objects.create(
         product_variant=variant, warehouse=warehouse, quantity=2
     )
+    stock.refresh_from_db()
 
     net = variant.get_price(product, [], channel_USD, channel_listing)
     currency = net.currency

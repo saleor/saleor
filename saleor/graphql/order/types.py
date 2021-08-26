@@ -649,6 +649,15 @@ class Order(CountableDjangoObjectType):
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
+
+    shipping_method = graphene.Field(
+        ShippingMethod,
+        description="The shipping method related with order.",
+        deprecation_reason=(
+            "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead."
+        ),
+    )
+
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
@@ -742,7 +751,6 @@ class Order(CountableDjangoObjectType):
             "gift_cards",
             "id",
             "shipping_address",
-            "shipping_method",
             "shipping_method_name",
             "collection_point_name",
             "shipping_price",

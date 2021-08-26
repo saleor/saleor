@@ -209,6 +209,6 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
 class WarehouseByIdLoader(DataLoader):
     context_key = "warehouse_by_id"
 
-    def batch_load(self, keys: Iterable[UUID]) -> List[Warehouse]:
+    def batch_load(self, keys: Iterable[UUID]) -> List[Optional[Warehouse]]:
         warehouses = Warehouse.objects.in_bulk(keys)
         return [warehouses.get(warehouse_uuid) for warehouse_uuid in keys]
