@@ -646,6 +646,8 @@ def test_order_query_payment_status_depending_on_charge_statuses(
     Payment.objects.create(
         **{**payment_kwargs, **{"order": order, "charge_status": p2}}
     )
+    choices = dict(ChargeStatus.CHOICES)
+    expected_display = choices.get(getattr(ChargeStatus, expected.name))
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -654,6 +656,7 @@ def test_order_query_payment_status_depending_on_charge_statuses(
 
     # then
     assert order_data["paymentStatus"] == expected.name
+    assert order_data["paymentStatusDisplay"] == expected_display
 
 
 @pytest.mark.parametrize(
@@ -677,6 +680,8 @@ def test_order_query_payment_status_depending_on_balance(
     order.total_paid_amount = total_paid_amount
     order.total_paid_amount = total_gross_amount
     order.save()
+    choices = dict(ChargeStatus.CHOICES)
+    expected_display = choices.get(getattr(ChargeStatus, expected.name))
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -685,6 +690,7 @@ def test_order_query_payment_status_depending_on_balance(
 
     # then
     assert order_data["paymentStatus"] == expected.name
+    assert order_data["paymentStatusDisplay"] == expected_display
 
 
 ORDERS_QUERY_SHIPPING_METHODS = """

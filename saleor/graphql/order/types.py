@@ -1,5 +1,4 @@
 from decimal import Decimal
-from operator import attrgetter
 from typing import Optional
 
 import graphene
@@ -78,6 +77,7 @@ from .dataloaders import (
     OrderLinesByOrderIdLoader,
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
+from .resolvers import resolve_order_payment_status
 from .utils import validate_draft_order
 
 
@@ -953,54 +953,19 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
-        def _map(payments, status_list):
-            return map(lambda p: p.charge_status in status_list, payments)
-
-        def _resolve_payment_status(payments):
-            # TODO: change to overpaid
-            if root.total_paid_amount > root.total_gross_amount:
-                return ChargeStatus.FULLY_CHARGED
-
-            if root.total_paid_amount == root.total_gross_amount:
-                return ChargeStatus.FULLY_CHARGED
-
-            if any(
-                _map(
-                    payments,
-                    [ChargeStatus.FULLY_REFUNDED, ChargeStatus.PARTIALLY_REFUNDED],
-                )
-            ):
-                if all(_map(payments, [ChargeStatus.FULLY_REFUNDED])):
-                    return ChargeStatus.FULLY_REFUNDED
-                return ChargeStatus.PARTIALLY_REFUNDED
-
-            if any(
-                _map(
-                    payments,
-                    [ChargeStatus.FULLY_CHARGED, ChargeStatus.PARTIALLY_CHARGED],
-                )
-            ):
-                return ChargeStatus.PARTIALLY_CHARGED
-
-            return ChargeStatus.NOT_CHARGED
-
         return (
             PaymentsByOrderIdLoader(info.context)
             .load(root.id)
-            .then(_resolve_payment_status)
+            .then(lambda p: resolve_order_payment_status(root, p))
         )
 
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
-        def _resolve_payment_status(payments):
-            if last_payment := max(payments, default=None, key=attrgetter("pk")):
-                return last_payment.get_charge_status_display()
-            return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
-
+        choices = dict(ChargeStatus.CHOICES)
         return (
             PaymentsByOrderIdLoader(info.context)
             .load(root.id)
-            .then(_resolve_payment_status)
+            .then(lambda p: choices.get(resolve_order_payment_status(root, p)))
         )
 
     @staticmethod

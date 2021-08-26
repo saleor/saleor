@@ -1,9 +1,12 @@
+from typing import List
+
 from ...channel.models import Channel
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
 from ...order.utils import sum_order_totals
+from ...payment import ChargeStatus
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..utils.filters import filter_by_period
 
@@ -58,3 +61,35 @@ def resolve_order_by_token(token):
         .filter(token=token)
         .first()
     )
+
+
+def resolve_order_payment_status(order: models.Order, payments: List[models.Payment]):
+    def _map(payments, status_list):
+        return map(lambda p: p.charge_status in status_list, payments)
+
+    # TODO: change to overpaid
+    if order.total_paid_amount > order.total_gross_amount:
+        return ChargeStatus.FULLY_CHARGED
+
+    if order.total_paid_amount == order.total_gross_amount:
+        return ChargeStatus.FULLY_CHARGED
+
+    if any(
+        _map(
+            payments,
+            [ChargeStatus.FULLY_REFUNDED, ChargeStatus.PARTIALLY_REFUNDED],
+        )
+    ):
+        if all(_map(payments, [ChargeStatus.FULLY_REFUNDED])):
+            return ChargeStatus.FULLY_REFUNDED
+        return ChargeStatus.PARTIALLY_REFUNDED
+
+    if any(
+        _map(
+            payments,
+            [ChargeStatus.FULLY_CHARGED, ChargeStatus.PARTIALLY_CHARGED],
+        )
+    ):
+        return ChargeStatus.PARTIALLY_CHARGED
+
+    return ChargeStatus.NOT_CHARGED
