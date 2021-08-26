@@ -91,9 +91,20 @@ def test_payment_void_gateway_error(
 
 
 CREATE_PAYMENT_MUTATION = """
-    mutation CheckoutPaymentCreate($token: UUID, $input: PaymentInput!) {
-        checkoutPaymentCreate(token: $token, input: $input) {
+    mutation CheckoutPaymentCreate(
+        $token: UUID,
+        $input: PaymentInput!,
+        $store: StoreEnum,
+        $metadata: [MetadataInput!]
+    ) {
+        checkoutPaymentCreate(
+            token: $token,
+            input: $input,
+            store: $store,
+            metadata: $metadata
+        ) {
             payment {
+                id
                 transactions {
                     kind,
                     token
@@ -433,6 +444,78 @@ def test_create_payment_for_checkout_with_active_payments(
     active_payments = checkout.payments.all().filter(is_active=True)
     assert active_payments.count() == 1
     assert active_payments.first().pk not in previous_active_payments_ids
+
+
+@pytest.mark.parametrize("store", [None, "NONE", "ON_SESSION", "OFF_SESSION"])
+def test_create_payment_with_store(
+    user_api_client, checkout_without_shipping_required, address, store
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+        },
+        "store": store,
+    }
+
+    # when
+    user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
+    checkout.refresh_from_db()
+    payment = checkout.payments.first()
+    assert payment.store == (store or "NONE").lower()
+
+
+@pytest.mark.parametrize(
+    "metadata", [[{"key": f"key{i}", "value": f"value{i}"} for i in range(5)], [], None]
+)
+def test_create_payment_with_metadata(
+    user_api_client, checkout_without_shipping_required, address, metadata
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+        },
+        "metadata": metadata,
+    }
+
+    # when
+    user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
+    checkout.refresh_from_db()
+    payment = checkout.payments.first()
+    assert payment.metadata == {m["key"]: m["value"] for m in metadata or {}}
 
 
 CAPTURE_QUERY = """
