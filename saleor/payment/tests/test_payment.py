@@ -280,7 +280,7 @@ def test_gateway_charge_failed(
         gateway.capture(payment, get_plugins_manager(), amount)
     mock_capture_payment.assert_called_once()
     payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
     assert not payment.captured_amount
     assert not mock_handle_fully_paid_order.called
 
@@ -313,7 +313,7 @@ def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
         )
     assert exc.value.message == "This payment cannot be captured."
 
-    payment.charge_status = ChargeStatus.NOT_CHARGED
+    payment.charge_status = ChargeStatus.AUTHORIZED
     payment.save()
     with pytest.raises(PaymentError) as exc:
         gateway.capture(
@@ -407,6 +407,9 @@ def test_can_authorize(payment_dummy: Payment):
     payment_dummy.is_active = True
     assert payment_dummy.can_authorize()
 
+    payment_dummy.charge_status = ChargeStatus.AUTHORIZED
+    assert not payment_dummy.can_authorize()
+
     payment_dummy.charge_status = ChargeStatus.PARTIALLY_CHARGED
     assert not payment_dummy.can_authorize()
 
@@ -415,13 +418,16 @@ def test_can_authorize(payment_dummy: Payment):
 
 
 def test_can_capture(payment_txn_preauth: Payment):
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_txn_preauth.charge_status == ChargeStatus.AUTHORIZED
 
     payment_txn_preauth.is_active = False
     assert not payment_txn_preauth.can_capture()
 
     payment_txn_preauth.is_active = True
     assert payment_txn_preauth.can_capture()
+
+    payment_txn_preauth.charge_status = ChargeStatus.NOT_CHARGED
+    assert not payment_txn_preauth.can_capture()
 
     payment_txn_preauth.charge_status = ChargeStatus.PARTIALLY_CHARGED
     assert not payment_txn_preauth.can_capture()
@@ -435,13 +441,16 @@ def test_can_capture(payment_txn_preauth: Payment):
 
 
 def test_can_void(payment_txn_preauth: Payment):
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_txn_preauth.charge_status == ChargeStatus.AUTHORIZED
 
     payment_txn_preauth.is_active = False
     assert not payment_txn_preauth.can_void()
 
     payment_txn_preauth.is_active = True
     assert payment_txn_preauth.can_void()
+
+    payment_txn_preauth.charge_status = ChargeStatus.NOT_CHARGED
+    assert not payment_txn_preauth.can_void()
 
     payment_txn_preauth.charge_status = ChargeStatus.PARTIALLY_CHARGED
     assert not payment_txn_preauth.can_void()
@@ -461,6 +470,9 @@ def test_can_refund(payment_dummy: Payment):
     assert not payment_dummy.can_refund()
 
     payment_dummy.is_active = True
+    assert not payment_dummy.can_refund()
+
+    payment_dummy.charge_status = ChargeStatus.AUTHORIZED
     assert not payment_dummy.can_refund()
 
     payment_dummy.charge_status = ChargeStatus.PARTIALLY_CHARGED

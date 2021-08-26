@@ -3124,6 +3124,7 @@ def payment_txn_preauth(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy
     payment.order = order
+    payment.charge_status = ChargeStatus.AUTHORIZED
     payment.save()
 
     payment.transactions.create(
