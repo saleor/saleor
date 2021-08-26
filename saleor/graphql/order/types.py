@@ -43,7 +43,7 @@ from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
@@ -443,7 +443,8 @@ class OrderLine(CountableDjangoObjectType):
         description="List of allocations across warehouses.",
     )
     quantity_to_fulfill = graphene.Int(
-        required=True, description="A quantity of items remaining to be fulfilled."
+        required=True,
+        description=f"{ADDED_IN_31} A quantity of items remaining to be fulfilled.",
     )
     unit_discount_type = graphene.Field(
         DiscountValueTypeEnum,
