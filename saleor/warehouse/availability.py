@@ -63,13 +63,12 @@ def check_stock_quantity_bulk(
         variant_stocks[stock.product_variant_id].append(stock)
 
     insufficient_stocks: List[InsufficientStockData] = []
-    for variant, input_quantity in zip(variants, quantities):
+    variants_quantities = {
+        line.variant.pk: line.line.quantity for line in existing_lines or []
+    }
+    for variant, quantity in zip(variants, quantities):
 
-        quantity = input_quantity
-        if existing_lines:
-            for line_info in existing_lines:
-                if line_info.variant.sku == variant.sku:
-                    quantity += line_info.line.quantity
+        quantity += variants_quantities.get(variant.pk, 0)
 
         stocks = variant_stocks.get(variant.pk, [])
         available_quantity = sum(
