@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
 from decimal import Decimal
+from enum import Enum
 from typing import Any, Dict, List, Optional, Union
-
-from saleor.payment import Store
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
@@ -61,6 +60,12 @@ class AddressData:
     phone: str
 
 
+class StoreEnum(str, Enum):
+    NONE = "NONE"
+    ON_SESSION = "ON_SESSION"
+    OFF_SESSION = "OFF_SESSION"
+
+
 @dataclass
 class PaymentData:
     """Dataclass for storing all payment information.
@@ -84,7 +89,7 @@ class PaymentData:
     reuse_source: bool = False  # Note: this field will be removed in 4.0.
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
-    store: str = Store.NONE
+    store: StoreEnum = StoreEnum.NONE
     payment_metadata: Dict[str, str] = field(default_factory=dict)
 
 

@@ -15,7 +15,13 @@ from ..core.tracing import traced_atomic_transaction
 from ..order.models import Order
 from . import ChargeStatus, GatewayError, PaymentError, Store, TransactionKind
 from .error_codes import PaymentErrorCode
-from .interface import AddressData, GatewayResponse, PaymentData, PaymentMethodInfo
+from .interface import (
+    AddressData,
+    GatewayResponse,
+    PaymentData,
+    PaymentMethodInfo,
+    StoreEnum,
+)
 from .models import Payment, Transaction
 
 if TYPE_CHECKING:
@@ -80,7 +86,7 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
-        store=payment.store,
+        store=StoreEnum[payment.store.upper()],
         payment_metadata=payment.metadata,
     )
 
