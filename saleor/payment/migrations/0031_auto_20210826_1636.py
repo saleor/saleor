@@ -7,8 +7,12 @@ from saleor.payment import ChargeStatus, TransactionKind
 
 def migrate_not_charged_transactions(apps, schema_editor):
     Payment = apps.get_model("payment", "Payment")
-    for payment in Payment.objects.filter(
-        charge_status=ChargeStatus.NOT_CHARGED,
+    for payment in (
+        Payment.objects.filter(
+            charge_status=ChargeStatus.NOT_CHARGED,
+        )
+        .exclude(transactions=None)
+        .iterator()
     ):
         for txn in payment.transactions.all():
             if not txn.is_success:
