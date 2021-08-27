@@ -1,6 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Union
+
+from saleor.payment import Store
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
@@ -79,9 +81,11 @@ class PaymentData:
     customer_email: str
     token: Optional[str] = None
     customer_id: Optional[str] = None  # stores payment gateway customer ID
-    reuse_source: bool = False
+    reuse_source: bool = False  # Note: this field will be removed in 4.0.
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
+    store: str = Store.NONE
+    payment_metadata: Dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
