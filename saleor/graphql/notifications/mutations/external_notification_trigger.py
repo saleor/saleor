@@ -6,6 +6,7 @@ from ....core.notification.mutation_handler import (
     send_notification,
 )
 from ....core.notification.validation import (
+    validate_and_get_channel,
     validate_and_get_external_event_type,
     validate_and_get_payload_params,
     validate_ids_and_get_model_type_and_pks,
@@ -37,6 +38,13 @@ class ExternalNotificationTriggerInput(graphene.InputObjectType):
             "of that field like a ID of dynamic template."
         ),
     )
+    channel = graphene.String(
+        required=True,
+        description=(
+            "Channel slug. Saleor will send a notification within a provided channel. "
+            "Please, make sure that necessary plugins are active."
+        ),
+    )
 
 
 class ExternalNotificationTrigger(BaseMutation):
@@ -61,6 +69,7 @@ class ExternalNotificationTrigger(BaseMutation):
         if data_input := data.get("input"):
             model_type, pks = validate_ids_and_get_model_type_and_pks(data_input)
             extra_payload = data_input.get("extra_payload")
+            channel_slug = validate_and_get_channel(data_input)
             external_event_type = validate_and_get_external_event_type(data_input)
             model, payload_function, permission_type = validate_and_get_payload_params(
                 model_type
@@ -71,7 +80,11 @@ class ExternalNotificationTrigger(BaseMutation):
                     objects, extra_payload, payload_function
                 )
                 send_notification(
-                    manager, external_event_type, payload, plugin_id=plugin_id
+                    manager,
+                    external_event_type,
+                    payload,
+                    channel_slug=channel_slug,
+                    plugin_id=plugin_id,
                 )
         return cls()
 

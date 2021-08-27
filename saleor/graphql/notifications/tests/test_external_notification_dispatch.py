@@ -13,6 +13,7 @@ def test_notify_via_external_notification_trigger(
     external_notification_trigger_query,
     staff_api_client,
     permission_manage_users,
+    channel_PLN,
 ):
 
     settings.PLUGINS = [
@@ -25,6 +26,7 @@ def test_notify_via_external_notification_trigger(
             "ids": [to_global_id(User.__name__, user.id) for user in staff_users],
             "extraPayload": '{"recipient_email":"test@gmail.com"}',
             "externalEventType": test_template_id,
+            "channel": channel_PLN.slug,
         },
         "pluginId": "mirumee.notifications.sendgrid_email",
     }

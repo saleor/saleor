@@ -17,23 +17,6 @@ def test_get_event_map():
         assert event in EVENT_MAP
 
 
-external_notification_trigger_query = """
-      mutation ExternalNotificationTrigger(
-        $input: ExternalNotificationTriggerInput!
-        $pluginId: String
-      ) {
-          externalNotificationTrigger(
-            input: $input,
-            pluginId: $pluginId
-          ) {
-            errors {
-              message
-            }
-          }
-      }
-    """
-
-
 @patch("saleor.plugins.sendgrid.tasks.send_email_with_dynamic_template_id.delay")
 def test_notify_via_external_notification_trigger_with_extra_payload(
     mocked_event_map,

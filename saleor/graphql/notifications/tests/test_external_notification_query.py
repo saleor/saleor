@@ -16,6 +16,7 @@ query_test_data = [
                 "ids": [],
                 "extraPayload": json.dumps("{}"),
                 "externalEventType": {},
+                "channel": "c-pln",
             },
             "pluginId": "",
         },
@@ -27,6 +28,7 @@ query_test_data = [
                 "ids": [],
                 "extraPayload": json.dumps("{}"),
                 "externalEventType": {},
+                "channel": "c-pln",
             },
             "pluginId": "WRONG-TEST-PLUGIN",
         },
@@ -38,20 +40,38 @@ query_test_data = [
                 "ids": [],
                 "extraPayload": json.dumps("{}"),
                 "externalEventType": {},
+                "channel": "c-pln",
             }
         },
         200,
     ),
     (
-        {"input": {"extraPayload": json.dumps("{}"), "externalEventType": {}}},
+        {
+            "input": {
+                "ids": [],
+                "extraPayload": json.dumps("{}"),
+                "externalEventType": {},
+            }
+        },
         400,
     ),
-    ({"input": {"ids": [], "externalEventType": {}}}, 200),
+    (
+        {
+            "input": {
+                "extraPayload": json.dumps("{}"),
+                "externalEventType": {},
+                "channel": "c-pln",
+            }
+        },
+        400,
+    ),
+    ({"input": {"ids": [], "externalEventType": {}, "channel": "c-pln"}}, 200),
     (
         {
             "input": {
                 "ids": [],
                 "extraPayload": json.dumps("{}"),
+                "channel": "c-pln",
             }
         },
         400,
@@ -66,6 +86,7 @@ def test_query(
     external_notification_trigger_query,
     staff_api_client,
     permission_manage_users,
+    channel_PLN,
 ):
     response = staff_api_client.post_graphql(
         external_notification_trigger_query,
@@ -84,6 +105,7 @@ def test_notify_via_external_notification_trigger_for_all_plugins(
     external_notification_trigger_query,
     staff_api_client,
     permission_manage_users,
+    channel_PLN,
 ):
 
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
@@ -93,6 +115,7 @@ def test_notify_via_external_notification_trigger_for_all_plugins(
             "ids": [to_global_id(User.__name__, user.id) for user in staff_users],
             "extraPayload": "{}",
             "externalEventType": UserNotifyEvent.ORDER_CANCELED,
+            "channel": channel_PLN.slug,
         }
     }
 
@@ -112,6 +135,7 @@ def test_notify_via_external_notification_trigger_without_permission(
     staff_users,
     external_notification_trigger_query,
     staff_api_client,
+    channel_PLN,
 ):
 
     variables = {
@@ -119,6 +143,7 @@ def test_notify_via_external_notification_trigger_without_permission(
             "ids": [to_global_id(User.__name__, user.id) for user in staff_users],
             "extraPayload": "{}",
             "externalEventType": UserNotifyEvent.ORDER_CANCELED,
+            "channel": channel_PLN.slug,
         },
         "pluginId": PluginSample.PLUGIN_ID,
     }

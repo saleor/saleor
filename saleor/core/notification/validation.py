@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 
 from ...account.models import User
 from ...account.notifications import get_user_custom_payload
+from ...channel.models import Channel
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...graphql.core.enums import ExternalNotificationTriggerErrorCode
 from ...graphql.utils import resolve_global_ids_to_primary_keys
@@ -43,6 +44,38 @@ def validate_and_get_external_event_type(data_input):
         {
             "external_event_type": ValidationError(
                 "The obligatory param 'external_event_type' is missing or is empty.",
+                code=ExternalNotificationTriggerErrorCode.REQUIRED,
+            )
+        }
+    )
+
+
+def validate_and_get_channel(data_input):
+    if channel_slug := data_input.get("channel"):
+        if Channel.objects.filter(slug=channel_slug).exists():
+            if Channel.objects.get(slug=channel_slug).is_active:
+                return channel_slug
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        "Cannot complete checkout with inactive channel.",
+                        code=ExternalNotificationTriggerErrorCode.CHANNEL_INACTIVE,
+                    )
+                }
+            )
+        raise ValidationError(
+            {
+                "channel": ValidationError(
+                    "The channel with given not exists.",
+                    code=ExternalNotificationTriggerErrorCode.REQUIRED,
+                )
+            }
+        )
+
+    raise ValidationError(
+        {
+            "channel": ValidationError(
+                "The obligatory param 'channel' is missing or is empty.",
                 code=ExternalNotificationTriggerErrorCode.REQUIRED,
             )
         }

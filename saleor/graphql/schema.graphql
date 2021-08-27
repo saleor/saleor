@@ -2101,6 +2101,8 @@ type ExternalNotificationError {
 enum ExternalNotificationErrorCodes {
   REQUIRED
   INVALID_MODEL_TYPE
+  INVALID_CHANNEL_NAME
+  CHANNEL_INACTIVE
 }
 
 type ExternalNotificationTrigger {
@@ -2111,6 +2113,7 @@ input ExternalNotificationTriggerInput {
   ids: [ID]!
   extraPayload: JSONString
   externalEventType: String!
+  channel: String!
 }
 
 type ExternalObtainAccessTokens {
