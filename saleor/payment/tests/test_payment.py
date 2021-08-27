@@ -2,6 +2,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 
 from ...checkout.calculations import checkout_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -18,6 +19,7 @@ from ..utils import (
     create_payment_information,
     create_transaction,
     is_currency_supported,
+    payment_owned_by_user,
     update_payment,
     validate_gateway_response,
 )
@@ -556,23 +558,21 @@ def test_update_payment(gateway_response, payment_txn_captured):
     assert payment.payment_method_type == gateway_response.payment_method_info.type
 
 
-def test_get_user_from_order(payment, customer_user2):
+def test_payment_owned_by_user_from_order(payment, customer_user2):
     # given
     assert payment.checkout is None
-    assert payment.order.user != customer_user2
     payment.order.user = customer_user2
-    payment.save()
+    payment.order.save()
 
     # when
-    payment_user = payment.get_user()
+    has_user = payment_owned_by_user(payment.pk, customer_user2)
 
     # then
-    assert payment_user == customer_user2
+    assert has_user
 
 
-def test_get_user_from_checkout(payment, checkout, customer_user2):
+def test_payment_owned_by_user_from_checkout(payment, checkout, customer_user2):
     # given
-    assert checkout.user != customer_user2
     checkout.user = customer_user2
     checkout.save()
     payment.checkout = checkout
@@ -580,17 +580,19 @@ def test_get_user_from_checkout(payment, checkout, customer_user2):
     payment.save()
 
     # when
-    payment_user = payment.get_user()
+    has_user = payment_owned_by_user(payment.pk, customer_user2)
 
     # then
-    assert payment_user == customer_user2
+    assert has_user
 
 
 @pytest.mark.parametrize(
     ["not_none", "none"],
     [(["order"], ["checkout"]), (["checkout"], ["order"]), ([], ["checkout", "order"])],
 )
-def test_get_none_user(payment, checkout, not_none, none):
+def test_payment_is_not_owned_by_user(
+    payment, checkout, not_none, none, customer_user2
+):
     # given
     for attr in none:
         setattr(payment, attr, None)
@@ -604,7 +606,18 @@ def test_get_none_user(payment, checkout, not_none, none):
         assert getattr(payment, attr).user is None
 
     # when
-    payment_user = payment.get_user()
+    has_user = payment_owned_by_user(payment.pk, customer_user2)
 
     # then
-    assert payment_user is None
+    assert not has_user
+
+
+def test_payment_owned_by_user_anonymous_user(payment):
+    # given
+    user = AnonymousUser()
+
+    # when
+    has_user = payment_owned_by_user(payment.pk, user)
+
+    # then
+    assert not has_user
