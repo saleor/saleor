@@ -142,7 +142,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `page_type_id` when it's possible for `AttributeValue` translations webhook. - #7825 by @fowczarek
 - Optimize available quantity loader. - #7802 by @fowczarek
 - Configure a periodic task for removing empty allocations - #7885 by @fowczarek
-
 - Add webhooks for stock changes: `PRODUCT_VARIANT_OUT_OF_STOCK` and `PRODUCT_VARIANT_BACK_IN_STOCK`  - #7590 by @mstrumeck
 
 ### Breaking
