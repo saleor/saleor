@@ -41,11 +41,7 @@ from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..channel.utils import clean_channel
-from ..core.descriptions import (
-    ADDED_IN_31,
-    DEPRECATED_IN_3X_FIELD,
-    DEPRECATED_IN_3X_INPUT,
-)
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_INPUT
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import UUID
@@ -613,7 +609,7 @@ class CheckoutCustomerAttach(BaseMutation):
         customer_id = graphene.ID(
             required=False,
             description=(
-                f"{ADDED_IN_31} ID of customer to attach to checkout. Can be used to "
+                "ID of customer to attach to checkout. Can be used to "
                 "attach customer to checkout by staff or app. Requires MANAGE_USERS "
                 "permission."
             ),
