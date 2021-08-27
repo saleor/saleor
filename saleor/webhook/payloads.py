@@ -126,6 +126,22 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
     )
 
 
+def _generate_collection_point_payload(warehouse: "Warehouse"):
+    serializer = PayloadSerializer()
+    collection_point_fields = (
+        "name",
+        "email",
+        "click_and_collect_option",
+        "is_private",
+    )
+    collection_point_data = serializer.serialize(
+        [warehouse],
+        fields=collection_point_fields,
+        additional_fields={"address": (lambda w: w.address, ADDRESS_FIELDS)},
+    )
+    return collection_point_data
+
+
 def generate_order_payload(order: "Order"):
     serializer = PayloadSerializer()
     fulfillment_fields = (
@@ -197,6 +213,11 @@ def generate_order_payload(order: "Order"):
             "original": graphene.Node.to_global_id("Order", order.original_id),
             "lines": json.loads(generate_order_lines_payload(lines)),
             "fulfillments": json.loads(fulfillments_data),
+            "collection_point": json.loads(
+                _generate_collection_point_payload(order.collection_point)
+            )[0]
+            if order.collection_point
+            else None,
         },
     )
     return order_data
@@ -242,7 +263,12 @@ def generate_checkout_payload(checkout: "Checkout"):
         },
         extra_dict_data={
             # Casting to list to make it json-serializable
-            "lines": list(lines_dict_data)
+            "lines": list(lines_dict_data),
+            "collection_point": json.loads(
+                _generate_collection_point_payload(checkout.collection_point)
+            )[0]
+            if checkout.collection_point
+            else None,
         },
     )
     return checkout_data
