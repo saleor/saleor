@@ -22,7 +22,9 @@ from .types import GiftCard, GiftCardEvent
 
 class GiftCardInput(graphene.InputObjectType):
     tag = graphene.String(description=f"{ADDED_IN_31} The gift card tag.")
-    expiry_date = graphene.types.datetime.Date(description="The gift card expiry date.")
+    expiry_date = graphene.types.datetime.Date(
+        description=f"{ADDED_IN_31} The gift card expiry date."
+    )
 
     # DEPRECATED
     start_date = graphene.types.datetime.Date(
@@ -47,10 +49,12 @@ class GiftCardCreateInput(GiftCardInput):
         description="Email of the customer to whom gift card will be sent.",
     )
     channel = graphene.String(
-        description="Slug of a channel from which the email should be sent."
+        description=(
+            f"{ADDED_IN_31} Slug of a channel from which the email should be sent."
+        )
     )
     is_active = graphene.Boolean(
-        required=True, description="Determine if gift card is active."
+        required=True, description=f"{ADDED_IN_31} Determine if gift card is active."
     )
     code = graphene.String(
         required=False,
@@ -59,7 +63,9 @@ class GiftCardCreateInput(GiftCardInput):
             f"{DEPRECATED_IN_3X_INPUT} The code is now auto generated."
         ),
     )
-    note = graphene.String(description="The gift card note from the staff member.")
+    note = graphene.String(
+        description=f"{ADDED_IN_31} The gift card note from the staff member."
+    )
 
 
 class GiftCardUpdateInput(GiftCardInput):
@@ -340,7 +346,7 @@ class GiftCardResend(BaseMutation):
         )
 
     class Meta:
-        description = "Resend a gift card."
+        description = f"{ADDED_IN_31} Resend a gift card."
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
 
@@ -413,7 +419,7 @@ class GiftCardAddNote(BaseMutation):
         )
 
     class Meta:
-        description = "Adds note to the gift card."
+        description = f"{ADDED_IN_31} Adds note to the gift card."
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
 
