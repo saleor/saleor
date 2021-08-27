@@ -104,7 +104,6 @@ CREATE_PAYMENT_MUTATION = """
             metadata: $metadata
         ) {
             payment {
-                id
                 transactions {
                     kind,
                     token

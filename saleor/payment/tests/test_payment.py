@@ -24,8 +24,6 @@ from ..utils import (
     validate_gateway_response,
 )
 
-pytest_plugins = ["saleor.plugins.webhook.tests.test_payment_webhook"]
-
 NOT_ACTIVE_PAYMENT_ERROR = "This payment is no longer active."
 EXAMPLE_ERROR = "Example dummy error"
 
