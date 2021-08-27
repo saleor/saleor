@@ -565,10 +565,10 @@ def test_payment_owned_by_user_from_order(payment, customer_user2):
     payment.order.save()
 
     # when
-    has_user = payment_owned_by_user(payment.pk, customer_user2)
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
 
     # then
-    assert has_user
+    assert is_owned
 
 
 def test_payment_owned_by_user_from_checkout(payment, checkout, customer_user2):
@@ -580,36 +580,36 @@ def test_payment_owned_by_user_from_checkout(payment, checkout, customer_user2):
     payment.save()
 
     # when
-    has_user = payment_owned_by_user(payment.pk, customer_user2)
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
 
     # then
-    assert has_user
+    assert is_owned
 
 
-@pytest.mark.parametrize(
-    ["not_none", "none"],
-    [(["order"], ["checkout"]), (["checkout"], ["order"]), ([], ["checkout", "order"])],
-)
-def test_payment_is_not_owned_by_user(
-    payment, checkout, not_none, none, customer_user2
-):
+def test_payment_is_not_owned_by_user_for_order(payment, customer_user2):
     # given
-    for attr in none:
-        setattr(payment, attr, None)
-    for attr in not_none:
-        if attr == "checkout":
-            payment.checkout = checkout
-        elif attr == "order":
-            payment.order.user = None
-        payment.save()
-        assert getattr(payment, attr) is not None
-        assert getattr(payment, attr).user is None
+    assert payment.checkout is None
+    assert payment.order.user != customer_user2
 
     # when
-    has_user = payment_owned_by_user(payment.pk, customer_user2)
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
 
     # then
-    assert not has_user
+    assert not is_owned
+
+
+def test_payment_is_not_owned_by_user_for_checkout(payment, checkout, customer_user2):
+    # given
+    assert checkout.user != customer_user2
+    payment.checkout = checkout
+    payment.order = None
+    payment.save()
+
+    # when
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
+
+    # then
+    assert not is_owned
 
 
 def test_payment_owned_by_user_anonymous_user(payment):
@@ -617,7 +617,7 @@ def test_payment_owned_by_user_anonymous_user(payment):
     user = AnonymousUser()
 
     # when
-    has_user = payment_owned_by_user(payment.pk, user)
+    is_owned = payment_owned_by_user(payment.pk, user)
 
     # then
-    assert not has_user
+    assert not is_owned
