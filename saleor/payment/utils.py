@@ -80,6 +80,8 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
+        store=payment.store,
+        payment_metadata=payment.metadata,
     )
 
 

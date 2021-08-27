@@ -26,7 +26,6 @@ from ..utils import (
 
 pytest_plugins = ["saleor.plugins.webhook.tests.test_payment_webhook"]
 
-
 NOT_ACTIVE_PAYMENT_ERROR = "This payment is no longer active."
 EXAMPLE_ERROR = "Example dummy error"
 
@@ -233,6 +232,74 @@ def test_create_payment_information_for_draft_order(draft_order):
     assert billing.street_address_1 == draft_order.billing_address.street_address_1
     assert billing.city == draft_order.billing_address.city
     assert shipping == billing
+
+
+@pytest.mark.parametrize("store", ["NONE", "ON_SESSION", "OFF_SESSION"])
+def test_create_payment_information_store(checkout_with_item, address, store):
+    # given
+    checkout_with_item.billing_address = address
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    total = checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    data = {
+        "gateway": "Dummy",
+        "payment_token": "token",
+        "total": total.gross.amount,
+        "currency": checkout_with_item.currency,
+        "email": "test@example.com",
+        "customer_ip_address": "127.0.0.1",
+        "checkout": checkout_with_item,
+        "store": store,
+    }
+
+    # when
+    payment = create_payment(**data)
+    payment_data = create_payment_information(payment, "token", payment.total)
+
+    # then
+    assert payment_data.store == store
+
+
+@pytest.mark.parametrize(
+    "metadata", [{f"key{i}": f"value{i}" for i in range(5)}, {}, None]
+)
+def test_create_payment_information_metadata(checkout_with_item, address, metadata):
+    # given
+    checkout_with_item.billing_address = address
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    total = checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    data = {
+        "gateway": "Dummy",
+        "payment_token": "token",
+        "total": total.gross.amount,
+        "currency": checkout_with_item.currency,
+        "email": "test@example.com",
+        "customer_ip_address": "127.0.0.1",
+        "checkout": checkout_with_item,
+        "metadata": metadata,
+    }
+
+    # when
+    payment = create_payment(**data)
+    payment_data = create_payment_information(payment, "token", payment.total)
+
+    # then
+    assert payment_data.payment_metadata == (metadata or {})
 
 
 def test_create_transaction(transaction_data):
