@@ -2,11 +2,12 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 
 from ...checkout.calculations import checkout_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import PluginsManager, get_plugins_manager
-from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
+from .. import ChargeStatus, GatewayError, PaymentError, Store, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
 from ..interface import GatewayResponse, PaymentMethodInfo
 from ..models import Payment
@@ -18,6 +19,7 @@ from ..utils import (
     create_payment_information,
     create_transaction,
     is_currency_supported,
+    payment_owned_by_user,
     update_payment,
     validate_gateway_response,
 )
@@ -111,6 +113,7 @@ def test_create_payment(checkout_with_item, address):
     }
     payment = create_payment(**data)
     assert payment.gateway == "Dummy"
+    assert payment.store == Store.NONE
 
     same_payment = create_payment(**data)
     assert payment == same_payment
@@ -550,3 +553,68 @@ def test_update_payment(gateway_response, payment_txn_captured):
     assert payment.cc_exp_year == gateway_response.payment_method_info.exp_year
     assert payment.cc_exp_month == gateway_response.payment_method_info.exp_month
     assert payment.payment_method_type == gateway_response.payment_method_info.type
+
+
+def test_payment_owned_by_user_from_order(payment, customer_user2):
+    # given
+    assert payment.checkout is None
+    payment.order.user = customer_user2
+    payment.order.save()
+
+    # when
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
+
+    # then
+    assert is_owned
+
+
+def test_payment_owned_by_user_from_checkout(payment, checkout, customer_user2):
+    # given
+    checkout.user = customer_user2
+    checkout.save()
+    payment.checkout = checkout
+    payment.order = None
+    payment.save()
+
+    # when
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
+
+    # then
+    assert is_owned
+
+
+def test_payment_is_not_owned_by_user_for_order(payment, customer_user2):
+    # given
+    assert payment.checkout is None
+    assert payment.order.user != customer_user2
+
+    # when
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
+
+    # then
+    assert not is_owned
+
+
+def test_payment_is_not_owned_by_user_for_checkout(payment, checkout, customer_user2):
+    # given
+    assert checkout.user != customer_user2
+    payment.checkout = checkout
+    payment.order = None
+    payment.save()
+
+    # when
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
+
+    # then
+    assert not is_owned
+
+
+def test_payment_owned_by_user_anonymous_user(payment):
+    # given
+    user = AnonymousUser()
+
+    # when
+    is_owned = payment_owned_by_user(payment.pk, user)
+
+    # then
+    assert not is_owned
