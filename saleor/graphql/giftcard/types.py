@@ -76,7 +76,7 @@ class GiftCardEvent(CountableDjangoObjectType):
     )
 
     class Meta:
-        description = "History log of the gift card."
+        description = f"{ADDED_IN_31} History log of the gift card."
         model = models.GiftCardEvent
         interfaces = [graphene.relay.Node]
         only_fields = ["id"]

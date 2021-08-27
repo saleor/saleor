@@ -3,6 +3,7 @@ import graphene
 from ...core.permissions import GiftcardPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...giftcard import events, models
+from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types.common import GiftCardError
 
@@ -14,7 +15,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
         )
 
     class Meta:
-        description = "Delete gift cards."
+        description = f"{ADDED_IN_31} Delete gift cards."
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
@@ -27,7 +28,7 @@ class GiftCardBulkActivate(BaseBulkMutation):
         )
 
     class Meta:
-        description = "Activate gift cards."
+        description = f"{ADDED_IN_31} Activate gift cards."
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
@@ -52,7 +53,7 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
         )
 
     class Meta:
-        description = "Deactivate gift cards."
+        description = f"{ADDED_IN_31} Deactivate gift cards."
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
