@@ -1,6 +1,8 @@
 from datetime import date, timedelta
 from unittest import mock
 
+import pytest
+
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
 from .....giftcard.models import GiftCard
@@ -550,7 +552,9 @@ def test_create_gift_card_with_expiry_date(
     )
 
 
-def test_create_gift_card_with_expiry_date_type_date_in_past(
+@pytest.mark.parametrize("date_value", [date(1999, 1, 1), date.today()])
+def test_create_gift_card_with_expiry_date_type_invalid(
+    date_value,
     staff_api_client,
     customer_user,
     permission_manage_gift_card,
@@ -560,7 +564,6 @@ def test_create_gift_card_with_expiry_date_type_date_in_past(
     # given
     initial_balance = 100
     currency = "USD"
-    date_value = date(1999, 1, 1)
     tag = "gift-card-tag"
     variables = {
         "input": {
