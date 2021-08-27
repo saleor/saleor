@@ -3862,6 +3862,15 @@ def payment_dummy(db, order_with_lines):
 
 
 @pytest.fixture
+def payment(payment_dummy, payment_app):
+    gateway_id = "credit-card"
+    gateway = to_payment_app_id(payment_app, gateway_id)
+    payment_dummy.gateway = gateway
+    payment_dummy.save()
+    return payment_dummy
+
+
+@pytest.fixture
 def payment_dummy_fully_charged(payment_dummy):
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
