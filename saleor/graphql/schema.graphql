@@ -997,13 +997,15 @@ type Checkout implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   availableShippingMethods: [ShippingMethod]!
+  availableCollectionPoints: [Warehouse!]!
   availablePaymentGateways: [PaymentGateway!]!
   email: String!
   isShippingRequired: Boolean!
   quantity: Int!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
+  deliveryMethod: DeliveryMethod
   subtotalPrice: TaxedMoney
   token: UUID!
   totalPrice: TaxedMoney
@@ -1069,6 +1071,11 @@ type CheckoutCustomerDetach {
   errors: [CheckoutError!]!
 }
 
+type CheckoutDeliveryMethodUpdate {
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
 type CheckoutEmailUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -1098,6 +1105,7 @@ enum CheckoutErrorCode {
   REQUIRED
   SHIPPING_ADDRESS_NOT_SET
   SHIPPING_METHOD_NOT_APPLICABLE
+  DELIVERY_METHOD_NOT_APPLICABLE
   SHIPPING_METHOD_NOT_SET
   SHIPPING_NOT_REQUIRED
   TAX_ERROR
@@ -1788,6 +1796,8 @@ type DeletePrivateMetadata {
   errors: [MetadataError!]!
   item: ObjectWithMetadata
 }
+
+union DeliveryMethod = Warehouse | ShippingMethod
 
 type DigitalContent implements Node & ObjectWithMetadata {
   useDefaultSettings: Boolean!
@@ -3782,7 +3792,8 @@ type Mutation {
   checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
   checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
-  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate
+  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
+  checkoutDeliveryMethodUpdate(deliveryMethodId: ID, token: UUID): CheckoutDeliveryMethodUpdate
   checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
@@ -3881,8 +3892,8 @@ type Order implements Node & ObjectWithMetadata {
   trackingClientId: String!
   billingAddress: Address
   shippingAddress: Address
-  shippingMethod: ShippingMethod
   shippingMethodName: String
+  collectionPointName: String
   channel: Channel!
   shippingPrice: TaxedMoney!
   shippingTaxRate: Float!
@@ -3899,6 +3910,7 @@ type Order implements Node & ObjectWithMetadata {
   lines: [OrderLine]!
   actions: [OrderAction]!
   availableShippingMethods: [ShippingMethod]
+  availableCollectionPoints: [Warehouse!]!
   invoices: [Invoice]
   number: String
   original: ID
@@ -3909,6 +3921,7 @@ type Order implements Node & ObjectWithMetadata {
   payments: [Payment]
   total: TaxedMoney!
   undiscountedTotal: TaxedMoney!
+  shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
   subtotal: TaxedMoney!
   statusDisplay: String
   canFinalize: Boolean!
@@ -3918,6 +3931,7 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  deliveryMethod: DeliveryMethod
   languageCode: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `languageCodeEnum` field to fetch the language code. ")
   languageCodeEnum: LanguageCodeEnum!
   discount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use discounts field.")
@@ -6865,9 +6879,17 @@ type Warehouse implements Node & ObjectWithMetadata {
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
   email: String!
+  isPrivate: Boolean!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   companyName: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Address.companyName` instead.")
+  clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
+}
+
+enum WarehouseClickAndCollectOptionEnum {
+  DISABLED
+  LOCAL
+  ALL
 }
 
 type WarehouseCountableConnection {
@@ -6917,8 +6939,10 @@ enum WarehouseErrorCode {
 }
 
 input WarehouseFilterInput {
+  clickAndCollectOption: WarehouseClickAndCollectOptionEnum
   search: String
   ids: [ID]
+  isPrivate: Boolean
 }
 
 type WarehouseShippingZoneAssign {
@@ -6953,6 +6977,8 @@ input WarehouseUpdateInput {
   email: String
   name: String
   address: AddressInput
+  clickAndCollectOption: WarehouseClickAndCollectOptionEnum
+  isPrivate: Boolean
 }
 
 type Webhook implements Node {

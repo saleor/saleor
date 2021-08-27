@@ -167,7 +167,10 @@ def _validate_checkout(
     shipping_required = is_shipping_required(lines)
     address = shipping_address or checkout_info.billing_address
     return _validate_adddress_details(
-        shipping_address, shipping_required, address, checkout_info.shipping_method
+        shipping_address,
+        shipping_required,
+        address,
+        checkout_info.delivery_method_info.delivery_method,
     )
 
 

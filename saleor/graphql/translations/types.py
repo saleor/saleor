@@ -43,7 +43,7 @@ def get_translatable_attribute_values(attributes: list) -> List[AttributeValue]:
 
     Return those which are translatable attributes.
     """
-    translatable_values = []
+    translatable_values: List[AttributeValue] = []
     for assignment in attributes:
         attr = assignment["attribute"]
         if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:

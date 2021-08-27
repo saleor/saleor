@@ -32,7 +32,7 @@ from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
 from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
-from ....warehouse.models import Allocation, Stock
+from ....warehouse.models import Allocation, Stock, Warehouse
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...order.mutations.orders import (
     clean_order_cancel,
@@ -332,8 +332,21 @@ query OrdersQuery {
                     }
                     type
                 }
+                availableCollectionPoints {
+                    id
+                    name
+                }
                 shippingMethod{
                     id
+                }
+                deliveryMethod {
+                    __typename
+                    ... on ShippingMethod {
+                        id
+                    }
+                    ... on Warehouse {
+                        id
+                    }
                 }
             }
         }
@@ -394,18 +407,27 @@ def test_order_query(
         country_code=order.shipping_address.country.code,
         channel_id=order.channel_id,
     )
+    expected_collection_points = Warehouse.objects.applicable_for_click_and_collect(
+        lines_qs=order.lines, country=order.shipping_address.country.code
+    )
+
     assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
+    assert len(order_data["availableCollectionPoints"]) == (
+        expected_collection_points.count()
+    )
 
     method = order_data["availableShippingMethods"][0]
     expected_method = expected_methods.first()
     expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
     )
+
     assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
     assert expected_method.type.upper() == method["type"]
+    assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
 
 
 def test_order_query_shipping_method_channel_listing_does_not_exist(
