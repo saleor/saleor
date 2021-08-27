@@ -3,6 +3,10 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+# 3.1.0 [Unreleased]
+- Extend app by `AppExtension` - #7701 by @korycins
+
+# 3.0.0 [Unreleased]
 
 - Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
@@ -140,6 +144,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Configure a periodic task for removing empty allocations - #7885 by @fowczarek
 
 - Add `customerId` to `checkoutCustomerAttach` mutation - #7754 by @korycins
+- Add webhooks for stock changes: `PRODUCT_VARIANT_OUT_OF_STOCK` and `PRODUCT_VARIANT_BACK_IN_STOCK`  - #7590 by @mstrumeck
+- Allow impersonating user by an app/staff - #7754 by @korycins:
+  - Add `customerId` to `checkoutCustomerAttach` mutation
+  - Add new permision `IMPERSONATE_USER`
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
