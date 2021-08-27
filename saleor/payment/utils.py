@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 
 import graphene
 from babel.numbers import get_currency_precision
-from django.contrib.auth.models import AnonymousUser
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
 
@@ -431,8 +430,8 @@ def price_to_minor_unit(value: Decimal, currency: str):
     return str(value_without_comma.quantize(Decimal("1")))
 
 
-def payment_has_user(payment_pk: int, user) -> bool:
-    if user == AnonymousUser():
+def payment_owned_by_user(payment_pk: int, user) -> bool:
+    if user.is_anonymous:
         return False
     return (
         Payment.objects.filter(

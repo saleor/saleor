@@ -20,7 +20,7 @@ from ...core.permissions import (
     ProductTypePermissions,
     ShippingPermissions,
 )
-from ...payment.utils import payment_has_user
+from ...payment.utils import payment_owned_by_user
 
 
 def no_permissions(_info, _object_pk: Any) -> List[None]:
@@ -107,9 +107,9 @@ def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum]:
     context_user = info.context.user
-    if info.context.app is not None or info.context.user.is_staff:
+    if info.context.app is not None or context_user.is_staff:
         return [PaymentPermissions.HANDLE_PAYMENTS]
-    if payment_has_user(payment_pk, context_user):
+    if payment_owned_by_user(payment_pk, context_user):
         return []
     raise PermissionDenied()
 

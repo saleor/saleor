@@ -6,7 +6,7 @@ from django.http import HttpResponse
 
 from saleor.core.models import ModelWithMetadata
 from saleor.payment.models import Payment
-from saleor.payment.utils import payment_has_user
+from saleor.payment.utils import payment_owned_by_user
 
 from ...tests.fixtures import ApiClient
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -1063,7 +1063,7 @@ def test_query_public_meta_for_payment_as_customer(
     user_api_client, payment_with_public_metadata, permission_manage_orders
 ):
     # given
-    assert payment_has_user(payment_with_public_metadata.pk, user_api_client.user)
+    assert payment_owned_by_user(payment_with_public_metadata.pk, user_api_client.user)
 
     # when
     response = execute_query_public_metadata_for_payment(
@@ -1082,7 +1082,9 @@ def test_query_public_meta_for_payment_as_another_customer(
     permission_manage_orders,
 ):
     # given
-    assert not payment_has_user(payment_with_public_metadata.pk, user2_api_client.user)
+    assert not payment_owned_by_user(
+        payment_with_public_metadata.pk, user2_api_client.user
+    )
     # when
     response = execute_query_public_metadata_for_payment(
         user2_api_client,
