@@ -6,19 +6,13 @@ from saleor.payment import ChargeStatus, TransactionKind
 
 
 def migrate_voided_transactions(apps, schema_editor):
-    Transaction = apps.get_model("payment", "Transaction")
+    Payment = apps.get_model("payment", "Payment")
 
-    for ct in (
-        Transaction.objects.filter(
-            payment__charge_status=ChargeStatus.NOT_CHARGED,
-            is_success=True,
-            kind=TransactionKind.VOID,
-        )
-        .select_related("payment")
-        .iterator()
-    ):
-        ct.payment.charge_status = ChargeStatus.CANCELLED
-        ct.payment.save(update_fields=["charge_status"])
+    Payment.objects.filter(
+        charge_status=ChargeStatus.NOT_CHARGED,
+        transactions__is_success=True,
+        transactions__kind=TransactionKind.VOID,
+    ).update(charge_status=ChargeStatus.CANCELLED)
 
 
 class Migration(migrations.Migration):
