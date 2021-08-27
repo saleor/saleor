@@ -1,11 +1,15 @@
 import graphene
 from graphene import relay
 
+from ...core.exceptions import PermissionDenied
 from ...core.tracing import traced_resolver
 from ...payment import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Money
+from ..meta.permissions import public_payment_permissions
+from ..meta.resolvers import resolve_metadata
 from ..meta.types import ObjectWithMetadata
+from ..utils import get_user_or_app_from_context
 from .enums import OrderAction, PaymentChargeStatusEnum
 
 
@@ -161,6 +165,14 @@ class Payment(CountableDjangoObjectType):
         if not any(data.values()):
             return None
         return CreditCard(**data)
+
+    @staticmethod
+    def resolve_metadata(root: models.Payment, info):
+        permissions = public_payment_permissions(info, root.pk)
+        requester = get_user_or_app_from_context(info.context)
+        if not requester.has_perms(permissions):
+            raise PermissionDenied()
+        return resolve_metadata(root.metadata)
 
 
 class PaymentInitialized(graphene.ObjectType):

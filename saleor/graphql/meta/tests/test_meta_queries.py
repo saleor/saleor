@@ -6,6 +6,7 @@ from django.http import HttpResponse
 
 from saleor.core.models import ModelWithMetadata
 from saleor.payment.models import Payment
+from saleor.payment.utils import payment_owned_by_user
 
 from ...tests.fixtures import ApiClient
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -15,8 +16,6 @@ PRIVATE_VALUE = "private_vale"
 
 PUBLIC_KEY = "key"
 PUBLIC_VALUE = "value"
-
-pytest_plugins = ["saleor.graphql.meta.tests"]
 
 
 def execute_query(
@@ -1064,7 +1063,7 @@ def test_query_public_meta_for_payment_as_customer(
     user_api_client, payment_with_public_metadata, permission_manage_orders
 ):
     # given
-    assert user_api_client.user == payment_with_public_metadata.get_user()
+    assert payment_owned_by_user(payment_with_public_metadata.pk, user_api_client.user)
 
     # when
     response = execute_query_public_metadata_for_payment(
@@ -1083,8 +1082,9 @@ def test_query_public_meta_for_payment_as_another_customer(
     permission_manage_orders,
 ):
     # given
-    assert user2_api_client.user != payment_with_public_metadata.get_user()
-
+    assert not payment_owned_by_user(
+        payment_with_public_metadata.pk, user2_api_client.user
+    )
     # when
     response = execute_query_public_metadata_for_payment(
         user2_api_client,
@@ -1102,9 +1102,6 @@ def test_query_public_meta_for_payment_as_staff_with_permission(
     permission_manage_orders,
     permission_manage_payments,
 ):
-    # given
-    ...
-
     # when
     response = execute_query_public_metadata_for_payment(
         staff_api_client,
@@ -1119,9 +1116,6 @@ def test_query_public_meta_for_payment_as_staff_with_permission(
 def test_query_public_meta_for_payment_as_staff_without_permission(
     staff_api_client, payment_with_public_metadata
 ):
-    # given
-    ...
-
     # when
     response = execute_query_public_metadata_for_payment(
         staff_api_client, payment_with_public_metadata
@@ -1137,9 +1131,6 @@ def test_query_public_meta_for_payment_as_app_with_permission(
     permission_manage_orders,
     permission_manage_payments,
 ):
-    # given
-    ...
-
     # when
     response = execute_query_public_metadata_for_payment(
         app_api_client,
@@ -1154,9 +1145,6 @@ def test_query_public_meta_for_payment_as_app_with_permission(
 def test_query_public_meta_for_payment_as_app_without_permission(
     app_api_client, payment_with_public_metadata
 ):
-    # given
-    ...
-
     # when
     response = execute_query_public_metadata_for_payment(
         app_api_client, payment_with_public_metadata
@@ -2684,9 +2672,6 @@ def test_query_private_meta_for_payment_as_staff_with_permission(
     permission_manage_orders,
     permission_manage_payments,
 ):
-    # given
-    ...
-
     # when
     response = execute_query_private_metadata_for_payment(
         staff_api_client,
@@ -2701,9 +2686,6 @@ def test_query_private_meta_for_payment_as_staff_with_permission(
 def test_query_private_meta_for_payment_as_staff_without_permission(
     staff_api_client, payment_with_private_metadata
 ):
-    # given
-    ...
-
     # when
     response = execute_query_private_metadata_for_payment(
         staff_api_client, payment_with_private_metadata
@@ -2719,9 +2701,6 @@ def test_query_private_meta_for_payment_as_app_with_permission(
     permission_manage_orders,
     permission_manage_payments,
 ):
-    # given
-    ...
-
     # when
     response = execute_query_private_metadata_for_payment(
         app_api_client,
@@ -2736,9 +2715,6 @@ def test_query_private_meta_for_payment_as_app_with_permission(
 def test_query_private_meta_for_payment_as_app_without_permission(
     app_api_client, payment_with_private_metadata
 ):
-    # given
-    ...
-
     # when
     response = execute_query_private_metadata_for_payment(
         app_api_client, payment_with_private_metadata
