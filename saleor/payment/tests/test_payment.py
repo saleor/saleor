@@ -19,7 +19,7 @@ from ..utils import (
     create_payment_information,
     create_transaction,
     is_currency_supported,
-    payment_has_user,
+    payment_owned_by_user,
     update_payment,
     validate_gateway_response,
 )
@@ -558,20 +558,20 @@ def test_update_payment(gateway_response, payment_txn_captured):
     assert payment.payment_method_type == gateway_response.payment_method_info.type
 
 
-def test_payment_has_user_from_order(payment, customer_user2):
+def test_payment_owned_by_user_from_order(payment, customer_user2):
     # given
     assert payment.checkout is None
     payment.order.user = customer_user2
     payment.order.save()
 
     # when
-    has_user = payment_has_user(payment.pk, customer_user2)
+    has_user = payment_owned_by_user(payment.pk, customer_user2)
 
     # then
     assert has_user
 
 
-def test_payment_has_user_from_checkout(payment, checkout, customer_user2):
+def test_payment_owned_by_user_from_checkout(payment, checkout, customer_user2):
     # given
     checkout.user = customer_user2
     checkout.save()
@@ -580,7 +580,7 @@ def test_payment_has_user_from_checkout(payment, checkout, customer_user2):
     payment.save()
 
     # when
-    has_user = payment_has_user(payment.pk, customer_user2)
+    has_user = payment_owned_by_user(payment.pk, customer_user2)
 
     # then
     assert has_user
@@ -590,7 +590,9 @@ def test_payment_has_user_from_checkout(payment, checkout, customer_user2):
     ["not_none", "none"],
     [(["order"], ["checkout"]), (["checkout"], ["order"]), ([], ["checkout", "order"])],
 )
-def test_payment_does_not_have_user(payment, checkout, not_none, none, customer_user2):
+def test_payment_is_not_owned_by_user(
+    payment, checkout, not_none, none, customer_user2
+):
     # given
     for attr in none:
         setattr(payment, attr, None)
@@ -604,18 +606,18 @@ def test_payment_does_not_have_user(payment, checkout, not_none, none, customer_
         assert getattr(payment, attr).user is None
 
     # when
-    has_user = payment_has_user(payment.pk, customer_user2)
+    has_user = payment_owned_by_user(payment.pk, customer_user2)
 
     # then
     assert not has_user
 
 
-def test_payment_has_user_anonymous_user(payment):
+def test_payment_owned_by_user_anonymous_user(payment):
     # given
     user = AnonymousUser()
 
     # when
-    has_user = payment_has_user(payment.pk, user)
+    has_user = payment_owned_by_user(payment.pk, user)
 
     # then
     assert not has_user

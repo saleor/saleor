@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
 from ....invoice.models import Invoice
-from ....payment.utils import payment_has_user
+from ....payment.utils import payment_owned_by_user
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 PRIVATE_KEY = "private_key"
@@ -759,7 +759,9 @@ def test_update_public_metadata_for_payment_by_different_logged_user(
     user2_api_client, payment_with_public_metadata
 ):
     # given
-    assert not payment_has_user(payment_with_public_metadata.pk, user2_api_client.user)
+    assert not payment_owned_by_user(
+        payment_with_public_metadata.pk, user2_api_client.user
+    )
     payment_id = graphene.Node.to_global_id("Payment", payment_with_public_metadata.pk)
     variables = {
         "id": payment_id,
