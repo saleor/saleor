@@ -4577,6 +4577,7 @@ type Payment implements Node {
   order: Order
   paymentMethodType: String!
   customerIpAddress: String
+  pspReference: String
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
   total: Money

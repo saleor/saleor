@@ -949,7 +949,8 @@ def test_payments_query(
 QUERY_PAYMENT_BY_ID = """
     query payment($id: ID!) {
         payment(id: $id) {
-            id
+            id,
+            pspReference
         }
     }
 """
@@ -958,6 +959,8 @@ QUERY_PAYMENT_BY_ID = """
 def test_query_payment(payment_dummy, user_api_client, permission_manage_orders):
     query = QUERY_PAYMENT_BY_ID
     payment = payment_dummy
+    payment.psp_reference = "A psp_reference"
+    payment.save()
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"id": payment_id}
     response = user_api_client.post_graphql(
@@ -966,6 +969,8 @@ def test_query_payment(payment_dummy, user_api_client, permission_manage_orders)
     content = get_graphql_content(response)
     received_id = content["data"]["payment"]["id"]
     assert received_id == payment_id
+    psp_reference = content["data"]["payment"]["pspReference"]
+    assert psp_reference == "A psp_reference"
 
 
 def test_staff_query_payment_by_invalid_id(
