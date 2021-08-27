@@ -39,6 +39,7 @@ from ..enums import (
     WebhookErrorCode,
     WeightUnitsEnum,
     WishlistErrorCode,
+    CategoryCustomErrorCode,
 )
 from ..scalars import PositiveDecimal
 from .money import VAT
@@ -449,3 +450,17 @@ class Job(graphene.Interface):
 class TimePeriod(graphene.ObjectType):
     amount = graphene.Int(description="The length of the period.", required=True)
     type = TimePeriodTypeEnum(description="The type of the period.", required=True)
+
+
+class CategoryCustomError(Error):
+    code = CategoryCustomErrorCode(description="The error code.", required=True)
+    attributes = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of attributes IDs which causes the error.",
+        required=False,
+    )
+    values = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of attribute values IDs which causes the error.",
+        required=False,
+    )
