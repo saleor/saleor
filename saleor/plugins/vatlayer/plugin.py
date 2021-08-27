@@ -217,7 +217,7 @@ class VatlayerPlugin(BasePlugin):
         if address:
             taxes = self._get_taxes_for_country(address.country)
         if (
-            not checkout_info.shipping_method
+            not checkout_info.delivery_method_info.delivery_method
             or not checkout_info.shipping_method_channel_listings
         ):
             return previous_value

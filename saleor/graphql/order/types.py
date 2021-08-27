@@ -1,6 +1,7 @@
 from decimal import Decimal
 from operator import attrgetter
 from typing import Optional
+from uuid import UUID
 
 import graphene
 import prices
@@ -21,11 +22,16 @@ from ...core.permissions import (
 from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
+from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
-from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
+from ...order.utils import (
+    get_order_country,
+    get_valid_collection_points_for_order,
+    get_valid_shipping_methods_for_order,
+)
 from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import (
@@ -315,7 +321,7 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_warehouse(root: models.OrderEvent, info):
         if warehouse_pk := root.parameters.get("warehouse"):
-            return WarehouseByIdLoader(info.context).load(warehouse_pk)
+            return WarehouseByIdLoader(info.context).load(UUID(warehouse_pk))
         return None
 
     @staticmethod
@@ -614,6 +620,11 @@ class Order(CountableDjangoObjectType):
         required=False,
         description="Shipping methods that can be used with this order.",
     )
+    available_collection_points = graphene.List(
+        graphene.NonNull(Warehouse),
+        required=True,
+        description=f"{ADDED_IN_31} Collection points that can be used for this order.",
+    )
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
     )
@@ -638,6 +649,13 @@ class Order(CountableDjangoObjectType):
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
+
+    shipping_method = graphene.Field(
+        ShippingMethod,
+        description="The shipping method related with order.",
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
+    )
+
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
@@ -674,6 +692,10 @@ class Order(CountableDjangoObjectType):
     )
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
+    )
+    delivery_method = graphene.Field(
+        DeliveryMethod,
+        description=f"{ADDED_IN_31} The delivery method selected for this checkout.",
     )
     language_code = graphene.String(
         deprecation_reason=(
@@ -727,8 +749,8 @@ class Order(CountableDjangoObjectType):
             "gift_cards",
             "id",
             "shipping_address",
-            "shipping_method",
             "shipping_method_name",
+            "collection_point_name",
             "shipping_price",
             "shipping_tax_rate",
             "status",
@@ -1041,6 +1063,17 @@ class Order(CountableDjangoObjectType):
             wrap_shipping_method_with_channel_context
         )
 
+    @classmethod
+    def resolve_delivery_method(cls, root: models.Order, info):
+        if root.shipping_method_id:
+            return cls.resolve_shipping_method(root, info)
+        if root.collection_point_id:
+            collection_point = WarehouseByIdLoader(info.context).load(
+                root.collection_point_id
+            )
+            return collection_point
+        return None
+
     @staticmethod
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
@@ -1075,6 +1108,18 @@ class Order(CountableDjangoObjectType):
         ]
 
         return instances
+
+    @classmethod
+    @traced_resolver
+    def resolve_available_collection_points(cls, root: models.Order, info):
+        def get_available_collection_points(data):
+            lines, address = data
+
+            return get_valid_collection_points_for_order(lines, address)
+
+        lines = cls.resolve_lines(root, info)
+        address = cls.resolve_shipping_address(root, info)
+        return Promise.all([lines, address]).then(get_available_collection_points)
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):

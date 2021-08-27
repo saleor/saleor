@@ -577,6 +577,24 @@ def get_valid_shipping_methods_for_order(order: Order):
     )
 
 
+def is_shipping_required(lines: Iterable["OrderLine"]):
+    return any(line.is_shipping_required for line in lines)
+
+
+def get_valid_collection_points_for_order(lines: Iterable["OrderLine"], address):
+    if not is_shipping_required(lines):
+        return []
+    if not address:
+        return []
+
+    line_ids = [line.id for line in lines]
+    lines = OrderLine.objects.filter(id__in=line_ids)
+
+    return Warehouse.objects.applicable_for_click_and_collect(
+        lines, address.country.code
+    )
+
+
 def get_discounted_lines(lines, voucher):
     discounted_products = voucher.products.all()
     discounted_categories = set(voucher.categories.all())
