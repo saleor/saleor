@@ -8,12 +8,16 @@ from saleor.payment import ChargeStatus, TransactionKind
 def migrate_authorized_transactions(apps, schema_editor):
     Transaction = apps.get_model("payment", "Transaction")
 
-    for ct in Transaction.objects.filter(
-        payment__charge_status=ChargeStatus.NOT_CHARGED,
-        is_success=True,
-        kind=TransactionKind.AUTH,
-        action_required=False,
-    ).iterator():
+    for ct in (
+        Transaction.objects.filter(
+            payment__charge_status=ChargeStatus.NOT_CHARGED,
+            is_success=True,
+            kind=TransactionKind.AUTH,
+            action_required=False,
+        )
+        .select_related("payment")
+        .iterator()
+    ):
         ct.payment.charge_status = ChargeStatus.AUTHORIZED
         ct.payment.save(update_fields=["charge_status"])
 
