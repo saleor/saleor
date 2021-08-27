@@ -3,7 +3,11 @@ from unittest.mock import patch
 import graphene
 
 from .....checkout.error_codes import CheckoutErrorCode
-from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.fetch import (
+    fetch_checkout_info,
+    fetch_checkout_lines,
+    get_delivery_method_info,
+)
 from .....plugins.manager import get_plugins_manager
 from ....tests.utils import get_graphql_content
 
@@ -29,7 +33,7 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
 """
 
 
-@patch("saleor.graphql.checkout.mutations.clean_shipping_method")
+@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
 def test_checkout_shipping_method_update_by_id(
     mock_clean_shipping,
     staff_api_client,
@@ -54,7 +58,9 @@ def test_checkout_shipping_method_update_by_id(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    checkout_info.shipping_method = old_shipping_method
+    checkout_info.delivery_method_info = get_delivery_method_info(
+        old_shipping_method, None
+    )
     checkout_info.shipping_method_channel_listings = None
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info, lines=lines, method=shipping_method
@@ -65,7 +71,7 @@ def test_checkout_shipping_method_update_by_id(
     assert checkout.shipping_method == shipping_method
 
 
-@patch("saleor.graphql.checkout.mutations.clean_shipping_method")
+@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
 def test_checkout_shipping_method_update_by_token(
     mock_clean_shipping,
     staff_api_client,
@@ -90,7 +96,9 @@ def test_checkout_shipping_method_update_by_token(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    checkout_info.shipping_method = old_shipping_method
+    checkout_info.delivery_method_info = get_delivery_method_info(
+        old_shipping_method, None
+    )
     checkout_info.shipping_method_channel_listings = None
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info, lines=lines, method=shipping_method
@@ -101,7 +109,7 @@ def test_checkout_shipping_method_update_by_token(
     assert checkout.shipping_method == shipping_method
 
 
-@patch("saleor.graphql.checkout.mutations.clean_shipping_method")
+@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
 def test_checkout_shipping_method_update_neither_token_and_id_given(
     mock_clean_shipping, staff_api_client, checkout_with_item, shipping_method
 ):
@@ -117,7 +125,7 @@ def test_checkout_shipping_method_update_neither_token_and_id_given(
     assert data["errors"][0]["code"] == CheckoutErrorCode.GRAPHQL_ERROR.name
 
 
-@patch("saleor.graphql.checkout.mutations.clean_shipping_method")
+@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
 def test_checkout_shipping_method_update_both_token_and_id_given(
     mock_clean_shipping, staff_api_client, checkout_with_item, shipping_method
 ):

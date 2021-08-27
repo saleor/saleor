@@ -36,7 +36,7 @@ from ..attribute.models import (
 )
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info
-from ..checkout.models import Checkout
+from ..checkout.models import Checkout, CheckoutLine
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus, TimePeriodType
 from ..core.payments import PaymentInterface
@@ -108,6 +108,7 @@ from ..shipping.models import (
     ShippingZone,
 )
 from ..site.models import SiteSettings
+from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Allocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
 from ..webhook.models import Webhook, WebhookEvent
@@ -271,7 +272,7 @@ def checkout(db, channel_USD):
 
 @pytest.fixture
 def checkout_with_item(checkout, product):
-    variant = product.variants.get()
+    variant = product.variants.first()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
@@ -552,6 +553,20 @@ def user_checkout(customer_user, channel_USD):
 
 
 @pytest.fixture
+def user_checkout_for_cc(customer_user, channel_USD, warehouse_for_cc):
+    checkout = Checkout.objects.create(
+        user=customer_user,
+        channel=channel_USD,
+        billing_address=customer_user.default_billing_address,
+        shipping_address=warehouse_for_cc.address,
+        collection_point=warehouse_for_cc,
+        note="Test notes",
+        currency="USD",
+    )
+    return checkout
+
+
+@pytest.fixture
 def user_checkout_PLN(customer_user, channel_PLN):
     checkout = Checkout.objects.create(
         user=customer_user,
@@ -572,6 +587,28 @@ def user_checkout_with_items(user_checkout, product_list):
         add_variant_to_checkout(checkout_info, variant, 1)
     user_checkout.refresh_from_db()
     return user_checkout
+
+
+@pytest.fixture
+def user_checkout_with_items_for_cc(user_checkout_for_cc, product_list):
+    checkout_info = fetch_checkout_info(
+        user_checkout_for_cc, [], [], get_plugins_manager()
+    )
+    for product in product_list:
+        variant = product.variants.get()
+        add_variant_to_checkout(checkout_info, variant, 1)
+    user_checkout_for_cc.refresh_from_db()
+    return user_checkout_for_cc
+
+
+@pytest.fixture
+def user_checkouts(request, user_checkout_with_items, user_checkout_with_items_for_cc):
+    if request.param == "regular":
+        return user_checkout_with_items
+    elif request.param == "click_and_collect":
+        return user_checkout_with_items_for_cc
+    else:
+        raise ValueError("Internal test error")
 
 
 @pytest.fixture
@@ -1918,6 +1955,7 @@ def product_variant_list(product, channel_USD, channel_PLN):
                 ProductVariant(product=product, sku="1"),
                 ProductVariant(product=product, sku="2"),
                 ProductVariant(product=product, sku="3"),
+                ProductVariant(product=product, sku="4"),
             ]
         )
     )
@@ -1943,6 +1981,13 @@ def product_variant_list(product, channel_USD, channel_PLN):
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(10),
                 currency=channel_PLN.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[3],
+                channel=channel_USD,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
             ),
         ]
     )
@@ -2735,6 +2780,7 @@ def order_with_lines(
     stock = Stock.objects.create(
         product_variant=variant, warehouse=warehouse, quantity=2
     )
+    stock.refresh_from_db()
 
     net = variant.get_price(product, [], channel_USD, channel_listing)
     currency = net.currency
@@ -2768,6 +2814,33 @@ def order_with_lines(
     net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
+    order.save()
+
+    recalculate_order(order)
+
+    order.refresh_from_db()
+    return order
+
+
+@pytest.fixture
+def order_with_lines_for_cc(
+    warehouse_for_cc,
+    channel_USD,
+    customer_user,
+):
+    address = customer_user.default_billing_address.get_copy()
+
+    order = Order.objects.create(
+        billing_address=address,
+        channel=channel_USD,
+        currency=channel_USD.currency_code,
+        shipping_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
+        origin=OrderOrigin.CHECKOUT,
+    )
+
+    order.collection_point = warehouse_for_cc
     order.save()
 
     recalculate_order(order)
@@ -4223,6 +4296,177 @@ def warehouses(address, address_usa):
             ),
         ]
     )
+
+
+@pytest.fixture()
+def warehouses_for_cc(address, shipping_zones):
+    warehouses = Warehouse.objects.bulk_create(
+        [
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse1",
+                slug="warehouse1",
+                email="warehouse1@example.com",
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse2",
+                slug="warehouse2",
+                email="warehouse2@example.com",
+                click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse3",
+                slug="warehouse3",
+                email="warehouse3@example.com",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+                is_private=False,
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse4",
+                slug="warehouse4",
+                email="warehouse4@example.com",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+                is_private=False,
+            ),
+        ]
+    )
+    for warehouse in warehouses:
+        warehouse.shipping_zones.add(shipping_zones[0])
+        warehouse.shipping_zones.add(shipping_zones[1])
+        warehouse.save()
+    return warehouses
+
+
+@pytest.fixture
+def warehouse_for_cc(address, product_variant_list, shipping_zones):
+    warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="Local Warehouse",
+        slug="local-warehouse",
+        email="local@example.com",
+        is_private=False,
+        click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+    )
+    warehouse.shipping_zones.add(shipping_zones[0])
+    warehouse.shipping_zones.add(shipping_zones[1])
+
+    Stock.objects.bulk_create(
+        [
+            Stock(
+                warehouse=warehouse, product_variant=product_variant_list[0], quantity=1
+            ),
+            Stock(
+                warehouse=warehouse, product_variant=product_variant_list[1], quantity=2
+            ),
+            Stock(
+                warehouse=warehouse, product_variant=product_variant_list[2], quantity=2
+            ),
+        ]
+    )
+    return warehouse
+
+
+@pytest.fixture(params=["warehouse_for_cc", "shipping_method"])
+def delivery_method(request, warehouse_for_cc, shipping_method):
+    if request.param == "warehouse":
+        return warehouse_for_cc
+    if request.param == "shipping_method":
+        return shipping_method
+
+
+@pytest.fixture
+def stocks_for_cc(warehouses_for_cc, product_variant_list, product_with_two_variants):
+    return Stock.objects.bulk_create(
+        [
+            Stock(
+                warehouse=warehouses_for_cc[0],
+                product_variant=product_variant_list[0],
+                quantity=5,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[1],
+                product_variant=product_variant_list[0],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[1],
+                product_variant=product_variant_list[1],
+                quantity=10,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[1],
+                product_variant=product_variant_list[2],
+                quantity=10,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[2],
+                product_variant=product_variant_list[0],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[3],
+                product_variant=product_variant_list[0],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[3],
+                product_variant=product_variant_list[1],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[3],
+                product_variant=product_with_two_variants.variants.last(),
+                quantity=7,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[3],
+                product_variant=product_variant_list[2],
+                quantity=3,
+            ),
+        ]
+    )
+
+
+@pytest.fixture
+def checkout_for_cc(channel_USD, customer_user, product_variant_list):
+    return Checkout.objects.create(
+        channel=channel_USD,
+        billing_address=customer_user.default_billing_address,
+        shipping_address=customer_user.default_shipping_address,
+        note="Test notes",
+        currency="USD",
+    )
+
+
+@pytest.fixture
+def checkout_with_items_for_cc(checkout_for_cc, product_variant_list):
+    CheckoutLine.objects.bulk_create(
+        [
+            CheckoutLine(
+                checkout=checkout_for_cc, variant=product_variant_list[0], quantity=1
+            ),
+            CheckoutLine(
+                checkout=checkout_for_cc, variant=product_variant_list[1], quantity=1
+            ),
+            CheckoutLine(
+                checkout=checkout_for_cc, variant=product_variant_list[2], quantity=1
+            ),
+        ]
+    )
+    checkout_for_cc.set_country("US", commit=True)
+
+    return checkout_for_cc
+
+
+@pytest.fixture
+def checkout_with_item_for_cc(checkout_for_cc, product_variant_list):
+    CheckoutLine.objects.create(
+        checkout=checkout_for_cc, variant=product_variant_list[0], quantity=1
+    )
+    return checkout_for_cc
 
 
 @pytest.fixture
