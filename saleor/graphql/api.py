@@ -20,6 +20,7 @@ from .plugins.schema import PluginsMutations, PluginsQueries
 from .product.schema import ProductMutations, ProductQueries
 from .shipping.schema import ShippingMutations, ShippingQueries
 from .shop.schema import ShopMutations, ShopQueries
+from .stock_transfer.schema import StockTransferQueries, StockTransferMutation
 from .translations.schema import TranslationQueries
 from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
@@ -47,6 +48,7 @@ class Query(
     TranslationQueries,
     WarehouseQueries,
     WebhookQueries,
+    StockTransferQueries
 ):
     pass
 
@@ -73,6 +75,7 @@ class Mutation(
     ShopMutations,
     WarehouseMutations,
     WebhookMutations,
+    StockTransferMutation
 ):
     pass
 
