@@ -2,7 +2,10 @@ import graphene
 from promise import Promise
 
 from ...checkout import calculations, models
-from ...checkout.utils import get_valid_shipping_methods_for_checkout
+from ...checkout.utils import (
+    get_app_shipping_id,
+    get_valid_shipping_methods_for_checkout,
+)
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import zero_taxed_money
@@ -250,6 +253,19 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Checkout, info):
+        external_app_shipping_id = get_app_shipping_id(checkout=root)
+
+        if external_app_shipping_id:
+            shipping_method = info.context.plugins.get_shipping_method(
+                checkout=root,
+                channel_slug=root.channel.slug,
+                shipping_method_id=external_app_shipping_id,
+            )
+            if shipping_method:
+                return ChannelContext(
+                    node=shipping_method, channel_slug=root.channel.slug
+                )
+
         if not root.shipping_method_id:
             return None
 
@@ -430,6 +446,16 @@ class Checkout(CountableDjangoObjectType):
                 .then(map_shipping_method_with_channel)
             )
 
+        plugin_shipping_methods = info.context.plugins.list_shipping_methods(
+            checkout=root, channel_slug=root.channel.slug
+        )
+
+        if plugin_shipping_methods:
+            return [
+                ChannelContext(node=shipping, channel_slug=root.channel.slug)
+                for shipping in plugin_shipping_methods
+            ]
+
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
         address = (
             AddressByIdLoader(info.context).load(root.shipping_address_id)
@@ -441,6 +467,7 @@ class Checkout(CountableDjangoObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
+
         return Promise.all([address, lines, checkout_info, discounts, channel]).then(
             calculate_available_shipping_methods
         )

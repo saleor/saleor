@@ -12,9 +12,11 @@ from ..channel.types import (
     ChannelContext,
     ChannelContextType,
     ChannelContextTypeWithMetadata,
+    ChannelContextTypeWithMetadataForObjectType,
 )
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import ChannelContextFilterConnectionField
+from ..core.scalars import WeightScalar
 from ..core.types import CountryDisplay, Money, MoneyRange
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -69,7 +71,7 @@ class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
         ]
 
 
-class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
         ShippingMethodTranslation,
@@ -100,23 +102,36 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description="List of excluded products for the shipping method.",
     )
 
+    id = graphene.ID(required=True, description="Shipping method ID.")
+    name = graphene.String(required=True, description="Shipping method name.")
+    description = graphene.JSONString(description="Shipping method description (JSON).")
+    minimum_order_weight = WeightScalar(
+        description="Minimum order weight to use this shipping method."
+    )
+    maximum_order_weight = WeightScalar(
+        description="Maximum order weight to use this shipping method."
+    )
+    maximum_delivery_days = graphene.Int(
+        description="Maximum number of days for delivery."
+    )
+    minimum_delivery_days = graphene.Int(
+        description="Minimal number of days for delivery."
+    )
+
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
         description = (
             "Shipping method are the methods you'll use to get customer's orders to "
             "them. They are directly exposed to the customers."
         )
-        model = models.ShippingMethod
         interfaces = [relay.Node, ObjectWithMetadata]
-        only_fields = [
-            "id",
-            "maximum_order_weight",
-            "minimum_order_weight",
-            "maximum_delivery_days",
-            "minimum_delivery_days",
-            "name",
-            "description",
-        ]
+
+    @staticmethod
+    def resolve_id(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
+        method_id = getattr(root.node, "pk", None)
+        if method_id:
+            return graphene.Node.to_global_id("ShippingMethod", root.node.pk)
+        return root.node.id
 
     @staticmethod
     def resolve_price(root: ChannelContext[models.ShippingMethod], info, **_kwargs):

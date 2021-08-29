@@ -26,6 +26,7 @@ from ...checkout.utils import (
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
+    set_app_shipping_id,
     validate_variants_in_checkout_lines,
 )
 from ...core import analytics
@@ -33,6 +34,7 @@ from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPu
 from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
+from ...plugins.webhook.utils import from_shipping_app_id
 from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import models as shipping_models
@@ -995,33 +997,38 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 }
             )
 
-        shipping_method = cls.get_node_or_error(
-            info,
-            shipping_method_id,
-            only_type=ShippingMethod,
-            field="shipping_method_id",
-            qs=shipping_models.ShippingMethod.objects.prefetch_related(
-                "postal_code_rules"
-            ),
-        )
-
-        shipping_method_is_valid = clean_shipping_method(
-            checkout_info=checkout_info,
-            lines=lines,
-            method=shipping_method,
-        )
-        if not shipping_method_is_valid:
-            raise ValidationError(
-                {
-                    "shipping_method": ValidationError(
-                        "This shipping method is not applicable.",
-                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
-                    )
-                }
+        app_shipping_id = from_shipping_app_id(shipping_method_id)
+        if app_shipping_id:
+            set_app_shipping_id(checkout=checkout, app_shipping_id=shipping_method_id)
+            checkout.save(update_fields=["private_metadata", "last_change"])
+        else:
+            shipping_method = cls.get_node_or_error(
+                info,
+                shipping_method_id,
+                only_type=ShippingMethod,
+                field="shipping_method_id",
+                qs=shipping_models.ShippingMethod.objects.prefetch_related(
+                    "postal_code_rules"
+                ),
             )
 
-        checkout.shipping_method = shipping_method
-        checkout.save(update_fields=["shipping_method", "last_change"])
+            shipping_method_is_valid = clean_shipping_method(
+                checkout_info=checkout_info,
+                lines=lines,
+                method=shipping_method,
+            )
+            if not shipping_method_is_valid:
+                raise ValidationError(
+                    {
+                        "shipping_method": ValidationError(
+                            "This shipping method is not applicable.",
+                            code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                        )
+                    }
+                )
+
+            checkout.shipping_method = shipping_method
+            checkout.save(update_fields=["shipping_method", "last_change"])
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
         )

@@ -775,6 +775,41 @@ class PluginsManager(PaymentInterface):
             )
         return gateways
 
+    def list_shipping_methods(
+        self,
+        checkout: Optional["Checkout"] = None,
+        channel_slug: Optional[str] = None,
+        active_only: bool = True,
+    ) -> List["ShippingMethod"]:
+        channel_slug = checkout.channel.slug if checkout else channel_slug
+        plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
+        shipping_plugins = [
+            plugin
+            for plugin in plugins
+            if "get_shipping_methods" in type(plugin).__dict__
+        ]
+
+        shipping_methods = []
+        for plugin in shipping_plugins:
+            shipping_methods.extend(
+                plugin.get_shipping_methods(checkout=checkout, previous_value=None)
+            )
+        return shipping_methods
+
+    def get_shipping_method(
+        self,
+        shipping_method_id: str,
+        checkout: Optional["Checkout"] = None,
+        channel_slug: Optional[str] = None,
+    ):
+        methods = {
+            method.id: method
+            for method in self.list_shipping_methods(
+                checkout=checkout, channel_slug=channel_slug
+            )
+        }
+        return methods.get(shipping_method_id)
+
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
         auth_basic_method = "external_obtain_access_tokens"
         plugins = self.get_plugins(active_only=active_only)

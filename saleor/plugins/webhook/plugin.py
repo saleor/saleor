@@ -18,6 +18,7 @@ from ...webhook.payloads import (
     generate_product_deleted_payload,
     generate_product_payload,
     generate_product_variant_payload,
+    generate_shipping_methods_payload,
     generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
@@ -25,6 +26,7 @@ from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
 from .utils import (
     from_payment_app_id,
     parse_list_payment_gateways_response,
+    parse_list_shipping_methods_response,
     parse_payment_action_response,
 )
 
@@ -393,3 +395,23 @@ class WebhookPlugin(BasePlugin):
             previous_value,
             **kwargs,
         )
+
+    def get_shipping_methods(
+        self, checkout: Optional["Checkout"], previous_value, **kwargs
+    ) -> List["ShippingMethod"]:
+        methods = []
+        apps = App.objects.for_event_type(
+            WebhookEventType.SHIPPING_LIST_METHODS
+        ).prefetch_related("webhooks")
+        for app in apps:
+            response_data = trigger_webhook_sync(
+                event_type=WebhookEventType.SHIPPING_LIST_METHODS,
+                data=generate_shipping_methods_payload(checkout),
+                app=app,
+            )
+            if response_data:
+                shipping_methods = parse_list_shipping_methods_response(
+                    response_data, app
+                )
+                methods.extend(shipping_methods)
+        return methods

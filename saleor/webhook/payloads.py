@@ -8,6 +8,7 @@ from django.db.models import F, QuerySet
 
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
+from ..checkout.utils import get_app_shipping_id
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,
@@ -20,7 +21,7 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
-from ..plugins.webhook.utils import from_payment_app_id
+from ..plugins.webhook.utils import from_payment_app_id, from_shipping_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
 from ..warehouse.models import Warehouse
@@ -525,6 +526,47 @@ def generate_list_gateways_payload(
     else:
         checkout_data = None
     payload = {"checkout": checkout_data, "currency": currency}
+    return json.dumps(payload)
+
+
+def generate_shipping_methods_payload(checkout: Optional["Checkout"]):
+    if checkout:
+        serializer = PayloadSerializer()
+        checkout_fields = (
+            "private_metadata",
+            "metadata",
+            "channel",
+        )
+
+        # todo use the most appropriate warehouse
+        warehouse = Warehouse.objects.get_first_warehouse_for_channel(
+            checkout.channel.pk
+        )
+
+        extra_shipping_dict_data = {}
+        app_shipping_id = get_app_shipping_id(checkout=checkout)
+        if app_shipping_id:
+            shipping_app_data = from_shipping_app_id(app_shipping_id)
+            extra_shipping_dict_data = {
+                "shipping_method_id": shipping_app_data.shipping_method_id
+            }
+        checkout_data = serializer.serialize(
+            [checkout],
+            fields=checkout_fields,
+            obj_id_name="token",
+            additional_fields={
+                "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
+                "warehouse_address": (lambda c: warehouse.address, ADDRESS_FIELDS),
+            },
+            extra_dict_data={
+                "lines": list(serialize_checkout_lines(checkout)),
+                **extra_shipping_dict_data,
+            },
+        )
+        checkout_data = json.loads(checkout_data)[0]
+    else:
+        checkout_data = None
+    payload = {"checkout": checkout_data}
     return json.dumps(payload)
 
 

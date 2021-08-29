@@ -6,6 +6,7 @@ from ..core.permissions import (
     PaymentPermissions,
     ProductPermissions,
     SitePermissions,
+    ShippingPermissions,
 )
 
 
@@ -51,6 +52,8 @@ class WebhookEventType:
     PAYMENT_VOID = "payment_void"
     PAYMENT_CONFIRM = "payment_confirm"
     PAYMENT_PROCESS = "payment_process"
+
+    SHIPPING_LIST_METHODS = "shipping_list_methods"
 
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
@@ -171,6 +174,7 @@ class WebhookEventType:
         PAYMENT_PROCESS: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_REFUND: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
+        SHIPPING_LIST_METHODS: ShippingPermissions.MANAGE_SHIPPING,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
     }

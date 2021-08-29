@@ -2,14 +2,18 @@ import decimal
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
+from prices import Money
+
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
+from ...shipping.interface import ShippingMethod
+
 
 if TYPE_CHECKING:
     from ...app.models import App
     from ...payment.interface import PaymentData
 
 
-APP_GATEWAY_ID_PREFIX = "app"
+APP_ID_PREFIX = "app"
 
 
 @dataclass
@@ -18,23 +22,44 @@ class PaymentAppData:
     name: str
 
 
+@dataclass
+class ShippingAppData:
+    app_pk: int
+    shipment_id: str
+    shipping_method_id: str
+
+
 def to_payment_app_id(app: "App", gateway_id: str) -> "str":
-    return f"{APP_GATEWAY_ID_PREFIX}:{app.pk}:{gateway_id}"
+    return f"{APP_ID_PREFIX}:{app.pk}:{gateway_id}"
+
+
+def to_shipping_app_id(app: "App", shipment_id: str, shipping_method_id: str) -> "str":
+    return f"{APP_ID_PREFIX}:{app.pk}:{shipment_id}:{shipping_method_id}"
 
 
 def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
     splitted_id = app_gateway_id.split(":")
-    if (
-        len(splitted_id) == 3
-        and splitted_id[0] == APP_GATEWAY_ID_PREFIX
-        and all(splitted_id)
-    ):
+    if len(splitted_id) == 3 and splitted_id[0] == APP_ID_PREFIX and all(splitted_id):
         try:
             app_pk = int(splitted_id[1])
         except (TypeError, ValueError):
             return None
         else:
             return PaymentAppData(app_pk, name=splitted_id[2])
+    return None
+
+
+def from_shipping_app_id(app_shipping_method_id: str) -> Optional["ShippingAppData"]:
+    splitted_id = app_shipping_method_id.split(":")
+    if len(splitted_id) == 4 and splitted_id[0] == APP_ID_PREFIX and all(splitted_id):
+        try:
+            app_pk = int(splitted_id[1])
+        except (TypeError, ValueError):
+            return None
+        else:
+            return ShippingAppData(
+                app_pk, shipment_id=splitted_id[2], shipping_method_id=splitted_id[3]
+            )
     return None
 
 
@@ -104,3 +129,24 @@ def parse_payment_action_response(
             "transaction_already_processed", False
         ),
     )
+
+
+def parse_list_shipping_methods_response(
+    response_data: Any, app: "App"
+) -> List["ShippingMethod"]:
+    shipping_methods = []
+    shipment_id = response_data.get("shipment_id")
+    for shipping_method_data in response_data.get("rates"):
+        method_id = shipping_method_data.get("id")
+        method_name = shipping_method_data.get("carrier")
+        method_rate = shipping_method_data.get("rate")
+        method_currency = shipping_method_data.get("currency")
+
+        shipping_methods.append(
+            ShippingMethod(
+                id=to_shipping_app_id(app, shipment_id, method_id),
+                name=method_name,
+                price=Money(method_rate, method_currency),
+            )
+        )
+    return shipping_methods

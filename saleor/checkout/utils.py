@@ -44,6 +44,9 @@ if TYPE_CHECKING:
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
+PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
+
+
 def get_user_checkout(
     user: User, checkout_queryset=Checkout.objects.all()
 ) -> Tuple[Optional[Checkout], bool]:
@@ -688,3 +691,13 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
                 )
             }
         )
+
+
+def set_app_shipping_id(checkout: Checkout, app_shipping_id: str):
+    checkout.store_value_in_private_metadata(
+        {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
+    )
+
+
+def get_app_shipping_id(checkout: Checkout):
+    return checkout.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
