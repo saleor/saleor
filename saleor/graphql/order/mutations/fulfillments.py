@@ -655,21 +655,48 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         Delete fulfillments themselves if metioned lines were only lines inside.
         """
         lines_to_remove = []
+        lines_to_update = []
         remaining_lines = []
+        quantity = 0
         for line_data in lines_info:
             if (
                 line_data.line.fulfillment.status
                 == FulfillmentStatus.WAITING_FOR_APPROVAL
             ):
-                lines_to_remove.append(line_data.line.id)
+                if line_data.quantity < line_data.line.quantity:
+                    _line = line_data.line
+                    _line.quantity = _line.quantity - line_data.quantity
+                    lines_to_update.append(_line)
+                    quantity += line_data.quantity
+                else:
+                    lines_to_remove.append(line_data.line.id)
+                    quantity += line_data.quantity
             else:
                 remaining_lines.append(line_data)
 
         lines_to_delete = order_models.FulfillmentLine.objects.filter(
             id__in=set(lines_to_remove)
         ).select_related("fulfillment")
+
         related_fulfillment_ids = [f.fulfillment.pk for f in lines_to_delete]
-        lines_to_delete.delete()
+        related_fulfillment_ids.extend([f.fulfillment.pk for f in lines_to_update])
+
+        order_line = None
+        if lines_to_update:
+            order_line = lines_to_update[0].order_line
+            order_models.FulfillmentLine.objects.bulk_update(
+                lines_to_update, ["quantity"]
+            )
+
+        if lines_to_delete:
+            order_line = lines_to_delete[0].order_line
+            lines_to_delete.delete()
+
+        if order_line:
+            order_line.quantity_fulfilled += quantity
+            order_line.save(update_fields=["quantity_fulfilled"])
+
+        # Delete fulfillment objects if they are empty
         order_models.Fulfillment.objects.filter(
             pk__in=related_fulfillment_ids, lines=None
         ).delete()
