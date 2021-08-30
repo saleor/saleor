@@ -1087,7 +1087,8 @@ def test_checkout_complete_without_redirect_url(
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
-    assert payment.transactions.count() == 1
+    assert order_payment.transactions.count() == 1
+    assert order_payment.complete_order
 
     gift_card.refresh_from_db()
     assert gift_card.current_balance == zero_money(gift_card.currency)
