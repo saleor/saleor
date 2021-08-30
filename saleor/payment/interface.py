@@ -125,6 +125,7 @@ class CustomerSource:
     id: str
     gateway: str
     credit_card_info: Optional[PaymentMethodInfo] = None
+    metadata: Optional[Dict[str, str]] = None
 
 
 @dataclass

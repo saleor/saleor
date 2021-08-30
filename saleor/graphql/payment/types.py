@@ -8,7 +8,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.types import Money
 from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
-from ..meta.types import ObjectWithMetadata
+from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..utils import get_user_or_app_from_context
 from .enums import OrderAction, PaymentChargeStatusEnum
 
@@ -66,6 +66,13 @@ class PaymentSource(graphene.ObjectType):
     payment_method_id = graphene.String(description="ID of stored payment method.")
     credit_card_info = graphene.Field(
         CreditCard, description="Stored credit card details if available."
+    )
+    metadata = graphene.List(
+        MetadataItem,
+        required=True,
+        description=(
+            "List of public metadata items. Can be accessed without permissions."
+        ),
     )
 
 

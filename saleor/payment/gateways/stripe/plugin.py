@@ -416,7 +416,6 @@ class StripeGatewayPlugin(BasePlugin):
             customer_id=customer_id,
         )
         if payment_methods:
-            channel_slug: str = self.channel.slug  # type: ignore
             customer_sources = [
                 CustomerSource(
                     id=payment_method.id,
@@ -428,9 +427,9 @@ class StripeGatewayPlugin(BasePlugin):
                         name=None,
                         brand=payment_method.card.brand,
                     ),
+                    metadata=payment_method.metadata,
                 )
                 for payment_method in payment_methods
-                if payment_method.metadata.get("channel") == channel_slug
             ]
             previous_value.extend(customer_sources)
         return previous_value

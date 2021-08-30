@@ -4802,6 +4802,7 @@ type PaymentSource {
   gateway: String!
   paymentMethodId: String
   creditCardInfo: CreditCard
+  metadata: [MetadataItem]!
 }
 
 type PaymentVoid {

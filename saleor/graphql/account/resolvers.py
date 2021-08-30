@@ -146,6 +146,7 @@ def prepare_graphql_payment_sources_type(payment_sources):
                     "brand": src.credit_card_info.brand,
                     "first_digits": src.credit_card_info.first_4,
                 },
+                "metadata": src.metadata,
             }
         )
     return sources
