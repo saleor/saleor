@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 import graphene
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 
@@ -1335,7 +1336,7 @@ class CheckoutComplete(BaseMutation):
 
             requestor = get_user_or_app_from_context(info.context)
             if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
-                customer = checkout.user
+                customer = checkout.user or AnonymousUser()
             else:
                 customer = info.context.user
 
