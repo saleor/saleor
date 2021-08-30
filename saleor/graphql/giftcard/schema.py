@@ -9,6 +9,7 @@ from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .bulk_mutations import (
     GiftCardBulkActivate,
+    GiftCardBulkCreate,
     GiftCardBulkDeactivate,
     GiftCardBulkDelete,
 )
@@ -78,6 +79,7 @@ class GiftCardMutations(graphene.ObjectType):
     gift_card_resend = GiftCardResend.Field()
     gift_card_add_note = GiftCardAddNote.Field()
 
+    gift_card_bulk_create = GiftCardBulkCreate.Field()
     gift_card_bulk_delete = GiftCardBulkDelete.Field()
     gift_card_bulk_activate = GiftCardBulkActivate.Field()
     gift_card_bulk_deactivate = GiftCardBulkDeactivate.Field()
