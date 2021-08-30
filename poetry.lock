@@ -1255,7 +1255,7 @@ plugins = ["setuptools"]
 
 [[package]]
 name = "jaeger-client"
-version = "4.6.0"
+version = "4.6.1"
 description = "Jaeger Python OpenTracing Tracer implementation"
 category = "main"
 optional = false
@@ -2676,7 +2676,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "f583c4254364ec3f17111dacf3bf6d7fd834ab4811e0b08a378b9480be43e106"
+content-hash = "b7731ba39e0aa063ba1554ac8e8d38275b3f253585094cd746a1e5839fb627aa"
 
 [metadata.files]
 adyen = [
@@ -3321,7 +3321,7 @@ isort = [
     {file = "isort-5.9.3.tar.gz", hash = "sha256:9c2ea1e62d871267b78307fe511c0838ba0da28698c5732d54e2790bf3ba9899"},
 ]
 jaeger-client = [
-    {file = "jaeger-client-4.6.0.tar.gz", hash = "sha256:7b8490cb7e8e4b2eef93dd3130f5d872381c137f5a866f6f1690cc73d9521b4d"},
+    {file = "jaeger-client-4.6.1.tar.gz", hash = "sha256:3bc27ad77e035efd0899f377a15f180467fec44b2afbf5be0660cc888a2a4ac3"},
 ]
 jinja2 = [
     {file = "Jinja2-3.0.1-py3-none-any.whl", hash = "sha256:1f06f2da51e7b56b8f238affdd6b4e2c61e39598a378cc49345bc1bd42a978a4"},
