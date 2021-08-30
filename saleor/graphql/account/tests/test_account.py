@@ -1004,6 +1004,42 @@ def test_user_with_cancelled_fulfillments(
     assert fulfillments[1]["status"] == FulfillmentStatus.CANCELED.upper()
 
 
+@pytest.mark.parametrize(
+    "metadata", [{f"key{i}": f"value{i}" for i in range(5)}, {}, None]
+)
+def test_user_with_payment_sources_metadata(
+    user_api_client,
+    customer_user,
+    permission_manage_users,
+    metadata,
+):
+    # given
+    query = """
+    query User($id: ID!) {
+        user(id: $id) {
+            storedPaymentSources {
+                metadata {
+                    key
+                    value
+                }
+            }
+        }
+    }
+    """
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": user_id}
+    # TODO: how to insert customer sources with metadata?
+
+    # when
+    user_api_client.user.user_permissions.add(permission_manage_users)
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["user"]["storedPaymentSources"]["metadata"]
+    assert metadata == [{"key": key, "value": value} for key, value in metadata.items()]
+
+
 ACCOUNT_REGISTER_MUTATION = """
     mutation RegisterAccount(
         $password: String!,
@@ -3635,7 +3671,6 @@ REQUEST_PASSWORD_RESET_MUTATION = """
     }
 """
 
-
 CONFIRM_ACCOUNT_MUTATION = """
     mutation ConfirmAccount($email: String!, $token: String!) {
         confirmAccount(email: $email, token: $token) {
@@ -4507,7 +4542,6 @@ def test_query_staff_members_with_filter_status(
     permission_manage_staff,
     staff_user,
 ):
-
     User.objects.bulk_create(
         [
             User(email="second@example.com", is_staff=True, is_active=False),
@@ -4530,7 +4564,6 @@ def test_query_staff_members_app_no_permission(
     app_api_client,
     permission_manage_staff,
 ):
-
     User.objects.bulk_create(
         [
             User(email="second@example.com", is_staff=True, is_active=False),
@@ -4822,7 +4855,6 @@ def test_address_query_as_app_with_permission(
 def test_address_query_as_app_without_permission(
     app_api_client, app, address_other_country
 ):
-
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
     response = app_api_client.post_graphql(ADDRESS_QUERY, variables)
     assert_no_permission(response)
