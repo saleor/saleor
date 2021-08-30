@@ -627,9 +627,8 @@ class CheckoutCustomerAttach(BaseMutation):
         customer_id = graphene.ID(
             required=False,
             description=(
-                "ID of customer to attach to checkout. Can be used to "
-                "attach customer to checkout by staff or app. Requires MANAGE_USERS "
-                "permission."
+                "ID of customer to attach to checkout. Can be used to attach customer "
+                "to checkout by staff or app. Requires IMPERSONATE_USER permission."
             ),
         )
         token = UUID(description="Checkout token.", required=False)
@@ -1336,6 +1335,8 @@ class CheckoutComplete(BaseMutation):
 
             requestor = get_user_or_app_from_context(info.context)
             if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+                # Allow impersonating user and process a checkout by using user details
+                # assigned to checkout.
                 customer = checkout.user or AnonymousUser()
             else:
                 customer = info.context.user
