@@ -524,6 +524,7 @@ def _process_payment(
     order_data: dict,
     manager: "PluginsManager",
     channel_slug: str,
+    complete_order: bool = False,
 ) -> Transaction:
     """Process the payment assigned to checkout."""
     try:
@@ -545,6 +546,8 @@ def _process_payment(
                 channel_slug=channel_slug,
             )
         payment.refresh_from_db()
+        payment.complete_order = complete_order
+        payment.save(update_fields=["complete_order"])
         if not txn.is_success:
             raise PaymentError(txn.error)
     except PaymentError as e:
@@ -561,6 +564,7 @@ def _complete_checkout_payment(
     payment_data,
     store_source,
     user,
+    complete_order: bool,
 ):
     """Complete processing a payment.
 
@@ -581,6 +585,7 @@ def _complete_checkout_payment(
         order_data=order_data,
         manager=manager,
         channel_slug=channel_slug,
+        complete_order=complete_order,
     )
 
     if txn.customer_id and user.is_authenticated:
@@ -629,7 +634,14 @@ def complete_checkout_payment(
         raise exc
 
     action_data, action_required = _complete_checkout_payment(
-        payment, manager, channel_slug, order_data, payment_data, store_source, user
+        payment,
+        manager,
+        channel_slug,
+        order_data,
+        payment_data,
+        store_source,
+        user,
+        complete_order=False,
     )
 
     return action_required, action_data
@@ -677,7 +689,14 @@ def complete_checkout(
         raise exc
 
     action_data, action_required = _complete_checkout_payment(
-        payment, manager, channel_slug, order_data, payment_data, store_source, user
+        payment,
+        manager,
+        channel_slug,
+        order_data,
+        payment_data,
+        store_source,
+        user,
+        complete_order=True,
     )
 
     order = None
