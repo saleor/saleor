@@ -965,9 +965,9 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     )
 
 
-@patch("saleor.checkout.complete_checkout.gateway.refund")
+@patch("saleor.checkout.complete_checkout.gateway.void")
 def test_checkout_complete_insufficient_stock_payment_voided(
-    gateway_refund_mock,
+    gateway_void_mock,
     checkout_with_item,
     address,
     shipping_method,
@@ -1008,6 +1008,7 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     payment.total = total.gross.amount
     payment.currency = total.gross.currency
     payment.checkout = checkout
+    payment.token = ChargeStatus.NOT_CHARGED
     payment.charge_status = ChargeStatus.NOT_CHARGED
     payment.save()
 
@@ -1024,7 +1025,7 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     assert data["errors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
-    gateway_refund_mock.assert_called_once_with(
+    gateway_void_mock.assert_called_once_with(
         payment, ANY, channel_slug=checkout_info.channel.slug
     )
 
