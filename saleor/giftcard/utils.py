@@ -196,7 +196,7 @@ def gift_cards_create(
             non_shippable_gift_cards.extend(line_gift_cards)
 
     gift_cards = GiftCard.objects.bulk_create(gift_cards)
-    events.gift_cards_bought(gift_cards, order.id, requestor_user, app)
+    events.gift_cards_bought_event(gift_cards, order.id, requestor_user, app)
 
     channel_slug = order.channel.slug
     # send to customer all non-shippable gift cards
