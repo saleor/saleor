@@ -7,7 +7,7 @@ from django.core.validators import validate_email
 from ...account.models import User
 from ...core.permissions import GiftcardPermissions
 from ...core.utils.promo_code import generate_promo_code
-from ...core.utils.validators import date_passed, user_is_valid
+from ...core.utils.validators import is_date_in_future, user_is_valid
 from ...giftcard import events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.notifications import send_gift_card_notification
@@ -137,11 +137,11 @@ class GiftCardCreate(ModelMutation):
     @staticmethod
     def clean_expiry_date(cleaned_input, instance):
         expiry_date = cleaned_input.get("expiry_date")
-        if expiry_date and date_passed(expiry_date):
+        if expiry_date and not is_date_in_future(expiry_date):
             raise ValidationError(
                 {
                     "expiry_date": ValidationError(
-                        "Expiry date cannot be in the past.",
+                        "Expiry date must be in the future.",
                         code=GiftCardErrorCode.INVALID.value,
                     )
                 }
