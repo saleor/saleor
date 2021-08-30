@@ -655,7 +655,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         Delete fulfillments themselves if metioned lines were only lines inside.
         """
         if not lines_info:
-            return [], []
+            return {}, []
 
         lines_to_remove = []
         lines_to_update = []
