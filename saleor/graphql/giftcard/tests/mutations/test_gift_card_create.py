@@ -176,7 +176,6 @@ def test_create_never_expiry_gift_card(
 def test_create_gift_card_by_app(
     send_notification_mock,
     app_api_client,
-    customer_user,
     permission_manage_gift_card,
     permission_manage_users,
 ):
