@@ -2428,6 +2428,20 @@ type GiftCardBulkActivate {
   errors: [GiftCardError!]!
 }
 
+type GiftCardBulkCreate {
+  count: Int!
+  giftCards: [GiftCard!]!
+  errors: [GiftCardError!]!
+}
+
+input GiftCardBulkCreateInput {
+  count: Int!
+  balance: PriceInput!
+  tag: String!
+  expiryDate: Date
+  isActive: Boolean!
+}
+
 type GiftCardBulkDeactivate {
   count: Int!
   errors: [GiftCardError!]!
@@ -4001,6 +4015,7 @@ type Mutation {
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
   giftCardResend(input: GiftCardResendInput!): GiftCardResend
   giftCardAddNote(id: ID!, input: GiftCardAddNoteInput!): GiftCardAddNote
+  giftCardBulkCreate(input: GiftCardBulkCreateInput!): GiftCardBulkCreate
   giftCardBulkDelete(ids: [ID]!): GiftCardBulkDelete
   giftCardBulkActivate(ids: [ID]!): GiftCardBulkActivate
   giftCardBulkDeactivate(ids: [ID]!): GiftCardBulkDeactivate
