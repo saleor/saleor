@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/ambv/black
-    rev: 21.7b0
+    rev: 21.8b0
     hooks:
       - id: black
         language_version: python3.8
@@ -26,7 +26,7 @@ repos:
       - id: seed-isort-config
 
   - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.9.2
+    rev: v5.9.3
     hooks:
       - id: isort
         args: ["--profile", "black"]
