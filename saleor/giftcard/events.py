@@ -31,6 +31,29 @@ def gift_card_issued_event(
     )
 
 
+def gift_cards_issued_event(
+    gift_cards: Iterable[GiftCard], user: UserType, app: AppType, balance: dict
+):
+    if not user_is_valid(user):
+        user = None
+    balance_data = {
+        "currency": balance["currency"],
+        "initial_balance": balance["amount"],
+        "current_balance": balance["amount"],
+    }
+    events = [
+        GiftCardEvent(
+            gift_card=gift_card,
+            user=user,
+            app=app,
+            type=GiftCardEvents.ISSUED,
+            parameters={"balance": balance_data, "expiry_date": gift_card.expiry_date},
+        )
+        for gift_card in gift_cards
+    ]
+    return GiftCardEvent.objects.bulk_create(events)
+
+
 def gift_card_sent_event(
     gift_card_id: int, user_id: Optional[int], app_id: Optional[int], email: str
 ):
