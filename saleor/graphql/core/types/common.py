@@ -15,6 +15,7 @@ from ..enums import (
     CollectionErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
+    ExternalNotificationTriggerErrorCode,
     GiftCardErrorCode,
     InvoiceErrorCode,
     JobStatusEnum,
@@ -158,6 +159,12 @@ class DiscountError(ProductWithoutVariantError):
 
 class ExportError(Error):
     code = ExportErrorCode(description="The error code.", required=True)
+
+
+class ExternalNotificationError(Error):
+    code = ExternalNotificationTriggerErrorCode(
+        description="The error code.", required=True
+    )
 
 
 class MenuError(Error):
