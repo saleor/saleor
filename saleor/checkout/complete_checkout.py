@@ -41,7 +41,7 @@ from ..warehouse.management import allocate_stocks
 from . import AddressType
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
-from .utils import get_only_active_payment, get_voucher_for_checkout
+from .utils import get_active_payments, get_voucher_for_checkout
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -656,6 +656,7 @@ def complete_checkout(
     discounts,
     user,
     app,
+    payment=None,
     site_settings=None,
     tracking_code=None,
     redirect_url=None,
@@ -669,8 +670,22 @@ def complete_checkout(
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
 
-    # For individual payments, checkoutComplete will process the payment
-    payment = get_only_active_payment(checkout)
+    # For individual payments, checkoutComplete will process the payment,
+    # otherwise a specific paymentID has to be provided
+    incomplete_payments = [
+        p for p in get_active_payments(checkout) if not p.is_authorized
+    ]
+
+    if payment is None:
+        if len(incomplete_payments) > 1:
+            raise ValidationError(
+                "When multiple active payments are present you have to provide "
+                "a specific paymentID as the input parameter.",
+                code=CheckoutErrorCode.PAYMENT_NOT_SET.value,
+            )
+
+        elif len(incomplete_payments) == 1:
+            payment = incomplete_payments[0]
 
     _prepare_checkout(
         manager=manager,
