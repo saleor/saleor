@@ -321,7 +321,9 @@ def test_shop_settings_mutation(
                 shop {
                     headerText,
                     includeTaxesInPrices,
-                    chargeTaxesOnShipping
+                    chargeTaxesOnShipping,
+                    fulfillmentAutoApprove,
+                    fulfillmentAllowUnpaid
                 }
                 errors {
                     field,
@@ -337,6 +339,7 @@ def test_shop_settings_mutation(
             "includeTaxesInPrices": False,
             "headerText": "Lorem ipsum",
             "chargeTaxesOnShipping": new_charge_taxes_on_shipping,
+            "fulfillmentAllowUnpaid": False,
         }
     }
     response = staff_api_client.post_graphql(
@@ -344,9 +347,11 @@ def test_shop_settings_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]["shop"]
-    assert data["includeTaxesInPrices"] is False
     assert data["headerText"] == "Lorem ipsum"
+    assert data["includeTaxesInPrices"] is False
     assert data["chargeTaxesOnShipping"] == new_charge_taxes_on_shipping
+    assert data["fulfillmentAutoApprove"] is True
+    assert data["fulfillmentAllowUnpaid"] is False
     site_settings.refresh_from_db()
     assert not site_settings.include_taxes_in_prices
     assert site_settings.charge_taxes_on_shipping == new_charge_taxes_on_shipping
@@ -1330,3 +1335,42 @@ def test_get_shop_limit_info_returns_null_by_default(staff_api_client):
             }
         }
     }
+
+
+CHANNEL_CURRENCIES_QUERY = """
+    query {
+        shop {
+            channelCurrencies
+        }
+    }
+"""
+
+
+def test_fetch_channel_currencies(
+    staff_api_client, channel_PLN, channel_USD, other_channel_USD
+):
+    query = CHANNEL_CURRENCIES_QUERY
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    assert set(content["data"]["shop"]["channelCurrencies"]) == {
+        channel_PLN.currency_code,
+        channel_USD.currency_code,
+    }
+
+
+def test_fetch_channel_currencies_by_app(
+    app_api_client, channel_PLN, channel_USD, other_channel_USD
+):
+    query = CHANNEL_CURRENCIES_QUERY
+    response = app_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    assert set(content["data"]["shop"]["channelCurrencies"]) == {
+        channel_PLN.currency_code,
+        channel_USD.currency_code,
+    }
+
+
+def test_fetch_channel_currencies_by_customer(api_client, channel_PLN, channel_USD):
+    query = CHANNEL_CURRENCIES_QUERY
+    response = api_client.post_graphql(query)
+    assert_no_permission(response)

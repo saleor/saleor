@@ -451,7 +451,7 @@ def external_notification_event(
 
 
 def fulfillment_canceled_event(
-    *, order: Order, user: UserType, app: AppType, fulfillment: Fulfillment
+    *, order: Order, user: UserType, app: AppType, fulfillment: Optional[Fulfillment]
 ) -> OrderEvent:
     if not user_is_valid(user):
         user = None
@@ -460,7 +460,7 @@ def fulfillment_canceled_event(
         type=OrderEvents.FULFILLMENT_CANCELED,
         user=user,
         app=app,
-        parameters={"composed_id": fulfillment.composed_id},
+        parameters={"composed_id": fulfillment.composed_id} if fulfillment else {},
     )
 
 
@@ -501,6 +501,24 @@ def fulfillment_fulfilled_items_event(
         user=user,
         app=app,
         parameters={"fulfilled_items": [line.pk for line in fulfillment_lines]},
+    )
+
+
+def fulfillment_awaits_approval_event(
+    *,
+    order: Order,
+    user: UserType,
+    app: AppType,
+    fulfillment_lines: List[FulfillmentLine]
+) -> OrderEvent:
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.FULFILLMENT_AWAITS_APPROVAL,
+        user=user,
+        app=app,
+        parameters={"awaiting_fulfillments": [line.pk for line in fulfillment_lines]},
     )
 
 

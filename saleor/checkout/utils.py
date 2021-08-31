@@ -351,7 +351,7 @@ def get_prices_of_discounted_specific_product(
             lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
-        ).gross
+        )
         line_unit_price = manager.calculate_checkout_line_unit_price(
             line_total,
             line.quantity,
@@ -360,7 +360,7 @@ def get_prices_of_discounted_specific_product(
             line_info,
             address,
             discounts,
-        )
+        ).gross
         line_prices.extend([line_unit_price] * line.quantity)
 
     return line_prices

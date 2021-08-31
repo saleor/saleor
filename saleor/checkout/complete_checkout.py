@@ -399,7 +399,7 @@ def _create_order(
     OrderLine.objects.bulk_create(order_lines)
 
     country_code = checkout_info.get_country()
-    allocate_stocks(order_lines_info, country_code, checkout_info.channel.slug)
+    allocate_stocks(order_lines_info, country_code, checkout_info.channel.slug, manager)
 
     # Add gift cards to the order
     for gift_card in checkout.gift_cards.select_for_update():

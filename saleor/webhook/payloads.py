@@ -4,8 +4,9 @@ from dataclasses import asdict
 from typing import TYPE_CHECKING, Iterable, Optional
 
 import graphene
-from django.db.models import F, QuerySet
+from django.db.models import F, QuerySet, Sum
 
+from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
@@ -22,7 +23,7 @@ from ..payment import ChargeStatus
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
-from ..warehouse.models import Warehouse
+from ..warehouse.models import Stock, Warehouse
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
 from .serializers import (
@@ -39,6 +40,7 @@ if TYPE_CHECKING:
     from ..account.models import User
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData
+    from ..translation.models import Translation
 
 
 ADDRESS_FIELDS = (
@@ -261,11 +263,11 @@ def generate_customer_payload(customer: "User"):
         ],
         additional_fields={
             "default_shipping_address": (
-                lambda c: c.default_billing_address,
+                lambda c: c.default_shipping_address,
                 ADDRESS_FIELDS,
             ),
             "default_billing_address": (
-                lambda c: c.default_shipping_address,
+                lambda c: c.default_billing_address,
                 ADDRESS_FIELDS,
             ),
             "addresses": (
@@ -394,6 +396,23 @@ def generate_product_variant_media_payload(product_variant):
     ]
 
 
+def generate_product_variant_with_stock_payload(stocks: Iterable["Stock"]):
+    serializer = PayloadSerializer()
+    extra_dict_data = {
+        "product_id": lambda v: graphene.Node.to_global_id(
+            "Product", v.product_variant.product_id
+        ),
+        "product_variant_id": lambda v: graphene.Node.to_global_id(
+            "ProductVariant", v.product_variant_id
+        ),
+        "warehouse_id": lambda v: graphene.Node.to_global_id(
+            "Warehouse", v.warehouse_id
+        ),
+        "product_slug": lambda v: v.product_variant.product.slug,
+    }
+    return serializer.serialize(stocks, fields=[], extra_dict_data=extra_dict_data)
+
+
 def generate_product_variant_payload(product_variants: Iterable["ProductVariant"]):
     serializer = PayloadSerializer()
     payload = serializer.serialize(
@@ -409,6 +428,10 @@ def generate_product_variant_payload(product_variants: Iterable["ProductVariant"
         },
     )
     return payload
+
+
+def generate_product_variant_stocks_payload(product_variant: "ProductVariant"):
+    return product_variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] or 0
 
 
 def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
@@ -609,3 +632,44 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
     else:
         payload = _generate_sample_order_payload(event_name)
     return json.loads(payload) if payload else None
+
+
+def process_translation_context(context):
+    additional_id_fields = [
+        ("product_id", "Product"),
+        ("product_variant_id", "ProductVariant"),
+        ("attribute_id", "Attribute"),
+        ("page_id", "Page"),
+        ("page_type_id", "PageType"),
+    ]
+    result = {}
+    for key, type_name in additional_id_fields:
+        if object_id := context.get(key, None):
+            result[key] = graphene.Node.to_global_id(type_name, object_id)
+        else:
+            result[key] = None
+    return result
+
+
+def generate_translation_payload(translation: "Translation"):
+    object_type, object_id = translation.get_translated_object_id()
+    translated_keys = [
+        {"key": key, "value": value}
+        for key, value in translation.get_translated_keys().items()
+    ]
+
+    context = None
+    if isinstance(translation, AttributeValueTranslation):
+        context = process_translation_context(translation.get_translation_context())
+
+    translation_data = {
+        "id": graphene.Node.to_global_id(object_type, object_id),
+        "language_code": translation.language_code,
+        "type": object_type,
+        "keys": translated_keys,
+    }
+
+    if context:
+        translation_data.update(context)
+
+    return json.dumps(translation_data)

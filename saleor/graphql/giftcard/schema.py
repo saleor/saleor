@@ -1,13 +1,16 @@
 import graphene
 
 from ...core.permissions import GiftcardPermissions
-from ..core.fields import PrefetchingConnectionField
+from ..core.descriptions import ADDED_IN_31
+from ..core.fields import FilterInputConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
+from .filters import GiftCardFilterInput
 from .mutations import (
     GiftCardActivate,
     GiftCardCreate,
     GiftCardDeactivate,
+    GiftCardDelete,
     GiftCardUpdate,
 )
 from .resolvers import resolve_gift_card, resolve_gift_cards
@@ -22,7 +25,13 @@ class GiftCardQueries(graphene.ObjectType):
         ),
         description="Look up a gift card by ID.",
     )
-    gift_cards = PrefetchingConnectionField(GiftCard, description="List of gift cards.")
+    gift_cards = FilterInputConnectionField(
+        GiftCard,
+        filter=GiftCardFilterInput(
+            description=f"{ADDED_IN_31} Filtering options for gift cards."
+        ),
+        description="List of gift cards.",
+    )
 
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
     def resolve_gift_card(self, info, **data):
@@ -37,5 +46,6 @@ class GiftCardQueries(graphene.ObjectType):
 class GiftCardMutations(graphene.ObjectType):
     gift_card_activate = GiftCardActivate.Field()
     gift_card_create = GiftCardCreate.Field()
+    gift_card_delete = GiftCardDelete.Field()
     gift_card_deactivate = GiftCardDeactivate.Field()
     gift_card_update = GiftCardUpdate.Field()
