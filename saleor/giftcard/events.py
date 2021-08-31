@@ -31,7 +31,7 @@ def gift_card_issued_event(
     )
 
 
-def gift_card_sent(
+def gift_card_sent_event(
     gift_card_id: int, user_id: Optional[int], app_id: Optional[int], email: str
 ):
     return GiftCardEvent.objects.create(
@@ -43,25 +43,7 @@ def gift_card_sent(
     )
 
 
-def gift_cards_sent(
-    gift_cards: Iterable[GiftCard], user: UserType, app: AppType, email: str
-):
-    if not user_is_valid(user):
-        user = None
-    gift_cards_events = [
-        GiftCardEvent(
-            gift_card=gift_card,
-            user=user,
-            app=app,
-            type=GiftCardEvents.SENT_TO_CUSTOMER,
-            parameters={"email": email},
-        )
-        for gift_card in gift_cards
-    ]
-    return GiftCardEvent.objects.bulk_create(gift_cards_events)
-
-
-def gift_card_resent(
+def gift_card_resent_event(
     gift_card_id: int, user_id: Optional[int], app_id: Optional[int], email: str
 ):
     return GiftCardEvent.objects.create(
@@ -73,7 +55,7 @@ def gift_card_resent(
     )
 
 
-def gift_card_balance_reset(
+def gift_card_balance_reset_event(
     gift_card: GiftCard,
     old_gift_card: GiftCard,
     user: UserType,
@@ -98,7 +80,7 @@ def gift_card_balance_reset(
     )
 
 
-def gift_card_expiry_date_updated(
+def gift_card_expiry_date_updated_event(
     gift_card: GiftCard,
     old_gift_card: GiftCard,
     user: UserType,
@@ -118,7 +100,7 @@ def gift_card_expiry_date_updated(
     )
 
 
-def gift_card_activated(
+def gift_card_activated_event(
     gift_card: GiftCard,
     user: UserType,
     app: AppType,
@@ -133,7 +115,7 @@ def gift_card_activated(
     )
 
 
-def gift_card_deactivated(
+def gift_card_deactivated_event(
     gift_card: GiftCard,
     user: UserType,
     app: AppType,
@@ -148,7 +130,7 @@ def gift_card_deactivated(
     )
 
 
-def gift_cards_activated(
+def gift_cards_activated_event(
     gift_card_ids: Iterable[int],
     user: UserType,
     app: AppType,
@@ -167,7 +149,7 @@ def gift_cards_activated(
     return GiftCardEvent.objects.bulk_create(events)
 
 
-def gift_cards_deactivated(
+def gift_cards_deactivated_event(
     gift_card_ids: Iterable[int],
     user: UserType,
     app: AppType,
@@ -186,7 +168,7 @@ def gift_cards_deactivated(
     return GiftCardEvent.objects.bulk_create(events)
 
 
-def gift_card_note_added(
+def gift_card_note_added_event(
     gift_card: GiftCard, user: UserType, app: AppType, message: str
 ) -> GiftCardEvent:
     if not user_is_valid(user):
@@ -200,7 +182,7 @@ def gift_card_note_added(
     )
 
 
-def gift_cards_used_in_order(
+def gift_cards_used_in_order_event(
     balance_data: Iterable[Tuple[GiftCard, float]],
     order_id: int,
     user: UserType,
@@ -228,7 +210,7 @@ def gift_cards_used_in_order(
     return GiftCardEvent.objects.bulk_create(events)
 
 
-def gift_cards_bought(
+def gift_cards_bought_event(
     gift_cards: Iterable[GiftCard], order_id: int, user: UserType, app: AppType
 ):
     if not user_is_valid(user):

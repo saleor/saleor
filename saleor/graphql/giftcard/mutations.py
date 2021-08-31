@@ -243,11 +243,11 @@ class GiftCardUpdate(GiftCardCreate):
         cls.save(info, instance, cleaned_input)
 
         if "initial_balance_amount" in cleaned_input:
-            events.gift_card_balance_reset(
+            events.gift_card_balance_reset_event(
                 instance, old_instance, info.context.user, info.context.app
             )
         if "expiry_date" in cleaned_input:
-            events.gift_card_expiry_date_updated(
+            events.gift_card_expiry_date_updated_event(
                 instance, old_instance, info.context.user, info.context.app
             )
 
@@ -288,7 +288,7 @@ class GiftCardDeactivate(BaseMutation):
         create_event = gift_card.is_active
         deactivate_gift_card(gift_card)
         if create_event:
-            events.gift_card_deactivated(
+            events.gift_card_deactivated_event(
                 gift_card=gift_card, user=info.context.user, app=info.context.app
             )
         return GiftCardDeactivate(gift_card=gift_card)
@@ -316,7 +316,7 @@ class GiftCardActivate(BaseMutation):
         create_event = not gift_card.is_active
         activate_gift_card(gift_card)
         if create_event:
-            events.gift_card_activated(
+            events.gift_card_activated_event(
                 gift_card=gift_card, user=info.context.user, app=info.context.app
             )
         return GiftCardActivate(gift_card=gift_card)
@@ -440,7 +440,7 @@ class GiftCardAddNote(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         gift_card = cls.get_node_or_error(info, data.get("id"), only_type=GiftCard)
         cleaned_input = cls.clean_input(info, gift_card, data)
-        event = events.gift_card_note_added(
+        event = events.gift_card_note_added_event(
             gift_card=gift_card,
             user=info.context.user,
             app=info.context.app,
