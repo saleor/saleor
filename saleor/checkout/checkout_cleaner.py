@@ -10,7 +10,6 @@ from ..plugins.manager import PluginsManager
 from .error_codes import CheckoutErrorCode
 from .utils import (
     get_active_payments,
-    get_only_active_payment,
     is_fully_covered,
     is_shipping_required,
     is_valid_shipping_method,
@@ -79,13 +78,6 @@ def clean_checkout_payment(
     current_payment: Optional[payment_models.Payment],
 ):
     clean_billing_address(checkout_info, error_code)
-    if current_payment:
-        if current_payment != get_only_active_payment(checkout_info.checkout):
-            raise ValidationError(
-                "When using multiple payment methods,"
-                "each one has to be confirmed separately.",
-                code=error_code.CHECKOUT_NOT_FULLY_PAID.value,
-            )
 
     if len(get_active_payments(checkout_info.checkout)) == 0:
         raise ValidationError(

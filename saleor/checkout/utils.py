@@ -657,10 +657,11 @@ def is_fully_covered(
     Note that these payments may not be captured or charged at all.
     """
     checkout = checkout_info.checkout
-    if current_payment:
-        total_covered = current_payment.total
-    else:
-        total_covered = get_covered_balance(checkout).amount
+    total_covered = get_covered_balance(checkout).amount
+    print("cov by auth", total_covered)
+    if current_payment and current_payment.not_charged:
+        total_covered += current_payment.total
+        print("cov by current", total_covered)
 
     address = checkout_info.shipping_address or checkout_info.billing_address
     checkout_total = (
@@ -676,6 +677,7 @@ def is_fully_covered(
     checkout_total = max(
         checkout_total, zero_taxed_money(checkout_total.currency)
     ).gross
+    print(total_covered, checkout_total.amount)
     return total_covered >= checkout_total.amount
 
 
