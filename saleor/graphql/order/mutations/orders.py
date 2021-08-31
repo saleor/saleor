@@ -831,6 +831,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, id):
+        manager = info.context.plugins
         line = cls.get_node_or_error(
             info,
             id,
@@ -851,7 +852,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             variant=line.variant,
             warehouse_pk=warehouse_pk,
         )
-        delete_order_line(line_info)
+        delete_order_line(line_info, manager)
         line.id = db_id
 
         if not order.is_shipping_required():
@@ -915,6 +916,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
+        manager = info.context.plugins
         warehouse_pk = (
             instance.allocations.first().stock.warehouse.pk
             if instance.order.is_unconfirmed()
@@ -934,6 +936,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 instance.old_quantity,
                 instance.quantity,
                 instance.order.channel.slug,
+                manager,
             )
         except InsufficientStock:
             raise ValidationError(

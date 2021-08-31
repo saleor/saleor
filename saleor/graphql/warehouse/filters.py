@@ -1,9 +1,12 @@
 import django_filters
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
+from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
+from ..core.filters import EnumFilter
 from ..core.types import FilterInputObjectType
 from ..utils.filters import filter_by_query_param
+from ..warehouse.enums import WarehouseClickAndCollectOptionEnum
 
 
 def prefech_qs_for_filter(qs):
@@ -28,6 +31,20 @@ def filter_search_warehouse(qs, _, value):
     return qs
 
 
+def filter_click_and_collect_option(qs, _, value):
+    if value == WarehouseClickAndCollectOptionEnum.LOCAL.value:
+        qs = qs.filter(
+            click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK
+        )
+    elif value == WarehouseClickAndCollectOptionEnum.ALL.value:
+        qs = qs.filter(
+            click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES
+        )
+    elif value == WarehouseClickAndCollectOptionEnum.DISABLED.value:
+        qs = qs.filter(click_and_collect_option=WarehouseClickAndCollectOption.DISABLED)
+    return qs
+
+
 def filter_search_stock(qs, _, value):
     search_fields = [
         "product_variant__product__name",
@@ -46,10 +63,15 @@ def filter_search_stock(qs, _, value):
 class WarehouseFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method=filter_search_warehouse)
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
+    is_private = django_filters.BooleanFilter(field_name="is_private")
+    click_and_collect_option = EnumFilter(
+        input_class=WarehouseClickAndCollectOptionEnum,
+        method=filter_click_and_collect_option,
+    )
 
     class Meta:
         model = Warehouse
-        fields = []
+        fields = ["click_and_collect_option"]
 
 
 class WarehouseFilterInput(FilterInputObjectType):

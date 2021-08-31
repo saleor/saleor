@@ -205,8 +205,10 @@ def get_shipping_data(manager, checkout_info, lines, discounts):
         "quantity": 1,
         "amountExcludingTax": price_to_minor_unit(total_net, currency),
         "taxPercentage": tax_percentage_in_adyen_format,
-        "description": f"Shipping - {checkout_info.shipping_method.name}",
-        "id": f"Shipping:{checkout_info.shipping_method.id}",
+        "description": (
+            f"Shipping - {checkout_info.delivery_method_info.delivery_method.name}"
+        ),
+        "id": f"Shipping:{checkout_info.delivery_method_info.delivery_method.id}",
         "taxAmount": price_to_minor_unit(tax_amount, currency),
         "amountIncludingTax": price_to_minor_unit(total_gross, currency),
     }
@@ -273,7 +275,9 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
         }
         line_items.append(line_data)
 
-    if checkout_info.shipping_method and is_shipping_required(lines):
+    if checkout_info.delivery_method_info.delivery_method and is_shipping_required(
+        lines
+    ):
         line_items.append(get_shipping_data(manager, checkout_info, lines, discounts))
 
     payment_data["lineItems"] = line_items

@@ -1,8 +1,9 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from ...app.models import App
+from ...core.notify_events import NotifyEventType
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
 from ...webhook.event_types import WebhookEventType
@@ -18,6 +19,7 @@ from ...webhook.payloads import (
     generate_product_deleted_payload,
     generate_product_payload,
     generate_product_variant_payload,
+    generate_product_variant_with_stock_payload,
     generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
@@ -31,13 +33,13 @@ from .utils import (
 if TYPE_CHECKING:
     from ...account.models import User
     from ...checkout.models import Checkout
-    from ...core.notify_events import NotifyEventType
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
     from ...product.models import Product, ProductVariant
     from ...translation.models import Translation
+    from ...warehouse.models import Stock
 
 
 logger = logging.getLogger(__name__)
@@ -205,6 +207,22 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.PRODUCT_VARIANT_DELETED, product_variant_data
         )
 
+    def product_variant_out_of_stock(self, stock: "Stock", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        product_variant_data = generate_product_variant_with_stock_payload([stock])
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.PRODUCT_VARIANT_OUT_OF_STOCK, product_variant_data
+        )
+
+    def product_variant_back_in_stock(self, stock: "Stock", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        product_variant_data = generate_product_variant_with_stock_payload([stock])
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.PRODUCT_VARIANT_BACK_IN_STOCK, product_variant_data
+        )
+
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
@@ -221,12 +239,22 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.CHECKOUT_UPDATED, checkout_data
         )
 
-    def notify(self, event: "NotifyEventType", payload: dict, previous_value) -> Any:
+    def notify(
+        self, event: Union[NotifyEventType, str], payload: dict, previous_value
+    ) -> Any:
         if not self.active:
             return previous_value
+
+        notify_user_event = WebhookEventType.NOTIFY_USER
         data = {"notify_event": event, "payload": payload}
+
+        if event not in NotifyEventType.CHOICES:
+            logger.info(
+                f"Webhook {notify_user_event} triggered for {event} notify event."
+            )
+
         trigger_webhooks_for_event.delay(
-            WebhookEventType.NOTIFY_USER, json.dumps(data, cls=CustomJsonEncoder)
+            notify_user_event, json.dumps(data, cls=CustomJsonEncoder)
         )
 
     def page_created(self, page: "Page", previous_value: Any) -> Any:

@@ -16,6 +16,7 @@ class CheckoutErrorCode(Enum):
     REQUIRED = "required"
     SHIPPING_ADDRESS_NOT_SET = "shipping_address_not_set"
     SHIPPING_METHOD_NOT_APPLICABLE = "shipping_method_not_applicable"
+    DELIVERY_METHOD_NOT_APPLICABLE = "delivery_method_not_applicable"
     SHIPPING_METHOD_NOT_SET = "shipping_method_not_set"
     SHIPPING_NOT_REQUIRED = "shipping_not_required"
     TAX_ERROR = "tax_error"
