@@ -17,7 +17,7 @@ from ....payment.interface import (
     CustomerSource,
     InitializedPaymentResponse,
     PaymentMethodInfo,
-    StoreEnum,
+    StorePaymentMethodEnum,
     TokenConfig,
 )
 from ....payment.models import ChargeStatus, Payment, TransactionKind
@@ -443,7 +443,13 @@ def test_create_payment_for_checkout_with_active_payments(
 
 
 @pytest.mark.parametrize(
-    "store", [None, StoreEnum.NONE, StoreEnum.ON_SESSION, StoreEnum.OFF_SESSION]
+    "store",
+    [
+        None,
+        StorePaymentMethodEnum.NONE,
+        StorePaymentMethodEnum.ON_SESSION,
+        StorePaymentMethodEnum.OFF_SESSION,
+    ],
 )
 def test_create_payment_with_store(
     user_api_client, checkout_without_shipping_required, address, store
@@ -466,7 +472,7 @@ def test_create_payment_with_store(
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
-            "store": store,
+            "storePaymentMethod": store,
         },
     }
 
@@ -476,7 +482,7 @@ def test_create_payment_with_store(
     # then
     checkout.refresh_from_db()
     payment = checkout.payments.first()
-    assert payment.store == (store or StoreEnum.NONE).lower()
+    assert payment.store == (store or StorePaymentMethodEnum.NONE).lower()
 
 
 @pytest.mark.parametrize(
