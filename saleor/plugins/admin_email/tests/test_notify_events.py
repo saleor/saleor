@@ -4,7 +4,7 @@ from ....account.notifications import get_default_user_payload
 from ....order.notifications import get_default_order_payload
 from ..notify_events import (
     send_csv_export_failed,
-    send_csv_product_export_success,
+    send_csv_export_success,
     send_set_staff_password_email,
     send_staff_order_confirmation,
     send_staff_reset_password,
@@ -54,15 +54,13 @@ def test_send_set_staff_password_email(mocked_email_task):
     "saleor.plugins.admin_email.notify_events."
     "send_email_with_link_to_download_file_task.delay"
 )
-def test_send_csv_product_export_success(mocked_email_task):
+def test_send_csv_export_success(mocked_email_task):
     payload = {
         "recipient_email": "admin@example.com",
         "csv_link": "http://127.0.0.1:8000/download/csv",
     }
     config = {"host": "localhost", "port": "1025"}
-    send_csv_product_export_success(
-        payload=payload, config=config, plugin_configuration=[]
-    )
+    send_csv_export_success(payload=payload, config=config, plugin_configuration=[])
     mocked_email_task.assert_called_with(
         payload["recipient_email"], payload, config, mock.ANY, mock.ANY
     )
