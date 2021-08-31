@@ -4,6 +4,7 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.db.models.aggregates import Sum
 
 from ....checkout import calculations
@@ -271,6 +272,134 @@ def test_checkout_complete(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
     order_confirmed_mock.assert_called_once_with(order)
+
+
+@pytest.mark.integration
+@patch("saleor.graphql.checkout.mutations.complete_checkout")
+def test_checkout_complete_by_app(
+    mocked_complete_checkout,
+    app_api_client,
+    checkout_with_item,
+    customer_user,
+    permission_impersonate_user,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    mocked_complete_checkout.return_value = (None, True, {})
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    redirect_url = "https://www.example.com"
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
+
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_COMPLETE,
+        variables,
+        permissions=[permission_impersonate_user],
+        check_no_permissions=False,
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+
+    mocked_complete_checkout.assert_called_once_with(
+        manager=ANY,
+        checkout_info=ANY,
+        lines=ANY,
+        payment_data=ANY,
+        store_source=ANY,
+        discounts=ANY,
+        user=checkout.user,
+        app=ANY,
+        site_settings=ANY,
+        tracking_code=ANY,
+        redirect_url=ANY,
+    )
+
+
+@pytest.mark.integration
+@patch("saleor.graphql.checkout.mutations.complete_checkout")
+def test_checkout_complete_by_app_with_missing_permission(
+    mocked_complete_checkout,
+    app_api_client,
+    checkout_with_item,
+    customer_user,
+    permission_manage_users,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    mocked_complete_checkout.return_value = (None, True, {})
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    redirect_url = "https://www.example.com"
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
+
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_COMPLETE,
+        variables,
+        permissions=[permission_manage_users],
+        check_no_permissions=False,
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+
+    mocked_complete_checkout.assert_called_once_with(
+        manager=ANY,
+        checkout_info=ANY,
+        lines=ANY,
+        payment_data=ANY,
+        store_source=ANY,
+        discounts=ANY,
+        user=AnonymousUser(),
+        app=ANY,
+        site_settings=ANY,
+        tracking_code=ANY,
+        redirect_url=ANY,
+    )
 
 
 def test_checkout_complete_with_variant_without_price(

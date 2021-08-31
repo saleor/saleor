@@ -3433,6 +3433,11 @@ def permission_manage_users():
 
 
 @pytest.fixture
+def permission_impersonate_user():
+    return Permission.objects.get(codename="impersonate_user")
+
+
+@pytest.fixture
 def permission_manage_settings():
     return Permission.objects.get(codename="manage_settings")
 
