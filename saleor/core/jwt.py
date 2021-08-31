@@ -60,11 +60,14 @@ def jwt_user_payload(
 
 
 def jwt_encode(payload: Dict[str, Any]) -> str:
-    return jwt.encode(
-        payload,
-        settings.SECRET_KEY,  # type: ignore
-        JWT_ALGORITHM,
-    )
+    from .jwt_signature_manager import JWTSignatureManager
+
+    return JWTSignatureManager.encode(payload)
+    # return jwt.encode(
+    #     payload,
+    #     settings.SECRET_KEY,  # type: ignore
+    #     JWT_ALGORITHM,
+    # )
 
 
 def jwt_decode_with_exception_handler(
@@ -77,12 +80,15 @@ def jwt_decode_with_exception_handler(
 
 
 def jwt_decode(token: str, verify_expiration=settings.JWT_EXPIRE) -> Dict[str, Any]:
-    return jwt.decode(
-        token,
-        settings.SECRET_KEY,  # type: ignore
-        algorithms=[JWT_ALGORITHM],
-        options={"verify_exp": verify_expiration},
-    )
+    from .jwt_signature_manager import JWTSignatureManager
+
+    return JWTSignatureManager.decode(token, verify_expiration)
+    # return jwt.decode(
+    #     token,
+    #     settings.SECRET_KEY,  # type: ignore
+    #     algorithms=[JWT_ALGORITHM],
+    #     options={"verify_exp": verify_expiration},
+    # )
 
 
 def create_token(payload: Dict[str, Any], exp_delta: timedelta) -> str:
