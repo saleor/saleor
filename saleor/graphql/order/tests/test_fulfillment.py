@@ -32,6 +32,41 @@ ORDER_FULFILL_QUERY = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_order_fulfill_with_out_of_stock_webhook(
+    product_variant_out_of_stock_webhooks,
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
+    warehouse,
+):
+    order = order_with_lines
+
+    query = ORDER_FULFILL_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    _, order_line2 = order.lines.all()
+    order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": True,
+            "lines": [
+                {
+                    "orderLineId": order_line2_id,
+                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                },
+            ],
+        },
+    }
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    stock = order_line2.variant.stocks.filter(warehouse=warehouse).first()
+    product_variant_out_of_stock_webhooks.assert_called_once_with(stock)
+
+
 @pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
 def test_order_fulfill(
@@ -753,6 +788,9 @@ def test_cancel_fulfillment(
         "warehouse": str(warehouse.pk),
     }
     assert event_restocked_items.user == staff_user
+    assert Fulfillment.objects.filter(
+        pk=fulfillment.pk, status=FulfillmentStatus.CANCELED
+    ).exists()
 
 
 def test_cancel_fulfillment_no_warehouse_id(
@@ -787,8 +825,9 @@ def test_cancel_fulfillment_no_warehouse_id(
     assert error["code"] == OrderErrorCode.REQUIRED.name
 
 
+@patch("saleor.order.actions.restock_fulfillment_lines")
 def test_cancel_fulfillment_awaiting_approval(
-    staff_api_client, fulfillment, permission_manage_orders
+    mock_restock_lines, staff_api_client, fulfillment, permission_manage_orders
 ):
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
@@ -800,11 +839,13 @@ def test_cancel_fulfillment_awaiting_approval(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentCancel"]
-    assert data["fulfillment"]["status"] == FulfillmentStatus.CANCELED.upper()
+    assert data["fulfillment"] is None
+    mock_restock_lines.assert_not_called()
     event_cancelled = fulfillment.order.events.get()
     assert event_cancelled.type == (OrderEvents.FULFILLMENT_CANCELED)
-    assert event_cancelled.parameters == {"composed_id": fulfillment.composed_id}
+    assert event_cancelled.parameters == {}
     assert event_cancelled.user == staff_api_client.user
+    assert not Fulfillment.objects.filter(pk=fulfillment.pk).exists()
 
 
 @patch("saleor.order.actions.restock_fulfillment_lines")
@@ -826,12 +867,13 @@ def test_cancel_fulfillment_awaiting_approval_warehouse_specified(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentCancel"]
-    assert data["fulfillment"]["status"] == FulfillmentStatus.CANCELED.upper()
+    assert data["fulfillment"] is None
     mock_restock_lines.assert_not_called()
     event_cancelled = fulfillment.order.events.get()
     assert event_cancelled.type == (OrderEvents.FULFILLMENT_CANCELED)
-    assert event_cancelled.parameters == {"composed_id": fulfillment.composed_id}
+    assert event_cancelled.parameters == {}
     assert event_cancelled.user == staff_api_client.user
+    assert not Fulfillment.objects.filter(pk=fulfillment.pk).exists()
 
 
 def test_cancel_fulfillment_canceled_state(

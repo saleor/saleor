@@ -7,6 +7,7 @@ from ...page import models
 from ..attribute.filters import AttributeFilterInput
 from ..attribute.types import Attribute, SelectedAttribute
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -23,9 +24,7 @@ from .dataloaders import (
 class Page(CountableDjangoObjectType):
     content_json = graphene.JSONString(
         description="Content of the page (JSON).",
-        deprecation_reason=(
-            "Will be removed in Saleor 4.0. Use the `content` field instead."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
         required=True,
     )
     translation = TranslationField(PageTranslation, type_name="page")

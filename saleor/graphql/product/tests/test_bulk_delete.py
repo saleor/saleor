@@ -837,7 +837,7 @@ def test_delete_product_variants(
     content = get_graphql_content(response)
     flush_post_commit_hooks()
 
-    assert content["data"]["productVariantBulkDelete"]["count"] == 3
+    assert content["data"]["productVariantBulkDelete"]["count"] == 4
     assert not ProductVariant.objects.filter(
         id__in=[variant.id for variant in product_variant_list]
     ).exists()
@@ -955,7 +955,7 @@ def test_delete_product_variants_with_images(
     content = get_graphql_content(response)
     flush_post_commit_hooks()
 
-    assert content["data"]["productVariantBulkDelete"]["count"] == 3
+    assert content["data"]["productVariantBulkDelete"]["count"] == 4
     assert not ProductVariant.objects.filter(
         id__in=[variant.id for variant in product_variant_list]
     ).exists()
@@ -1004,7 +1004,7 @@ def test_delete_product_variants_with_file_attribute(
     content = get_graphql_content(response)
     flush_post_commit_hooks()
 
-    assert content["data"]["productVariantBulkDelete"]["count"] == 3
+    assert content["data"]["productVariantBulkDelete"]["count"] == 4
     assert not ProductVariant.objects.filter(
         id__in=[variant.id for variant in product_variant_list]
     ).exists()

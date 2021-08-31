@@ -11,6 +11,7 @@ from ....order import models as order_models
 from ....order.actions import (
     approve_fulfillment,
     cancel_fulfillment,
+    cancel_waiting_fulfillment,
     create_fulfillments,
     create_fulfillments_for_returned_products,
     create_refund_fulfillment,
@@ -18,6 +19,7 @@ from ....order.actions import (
 )
 from ....order.error_codes import OrderErrorCode
 from ....order.notifications import send_fulfillment_update
+from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
@@ -343,14 +345,21 @@ class FulfillmentCancel(BaseMutation):
         cls.validate_fulfillment(fulfillment, warehouse)
 
         order = fulfillment.order
-        cancel_fulfillment(
-            fulfillment,
-            info.context.user,
-            info.context.app,
-            warehouse,
-            info.context.plugins,
-        )
-        fulfillment.refresh_from_db(fields=["status"])
+        if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
+            fulfillment = cancel_waiting_fulfillment(
+                fulfillment,
+                info.context.user,
+                info.context.app,
+                info.context.plugins,
+            )
+        else:
+            fulfillment = cancel_fulfillment(
+                fulfillment,
+                info.context.user,
+                info.context.app,
+                warehouse,
+                info.context.plugins,
+            )
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)
 
@@ -366,7 +375,7 @@ class FulfillmentApprove(BaseMutation):
         )
 
     class Meta:
-        description = "Approve existing fulfillment."
+        description = f"{ADDED_IN_31} Approve existing fulfillment."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
