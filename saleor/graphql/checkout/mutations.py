@@ -1250,8 +1250,7 @@ class CheckoutComplete(BaseMutation):
             default_value=False,
             description=(
                 "Determines whether to store the payment source for future usage. "
-                "DEPRECATED: Will be removed in Saleor 4.0. "
-                "Use checkoutPaymentCreate for this action."
+                f"{DEPRECATED_IN_3X_INPUT} Use checkoutPaymentCreate for this action."
             ),
         )
         redirect_url = graphene.String(
