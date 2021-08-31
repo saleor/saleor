@@ -310,9 +310,9 @@ def send_gift_card_email_task(payload: dict, configuration: dict):
         "email": payload["recipient_email"],
     }
     if payload["resending"] is True:
-        gift_card_events.gift_card_resent(**email_data)
+        gift_card_events.gift_card_resent_event(**email_data)
     else:
-        gift_card_events.gift_card_sent(**email_data)
+        gift_card_events.gift_card_sent_event(**email_data)
 
 
 @app.task(

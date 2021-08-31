@@ -522,7 +522,7 @@ def test_query_gift_card_expiry_date_set_event(
     gift_card.expiry_date = expiry_date
     gift_card.save(update_fields=["expiry_date"])
 
-    events.gift_card_expiry_date_updated(gift_card, old, staff_user, None)
+    events.gift_card_expiry_date_updated_event(gift_card, old, staff_user, None)
     variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
 
     # when
@@ -557,7 +557,7 @@ def test_query_gift_card_used_in_order_event(
     previous_balance = 10.0
     balance_data = [(gift_card, previous_balance)]
     order_id = 1
-    events.gift_cards_used_in_order(balance_data, order_id, None, app)
+    events.gift_cards_used_in_order_event(balance_data, order_id, None, app)
     variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
 
     # when
@@ -599,7 +599,7 @@ def test_query_gift_card_bought_event(
     permission_manage_users,
 ):
     # given
-    events.gift_cards_bought([gift_card_expiry_date], order.id, None, app)
+    events.gift_cards_bought_event([gift_card_expiry_date], order.id, None, app)
     variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card_expiry_date.pk)}
 
     # when

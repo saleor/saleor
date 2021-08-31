@@ -39,7 +39,7 @@ class GiftCardBulkActivate(BaseBulkMutation):
         queryset = queryset.filter(is_active=False)
         gift_card_ids = [gift_card.id for gift_card in queryset]
         queryset.update(is_active=True)
-        events.gift_cards_activated(
+        events.gift_cards_activated_event(
             gift_card_ids, user=info.context.user, app=info.context.app
         )
 
@@ -64,6 +64,6 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
         queryset = queryset.filter(is_active=True)
         gift_card_ids = [gift_card.id for gift_card in queryset]
         queryset.update(is_active=False)
-        events.gift_cards_deactivated(
+        events.gift_cards_deactivated_event(
             gift_card_ids, user=info.context.user, app=info.context.app
         )
