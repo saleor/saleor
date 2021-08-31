@@ -14,6 +14,10 @@ CHANNEL_UPDATE_MUTATION = """
                 name
                 slug
                 currencyCode
+                defaultCountry {
+                    code
+                    country
+                }
             }
             errors{
                 field
@@ -33,7 +37,11 @@ def test_channel_update_mutation_as_staff_user(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
     slug = "new_slug"
-    variables = {"id": channel_id, "input": {"name": name, "slug": slug}}
+    default_country = "FR"
+    variables = {
+        "id": channel_id,
+        "input": {"name": name, "slug": slug, "defaultCountry": default_country},
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -51,6 +59,11 @@ def test_channel_update_mutation_as_staff_user(
     assert channel_data["name"] == channel_USD.name == name
     assert channel_data["slug"] == channel_USD.slug == slug
     assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
+    assert (
+        channel_data["defaultCountry"]["code"]
+        == channel_USD.default_country.code
+        == default_country
+    )
 
 
 def test_channel_update_mutation_as_app(

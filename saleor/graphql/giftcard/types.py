@@ -15,6 +15,7 @@ from ..account.utils import requestor_has_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.types.common import TimePeriod
 from ..core.types.money import Money
 from ..decorators import permission_required
@@ -218,57 +219,63 @@ class GiftCard(CountableDjangoObjectType):
     )
     created_by = graphene.Field(
         "saleor.graphql.account.types.User",
-        description="The user who bought or issued a gift card.",
+        description=f"{ADDED_IN_31} The user who bought or issued a gift card.",
     )
     used_by = graphene.Field(
         "saleor.graphql.account.types.User",
-        description="The customer who used a gift card.",
+        description=f"{ADDED_IN_31} The customer who used a gift card.",
     )
     created_by_email = graphene.String(
         required=False,
-        description="Email address of the user who bought or issued gift card.",
+        description=(
+            f"{ADDED_IN_31} Email address of the user who bought or issued gift card."
+        ),
     )
     used_by_email = graphene.String(
         required=False,
-        description="Email address of the customer who used a gift card.",
+        description=(
+            f"{ADDED_IN_31} Email address of the customer who used a gift card."
+        ),
     )
     app = graphene.Field(
         App,
-        description="App which created the gift card.",
+        description=f"{ADDED_IN_31} App which created the gift card.",
     )
     expiry_type = GiftCardExpiryTypeEnum(
-        description="The gift card expiry type.", required=True
+        description=f"{ADDED_IN_31} The gift card expiry type.", required=True
     )
     expiry_period = graphene.Field(
-        TimePeriod, description="The gift card expiry period.", required=False
+        TimePeriod,
+        description=f"{ADDED_IN_31} The gift card expiry period.",
+        required=False,
+    )
+    expiry_date = graphene.types.datetime.Date(
+        description=f"{ADDED_IN_31} The gift card expiry date."
     )
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
-        description="Related gift card product.",
+        description=f"{ADDED_IN_31} Related gift card product.",
     )
     events = graphene.List(
         graphene.NonNull(GiftCardEvent),
-        description="List of events associated with the gift card.",
+        description=f"{ADDED_IN_31} List of events associated with the gift card.",
         required=True,
     )
+    tag = graphene.String(description=f"{ADDED_IN_31} The gift card tag.")
 
     # DEPRECATED
     user = graphene.Field(
         "saleor.graphql.account.types.User",
         description="The customer who bought a gift card.",
-        deprecation_reason=(
-            "Will be removed in Saleor 4.0. Use created_by field instead"
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `createdBy` field instead.",
     )
     end_date = graphene.types.datetime.DateTime(
         description="End date of gift card.",
-        deprecation_reason=(
-            "Will be removed in Saleor 4.0. Use expiry_date field instead."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `expiryDate` field instead.",
     )
     start_date = graphene.types.datetime.DateTime(
         description="Start date of gift card.",
-        deprecation_reason=("Will be removed in Saleor 4.0."),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD}",
     )
 
     class Meta:

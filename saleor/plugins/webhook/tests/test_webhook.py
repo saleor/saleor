@@ -26,6 +26,7 @@ from ....webhook.payloads import (
     generate_product_deleted_payload,
     generate_product_payload,
     generate_product_variant_payload,
+    generate_product_variant_with_stock_payload,
 )
 from ...manager import get_plugins_manager
 from ...webhook.tasks import trigger_webhooks_for_event
@@ -235,6 +236,38 @@ def test_product_variant_deleted(mocked_webhook_trigger, settings, variant):
     expected_data = generate_product_variant_payload([variant])
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PRODUCT_VARIANT_DELETED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_variant_out_of_stock(
+    mocked_webhook_trigger, settings, variant_with_many_stocks
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.product_variant_out_of_stock(variant_with_many_stocks.stocks.first())
+
+    expected_data = generate_product_variant_with_stock_payload(
+        [variant_with_many_stocks.stocks.first()]
+    )
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_VARIANT_OUT_OF_STOCK, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_variant_back_in_stock(
+    mocked_webhook_trigger, settings, variant_with_many_stocks
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.product_variant_back_in_stock(variant_with_many_stocks.stocks.first())
+
+    expected_data = generate_product_variant_with_stock_payload(
+        [variant_with_many_stocks.stocks.first()]
+    )
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_VARIANT_BACK_IN_STOCK, expected_data
     )
 
 

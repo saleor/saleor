@@ -451,7 +451,7 @@ def external_notification_event(
 
 
 def fulfillment_canceled_event(
-    *, order: Order, user: UserType, app: AppType, fulfillment: Fulfillment
+    *, order: Order, user: UserType, app: AppType, fulfillment: Optional[Fulfillment]
 ) -> OrderEvent:
     if not user_is_valid(user):
         user = None
@@ -460,7 +460,7 @@ def fulfillment_canceled_event(
         type=OrderEvents.FULFILLMENT_CANCELED,
         user=user,
         app=app,
-        parameters={"composed_id": fulfillment.composed_id},
+        parameters={"composed_id": fulfillment.composed_id} if fulfillment else {},
     )
 
 

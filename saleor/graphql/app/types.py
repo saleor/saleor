@@ -5,6 +5,7 @@ from ...app import models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31
 from ..core.types import Permission
 from ..core.types.common import Job
 from ..meta.types import ObjectWithMetadata
@@ -159,7 +160,7 @@ class App(CountableDjangoObjectType):
     )
     extensions = graphene.List(
         graphene.NonNull(AppExtension),
-        description="App's dashboard extensions.",
+        description=f"{ADDED_IN_31} App's dashboard extensions.",
         required=True,
     )
 

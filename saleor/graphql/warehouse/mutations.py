@@ -1,8 +1,10 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ...core.permissions import ProductPermissions
-from ...warehouse import models
+from ...core.tracing import traced_atomic_transaction
+from ...warehouse import WarehouseClickAndCollectOption, models
 from ...warehouse.error_codes import WarehouseErrorCode
 from ...warehouse.validation import validate_warehouse_count  # type: ignore
 from ..account.i18n import I18nMixin
@@ -51,6 +53,23 @@ class WarehouseMixin:
             msg = "Shipping zone can be assigned only to one warehouse."
             raise ValidationError(
                 {"shipping_zones": msg}, code=WarehouseErrorCode.INVALID
+            )
+
+        click_and_collect_option = cleaned_input.get(
+            "click_and_collect_option", instance.click_and_collect_option
+        )
+        is_private = cleaned_input.get("is_private", instance.is_private)
+        if (
+            click_and_collect_option == WarehouseClickAndCollectOption.LOCAL_STOCK
+            and is_private
+        ):
+            msg = "Local warehouse can be toggled only for non-private warehouse stocks"
+            raise ValidationError(
+                {
+                    "click_and_collect_option": ValidationError(
+                        msg, code=WarehouseErrorCode.INVALID.value
+                    )
+                },
             )
         return cleaned_input
 
@@ -165,3 +184,16 @@ class WarehouseDelete(ModelDeleteMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of a warehouse to delete.", required=True)
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, **data):
+        manager = info.context.plugins
+        node_id = data.get("id")
+        model_type = cls.get_type_for_model()
+        instance = cls.get_node_or_error(info, node_id, only_type=model_type)
+        stocks = (stock for stock in instance.stock_set.only("product_variant"))
+        result = super(WarehouseDelete, cls).perform_mutation(_root, info, **data)
+        for stock in stocks:
+            transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
+        return result

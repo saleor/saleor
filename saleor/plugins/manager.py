@@ -47,6 +47,7 @@ if TYPE_CHECKING:
     )
     from ..product.models import Product, ProductType, ProductVariant
     from ..translation.models import Translation
+    from ..warehouse.models import Stock
     from .base_plugin import BasePlugin
 
 
@@ -117,16 +118,13 @@ class PluginsManager(PaymentInterface):
         **kwargs
     ):
         """Try to run a method with the given name on each declared plugin."""
-        with opentracing.global_tracer().start_active_span(
-            f"PluginsManager.{method_name}"
-        ):
-            value = default_value
-            plugins = self.get_plugins(channel_slug=channel_slug)
-            for plugin in plugins:
-                value = self.__run_method_on_single_plugin(
-                    plugin, method_name, value, *args, **kwargs
-                )
-            return value
+        value = default_value
+        plugins = self.get_plugins(channel_slug=channel_slug)
+        for plugin in plugins:
+            value = self.__run_method_on_single_plugin(
+                plugin, method_name, value, *args, **kwargs
+            )
+        return value
 
     def __run_method_on_single_plugin(
         self,
@@ -517,7 +515,21 @@ class PluginsManager(PaymentInterface):
     def product_variant_deleted(self, product_variant: "ProductVariant"):
         default_value = None
         return self.__run_method_on_plugins(
-            "product_variant_deleted", default_value, product_variant
+            "product_variant_deleted",
+            default_value,
+            product_variant,
+        )
+
+    def product_variant_out_of_stock(self, stock: "Stock"):
+        default_value = None
+        self.__run_method_on_plugins(
+            "product_variant_out_of_stock", default_value, stock
+        )
+
+    def product_variant_back_in_stock(self, stock: "Stock"):
+        default_value = None
+        self.__run_method_on_plugins(
+            "product_variant_back_in_stock", default_value, stock
         )
 
     def order_created(self, order: "Order"):
