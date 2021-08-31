@@ -31,6 +31,7 @@ from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
+from ...core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_INPUT
 from ...core.enums import ReportingPeriod
 from ...core.fields import (
     ChannelContextFilterConnectionField,
@@ -66,7 +67,6 @@ from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
-    WarehouseCountryCodeByChannelLoader,
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
@@ -205,7 +205,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     images = graphene.List(
         lambda: ProductImage,
         description="List of images for the product variant.",
-        deprecation_reason="Will be removed in Saleor 4.0. Use the `media` instead.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `media` field instead.",
     )
     media = graphene.List(
         graphene.NonNull(lambda: ProductMedia),
@@ -226,8 +226,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         country_code=graphene.Argument(
             CountryCodeEnum,
             description=(
-                "DEPRECATED: use `address` argument instead. This argument will be "
-                "removed in Saleor 4.0. Two-letter ISO 3166-1 country code."
+                "Two-letter ISO 3166-1 country code. "
+                f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
             ),
         ),
     )
@@ -238,12 +238,11 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         country_code=graphene.Argument(
             CountryCodeEnum,
             description=(
-                "DEPRECATED: use `address` argument instead. This argument will be "
-                "removed in Saleor 4.0."
                 "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
                 "from a warehouse operating in shipping zones that contain this "
                 "country will be returned. Otherwise, it will return the maximum "
-                "quantity from all shipping zones."
+                "quantity from all shipping zones. "
+                f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
             ),
         ),
     )
@@ -356,74 +355,64 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         collections = CollectionsByProductIdLoader(context).load(root.node.product_id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
-        country_code = address.country if address is not None else None
+        address_country = address.country if address is not None else None
 
-        def calculate_discounts(country_code):
-            def calculate_pricing_info(discounts):
-                def calculate_pricing_with_channel(channel):
-                    def calculate_pricing_with_product_variant_channel_listings(
-                        variant_channel_listing,
-                    ):
-                        def calculate_pricing_with_product(product):
-                            def calculate_pricing_with_product_channel_listings(
-                                product_channel_listing,
-                            ):
-                                def calculate_pricing_with_collections(collections):
-                                    if (
-                                        not variant_channel_listing
-                                        or not product_channel_listing
-                                    ):
-                                        return None
+        def calculate_pricing_info(discounts):
+            def calculate_pricing_with_channel(channel):
+                def calculate_pricing_with_product_variant_channel_listings(
+                    variant_channel_listing,
+                ):
+                    def calculate_pricing_with_product(product):
+                        def calculate_pricing_with_product_channel_listings(
+                            product_channel_listing,
+                        ):
+                            def calculate_pricing_with_collections(collections):
+                                if (
+                                    not variant_channel_listing
+                                    or not product_channel_listing
+                                ):
+                                    return None
 
-                                    local_currency = None
-                                    if country_code:
-                                        local_currency = get_currency_for_country(
-                                            country_code
-                                        )
-
-                                    availability = get_variant_availability(
-                                        variant=root.node,
-                                        variant_channel_listing=variant_channel_listing,
-                                        product=product,
-                                        product_channel_listing=product_channel_listing,
-                                        collections=collections,
-                                        discounts=discounts,
-                                        channel=channel,
-                                        country=Country(country_code),
-                                        local_currency=local_currency,
-                                        plugins=context.plugins,
-                                    )
-                                    return VariantPricingInfo(**asdict(availability))
-
-                                return collections.then(
-                                    calculate_pricing_with_collections
+                                country_code = (
+                                    address_country or channel.default_country.code
                                 )
 
-                            return product_channel_listing.then(
-                                calculate_pricing_with_product_channel_listings
-                            )
+                                local_currency = None
+                                local_currency = get_currency_for_country(country_code)
 
-                        return product.then(calculate_pricing_with_product)
+                                availability = get_variant_availability(
+                                    variant=root.node,
+                                    variant_channel_listing=variant_channel_listing,
+                                    product=product,
+                                    product_channel_listing=product_channel_listing,
+                                    collections=collections,
+                                    discounts=discounts,
+                                    channel=channel,
+                                    country=Country(country_code),
+                                    local_currency=local_currency,
+                                    plugins=context.plugins,
+                                )
+                                return VariantPricingInfo(**asdict(availability))
 
-                    return variant_channel_listing.then(
-                        calculate_pricing_with_product_variant_channel_listings
-                    )
+                            return collections.then(calculate_pricing_with_collections)
 
-                return channel.then(calculate_pricing_with_channel)
+                        return product_channel_listing.then(
+                            calculate_pricing_with_product_channel_listings
+                        )
 
-            return (
-                DiscountsByDateTimeLoader(context)
-                .load(info.context.request_time)
-                .then(calculate_pricing_info)
-            )
+                    return product.then(calculate_pricing_with_product)
 
-        if not country_code:
-            return (
-                WarehouseCountryCodeByChannelLoader(context)
-                .load(channel_slug)
-                .then(calculate_discounts)
-            )
-        return calculate_discounts(country_code)
+                return variant_channel_listing.then(
+                    calculate_pricing_with_product_variant_channel_listings
+                )
+
+            return channel.then(calculate_pricing_with_channel)
+
+        return (
+            DiscountsByDateTimeLoader(context)
+            .load(info.context.request_time)
+            .then(calculate_pricing_info)
+        )
 
     @staticmethod
     def resolve_product(root: ChannelContext[models.ProductVariant], info):
@@ -505,7 +494,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     description_json = graphene.JSONString(
         description="Description of the product (JSON).",
         deprecation_reason=(
-            "Will be removed in Saleor 4.0. Use the `description` field instead."
+            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
     thumbnail = graphene.Field(
@@ -547,7 +536,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         id=graphene.Argument(graphene.ID, description="ID of a product image."),
         description="Get a single product image by ID.",
         deprecation_reason=(
-            "Will be removed in Saleor 4.0. Use the `mediaById` field instead."
+            f"{DEPRECATED_IN_3X_FIELD} Use the `mediaById` field instead."
         ),
     )
     variants = graphene.List(
@@ -560,9 +549,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     images = graphene.List(
         lambda: ProductImage,
         description="List of images for the product.",
-        deprecation_reason=(
-            "Will be removed in Saleor 4.0. Use the `media` field instead."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `media` field instead.",
     )
     collections = graphene.List(
         lambda: Collection, description="List of collections for the product."
@@ -681,72 +668,60 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         collections = CollectionsByProductIdLoader(context).load(root.node.id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
-        country_code = address.country if address is not None else None
+        address_country = address.country if address is not None else None
 
-        def calculate_discounts(country_code):
-            def calculate_pricing_info(discounts):
-                def calculate_pricing_with_channel(channel):
-                    def calculate_pricing_with_product_channel_listings(
-                        product_channel_listing,
-                    ):
-                        def calculate_pricing_with_variants(variants):
-                            def calculate_pricing_with_variants_channel_listings(
-                                variants_channel_listing,
-                            ):
-                                def calculate_pricing_with_collections(collections):
-                                    if not variants_channel_listing:
-                                        return None
+        def calculate_pricing_info(discounts):
+            def calculate_pricing_with_channel(channel):
+                def calculate_pricing_with_product_channel_listings(
+                    product_channel_listing,
+                ):
+                    def calculate_pricing_with_variants(variants):
+                        def calculate_pricing_with_variants_channel_listings(
+                            variants_channel_listing,
+                        ):
+                            def calculate_pricing_with_collections(collections):
+                                if not variants_channel_listing:
+                                    return None
 
-                                    vc_listing = variants_channel_listing
-                                    local_currency = None
-                                    if country_code:
-                                        local_currency = get_currency_for_country(
-                                            country_code
-                                        )
-
-                                    availability = get_product_availability(
-                                        product=root.node,
-                                        product_channel_listing=product_channel_listing,
-                                        variants=variants,
-                                        variants_channel_listing=vc_listing,
-                                        collections=collections,
-                                        discounts=discounts,
-                                        channel=channel,
-                                        manager=context.plugins,
-                                        country=Country(country_code),
-                                        local_currency=local_currency,
-                                    )
-                                    return ProductPricingInfo(**asdict(availability))
-
-                                return collections.then(
-                                    calculate_pricing_with_collections
+                                local_currency = None
+                                country_code = (
+                                    address_country or channel.default_country.code
                                 )
+                                local_currency = get_currency_for_country(country_code)
 
-                            return variants_channel_listing.then(
-                                calculate_pricing_with_variants_channel_listings
-                            )
+                                availability = get_product_availability(
+                                    product=root.node,
+                                    product_channel_listing=product_channel_listing,
+                                    variants=variants,
+                                    variants_channel_listing=variants_channel_listing,
+                                    collections=collections,
+                                    discounts=discounts,
+                                    channel=channel,
+                                    manager=context.plugins,
+                                    country=Country(country_code),
+                                    local_currency=local_currency,
+                                )
+                                return ProductPricingInfo(**asdict(availability))
 
-                        return variants.then(calculate_pricing_with_variants)
+                            return collections.then(calculate_pricing_with_collections)
 
-                    return product_channel_listing.then(
-                        calculate_pricing_with_product_channel_listings
-                    )
+                        return variants_channel_listing.then(
+                            calculate_pricing_with_variants_channel_listings
+                        )
 
-                return channel.then(calculate_pricing_with_channel)
+                    return variants.then(calculate_pricing_with_variants)
 
-            return (
-                DiscountsByDateTimeLoader(context)
-                .load(info.context.request_time)
-                .then(calculate_pricing_info)
-            )
+                return product_channel_listing.then(
+                    calculate_pricing_with_product_channel_listings
+                )
 
-        if not country_code:
-            return (
-                WarehouseCountryCodeByChannelLoader(context)
-                .load(channel_slug)
-                .then(calculate_discounts)
-            )
-        return calculate_discounts(country_code)
+            return channel.then(calculate_pricing_with_channel)
+
+        return (
+            DiscountsByDateTimeLoader(context)
+            .load(info.context.request_time)
+            .then(calculate_pricing_info)
+        )
 
     @staticmethod
     @traced_resolver
@@ -959,7 +934,7 @@ class ProductType(CountableDjangoObjectType):
         ),
         description="List of products of this type.",
         deprecation_reason=(
-            "Will be removed in Saleor 4.0. "
+            f"{DEPRECATED_IN_3X_FIELD} "
             "Use the top-level `products` query with the `productTypes` filter."
         ),
     )
@@ -1059,7 +1034,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     description_json = graphene.JSONString(
         description="Description of the collection (JSON).",
         deprecation_reason=(
-            "Will be removed in Saleor 4.0. Use the `description` field instead."
+            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
     products = ChannelContextFilterConnectionField(
@@ -1139,7 +1114,7 @@ class Category(CountableDjangoObjectType):
     description_json = graphene.JSONString(
         description="Description of the category (JSON).",
         deprecation_reason=(
-            "Will be removed in Saleor 4.0. Use the `description` field instead."
+            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
     ancestors = PrefetchingConnectionField(

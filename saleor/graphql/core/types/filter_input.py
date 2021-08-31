@@ -3,6 +3,7 @@ from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_django.filter.utils import get_filterset_class
 
+from ..descriptions import DEPRECATED_IN_3X_INPUT
 from .converter import convert_form_field
 
 
@@ -69,8 +70,7 @@ class ChannelFilterInputObjectType(FilterInputObjectType):
         String,
         description=(
             "Specifies the channel by which the data should be filtered. "
-            "DEPRECATED: Will be removed in Saleor 4.0."
-            "Use root-level channel argument instead."
+            f"{DEPRECATED_IN_3X_INPUT} Use root-level channel argument instead."
         ),
     )
 

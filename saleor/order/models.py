@@ -130,9 +130,20 @@ class Order(ModelWithMetadata):
         related_name="orders",
         on_delete=models.SET_NULL,
     )
+    collection_point = models.ForeignKey(
+        "warehouse.Warehouse",
+        blank=True,
+        null=True,
+        related_name="orders",
+        on_delete=models.SET_NULL,
+    )
     shipping_method_name = models.CharField(
         max_length=255, null=True, default=None, blank=True, editable=False
     )
+    collection_point_name = models.CharField(
+        max_length=255, null=True, default=None, blank=True, editable=False
+    )
+
     channel = models.ForeignKey(
         Channel,
         related_name="orders",
