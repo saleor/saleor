@@ -688,16 +688,11 @@ def is_shipping_required(lines: Iterable["CheckoutLineInfo"]):
 
 
 def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
-    variants_without_sku = [line.variant.id for line in lines if not line.variant.sku]
     variants_listings_map = {line.variant.id: line.channel_listing for line in lines}
 
     not_available_variants = []
     for variant_id, channel_listing in variants_listings_map.items():
-        if (
-            channel_listing is None
-            or channel_listing.price is None
-            or variant_id in variants_without_sku
-        ):
+        if channel_listing is None or channel_listing.price is None:
             not_available_variants.append(variant_id)
 
     if not_available_variants:

@@ -99,7 +99,7 @@ def resolve_variant_by_id(
     ).values_list("pk", flat=True)
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
     if not requestor_has_access_to_all:
-        qs = qs.filter(sku__isnull=False).available_in_channel(channel_slug)
+        qs = qs.available_in_channel(channel_slug)
     return qs.filter(pk=id).first()
 
 
@@ -136,9 +136,7 @@ def resolve_product_variants(
         visible_products = visible_products.annotate_visible_in_listings(
             channel_slug
         ).exclude(visible_in_listings=False)
-        qs = qs.filter(
-            product__in=visible_products, sku__isnull=False
-        ).available_in_channel(channel_slug)
+        qs = qs.filter(product__in=visible_products).available_in_channel(channel_slug)
     if ids:
         db_ids = [
             from_global_id_or_error(node_id, "ProductVariant")[1] for node_id in ids

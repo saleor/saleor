@@ -105,7 +105,7 @@ def get_order_line_payload(line: "OrderLine"):
         "variant_name": line.variant_name,
         "variant": variant_dependent_fields.get("variant"),  # type: ignore
         "translated_variant_name": line.translated_variant_name or line.variant_name,
-        "product_sku": line.product_sku,
+        "product_sku": line.product_sku or line.product_id,
         "quantity": line.quantity,
         "quantity_fulfilled": line.quantity_fulfilled,
         "currency": line.currency,

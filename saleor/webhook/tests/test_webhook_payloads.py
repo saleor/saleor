@@ -65,6 +65,10 @@ def test_generate_order_payload(
         name="Voucher",
     )
 
+    line_without_sku = order_with_lines.lines.last()
+    line_without_sku.product_sku = None
+    line_without_sku.save()
+
     assert fulfilled_order.fulfillments.count() == 1
     fulfillment = fulfilled_order.fulfillments.first()
 
@@ -222,6 +226,7 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "translated_product_name": line.translated_product_name,
         "translated_variant_name": line.translated_variant_name,
         "product_sku": line.product_sku,
+        "product_id": line.product_id,
         "quantity": line.quantity,
         "currency": line.currency,
         "unit_discount_amount": str(unit_discount_amount),
@@ -249,6 +254,26 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
             undiscounted_total_price_gross_amount
         ),
     }
+
+
+def test_order_line_without_sku_still_has_id(order, order_line_with_one_allocation):
+    order.lines.add(order_line_with_one_allocation)
+    line = order_line_with_one_allocation
+    line.unit_discount_amount = Decimal("10.0")
+    line.unit_discount_type = DiscountValueType.FIXED
+    line.undiscounted_unit_price = line.unit_price + line.unit_discount
+    line.undiscounted_total_price = line.undiscounted_unit_price * line.quantity
+    line.product_sku = None
+    line.save()
+
+    payload = json.loads(generate_order_payload(order))[0]
+    lines_payload = payload.get("lines")
+
+    assert len(lines_payload) == 1
+
+    line_payload = lines_payload[0]
+    assert line_payload["product_sku"] is None
+    assert line_payload["product_id"] == line.product_id
 
 
 def test_generate_base_product_variant_payload(product_with_two_variants):
@@ -353,6 +378,36 @@ def test_generate_product_variant_with_external_media_payload(
         "id": ANY,
         "price_amount": "10.000",
         "channel_slug": channel_USD.slug,
+        "type": "ProductVariantChannelListing",
+    }
+    assert len(payload.keys()) == len(payload_fields)
+
+
+def test_generate_product_variant_without_sku_payload(
+    product_with_variant_with_two_attributes, product_with_images, channel_USD
+):
+    variant = product_with_variant_with_two_attributes.variants.first()
+    variant.sku = None
+    variant.save()
+    payload = json.loads(generate_product_variant_payload([variant]))[0]
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    additional_fields = ["channel_listings"]
+    extra_dict_data = ["attributes", "product_id", "media"]
+    payload_fields = list(
+        chain(
+            ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
+        )
+    )
+    assert variant_id is not None
+    assert payload["sku"] is None
+    assert len(payload["attributes"]) == 2
+    assert len(payload["channel_listings"]) == 1
+    assert payload["channel_listings"][0] == {
+        "cost_price_amount": "1.000",
+        "currency": "USD",
+        "id": ANY,
+        "channel_slug": channel_USD.slug,
+        "price_amount": "10.000",
         "type": "ProductVariantChannelListing",
     }
     assert len(payload.keys()) == len(payload_fields)

@@ -556,6 +556,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,

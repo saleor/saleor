@@ -189,6 +189,34 @@ def test_checkout_create_with_default_channel(
     )
 
 
+def test_checkout_create_with_variant_without_sku(
+    api_client, stock, graphql_address_data, channel_USD
+):
+    variant = stock.product_variant
+    variant.sku = None
+    variant.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    quantity = 1
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": quantity, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    get_graphql_content(response)["data"]["checkoutCreate"]
+
+    new_checkout = Checkout.objects.first()
+    lines = fetch_checkout_lines(new_checkout)
+    assert new_checkout.channel == channel_USD
+    assert calculate_checkout_quantity(lines) == quantity
+
+
 def test_checkout_create_with_inactive_channel(
     api_client, stock, graphql_address_data, channel_USD
 ):
@@ -267,54 +295,6 @@ def test_checkout_create_with_unavailable_variant(
     assert error["field"] == "lines"
     assert error["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
     assert error["variants"] == [variant_id]
-
-
-def test_checkout_create_with_variant_without_sku(
-    api_client, stock, graphql_address_data, channel_USD
-):
-    variant = stock.product_variant
-    variant.sku = None
-    variant.save()
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    test_email = "test@example.com"
-    shipping_address = graphql_address_data
-    variables = {
-        "checkoutInput": {
-            "channel": channel_USD.slug,
-            "lines": [{"quantity": 1, "variantId": variant_id}],
-            "email": test_email,
-            "shippingAddress": shipping_address,
-        }
-    }
-
-    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-
-    error = get_graphql_content(response)["data"]["checkoutCreate"]["errors"][0]
-    assert error["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
-
-
-def test_staff_checkout_create_with_variant_without_sku(
-    staff_api_client, stock, graphql_address_data, channel_USD
-):
-    variant = stock.product_variant
-    variant.sku = None
-    variant.save()
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    test_email = "test@example.com"
-    shipping_address = graphql_address_data
-    variables = {
-        "checkoutInput": {
-            "channel": channel_USD.slug,
-            "lines": [{"quantity": 1, "variantId": variant_id}],
-            "email": test_email,
-            "shippingAddress": shipping_address,
-        }
-    }
-
-    response = staff_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-
-    error = get_graphql_content(response)["data"]["checkoutCreate"]["errors"][0]
-    assert error["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
 
 
 def test_checkout_create_with_inactive_default_channel(

@@ -212,7 +212,6 @@ class AvailableProductVariantsByProductIdAndChannel(
 
     def get_variants_filter(self, products_ids, channel_slugs):
         return {
-            "sku__isnull": False,
             "product_id__in": products_ids,
             "channel_listings__channel__slug__in": [
                 str(slug) for slug in channel_slugs
@@ -282,7 +281,6 @@ class VariantChannelListingByVariantIdAndChannelLoader(
         filter = {
             f"channel__{self.field}": channel,
             "variant_id__in": variant_ids,
-            "variant__sku__isnull": False,
             "price_amount__isnull": False,
         }
         variant_channel_listings = ProductVariantChannelListing.objects.filter(**filter)
@@ -351,7 +349,6 @@ class VariantsChannelListingByProductIdAndChannelSlugLoader(
         variants_channel_listings = ProductVariantChannelListing.objects.filter(
             channel__slug=channel_slug,
             variant__product_id__in=products_ids,
-            variant__sku__isnull=False,
             price_amount__isnull=False,
         ).annotate(product_id=F("variant__product_id"))
 

@@ -102,6 +102,7 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         "translated_product_name",
         "translated_variant_name",
         "product_sku",
+        "product_id",
         "quantity",
         "currency",
         "unit_price_net_amount",
@@ -536,7 +537,9 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
         extra_dict_data={
             "product_name": lambda fl: fl.order_line.product_name,
             "variant_name": lambda fl: fl.order_line.variant_name,
-            "product_sku": lambda fl: fl.order_line.product_sku,
+            "product_sku": (
+                lambda fl: fl.order_line.product_sku or fl.order_line.product_id
+            ),
             "weight": (
                 lambda fl: fl.order_line.variant.get_weight().g
                 if fl.order_line.variant

@@ -887,15 +887,6 @@ class ProductVariantCreate(ModelMutation):
 
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
-            if instance.pk and instance.sku and not cleaned_input["sku"]:
-                raise ValidationError(
-                    {
-                        "sku": ValidationError(
-                            "Product variant SKU can't be removed.",
-                            code=ProductErrorCode.REQUIRED.value,
-                        )
-                    }
-                )
 
         return cleaned_input
 

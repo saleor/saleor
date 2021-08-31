@@ -2,6 +2,7 @@ import datetime
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
+import graphene
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.indexes import GinIndex
@@ -193,7 +194,6 @@ class ProductsQueryset(models.QuerySet):
         ).values("id")
         variant_channel_listings = ProductVariantChannelListing.objects.filter(
             Exists(channels.filter(pk=OuterRef("channel_id"))),
-            variant__sku__isnull=False,
             price_amount__isnull=False,
         ).values("id")
         variants = ProductVariant.objects.filter(
@@ -484,7 +484,6 @@ class ProductVariantQueryset(models.QuerySet):
 
     def available_in_channel(self, channel_slug):
         return self.filter(
-            sku__isnull=False,
             channel_listings__price_amount__isnull=False,
             channel_listings__channel__slug=str(channel_slug),
         )
@@ -564,6 +563,9 @@ class ProductVariant(SortableModel, ModelWithMetadata):
 
     def __str__(self) -> str:
         return self.name or self.sku or f"ID:{self.pk}"
+
+    def get_global_id(self):
+        return graphene.Node.to_global_id("ProductVariant", self.id)
 
     def get_price(
         self,

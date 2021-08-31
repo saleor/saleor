@@ -477,6 +477,63 @@ def test_checkout_complete_gift_card_bought(
     assert Fulfillment.objects.count() == 1
 
 
+def test_checkout_complete_with_variant_without_sku(
+    site_settings,
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_variant = checkout_line.variant
+    checkout_line_variant.sku = None
+    checkout_line_variant.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    redirect_url = "https://www.example.com"
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.origin == OrderOrigin.CHECKOUT
+
+    order_line = order.lines.first()
+    assert order_line.product_sku is None
+    assert order_line.product_id == order_line.variant.get_global_id()
+
+
 def test_checkout_complete_with_variant_without_price(
     site_settings,
     user_api_client,
@@ -498,39 +555,6 @@ def test_checkout_complete_with_variant_without_price(
     checkout_line_variant.channel_listings.filter(channel=checkout.channel).update(
         price_amount=None
     )
-
-    variant_id = graphene.Node.to_global_id("ProductVariant", checkout_line_variant.pk)
-    redirect_url = "https://www.example.com"
-    variables = {"token": checkout.token, "redirectUrl": redirect_url}
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
-
-    content = get_graphql_content(response)
-    errors = content["data"]["checkoutComplete"]["errors"]
-    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
-    assert errors[0]["field"] == "lines"
-    assert errors[0]["variants"] == [variant_id]
-
-
-def test_checkout_complete_with_variant_without_sku(
-    site_settings,
-    user_api_client,
-    checkout_with_item,
-    gift_card,
-    payment_dummy,
-    address,
-    shipping_method,
-):
-
-    checkout = checkout_with_item
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-    checkout.billing_address = address
-    checkout.save()
-
-    checkout_line = checkout.lines.first()
-    checkout_line_variant = checkout_line.variant
-    checkout_line_variant.sku = None
-    checkout_line_variant.save()
 
     variant_id = graphene.Node.to_global_id("ProductVariant", checkout_line_variant.pk)
     redirect_url = "https://www.example.com"

@@ -577,4 +577,4 @@ def test_published_products_without_sku_as_staff(
     # then
     content = get_graphql_content(response)
     products_nodes = content["data"]["products"]["edges"]
-    assert len(products_nodes) == 0
+    assert len(products_nodes) == 3

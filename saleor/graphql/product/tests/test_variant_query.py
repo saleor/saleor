@@ -292,7 +292,7 @@ def test_get_variant_without_sku_by_id_as_customer(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
-    assert data is None
+    assert data["id"] == variant_id
 
 
 def test_get_variant_without_sku_by_id_as_anonymous_user(
@@ -315,7 +315,7 @@ def test_get_variant_without_sku_by_id_as_anonymous_user(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
-    assert data is None
+    assert data["id"] == variant_id
 
 
 def test_get_unpublished_variant_by_sku_as_staff(

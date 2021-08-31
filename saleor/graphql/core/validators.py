@@ -63,7 +63,6 @@ def validate_variants_available_in_channel(
 
     available_variants = ProductVariantChannelListing.objects.filter(
         variant__id__in=variants_id,
-        variant__sku__isnull=False,
         channel_id=channel_id,
         price_amount__isnull=False,
     ).values_list("variant_id", flat=True)
