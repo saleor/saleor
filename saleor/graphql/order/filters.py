@@ -1,9 +1,12 @@
 import django_filters
-from django.db.models import Exists, OuterRef, Q, Sum
+from django.db.models import Exists, IntegerField, OuterRef, Q, Sum
+from django.db.models.functions import Cast
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...account.models import User
 from ...discount.models import OrderDiscount
+from ...giftcard import GiftCardEvents
+from ...giftcard.models import GiftCardEvent
 from ...order.models import Order, OrderLine
 from ...payment.models import Payment
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
@@ -109,6 +112,22 @@ def filter_channels(qs, _, values):
     return qs
 
 
+def filter_gift_card_used(qs, _, value):
+    return filter_by_gift_card(qs, value, GiftCardEvents.USED_IN_ORDER)
+
+
+def filter_gift_card_bought(qs, _, value):
+    return filter_by_gift_card(qs, value, GiftCardEvents.BOUGHT)
+
+
+def filter_by_gift_card(qs, value, gift_card_type):
+    gift_card_events = GiftCardEvent.objects.filter(type=gift_card_type).values(
+        order_id=Cast("parameters__order_id", IntegerField())
+    )
+    lookup = Exists(gift_card_events.filter(order_id=OuterRef("id")))
+    return qs.filter(lookup) if value is True else qs.exclude(lookup)
+
+
 class DraftOrderFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
@@ -129,6 +148,8 @@ class OrderFilter(DraftOrderFilter):
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
     search = django_filters.CharFilter(method=filter_order_search)
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
+    gift_card_used = django_filters.BooleanFilter(method=filter_gift_card_used)
+    gift_card_bought = django_filters.BooleanFilter(method=filter_gift_card_bought)
 
     class Meta:
         model = Order

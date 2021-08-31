@@ -22,7 +22,7 @@ from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
 from ....giftcard import GiftCardEvents
-from ....giftcard.events import gift_cards_bought_event
+from ....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
 from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
@@ -6543,6 +6543,118 @@ def test_order_query_with_filter_channels_with_empty_channel(
     content = get_graphql_content(response)
     orders = content["data"]["orders"]["edges"]
     assert len(orders) == 0
+
+
+def test_order_query_with_filter_gift_card_used_true(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    gift_card,
+    orders,
+):
+    # given
+    gift_card_order = orders[0]
+    gift_cards_used_in_order_event(
+        [(gift_card, 20.0)], gift_card_order.id, staff_api_client.user, None
+    )
+    variables = {"filter": {"giftCardUsed": True}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 1
+    assert orders[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", gift_card_order.id
+    )
+
+
+def test_order_query_with_filter_gift_card_used_false(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    gift_card,
+    orders,
+):
+    # given
+    gift_card_order = orders[0]
+    gift_card_order_id = graphene.Node.to_global_id("Order", gift_card_order.id)
+    gift_cards_used_in_order_event(
+        [(gift_card, 20.0)], gift_card_order.id, staff_api_client.user, None
+    )
+    variables = {"filter": {"giftCardUsed": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["orders"]["edges"]
+    assert gift_card_order_id not in {
+        order_data["node"]["id"] for order_data in orders_data
+    }
+
+
+def test_order_query_with_filter_gift_card_bough_true(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    gift_card,
+    orders,
+):
+    # given
+    gift_card_order = orders[-1]
+    gift_cards_bought_event(
+        [gift_card], gift_card_order.id, staff_api_client.user, None
+    )
+    variables = {"filter": {"giftCardBought": True}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 1
+    assert orders[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", gift_card_order.id
+    )
+
+
+def test_order_query_with_filter_gift_card_bought_false(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    gift_card,
+    orders,
+):
+    # given
+    gift_card_order = orders[-1]
+    gift_card_order_id = graphene.Node.to_global_id("Order", gift_card_order.id)
+    gift_cards_bought_event(
+        [gift_card], gift_card_order.id, staff_api_client.user, None
+    )
+    variables = {"filter": {"giftCardBought": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["orders"]["edges"]
+    assert gift_card_order_id not in {
+        order_data["node"]["id"] for order_data in orders_data
+    }
 
 
 @pytest.mark.parametrize(
