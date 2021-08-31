@@ -89,7 +89,7 @@ class PaymentData:
     reuse_source: bool = False  # Note: this field will be removed in 4.0.
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
-    store: StoreEnum = StoreEnum.NONE
+    store_payment_method: StoreEnum = StoreEnum.NONE
     payment_metadata: Dict[str, str] = field(default_factory=dict)
 
 

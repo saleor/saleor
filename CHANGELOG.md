@@ -4,7 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.1.0 [Unreleased]
 - Extend app by `AppExtension` - #7701 by @korycins
-- Deprecate interface field `PaymentData.reuse_source` - #SALEOR-4233 by @mateuszgrzyb
+- Deprecate interface field `PaymentData.reuse_source` - #7956 by @mateuszgrzyb
 
 - Add Click&Collect feature - #7673 by @kuchichan
 
