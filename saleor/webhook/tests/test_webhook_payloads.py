@@ -15,6 +15,7 @@ from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
+from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
@@ -614,3 +615,19 @@ def test_generate_customer_payload(customer_user, address_other_country, address
     }
 
     assert payload == expected_payload
+
+
+def test_generate_collection_point_payload(order_with_lines_for_cc):
+    payload = json.loads(generate_order_payload(order_with_lines_for_cc))[0]
+
+    payload_collection_point = payload.get("collection_point")
+
+    assert payload_collection_point
+    assert payload_collection_point.get("address")
+    assert payload_collection_point.get("email") == "local@example.com"
+    assert payload_collection_point.get("name") == "Local Warehouse"
+    assert not payload_collection_point.get("is_private")
+    assert (
+        payload_collection_point.get("click_and_collect_option")
+        == WarehouseClickAndCollectOption.LOCAL_STOCK
+    )

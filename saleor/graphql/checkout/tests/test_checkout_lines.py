@@ -3,12 +3,14 @@ import uuid
 from unittest import mock
 
 import graphene
+import pytest
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import calculate_checkout_quantity
 from ....plugins.manager import get_plugins_manager
 from ....product.models import ProductChannelListing
+from ....warehouse import WarehouseClickAndCollectOption
 from ...tests.utils import get_graphql_content
 from ..mutations import update_checkout_shipping_method_if_invalid
 
@@ -131,6 +133,40 @@ def test_checkout_lines_add_with_insufficient_stock(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)
     errors = content["data"]["checkoutLinesAdd"]["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
+
+
+@pytest.mark.parametrize(
+    "cc_option",
+    [
+        WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+        WarehouseClickAndCollectOption.LOCAL_STOCK,
+    ],
+)
+def test_checkout_lines_for_click_and_collect_insufficient_stock(
+    user_api_client, checkout_with_item_for_cc, warehouse_for_cc, cc_option
+):
+    checkout = checkout_with_item_for_cc
+    checkout.collection_point = warehouse_for_cc
+
+    warehouse_for_cc.click_and_collect_option = cc_option
+    warehouse_for_cc.save(update_fields=["click_and_collect_option"])
+    checkout.refresh_from_db()
+
+    variant = checkout.lines.last().variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "token": checkout.token,
+        "lines": [{"variantId": variant_id, "quantity": 42}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutLinesAdd"]["errors"]
+
     assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
     assert errors[0]["field"] == "quantity"
 

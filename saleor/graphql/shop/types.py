@@ -16,7 +16,7 @@ from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
 from ..core.utils import str_to_enum
@@ -122,7 +122,9 @@ class Shop(graphene.ObjectType):
     )
     channel_currencies = graphene.List(
         graphene.NonNull(graphene.String),
-        description="List of all currencies supported by shop's channels.",
+        description=(
+            f"{ADDED_IN_31} List of all currencies supported by shop's channels."
+        ),
         required=True,
     )
     countries = graphene.List(
@@ -165,10 +167,12 @@ class Shop(graphene.ObjectType):
         description="Include taxes in prices.", required=True
     )
     fulfillment_auto_approve = graphene.Boolean(
-        description="Automatically approve all new fulfillments.", required=True
+        description=f"{ADDED_IN_31} Automatically approve all new fulfillments.",
+        required=True,
     )
     fulfillment_allow_unpaid = graphene.Boolean(
-        description="Allow to approve fulfillments which are unpaid.", required=True
+        description=f"{ADDED_IN_31} Allow to approve fulfillments which are unpaid.",
+        required=True,
     )
     display_gross_prices = graphene.Boolean(
         description="Display prices with tax in store.", required=True

@@ -7,9 +7,10 @@ from ...warehouse import models
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
+from .enums import WarehouseClickAndCollectOptionEnum
 
 
 class WarehouseInput(graphene.InputObjectType):
@@ -36,6 +37,13 @@ class WarehouseUpdateInput(WarehouseInput):
         description="Address of the warehouse.",
         required=False,
     )
+    click_and_collect_option = WarehouseClickAndCollectOptionEnum(
+        description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
+        required=False,
+    )
+    is_private = graphene.Boolean(
+        description=f"{ADDED_IN_31} Visibility of warehouse stocks", required=False
+    )
 
 
 class Warehouse(CountableDjangoObjectType):
@@ -45,6 +53,10 @@ class Warehouse(CountableDjangoObjectType):
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use `Address.companyName` instead."
         ),
+    )
+    click_and_collect_option = WarehouseClickAndCollectOptionEnum(
+        description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
+        required=True,
     )
 
     class Meta:
@@ -58,6 +70,7 @@ class Warehouse(CountableDjangoObjectType):
             "shipping_zones",
             "address",
             "email",
+            "is_private",
         ]
 
     @staticmethod
