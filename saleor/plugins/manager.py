@@ -964,8 +964,18 @@ class PluginsManager(PaymentInterface):
         event: "NotifyEventTypeChoice",
         payload: dict,
         channel_slug: Optional[str] = None,
+        plugin_id: Optional[str] = None,
     ):
         default_value = None
+        if plugin_id:
+            plugin = self.get_plugin(plugin_id, channel_slug=channel_slug)
+            return self.__run_method_on_single_plugin(
+                plugin=plugin,
+                method_name="notify",
+                previous_value=default_value,
+                event=event,
+                payload=payload,
+            )
         return self.__run_method_on_plugins(
             "notify", default_value, event, payload, channel_slug=channel_slug
         )
