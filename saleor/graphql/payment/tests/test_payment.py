@@ -50,7 +50,7 @@ VOID_QUERY = """
 def test_payment_void_success(
     staff_api_client, permission_manage_orders, payment_txn_preauth
 ):
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_txn_preauth.charge_status == ChargeStatus.AUTHORIZED
     payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
     variables = {"paymentId": payment_id}
     response = staff_api_client.post_graphql(
@@ -62,6 +62,7 @@ def test_payment_void_success(
     payment_txn_preauth.refresh_from_db()
     assert payment_txn_preauth.is_active is False
     assert payment_txn_preauth.transactions.count() == 2
+    assert payment_txn_preauth.charge_status == ChargeStatus.CANCELLED
     txn = payment_txn_preauth.transactions.last()
     assert txn.kind == TransactionKind.VOID
 
@@ -69,7 +70,7 @@ def test_payment_void_success(
 def test_payment_void_gateway_error(
     staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
 ):
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_txn_preauth.charge_status == ChargeStatus.AUTHORIZED
     payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
     variables = {"paymentId": payment_id}
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
@@ -82,7 +83,7 @@ def test_payment_void_gateway_error(
     assert data["errors"][0]["field"] is None
     assert data["errors"][0]["message"] == "Unable to void the transaction."
     payment_txn_preauth.refresh_from_db()
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_txn_preauth.charge_status == ChargeStatus.AUTHORIZED
     assert payment_txn_preauth.is_active is True
     assert payment_txn_preauth.transactions.count() == 2
     txn = payment_txn_preauth.transactions.last()
@@ -455,7 +456,7 @@ def test_payment_capture_success(
     staff_api_client, permission_manage_orders, payment_txn_preauth
 ):
     payment = payment_txn_preauth
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
@@ -476,7 +477,7 @@ def test_payment_capture_with_invalid_argument(
     staff_api_client, permission_manage_orders, payment_txn_preauth
 ):
     payment = payment_txn_preauth
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": 0}
@@ -496,7 +497,8 @@ def test_payment_capture_with_payment_non_authorized_yet(
     the proper error message.
     """
     payment = payment_dummy
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    payment.charge_status = ChargeStatus.AUTHORIZED
+    payment.save()
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": 1}
@@ -516,7 +518,7 @@ def test_payment_capture_gateway_error(
     # given
     payment = payment_txn_preauth
 
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
@@ -532,7 +534,7 @@ def test_payment_capture_gateway_error(
     assert data["errors"] == [{"field": None, "message": "Unable to process capture"}]
 
     payment_txn_preauth.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
     assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.CAPTURE
@@ -559,7 +561,7 @@ def test_payment_capture_gateway_dummy_credit_card_error(
     transaction.token = token
     transaction.save()
 
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
     monkeypatch.setattr(
@@ -577,7 +579,7 @@ def test_payment_capture_gateway_dummy_credit_card_error(
     assert data["errors"] == [{"field": None, "message": error}]
 
     payment_txn_preauth.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
     assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.CAPTURE
@@ -729,7 +731,8 @@ def test_payments_query(
 QUERY_PAYMENT_BY_ID = """
     query payment($id: ID!) {
         payment(id: $id) {
-            id
+            id,
+            pspReference
         }
     }
 """
@@ -738,6 +741,8 @@ QUERY_PAYMENT_BY_ID = """
 def test_query_payment(payment_dummy, user_api_client, permission_manage_orders):
     query = QUERY_PAYMENT_BY_ID
     payment = payment_dummy
+    payment.psp_reference = "A psp_reference"
+    payment.save()
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"id": payment_id}
     response = user_api_client.post_graphql(
@@ -746,6 +751,8 @@ def test_query_payment(payment_dummy, user_api_client, permission_manage_orders)
     content = get_graphql_content(response)
     received_id = content["data"]["payment"]["id"]
     assert received_id == payment_id
+    psp_reference = content["data"]["payment"]["pspReference"]
+    assert psp_reference == "A psp_reference"
 
 
 def test_staff_query_payment_by_invalid_id(

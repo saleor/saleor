@@ -108,6 +108,7 @@ class Payment(CountableDjangoObjectType):
             "order",
             "customer_ip_address",
             "payment_method_type",
+            "psp_reference",
         ]
 
     @staticmethod

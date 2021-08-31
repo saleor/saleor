@@ -46,6 +46,8 @@ if TYPE_CHECKING:
         TokenConfig,
     )
     from ..product.models import Product, ProductType, ProductVariant
+    from ..translation.models import Translation
+    from ..warehouse.models import Stock
     from .base_plugin import BasePlugin
 
 
@@ -121,7 +123,6 @@ class PluginsManager(PaymentInterface):
         ):
             value = default_value
             plugins = self.get_plugins(channel_slug=channel_slug)
-
             for plugin in plugins:
                 value = self.__run_method_on_single_plugin(
                     plugin, method_name, value, *args, **kwargs
@@ -327,6 +328,7 @@ class PluginsManager(PaymentInterface):
                 order_line,
                 variant,
                 product,
+                channel_slug=order.channel.slug,
             ),
             order.currency,
         )
@@ -516,7 +518,21 @@ class PluginsManager(PaymentInterface):
     def product_variant_deleted(self, product_variant: "ProductVariant"):
         default_value = None
         return self.__run_method_on_plugins(
-            "product_variant_deleted", default_value, product_variant
+            "product_variant_deleted",
+            default_value,
+            product_variant,
+        )
+
+    def product_variant_out_of_stock(self, stock: "Stock"):
+        default_value = None
+        self.__run_method_on_plugins(
+            "product_variant_out_of_stock", default_value, stock
+        )
+
+    def product_variant_back_in_stock(self, stock: "Stock"):
+        default_value = None
+        self.__run_method_on_plugins(
+            "product_variant_back_in_stock", default_value, stock
         )
 
     def order_created(self, order: "Order"):
@@ -593,6 +609,15 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "fulfillment_created",
+            default_value,
+            fulfillment,
+            channel_slug=fulfillment.order.channel.slug,
+        )
+
+    def fulfillment_canceled(self, fulfillment: "Fulfillment"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "fulfillment_canceled",
             default_value,
             fulfillment,
             channel_slug=fulfillment.order.channel.slug,
@@ -726,6 +751,18 @@ class PluginsManager(PaymentInterface):
                 gtw, "list_payment_sources", default_value, customer_id=customer_id
             )
         raise Exception(f"Payment plugin {gateway} is inaccessible!")
+
+    def translation_created(self, translation: "Translation"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "translation_created", default_value, translation
+        )
+
+    def translation_updated(self, translation: "Translation"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "translation_updated", default_value, translation
+        )
 
     def get_plugins(
         self, channel_slug: Optional[str] = None, active_only=False

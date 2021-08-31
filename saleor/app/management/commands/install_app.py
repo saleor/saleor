@@ -54,6 +54,7 @@ class Command(BaseCommand):
 
         try:
             app = install_app(app_job, activate)
+            app_job.delete()
         except Exception as e:
             app_job.status = JobStatus.FAILED
             app_job.save()

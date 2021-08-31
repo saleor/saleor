@@ -11,6 +11,8 @@ from ...core.permissions import ChannelPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...order.models import Order
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
+from ..account.enums import CountryCodeEnum
+from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import ChannelError, ChannelErrorCode
 from ..core.utils import get_duplicated_values, get_duplicates_ids
@@ -27,6 +29,14 @@ class ChannelCreateInput(ChannelInput):
     slug = graphene.String(description="Slug of the channel.", required=True)
     currency_code = graphene.String(
         description="Currency of the channel.", required=True
+    )
+    default_country = CountryCodeEnum(
+        description=(
+            f"{ADDED_IN_31} Default country for the channel. Default country can be "
+            "used in checkout to determine the stock quantities or calculate taxes "
+            "when the country was not explicitly provided."
+        ),
+        required=True,
     )
     add_shipping_zones = graphene.List(
         graphene.NonNull(graphene.ID),
@@ -73,6 +83,13 @@ class ChannelCreate(ModelMutation):
 class ChannelUpdateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.")
     slug = graphene.String(description="Slug of the channel.")
+    default_country = CountryCodeEnum(
+        description=(
+            f"{ADDED_IN_31} Default country for the channel. Default country can be "
+            "used in checkout to determine the stock quantities or calculate taxes "
+            "when the country was not explicitly provided."
+        )
+    )
     add_shipping_zones = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of shipping zones to assign to the channel.",

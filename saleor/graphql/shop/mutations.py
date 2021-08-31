@@ -7,6 +7,7 @@ from ...core.permissions import OrderPermissions, SitePermissions
 from ...core.utils.url import validate_storefront_url
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
+from ..core.descriptions import ADDED_IN_31
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import OrderSettingsError, ShopError
@@ -27,6 +28,14 @@ class ShopSettingsInput(graphene.InputObjectType):
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
     automatic_fulfillment_digital_products = graphene.Boolean(
         description="Enable automatic fulfillment for all digital products."
+    )
+    fulfillment_auto_approve = graphene.Boolean(
+        description=f"{ADDED_IN_31} Enable automatic approval of all new fulfillments."
+    )
+    fulfillment_allow_unpaid = graphene.Boolean(
+        description=(
+            f"{ADDED_IN_31} Enable ability to approve fulfillments which are unpaid."
+        )
     )
     default_digital_max_downloads = graphene.Int(
         description="Default number of max downloads per digital content URL."

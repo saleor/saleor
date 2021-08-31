@@ -5,6 +5,7 @@ from ..core.permissions import (
     PagePermissions,
     PaymentPermissions,
     ProductPermissions,
+    SitePermissions,
 )
 
 
@@ -15,6 +16,7 @@ class WebhookEventType:
     ORDER_FULLY_PAID = "order_fully_paid"
     ORDER_UPDATED = "order_updated"
     ORDER_CANCELLED = "order_cancelled"
+    FULFILLMENT_CANCELED = "fulfillment_canceled"
     ORDER_FULFILLED = "order_fulfilled"
 
     INVOICE_REQUESTED = "invoice_requested"
@@ -34,6 +36,9 @@ class WebhookEventType:
     PRODUCT_VARIANT_UPDATED = "product_variant_updated"
     PRODUCT_VARIANT_DELETED = "product_variant_deleted"
 
+    PRODUCT_VARIANT_OUT_OF_STOCK = "product_variant_out_of_stock"
+    PRODUCT_VARIANT_BACK_IN_STOCK = "product_variant_back_in_stock"
+
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPDATED = "checkout_updated"
 
@@ -50,6 +55,9 @@ class WebhookEventType:
     PAYMENT_VOID = "payment_void"
     PAYMENT_CONFIRM = "payment_confirm"
     PAYMENT_PROCESS = "payment_process"
+
+    TRANSLATION_CREATED = "translation_created"
+    TRANSLATION_UPDATED = "translation_updated"
 
     DISPLAY_LABELS = {
         ANY: "Any events",
@@ -70,9 +78,12 @@ class WebhookEventType:
         PRODUCT_VARIANT_CREATED: "Product variant created",
         PRODUCT_VARIANT_UPDATED: "Product variant updated",
         PRODUCT_VARIANT_DELETED: "Product variant deleted",
+        PRODUCT_VARIANT_OUT_OF_STOCK: "Product variant stock changed",
+        PRODUCT_VARIANT_BACK_IN_STOCK: "Product variant back in stock",
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPDATED: "Checkout updated",
         FULFILLMENT_CREATED: "Fulfillment_created",
+        FULFILLMENT_CANCELED: "Fulfillment_cancelled",
         NOTIFY_USER: "Notify user",
         PAGE_CREATED: "Page Created",
         PAGE_UPDATED: "Page Updated",
@@ -84,6 +95,8 @@ class WebhookEventType:
         PAYMENT_PROCESS: "Process payment",
         PAYMENT_REFUND: "Refund payment",
         PAYMENT_VOID: "Void payment",
+        TRANSLATION_CREATED: "Create translation",
+        TRANSLATION_UPDATED: "Update translation",
     }
 
     CHOICES = [
@@ -105,9 +118,12 @@ class WebhookEventType:
         (PRODUCT_VARIANT_CREATED, DISPLAY_LABELS[PRODUCT_VARIANT_CREATED]),
         (PRODUCT_VARIANT_UPDATED, DISPLAY_LABELS[PRODUCT_VARIANT_UPDATED]),
         (PRODUCT_VARIANT_DELETED, DISPLAY_LABELS[PRODUCT_VARIANT_DELETED]),
+        (PRODUCT_VARIANT_OUT_OF_STOCK, DISPLAY_LABELS[PRODUCT_VARIANT_OUT_OF_STOCK]),
+        (PRODUCT_VARIANT_BACK_IN_STOCK, DISPLAY_LABELS[PRODUCT_VARIANT_BACK_IN_STOCK]),
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
         (CHECKOUT_UPDATED, DISPLAY_LABELS[CHECKOUT_UPDATED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
+        (FULFILLMENT_CANCELED, DISPLAY_LABELS[FULFILLMENT_CANCELED]),
         (NOTIFY_USER, DISPLAY_LABELS[NOTIFY_USER]),
         (PAGE_CREATED, DISPLAY_LABELS[PAGE_CREATED]),
         (PAGE_UPDATED, DISPLAY_LABELS[PAGE_UPDATED]),
@@ -119,6 +135,8 @@ class WebhookEventType:
         (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
         (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
         (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
+        (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
+        (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
     ]
 
     PAYMENT_EVENTS = [
@@ -149,9 +167,12 @@ class WebhookEventType:
         PRODUCT_VARIANT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
+        PRODUCT_VARIANT_BACK_IN_STOCK: ProductPermissions.MANAGE_PRODUCTS,
+        PRODUCT_VARIANT_OUT_OF_STOCK: ProductPermissions.MANAGE_PRODUCTS,
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
+        FULFILLMENT_CANCELED: OrderPermissions.MANAGE_ORDERS,
         NOTIFY_USER: AccountPermissions.MANAGE_USERS,
         PAGE_CREATED: PagePermissions.MANAGE_PAGES,
         PAGE_UPDATED: PagePermissions.MANAGE_PAGES,
@@ -163,4 +184,6 @@ class WebhookEventType:
         PAYMENT_PROCESS: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_REFUND: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
+        TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
     }
