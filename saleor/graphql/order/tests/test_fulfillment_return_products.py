@@ -490,6 +490,65 @@ def test_fulfillment_return_products_fulfillment_lines(
     )
 
 
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_return_products_fulfillment_lines_waiting_for_approval(
+    mocked_refund,
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    payment_dummy,
+):
+    payment_dummy.total = fulfilled_order.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    order_fulfillment = fulfilled_order.fulfillments.first()
+    order_fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    order_fulfillment.save(update_fields=["status"])
+    fulfillment_line_to_return = order_fulfillment.lines.first()
+    fulfillment_line_to_return.order_line.quantity_fulfilled = 0
+    fulfillment_line_to_return.order_line.save(update_fields=["quantity_fulfilled"])
+    amount = fulfillment_line_to_return.order_line.unit_price_gross_amount * 2
+    quantity_to_return = 2
+
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    fulfillment_line_id = graphene.Node.to_global_id(
+        "FulfillmentLine", fulfillment_line_to_return.pk
+    )
+
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "includeShippingCosts": False,
+            "fulfillmentLines": [
+                {
+                    "fulfillmentLineId": fulfillment_line_id,
+                    "quantity": quantity_to_return,
+                    "replace": False,
+                }
+            ],
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+
+    fulfilled_order.refresh_from_db()
+    order_return_fulfillment = fulfilled_order.fulfillments.get(
+        status=FulfillmentStatus.REFUNDED_AND_RETURNED
+    )
+    return_fulfillment_line = order_return_fulfillment.lines.filter(
+        order_line_id=fulfillment_line_to_return.order_line_id
+    ).first()
+    assert return_fulfillment_line
+    assert return_fulfillment_line.quantity == quantity_to_return
+
+    mocked_refund.assert_called_with(
+        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+    )
+
+
 def test_fulfillment_return_products_fulfillment_lines_quantity_bigger_than_total(
     staff_api_client, permission_manage_orders, fulfilled_order, payment_dummy
 ):

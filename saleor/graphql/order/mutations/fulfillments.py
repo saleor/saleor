@@ -593,61 +593,6 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
             )
         cleaned_input["order_lines"] = cleaned_order_lines
 
-
-class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
-    fulfillment = graphene.Field(Fulfillment, description="A refunded fulfillment.")
-    order = graphene.Field(Order, description="Order which fulfillment was refunded.")
-
-    class Arguments:
-        order = graphene.ID(
-            description="ID of the order to be refunded.", required=True
-        )
-        input = OrderRefundProductsInput(
-            required=True,
-            description="Fields required to create an refund fulfillment.",
-        )
-
-    class Meta:
-        description = "Refund products."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        error_type_class = OrderError
-        error_type_field = "order_errors"
-
-    @classmethod
-    def clean_input(cls, info, order_id, input):
-        cleaned_input = {}
-        amount_to_refund = input.get("amount_to_refund")
-        include_shipping_costs = input["include_shipping_costs"]
-
-        qs = order_models.Order.objects.prefetch_related("payments")
-        order = cls.get_node_or_error(
-            info, order_id, field="order", only_type=Order, qs=qs
-        )
-        payment = order.get_last_payment()
-        cls.clean_order_payment(payment, cleaned_input)
-        cls.clean_amount_to_refund(amount_to_refund, payment, cleaned_input)
-
-        cleaned_input.update(
-            {"include_shipping_costs": include_shipping_costs, "order": order}
-        )
-
-        order_lines_data = input.get("order_lines", [])
-        fulfillment_lines_data = input.get("fulfillment_lines", [])
-
-        if order_lines_data:
-            cls.clean_lines(order_lines_data, cleaned_input)
-        if fulfillment_lines_data:
-            cls.clean_fulfillment_lines(
-                fulfillment_lines_data,
-                cleaned_input,
-                whitelisted_statuses=[
-                    FulfillmentStatus.FULFILLED,
-                    FulfillmentStatus.RETURNED,
-                    FulfillmentStatus.WAITING_FOR_APPROVAL,
-                ],
-            )
-        return cleaned_input
-
     @classmethod
     def remove_waiting_fulfillments(cls, lines_info):
         """Delete fulfillment lines which fulfillments are `WAITING_FOR_APPROVAL`.
@@ -721,6 +666,61 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
                     )
                 )
         return order_lines
+
+
+class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
+    fulfillment = graphene.Field(Fulfillment, description="A refunded fulfillment.")
+    order = graphene.Field(Order, description="Order which fulfillment was refunded.")
+
+    class Arguments:
+        order = graphene.ID(
+            description="ID of the order to be refunded.", required=True
+        )
+        input = OrderRefundProductsInput(
+            required=True,
+            description="Fields required to create an refund fulfillment.",
+        )
+
+    class Meta:
+        description = "Refund products."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def clean_input(cls, info, order_id, input):
+        cleaned_input = {}
+        amount_to_refund = input.get("amount_to_refund")
+        include_shipping_costs = input["include_shipping_costs"]
+
+        qs = order_models.Order.objects.prefetch_related("payments")
+        order = cls.get_node_or_error(
+            info, order_id, field="order", only_type=Order, qs=qs
+        )
+        payment = order.get_last_payment()
+        cls.clean_order_payment(payment, cleaned_input)
+        cls.clean_amount_to_refund(amount_to_refund, payment, cleaned_input)
+
+        cleaned_input.update(
+            {"include_shipping_costs": include_shipping_costs, "order": order}
+        )
+
+        order_lines_data = input.get("order_lines", [])
+        fulfillment_lines_data = input.get("fulfillment_lines", [])
+
+        if order_lines_data:
+            cls.clean_lines(order_lines_data, cleaned_input)
+        if fulfillment_lines_data:
+            cls.clean_fulfillment_lines(
+                fulfillment_lines_data,
+                cleaned_input,
+                whitelisted_statuses=[
+                    FulfillmentStatus.FULFILLED,
+                    FulfillmentStatus.RETURNED,
+                    FulfillmentStatus.WAITING_FOR_APPROVAL,
+                ],
+            )
+        return cleaned_input
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -871,6 +871,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
                 whitelisted_statuses=[
                     FulfillmentStatus.FULFILLED,
                     FulfillmentStatus.REFUNDED,
+                    FulfillmentStatus.WAITING_FOR_APPROVAL,
                 ],
             )
         return cleaned_input
@@ -879,13 +880,22 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
+
+        order_lines_map, remaining_fulfillment_lines = cls.remove_waiting_fulfillments(
+            cleaned_input.get("fulfillment_lines", [])
+        )
+
+        order_lines = cls.extend_order_lines(
+            cleaned_input.get("order_lines", []), order_lines_map
+        )
+
         response = create_fulfillments_for_returned_products(
             info.context.user,
             info.context.app,
             order,
             cleaned_input.get("payment"),
-            cleaned_input.get("order_lines", []),
-            cleaned_input.get("fulfillment_lines", []),
+            order_lines,
+            remaining_fulfillment_lines,
             info.context.plugins,
             cleaned_input["refund"],
             cleaned_input.get("amount_to_refund"),

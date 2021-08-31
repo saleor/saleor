@@ -1175,7 +1175,7 @@ def create_fulfillments_for_returned_products(
     """Process the request for replacing or returning the products.
 
     Process the refund when the refund is set to True. The amount of refund will be
-    calculated for all lines with statuses different from refunded.  The lines which
+    calculated for all lines with statuses different from refunded. The lines which
     are set to replace will not be included in the refund amount.
 
     If the amount is provided, the refund will be used for this amount.
