@@ -10,13 +10,13 @@ from ....core.notify_events import NotifyEventType
 from ...models import PluginConfiguration
 from ..constants import (
     CSV_EXPORT_FAILED_TEMPLATE_FIELD,
-    CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
+    CSV_EXPORT_SUCCESS_TEMPLATE_FIELD,
     SET_STAFF_PASSWORD_TEMPLATE_FIELD,
     STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD,
 )
 from ..notify_events import (
     send_csv_export_failed,
-    send_csv_product_export_success,
+    send_csv_export_success,
     send_set_staff_password_email,
     send_staff_order_confirmation,
     send_staff_reset_password,
@@ -28,7 +28,7 @@ def test_event_map():
     assert get_admin_event_map() == {
         NotifyEventType.STAFF_ORDER_CONFIRMATION: send_staff_order_confirmation,
         NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD: send_set_staff_password_email,
-        NotifyEventType.CSV_PRODUCT_EXPORT_SUCCESS: send_csv_product_export_success,
+        NotifyEventType.CSV_EXPORT_SUCCESS: send_csv_export_success,
         NotifyEventType.CSV_EXPORT_FAILED: send_csv_export_failed,
         NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD: send_staff_reset_password,
     }
@@ -39,7 +39,7 @@ def test_event_map():
     [
         NotifyEventType.STAFF_ORDER_CONFIRMATION,
         NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD,
-        NotifyEventType.CSV_PRODUCT_EXPORT_SUCCESS,
+        NotifyEventType.CSV_EXPORT_SUCCESS,
         NotifyEventType.CSV_EXPORT_FAILED,
         NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD,
     ],
@@ -184,7 +184,7 @@ def test_save_plugin_configuration_incorrect_template(mocked_open, admin_email_p
                 "value": incorrect_template_str,
             },
             {
-                "name": CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
+                "name": CSV_EXPORT_SUCCESS_TEMPLATE_FIELD,
                 "value": incorrect_template_str,
             },
             {"name": CSV_EXPORT_FAILED_TEMPLATE_FIELD, "value": incorrect_template_str},
