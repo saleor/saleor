@@ -9,80 +9,50 @@ from ....core.notify_events import UserNotifyEvent
 from ....graphql.tests.utils import assert_no_permission
 from ....plugins.tests.sample_plugins import PluginSample
 
-query_test_data = [
+query_test_invalid_data = [
     (
         {
             "input": {
                 "ids": [],
                 "extraPayload": json.dumps("{}"),
                 "externalEventType": {},
-                "channel": "c-pln",
+            }
+        },
+        400,
+        'Variable "$channel" of required type "String!" was not provided.',
+    ),
+    (
+        {
+            "input": {
+                "extraPayload": json.dumps("{}"),
+                "externalEventType": {},
             },
-            "pluginId": "",
+            "channel": "c-pln",
         },
-        200,
+        400,
+        'Variable "$input" got invalid value {"externalEventType": {},'
+        ' "extraPayload": "\\"{}\\""}.\nIn field "ids": Expected "[ID]!", found null.',
     ),
     (
         {
             "input": {
                 "ids": [],
                 "extraPayload": json.dumps("{}"),
-                "externalEventType": {},
-                "channel": "c-pln",
             },
-            "pluginId": "WRONG-TEST-PLUGIN",
-        },
-        200,
-    ),
-    (
-        {
-            "input": {
-                "ids": [],
-                "extraPayload": json.dumps("{}"),
-                "externalEventType": {},
-                "channel": "c-pln",
-            }
-        },
-        200,
-    ),
-    (
-        {
-            "input": {
-                "ids": [],
-                "extraPayload": json.dumps("{}"),
-                "externalEventType": {},
-            }
+            "channel": "c-pln",
         },
         400,
-    ),
-    (
-        {
-            "input": {
-                "extraPayload": json.dumps("{}"),
-                "externalEventType": {},
-                "channel": "c-pln",
-            }
-        },
-        400,
-    ),
-    ({"input": {"ids": [], "externalEventType": {}, "channel": "c-pln"}}, 200),
-    (
-        {
-            "input": {
-                "ids": [],
-                "extraPayload": json.dumps("{}"),
-                "channel": "c-pln",
-            }
-        },
-        400,
+        'Variable "$input" got invalid value {"extraPayload": "\\"{}\\"",'
+        ' "ids": []}.\nIn field "externalEventType": Expected "String!", found null.',
     ),
 ]
 
 
-@pytest.mark.parametrize("variables, status_code", query_test_data)
-def test_query(
+@pytest.mark.parametrize("variables, status_code, message", query_test_invalid_data)
+def test_external_notification_trigger_query_with_invalid_data(
     variables,
     status_code,
+    message,
     external_notification_trigger_query,
     staff_api_client,
     permission_manage_users,
@@ -95,10 +65,14 @@ def test_query(
         check_no_permissions=False,
     )
     assert response.status_code == status_code
+    json_response = response.json()
+    errors = json_response["errors"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == message
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def test_notify_via_external_notification_trigger_for_all_plugins(
+def test_notify_via_external_notification_trigger_for_plugin_manager(
     plugin_manager_notify_mock,
     settings,
     staff_users,
@@ -115,8 +89,8 @@ def test_notify_via_external_notification_trigger_for_all_plugins(
             "ids": [to_global_id(User.__name__, user.id) for user in staff_users],
             "extraPayload": "{}",
             "externalEventType": UserNotifyEvent.ORDER_CANCELED,
-            "channel": channel_PLN.slug,
-        }
+        },
+        "channel": channel_PLN.slug,
     }
 
     response = staff_api_client.post_graphql(
@@ -127,6 +101,7 @@ def test_notify_via_external_notification_trigger_for_all_plugins(
 
     assert response.status_code == 200
     assert plugin_manager_notify_mock.call_count == 3
+    assert len(response.json()["data"]["externalNotificationTrigger"]["errors"]) == 0
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -143,8 +118,8 @@ def test_notify_via_external_notification_trigger_without_permission(
             "ids": [to_global_id(User.__name__, user.id) for user in staff_users],
             "extraPayload": "{}",
             "externalEventType": UserNotifyEvent.ORDER_CANCELED,
-            "channel": channel_PLN.slug,
         },
+        "channel": channel_PLN.slug,
         "pluginId": PluginSample.PLUGIN_ID,
     }
 
@@ -152,5 +127,4 @@ def test_notify_via_external_notification_trigger_without_permission(
         external_notification_trigger_query, variables
     )
     assert_no_permission(response)
-    assert response.status_code == 200
     plugin_manager_notify_mock.assert_not_called()

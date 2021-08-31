@@ -2,8 +2,8 @@ from django.core.exceptions import ValidationError
 
 from ...account.models import User
 from ...account.notifications import get_user_custom_payload
-from ...channel.models import Channel
 from ...core.permissions import AccountPermissions, OrderPermissions
+from ...graphql.channel.utils import validate_channel
 from ...graphql.core.enums import ExternalNotificationTriggerErrorCode
 from ...graphql.utils import resolve_global_ids_to_primary_keys
 from ...order.models import Order
@@ -30,7 +30,7 @@ def validate_ids_and_get_model_type_and_pks(data_input):
     raise ValidationError(
         {
             "ids": ValidationError(
-                "The obligatory param 'ids' is missing or is empty.",
+                "The obligatory param 'ids' is empty.",
                 code=ExternalNotificationTriggerErrorCode.REQUIRED,
             )
         }
@@ -42,41 +42,22 @@ def validate_and_get_external_event_type(data_input):
         return external_event_type
     raise ValidationError(
         {
-            "external_event_type": ValidationError(
-                "The obligatory param 'external_event_type' is missing or is empty.",
+            "externalEventType": ValidationError(
+                "The obligatory param 'externalEventType' is empty.",
                 code=ExternalNotificationTriggerErrorCode.REQUIRED,
             )
         }
     )
 
 
-def validate_and_get_channel(data_input):
+def validate_and_get_channel(data_input, error_class):
     if channel_slug := data_input.get("channel"):
-        if Channel.objects.filter(slug=channel_slug).exists():
-            if Channel.objects.get(slug=channel_slug).is_active:
-                return channel_slug
-            raise ValidationError(
-                {
-                    "channel": ValidationError(
-                        "Cannot complete checkout with inactive channel.",
-                        code=ExternalNotificationTriggerErrorCode.CHANNEL_INACTIVE,
-                    )
-                }
-            )
-        raise ValidationError(
-            {
-                "channel": ValidationError(
-                    "The channel with given not exists.",
-                    code=ExternalNotificationTriggerErrorCode.REQUIRED,
-                )
-            }
-        )
-
+        return validate_channel(channel_slug, error_class).slug
     raise ValidationError(
         {
             "channel": ValidationError(
-                "The obligatory param 'channel' is missing or is empty.",
-                code=ExternalNotificationTriggerErrorCode.REQUIRED,
+                "The obligatory param 'channel' is empty.",
+                code=ExternalNotificationTriggerErrorCode.REQUIRED.value,
             )
         }
     )

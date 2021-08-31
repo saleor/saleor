@@ -26,9 +26,9 @@ def test_notify_via_external_notification_trigger(
             "ids": [to_global_id(User.__name__, user.id) for user in staff_users],
             "extraPayload": '{"recipient_email":"test@gmail.com"}',
             "externalEventType": test_template_id,
-            "channel": channel_PLN.slug,
         },
         "pluginId": "mirumee.notifications.sendgrid_email",
+        "channel": channel_PLN.slug,
     }
 
     response = staff_api_client.post_graphql(

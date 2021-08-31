@@ -12,12 +12,76 @@ from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContentUrl
 from ..notifications import (
     get_address_payload,
+    get_custom_order_payload,
     get_default_fulfillment_line_payload,
     get_default_fulfillment_payload,
     get_default_order_payload,
     get_order_line_payload,
 )
 from ..utils import add_variant_to_order
+
+
+def test_get_custom_order_payload(order):
+    expected_payload = get_custom_order_payload(order)
+    assert expected_payload == {
+        "order": {
+            "id": expected_payload["order"]["id"],
+            "private_metadata": {},
+            "metadata": {},
+            "status": "unfulfilled",
+            "language_code": "en",
+            "currency": "USD",
+            "token": expected_payload["order"]["token"],
+            "total_net_amount": 0,
+            "undiscounted_total_net_amount": 0,
+            "total_gross_amount": 0,
+            "undiscounted_total_gross_amount": 0,
+            "display_gross_prices": True,
+            "channel_slug": "main",
+            "created": expected_payload["order"]["created"],
+            "shipping_price_net_amount": 0,
+            "shipping_price_gross_amount": 0,
+            "order_details_url": "",
+            "email": "test@example.com",
+            "subtotal_gross_amount": expected_payload["order"]["subtotal_gross_amount"],
+            "subtotal_net_amount": expected_payload["order"]["subtotal_net_amount"],
+            "tax_amount": 0,
+            "lines": [],
+            "billing_address": {
+                "first_name": "John",
+                "last_name": "Doe",
+                "company_name": "Mirumee Software",
+                "street_address_1": "Tęczowa 7",
+                "street_address_2": "",
+                "city": "WROCŁAW",
+                "city_area": "",
+                "postal_code": "53-601",
+                "country": "PL",
+                "country_area": "",
+                "phone": "+48713988102",
+            },
+            "shipping_address": {
+                "first_name": "John",
+                "last_name": "Doe",
+                "company_name": "Mirumee Software",
+                "street_address_1": "Tęczowa 7",
+                "street_address_2": "",
+                "city": "WROCŁAW",
+                "city_area": "",
+                "postal_code": "53-601",
+                "country": "PL",
+                "country_area": "",
+                "phone": "+48713988102",
+            },
+            "shipping_method_name": None,
+            "voucher_discount": None,
+            "discounts": [],
+            "discount_amount": 0,
+        },
+        "recipient_email": "test@example.com",
+        "domain": "mirumee.com",
+        "site_name": "mirumee.com",
+    }
 
 
 def test_get_order_line_payload(order_line):
