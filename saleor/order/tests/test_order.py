@@ -239,7 +239,7 @@ def test_restock_order_lines(order_with_lines, track_inventory):
     stock_1_quantity_before = stock_1.quantity
     stock_2_quantity_before = stock_2.quantity
 
-    restock_order_lines(order)
+    restock_order_lines(order, get_plugins_manager())
 
     stock_1.refresh_from_db()
     stock_2.refresh_from_db()
@@ -275,7 +275,7 @@ def test_restock_fulfilled_order_lines(fulfilled_order):
     stock_1_quantity_before = stock_1.quantity
     stock_2_quantity_before = stock_2.quantity
 
-    restock_order_lines(fulfilled_order)
+    restock_order_lines(fulfilled_order, get_plugins_manager())
 
     stock_1.refresh_from_db()
     stock_2.refresh_from_db()
@@ -670,7 +670,13 @@ def test_order_weight_change_line_quantity(staff_user, lines_info):
     new_quantity = line_info.quantity + 2
     order = line_info.line.order
     change_order_line_quantity(
-        staff_user, app, line_info, new_quantity, line_info.quantity, order.channel.slug
+        staff_user,
+        app,
+        line_info,
+        new_quantity,
+        line_info.quantity,
+        order.channel.slug,
+        get_plugins_manager(),
     )
     assert order.weight == _calculate_order_weight_from_lines(order)
 
@@ -678,7 +684,7 @@ def test_order_weight_change_line_quantity(staff_user, lines_info):
 def test_order_weight_delete_line(lines_info):
     order = lines_info[0].line.order
     line_info = lines_info[0]
-    delete_order_line(line_info)
+    delete_order_line(line_info, get_plugins_manager())
     assert order.weight == _calculate_order_weight_from_lines(order)
 
 
@@ -967,10 +973,22 @@ def test_ordered_item_change_quantity(staff_user, transactional_db, lines_info):
     order = lines_info[0].line.order
     assert not order.events.count()
     change_order_line_quantity(
-        staff_user, app, lines_info[1], lines_info[1].quantity, 0, order.channel.slug
+        staff_user,
+        app,
+        lines_info[1],
+        lines_info[1].quantity,
+        0,
+        order.channel.slug,
+        get_plugins_manager(),
     )
     change_order_line_quantity(
-        staff_user, app, lines_info[0], lines_info[0].quantity, 0, order.channel.slug
+        staff_user,
+        app,
+        lines_info[0],
+        lines_info[0].quantity,
+        0,
+        order.channel.slug,
+        get_plugins_manager(),
     )
     assert order.get_total_quantity() == 0
 
@@ -984,7 +1002,13 @@ def test_change_order_line_quantity_changes_total_prices(
     line_info = lines_info[0]
     new_quantity = line_info.quantity + 1
     change_order_line_quantity(
-        staff_user, app, line_info, line_info.quantity, new_quantity, order.channel.slug
+        staff_user,
+        app,
+        line_info,
+        line_info.quantity,
+        new_quantity,
+        order.channel.slug,
+        get_plugins_manager(),
     )
     assert line_info.line.total_price == line_info.line.unit_price * new_quantity
 

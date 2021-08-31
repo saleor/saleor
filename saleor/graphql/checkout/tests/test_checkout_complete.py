@@ -4,20 +4,22 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+from django.contrib.auth.models import AnonymousUser
+from django.db.models.aggregates import Sum
 
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.exceptions import InsufficientStock, InsufficientStockData
-from ....core.taxes import zero_money
+from ....core.taxes import zero_money, zero_taxed_money
 from ....order import OrderOrigin, OrderStatus
 from ....order.models import Order
 from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager, get_plugins_manager
-from ....warehouse.models import Stock
+from ....warehouse.models import Stock, WarehouseClickAndCollectOption
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
 
@@ -270,6 +272,134 @@ def test_checkout_complete(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
     order_confirmed_mock.assert_called_once_with(order)
+
+
+@pytest.mark.integration
+@patch("saleor.graphql.checkout.mutations.complete_checkout")
+def test_checkout_complete_by_app(
+    mocked_complete_checkout,
+    app_api_client,
+    checkout_with_item,
+    customer_user,
+    permission_impersonate_user,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    mocked_complete_checkout.return_value = (None, True, {})
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    redirect_url = "https://www.example.com"
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
+
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_COMPLETE,
+        variables,
+        permissions=[permission_impersonate_user],
+        check_no_permissions=False,
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+
+    mocked_complete_checkout.assert_called_once_with(
+        manager=ANY,
+        checkout_info=ANY,
+        lines=ANY,
+        payment_data=ANY,
+        store_source=ANY,
+        discounts=ANY,
+        user=checkout.user,
+        app=ANY,
+        site_settings=ANY,
+        tracking_code=ANY,
+        redirect_url=ANY,
+    )
+
+
+@pytest.mark.integration
+@patch("saleor.graphql.checkout.mutations.complete_checkout")
+def test_checkout_complete_by_app_with_missing_permission(
+    mocked_complete_checkout,
+    app_api_client,
+    checkout_with_item,
+    customer_user,
+    permission_manage_users,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    mocked_complete_checkout.return_value = (None, True, {})
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    redirect_url = "https://www.example.com"
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
+
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_COMPLETE,
+        variables,
+        permissions=[permission_manage_users],
+        check_no_permissions=False,
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+
+    mocked_complete_checkout.assert_called_once_with(
+        manager=ANY,
+        checkout_info=ANY,
+        lines=ANY,
+        payment_data=ANY,
+        store_source=ANY,
+        discounts=ANY,
+        user=AnonymousUser(),
+        app=ANY,
+        site_settings=ANY,
+        tracking_code=ANY,
+        redirect_url=ANY,
+    )
 
 
 def test_checkout_complete_with_variant_without_price(
@@ -1188,3 +1318,241 @@ def test_checkout_complete_0_total_value(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+
+
+def test_complete_checkout_for_click_and_collect(
+    api_client, checkout_for_cc, payment_dummy, address, warehouse_for_cc
+):
+    order_count = Order.objects.count()
+    checkout = checkout_for_cc
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
+
+    checkout.billing_address = address
+    checkout.collection_point = warehouse_for_cc
+
+    checkout.save(
+        update_fields=["shipping_address", "billing_address", "collection_point"]
+    )
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    assert not payment.transactions.exists()
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+
+    assert not content["errors"]
+    assert Order.objects.count() == order_count + 1
+
+    order = Order.objects.first()
+
+    assert order.collection_point == warehouse_for_cc
+    assert order.shipping_method is None
+    assert order.shipping_address == warehouse_for_cc.address
+    assert order.shipping_price == zero_taxed_money(payment.currency)
+
+
+def test_complete_checkout_raises_ValidationError_for_local_stock(
+    api_client, checkout_with_items_for_cc, payment_dummy, address, warehouse_for_cc
+):
+    initial_order_count = Order.objects.count()
+    checkout = checkout_with_items_for_cc
+    checkout_line = checkout.lines.first()
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    quantity_available = get_available_quantity_for_stock(stock)
+    checkout_line.quantity = quantity_available + 1
+    checkout_line.save()
+
+    variables = {"token": checkout.token, "rediirectUrl": "https://www.example.com"}
+
+    checkout.collection_point = warehouse_for_cc
+    checkout.billing_address = address
+    checkout.save(
+        update_fields=["collection_point", "shipping_address", "billing_address"]
+    )
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    assert not payment.transactions.exists()
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert content["errors"][0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert Order.objects.count() == initial_order_count
+
+
+def test_comp_checkout_builds_order_for_ALL_warehouse_even_if_not_available_locally(
+    stocks_for_cc,
+    warehouse_for_cc,
+    checkout_with_items_for_cc,
+    address,
+    api_client,
+    payment_dummy,
+):
+    initial_order_count = Order.objects.count()
+    checkout = checkout_with_items_for_cc
+    checkout_line = checkout.lines.first()
+    stock = Stock.objects.get(
+        product_variant=checkout_line.variant, warehouse=warehouse_for_cc
+    )
+    quantity_available = get_available_quantity_for_stock(stock)
+    checkout_line.quantity = quantity_available + 1
+    checkout_line.save()
+
+    warehouse_for_cc.click_and_collect_option = (
+        WarehouseClickAndCollectOption.ALL_WAREHOUSES
+    )
+    warehouse_for_cc.save()
+
+    variables = {"token": checkout.token, "rediirectUrl": "https://www.example.com"}
+
+    checkout.collection_point = warehouse_for_cc
+    checkout.save(update_fields=["collection_point"])
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    assert not payment.transactions.exists()
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert not content["errors"]
+    assert Order.objects.count() == initial_order_count + 1
+
+
+def test_checkout_complete_raises_InsufficientStock_when_quantity_above_stock_sum(
+    stocks_for_cc,
+    warehouse_for_cc,
+    checkout_with_items_for_cc,
+    address,
+    api_client,
+    payment_dummy,
+):
+    initial_order_count = Order.objects.count()
+    checkout = checkout_with_items_for_cc
+    checkout_line = checkout.lines.first()
+    overall_stock_quantity = (
+        Stock.objects.filter(product_variant=checkout_line.variant).aggregate(
+            Sum("quantity")
+        )
+    ).pop("quantity__sum")
+    checkout_line.quantity = overall_stock_quantity + 1
+    checkout_line.save()
+    warehouse_for_cc.click_and_collect_option = (
+        WarehouseClickAndCollectOption.ALL_WAREHOUSES
+    )
+    warehouse_for_cc.save()
+
+    variables = {"token": checkout.token, "rediirectUrl": "https://www.example.com"}
+
+    checkout.collection_point = warehouse_for_cc
+    checkout.billing_address = address
+    checkout.save(update_fields=["collection_point", "billing_address"])
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    assert not payment.transactions.exists()
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert content["errors"][0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert Order.objects.count() == initial_order_count
+
+
+def test_checkout_complete_raises_InvalidShippingMethod_when_warehouse_disabled(
+    warehouse_for_cc,
+    checkout_with_items_for_cc,
+    address,
+    api_client,
+    payment_dummy,
+):
+    initial_order_count = Order.objects.count()
+    checkout = checkout_with_items_for_cc
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
+
+    checkout.billing_address = address
+    checkout.collection_point = warehouse_for_cc
+
+    checkout.save(
+        update_fields=["shipping_address", "billing_address", "collection_point"]
+    )
+
+    warehouse_for_cc.click_and_collect_option = WarehouseClickAndCollectOption.DISABLED
+    warehouse_for_cc.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    assert not checkout_info.valid_pick_up_points
+    assert not checkout_info.delivery_method_info.is_method_in_valid_methods(
+        checkout_info
+    )
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    assert not payment.transactions.exists()
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+
+    assert (
+        content["errors"][0]["code"] == CheckoutErrorCode.INVALID_SHIPPING_METHOD.name
+    )
+    assert Order.objects.count() == initial_order_count

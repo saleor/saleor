@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 
 from django.contrib.auth.tokens import default_token_generator
 
-from ..core.notifications import get_site_context
+from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils.url import prepare_url
 from .models import User
@@ -21,6 +21,15 @@ def get_default_user_payload(user: User):
         "metadata": user.metadata,
         "language_code": user.language_code,
     }
+
+
+def get_user_custom_payload(user: User):
+    payload = {
+        "user": get_default_user_payload(user),
+        "recipient_email": user.email,
+        **get_site_context(),
+    }
+    return payload
 
 
 def send_password_reset_notification(
