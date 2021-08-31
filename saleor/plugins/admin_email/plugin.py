@@ -1,6 +1,6 @@
 import logging
 from dataclasses import asdict, dataclass
-from typing import Optional
+from typing import Optional, Union
 
 from django.conf import settings
 
@@ -217,7 +217,7 @@ class AdminEmailPlugin(BasePlugin):
             ],
         )
 
-    def notify(self, event: NotifyEventType, payload: dict, previous_value):
+    def notify(self, event: Union[NotifyEventType, str], payload: dict, previous_value):
         if not self.active:
             return previous_value
         event_map = get_admin_event_map()

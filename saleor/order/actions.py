@@ -158,8 +158,7 @@ def cancel_order(
     """
 
     events.order_canceled_event(order=order, user=user, app=app)
-
-    deallocate_stock_for_order(order)
+    deallocate_stock_for_order(order, manager)
     order.status = OrderStatus.CANCELED
     order.save(update_fields=["status"])
 
@@ -336,6 +335,25 @@ def cancel_fulfillment(
     update_order_status(fulfillment.order)
     transaction.on_commit(lambda: manager.fulfillment_canceled(fulfillment))
     transaction.on_commit(lambda: manager.order_updated(fulfillment.order))
+    return fulfillment
+
+
+@traced_atomic_transaction()
+def cancel_waiting_fulfillment(
+    fulfillment: "Fulfillment",
+    user: "User",
+    app: Optional["App"],
+    manager: "PluginsManager",
+):
+    """Cancel fulfillment which is in waiting for approval state."""
+    fulfillment = Fulfillment.objects.get(pk=fulfillment.pk)
+    events.fulfillment_canceled_event(
+        order=fulfillment.order, user=user, app=app, fulfillment=None
+    )
+    fulfillment.delete()
+    update_order_status(fulfillment.order)
+    transaction.on_commit(lambda: manager.fulfillment_canceled(fulfillment))
+    transaction.on_commit(lambda: manager.order_updated(fulfillment.order))
 
 
 @traced_atomic_transaction()
@@ -365,7 +383,7 @@ def approve_fulfillment(
         )
         for f_line in fulfillment.lines.all()
     ]
-    fulfill_order_lines(lines_to_fulfill)
+    fulfill_order_lines(lines_to_fulfill, manager)
     order.refresh_from_db()
     update_order_status(order)
 
@@ -433,11 +451,13 @@ def clean_mark_order_as_paid(order: "Order"):
 
 
 @traced_atomic_transaction()
-def fulfill_order_lines(order_lines_info: Iterable["OrderLineData"]):
+def fulfill_order_lines(
+    order_lines_info: Iterable["OrderLineData"], manager: "PluginsManager"
+):
     """Fulfill order line with given quantity."""
     lines_to_decrease_stock = get_order_lines_with_track_inventory(order_lines_info)
     if lines_to_decrease_stock:
-        decrease_stock(lines_to_decrease_stock)
+        decrease_stock(lines_to_decrease_stock, manager)
     order_lines = []
     for line_info in order_lines_info:
         line = line_info.line
@@ -486,7 +506,7 @@ def automatically_fulfill_digital_lines(order: "Order", manager: "PluginsManager
         )
 
     FulfillmentLine.objects.bulk_create(fulfillments)
-    fulfill_order_lines(lines_info)
+    fulfill_order_lines(lines_info, manager)
 
     send_fulfillment_confirmation_to_customer(
         order, fulfillment, user=order.user, app=None, manager=manager
@@ -499,6 +519,7 @@ def _create_fulfillment_lines(
     warehouse_pk: str,
     lines_data: List[Dict],
     channel_slug: str,
+    manager: "PluginsManager",
     decrease_stock: bool = True,
 ) -> List[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
@@ -516,6 +537,7 @@ def _create_fulfillment_lines(
                     ...
                 ]
         channel_slug (str): Channel for which fulfillment lines should be created.
+        manager (PluginsManager): Plugin manager from given context
         decrease_stock (Bool): Stocks will get decreased if this is True.
 
     Return:
@@ -578,7 +600,7 @@ def _create_fulfillment_lines(
         raise InsufficientStock(insufficient_stocks)
 
     if lines_info and decrease_stock:
-        fulfill_order_lines(lines_info)
+        fulfill_order_lines(lines_info, manager)
 
     return fulfillment_lines
 
@@ -644,6 +666,7 @@ def create_fulfillments(
                 warehouse_pk,
                 fulfillment_lines_for_warehouses[warehouse_pk],
                 order.channel.slug,
+                manager,
                 decrease_stock=approved,
             )
         )
@@ -705,6 +728,7 @@ def _get_fulfillment_line(
 def _move_order_lines_to_target_fulfillment(
     order_lines_to_move: List[OrderLineData],
     target_fulfillment: Fulfillment,
+    manager: "PluginsManager",
 ) -> List[FulfillmentLine]:
     """Move order lines with given quantity to the target fulfillment."""
     fulfillment_lines_to_create: List[FulfillmentLine] = []
@@ -739,7 +763,7 @@ def _move_order_lines_to_target_fulfillment(
 
     if lines_to_dellocate:
         try:
-            deallocate_stock(lines_to_dellocate)
+            deallocate_stock(lines_to_dellocate, manager)
         except AllocationError as e:
             lines = [str(line.pk) for line in e.order_lines]
             logger.warning(
@@ -864,6 +888,7 @@ def create_refund_fulfillment(
         created_fulfillment_lines = _move_order_lines_to_target_fulfillment(
             order_lines_to_move=order_lines_to_refund,
             target_fulfillment=refunded_fulfillment,
+            manager=manager,
         )
 
         _move_fulfillment_lines_to_target_fulfillment(
@@ -980,6 +1005,7 @@ def _move_lines_to_return_fulfillment(
     order: "Order",
     total_refund_amount: Optional[Decimal],
     shipping_refund_amount: Optional[Decimal],
+    manager: "PluginsManager",
 ) -> Fulfillment:
     target_fulfillment = Fulfillment.objects.create(
         status=fulfillment_status,
@@ -990,6 +1016,7 @@ def _move_lines_to_return_fulfillment(
     lines_in_target_fulfillment = _move_order_lines_to_target_fulfillment(
         order_lines_to_move=order_lines,
         target_fulfillment=target_fulfillment,
+        manager=manager,
     )
 
     fulfillment_lines_already_refunded = FulfillmentLine.objects.filter(
@@ -1034,6 +1061,7 @@ def _move_lines_to_replace_fulfillment(
     order_lines_to_replace: List[OrderLineData],
     fulfillment_lines_to_replace: List[FulfillmentLineData],
     order: "Order",
+    manager: "PluginsManager",
 ) -> Fulfillment:
     target_fulfillment = Fulfillment.objects.create(
         status=FulfillmentStatus.REPLACED, order=order
@@ -1041,6 +1069,7 @@ def _move_lines_to_replace_fulfillment(
     lines_in_target_fulfillment = _move_order_lines_to_target_fulfillment(
         order_lines_to_move=order_lines_to_replace,
         target_fulfillment=target_fulfillment,
+        manager=manager,
     )
     _move_fulfillment_lines_to_target_fulfillment(
         fulfillment_lines_to_move=fulfillment_lines_to_replace,
@@ -1059,6 +1088,7 @@ def create_return_fulfillment(
     fulfillment_lines: List[FulfillmentLineData],
     total_refund_amount: Optional[Decimal],
     shipping_refund_amount: Optional[Decimal],
+    manager: "PluginsManager",
 ) -> Fulfillment:
     status = FulfillmentStatus.RETURNED
     if total_refund_amount is not None:
@@ -1071,6 +1101,7 @@ def create_return_fulfillment(
             order=order,
             total_refund_amount=total_refund_amount,
             shipping_refund_amount=shipping_refund_amount,
+            manager=manager,
         )
         returned_lines: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
         order_lines_with_fulfillment = OrderLine.objects.in_bulk(
@@ -1110,6 +1141,7 @@ def process_replace(
     order: "Order",
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
+    manager: "PluginsManager",
 ) -> Tuple[Fulfillment, Optional["Order"]]:
     """Create replace fulfillment and new draft order.
 
@@ -1121,6 +1153,7 @@ def process_replace(
         order_lines_to_replace=order_lines,
         fulfillment_lines_to_replace=fulfillment_lines,
         order=order,
+        manager=manager,
     )
     new_order = create_replace_order(
         user=user,
@@ -1211,6 +1244,7 @@ def create_fulfillments_for_returned_products(
                 order=order,
                 order_lines=replace_order_lines,
                 fulfillment_lines=replace_fulfillment_lines,
+                manager=manager,
             )
         return_fulfillment = create_return_fulfillment(
             user=user,
@@ -1220,6 +1254,7 @@ def create_fulfillments_for_returned_products(
             fulfillment_lines=return_fulfillment_lines,
             total_refund_amount=total_refund_amount,
             shipping_refund_amount=shipping_refund_amount,
+            manager=manager,
         )
         Fulfillment.objects.filter(
             order=order, lines=None, status=FulfillmentStatus.FULFILLED

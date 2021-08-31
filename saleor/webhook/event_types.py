@@ -36,6 +36,9 @@ class WebhookEventType:
     PRODUCT_VARIANT_UPDATED = "product_variant_updated"
     PRODUCT_VARIANT_DELETED = "product_variant_deleted"
 
+    PRODUCT_VARIANT_OUT_OF_STOCK = "product_variant_out_of_stock"
+    PRODUCT_VARIANT_BACK_IN_STOCK = "product_variant_back_in_stock"
+
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPDATED = "checkout_updated"
 
@@ -75,6 +78,8 @@ class WebhookEventType:
         PRODUCT_VARIANT_CREATED: "Product variant created",
         PRODUCT_VARIANT_UPDATED: "Product variant updated",
         PRODUCT_VARIANT_DELETED: "Product variant deleted",
+        PRODUCT_VARIANT_OUT_OF_STOCK: "Product variant stock changed",
+        PRODUCT_VARIANT_BACK_IN_STOCK: "Product variant back in stock",
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPDATED: "Checkout updated",
         FULFILLMENT_CREATED: "Fulfillment_created",
@@ -113,6 +118,8 @@ class WebhookEventType:
         (PRODUCT_VARIANT_CREATED, DISPLAY_LABELS[PRODUCT_VARIANT_CREATED]),
         (PRODUCT_VARIANT_UPDATED, DISPLAY_LABELS[PRODUCT_VARIANT_UPDATED]),
         (PRODUCT_VARIANT_DELETED, DISPLAY_LABELS[PRODUCT_VARIANT_DELETED]),
+        (PRODUCT_VARIANT_OUT_OF_STOCK, DISPLAY_LABELS[PRODUCT_VARIANT_OUT_OF_STOCK]),
+        (PRODUCT_VARIANT_BACK_IN_STOCK, DISPLAY_LABELS[PRODUCT_VARIANT_BACK_IN_STOCK]),
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
         (CHECKOUT_UPDATED, DISPLAY_LABELS[CHECKOUT_UPDATED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
@@ -160,6 +167,8 @@ class WebhookEventType:
         PRODUCT_VARIANT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
+        PRODUCT_VARIANT_BACK_IN_STOCK: ProductPermissions.MANAGE_PRODUCTS,
+        PRODUCT_VARIANT_OUT_OF_STOCK: ProductPermissions.MANAGE_PRODUCTS,
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
