@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 from django.forms import model_to_dict
 
 from ..account.models import StaffNotificationRecipient
-from ..core.notifications import get_site_context
+from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils.url import prepare_url
 from ..discount import OrderDiscountType
@@ -194,6 +194,15 @@ ORDER_MODEL_FIELDS = [
     "user_id",
     "language_code",
 ]
+
+
+def get_custom_order_payload(order: Order):
+    payload = {
+        "order": get_default_order_payload(order),
+        "recipient_email": order.get_customer_email(),
+        **get_site_context(),
+    }
+    return payload
 
 
 def get_default_order_payload(order: "Order", redirect_url: str = ""):

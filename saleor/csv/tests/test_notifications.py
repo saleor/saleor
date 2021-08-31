@@ -3,7 +3,7 @@ from unittest import mock
 from django.core.files import File
 from freezegun import freeze_time
 
-from ...core.notifications import get_site_context
+from ...core.notification.utils import get_site_context
 from ...core.notify_events import AdminNotifyEvent
 from ...core.utils import build_absolute_uri
 from .. import notifications
