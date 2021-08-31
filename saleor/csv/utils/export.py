@@ -6,10 +6,11 @@ from typing import IO, TYPE_CHECKING, Any, Dict, List, Set, Union
 import petl as etl
 from django.utils import timezone
 
+from ...giftcard.models import GiftCard
 from ...product.models import Product
 from .. import FileTypes
 from ..notifications import send_export_download_link_notification
-from .product_headers import get_export_fields_and_headers_info
+from .product_headers import get_product_export_fields_and_headers_info
 from .products_data import get_products_data
 
 if TYPE_CHECKING:
@@ -27,14 +28,18 @@ def export_products(
     scope: Dict[str, Union[str, dict]],
     export_info: Dict[str, list],
     file_type: str,
-    delimiter: str = ";",
+    delimiter: str = ",",
 ):
-    file_name = get_filename("product", file_type)
-    queryset = get_product_queryset(scope)
+    from ...graphql.product.filters import ProductFilter
 
-    export_fields, file_headers, data_headers = get_export_fields_and_headers_info(
-        export_info
-    )
+    file_name = get_filename("product", file_type)
+    queryset = get_queryset(Product, ProductFilter, scope)
+
+    (
+        export_fields,
+        file_headers,
+        data_headers,
+    ) = get_product_export_fields_and_headers_info(export_info)
 
     temporary_file = create_file_with_headers(file_headers, delimiter, file_type)
 
@@ -51,7 +56,34 @@ def export_products(
     save_csv_file_in_export_file(export_file, temporary_file, file_name)
     temporary_file.close()
 
-    send_export_download_link_notification(export_file)
+    send_export_download_link_notification(export_file, "products")
+
+
+def export_gift_cards(
+    export_file: "ExportFile",
+    scope: Dict[str, Union[str, dict]],
+    file_type: str,
+    delimiter: str = ",",
+):
+    from ...graphql.giftcard.filters import GiftCardFilter
+
+    file_name = get_filename("gift_card", file_type)
+    queryset = get_queryset(GiftCard, GiftCardFilter, scope)
+    export_fields = ["code"]
+    temporary_file = create_file_with_headers(export_fields, delimiter, file_type)
+
+    export_gift_cards_in_batches(
+        queryset,
+        export_fields,
+        delimiter,
+        temporary_file,
+        file_type,
+    )
+
+    save_csv_file_in_export_file(export_file, temporary_file, file_name)
+    temporary_file.close()
+
+    send_export_download_link_notification(export_file, "gift cards")
 
 
 def get_filename(model_name: str, file_type: str) -> str:
@@ -59,6 +91,18 @@ def get_filename(model_name: str, file_type: str) -> str:
     return "{}_data_{}_{}.{}".format(
         model_name, timezone.now().strftime("%d_%m_%Y_%H_%M_%S"), hash, file_type
     )
+
+
+def get_queryset(model, filter, scope: Dict[str, Union[str, dict]]) -> "QuerySet":
+    queryset = model.objects.all()
+    if "ids" in scope:
+        queryset = model.objects.filter(pk__in=scope["ids"])
+    elif "filter" in scope:
+        queryset = filter(data=parse_input(scope["filter"]), queryset=queryset).qs
+
+    queryset = queryset.order_by("pk")
+
+    return queryset
 
 
 def parse_input(data: Any) -> Dict[str, Union[str, dict]]:
@@ -87,41 +131,17 @@ def parse_input(data: Any) -> Dict[str, Union[str, dict]]:
     return data
 
 
-def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
-    """Get product queryset based on a scope."""
+def create_file_with_headers(file_headers: List[str], delimiter: str, file_type: str):
+    table = etl.wrap([file_headers])
 
-    from ...graphql.product.filters import ProductFilter
+    if file_type == FileTypes.CSV:
+        temp_file = NamedTemporaryFile("ab+", suffix=".csv")
+        etl.tocsv(table, temp_file.name, delimiter=delimiter)
+    else:
+        temp_file = NamedTemporaryFile("ab+", suffix=".xlsx")
+        etl.io.xlsx.toxlsx(table, temp_file.name)
 
-    queryset = Product.objects.all()
-    if "ids" in scope:
-        queryset = Product.objects.filter(pk__in=scope["ids"])
-    elif "filter" in scope:
-        queryset = ProductFilter(
-            data=parse_input(scope["filter"]), queryset=queryset
-        ).qs
-
-    queryset = queryset.order_by("pk")
-
-    return queryset
-
-
-def queryset_in_batches(queryset):
-    """Slice a queryset into batches.
-
-    Input queryset should be sorted be pk.
-    """
-    start_pk = 0
-
-    while True:
-        qs = queryset.filter(pk__gt=start_pk)[:BATCH_SIZE]
-        pks = list(qs.values_list("pk", flat=True))
-
-        if not pks:
-            break
-
-        yield pks
-
-        start_pk = pks[-1]
+    return temp_file
 
 
 def export_products_in_batches(
@@ -154,17 +174,38 @@ def export_products_in_batches(
         append_to_file(export_data, headers, temporary_file, file_type, delimiter)
 
 
-def create_file_with_headers(file_headers: List[str], delimiter: str, file_type: str):
-    table = etl.wrap([file_headers])
+def export_gift_cards_in_batches(
+    queryset: "QuerySet",
+    export_fields: List[str],
+    delimiter: str,
+    temporary_file: Any,
+    file_type: str,
+):
+    for batch_pks in queryset_in_batches(queryset):
+        gift_card_batch = GiftCard.objects.filter(pk__in=batch_pks)
 
-    if file_type == FileTypes.CSV:
-        temp_file = NamedTemporaryFile("ab+", suffix=".csv")
-        etl.tocsv(table, temp_file.name, delimiter=delimiter)
-    else:
-        temp_file = NamedTemporaryFile("ab+", suffix=".xlsx")
-        etl.io.xlsx.toxlsx(table, temp_file.name)
+        export_data = list(gift_card_batch.values(*export_fields))
 
-    return temp_file
+        append_to_file(export_data, export_fields, temporary_file, file_type, delimiter)
+
+
+def queryset_in_batches(queryset):
+    """Slice a queryset into batches.
+
+    Input queryset should be sorted be pk.
+    """
+    start_pk = 0
+
+    while True:
+        qs = queryset.filter(pk__gt=start_pk)[:BATCH_SIZE]
+        pks = list(qs.values_list("pk", flat=True))
+
+        if not pks:
+            break
+
+        yield pks
+
+        start_pk = pks[-1]
 
 
 def append_to_file(
