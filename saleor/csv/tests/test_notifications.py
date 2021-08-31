@@ -18,23 +18,25 @@ def test_send_export_download_link_notification(
     # given
     file_mock = mock.MagicMock(spec=File)
     file_mock.name = "temp_file.csv"
+    data_type = "products"
 
     user_export_file.content_file = file_mock
     user_export_file.save()
 
     # when
-    notifications.send_export_download_link_notification(user_export_file)
+    notifications.send_export_download_link_notification(user_export_file, data_type)
 
     # then
     expected_payload = {
         "export": get_default_export_payload(user_export_file),
         "csv_link": build_absolute_uri(user_export_file.content_file.url),
         "recipient_email": user_export_file.user.email,
+        "data_type": data_type,
         **get_site_context(),
     }
 
     mocked_notify.assert_called_once_with(
-        AdminNotifyEvent.CSV_PRODUCT_EXPORT_SUCCESS, expected_payload
+        AdminNotifyEvent.CSV_EXPORT_SUCCESS, expected_payload
     )
 
 
@@ -46,17 +48,19 @@ def test_send_export_failed_info(
     # given
     file_mock = mock.MagicMock(spec=File)
     file_mock.name = "temp_file.csv"
+    data_type = "gift cards"
 
     user_export_file.content_file = file_mock
     user_export_file.save()
 
     # when
-    notifications.send_export_failed_info(user_export_file)
+    notifications.send_export_failed_info(user_export_file, data_type)
 
     # then
     expected_payload = {
         "export": get_default_export_payload(user_export_file),
         "recipient_email": user_export_file.user.email,
+        "data_type": data_type,
         **get_site_context(),
     }
 
