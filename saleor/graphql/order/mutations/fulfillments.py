@@ -652,21 +652,105 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
                 whitelisted_statuses=[
                     FulfillmentStatus.FULFILLED,
                     FulfillmentStatus.RETURNED,
+                    FulfillmentStatus.WAITING_FOR_APPROVAL,
                 ],
             )
         return cleaned_input
 
     @classmethod
+    def remove_waiting_fulfillments(cls, lines_info):
+        """Delete fulfillment lines which fulfillments are `WAITING_FOR_APPROVAL`.
+
+        Delete fulfillments themselves if metioned lines were only lines inside.
+        """
+        if not lines_info:
+            return {}, []
+
+        lines_to_remove = []
+        lines_to_update = []
+        remaining_fulfillment_lines = []
+        order_lines_map = defaultdict(lambda: 0)
+
+        for line_data in lines_info:
+            if (
+                line_data.line.fulfillment.status
+                == FulfillmentStatus.WAITING_FOR_APPROVAL
+            ):
+                if line_data.quantity < line_data.line.quantity:
+                    _line = line_data.line
+                    _line.quantity = _line.quantity - line_data.quantity
+                    lines_to_update.append(_line)
+                else:
+                    lines_to_remove.append(line_data.line.id)
+                order_lines_map[line_data.line.order_line] += line_data.quantity
+            else:
+                remaining_fulfillment_lines.append(line_data)
+
+        lines_to_delete = order_models.FulfillmentLine.objects.filter(
+            id__in=set(lines_to_remove)
+        ).select_related("fulfillment")
+
+        related_fulfillment_ids = [f.fulfillment.pk for f in lines_to_delete]
+        related_fulfillment_ids.extend([f.fulfillment.pk for f in lines_to_update])
+
+        if lines_to_update:
+            order_models.FulfillmentLine.objects.bulk_update(
+                lines_to_update, ["quantity"]
+            )
+
+        if lines_to_delete:
+            lines_to_delete.delete()
+
+        order_models.Fulfillment.objects.filter(
+            pk__in=related_fulfillment_ids, lines=None
+        ).delete()
+
+        return order_lines_map, remaining_fulfillment_lines
+
+    @classmethod
+    def extend_order_lines(cls, order_lines, lines_data):
+        """Extend order_lines with data from lines_data.
+
+        If order line entry existed, increase it's quantity, create if it didn't.
+        """
+        for line, quantity in lines_data.items():
+            appended = False
+            for item in order_lines:
+                if item.line == line:
+                    item.quantity += quantity
+                    appended = True
+            if not appended:
+                order_lines.append(
+                    OrderLineData(
+                        line=line,
+                        quantity=quantity,
+                        variant=None,
+                        replace=False,
+                        warehouse_pk=None,
+                    )
+                )
+        return order_lines
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
+
+        order_lines_map, remaining_fulfillment_lines = cls.remove_waiting_fulfillments(
+            cleaned_input.get("fulfillment_lines", [])
+        )
+
+        order_lines = cls.extend_order_lines(
+            cleaned_input.get("order_lines", []), order_lines_map
+        )
+
         refund_fulfillment = create_refund_fulfillment(
             info.context.user,
             info.context.app,
             order,
             cleaned_input["payment"],
-            cleaned_input.get("order_lines", []),
-            cleaned_input.get("fulfillment_lines", []),
+            order_lines,
+            remaining_fulfillment_lines,
             info.context.plugins,
             cleaned_input["amount_to_refund"],
             cleaned_input["include_shipping_costs"],

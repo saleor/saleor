@@ -12,7 +12,7 @@ from ....account.notifications import (
     send_account_confirmation,
 )
 from ....app.models import App
-from ....core.notifications import get_site_context
+from ....core.notification.utils import get_site_context
 from ....core.notify_events import NotifyEventType
 from ....core.utils.json_serializer import CustomJsonEncoder
 from ....core.utils.url import prepare_url
