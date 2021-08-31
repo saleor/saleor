@@ -13,14 +13,20 @@ from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..order.models import Order
-from . import ChargeStatus, GatewayError, PaymentError, Store, TransactionKind
+from . import (
+    ChargeStatus,
+    GatewayError,
+    PaymentError,
+    StorePaymentMethod,
+    TransactionKind,
+)
 from .error_codes import PaymentErrorCode
 from .interface import (
     AddressData,
     GatewayResponse,
     PaymentData,
     PaymentMethodInfo,
-    StoreEnum,
+    StorePaymentMethodEnum,
 )
 from .models import Payment, Transaction
 
@@ -86,7 +92,7 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
-        store_payment_method=StoreEnum[payment.store.upper()],
+        store_payment_method=StorePaymentMethodEnum[payment.store.upper()],
         payment_metadata=payment.metadata,
     )
 
@@ -103,7 +109,7 @@ def create_payment(
     order: Order = None,
     return_url: str = None,
     external_reference: Optional[str] = None,
-    store_payment_method: str = Store.NONE,
+    store_payment_method: str = StorePaymentMethod.NONE,
     metadata: Optional[Dict[str, str]] = None,
 ) -> Payment:
     """Create a payment instance.

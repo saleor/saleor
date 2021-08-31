@@ -7,7 +7,14 @@ from django.contrib.auth.models import AnonymousUser
 from ...checkout.calculations import checkout_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import PluginsManager, get_plugins_manager
-from .. import ChargeStatus, GatewayError, PaymentError, Store, TransactionKind, gateway
+from .. import (
+    ChargeStatus,
+    GatewayError,
+    PaymentError,
+    StorePaymentMethod,
+    TransactionKind,
+    gateway,
+)
 from ..error_codes import PaymentErrorCode
 from ..interface import GatewayResponse, PaymentMethodInfo
 from ..models import Payment
@@ -113,7 +120,7 @@ def test_create_payment(checkout_with_item, address):
     }
     payment = create_payment(**data)
     assert payment.gateway == "Dummy"
-    assert payment.store == Store.NONE
+    assert payment.store == StorePaymentMethod.NONE
 
     same_payment = create_payment(**data)
     assert payment == same_payment
@@ -254,7 +261,7 @@ def test_create_payment_information_store(checkout_with_item, address, store):
         "email": "test@example.com",
         "customer_ip_address": "127.0.0.1",
         "checkout": checkout_with_item,
-        "store": store,
+        "store_payment_method": store,
     }
 
     # when
@@ -262,7 +269,7 @@ def test_create_payment_information_store(checkout_with_item, address, store):
     payment_data = create_payment_information(payment, "token", payment.total)
 
     # then
-    assert payment_data.store == store
+    assert payment_data.store_payment_method == store
 
 
 @pytest.mark.parametrize(

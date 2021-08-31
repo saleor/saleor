@@ -12,7 +12,7 @@ from ...core.error_codes import MetadataErrorCode
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
-from ...payment import PaymentError, Store, gateway
+from ...payment import PaymentError, StorePaymentMethod, gateway
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
@@ -49,7 +49,7 @@ def description(enum):
 
 
 StorePaymentMethodEnum = to_enum(
-    Store, type_name="StorePaymentMethodEnum", description=description
+    StorePaymentMethod, type_name="StorePaymentMethodEnum", description=description
 )
 
 
@@ -85,7 +85,7 @@ class PaymentInput(graphene.InputObjectType):
     store_payment_method = StorePaymentMethodEnum(
         description=f"{ADDED_IN_31} Payment store type.",
         required=False,
-        default_value=Store.NONE,
+        default_value=StorePaymentMethod.NONE,
     )
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
@@ -256,7 +256,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
             return_url=data.get("return_url"),
-            store_payment_method=data.get("store") or Store.NONE,
+            store_payment_method=data.get("store_payment_method")
+            or StorePaymentMethod.NONE,
             metadata=metadata,
         )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
