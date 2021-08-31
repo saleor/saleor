@@ -3783,7 +3783,7 @@ type Mutation {
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID, token: UUID): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
-  checkoutCustomerAttach(checkoutId: ID, token: UUID): CheckoutCustomerAttach
+  checkoutCustomerAttach(checkoutId: ID, customerId: ID, token: UUID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID, token: UUID): CheckoutCustomerDetach
   checkoutEmailUpdate(checkoutId: ID, email: String!, token: UUID): CheckoutEmailUpdate
   checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete
@@ -4833,6 +4833,7 @@ type Permission {
 enum PermissionEnum {
   MANAGE_USERS
   MANAGE_STAFF
+  IMPERSONATE_USER
   MANAGE_APPS
   MANAGE_CHANNELS
   MANAGE_DISCOUNTS
