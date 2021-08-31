@@ -20,7 +20,7 @@ from ..models import PluginConfiguration
 from . import constants
 from .notify_events import (
     send_csv_export_failed,
-    send_csv_product_export_success,
+    send_csv_export_success,
     send_set_staff_password_email,
     send_staff_order_confirmation,
     send_staff_reset_password,
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 class AdminTemplate:
     staff_order_confirmation: Optional[str]
     set_staff_password_email: Optional[str]
-    csv_product_export_success: Optional[str]
+    csv_export_success: Optional[str]
     csv_export_failed: Optional[str]
     staff_reset_password: Optional[str]
 
@@ -42,9 +42,7 @@ def get_admin_template_map(templates: AdminTemplate):
     return {
         AdminNotifyEvent.STAFF_ORDER_CONFIRMATION: templates.staff_order_confirmation,
         AdminNotifyEvent.ACCOUNT_SET_STAFF_PASSWORD: templates.set_staff_password_email,
-        AdminNotifyEvent.CSV_PRODUCT_EXPORT_SUCCESS: (
-            templates.csv_product_export_success
-        ),
+        AdminNotifyEvent.CSV_EXPORT_SUCCESS: (templates.csv_export_success),
         AdminNotifyEvent.CSV_EXPORT_FAILED: templates.csv_export_failed,
         AdminNotifyEvent.ACCOUNT_STAFF_RESET_PASSWORD: (
             templates.set_staff_password_email
@@ -57,7 +55,7 @@ def get_admin_event_map():
         AdminNotifyEvent.STAFF_ORDER_CONFIRMATION: send_staff_order_confirmation,
         AdminNotifyEvent.ACCOUNT_SET_STAFF_PASSWORD: send_set_staff_password_email,
         AdminNotifyEvent.ACCOUNT_STAFF_RESET_PASSWORD: send_staff_reset_password,
-        AdminNotifyEvent.CSV_PRODUCT_EXPORT_SUCCESS: send_csv_product_export_success,
+        AdminNotifyEvent.CSV_EXPORT_SUCCESS: send_csv_export_success,
         AdminNotifyEvent.CSV_EXPORT_FAILED: send_csv_export_failed,
     }
 
@@ -95,11 +93,11 @@ class AdminEmailPlugin(BasePlugin):
             "value": DEFAULT_EMAIL_VALUE,
         },
         {
-            "name": constants.CSV_PRODUCT_EXPORT_SUCCESS_SUBJECT_FIELD,
-            "value": constants.CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_SUBJECT,
+            "name": constants.CSV_EXPORT_SUCCESS_SUBJECT_FIELD,
+            "value": constants.CSV_EXPORT_SUCCESS_DEFAULT_SUBJECT,
         },
         {
-            "name": constants.CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
+            "name": constants.CSV_EXPORT_SUCCESS_TEMPLATE_FIELD,
             "value": DEFAULT_EMAIL_VALUE,
         },
         {
@@ -143,12 +141,12 @@ class AdminEmailPlugin(BasePlugin):
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Set password email template",
         },
-        constants.CSV_PRODUCT_EXPORT_SUCCESS_SUBJECT_FIELD: {
+        constants.CSV_EXPORT_SUCCESS_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
             "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "CSV product export success subject",
         },
-        constants.CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD: {
+        constants.CSV_EXPORT_SUCCESS_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "CSV product export success template",
@@ -203,8 +201,8 @@ class AdminEmailPlugin(BasePlugin):
 
         self.templates = AdminTemplate(
             csv_export_failed=configuration[constants.CSV_EXPORT_FAILED_TEMPLATE_FIELD],
-            csv_product_export_success=configuration[
-                constants.CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD
+            csv_export_success=configuration[
+                constants.CSV_EXPORT_SUCCESS_TEMPLATE_FIELD
             ],
             set_staff_password_email=configuration[
                 constants.SET_STAFF_PASSWORD_TEMPLATE_FIELD
