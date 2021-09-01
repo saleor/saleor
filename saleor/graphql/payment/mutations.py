@@ -1,3 +1,5 @@
+from typing import List
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -6,22 +8,49 @@ from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import cancel_active_payments
+from ...core.error_codes import MetadataErrorCode
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
-from ...payment import PaymentError, Store, gateway
+from ...payment import PaymentError, StorePaymentMethod, gateway
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..checkout.mutations import get_checkout_by_token
 from ..checkout.types import Checkout
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ..core.enums import to_enum
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
 from ..core.validators import validate_one_of_args_is_in_mutation
-from ..meta.mutations import BaseMetadataMutation, MetadataInput
+from ..meta.mutations import MetadataInput
 from .types import Payment, PaymentInitialized
+from .utils import metadata_contains_empty_key
+
+
+def description(enum):
+    if enum is None:
+        return "Enum representing the type of a payment storage in a gateway."
+    elif enum == StorePaymentMethodEnum.NONE:
+        return "Storage is disabled. The payment is not stored."
+    elif enum == StorePaymentMethodEnum.ON_SESSION:
+        return (
+            "On session storage type. "
+            "The payment is stored only to be reused when "
+            "the customer is present in the checkout flow."
+        )
+    elif enum == StorePaymentMethodEnum.OFF_SESSION:
+        return (
+            "Off session storage type. "
+            "The payment is stored to be reused even if the customer is absent."
+        )
+    return None
+
+
+StorePaymentMethodEnum = to_enum(
+    StorePaymentMethod, type_name="StorePaymentMethodEnum", description=description
+)
 
 
 class PaymentInput(graphene.InputObjectType):
@@ -53,9 +82,16 @@ class PaymentInput(graphene.InputObjectType):
             "finished if this field is not provided."
         ),
     )
-
-
-StoreEnum = to_enum(Store)
+    store_payment_method = StorePaymentMethodEnum(
+        description=f"{ADDED_IN_31} Payment store type.",
+        required=False,
+        default_value=StorePaymentMethod.NONE,
+    )
+    metadata = graphene.List(
+        graphene.NonNull(MetadataInput),
+        description=f"{ADDED_IN_31} User public metadata.",
+        required=False,
+    )
 
 
 class CheckoutPaymentCreate(BaseMutation, I18nMixin):
@@ -65,24 +101,13 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                "Checkout ID."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
         token = UUID(description="Checkout token.", required=False)
         input = PaymentInput(
             description="Data required to create a new payment.", required=True
-        )
-        store = StoreEnum(
-            description="Payment store type.",
-            required=False,
-            default_value=Store.NONE,
-        )
-        metadata = graphene.List(
-            graphene.NonNull(MetadataInput),
-            description="User public metadata.",
-            required=False,
         )
 
     class Meta:
@@ -148,16 +173,23 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def perform_mutation(
-        cls,
-        _root,
-        info,
-        checkout_id=None,
-        token=None,
-        store=Store.NONE,
-        metadata=None,
-        **data
-    ):
+    def validate_metadata_keys(cls, metadata_list: List[dict]):
+        if metadata_contains_empty_key(metadata_list):
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        {
+                            "metadata": ValidationError(
+                                "Metadata key cannot be empty.",
+                                code=MetadataErrorCode.REQUIRED.value,
+                            )
+                        }
+                    )
+                }
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id=None, token=None, **data):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
             PaymentErrorCode, "checkout_id", checkout_id, "token", token
@@ -207,8 +239,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
         cancel_active_payments(checkout)
 
+        metadata = data.get("metadata")
+
         if metadata is not None:
-            BaseMetadataMutation.validate_metadata_keys(metadata)
+            cls.validate_metadata_keys(metadata)
             metadata = {data.key: data.value for data in metadata}
 
         payment = create_payment(
@@ -222,7 +256,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
             return_url=data.get("return_url"),
-            store=store,
+            store_payment_method=data["store_payment_method"],
             metadata=metadata,
         )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)

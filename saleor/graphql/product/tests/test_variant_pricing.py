@@ -1,4 +1,3 @@
-from unittest import mock
 from unittest.mock import Mock
 
 from django_countries.fields import Country
@@ -80,10 +79,7 @@ def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
     assert pricing["price"]["net"]["amount"] == discounted_price
 
 
-@mock.patch("saleor.graphql.product.types.products.WarehouseCountryCodeByChannelLoader")
-def test_get_variant_pricing_not_on_sale(
-    warehouse_country_code_loader, api_client, product, channel_USD
-):
+def test_get_variant_pricing_not_on_sale(api_client, product, channel_USD):
     price = product.variants.first().channel_listings.get().price
 
     variables = {"channel": channel_USD.slug, "address": {"country": "US"}}
@@ -108,9 +104,6 @@ def test_get_variant_pricing_not_on_sale(
     # check the discounted price
     assert pricing["price"]["currency"] == price.currency
     assert pricing["price"]["net"]["amount"] == price.amount
-
-    # check that country_code loader was called for pricing without address
-    assert warehouse_country_code_loader.called
 
 
 def test_variant_pricing(
