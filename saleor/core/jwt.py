@@ -5,7 +5,6 @@ import graphene
 import jwt
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.core.handlers.wsgi import WSGIRequest
 
 from ..account.models import User
 from ..app.models import App, AppExtension
@@ -17,10 +16,6 @@ from .permissions import (
 
 JWT_ALGORITHM = "HS256"
 
-SALEOR_AUTH_HEADER = "HTTP_AUTHORIZATION_BEARER"
-DEFAULT_AUTH_HEADER = "HTTP_AUTHORIZATION"
-
-AUTH_HEADER_PREFIXES = ["JWT", "BEARER"]
 JWT_ACCESS_TYPE = "access"
 JWT_REFRESH_TYPE = "refresh"
 JWT_THIRDPARTY_ACCESS_TYPE = "thirdparty"
@@ -114,17 +109,6 @@ def create_refresh_token(
         additional_payload,
     )
     return jwt_encode(payload)
-
-
-def get_token_from_request(request: WSGIRequest) -> Optional[str]:
-    auth_token = request.META.get(SALEOR_AUTH_HEADER)
-
-    if not auth_token:
-        auth = request.META.get(DEFAULT_AUTH_HEADER, "").split(maxsplit=1)
-
-        if len(auth) == 2 and auth[0].upper() in AUTH_HEADER_PREFIXES:
-            auth_token = auth[1]
-    return auth_token
 
 
 def get_user_from_payload(payload: Dict[str, Any]) -> Optional[User]:

@@ -28,11 +28,12 @@ from ..plugins.manager import PluginsManager
 from ..product import models as product_models
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
+from ..warehouse.models import Warehouse
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
 from .fetch import (
+    update_checkout_info_delivery_method,
     update_checkout_info_shipping_address,
-    update_checkout_info_shipping_method,
 )
 from .models import Checkout, CheckoutLine
 
@@ -255,9 +256,9 @@ def _get_shipping_voucher_discount_for_checkout(
     if not is_shipping_required(lines):
         msg = "Your order does not require shipping."
         raise NotApplicable(msg)
-    shipping_method = checkout_info.shipping_method
+    shipping_method = checkout_info.delivery_method_info.delivery_method
     if not shipping_method:
-        msg = "Please select a shipping method first."
+        msg = "Please select a delivery method first."
         raise NotApplicable(msg)
 
     # check if voucher is limited to specified countries
@@ -603,25 +604,41 @@ def get_valid_shipping_methods_for_checkout(
     )
 
 
-def is_valid_shipping_method(checkout_info: "CheckoutInfo"):
-    """Check if shipping method is valid and remove (if not)."""
-    if not checkout_info.shipping_method:
-        return False
+def get_valid_collection_points_for_checkout(
+    lines: Iterable["CheckoutLineInfo"],
+    checkout_info: "CheckoutInfo",
+    country_code: Optional[str] = None,
+    quantity_check: bool = True,
+):
+    """Return a collection of `Warehouse`s that can be used as a collection point.
+
+    Note that `quantity_check=False` should be used, when stocks quantity will
+    be validated in further steps (checkout completion) in order to raise
+    'InsufficientProductStock' error instead of 'InvalidShippingError'.
+    """
+
+    if not is_shipping_required(lines):
+        return []
     if not checkout_info.shipping_address:
-        return False
+        return []
+    line_ids = [line_info.line.id for line_info in lines]
+    lines = CheckoutLine.objects.filter(id__in=line_ids)
 
-    valid_methods = checkout_info.valid_shipping_methods
-    if valid_methods is None or checkout_info.shipping_method not in valid_methods:
-        clear_shipping_method(checkout_info)
-        return False
-    return True
+    return (
+        Warehouse.objects.applicable_for_click_and_collect(lines, country_code)
+        if quantity_check
+        else Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(
+            lines, country_code
+        )
+    )
 
 
-def clear_shipping_method(checkout_info: "CheckoutInfo"):
+def clear_delivery_method(checkout_info: "CheckoutInfo"):
     checkout = checkout_info.checkout
+    checkout.collection_point = None
     checkout.shipping_method = None
-    update_checkout_info_shipping_method(checkout_info, None)
-    checkout.save(update_fields=["shipping_method", "last_change"])
+    update_checkout_info_delivery_method(checkout_info, None)
+    checkout.save(update_fields=["shipping_method", "collection_point", "last_change"])
 
 
 def is_fully_paid(

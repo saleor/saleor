@@ -82,6 +82,7 @@ from ...shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
+from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
 from ...warehouse.models import Stock, Warehouse
 
@@ -1202,15 +1203,46 @@ def create_shipping_zones():
     )
 
 
+def create_additional_cc_warehouse():
+    shipping_zone = ShippingZone.objects.first()
+    warehouse_name = f"{shipping_zone.name} for click and collect"
+    warehouse, _ = Warehouse.objects.update_or_create(
+        name=warehouse_name,
+        slug=slugify(warehouse_name),
+        defaults={
+            "address": create_address(),
+            "is_private": False,
+            "click_and_collect_option": WarehouseClickAndCollectOption.LOCAL_STOCK,
+        },
+    )
+    warehouse.shipping_zones.add(shipping_zone)
+
+
 def create_warehouses():
     for shipping_zone in ShippingZone.objects.all():
         shipping_zone_name = shipping_zone.name
+        is_private = random.choice([True, False])
+        cc_option = random.choice(
+            [
+                option[0]
+                for option in WarehouseClickAndCollectOption.CHOICES
+                if not (
+                    is_private and option == WarehouseClickAndCollectOption.LOCAL_STOCK
+                )
+            ]
+        )
         warehouse, _ = Warehouse.objects.update_or_create(
             name=shipping_zone_name,
             slug=slugify(shipping_zone_name),
-            defaults={"address": create_address(company_name=fake.company())},
+            defaults={
+                "address": create_address(company_name=fake.company()),
+                "is_private": is_private,
+                "click_and_collect_option": cc_option,
+            },
         )
         warehouse.shipping_zones.add(shipping_zone)
+
+    create_additional_cc_warehouse()
 
 
 def create_vouchers():

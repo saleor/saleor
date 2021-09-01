@@ -17,6 +17,7 @@ from ....payment.interface import (
     CustomerSource,
     InitializedPaymentResponse,
     PaymentMethodInfo,
+    StorePaymentMethodEnum,
     TokenConfig,
 )
 from ....payment.models import ChargeStatus, Payment, TransactionKind
@@ -94,14 +95,10 @@ CREATE_PAYMENT_MUTATION = """
     mutation CheckoutPaymentCreate(
         $token: UUID,
         $input: PaymentInput!,
-        $store: StoreEnum,
-        $metadata: [MetadataInput!]
     ) {
         checkoutPaymentCreate(
             token: $token,
             input: $input,
-            store: $store,
-            metadata: $metadata
         ) {
             payment {
                 transactions {
@@ -445,7 +442,14 @@ def test_create_payment_for_checkout_with_active_payments(
     assert active_payments.first().pk not in previous_active_payments_ids
 
 
-@pytest.mark.parametrize("store", [None, "NONE", "ON_SESSION", "OFF_SESSION"])
+@pytest.mark.parametrize(
+    "store",
+    [
+        StorePaymentMethodEnum.NONE,
+        StorePaymentMethodEnum.ON_SESSION,
+        StorePaymentMethodEnum.OFF_SESSION,
+    ],
+)
 def test_create_payment_with_store(
     user_api_client, checkout_without_shipping_required, address, store
 ):
@@ -467,8 +471,8 @@ def test_create_payment_with_store(
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
+            "storePaymentMethod": store,
         },
-        "store": store,
     }
 
     # when
@@ -477,7 +481,7 @@ def test_create_payment_with_store(
     # then
     checkout.refresh_from_db()
     payment = checkout.payments.first()
-    assert payment.store == (store or "NONE").lower()
+    assert payment.store == store.lower()
 
 
 @pytest.mark.parametrize(
@@ -504,8 +508,8 @@ def test_create_payment_with_metadata(
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
+            "metadata": metadata,
         },
-        "metadata": metadata,
     }
 
     # when

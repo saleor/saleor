@@ -60,7 +60,7 @@ class AddressData:
     phone: str
 
 
-class StoreEnum(str, Enum):
+class StorePaymentMethodEnum(str, Enum):
     NONE = "NONE"
     ON_SESSION = "ON_SESSION"
     OFF_SESSION = "OFF_SESSION"
@@ -89,7 +89,7 @@ class PaymentData:
     reuse_source: bool = False  # Note: this field will be removed in 4.0.
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
-    store: StoreEnum = StoreEnum.NONE
+    store_payment_method: StorePaymentMethodEnum = StorePaymentMethodEnum.NONE
     payment_metadata: Dict[str, str] = field(default_factory=dict)
 
 
