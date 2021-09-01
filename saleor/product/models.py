@@ -39,7 +39,13 @@ from ..account.utils import requestor_is_staff_member_or_app
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
-from ..core.permissions import ProductPermissions, ProductTypePermissions
+from ..core.permissions import (
+    DiscountPermissions,
+    OrderPermissions,
+    ProductPermissions,
+    ProductTypePermissions,
+    has_one_of_permissions,
+)
 from ..core.units import WeightUnits
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
@@ -152,6 +158,13 @@ class ProductType(ModelWithMetadata):
 
 
 class ProductsQueryset(models.QuerySet):
+    ALL_PRODUCTS_PERMISSIONS = [
+        # One of listed permissions is required to see all products
+        OrderPermissions.MANAGE_ORDERS,
+        DiscountPermissions.MANAGE_DISCOUNTS,
+        ProductPermissions.MANAGE_PRODUCTS,
+    ]
+
     def published(self, channel_slug: str):
         today = datetime.date.today()
         channels = Channel.objects.filter(
@@ -187,7 +200,8 @@ class ProductsQueryset(models.QuerySet):
         return published.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
     def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
-        if requestor_is_staff_member_or_app(requestor):
+
+        if has_one_of_permissions(requestor, self.ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
                 channels = Channel.objects.filter(slug=str(channel_slug)).values("id")
                 channel_listings = ProductChannelListing.objects.filter(
