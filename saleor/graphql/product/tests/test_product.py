@@ -2,12 +2,14 @@ import json
 import os
 from datetime import datetime, timedelta
 from decimal import Decimal
+from unittest import mock
 from unittest.mock import ANY, Mock, patch
 
 import graphene
 import pytest
 import pytz
 from django.core.exceptions import ValidationError
+from django.db.models import Sum
 from django.utils.dateparse import parse_datetime
 from django.utils.html import strip_tags
 from django.utils.text import slugify
@@ -23,7 +25,7 @@ from ....core.taxes import TaxType
 from ....core.units import WeightUnits
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
-from ....plugins.manager import PluginsManager
+from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product import ProductMediaTypes
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
@@ -39,8 +41,9 @@ from ....product.models import (
 )
 from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....product.utils.availability import get_variant_availability
 from ....product.utils.costs import get_product_costs_data
-from ....tests.utils import dummy_editorjs
+from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import generate_product_deleted_payload
@@ -163,6 +166,7 @@ QUERY_PRODUCT = """
             }
             availableForPurchase
             isAvailableForPurchase
+            isAvailable
         }
     }
     """
@@ -1010,6 +1014,7 @@ def test_product_query_is_available_for_purchase_false(
         "%Y-%m-%d"
     )
     assert product_data["isAvailableForPurchase"] is False
+    assert product_data["isAvailable"] is False
 
 
 def test_product_query_is_available_for_purchase_false_no_available_for_purchase_date(
@@ -1032,6 +1037,7 @@ def test_product_query_is_available_for_purchase_false_no_available_for_purchase
 
     assert not product_data["availableForPurchase"]
     assert product_data["isAvailableForPurchase"] is False
+    assert product_data["isAvailable"] is False
 
 
 def test_product_query_unpublished_products_by_slug(
@@ -1673,6 +1679,87 @@ def test_query_products_no_channel_shipping_zones(
     product_data = product_edges_data[0]["node"]
     assert product_data["name"] == product.name
     assert product_data["isAvailable"] is False
+
+
+QUERY_PRODUCT_IS_AVAILABLE = """
+    query Product($id: ID, $channel: String, $address: AddressInput) {
+        product(id: $id, channel: $channel) {
+            isAvailableNoAddress: isAvailable
+            isAvailableAddress: isAvailable(address: $address)
+        }
+    }
+"""
+
+
+def test_query_product_is_available(
+    api_client, channel_USD, variant_with_many_stocks_different_shipping_zones
+):
+    # given
+    variant = variant_with_many_stocks_different_shipping_zones
+    product = variant.product
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "PL"},
+    }
+
+    # when
+    response = api_client.post_graphql(QUERY_PRODUCT_IS_AVAILABLE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_data = content["data"]["product"]
+    assert product_data["isAvailableNoAddress"] is True
+    assert product_data["isAvailableAddress"] is True
+
+
+def test_query_product_is_available_with_one_variant(
+    api_client, channel_USD, product_with_two_variants
+):
+    # given
+    product = product_with_two_variants
+
+    # remove stock for 2nd variant
+    variant_2 = product.variants.all()[1]
+    Stock.objects.filter(product_variant=variant_2).delete()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "PL"},
+    }
+
+    # when
+    response = api_client.post_graphql(QUERY_PRODUCT_IS_AVAILABLE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_data = content["data"]["product"]
+    assert product_data["isAvailableNoAddress"] is True
+    assert product_data["isAvailableAddress"] is True
+
+
+def test_query_product_is_available_no_shipping_zones(
+    api_client, channel_USD, variant_with_many_stocks_different_shipping_zones
+):
+    # given
+    channel_USD.shipping_zones.clear()
+    variant = variant_with_many_stocks_different_shipping_zones
+    product = variant.product
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "PL"},
+    }
+
+    # when
+    response = api_client.post_graphql(QUERY_PRODUCT_IS_AVAILABLE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_data = content["data"]["product"]
+    assert product_data["isAvailableNoAddress"] is False
+    assert product_data["isAvailableAddress"] is False
 
 
 def test_products_query_with_filter_attributes(
@@ -8885,6 +8972,31 @@ def test_product_variants_no_ids_list(user_api_client, variant, channel_USD):
     assert len(data["edges"]) == ProductVariant.objects.count()
 
 
+QUERY_GET_PRODUCT_VARIANTS_PRICING = """
+    query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
+        product(id: $id, channel: $channel) {
+            variants {
+                id
+                pricingNoAddress: pricing {
+                    priceUndiscounted {
+                        gross {
+                            amount
+                        }
+                    }
+                }
+                pricing(address: $address) {
+                    priceUndiscounted {
+                        gross {
+                            amount
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
 @pytest.mark.parametrize(
     "variant_price_amount, api_variant_price",
     [(200, 200), (0, 0)],
@@ -8902,28 +9014,15 @@ def test_product_variant_price(
         channel=channel_USD, variant__product_id=product.pk
     ).update(price_amount=variant_price_amount)
 
-    query = """
-        query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
-            product(id: $id, channel: $channel) {
-                variants {
-                    pricing(address: $address) {
-                        priceUndiscounted {
-                            gross {
-                                amount
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        """
     product_id = graphene.Node.to_global_id("Product", variant.product.id)
     variables = {
         "id": product_id,
         "channel": channel_USD.slug,
         "address": {"country": "US"},
     }
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(
+        QUERY_GET_PRODUCT_VARIANTS_PRICING, variables
+    )
     content = get_graphql_content(response)
     data = content["data"]["product"]
     variant_price = data["variants"][0]["pricing"]["priceUndiscounted"]["gross"]
@@ -8937,23 +9036,6 @@ def test_product_variant_without_price_as_user(
     channel_USD,
 ):
     variant.channel_listings.filter(channel=channel_USD).update(price_amount=None)
-
-    query = """
-        query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
-            product(id: $id, channel: $channel) {
-                variants {
-                    id
-                    pricing(address: $address) {
-                        priceUndiscounted {
-                            gross {
-                                amount
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        """
     product_id = graphene.Node.to_global_id("Product", variant.product.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {
@@ -8962,7 +9044,9 @@ def test_product_variant_without_price_as_user(
         "address": {"country": "US"},
     }
 
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(
+        QUERY_GET_PRODUCT_VARIANTS_PRICING, variables
+    )
     content = get_graphql_content(response)
 
     variants_data = content["data"]["product"]["variants"]
@@ -8981,22 +9065,6 @@ def test_product_variant_without_price_as_staff(
     variant_channel_listing.price_amount = None
     variant_channel_listing.save()
 
-    query = """
-        query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
-            product(id: $id, channel: $channel) {
-                variants {
-                    id
-                    pricing(address: $address) {
-                        priceUndiscounted {
-                            gross {
-                                amount
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        """
     product_id = graphene.Node.to_global_id("Product", variant.product.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {
@@ -9004,7 +9072,9 @@ def test_product_variant_without_price_as_staff(
         "channel": channel_USD.slug,
         "address": {"country": "US"},
     }
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_GET_PRODUCT_VARIANTS_PRICING, variables
+    )
     content = get_graphql_content(response)
     variants_data = content["data"]["product"]["variants"]
 
@@ -9014,6 +9084,44 @@ def test_product_variant_without_price_as_staff(
     assert variants_data[1]["pricing"] is None
 
     assert len(variants_data) == 2
+
+
+QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS = """
+    query getProductVariants($id: ID!, $channel: String) {
+        product(id: $id, channel: $channel) {
+            variants {
+                id
+                pricing {
+                    priceUndiscounted {
+                        gross {
+                            amount
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+@mock.patch(
+    "saleor.graphql.product.types.products.get_variant_availability",
+    wraps=get_variant_availability,
+)
+def test_product_variant_price_no_address(
+    mock_get_variant_availability, user_api_client, variant, stock, channel_USD
+):
+    channel_USD.default_country = "FR"
+    channel_USD.save()
+    product_id = graphene.Node.to_global_id("Product", variant.product.id)
+    variables = {"id": product_id, "channel": channel_USD.slug}
+    user_api_client.post_graphql(
+        QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS, variables
+    )
+    assert (
+        mock_get_variant_availability.call_args[1]["country"]
+        == channel_USD.default_country
+    )
 
 
 QUERY_REPORT_PRODUCT_SALES = """
@@ -9924,7 +10032,7 @@ def test_update_or_create_variant_stocks(variant, warehouses):
     ]
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses
+        variant, stocks_data, warehouses, get_plugins_manager()
     )
 
     variant.refresh_from_db()
@@ -9944,13 +10052,134 @@ def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
         quantity=5,
     )
 
-    ProductVariantStocksUpdate.update_or_create_variant_stocks(variant, [], warehouses)
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, [], warehouses, get_plugins_manager()
+    )
 
     variant.refresh_from_db()
     assert variant.stocks.count() == 1
     stock = variant.stocks.first()
     assert stock.warehouse == warehouses[0]
     assert stock.quantity == 5
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
+    product_variant_stock_out_of_stock_webhook,
+    product_variant_back_in_stock_webhook,
+    settings,
+    variant,
+    warehouses,
+    info,
+):
+
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse)
+            for warehouse in warehouses
+        ]
+    )
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    info.context.plugins = get_plugins_manager()
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+    ]
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses, info.context.plugins
+    )
+
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
+
+    flush_post_commit_hooks()
+    product_variant_back_in_stock_webhook.assert_called_once_with(
+        Stock.objects.all()[1]
+    )
+    product_variant_stock_out_of_stock_webhook.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
+    product_variant_stock_out_of_stock_webhook,
+    product_variant_back_in_stock_webhook,
+    settings,
+    variant,
+    warehouses,
+    info,
+):
+
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse)
+            for warehouse in warehouses
+        ]
+    )
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    info.context.plugins = get_plugins_manager()
+    stocks_data = [
+        {"quantity": 0, "warehouse": "123"},
+    ]
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses, info.context.plugins
+    )
+
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
+
+    flush_post_commit_hooks()
+    product_variant_back_in_stock_webhook.assert_not_called()
+    product_variant_stock_out_of_stock_webhook.assert_called_once_with(
+        Stock.objects.all()[1]
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
+    product_variant_stock_out_of_stock_webhook,
+    product_variant_back_in_stock_webhook,
+    settings,
+    variant,
+    warehouses,
+    info,
+):
+
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse, quantity=5)
+            for warehouse in warehouses
+        ]
+    )
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    info.context.plugins = get_plugins_manager()
+
+    stocks_data = [
+        {"quantity": 0, "warehouse": "123"},
+        {"quantity": 2, "warehouse": "321"},
+    ]
+
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses, info.context.plugins
+    )
+
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 2
+
+    flush_post_commit_hooks()
+
+    product_variant_stock_out_of_stock_webhook.assert_called_once_with(
+        Stock.objects.last()
+    )
+    product_variant_back_in_stock_webhook.assert_not_called()
 
 
 # Because we use Scalars for Weight this test query tests only a scenario when weight

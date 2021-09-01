@@ -844,16 +844,23 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     checkout_with_item,
     address,
     shipping_method,
-    payment_txn_preauth,
+    payment_dummy,
     user_api_client,
+    monkeypatch,
+    dummy_gateway_config,
 ):
     # given
+    dummy_gateway_config.auto_capture = False
+    monkeypatch.setattr(
+        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin._get_gateway_config",
+        lambda _: dummy_gateway_config,
+    )
+
     checkout = checkout_with_item
-    checkout_line = checkout.lines.first()
-    stock = Stock.objects.get(product_variant=checkout_line.variant)
-    quantity_available = get_available_quantity_for_stock(stock)
-    checkout_line.quantity = quantity_available + 1
-    checkout_line.save()
+
+    def _erase_stock():
+        Stock.objects.update(quantity=0)
+        return True
 
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -866,13 +873,15 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
+    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", _erase_stock)
 
-    payment = payment_txn_preauth
+    payment = payment_dummy
     payment.is_active = True
     payment.order = None
     payment.total = total.gross.amount
     payment.currency = total.gross.currency
     payment.checkout = checkout
+    payment.token = ChargeStatus.NOT_CHARGED
     payment.charge_status = ChargeStatus.NOT_CHARGED
     payment.save()
 

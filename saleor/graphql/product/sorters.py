@@ -22,7 +22,7 @@ from ...product.models import (
     Product,
     ProductChannelListing,
 )
-from ..core.types import SortInputObjectType
+from ..core.types import ChannelSortInputObjectType, SortInputObjectType
 
 
 class CategorySortField(graphene.Enum):
@@ -63,7 +63,7 @@ class CategorySortField(graphene.Enum):
         return queryset.annotate(subcategory_count=Count("children__id"))
 
 
-class CategorySortingInput(SortInputObjectType):
+class CategorySortingInput(ChannelSortInputObjectType):
     class Meta:
         sort_enum = CategorySortField
         type_name = "categories"
@@ -115,7 +115,7 @@ class CollectionSortField(graphene.Enum):
         )
 
 
-class CollectionSortingInput(SortInputObjectType):
+class CollectionSortingInput(ChannelSortInputObjectType):
     class Meta:
         sort_enum = CollectionSortField
         type_name = "collections"
@@ -219,7 +219,7 @@ class ProductOrderField(graphene.Enum):
         raise GraphQLError("Sorting by Rank is available only with searching.")
 
 
-class ProductOrder(SortInputObjectType):
+class ProductOrder(ChannelSortInputObjectType):
     attribute_id = graphene.Argument(
         graphene.ID,
         description=(

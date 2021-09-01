@@ -9,10 +9,9 @@ from ...payment.models import Payment
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_or_error
-from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_range_field
-from .enums import OrderStatusFilter
+from .enums import OrderPaymentStatusEnum, OrderStatusFilter
 
 
 def filter_payment_status(qs, _, value):
@@ -126,7 +125,7 @@ class DraftOrderFilter(MetadataFilterBase):
 
 class OrderFilter(DraftOrderFilter):
     payment_status = ListObjectTypeFilter(
-        input_class=PaymentChargeStatusEnum, method=filter_payment_status
+        input_class=OrderPaymentStatusEnum, method=filter_payment_status
     )
     status = ListObjectTypeFilter(input_class=OrderStatusFilter, method=filter_status)
     customer = django_filters.CharFilter(method=filter_customer)

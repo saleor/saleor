@@ -204,6 +204,7 @@ def test_stock_quantities_in_different_warehouses(
         productVariant(id: $id, channel: $channel) {
             quantityPL: quantityAvailable(address: { country: $country1 })
             quantityUS: quantityAvailable(address: { country: $country2 })
+            quantityNoAddress: quantityAvailable
         }
     }
     """
@@ -228,6 +229,12 @@ def test_stock_quantities_in_different_warehouses(
 
     assert content["data"]["productVariant"]["quantityPL"] == stock_map["PL"]
     assert content["data"]["productVariant"]["quantityUS"] == stock_map["US"]
+
+    # when country is not provided, should return max value of all available stock
+    # quantities
+    assert content["data"]["productVariant"]["quantityNoAddress"] == max(
+        stock_map.values()
+    )
 
 
 def test_stock_quantity_is_max_from_all_warehouses_without_provided_country(

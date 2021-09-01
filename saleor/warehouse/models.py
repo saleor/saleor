@@ -3,7 +3,7 @@ import uuid
 from typing import Set
 
 from django.db import models
-from django.db.models import Exists, F, OuterRef, Sum
+from django.db.models import Exists, F, OuterRef, Q, Sum
 from django.db.models.functions import Coalesce
 
 from ..account.models import Address
@@ -59,7 +59,13 @@ class StockQuerySet(models.QuerySet):
     def annotate_available_quantity(self):
         return self.annotate(
             available_quantity=F("quantity")
-            - Coalesce(Sum("allocations__quantity_allocated"), 0)
+            - Coalesce(
+                Sum(
+                    "allocations__quantity_allocated",
+                    filter=Q(allocations__quantity_allocated__gt=0),
+                ),
+                0,
+            )
         )
 
     def for_channel(self, channel_slug: str):
@@ -137,6 +143,23 @@ class Stock(models.Model):
             self.save(update_fields=["quantity"])
 
 
+class AllocationQueryset(models.QuerySet):
+    def annotate_stock_available_quantity(self):
+        return self.annotate(
+            stock_available_quantity=F("stock__quantity")
+            - Coalesce(Sum("stock__allocations__quantity_allocated"), 0)
+        )
+
+    def available_quantity_for_stock(self, stock: "Stock"):
+        allocated_quantity = (
+            self.filter(stock=stock).aggregate(Sum("quantity_allocated"))[
+                "quantity_allocated__sum"
+            ]
+            or 0
+        )
+        return max(stock.quantity - allocated_quantity, 0)
+
+
 class Allocation(models.Model):
     order_line = models.ForeignKey(
         OrderLine,
@@ -153,6 +176,8 @@ class Allocation(models.Model):
         related_name="allocations",
     )
     quantity_allocated = models.PositiveIntegerField(default=0)
+
+    objects = models.Manager.from_queryset(AllocationQueryset)()
 
     class Meta:
         unique_together = [["order_line", "stock"]]

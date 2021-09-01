@@ -7,6 +7,7 @@ from ...warehouse import models
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
 
@@ -42,7 +43,7 @@ class Warehouse(CountableDjangoObjectType):
         required=True,
         description="Warehouse company name.",
         deprecation_reason=(
-            "Use address.CompanyName. This field will be removed in Saleor 4.0."
+            f"{DEPRECATED_IN_3X_FIELD} Use `Address.companyName` instead."
         ),
     )
 

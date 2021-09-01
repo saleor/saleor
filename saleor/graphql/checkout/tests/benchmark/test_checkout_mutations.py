@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from graphene import Node
 
@@ -5,6 +7,7 @@ from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....plugins.manager import get_plugins_manager
+from .....warehouse.models import Stock
 from ....tests.utils import get_graphql_content
 
 FRAGMENT_PRICE = """
@@ -694,6 +697,28 @@ def test_complete_checkout(api_client, checkout_with_charged_payment, count_quer
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutComplete"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_complete_checkout_with_out_of_stock_webhook(
+    product_variant_out_of_stock_webhook_mock,
+    api_client,
+    checkout_with_charged_payment,
+    count_queries,
+):
+    query = COMPLETE_CHECKOUT_MUTATION
+    Stock.objects.update(quantity=10)
+    variables = {
+        "token": checkout_with_charged_payment.token,
+    }
+
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+    assert not response["data"]["checkoutComplete"]["errors"]
+    product_variant_out_of_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.last()
+    )
 
 
 @pytest.mark.django_db
