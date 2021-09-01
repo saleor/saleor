@@ -11,6 +11,7 @@ from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
+from ...channel import models as channel_models
 from ..channel import ChannelContext
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetadataError
@@ -149,6 +150,7 @@ class BaseMetadataMutation(BaseMutation):
                     product_models.ProductVariant,
                     shipping_models.ShippingMethod,
                     shipping_models.ShippingZone,
+                    channel_models.Channel,
                 ]
             ]
         )

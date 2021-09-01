@@ -17,7 +17,7 @@ from ...core.permissions import (
     PageTypePermissions,
     ProductPermissions,
     ProductTypePermissions,
-    ShippingPermissions,
+    ShippingPermissions, ChannelPermissions,
 )
 
 
@@ -107,6 +107,10 @@ def gift_card_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [GiftcardPermissions.MANAGE_GIFT_CARD]
 
 
+def channel_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [ChannelPermissions.MANAGE_CHANNELS]
+
+
 PUBLIC_META_PERMISSION_MAP = {
     "App": app_permissions,
     "Attribute": attribute_permissions,
@@ -131,8 +135,8 @@ PUBLIC_META_PERMISSION_MAP = {
     "User": public_user_permissions,
     "Voucher": discount_permissions,
     "Warehouse": product_permissions,
+    "Channel": channel_permissions,
 }
-
 
 PRIVATE_META_PERMISSION_MAP = {
     "App": app_permissions,
@@ -158,4 +162,5 @@ PRIVATE_META_PERMISSION_MAP = {
     "User": private_user_permissions,
     "Voucher": discount_permissions,
     "Warehouse": product_permissions,
+    "Channel": channel_permissions,
 }

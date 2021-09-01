@@ -13,6 +13,7 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...warehouse import models as warehouse_models
+from ...channel import models as channel_models
 from ..utils import get_user_or_app_from_context
 from .permissions import PRIVATE_META_PERMISSION_MAP
 
@@ -34,6 +35,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ..product import types as product_types
     from ..shipping import types as shipping_types
     from ..warehouse import types as warehouse_types
+    from ..channel import types as channel_types
 
     MODEL_TO_TYPE_MAP = {
         app_models.App: app_types.App,
@@ -59,6 +61,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         warehouse_models.Warehouse: warehouse_types.Warehouse,
         discount_models.Sale: discount_types.Sale,
         discount_models.Voucher: discount_types.Voucher,
+        channel_models.Channel: channel_types.Channel,
     }
     return MODEL_TO_TYPE_MAP.get(instance.__class__, None)
 

@@ -62,7 +62,7 @@ class ChannelContextTypeWithMetadata(ChannelContextType):
         return ObjectWithMetadata.resolve_private_metadata(root.node, info)
 
 
-class Channel(CountableDjangoObjectType):
+class Channel(CountableDjangoObjectType, ChannelContextTypeWithMetadata):
     has_orders = graphene.Boolean(
         required=True, description="Whether a channel has associated orders."
     )
@@ -79,7 +79,7 @@ class Channel(CountableDjangoObjectType):
     class Meta:
         description = "Represents channel."
         model = models.Channel
-        interfaces = [graphene.relay.Node]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
         only_fields = ["id", "name", "slug", "currency_code", "is_active"]
 
     @staticmethod
