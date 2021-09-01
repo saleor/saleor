@@ -256,8 +256,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
             return_url=data.get("return_url"),
-            store_payment_method=data.get("store_payment_method")
-            or StorePaymentMethod.NONE,
+            store_payment_method=data["store_payment_method"],
             metadata=metadata,
         )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
