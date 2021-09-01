@@ -18,7 +18,7 @@ from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..checkout.mutations import get_checkout_by_token
 from ..checkout.types import Checkout
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
@@ -237,7 +237,14 @@ class CheckoutPaymentComplete(BaseMutation, I18nMixin):
         )
 
     class Meta:
-        description = "Complete a payment for given checkout."
+        description = (
+            f"{ADDED_IN_31} Completes an individual payment as part of the checkout. "
+            "This mutation does not create the order and any webhooks related "
+            "to this payment will neither create the order."
+            "In case an additional confirmation step such as 3D secure is required "
+            "confirmationNeeded flag will be set to True and no authorization will be "
+            "held until the payment is confirmed with second call of this mutation."
+        )
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
