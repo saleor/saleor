@@ -122,11 +122,11 @@ class Payment(models.Model):
     def get_covered_amount(self):
         """Return an amount that is covered by this payment (but not necessarily captured).
 
-        Refund subtract from the covered amount.
+        Partially refunded payments are included in the covered amount.
         """
         if self.charge_status == ChargeStatus.PARTIALLY_REFUNDED:
             return self.captured_amount
-        # TODO include overpaid
+
         if self.charge_status in {
             ChargeStatus.AUTHORIZED,
             ChargeStatus.FULLY_CHARGED,

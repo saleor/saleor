@@ -630,13 +630,6 @@ def get_active_payments(checkout: Checkout):
     return [p for p in checkout.payments.all() if p.is_active]
 
 
-def get_only_active_payment(checkout: Checkout):
-    active_payments = get_active_payments(checkout)
-    if len(active_payments) != 1:
-        return None
-    return active_payments[0]
-
-
 def get_covered_balance(checkout: Checkout):
     """Return the amount of its payments that are at least authorized."""
     covered_amount = Decimal("0")
@@ -658,10 +651,8 @@ def is_fully_covered(
     """
     checkout = checkout_info.checkout
     total_covered = get_covered_balance(checkout).amount
-    print("cov by auth", total_covered)
     if current_payment and current_payment.not_charged:
         total_covered += current_payment.total
-        print("cov by current", total_covered)
 
     address = checkout_info.shipping_address or checkout_info.billing_address
     checkout_total = (
@@ -677,7 +668,6 @@ def is_fully_covered(
     checkout_total = max(
         checkout_total, zero_taxed_money(checkout_total.currency)
     ).gross
-    print(total_covered, checkout_total.amount)
     return total_covered >= checkout_total.amount
 
 

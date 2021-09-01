@@ -1,5 +1,4 @@
 """Checkout-related ORM models."""
-from decimal import Decimal
 from operator import attrgetter
 from typing import TYPE_CHECKING, Iterable, Optional
 from uuid import uuid4
