@@ -24,8 +24,16 @@ from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_COMPLETE = """
-    mutation checkoutComplete($token: UUID, $redirectUrl: String) {
-        checkoutComplete(token: $token, redirectUrl: $redirectUrl) {
+    mutation checkoutComplete(
+        $token: UUID,
+        $redirectUrl: String
+        $paymentId: ID
+    ) {
+        checkoutComplete(
+            token: $token,
+            redirectUrl: $redirectUrl,
+            paymentId: $paymentId,
+        ) {
             order {
                 id,
                 token
@@ -824,6 +832,65 @@ def test_checkout_complete_ambiguous_payment(
     data = content["data"]["checkoutComplete"]
     assert "you have to provide a specific paymentID" in data["errors"][0]["message"]
     assert orders_count == Order.objects.count()
+
+
+def test_checkout_complete_with_payment_id(
+    user_api_client, checkout_with_item, address, shipping_method, payment_kwargs
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    completed_payment = Payment.objects.create(**payment_kwargs)
+    completed_payment.order = None
+    completed_payment.checkout = checkout
+    completed_payment.charge_status = ChargeStatus.AUTHORIZED
+    completed_payment.total = total.gross.amount / 2
+    completed_payment.currency = total.gross.currency
+    completed_payment.save()
+
+    incomplete_payment = Payment.objects.create(**payment_kwargs)
+    incomplete_payment.order = None
+    incomplete_payment.checkout = checkout
+    incomplete_payment.charge_status = ChargeStatus.NOT_CHARGED
+    incomplete_payment.total = total.gross.amount / 2
+    incomplete_payment.currency = total.gross.currency
+    incomplete_payment.save()
+
+    ambiguous_payment = Payment.objects.create(**payment_kwargs)
+    ambiguous_payment.order = None
+    ambiguous_payment.checkout = checkout
+    ambiguous_payment.charge_status = ChargeStatus.NOT_CHARGED
+    ambiguous_payment.total = total.gross.amount / 2
+    ambiguous_payment.currency = total.gross.currency
+    ambiguous_payment.save()
+
+    # when
+    variables = {
+        "token": checkout.token,
+        "redirectUrl": "https://www.example.com",
+        "paymentId": graphene.Node.to_global_id("Payment", incomplete_payment.pk),
+    }
+    orders_count = Order.objects.count()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    assert not data["confirmationNeeded"]
+    new_orders_count = Order.objects.count()
+    assert new_orders_count == orders_count + 1
 
 
 def test_checkout_complete_multiple_payments_not_covering_checkout(
