@@ -53,29 +53,6 @@ MUTATION_CHECKOUT_COMPLETE = """
     """
 
 
-ACTION_REQUIRED_GATEWAY_RESPONSE = GatewayResponse(
-    is_success=True,
-    action_required=True,
-    action_required_data={
-        "paymentData": "test",
-        "paymentMethodType": "scheme",
-        "url": "https://test.adyen.com/hpp/3d/validate.shtml",
-        "data": {
-            "MD": "md-test-data",
-            "PaReq": "PaReq-test-data",
-            "TermUrl": "http://127.0.0.1:3000/",
-        },
-        "method": "POST",
-        "type": "redirect",
-    },
-    kind=TransactionKind.CAPTURE,
-    amount=Decimal(3.0),
-    currency="usd",
-    transaction_id="1234",
-    error=None,
-)
-
-
 def test_checkout_complete_unconfirmed_order_already_exists(
     user_api_client,
     order_with_lines,
@@ -949,8 +926,9 @@ def test_checkout_complete_confirmation_needed(
     address,
     payment_dummy,
     shipping_method,
+    action_required_gateway_response,
 ):
-    mocked_process_payment.return_value = ACTION_REQUIRED_GATEWAY_RESPONSE
+    mocked_process_payment.return_value = action_required_gateway_response
 
     checkout = checkout_with_item
     checkout.shipping_address = address
@@ -1000,8 +978,9 @@ def test_checkout_confirm(
     payment_txn_to_confirm,
     address,
     shipping_method,
+    action_required_gateway_response,
 ):
-    response = ACTION_REQUIRED_GATEWAY_RESPONSE
+    response = action_required_gateway_response
     response.action_required = False
     mocked_confirm_payment.return_value = response
 
