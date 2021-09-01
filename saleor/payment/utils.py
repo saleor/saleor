@@ -291,7 +291,7 @@ def gateway_postprocess(transaction, payment):
         # only if there is no more amount needs to charge
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
         charge_amount = payment.get_charge_amount()
-        if charge_amount == 0:
+        if charge_amount <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
         elif charge_amount < 0:
             payment.charge_status = ChargeStatus.OVERPAID

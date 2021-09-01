@@ -504,8 +504,7 @@ def test_handle_capture_with_payment_already_charged(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
     assert external_events.count() == 1
-    # FIXME: this test records the captured amount twice, resulting in an overpayment
-    # assert payment.charge_status != ChargeStatus.OVERPAID
+    assert payment.captured_amount == payment.total
 
 
 @pytest.mark.parametrize(
