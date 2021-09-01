@@ -87,10 +87,17 @@ def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     if not success:
         error = "Unable to process capture"
 
+    # Process payment by charge status which is selected in the payment form
+    # Note that is for testing by dummy gateway only
+    token = payment_information.token
+    kind = TransactionKind.CAPTURE
+    if token == ChargeStatus.AUTHORIZED:
+        kind = TransactionKind.AUTH
+
     return GatewayResponse(
         is_success=success,
         action_required=False,
-        kind=TransactionKind.CAPTURE,
+        kind=kind,
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=payment_information.token or "",

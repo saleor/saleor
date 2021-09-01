@@ -599,11 +599,10 @@ def test_checkout_payment_complete(
     assert not payment.transactions.exists()
 
     orders_count_before = Order.objects.count()
-    redirect_url = "https://www.example.com"
     variables = {
         "token": checkout.token,
         "paymentId": payment_id,
-        "redirectUrl": redirect_url,
+        "redirectUrl": "https://www.example.com",
     }
 
     # when
@@ -629,6 +628,128 @@ def test_checkout_payment_complete(
     assert Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should be present until completed"
+
+
+@patch.object(PluginsManager, "process_payment")
+def test_checkout_payment_complete_confirmation_needed(
+    mocked_process_payment,
+    user_api_client,
+    checkout_with_item,
+    address,
+    payment_dummy,
+    shipping_method,
+    action_required_gateway_response,
+):
+    # given
+    mocked_process_payment.return_value = action_required_gateway_response
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    # when
+    variables = {
+        "token": checkout.token,
+        "paymentId": payment_id,
+        "redirectUrl": "https://www.example.com",
+    }
+    response = user_api_client.post_graphql(
+        CHECKOUT_PAYMENT_COMPLETE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentComplete"]
+    assert not data["errors"]
+    assert data["confirmationNeeded"] is True
+    assert data["confirmationData"]
+
+    checkout.refresh_from_db()
+    payment_dummy.refresh_from_db()
+    assert payment_dummy.is_active
+    assert payment_dummy.to_confirm
+    assert payment_dummy.charge_status == ChargeStatus.NOT_CHARGED
+
+    mocked_process_payment.assert_called_once()
+
+    payment.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+
+
+def test_checkout_payment_complete_confirms_payment(
+    user_api_client,
+    checkout_with_item,
+    payment_txn_to_confirm,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_txn_to_confirm
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.charge_status = ChargeStatus.NOT_CHARGED
+    payment.save()
+    txn = payment.transactions.get()
+    txn.token = ChargeStatus.AUTHORIZED
+    txn.save()
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    orders_count = Order.objects.count()
+
+    # when
+    variables = {
+        "token": checkout.token,
+        "paymentId": payment_id,
+        "redirectUrl": "https://www.example.com",
+    }
+    response = user_api_client.post_graphql(
+        CHECKOUT_PAYMENT_COMPLETE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentComplete"]
+
+    assert not data["errors"]
+    assert not data["confirmationNeeded"]
+
+    new_orders_count = Order.objects.count()
+    assert new_orders_count == orders_count
+
+    payment.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
 
 
 CAPTURE_QUERY = """
