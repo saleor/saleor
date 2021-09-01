@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Iterable, List
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 
 
@@ -158,3 +159,25 @@ def get_permissions_from_codenames(permission_codenames: List[str]):
         .prefetch_related("content_type")
         .order_by("codename")
     )
+
+
+def _permission_required(perms, context):
+    User = get_user_model()
+    if isinstance(context, User):
+        if context.has_perms(perms):
+            return True
+    else:
+        # for now MANAGE_STAFF permission for app is not supported
+        if AccountPermissions.MANAGE_STAFF in perms:
+            return False
+        return context.has_perms(perms)
+    return False
+
+
+def has_one_of_permissions(requestor, permissions=None):
+    if not permissions:
+        return True
+    for perm in permissions:
+        if _permission_required((perm,), requestor):
+            return True
+    return False
