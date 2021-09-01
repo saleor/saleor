@@ -121,7 +121,7 @@ class ChargeStatus:
     ]
 
 
-class Store:
+class StorePaymentMethod:
     """Represents if and how a payment should be stored in a payment gateway.
 
     The following store types are possible:

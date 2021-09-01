@@ -4831,6 +4831,8 @@ input PaymentInput {
   token: String
   amount: PositiveDecimal
   returnUrl: String
+  storePaymentMethod: StorePaymentMethodEnum = none
+  metadata: [MetadataInput!]
 }
 
 type PaymentRefund {
@@ -6442,6 +6444,12 @@ input StockFilterInput {
 input StockInput {
   warehouse: ID!
   quantity: Int!
+}
+
+enum StorePaymentMethodEnum {
+  ON_SESSION
+  OFF_SESSION
+  NONE
 }
 
 type TaxType {
