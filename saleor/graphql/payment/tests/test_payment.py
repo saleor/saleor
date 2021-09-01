@@ -445,7 +445,6 @@ def test_create_payment_for_checkout_with_active_payments(
 @pytest.mark.parametrize(
     "store",
     [
-        None,
         StorePaymentMethodEnum.NONE,
         StorePaymentMethodEnum.ON_SESSION,
         StorePaymentMethodEnum.OFF_SESSION,
@@ -482,7 +481,7 @@ def test_create_payment_with_store(
     # then
     checkout.refresh_from_db()
     payment = checkout.payments.first()
-    assert payment.store == (store or StorePaymentMethodEnum.NONE).lower()
+    assert payment.store == store.lower()
 
 
 @pytest.mark.parametrize(
