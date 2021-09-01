@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Iterable, List
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 
 
@@ -160,8 +161,7 @@ def get_permissions_from_codenames(permission_codenames: List[str]):
 
 
 def _permission_required(perms, context):
-    from saleor.account.models import User
-
+    User = get_user_model()
     if isinstance(context, User):
         if context.has_perms(perms):
             return True

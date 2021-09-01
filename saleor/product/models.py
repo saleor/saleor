@@ -159,7 +159,8 @@ class ProductType(ModelWithMetadata):
 
 class ProductsQueryset(models.QuerySet):
     ALL_PRODUCTS_PERMISSIONS = [
-        # One of listed permissions is required to see all products
+        # List of permissions, where each of them allows viewing all products
+        # (including unpublished).
         OrderPermissions.MANAGE_ORDERS,
         DiscountPermissions.MANAGE_DISCOUNTS,
         ProductPermissions.MANAGE_PRODUCTS,
@@ -200,7 +201,6 @@ class ProductsQueryset(models.QuerySet):
         return published.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
     def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
-
         if has_one_of_permissions(requestor, self.ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
                 channels = Channel.objects.filter(slug=str(channel_slug)).values("id")
