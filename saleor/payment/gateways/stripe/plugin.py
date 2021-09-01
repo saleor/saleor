@@ -16,6 +16,7 @@ from ...interface import (
     GatewayResponse,
     PaymentData,
     PaymentMethodInfo,
+    StorePaymentMethodEnum,
 )
 from ...models import Transaction
 from ...utils import price_from_minor_unit, price_to_minor_unit
@@ -180,9 +181,17 @@ class StripeGatewayPlugin(BasePlugin):
         if payment_information.reuse_source:
             setup_future_usage = data.get("setup_future_usage") if data else None
 
-        off_session = data.get("off_session") if data else None
-
         payment_method_types = data.get("payment_method_types") if data else None
+
+        # DEPRECATED
+        if setup_future_usage:
+            off_session = data.get("off_session") if data else None
+        else:
+            store_payment_method = payment_information.store_payment_method
+            if store_payment_method == StorePaymentMethodEnum.NONE:
+                off_session = None
+            else:
+                off_session = store_payment_method == StorePaymentMethodEnum.OFF_SESSION
 
         customer = None
         # confirm that we creates customer on stripe side only for log-in customers
@@ -202,6 +211,7 @@ class StripeGatewayPlugin(BasePlugin):
             customer=customer,
             payment_method_id=payment_method_id,
             metadata={
+                **payment_information.payment_metadata,
                 "channel": self.channel.slug,  # type: ignore
                 "payment_id": payment_information.graphql_payment_id,
             },
@@ -296,6 +306,9 @@ class StripeGatewayPlugin(BasePlugin):
             )
             if kind == TransactionKind.CAPTURE:
                 payment_method_info = get_payment_method_details(payment_intent)
+
+            if payment_intent.get("setup_future_usage"):
+                payment_intent.metadata = payment_information.payment_metadata
         else:
             action_required = False
             amount = payment_information.amount

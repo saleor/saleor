@@ -71,47 +71,48 @@ def test_handle_successful_payment_intent_for_checkout(
     assert transaction.token == payment_intent.id
 
 
-@patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentMethod.modify")
-@patch(
-    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
-)
-def test_handle_successful_payment_intent_with_future_usage(
-    _wrapped_checkout_complete,
-    mocked_payment_method_modify,
-    payment_stripe_for_checkout,
-    checkout_with_items,
-    stripe_plugin,
-    channel_USD,
-):
-    payment = payment_stripe_for_checkout
-    payment.to_confirm = True
-    payment.save()
-    payment.transactions.create(
-        is_success=True,
-        action_required=True,
-        kind=TransactionKind.ACTION_TO_CONFIRM,
-        amount=payment.total,
-        currency=payment.currency,
-        token="ABC",
-        gateway_response={},
-    )
-    plugin = stripe_plugin()
-    payment_intent = StripeObject(id="ABC", last_response={})
-    payment_intent["amount_received"] = price_to_minor_unit(
-        payment.total, payment.currency
-    )
-    payment_intent["payment_method"] = "payment_method_id"
-    payment_intent["setup_future_usage"] = "off_line"
-    payment_intent["currency"] = payment.currency
-    payment_intent["status"] = SUCCESS_STATUS
-
-    handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
-
-    mocked_payment_method_modify.assert_called_once_with(
-        "payment_method_id",
-        api_key="secret_key",
-        metadata={"channel": channel_USD.slug},
-    )
+# @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentMethod.modify")
+# @patch(
+#     "saleor.payment.gateways.stripe.webhooks.complete_checkout",
+#     wraps=complete_checkout
+# )
+# def test_handle_successful_payment_intent_with_future_usage(
+#     _wrapped_checkout_complete,
+#     mocked_payment_method_modify,
+#     payment_stripe_for_checkout,
+#     checkout_with_items,
+#     stripe_plugin,
+#     channel_USD,
+# ):
+#     payment = payment_stripe_for_checkout
+#     payment.to_confirm = True
+#     payment.save()
+#     payment.transactions.create(
+#         is_success=True,
+#         action_required=True,
+#         kind=TransactionKind.ACTION_TO_CONFIRM,
+#         amount=payment.total,
+#         currency=payment.currency,
+#         token="ABC",
+#         gateway_response={},
+#     )
+#     plugin = stripe_plugin()
+#     payment_intent = StripeObject(id="ABC", last_response={})
+#     payment_intent["amount_received"] = price_to_minor_unit(
+#         payment.total, payment.currency
+#     )
+#     payment_intent["payment_method"] = "payment_method_id"
+#     payment_intent["setup_future_usage"] = "off_line"
+#     payment_intent["currency"] = payment.currency
+#     payment_intent["status"] = SUCCESS_STATUS
+#
+#     handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
+#
+#     mocked_payment_method_modify.assert_called_once_with(
+#         "payment_method_id",
+#         api_key="secret_key",
+#         metadata={"channel": channel_USD.slug},
+#     )
 
 
 @patch(
