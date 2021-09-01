@@ -246,7 +246,9 @@ def test_query_category_product_visible_in_listings_as_staff_without_manage_prod
 
     # then
     content = get_graphql_content(response, ignore_errors=True)
-    assert len(content["data"]["category"]["products"]["edges"]) == product_count
+    assert (
+        len(content["data"]["category"]["products"]["edges"]) == product_count - 1
+    )  # invisible doesn't count
 
 
 def test_query_category_product_only_visible_in_listings_as_staff_with_perm(
@@ -291,7 +293,9 @@ def test_query_category_product_only_visible_in_listings_as_app_without_manage_p
 
     # then
     content = get_graphql_content(response, ignore_errors=True)
-    assert len(content["data"]["category"]["products"]["edges"]) == product_count
+    assert (
+        len(content["data"]["category"]["products"]["edges"]) == product_count - 1
+    )  # invisible doesn't count
 
 
 def test_query_category_product_only_visible_in_listings_as_app_with_perm(

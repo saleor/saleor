@@ -1,6 +1,5 @@
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
-from ..app.models import App
 from ..checkout import AddressType
 from ..core.utils import create_thumbnails
 from .models import User
@@ -85,13 +84,3 @@ def remove_staff_member(staff):
         staff.save()
     else:
         staff.delete()
-
-
-def requestor_is_staff_member_or_app(requestor: Union[User, App]):
-    """Return true if requestor is an active app or active staff user."""
-    is_staff = False
-    if isinstance(requestor, User):
-        is_staff = getattr(requestor, "is_staff")
-    elif isinstance(requestor, App):
-        is_staff = True
-    return is_staff and requestor.is_active
