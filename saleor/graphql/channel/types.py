@@ -78,7 +78,7 @@ class Channel(CountableDjangoObjectType):
     class Meta:
         description = "Represents channel."
         model = models.Channel
-        interfaces = [graphene.relay.Node]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
         only_fields = ["id", "name", "slug", "currency_code", "is_active"]
 
     @staticmethod
