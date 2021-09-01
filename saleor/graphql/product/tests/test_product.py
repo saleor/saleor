@@ -2267,7 +2267,6 @@ def test_products_query_with_price_filter_as_user(
         "filter": {"price": {"gte": 9, "lte": 31}},
         "channel": channel_USD.slug,
     }
-    user_api_client.user.user_permissions.add(permission_manage_products)
     response = user_api_client.post_graphql(query_products_with_filter, variables)
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
@@ -2870,10 +2869,11 @@ def test_filter_products_with_unavailable_variants_attributes_as_user(
 
 
 def test_filter_products_with_unavailable_variants_attributes_as_staff(
-    staff_api_client, product_list, channel_USD
+    staff_api_client, product_list, channel_USD, permission_manage_products
 ):
     product_attr = product_list[0].product_type.product_attributes.first()
     attr_value = product_attr.values.first()
+    staff_api_client.user.user_permissions.add(permission_manage_products)
 
     query = """
     query Products($attributesFilter: [AttributeInput], $channel: String) {
@@ -3050,9 +3050,12 @@ def test_sort_products(user_api_client, product, channel_USD):
     assert parse_datetime(date_0) > parse_datetime(date_1)
 
 
-def test_sort_products_by_price_as_staff(staff_api_client, product, channel_USD):
+def test_sort_products_by_price_as_staff(
+    staff_api_client, product, channel_USD, permission_manage_products
+):
     product.updated_at = datetime.utcnow()
     product.save()
+    staff_api_client.user.user_permissions.add(permission_manage_products)
 
     product.pk = None
     product.slug = "second-product"
@@ -10208,3 +10211,60 @@ def test_create_product_with_weight_input(
     result_weight = content["data"]["productCreate"]["product"]["weight"]
     assert result_weight["value"] == expected_weight_value
     assert result_weight["unit"] == site_settings.default_weight_unit.upper()
+
+
+def test_hidden_product_access_with_proper_permissions(
+    staff_api_client,
+    product_list,
+    channel_USD,
+    permission_manage_products,
+    permission_manage_orders,
+    permission_manage_discounts,
+    permission_manage_channels,
+):
+    hidden_product = product_list[0]
+    hidden_product.channel_listings.all().update(is_published=False)
+
+    variables = {
+        "channel": channel_USD.slug,
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    total_count = content["data"]["products"]["totalCount"]
+    assert total_count == 3
+    staff_api_client.user.user_permissions.remove(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        variables=variables,
+        permissions=(permission_manage_orders,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    total_count = content["data"]["products"]["totalCount"]
+    assert total_count == 3
+    staff_api_client.user.user_permissions.remove(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    total_count = content["data"]["products"]["totalCount"]
+    assert total_count == 3
+    staff_api_client.user.user_permissions.remove(permission_manage_discounts)
+    response = staff_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    total_count = content["data"]["products"]["totalCount"]
+    assert total_count == 2
