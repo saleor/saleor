@@ -62,7 +62,7 @@ class ChannelContextTypeWithMetadata(ChannelContextType):
         return ObjectWithMetadata.resolve_private_metadata(root.node, info)
 
 
-class Channel(CountableDjangoObjectType, ChannelContextTypeWithMetadata):
+class Channel(CountableDjangoObjectType):
     has_orders = graphene.Boolean(
         required=True, description="Whether a channel has associated orders."
     )
