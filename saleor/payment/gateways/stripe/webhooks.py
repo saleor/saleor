@@ -31,11 +31,7 @@ from .consts import (
     WEBHOOK_REFUND_EVENT,
     WEBHOOK_SUCCESS_EVENT,
 )
-from .stripe_api import (
-    construct_stripe_event,
-    get_payment_method_details,
-    update_payment_method,
-)
+from .stripe_api import construct_stripe_event, get_payment_method_details
 
 logger = logging.getLogger(__name__)
 
@@ -203,6 +199,12 @@ def handle_authorized_payment_intent(
             extra={"payment_intent": payment_intent.id},
         )
         return
+
+    payment_method_info = get_payment_method_details(payment_intent)
+    if payment_method_info and payment_method_info.payment_metadata:
+        payment.metadata = payment_method_info.payment_metadata
+        payment.save(update_fields=["metadata"])
+
     if payment.order_id:
         if payment.charge_status == ChargeStatus.PENDING:
             _update_payment_with_new_transaction(
@@ -283,11 +285,6 @@ def handle_successful_payment_intent(
             extra={"payment_intent": payment_intent.id},
         )
         return
-
-    api_key = gateway_config.connection_params["secret_api_key"]
-
-    if payment_intent.setup_future_usage:
-        update_payment_method(api_key, payment_intent.payment_method, channel_slug)
 
     payment_method_info = get_payment_method_details(payment_intent)
     if payment_method_info:

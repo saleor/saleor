@@ -576,8 +576,11 @@ def test_process_payment_offline(
         capture_method=AUTOMATIC_CAPTURE_METHOD,
         customer=customer,
         payment_method="pm_ID",
-        confirm=True,
-        off_session=True,
+        # todo: was
+        # confirm=True,
+        # off_session=True,
+        # todo: is
+        off_session=False,
         metadata={
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
@@ -657,8 +660,11 @@ def test_process_payment_with_customer_and_payment_method_raises_card_error(
         capture_method=AUTOMATIC_CAPTURE_METHOD,
         customer=customer,
         payment_method="pm_ID",
-        confirm=True,
-        off_session=True,
+        # todo: was
+        # confirm=True,
+        # off_session=True,
+        # todo: is
+        off_session=False,
         metadata={
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
