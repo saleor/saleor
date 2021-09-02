@@ -18,7 +18,7 @@ class PaymentMethodInfo:
     brand: Optional[str] = None
     name: Optional[str] = None
     type: Optional[str] = None
-    payment_metadata: Optional[Dict[str, str]] = None
+    payment_metadata: Dict[str, str] = field(default_factory=dict)
 
 
 @dataclass

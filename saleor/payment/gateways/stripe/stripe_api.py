@@ -178,19 +178,6 @@ def create_payment_intent(
         return None, error
 
 
-def update_payment_method(api_key: str, payment_method_id: str, channel_slug: str):
-    with stripe_opentracing_trace("stripe.PaymentMethod.modify"):
-        try:
-            stripe.PaymentMethod.modify(
-                payment_method_id, api_key=api_key, metadata={"channel": channel_slug}
-            )
-        except StripeError as error:
-            logger.warning(
-                "Failed to assign channel slug to payment method",
-                extra=_extra_log_data(error),
-            )
-
-
 def list_customer_payment_methods(
     api_key: str, customer_id: str
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
@@ -319,5 +306,6 @@ def get_payment_method_details(
                 exp_month=exp_month,
                 brand=card_details.get("brand", ""),
                 type="card",
+                payment_metadata=payment_intent.get("metadata", {}),
             )
     return payment_method_info

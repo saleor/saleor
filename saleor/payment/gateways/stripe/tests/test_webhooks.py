@@ -115,13 +115,46 @@ def test_handle_successful_payment_intent_for_checkout(
 #     )
 
 
+@pytest.mark.parametrize(
+    "metadata", [{f"key{i}": f"value{i}" for i in range(5)}, {}, None]
+)
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
+def test_handle_successful_payment_intent_with_metadata(
+    _wrapped_checkout_complete,
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
+    metadata,
+):
+    # given
+    payment = payment_stripe_for_order
+    plugin = stripe_plugin()
+
+    payment_intent = StripeObject(id="token", last_response={})
+    payment_intent["amount_received"] = price_to_minor_unit(
+        payment.total, payment.currency
+    )
+    payment_intent["currency"] = payment.currency
+    if metadata is not None:
+        payment_intent["metadata"] = metadata
+    payment_intent["charges"] = {"data": [{"payment_method_details": {"type": "card"}}]}
+
+    # when
+    handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
+
+    # then
+    payment.refresh_from_db()
+    assert payment.metadata == (metadata or {})
+
+
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
 def test_handle_successful_payment_intent_for_order(
     wrapped_checkout_complete, payment_stripe_for_order, stripe_plugin, channel_USD
 ):
-
     payment = payment_stripe_for_order
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
@@ -243,7 +276,6 @@ def test_handle_authorized_payment_intent_for_order(
     stripe_plugin,
     channel_USD,
 ):
-
     payment = payment_stripe_for_order
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
@@ -278,6 +310,37 @@ def test_handle_authorized_payment_intent_for_processing_order_payment(
     assert wrapped_checkout_complete.called is False
 
 
+@pytest.mark.parametrize(
+    "metadata", [{f"key{i}": f"value{i}" for i in range(5)}, {}, None]
+)
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
+def test_handle_authorized_payment_intent_with_metadata(
+    _wrapped_checkout_complete,
+    payment_stripe_for_order,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+    metadata,
+):
+    # given
+    payment = payment_stripe_for_order
+    payment.charge_status = ChargeStatus.PENDING
+    plugin = stripe_plugin()
+    payment_intent = StripeObject(id="token", last_response={})
+    if metadata is not None:
+        payment_intent["metadata"] = metadata
+    payment_intent["charges"] = {"data": [{"payment_method_details": {"type": "card"}}]}
+
+    # when
+    handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
+
+    # then
+    payment.refresh_from_db()
+    assert payment.metadata == (metadata or {})
+
+
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
@@ -288,7 +351,6 @@ def test_handle_processing_payment_intent_for_order(
     stripe_plugin,
     channel_USD,
 ):
-
     payment = payment_stripe_for_order
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
