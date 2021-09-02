@@ -120,7 +120,7 @@ def test_create_payment(checkout_with_item, address):
     }
     payment = create_payment(**data)
     assert payment.gateway == "Dummy"
-    assert payment.store == StorePaymentMethod.NONE
+    assert payment.store_payment_method == StorePaymentMethod.NONE
 
     same_payment = create_payment(**data)
     assert payment == same_payment

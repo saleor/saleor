@@ -178,20 +178,18 @@ class StripeGatewayPlugin(BasePlugin):
         payment_method_id = data.get("payment_method_id") if data else None
 
         setup_future_usage = None
+        # DEPRECATED
         if payment_information.reuse_source:
             setup_future_usage = data.get("setup_future_usage") if data else None
 
+        off_session = data.get("off_session") if data else None
+
         payment_method_types = data.get("payment_method_types") if data else None
 
-        # DEPRECATED
-        if setup_future_usage:
-            off_session = data.get("off_session") if data else None
-        else:
-            store_payment_method = payment_information.store_payment_method
-            if store_payment_method == StorePaymentMethodEnum.NONE:
-                off_session = None
-            else:
-                off_session = store_payment_method == StorePaymentMethodEnum.OFF_SESSION
+        if not setup_future_usage:
+            store = payment_information.store_payment_method
+            if store != StorePaymentMethodEnum.NONE:
+                setup_future_usage = store.lower()
 
         customer = None
         # confirm that we creates customer on stripe side only for log-in customers

@@ -481,7 +481,7 @@ def test_create_payment_with_store(
     # then
     checkout.refresh_from_db()
     payment = checkout.payments.first()
-    assert payment.store == store.lower()
+    assert payment.store_payment_method == store.lower()
 
 
 @pytest.mark.parametrize(
