@@ -1,25 +1,15 @@
-import datetime
-
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import Q
 
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import ModelWithMetadata, PublishableModel
+from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
 from ..core.permissions import PagePermissions, PageTypePermissions
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
 
 
-class PageQueryset(models.QuerySet):
-    def published(self):
-        today = datetime.date.today()
-        return self.filter(
-            Q(publication_date__lte=today) | Q(publication_date__isnull=True),
-            is_published=True,
-        )
-
+class PageQueryset(PublishedQuerySet):
     def visible_to_user(self, requestor):
         if requestor.has_perm(PagePermissions.MANAGE_PAGES):
             return self.all()
