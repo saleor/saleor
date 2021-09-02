@@ -10,6 +10,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add Click&Collect feature - #7673 by @kuchichan
 
+- Deprecate `setup_future_usage` from `checkoutComplete.paymentData` input - will be removed in Saleor 4.0 - #7994 by @mateuszgrzyb
+
 # 3.0.0 [Unreleased]
 
 - Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
