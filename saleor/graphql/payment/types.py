@@ -5,6 +5,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.tracing import traced_resolver
 from ...payment import models
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31
 from ..core.types import Money
 from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
@@ -71,7 +72,8 @@ class PaymentSource(graphene.ObjectType):
         MetadataItem,
         required=True,
         description=(
-            "List of public metadata items. Can be accessed without permissions."
+            f"{ADDED_IN_31} List of public metadata items. "
+            "Can be accessed without permissions."
         ),
     )
 
