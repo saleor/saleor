@@ -215,6 +215,7 @@ def test_checkout_create_with_variant_without_sku(
     lines = fetch_checkout_lines(new_checkout)
     assert new_checkout.channel == channel_USD
     assert calculate_checkout_quantity(lines) == quantity
+    assert lines[0].variant.sku is None
 
 
 def test_checkout_create_with_inactive_channel(

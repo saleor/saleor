@@ -139,6 +139,7 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
         "product_name": line.product_name,
         "variant_name": line.variant_name,
         "product_sku": line.product_sku,
+        "product_id": line.product_id,
         "id": graphene.Node.to_global_id("FulfillmentLine", fulfillment_line.id),
         "product_type": "Default Type",
         "quantity": fulfillment_line.quantity,
@@ -335,6 +336,7 @@ def test_generate_product_variant_payload(
         assert payload.get(field) is not None
 
     assert variant_id is not None
+    assert payload["id"] == variant_id
     assert payload["sku"] == "prodVar1"
     assert len(payload["attributes"]) == 2
     assert len(payload["channel_listings"]) == 1
@@ -366,6 +368,7 @@ def test_generate_product_variant_with_external_media_payload(
         assert payload.get(field) is not None
 
     assert variant_id is not None
+    assert payload["id"] == variant_id
     assert payload["sku"] == "prodVar1"
     assert payload["media"] == [
         {"alt": "video_1", "url": "https://www.youtube.com/watch?v=di8_dJ3Clyo"}
@@ -399,6 +402,7 @@ def test_generate_product_variant_without_sku_payload(
         )
     )
     assert variant_id is not None
+    assert payload["id"] == variant_id
     assert payload["sku"] is None
     assert len(payload["attributes"]) == 2
     assert len(payload["channel_listings"]) == 1
@@ -435,6 +439,7 @@ def test_generate_product_variant_deleted_payload(
         assert payload.get(field) is not None
 
     assert payload_variant_id != "None"
+    assert payload["id"] == variant.get_global_id()
     assert payload["sku"] == "prodVar1"
     assert len(payload["attributes"]) == 2
     assert len(payload["channel_listings"]) == 1
@@ -494,6 +499,16 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data):
         dummy_webhook_app_payment_data.gateway
     ).name
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
+
+
+def test_generate_checkout_payload_with_items(checkout_with_single_item):
+    payload = json.loads(generate_checkout_payload(checkout_with_single_item))[0]
+    assert payload.get("lines")
+
+    variant = checkout_with_single_item.lines.first().variant
+    line = payload["lines"][0]
+    assert line["sku"] == variant.sku
+    assert line["variant_id"] == variant.get_global_id()
 
 
 def test_generate_product_translation_payload(product_translation_fr):

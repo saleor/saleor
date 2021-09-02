@@ -1899,10 +1899,10 @@ def test_update_product_variant_without_sku_keep_it_empty(
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_update_product_variant_change_sku_to_empty_string(
-    product_variant_updated_webhook_mock, 
+    product_variant_updated_webhook_mock,
     product_variant_created_webhook_mock,
-    staff_api_client, 
-    product, 
+    staff_api_client,
+    product,
     permission_manage_products,
 ):
     variant = product.variants.first()

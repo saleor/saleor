@@ -510,6 +510,7 @@ def generate_product_variant_payload(product_variants: Iterable["ProductVariant"
         product_variants,
         fields=PRODUCT_VARIANT_FIELDS,
         extra_dict_data={
+            "id": lambda v: v.get_global_id(),
             "attributes": lambda v: serialize_product_or_variant_attributes(v),
             "product_id": lambda v: graphene.Node.to_global_id("Product", v.product_id),
             "media": lambda v: generate_product_variant_media_payload(v),
@@ -537,9 +538,8 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
         extra_dict_data={
             "product_name": lambda fl: fl.order_line.product_name,
             "variant_name": lambda fl: fl.order_line.variant_name,
-            "product_sku": (
-                lambda fl: fl.order_line.product_sku or fl.order_line.product_id
-            ),
+            "product_sku": lambda fl: fl.order_line.product_sku,
+            "product_id": lambda fl: fl.order_line.product_id,
             "weight": (
                 lambda fl: fl.order_line.variant.get_weight().g
                 if fl.order_line.variant
