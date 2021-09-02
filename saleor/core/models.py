@@ -48,13 +48,6 @@ class PublishedQuerySet(models.QuerySet):
             is_published=True,
         )
 
-    def visible_to_user(self, requestor):
-        from ..account.utils import requestor_is_staff_member_or_app
-
-        if requestor_is_staff_member_or_app(requestor):
-            return self.all()
-        return self.published()
-
 
 class PublishableModel(models.Model):
     publication_date = models.DateField(blank=True, null=True)
