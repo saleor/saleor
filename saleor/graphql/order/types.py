@@ -10,7 +10,6 @@ from graphene import relay
 from promise import Promise
 
 from ...account.models import Address
-from ...account.utils import requestor_is_staff_member_or_app
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
@@ -18,6 +17,7 @@ from ...core.permissions import (
     AppPermission,
     OrderPermissions,
     ProductPermissions,
+    has_one_of_permissions,
 )
 from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
@@ -40,6 +40,7 @@ from ...payment.model_helpers import (
     get_total_authorized,
 )
 from ...product import ProductMediaTypes
+from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.product_images import get_product_image_thumbnail
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -573,8 +574,10 @@ class OrderLine(CountableDjangoObjectType):
             variant, channel = data
 
             requester = get_user_or_app_from_context(context)
-            is_staff = requestor_is_staff_member_or_app(requester)
-            if is_staff:
+            has_required_permission = has_one_of_permissions(
+                requester, ALL_PRODUCTS_PERMISSIONS
+            )
+            if has_required_permission:
                 return ChannelContext(node=variant, channel_slug=channel.slug)
 
             def product_is_available(product_channel_listing):

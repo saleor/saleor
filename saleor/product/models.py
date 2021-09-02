@@ -35,7 +35,6 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from ..account.utils import requestor_is_staff_member_or_app
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
@@ -64,6 +63,14 @@ if TYPE_CHECKING:
 
     from ..account.models import User
     from ..app.models import App
+
+ALL_PRODUCTS_PERMISSIONS = [
+    # List of permissions, where each of them allows viewing all products
+    # (including unpublished).
+    OrderPermissions.MANAGE_ORDERS,
+    DiscountPermissions.MANAGE_DISCOUNTS,
+    ProductPermissions.MANAGE_PRODUCTS,
+]
 
 
 class Category(ModelWithMetadata, MPTTModel, SeoModel):
@@ -158,14 +165,6 @@ class ProductType(ModelWithMetadata):
 
 
 class ProductsQueryset(models.QuerySet):
-    ALL_PRODUCTS_PERMISSIONS = [
-        # List of permissions, where each of them allows viewing all products
-        # (including unpublished).
-        OrderPermissions.MANAGE_ORDERS,
-        DiscountPermissions.MANAGE_DISCOUNTS,
-        ProductPermissions.MANAGE_PRODUCTS,
-    ]
-
     def published(self, channel_slug: str):
         today = datetime.date.today()
         channels = Channel.objects.filter(
@@ -201,7 +200,7 @@ class ProductsQueryset(models.QuerySet):
         return published.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
     def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
-        if has_one_of_permissions(requestor, self.ALL_PRODUCTS_PERMISSIONS):
+        if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
                 channels = Channel.objects.filter(slug=str(channel_slug)).values("id")
                 channel_listings = ProductChannelListing.objects.filter(
@@ -778,7 +777,7 @@ class CollectionsQueryset(models.QuerySet):
         )
 
     def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
-        if requestor_is_staff_member_or_app(requestor):
+        if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()

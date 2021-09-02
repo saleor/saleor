@@ -1498,7 +1498,7 @@ def test_fetch_all_products_visible_in_listings_by_staff_without_manage_products
     # then
     content = get_graphql_content(response)
     product_data = content["data"]["products"]["edges"]
-    assert len(product_data) == product_count
+    assert len(product_data) == product_count - 1  # invisible doesn't count
 
 
 def test_fetch_all_products_visible_in_listings_by_app_with_perm(
@@ -1539,7 +1539,7 @@ def test_fetch_all_products_visible_in_listings_by_app_without_manage_products(
     # then
     content = get_graphql_content(response)
     product_data = content["data"]["products"]["edges"]
-    assert len(product_data) == product_count
+    assert len(product_data) == product_count - 1  # invisible doesn't count
 
 
 def test_fetch_product_from_category_query(
@@ -8630,7 +8630,27 @@ QUERY_PRODUCT_VARAINT_BY_ID = """
 """
 
 
-def test_product_variant_without_price_by_id_as_staff(
+def test_product_variant_without_price_by_id_as_staff_with_permission(
+    staff_api_client, variant, channel_USD, permission_manage_products
+):
+    query = QUERY_PRODUCT_VARAINT_BY_ID
+    variant.channel_listings.all().delete()
+    variant.channel_listings.create(channel=channel_USD)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariant"]
+    assert data["id"] == variant_id
+
+
+def test_product_variant_without_price_by_id_as_staff_without_permission(
     staff_api_client, variant, channel_USD
 ):
     query = QUERY_PRODUCT_VARAINT_BY_ID
@@ -8641,11 +8661,10 @@ def test_product_variant_without_price_by_id_as_staff(
     variables = {"id": variant_id, "channel": channel_USD.slug}
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["productVariant"]
-    assert data["id"] == variant_id
+    assert not content["data"]["productVariant"]
 
 
-def test_product_variant_without_price_by_id_as_app(
+def test_product_variant_without_price_by_id_as_app_without_permission(
     app_api_client, variant, channel_USD
 ):
     query = QUERY_PRODUCT_VARAINT_BY_ID
@@ -8655,6 +8674,25 @@ def test_product_variant_without_price_by_id_as_app(
 
     variables = {"id": variant_id, "channel": channel_USD.slug}
     response = app_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert not content["data"]["productVariant"]
+
+
+def test_product_variant_without_price_by_id_as_app_with_permission(
+    app_api_client, variant, channel_USD, permission_manage_products
+):
+    query = QUERY_PRODUCT_VARAINT_BY_ID
+    variant.channel_listings.all().delete()
+    variant.channel_listings.create(channel=channel_USD)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+    response = app_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["id"] == variant_id
@@ -8712,7 +8750,35 @@ def test_variant_query_with_invalid_object_type(user_api_client, variant, channe
     assert content["data"]["productVariant"] is None
 
 
-def test_product_variant_without_price_by_sku_as_staff(
+def test_product_variant_without_price_by_sku_as_staff_with_permission(
+    staff_api_client, variant, channel_USD, permission_manage_products
+):
+    query = """
+        query getProductVariant($sku: String!, $channel: String) {
+            productVariant(sku: $sku, channel: $channel) {
+                id
+                name
+                sku
+            }
+        }
+    """
+    variant.channel_listings.all().delete()
+    variant.channel_listings.create(channel=channel_USD)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"sku": variant.sku, "channel": channel_USD.slug}
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariant"]
+    assert data["id"] == variant_id
+
+
+def test_product_variant_without_price_by_sku_as_staff_without_permission(
     staff_api_client, variant, channel_USD
 ):
     query = """
@@ -8726,17 +8792,15 @@ def test_product_variant_without_price_by_sku_as_staff(
     """
     variant.channel_listings.all().delete()
     variant.channel_listings.create(channel=channel_USD)
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
     variables = {"sku": variant.sku, "channel": channel_USD.slug}
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["productVariant"]
-    assert data["id"] == variant_id
+    assert not content["data"]["productVariant"]
 
 
-def test_product_variant_without_price_by_sku_as_app(
-    app_api_client, variant, channel_USD
+def test_product_variant_without_price_by_sku_as_app_with_permission(
+    app_api_client, variant, channel_USD, permission_manage_products
 ):
     query = """
         query getProductVariant($sku: String!, $channel: String) {
@@ -8752,10 +8816,38 @@ def test_product_variant_without_price_by_sku_as_app(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
     variables = {"sku": variant.sku, "channel": channel_USD.slug}
-    response = app_api_client.post_graphql(query, variables)
+    response = app_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["id"] == variant_id
+
+
+def test_product_variant_without_price_by_sku_as_app_without_permission(
+    app_api_client,
+    variant,
+    channel_USD,
+):
+    query = """
+        query getProductVariant($sku: String!, $channel: String) {
+            productVariant(sku: $sku, channel: $channel) {
+                id
+                name
+                sku
+            }
+        }
+    """
+    variant.channel_listings.all().delete()
+    variant.channel_listings.create(channel=channel_USD)
+
+    variables = {"sku": variant.sku, "channel": channel_USD.slug}
+    response = app_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert not content["data"]["productVariant"]
 
 
 def test_product_variant_without_price_by_sku_as_user(
@@ -8816,7 +8908,7 @@ def test_product_variants_by_ids(staff_api_client, variant, channel_USD):
     assert len(data["edges"]) == 1
 
 
-def test_product_variants_without_price_by_ids_as_staff(
+def test_product_variants_without_price_by_ids_as_staff_without_permission(
     staff_api_client, variant, channel_USD
 ):
     query = """
@@ -8852,6 +8944,50 @@ def test_product_variants_without_price_by_ids_as_staff(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["productVariants"]
+    assert len(data["edges"]) == 0
+
+
+def test_product_variants_without_price_by_ids_as_staff_with_permission(
+    staff_api_client, variant, channel_USD, permission_manage_products
+):
+    query = """
+        query getProductVariants($ids: [ID!], $channel: String) {
+            productVariants(ids: $ids, first: 1, channel: $channel) {
+                edges {
+                    node {
+                        id
+                        name
+                        sku
+                        channelListings {
+                            channel {
+                                id
+                                isActive
+                                name
+                                currencyCode
+                            }
+                            price {
+                                amount
+                                currency
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    variant.channel_listings.all().delete()
+    variant.channel_listings.create(channel=channel_USD)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"ids": [variant_id], "channel": channel_USD.slug}
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariants"]
     assert data["edges"][0]["node"]["id"] == variant_id
     assert len(data["edges"]) == 1
 
@@ -8883,7 +9019,7 @@ def test_product_variants_without_price_by_ids_as_user(
     assert len(data["edges"]) == 0
 
 
-def test_product_variants_without_price_by_ids_as_app(
+def test_product_variants_without_price_by_ids_as_app_without_permission(
     app_api_client, variant, channel_USD
 ):
     query = """
@@ -8917,6 +9053,49 @@ def test_product_variants_without_price_by_ids_as_app(
 
     variables = {"ids": [variant_id], "channel": channel_USD.slug}
     response = app_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert len(content["data"]["productVariants"]["edges"]) == 0
+
+
+def test_product_variants_without_price_by_ids_as_app_with_permission(
+    app_api_client, variant, channel_USD, permission_manage_products
+):
+    query = """
+        query getProductVariants($ids: [ID!], $channel: String) {
+            productVariants(ids: $ids, first: 1, channel: $channel) {
+                edges {
+                    node {
+                        id
+                        name
+                        sku
+                        channelListings {
+                            channel {
+                                id
+                                isActive
+                                name
+                                currencyCode
+                            }
+                            price {
+                                amount
+                                currency
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    variant.channel_listings.all().delete()
+    variant.channel_listings.create(channel=channel_USD)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"ids": [variant_id], "channel": channel_USD.slug}
+    response = app_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
     content = get_graphql_content(response)
     data = content["data"]["productVariants"]
     assert data["edges"][0]["node"]["id"] == variant_id
@@ -9057,7 +9236,7 @@ def test_product_variant_without_price_as_user(
     assert len(variants_data) == 1
 
 
-def test_product_variant_without_price_as_staff(
+def test_product_variant_without_price_as_staff_without_permission(
     staff_api_client,
     variant,
     stock,
@@ -9081,12 +9260,41 @@ def test_product_variant_without_price_as_staff(
     content = get_graphql_content(response)
     variants_data = content["data"]["product"]["variants"]
 
-    assert variants_data[0]["pricing"] is not None
+    assert len(variants_data) == 1
 
-    assert variants_data[1]["id"] == variant_id
-    assert variants_data[1]["pricing"] is None
+    assert variants_data[0]["pricing"] is not None
+    assert variants_data[0]["id"] != variant_id
+
+
+def test_product_variant_without_price_as_staff_with_permission(
+    staff_api_client, variant, stock, channel_USD, permission_manage_products
+):
+
+    variant_channel_listing = variant.channel_listings.first()
+    variant_channel_listing.price_amount = None
+    variant_channel_listing.save()
+
+    product_id = graphene.Node.to_global_id("Product", variant.product.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_GET_PRODUCT_VARIANTS_PRICING,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    variants_data = content["data"]["product"]["variants"]
 
     assert len(variants_data) == 2
+
+    assert variants_data[0]["pricing"] is not None
+    assert variants_data[1]["id"] == variant_id
+    assert variants_data[1]["pricing"] is None
 
 
 QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS = """
