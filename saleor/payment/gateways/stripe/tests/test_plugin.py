@@ -1048,6 +1048,47 @@ def test_confirm_payment(
     assert response.error is None
 
 
+@pytest.mark.parametrize(
+    ["setup_future_usage", "metadata", "expected_metadata"],
+    [
+        (None, {"key": "value"}, {}),
+        ("off_session", {"key": "value"}, {"key": "value"}),
+    ],
+)
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.retrieve")
+def test_confirm_payment_metadata(
+    mocked_intent_retrieve,
+    stripe_plugin,
+    payment_stripe_for_checkout,
+    setup_future_usage,
+    metadata,
+    expected_metadata,
+):
+    # given
+    payment_intent_id = "payment-intent-id"
+
+    payment = payment_stripe_for_checkout
+    payment.metadata = metadata
+
+    payment_intent = StripeObject(id=payment_intent_id)
+    payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    payment_intent["status"] = SUCCESS_STATUS
+    payment_intent["currency"] = payment.currency
+    payment_intent["charges"] = {"data": [{"payment_method_details": {"type": "card"}}]}
+    if setup_future_usage:
+        payment_intent["setup_future_usage"] = setup_future_usage
+    mocked_intent_retrieve.return_value = payment_intent
+
+    payment_info = create_payment_information(payment, payment_token=payment_intent_id)
+
+    # when
+    plugin = stripe_plugin()
+    response = plugin.confirm_payment(payment_info, None)
+
+    # then
+    assert response.payment_method_info.payment_metadata == expected_metadata
+
+
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.retrieve")
 def test_confirm_payment_incorrect_payment_intent(
     mocked_intent_retrieve, stripe_plugin, payment_stripe_for_checkout

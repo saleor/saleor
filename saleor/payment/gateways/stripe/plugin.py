@@ -302,11 +302,13 @@ class StripeGatewayPlugin(BasePlugin):
             kind, action_required = self._get_transaction_details_for_stripe_status(
                 payment_intent.status
             )
-            if kind == TransactionKind.CAPTURE:
-                payment_method_info = get_payment_method_details(payment_intent)
 
             if payment_intent.get("setup_future_usage"):
                 payment_intent.metadata = payment_information.payment_metadata
+
+            if kind == TransactionKind.CAPTURE:
+                payment_method_info = get_payment_method_details(payment_intent)
+
         else:
             action_required = False
             amount = payment_information.amount
