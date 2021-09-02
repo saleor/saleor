@@ -2059,6 +2059,18 @@ input ExportFileSortingInput {
   field: ExportFileSortField!
 }
 
+type ExportGiftCards {
+  exportFile: ExportFile
+  errors: [ExportError!]!
+}
+
+input ExportGiftCardsInput {
+  scope: ExportScope!
+  filter: GiftCardFilterInput
+  ids: [ID!]
+  fileType: FileTypesEnum!
+}
+
 input ExportInfoInput {
   attributes: [ID!]
   warehouses: [ID!]
@@ -3870,6 +3882,7 @@ type Mutation {
   voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
   voucherChannelListingUpdate(id: ID!, input: VoucherChannelListingInput!): VoucherChannelListingUpdate
   exportProducts(input: ExportProductsInput!): ExportProducts
+  exportGiftCards(input: ExportGiftCardsInput!): ExportGiftCards
   fileUpload(file: Upload!): FileUpload
   checkoutAddPromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID, token: UUID): CheckoutBillingAddressUpdate
