@@ -41,23 +41,20 @@ def create_payment_information(
     billing/shipping addresses for optional fraud-prevention mechanisms.
     """
     checkout = payment.checkout
-    checkout_token = None
     if checkout:
         billing = checkout.billing_address
         shipping = checkout.shipping_address
         email = checkout.get_customer_email()
         user_id = checkout.user_id
-        checkout_token = str(checkout.token)
+        checkout_token: Optional[str] = str(checkout.token)
     elif payment.order:
         billing = payment.order.billing_address
         shipping = payment.order.shipping_address
         email = payment.order.user_email
         user_id = payment.order.user_id
-        checkout_token = str(payment.order.checkout_token)
+        checkout_token = payment.order.checkout_token or None
     else:
         billing, shipping, email, user_id = None, None, payment.billing_email, None
-
-    if not checkout_token:  # Either not empty uuid or None
         checkout_token = None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
