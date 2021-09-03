@@ -20,6 +20,7 @@ from ...tests.utils import get_graphql_content, get_graphql_content_from_respons
 PAGE_QUERY = """
     query PageQuery($id: ID, $slug: String) {
         page(id: $id, slug: $slug) {
+            id
             title
             slug
             pageType {
@@ -93,7 +94,7 @@ def test_query_published_page(user_api_client, page):
     variables = {"slug": page.slug}
     response = user_api_client.post_graphql(PAGE_QUERY, variables)
     content = get_graphql_content(response)
-    assert content["data"]["page"] is not None
+    assert content["data"]["page"]["id"] == graphene.Node.to_global_id("Page", page.id)
 
 
 def test_customer_query_unpublished_page(user_api_client, page):
@@ -128,7 +129,7 @@ def test_staff_query_unpublished_page_by_id(
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
-    assert content["data"]["page"] is not None
+    assert content["data"]["page"]["id"] == variables["id"]
 
 
 def test_staff_query_unpublished_page_by_id_without_required_permission(
@@ -160,7 +161,7 @@ def test_staff_query_unpublished_page_by_slug(
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
-    assert content["data"]["page"] is not None
+    assert content["data"]["page"]["id"] == graphene.Node.to_global_id("Page", page.id)
 
 
 def test_staff_query_unpublished_page_by_slug_without_required_permission(

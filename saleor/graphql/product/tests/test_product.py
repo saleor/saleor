@@ -10548,9 +10548,6 @@ def test_hidden_product_access_with_proper_permissions(
     product_list,
     channel_USD,
     permission_manage_products,
-    permission_manage_orders,
-    permission_manage_discounts,
-    permission_manage_channels,
 ):
     hidden_product = product_list[0]
     hidden_product.channel_listings.all().update(is_published=False)
@@ -10568,7 +10565,20 @@ def test_hidden_product_access_with_proper_permissions(
     content = get_graphql_content(response)
     total_count = content["data"]["products"]["totalCount"]
     assert total_count == 3
-    staff_api_client.user.user_permissions.remove(permission_manage_products)
+
+
+def test_hidden_product_access_with_permission_manage_orders(
+    staff_api_client,
+    product_list,
+    channel_USD,
+    permission_manage_orders,
+):
+    hidden_product = product_list[0]
+    hidden_product.channel_listings.all().update(is_published=False)
+
+    variables = {
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_FETCH_ALL_PRODUCTS,
         variables=variables,
@@ -10578,7 +10588,20 @@ def test_hidden_product_access_with_proper_permissions(
     content = get_graphql_content(response)
     total_count = content["data"]["products"]["totalCount"]
     assert total_count == 3
-    staff_api_client.user.user_permissions.remove(permission_manage_orders)
+
+
+def test_hidden_product_access_with_permission_manage_discounts(
+    staff_api_client,
+    product_list,
+    channel_USD,
+    permission_manage_discounts,
+):
+    hidden_product = product_list[0]
+    hidden_product.channel_listings.all().update(is_published=False)
+
+    variables = {
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_FETCH_ALL_PRODUCTS,
         variables=variables,
@@ -10588,7 +10611,20 @@ def test_hidden_product_access_with_proper_permissions(
     content = get_graphql_content(response)
     total_count = content["data"]["products"]["totalCount"]
     assert total_count == 3
-    staff_api_client.user.user_permissions.remove(permission_manage_discounts)
+
+
+def test_hidden_product_access_with_permission_manage_channels(
+    staff_api_client,
+    product_list,
+    channel_USD,
+    permission_manage_channels,
+):
+    hidden_product = product_list[0]
+    hidden_product.channel_listings.all().update(is_published=False)
+
+    variables = {
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_FETCH_ALL_PRODUCTS,
         variables=variables,
