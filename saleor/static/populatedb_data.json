@@ -267,6 +267,26 @@
     }
   },
   {
+    "model": "product.category",
+    "pk": 24,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "name": "Gift cards",
+      "slug": "gift-cards",
+      "description": null,
+      "parent": 7,
+      "background_image": "",
+      "background_image_alt": "",
+      "lft": 8,
+      "rght": 9,
+      "tree_id": 1,
+      "level": 1
+    }
+  },
+  {
     "model": "product.producttype",
     "pk": 7,
     "fields": {
@@ -413,6 +433,21 @@
       "has_variants": true,
       "is_shipping_required": false,
       "is_digital": true,
+      "weight": "0.0:kg"
+    }
+  },
+  {
+    "model": "product.producttype",
+    "pk": 16,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "name": "Gift card",
+      "slug": "gift-card",
+      "kind": "gift_card",
+      "has_variants": true,
+      "is_shipping_required": false,
+      "is_digital": false,
       "weight": "0.0:kg"
     }
   },
@@ -1592,6 +1627,25 @@
     }
   },
   {
+    "model": "product.product",
+    "pk": 125,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "product_type": 16,
+      "name": "Gift card",
+      "slug": "gift-card",
+      "description": null,
+      "description_plaintext": "",
+      "category": 24,
+      "updated_at": "2021-09-03T07:42:09.262Z",
+      "charge_taxes": false,
+      "weight": "0.0:kg"
+    }
+  },
+  {
     "model": "product.productchannellisting",
     "pk": 1,
     "fields": {
@@ -2513,6 +2567,34 @@
       "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 72,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": false,
+      "product": 125,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN",
+      "discounted_price_amount": "100.000"
+    }
+  },
+  {
+      "model": "product.productchannellisting",
+      "pk": 73,
+      "fields": {
+        "publication_date": "2020-01-01",
+        "is_published": false,
+        "product": 125,
+        "channel": 1,
+        "visible_in_listings": false,
+        "available_for_purchase": "2020-08-31",
+        "currency": "USD",
+        "discounted_price_amount": "100.000"
+      }
   },
   {
     "model": "product.productvariant",
@@ -4241,6 +4323,20 @@
       "name": "MP3",
       "product": 124,
       "track_inventory": true,
+      "weight": null,
+      "default": true
+    }
+  },
+  {
+    "model": "product.productvariant",
+    "pk": 322,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "sku": "324546",
+      "name": "100 PLN",
+      "product": 125,
+      "track_inventory": false,
       "weight": null,
       "default": true
     }
@@ -6653,6 +6749,28 @@
       "price_amount": "20.000",
       "cost_price_amount": null
     }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 220,
+    "fields": {
+      "variant": 322,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "100.000",
+      "cost_price_amount": null
+    }
+  },
+  {
+      "model": "product.productvariantchannellisting",
+      "pk": 221,
+      "fields": {
+        "variant": 322,
+        "channel": 1,
+        "currency": "USD",
+        "price_amount": "100.000",
+        "cost_price_amount": null
+      }
   },
   {
     "model": "attribute.assignedproductattribute",
