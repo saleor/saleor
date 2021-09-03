@@ -109,7 +109,7 @@ def test_checkout_token_from_checkout(payment_dummy, checkout):
 
 
 def test_checkout_token_from_order(payment_dummy, order):
-    order.checkout_token = uuid.UUID("0edbb71f-e3ca-4600-9e77-65b35ba55465")
+    order.checkout_token = str(uuid.UUID("0edbb71f-e3ca-4600-9e77-65b35ba55465"))
     payment_dummy.order = order
     payment_info = create_payment_information(payment_dummy)
 
