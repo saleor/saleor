@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 from math import isclose
 
@@ -96,3 +97,28 @@ def test_shipping_address_to_stripe_dict(address):
         },
     }
     assert shipping_to_stripe_dict(address_data) == expected_address_dict
+
+
+def test_checkout_token_from_checkout(payment_dummy, checkout):
+    payment_dummy.checkout = checkout
+    payment_info = create_payment_information(payment_dummy)
+
+    token = str(payment_dummy.checkout.token)
+
+    assert payment_info.checkout_token == token
+
+
+def test_checkout_token_from_order(payment_dummy, order):
+    order.checkout_token = uuid.UUID("0edbb71f-e3ca-4600-9e77-65b35ba55465")
+    payment_dummy.order = order
+    payment_info = create_payment_information(payment_dummy)
+
+    token = "0edbb71f-e3ca-4600-9e77-65b35ba55465"
+
+    assert payment_info.checkout_token == token
+
+
+def test_checkout_token_from_none(payment_dummy, order):
+    payment_info = create_payment_information(payment_dummy)
+
+    assert payment_info.checkout_token is None
