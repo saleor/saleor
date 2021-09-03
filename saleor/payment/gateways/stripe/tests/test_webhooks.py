@@ -20,12 +20,51 @@ from ..consts import (
     WEBHOOK_SUCCESS_EVENT,
 )
 from ..webhooks import (
+    _update_payment_method_metadata_from_payment_intent,
     handle_authorized_payment_intent,
     handle_failed_payment_intent,
     handle_processing_payment_intent,
     handle_refund,
     handle_successful_payment_intent,
 )
+
+
+@pytest.mark.parametrize(
+    ["metadata", "payment_method"],
+    [
+        ({"key": "value"}, {"metadata": {"key": "value"}}),
+        ({}, {}),
+        (None, {}),
+    ],
+)
+def test_update_payment_method_metadata_from_payment_intent_with_payment_method(
+    metadata, payment_method
+) -> None:
+    # given
+    payment_intent = StripeObject(id="token", last_response={})
+    payment_intent["metadata"] = metadata
+    payment_intent["payment_method"] = {}
+
+    # when
+    _update_payment_method_metadata_from_payment_intent(payment_intent)
+
+    # then
+    assert payment_intent.payment_method == payment_method
+
+
+@pytest.mark.parametrize("metadata", [{"key": "value"}, {}, None])
+def test_update_payment_method_metadata_from_payment_intent_without_payment_method(
+    metadata,
+) -> None:
+    # given
+    payment_intent = StripeObject(id="token", last_response={})
+    payment_intent["metadata"] = metadata
+
+    # when
+    _update_payment_method_metadata_from_payment_intent(payment_intent)
+
+    # then
+    assert payment_intent.get("payment_method") is None
 
 
 @patch(
@@ -266,6 +305,7 @@ def test_handle_authorized_payment_intent_for_processing_order_payment(
     assert wrapped_checkout_complete.called is False
 
 
+# todo: fix this
 @pytest.mark.parametrize(
     "metadata", [{f"key{i}": f"value{i}" for i in range(5)}, {}, None]
 )
