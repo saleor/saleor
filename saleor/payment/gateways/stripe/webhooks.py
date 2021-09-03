@@ -188,6 +188,15 @@ def _process_payment_with_checkout(
         _finalize_checkout(checkout, payment, payment_intent, kind, amount, currency)
 
 
+def _update_payment_method_metadata_from_payment_intent(
+    payment_intent: StripeObject,
+) -> None:
+    payment_method = payment_intent.get("payment_method")
+    metadata = payment_intent.get("metadata")
+    if payment_method is not None and metadata is not None:
+        payment_method["metadata"] = metadata
+
+
 def handle_authorized_payment_intent(
     payment_intent: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
 ):
@@ -200,9 +209,11 @@ def handle_authorized_payment_intent(
         )
         return
 
+    _update_payment_method_metadata_from_payment_intent(payment_intent)
+
     payment_method_info = get_payment_method_details(payment_intent)
-    if payment_method_info and payment_method_info.payment_metadata:
-        payment.metadata = payment_method_info.payment_metadata
+    if payment_method_info and payment_method_info.metadata:
+        payment.metadata = payment_method_info.metadata
         payment.save(update_fields=["metadata"])
 
     if payment.order_id:
@@ -286,12 +297,16 @@ def handle_successful_payment_intent(
         )
         return
 
+    _update_payment_method_metadata_from_payment_intent(payment_intent)
+
     payment_method_info = get_payment_method_details(payment_intent)
     if payment_method_info:
         changed_fields: List[str] = []
         update_payment_method_details(payment, payment_method_info, changed_fields)
         if changed_fields:
             payment.save(update_fields=changed_fields)
+
+            raise Exception(payment.metadata)
 
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:

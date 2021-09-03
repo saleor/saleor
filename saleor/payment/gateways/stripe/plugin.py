@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -162,6 +162,16 @@ class StripeGatewayPlugin(BasePlugin):
 
         return kind, action_required
 
+    def _get_setup_future_usage_from_store_payment_method(
+        self, store_payment_method: StorePaymentMethodEnum
+    ) -> Optional[str]:
+        if store_payment_method == StorePaymentMethodEnum.ON_SESSION:
+            return "on_session"
+        elif store_payment_method == StorePaymentMethodEnum.OFF_SESSION:
+            return "off_session"
+        else:
+            return None
+
     @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
@@ -187,9 +197,9 @@ class StripeGatewayPlugin(BasePlugin):
         payment_method_types = data.get("payment_method_types") if data else None
 
         if not setup_future_usage:
-            store = payment_information.store_payment_method
-            if store != StorePaymentMethodEnum.NONE:
-                setup_future_usage = store.lower()
+            setup_future_usage = self._get_setup_future_usage_from_store_payment_method(
+                payment_information.store_payment_method
+            )
 
         customer = None
         # confirm that we creates customer on stripe side only for log-in customers
@@ -302,9 +312,6 @@ class StripeGatewayPlugin(BasePlugin):
             kind, action_required = self._get_transaction_details_for_stripe_status(
                 payment_intent.status
             )
-
-            if payment_intent.get("setup_future_usage"):
-                payment_intent.metadata = payment_information.payment_metadata
 
             if kind == TransactionKind.CAPTURE:
                 payment_method_info = get_payment_method_details(payment_intent)

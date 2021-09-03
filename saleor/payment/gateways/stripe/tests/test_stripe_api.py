@@ -491,7 +491,7 @@ def test_get_payment_method_details():
             }
         ]
     }
-    payment_intent.metadata = {"key": "value"}
+    payment_intent.payment_method = {"metadata": {"key": "value"}}
 
     payment_method_info = get_payment_method_details(payment_intent)
 
@@ -501,7 +501,7 @@ def test_get_payment_method_details():
         exp_month=12,
         brand="visa",
         type="card",
-        payment_metadata={"key": "value"},
+        metadata={"key": "value"},
     )
 
 

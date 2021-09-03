@@ -27,6 +27,7 @@ ACTION_REQUIRED_STATUSES = [
     "requires_action",
 ]
 
+# todo: fix this?
 FAILED_STATUSES = ["requires_payment_method" "canceled"]
 
 SUCCESS_STATUS = "succeeded"
