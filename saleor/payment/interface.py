@@ -82,6 +82,8 @@ class PaymentData:
     reuse_source: bool = False
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
+    partial: bool = False
+    checkout_token: Optional[str] = None
 
 
 @dataclass
