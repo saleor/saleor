@@ -8,9 +8,9 @@ from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import JSONField  # type: ignore
-from django.db.models import F, Max, Sum
+from django.db.models import ExpressionWrapper, F, JSONField, Max, Q  # type: ignore
 from django.db.models.expressions import Exists, OuterRef
+from django.db.models.indexes import Index
 from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
@@ -57,12 +57,9 @@ class OrderQueryset(models.QuerySet):
         fulfilled).
         """
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
-        payments = Payment.objects.filter(is_active=True).values("id")
-        qs = self.annotate(amount_paid=Sum("payments__captured_amount", distinct=True))
-        return qs.filter(
-            Exists(payments.filter(order_id=OuterRef("id"))),
+        return self.filter(
             status__in=statuses,
-            total_gross_amount__lte=F("amount_paid"),
+            total_gross_amount__lte=F("total_paid_amount"),
         )
 
     def ready_to_capture(self):
@@ -78,15 +75,13 @@ class OrderQueryset(models.QuerySet):
         qs = self.filter(Exists(payments.filter(order_id=OuterRef("id"))))
         return qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
 
+    def overpaid(self):
+        """Return orders that are overpaid."""
+        return self.filter(total_gross_amount__lt=F("total_paid_amount"))
+
     def ready_to_confirm(self):
         """Return unconfirmed orders."""
         return self.filter(status=OrderStatus.UNCONFIRMED)
-
-    def overpaid(self):
-        """Return orders that are overpaid."""
-        # TODO: check what (captured_amount and not is_active) means
-        qs = self.annotate(amount_paid=Sum("payments__captured_amount", distinct=True))
-        return qs.filter(amount_paid__gt=F("total_gross_amount"))
 
 
 class Order(ModelWithMetadata):
@@ -248,7 +243,24 @@ class Order(ModelWithMetadata):
     class Meta:
         ordering = ("-pk",)
         permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
-        indexes = [*ModelWithMetadata.Meta.indexes, GinIndex(fields=["user_email"])]
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(fields=["user_email"]),
+            Index(
+                ExpressionWrapper(
+                    Q(total_gross_amount__lt=F("total_paid_amount")),
+                    output_field=models.BooleanField(),
+                ),  # type: ignore
+                name="idx_overpaid",
+            ),  # type: ignore
+            Index(
+                ExpressionWrapper(
+                    Q(total_gross_amount__lte=F("total_paid_amount")),
+                    output_field=models.BooleanField(),
+                ),  # type: ignore
+                name="idx_fully_paid",
+            ),  # type: ignore
+        ]
 
     def save(self, *args, **kwargs):
         if not self.token:
