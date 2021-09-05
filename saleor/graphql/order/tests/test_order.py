@@ -5749,7 +5749,7 @@ def test_order_query_with_ready_to_fulfill_filter_status(
     order_fully_paid.save()
     order_overpaid.status = OrderStatus.PARTIALLY_FULFILLED
     order_overpaid.save()
-    Order.objects.create(channel=channel_USD)
+    Order.objects.create(channel=channel_USD, total_gross_amount=Decimal("10"))
 
     variables = {"filter": {"status": "READY_TO_FULFILL"}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
