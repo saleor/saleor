@@ -1008,6 +1008,7 @@ type Checkout implements Node & ObjectWithMetadata {
   token: UUID!
   totalPrice: TaxedMoney
   languageCode: LanguageCodeEnum!
+  payments: [Payment!]!
 }
 
 type CheckoutAddPromoCode {

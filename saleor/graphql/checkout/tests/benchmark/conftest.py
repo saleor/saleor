@@ -15,6 +15,14 @@ def customer_checkout(customer_user, checkout_with_voucher_percentage_and_shippi
     return checkout_with_voucher_percentage_and_shipping
 
 
+@pytest.fixture
+def checkout_with_customer_payments(customer_checkout, payment_dummy_factory):
+    customer_checkout.payments.add(payment_dummy_factory())
+    customer_checkout.payments.add(payment_dummy_factory())
+
+    return customer_checkout
+
+
 @pytest.fixture()
 def checkout_with_variants(
     checkout,
