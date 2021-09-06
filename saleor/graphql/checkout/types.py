@@ -13,7 +13,6 @@ from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import ADDED_IN_31
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
@@ -209,7 +208,7 @@ class Checkout(CountableDjangoObjectType):
 
     payments = graphene.List(
         graphene.NonNull(Payment),
-        description=f"{ADDED_IN_31} A list of active payments.",
+        description="A list of active payments.",
         required=True,
     )
 

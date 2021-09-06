@@ -35,7 +35,8 @@ from ..attribute.models import (
     AttributeValueTranslation,
 )
 from ..attribute.utils import associate_attribute_values_to_instance
-from ..checkout.fetch import fetch_checkout_info
+from ..checkout import calculations
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus
@@ -294,6 +295,51 @@ def checkout_with_item(checkout, product):
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
+
+
+@pytest.fixture
+def checkout_with_payments_factory(
+    checkout_with_item, payment_kwargs, address, shipping_method
+):
+    def fun(num_payments=1, charge_status=None, token=""):
+        checkout = checkout_with_item
+        checkout.shipping_address = address
+        checkout.shipping_method = shipping_method
+        checkout.billing_address = address
+        checkout.save()
+
+        manager = get_plugins_manager()
+        lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+        total = calculations.checkout_total(
+            manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        )
+
+        amount = total.gross.amount / num_payments
+        charge_status = charge_status or ChargeStatus.AUTHORIZED
+        captured_amount = (
+            amount if charge_status != ChargeStatus.AUTHORIZED else Decimal("0")
+        )
+
+        for i in range(num_payments):
+            Payment.objects.create(
+                **{
+                    **payment_kwargs,
+                    **{
+                        "order": None,
+                        "checkout": checkout,
+                        "currency": checkout.currency,
+                        "charge_status": charge_status,
+                        "token": token,
+                        "total": amount,
+                        "captured_amount": captured_amount,
+                    },
+                }
+            )
+
+        return checkout
+
+    return fun
 
 
 @pytest.fixture

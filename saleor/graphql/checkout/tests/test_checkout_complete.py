@@ -20,7 +20,6 @@ from ....payment.interface import GatewayResponse
 from ....payment.models import Payment
 from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....warehouse.models import Stock
-from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_COMPLETE = """
@@ -387,12 +386,38 @@ def test_checkout_complete_by_app_with_missing_permission(
     )
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_with_multiple_completed_payments(
+    order_confirmed_mock,
+    checkout_with_payments_factory,
+    user_api_client,
+):
+    # given
+    checkout = checkout_with_payments_factory(num_payments=2)
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
+    orders_count = Order.objects.count()
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.payments.count() == 2
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+    order_confirmed_mock.assert_called_once_with(order)
+
+
 def test_checkout_complete_with_variant_without_price(
-    site_settings,
     user_api_client,
     checkout_with_item,
-    gift_card,
-    payment_dummy,
     address,
     shipping_method,
 ):
@@ -922,33 +947,12 @@ def test_checkout_complete_multiple_payments_not_covering_checkout(
 def test_checkout_complete_confirmation_needed(
     mocked_process_payment,
     user_api_client,
-    checkout_with_item,
-    address,
-    payment_dummy,
-    shipping_method,
+    checkout_with_payments_factory,
     action_required_gateway_response,
 ):
     mocked_process_payment.return_value = action_required_gateway_response
 
-    checkout = checkout_with_item
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-    checkout.billing_address = address
-    checkout.save()
-
-    manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    total = calculations.checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
-    )
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.save()
+    checkout = checkout_with_payments_factory(charge_status=ChargeStatus.NOT_CHARGED)
 
     variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     orders_count = Order.objects.count()
@@ -963,9 +967,9 @@ def test_checkout_complete_confirmation_needed(
     new_orders_count = Order.objects.count()
     assert new_orders_count == orders_count
     checkout.refresh_from_db()
-    payment_dummy.refresh_from_db()
-    assert payment_dummy.is_active
-    assert payment_dummy.to_confirm
+    payment = checkout.payments.get()
+    assert payment.is_active
+    assert payment.to_confirm
 
     mocked_process_payment.assert_called_once()
 
@@ -1021,33 +1025,14 @@ def test_checkout_confirm(
 
 
 def test_checkout_complete_insufficient_stock(
-    user_api_client, checkout_with_item, address, payment_dummy, shipping_method
+    user_api_client, checkout_with_payments_factory
 ):
-    checkout = checkout_with_item
+    checkout = checkout_with_payments_factory(num_payments=1)
     checkout_line = checkout.lines.first()
     stock = Stock.objects.get(product_variant=checkout_line.variant)
-    quantity_available = get_available_quantity_for_stock(stock)
-    checkout_line.quantity = quantity_available + 1
-    checkout_line.save()
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-    checkout.billing_address = address
-    checkout.save()
+    stock.quantity = 0
+    stock.save()
 
-    manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    total = calculations.checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
-    )
-
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.save()
     variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     orders_count = Order.objects.count()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
@@ -1060,40 +1045,18 @@ def test_checkout_complete_insufficient_stock(
 @patch("saleor.checkout.complete_checkout.gateway.refund")
 def test_checkout_complete_insufficient_stock_payment_refunded(
     gateway_refund_mock,
-    checkout_with_item,
-    address,
-    shipping_method,
-    payment_dummy,
+    checkout_with_payments_factory,
     user_api_client,
 ):
     # given
-    checkout = checkout_with_item
+    checkout = checkout_with_payments_factory(
+        num_payments=1, charge_status=ChargeStatus.FULLY_CHARGED
+    )
+    payment = checkout.payments.get()
     checkout_line = checkout.lines.first()
     stock = Stock.objects.get(product_variant=checkout_line.variant)
-    quantity_available = get_available_quantity_for_stock(stock)
-    checkout_line.quantity = quantity_available + 1
-    checkout_line.save()
-
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-    checkout.billing_address = address
-    checkout.save()
-
-    manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    total = calculations.checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
-    )
-
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.charge_status = ChargeStatus.FULLY_CHARGED
-    payment.save()
+    stock.quantity = 0
+    stock.save()
 
     variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     orders_count = Order.objects.count()
@@ -1109,17 +1072,14 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     assert orders_count == Order.objects.count()
 
     gateway_refund_mock.assert_called_once_with(
-        payment, ANY, channel_slug=checkout_info.channel.slug
+        payment, ANY, channel_slug=checkout.channel.slug
     )
 
 
 @patch("saleor.checkout.complete_checkout.gateway.void")
 def test_checkout_complete_insufficient_stock_payment_voided(
     gateway_void_mock,
-    checkout_with_item,
-    address,
-    shipping_method,
-    payment_dummy,
+    checkout_with_payments_factory,
     user_api_client,
     monkeypatch,
     dummy_gateway_config,
@@ -1131,34 +1091,18 @@ def test_checkout_complete_insufficient_stock_payment_voided(
         lambda _: dummy_gateway_config,
     )
 
-    checkout = checkout_with_item
-
     def _erase_stock():
         Stock.objects.update(quantity=0)
         return True
 
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-    checkout.billing_address = address
-    checkout.save()
-
-    manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    total = calculations.checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    checkout = checkout_with_payments_factory(
+        num_payments=1,
+        charge_status=ChargeStatus.NOT_CHARGED,
+        token=ChargeStatus.NOT_CHARGED,
     )
-    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", _erase_stock)
+    payment = checkout.payments.get()
 
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.token = ChargeStatus.NOT_CHARGED
-    payment.charge_status = ChargeStatus.NOT_CHARGED
-    payment.save()
+    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", _erase_stock)
 
     variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
     orders_count = Order.objects.count()
@@ -1174,8 +1118,34 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     assert orders_count == Order.objects.count()
 
     gateway_void_mock.assert_called_once_with(
-        payment, ANY, channel_slug=checkout_info.channel.slug
+        payment, ANY, channel_slug=checkout.channel.slug
     )
+
+
+@patch("saleor.checkout.complete_checkout.gateway.void")
+def test_checkout_complete_insufficient_stock_multiple_payment_not_voided(
+    gateway_void_mock,
+    checkout_with_payments_factory,
+    user_api_client,
+):
+    # given
+    Stock.objects.update(quantity=0)
+    checkout = checkout_with_payments_factory(num_payments=2)
+
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
+    orders_count = Order.objects.count()
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert data["errors"][0]["message"] == "Insufficient product stock: 123"
+    assert orders_count == Order.objects.count()
+
+    assert gateway_void_mock.call_count == 0
 
 
 def test_checkout_complete_without_redirect_url(
