@@ -26,7 +26,7 @@ from .consts import (
     WEBHOOK_REFUND_EVENT,
     WEBHOOK_SUCCESS_EVENT,
 )
-from .stripe_api import construct_stripe_event, get_payment_method_details
+from .stripe_api import construct_stripe_event
 
 logger = logging.getLogger(__name__)
 
@@ -218,11 +218,6 @@ def handle_authorized_payment_intent(
         return
 
     _update_payment_intent_metadata_from_database(payment, payment_intent)
-
-    payment_method_info = get_payment_method_details(payment_intent)
-    if payment_method_info and payment_method_info.metadata:
-        payment.metadata = payment_method_info.metadata
-        payment.save(update_fields=["metadata"])
 
     if payment.order_id:
         if payment.charge_status == ChargeStatus.PENDING:

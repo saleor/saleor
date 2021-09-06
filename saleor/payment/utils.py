@@ -407,9 +407,6 @@ def update_payment_method_details(
     if payment_method_info.type:
         payment.payment_method_type = payment_method_info.type
         changed_fields.append("payment_method_type")
-    if payment_method_info.metadata:
-        payment.metadata = payment_method_info.metadata
-        changed_fields.append("metadata")
 
 
 def get_payment_token(payment: Payment):
