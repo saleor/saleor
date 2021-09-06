@@ -20,36 +20,12 @@ from ..consts import (
     WEBHOOK_SUCCESS_EVENT,
 )
 from ..webhooks import (
-    _update_payment_method_metadata_from_payment_intent,
     handle_authorized_payment_intent,
     handle_failed_payment_intent,
     handle_processing_payment_intent,
     handle_refund,
     handle_successful_payment_intent,
 )
-
-
-@pytest.mark.parametrize(
-    ["metadata", "payment_method"],
-    [
-        ({"key": "value"}, {"metadata": {"key": "value"}}),
-        ({}, {"metadata": {}}),
-        (None, {}),
-    ],
-)
-def test_update_payment_method_metadata_from_payment_intent(
-    metadata, payment_method
-) -> None:
-    # given
-    payment_intent = StripeObject(id="token", last_response={})
-    payment_intent["metadata"] = metadata
-    payment_intent["payment_method"] = {}
-
-    # when
-    _update_payment_method_metadata_from_payment_intent(payment_intent)
-
-    # then
-    assert payment_intent.payment_method == payment_method
 
 
 @patch(
@@ -110,23 +86,27 @@ def test_handle_successful_payment_intent_with_metadata(
 ):
     # given
     payment = payment_stripe_for_order
+    current_metadata = {"currentkey": "currentvalue"}
+    if metadata is not None:
+        payment.metadata = metadata
+    payment.charge_status = ChargeStatus.PENDING
+    payment.save()
     plugin = stripe_plugin()
-
     payment_intent = StripeObject(id="token", last_response={})
     payment_intent["amount_received"] = price_to_minor_unit(
         payment.total, payment.currency
     )
-    payment_intent["currency"] = payment.currency
-    if metadata is not None:
-        payment_intent["metadata"] = metadata
+    payment_intent["metadata"] = current_metadata
     payment_intent["charges"] = {"data": [{"payment_method_details": {"type": "card"}}]}
+    payment_intent["amount"] = payment.total
+    payment_intent["currency"] = payment.currency
 
     # when
     handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     # then
-    payment.refresh_from_db()
-    assert payment.metadata == (metadata or {})
+    assert payment_intent.metadata == current_metadata | (metadata or {})
+    assert payment_intent.payment_method.metadata == (metadata or {})
 
 
 @patch(
@@ -304,19 +284,24 @@ def test_handle_authorized_payment_intent_with_metadata(
 ):
     # given
     payment = payment_stripe_for_order
+    current_metadata = {"currentkey": "currentvalue"}
+    if metadata is not None:
+        payment.metadata = metadata
     payment.charge_status = ChargeStatus.PENDING
+    payment.save()
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="token", last_response={})
-    if metadata is not None:
-        payment_intent["metadata"] = metadata
+    payment_intent["metadata"] = current_metadata
     payment_intent["charges"] = {"data": [{"payment_method_details": {"type": "card"}}]}
+    payment_intent["amount"] = payment.total
+    payment_intent["currency"] = payment.currency
 
     # when
     handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     # then
-    payment.refresh_from_db()
-    assert payment.metadata == (metadata or {})
+    assert payment_intent.metadata == current_metadata | (metadata or {})
+    assert payment_intent.payment_method.metadata == (metadata or {})
 
 
 @patch(
