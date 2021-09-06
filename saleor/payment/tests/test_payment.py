@@ -1,7 +1,11 @@
+from datetime import timedelta
 from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest import mock
+from unittest.mock import ANY, Mock, patch
 
 import pytest
+from django.test import override_settings
+from freezegun import freeze_time
 
 from ...checkout.calculations import checkout_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -9,15 +13,23 @@ from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
 from ..interface import GatewayResponse
-from ..models import Payment
+from ..models import Payment, Transaction
+from ..tasks import (
+    release_dangling_unfinished_payment_task,
+    release_unfinished_payments_task,
+)
 from ..utils import (
     ALLOWED_GATEWAY_KINDS,
+    ReleasePaymentException,
     clean_authorize,
     clean_capture,
     create_payment,
     create_payment_information,
     create_transaction,
+    get_unfinished_payments,
     is_currency_supported,
+    is_payment_unfinished_and_ready_to_release,
+    release_checkout_payment,
     update_payment,
     validate_gateway_response,
 )
@@ -534,3 +546,237 @@ def test_update_payment(gateway_response, payment_txn_captured):
     assert payment.cc_exp_year == gateway_response.payment_method_info.exp_year
     assert payment.cc_exp_month == gateway_response.payment_method_info.exp_month
     assert payment.payment_method_type == gateway_response.payment_method_info.type
+
+
+@freeze_time("2021-06-01 12:00:00")
+@override_settings(UNFINISHED_PAYMENT_TTL=timedelta(days=1))
+@pytest.mark.parametrize(
+    "dates",
+    [
+        (["2021-05-01 12:00:00.0+00:00"]),  # release, is to old
+        (
+            ["2021-04-01 12:00:00.0+00:00", "2021-05-01 12:00:00.0+00:00"]
+        ),  # release, both transaction are old
+    ],
+)
+def test_payment_needed_to_release(payment_dummy, dates):
+    payment = payment_dummy
+    payment.order = None
+    payment.save()
+
+    for date in dates:
+        with freeze_time(date):
+            Transaction.objects.create(
+                payment=payment,
+                amount=payment.total,
+                kind=TransactionKind.CAPTURE,
+                gateway_response={},
+                is_success=True,
+                action_required=False,
+            )
+
+    payments = get_unfinished_payments()
+    assert payments.count() == 1
+    assert is_payment_unfinished_and_ready_to_release(payment)
+
+
+@freeze_time("2021-06-01 12:00:00")
+@override_settings(UNFINISHED_PAYMENT_TTL=timedelta(days=1))
+@pytest.mark.parametrize(
+    "dates, order_exist, is_active, not_valid_kind, success, action_required",
+    [
+        (
+            ["2021-06-01 12:00:00.0+00:00"],
+            False,
+            True,
+            False,
+            True,
+            False,
+        ),  # not release, date is to young
+        (
+            ["2021-05-01 12:00:00.0+00:00", "2021-06-01 12:00:00.0+00:00"],
+            False,
+            True,
+            False,
+            True,
+            False,
+        ),  # not release, the second transaction is to young
+        (
+            ["2021-06-01 12:00:00.0+00:00", "2021-05-01 12:00:00.0+00:00"],
+            False,
+            True,
+            False,
+            True,
+            False,
+        ),  # not release, the first transaction is to young
+        (
+            ["2021-05-01 12:00:00.0+00:00"],
+            True,
+            True,
+            False,
+            True,
+            False,
+        ),  # not release, order exists
+        (
+            ["2021-05-01 12:00:00.0+00:00"],
+            False,
+            False,
+            False,
+            True,
+            False,
+        ),  # not release, is not active
+        (
+            ["2021-05-01 12:00:00.0+00:00"],
+            False,
+            True,
+            True,
+            True,
+            False,
+        ),  # not release, not valid kind
+        (
+            ["2021-05-01 12:00:00.0+00:00"],
+            False,
+            True,
+            False,
+            False,
+            False,
+        ),  # not release, not success
+        (
+            ["2021-05-01 12:00:00.0+00:00"],
+            False,
+            True,
+            False,
+            True,
+            True,
+        ),  # not release, action required
+    ],
+)
+def test_payment_not_needed_to_release(
+    payment_dummy,
+    dates,
+    order_exist,
+    is_active,
+    not_valid_kind,
+    success,
+    action_required,
+):
+    payment = payment_dummy
+    if not order_exist:
+        payment.order = None
+        payment.save()
+
+    if not is_active:
+        payment.is_active = False
+        payment.save()
+
+    for date in dates:
+        with freeze_time(date):
+            kind = (
+                TransactionKind.CAPTURE
+                if not not_valid_kind
+                else TransactionKind.CANCEL
+            )
+            Transaction.objects.create(
+                payment=payment,
+                amount=payment.total,
+                kind=kind,
+                gateway_response={},
+                is_success=success,
+                action_required=action_required,
+            )
+
+    payments = get_unfinished_payments()
+    assert payments.count() == 0
+    assert not is_payment_unfinished_and_ready_to_release(payment)
+
+
+@mock.patch(
+    "saleor.payment.gateway.payment_refund_or_void",
+)
+@mock.patch(
+    "saleor.payment.utils.is_payment_unfinished_and_ready_to_release",
+)
+def test_payment_release(
+    is_payment_unfinished_and_ready_to_release,
+    payment_refund_or_void,
+    payment_dummy,
+    checkout_with_item,
+):
+    payment = payment_dummy
+    payment.checkout = checkout_with_item
+    payment.save()
+
+    is_payment_unfinished_and_ready_to_release.return_value = True
+
+    manager = get_plugins_manager()
+    release_checkout_payment(payment, manager)
+    payment_refund_or_void.assert_called_once()
+
+
+@mock.patch(
+    "saleor.payment.gateway.payment_refund_or_void",
+)
+@mock.patch(
+    "saleor.payment.utils.is_payment_unfinished_and_ready_to_release",
+)
+@pytest.mark.parametrize(
+    "should_be_released, has_checkout",
+    [(False, True), (False, False)],
+)
+def test_payment_not_release(
+    is_payment_unfinished_and_ready_to_release,
+    payment_refund_or_void,
+    payment_dummy,
+    checkout_with_item,
+    should_be_released,
+    has_checkout,
+):
+    payment = payment_dummy
+    if has_checkout:
+        payment.checkout = checkout_with_item
+        payment.save()
+
+    is_payment_unfinished_and_ready_to_release.return_value = should_be_released
+
+    manager = get_plugins_manager()
+    with pytest.raises(ReleasePaymentException):
+        release_checkout_payment(payment, manager)
+
+    payment_refund_or_void.assert_not_called()
+
+
+@mock.patch("saleor.payment.tasks.get_unfinished_payments")
+@mock.patch("saleor.payment.tasks.release_dangling_unfinished_payment_task")
+def test_release_unfinished_payments_task(
+    release, get_unfinished_payments, payment_dummy
+):
+    qs = Mock()
+    get_unfinished_payments.return_value = qs
+    qs.iterator.return_value = iter([payment_dummy])
+    release_unfinished_payments_task()
+    release.delay.assert_called_once_with(payment_dummy.pk)
+
+
+@mock.patch("saleor.payment.tasks.release_checkout_payment")
+@mock.patch("saleor.payment.tasks.task_logger")
+def test_release_dangling_unfinished_payment_task(
+    task_logger, release_checkout_payment, payment_dummy
+):
+    release_dangling_unfinished_payment_task(payment_dummy.pk)
+    release_checkout_payment.assert_called_once_with(payment_dummy, ANY)
+    task_logger.info.assert_called_once_with("Released payment %d.", payment_dummy.pk)
+
+
+@mock.patch("saleor.payment.tasks.release_checkout_payment")
+@mock.patch("saleor.payment.tasks.task_logger")
+def test_failed_release_dangling_unfinished_payment_task(
+    task_logger, release_checkout_payment, payment_dummy
+):
+    e = ReleasePaymentException("An error")
+    release_checkout_payment.side_effect = e
+    with pytest.raises(ReleasePaymentException):
+        release_dangling_unfinished_payment_task(payment_dummy.pk)
+    release_checkout_payment.assert_called_once_with(payment_dummy, ANY)
+    task_logger.error.assert_called_once_with(
+        "Release payment %d failed.", payment_dummy.pk, e
+    )

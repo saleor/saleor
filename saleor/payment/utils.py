@@ -5,7 +5,10 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 
 import graphene
 from babel.numbers import get_currency_precision
+from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import OuterRef, Subquery
+from django.utils import timezone
 
 from ..account.models import User
 from ..checkout.models import Checkout
@@ -443,3 +446,55 @@ def price_to_minor_unit(value: Decimal, currency: str):
     number_places = Decimal("10.0") ** precision
     value_without_comma = value * number_places
     return str(value_without_comma.quantize(Decimal("1")))
+
+
+def get_unfinished_payments():
+    """Return payments older than specified time and without assigned order object."""
+    ttl = settings.UNFINISHED_PAYMENT_TTL
+    now = timezone.now()
+    day_before = now - ttl
+
+    newest = (
+        Transaction.objects.filter(payment=OuterRef("pk"))
+        .filter(
+            kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE],
+            is_success=True,
+            action_required=False,
+        )
+        .order_by("-created")
+    )
+    payments = (
+        Payment.objects.get_queryset()
+        .filter(is_active=True, order=None)
+        .annotate(newest_trx_date=Subquery(newest.values("created")[:1]))
+        .filter(newest_trx_date__lte=day_before)
+    )
+
+    return payments
+
+
+def is_payment_unfinished_and_ready_to_release(payment: Payment):
+    """Payments older than specified time and without assigned order object."""
+    return get_unfinished_payments().filter(pk=payment.pk).exists()
+
+
+class ReleasePaymentException(Exception):
+    """Exception occured on attempt to release payment."""
+
+    pass
+
+
+def release_checkout_payment(payment: Payment, manager: "PluginsManager"):
+    """Try release payment calling refund or void."""
+    if not is_payment_unfinished_and_ready_to_release(payment):
+        raise ReleasePaymentException(f"Payment '{payment}' is not ready to release")
+
+    from saleor.payment.gateway import payment_refund_or_void
+
+    if payment.checkout is None:
+        raise ReleasePaymentException(
+            f"Couldn't get channel_slug for Payment '{payment}'"
+        )
+
+    slug = payment.checkout.channel.slug
+    payment_refund_or_void(payment, manager, slug)
