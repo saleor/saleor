@@ -290,10 +290,7 @@ def test_handle_authorized_payment_intent_for_processing_order_payment(
     assert wrapped_checkout_complete.called is False
 
 
-# todo: fix this
-@pytest.mark.parametrize(
-    "metadata", [{f"key{i}": f"value{i}" for i in range(5)}, {}, None]
-)
+@pytest.mark.parametrize("metadata", [{"key": "value"}, {}, None])
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
