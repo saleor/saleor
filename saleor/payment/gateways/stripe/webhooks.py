@@ -99,7 +99,9 @@ def _channel_slug_is_different_from_payment_channel_slug(
     elif order is not None:
         return channel_slug != order.channel.slug
     else:
-        raise ValueError("Both payment.checkout and payment.order cannot be None")
+        raise ValueError(
+            "Both payment.checkout and payment.order cannot be None"
+        )  # pragma: no cover
 
 
 def _get_payment(payment_intent_id: str) -> Optional[Payment]:
