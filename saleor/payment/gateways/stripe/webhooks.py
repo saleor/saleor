@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import Optional
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
@@ -17,12 +17,7 @@ from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
 from ...models import Payment
-from ...utils import (
-    create_transaction,
-    gateway_postprocess,
-    price_from_minor_unit,
-    update_payment_method_details,
-)
+from ...utils import create_transaction, gateway_postprocess, price_from_minor_unit
 from .consts import (
     WEBHOOK_AUTHORIZED_EVENT,
     WEBHOOK_CANCELED_EVENT,
@@ -188,16 +183,26 @@ def _process_payment_with_checkout(
         _finalize_checkout(checkout, payment, payment_intent, kind, amount, currency)
 
 
-def _update_payment_method_metadata_from_payment_intent(
+def _update_payment_intent_metadata_from_database(
+    payment: Payment,
     payment_intent: StripeObject,
 ) -> None:
+    metadata = payment.metadata
+    if metadata is None:
+        return
+
+    if payment_intent.get("metadata") is not None:
+        payment_intent.metadata |= metadata
+    else:
+        payment_intent.metadata = metadata
+
     payment_method = payment_intent.get("payment_method")
-    metadata = payment_intent.get("metadata")
-    if metadata is not None:
-        if payment_method is not None:
-            payment_method["metadata"] = metadata
-        else:
-            payment_intent["payment_method"] = {"metadata": metadata}
+
+    if payment_method is not None:
+        payment_method.metadata = metadata
+    else:
+        payment_intent.payment_method = StripeObject()
+        payment_intent.payment_method.metadata = metadata
 
 
 def handle_authorized_payment_intent(
@@ -212,7 +217,7 @@ def handle_authorized_payment_intent(
         )
         return
 
-    _update_payment_method_metadata_from_payment_intent(payment_intent)
+    _update_payment_intent_metadata_from_database(payment, payment_intent)
 
     payment_method_info = get_payment_method_details(payment_intent)
     if payment_method_info and payment_method_info.metadata:
@@ -300,14 +305,7 @@ def handle_successful_payment_intent(
         )
         return
 
-    _update_payment_method_metadata_from_payment_intent(payment_intent)
-
-    payment_method_info = get_payment_method_details(payment_intent)
-    if payment_method_info:
-        changed_fields: List[str] = []
-        update_payment_method_details(payment, payment_method_info, changed_fields)
-        if changed_fields:
-            payment.save(update_fields=changed_fields)
+    _update_payment_intent_metadata_from_database(payment, payment_intent)
 
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:
