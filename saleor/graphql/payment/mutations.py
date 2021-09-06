@@ -249,20 +249,6 @@ class CheckoutPaymentComplete(BaseMutation, I18nMixin):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def validate_token(cls, manager, gateway: str, input_data: dict, channel_slug: str):
-        token = input_data.get("token")
-        is_required = manager.token_is_required_as_payment_input(gateway, channel_slug)
-        if not token and is_required:
-            raise ValidationError(
-                {
-                    "token": ValidationError(
-                        f"Token is required for {gateway}.",
-                        code=PaymentErrorCode.REQUIRED.value,
-                    ),
-                }
-            )
-
-    @classmethod
     def perform_mutation(cls, _root, info, token, payment_id, **data):
         tracking_code = analytics.get_client_id(info.context)
         with transaction_with_commit_on_errors():
