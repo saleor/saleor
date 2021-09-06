@@ -525,7 +525,7 @@ def test_checkout_complete_with_variant_without_sku(
 
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
-    order = Order.objects.first()
+    order = Order.objects.get(token=order_token)
     assert order.status == OrderStatus.UNFULFILLED
     assert order.origin == OrderOrigin.CHECKOUT
 

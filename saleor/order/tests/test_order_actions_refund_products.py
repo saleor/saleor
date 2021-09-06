@@ -4,7 +4,6 @@ from unittest.mock import ANY, patch
 from ...payment import ChargeStatus
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
-from ...product.models import ProductVariant
 from ...warehouse.models import Allocation
 from .. import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ..actions import create_refund_fulfillment
