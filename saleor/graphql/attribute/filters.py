@@ -65,7 +65,7 @@ class AttributeValueFilter(django_filters.FilterSet):
     def filter_search(cls, queryset, _name, value):
         if not value:
             return queryset
-        name_slug_qs = Q(name__trigram_similar=value) | Q(slug__trigram_similar=value)
+        name_slug_qs = Q(name__ilike=value) | Q(slug__ilike=value)
 
         return queryset.filter(name_slug_qs)
 
