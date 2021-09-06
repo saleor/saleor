@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from ..core.notifications import get_site_context
+from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils import build_absolute_uri
 from ..plugins.manager import get_plugins_manager

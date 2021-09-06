@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, Iterable, List
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
@@ -46,14 +46,20 @@ def check_stock_quantity_bulk(
     country_code: str,
     quantities: Iterable[int],
     channel_slug: str,
+    additional_filter_lookup: Optional[Dict[str, Any]] = None,
+    existing_lines: Iterable = None,
 ):
     """Validate if there is stock available for given variants in given country.
 
     :raises InsufficientStock: when there is not enough items in stock for a variant.
     """
+    filter_lookup = {"product_variant__in": variants}
+    if additional_filter_lookup is not None:
+        filter_lookup.update(additional_filter_lookup)
+
     all_variants_stocks = (
         Stock.objects.for_country_and_channel(country_code, channel_slug)
-        .filter(product_variant__in=variants)
+        .filter(**filter_lookup)
         .annotate_available_quantity()
     )
 
@@ -62,7 +68,13 @@ def check_stock_quantity_bulk(
         variant_stocks[stock.product_variant_id].append(stock)
 
     insufficient_stocks: List[InsufficientStockData] = []
+    variants_quantities = {
+        line.variant.pk: line.line.quantity for line in existing_lines or []
+    }
     for variant, quantity in zip(variants, quantities):
+
+        quantity += variants_quantities.get(variant.pk, 0)
+
         stocks = variant_stocks.get(variant.pk, [])
         available_quantity = sum(
             [stock.available_quantity for stock in stocks]  # type: ignore
@@ -71,14 +83,16 @@ def check_stock_quantity_bulk(
         if not stocks:
             insufficient_stocks.append(
                 InsufficientStockData(
-                    variant=variant, available_quantity=available_quantity
+                    variant=variant,
+                    available_quantity=available_quantity,
                 )
             )
         elif variant.track_inventory:
             if quantity > available_quantity:
                 insufficient_stocks.append(
                     InsufficientStockData(
-                        variant=variant, available_quantity=available_quantity
+                        variant=variant,
+                        available_quantity=available_quantity,
                     )
                 )
 

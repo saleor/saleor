@@ -15,6 +15,7 @@ from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..checkout.mutations import get_checkout_by_token
 from ..checkout.types import Checkout
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
@@ -60,8 +61,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                "Checkout ID."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )

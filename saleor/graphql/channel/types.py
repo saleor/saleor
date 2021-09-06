@@ -5,6 +5,8 @@ from graphene_django import DjangoObjectType
 from ...channel import models
 from ...core.permissions import ChannelPermissions
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31
+from ..core.types import CountryDisplay
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
@@ -64,6 +66,15 @@ class Channel(CountableDjangoObjectType):
     has_orders = graphene.Boolean(
         required=True, description="Whether a channel has associated orders."
     )
+    default_country = graphene.Field(
+        CountryDisplay,
+        description=(
+            f"{ADDED_IN_31} Default country for the channel. Default country can be "
+            "used in checkout to determine the stock quantities or calculate taxes "
+            "when the country was not explicitly provided."
+        ),
+        required=True,
+    )
 
     class Meta:
         description = "Represents channel."
@@ -78,4 +89,10 @@ class Channel(CountableDjangoObjectType):
             ChannelWithHasOrdersByIdLoader(info.context)
             .load(root.id)
             .then(lambda channel: channel.has_orders)
+        )
+
+    @staticmethod
+    def resolve_default_country(root: models.Channel, _info):
+        return CountryDisplay(
+            code=root.default_country.code, country=root.default_country.name
         )
