@@ -1248,8 +1248,8 @@ def test_checkout_complete_without_redirect_url(
     ).exists(), "Checkout should have been deleted"
 
 
-@patch("saleor.checkout.complete_checkout.gateway.payment_refund_or_void")
-def test_checkout_complete_payment_payment_total_different_than_checkout(
+@patch("saleor.checkout.utils.gateway.payment_refund_or_void")
+def test_checkout_complete_ayment_total_different_than_checkout(
     gateway_refund_or_void_mock,
     checkout_with_items,
     payment_dummy,
