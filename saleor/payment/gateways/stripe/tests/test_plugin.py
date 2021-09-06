@@ -973,11 +973,7 @@ def test_confirm_payment(
     assert response.error is None
 
 
-# todo: fix this
-@pytest.mark.parametrize(
-    "metadata",
-    [{f"key{i}": f"value{i}" for i in range(5)}, {}, None],
-)
+@pytest.mark.parametrize("metadata", [{"key": "value"}, {}, None])
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.retrieve")
 def test_confirm_payment_metadata(
     mocked_intent_retrieve,
