@@ -271,12 +271,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use root level channel argument for filtering and sorting - #7374 by @IKarbowiak
   - drop `channel` field from filters and sorters
 - Drop top-level `checkoutLine` query from the schema with related resolver, use `checkout` query instead - #7623 by @dexon44
-
-- Product variant can be created without SKU - #7633 by @rafalp
-  - exclude variants without SKU from channel queries
-  - prevent adding variants without SKU to checkouts
-  - prevent completing checkout if it has variants without SKU
-  - prevent removing SKU from variant that already has one
+- Make SKU an optional field on `ProductVariant` - #7633 by @rafalp
 
 ### Other
 
