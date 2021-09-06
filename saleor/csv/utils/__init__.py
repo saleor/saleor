@@ -10,6 +10,7 @@ class ProductExportFields:
             "product type": "product_type__name",
             "charge taxes": "charge_taxes",
             "product weight": "product_weight",
+            "variant id": "variants__id",
             "variant sku": "variants__sku",
             "variant weight": "variant_weight",
         },

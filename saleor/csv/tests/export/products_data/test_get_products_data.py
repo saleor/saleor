@@ -103,6 +103,9 @@ def test_get_products_data(product, product_with_image, collection, image, chann
 
         for variant in product.variants.all():
             data = {
+                "variants__id": graphene.Node.to_global_id(
+                    "ProductVariant", variant.pk
+                ),
                 "variants__sku": variant.sku,
                 "variants__media__image": (
                     ""

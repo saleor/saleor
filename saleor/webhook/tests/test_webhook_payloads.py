@@ -501,7 +501,7 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data):
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
 
 
-def test_generate_checkout_payload_with_items(checkout_with_single_item):
+def test_generate_checkout_lines_payload(checkout_with_single_item):
     payload = json.loads(generate_checkout_payload(checkout_with_single_item))[0]
     assert payload.get("lines")
 

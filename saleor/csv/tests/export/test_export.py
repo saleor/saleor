@@ -46,7 +46,11 @@ def test_export_products(
 ):
     # given
     export_info = {
-        "fields": [ProductFieldEnum.NAME.value, ProductFieldEnum.VARIANT_SKU.value],
+        "fields": [
+            ProductFieldEnum.NAME.value,
+            ProductFieldEnum.VARIANT_ID.value,
+            ProductFieldEnum.VARIANT_SKU.value,
+        ],
         "warehouses": [],
         "attributes": [],
         "channels": [],
@@ -62,7 +66,7 @@ def test_export_products(
 
     # then
     create_file_with_headers_mock.assert_called_once_with(
-        ["id", "name", "variant sku"], ";", file_type
+        ["id", "name", "variant id", "variant sku"], ";", file_type
     )
     assert export_products_in_batches_mock.call_count == 1
     args, kwargs = export_products_in_batches_mock.call_args
@@ -71,8 +75,8 @@ def test_export_products(
     )
     assert args[1:] == (
         export_info,
-        {"id", "name", "variants__sku"},
-        ["id", "name", "variants__sku"],
+        {"id", "name", "variants__id", "variants__sku"},
+        ["id", "name", "variants__id", "variants__sku"],
         ";",
         mock_file,
         file_type,
