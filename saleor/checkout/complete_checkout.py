@@ -41,7 +41,11 @@ from ..warehouse.management import allocate_stocks
 from . import AddressType
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
-from .utils import get_active_payments, get_voucher_for_checkout
+from .utils import (
+    call_payment_refund_or_void,
+    get_active_payments,
+    get_voucher_for_checkout,
+)
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -521,7 +525,7 @@ def _process_payment(
     customer_id: Optional[str],
     store_source: bool,
     payment_data: Optional[dict],
-    order_data: dict,
+    order_data: Optional[dict],
     manager: "PluginsManager",
     channel_slug: str,
     complete_order: bool = False,
@@ -551,7 +555,9 @@ def _process_payment(
         if not txn.is_success:
             raise PaymentError(txn.error)
     except PaymentError as e:
-        release_voucher_usage(order_data)
+        if order_data:
+            release_voucher_usage(order_data)
+        call_payment_refund_or_void(gateway, payment, manager, channel_slug)
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
     return txn
 
@@ -560,15 +566,16 @@ def _complete_checkout_payment(
     payment: "Optional[Payment]",
     manager: "PluginsManager",
     channel_slug,
-    order_data,
     payment_data,
     store_source,
     user,
-    complete_order: bool,
+    order_data=None,
+    complete_order: bool = False,
 ):
     """Complete processing a payment.
 
-    If no payment was provided, it means that it was processed by this function earlier.
+    If no payment was provided, it means that it was already processed
+    by this function as part of checkoutPaymentComplete mutation.
     """
     customer_id = None
     if not payment:
@@ -626,21 +633,14 @@ def complete_checkout_payment(
         payment=payment,
     )
 
-    try:
-        order_data = _get_order_data(manager, checkout_info, lines, discounts)
-    except ValidationError as exc:
-        # TODO: confirm that this line should be gone
-        # gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
-        raise exc
-
     action_data, action_required = _complete_checkout_payment(
         payment,
         manager,
         channel_slug,
-        order_data,
         payment_data,
         store_source,
         user,
+        order_data=None,
         complete_order=False,
     )
 
@@ -700,17 +700,17 @@ def complete_checkout(
     try:
         order_data = _get_order_data(manager, checkout_info, lines, discounts)
     except ValidationError as exc:
-        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        call_payment_refund_or_void(gateway, payment, manager, channel_slug)
         raise exc
 
     action_data, action_required = _complete_checkout_payment(
         payment,
         manager,
         channel_slug,
-        order_data,
         payment_data,
         store_source,
         user,
+        order_data=order_data,
         complete_order=True,
     )
 
@@ -729,7 +729,7 @@ def complete_checkout(
             checkout.delete()
         except InsufficientStock as e:
             release_voucher_usage(order_data)
-            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+            call_payment_refund_or_void(gateway, payment, manager, channel_slug)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
     return order, action_required, action_data

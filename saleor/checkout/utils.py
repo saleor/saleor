@@ -701,3 +701,15 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
                 )
             }
         )
+
+
+def call_payment_refund_or_void(
+    gateway,
+    payment: Optional[Payment],
+    manager: PluginsManager,
+    channel_slug: str,
+):
+    if not payment or not payment.complete_order:
+        return
+
+    gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)

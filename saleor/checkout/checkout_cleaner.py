@@ -9,6 +9,7 @@ from ..payment.error_codes import PaymentErrorCode
 from ..plugins.manager import PluginsManager
 from .error_codes import CheckoutErrorCode
 from .utils import (
+    call_payment_refund_or_void,
     get_active_payments,
     is_fully_covered,
     is_shipping_required,
@@ -86,8 +87,8 @@ def clean_checkout_payment(
         )
 
     if not is_fully_covered(manager, checkout_info, lines, discounts, current_payment):
-        gateway.payment_refund_or_void(
-            current_payment, manager, channel_slug=checkout_info.channel.slug
+        call_payment_refund_or_void(
+            gateway, current_payment, manager, checkout_info.channel.slug
         )
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",
