@@ -68,7 +68,13 @@ from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
+from ..payment.interface import (
+    AddressData,
+    GatewayConfig,
+    GatewayResponse,
+    PaymentData,
+    PaymentMethodInfo,
+)
 from ..payment.models import Payment
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
@@ -222,6 +228,37 @@ def sample_gateway(settings):
     settings.PLUGINS += [
         "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"
     ]
+
+
+@pytest.fixture
+def payment_method_details():
+    return PaymentMethodInfo(
+        last_4="1234",
+        exp_year=2020,
+        exp_month=8,
+        brand="visa",
+        name="Joe Doe",
+        type="test",
+    )
+
+
+@pytest.fixture
+def gateway_response(settings, payment_method_details):
+    return GatewayResponse(
+        is_success=True,
+        action_required=False,
+        transaction_id="transaction-token",
+        amount=Decimal(14.50),
+        currency="USD",
+        kind=TransactionKind.CAPTURE,
+        error=None,
+        raw_response={
+            "credit_card_four": "1234",
+            "transaction-id": "transaction-token",
+        },
+        payment_method_info=payment_method_details,
+        psp_reference="test_reference",
+    )
 
 
 @pytest.fixture

@@ -258,6 +258,43 @@ def test_checkout_complete(
     order_confirmed_mock.assert_called_once_with(order)
 
 
+@patch("saleor.checkout.complete_checkout.store_customer_id")
+@patch.object(PluginsManager, "process_payment")
+def test_checkout_complete_stores_customer_id_in_metadata(
+    process_payment_mock,
+    store_customer_id_mock,
+    checkout_with_payments_factory,
+    user_api_client,
+    gateway_response,
+):
+    # given
+    gateway_response.customer_id = "spanish-inquisition"
+    process_payment_mock.return_value = gateway_response
+    checkout = checkout_with_payments_factory(
+        num_payments=1,
+        charge_status=ChargeStatus.NOT_CHARGED,
+    )
+    payment = checkout.payments.get()
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    assert user_api_client.user
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+    store_customer_id_mock.assert_called_once_with(
+        user_api_client.user, payment.gateway, gateway_response.customer_id
+    )
+
+
 @pytest.mark.integration
 @patch("saleor.graphql.checkout.mutations.complete_checkout")
 def test_checkout_complete_by_app(
