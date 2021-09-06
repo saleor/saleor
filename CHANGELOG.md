@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.1.0 [Unreleased]
 - Extend app by `AppExtension` - #7701 by @korycins
+- Deprecate interface field `PaymentData.reuse_source` - #7988 by @mateuszgrzyb
 - Add ExternalNotificationTrigger mutation - #7821 by @mstrumeck
 
 
