@@ -169,7 +169,7 @@ def check_lines_quantity(
             )
     try:
         check_stock_quantity_bulk(
-            variants, country, quantities, channel_slug, existing_lines
+            variants, country, quantities, channel_slug, existing_lines=existing_lines
         )
     except InsufficientStock as e:
         errors = [

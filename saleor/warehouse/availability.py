@@ -46,8 +46,8 @@ def check_stock_quantity_bulk(
     country_code: str,
     quantities: Iterable[int],
     channel_slug: str,
-    existing_lines: Iterable = None,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
+    existing_lines: Iterable = None,
 ):
     """Validate if there is stock available for given variants in given country.
 
