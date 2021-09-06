@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Iterable, Optional, Type, Union
 from django.core.exceptions import ValidationError
 
 from ..discount import DiscountInfo
-from ..payment import gateway
 from ..payment import models as payment_models
 from ..payment.error_codes import PaymentErrorCode
 from ..plugins.manager import PluginsManager
@@ -87,9 +86,7 @@ def clean_checkout_payment(
         )
 
     if not is_fully_covered(manager, checkout_info, lines, discounts, current_payment):
-        call_payment_refund_or_void(
-            gateway, current_payment, manager, checkout_info.channel.slug
-        )
+        call_payment_refund_or_void(checkout_info, current_payment, manager)
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",
             code=error_code.CHECKOUT_NOT_FULLY_PAID.value,

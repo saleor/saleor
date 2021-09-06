@@ -25,6 +25,7 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
+from ..payment import gateway
 from ..payment.models import Payment
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
@@ -704,12 +705,16 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
 
 
 def call_payment_refund_or_void(
-    gateway,
+    checkout_info: "CheckoutInfo",
     payment: Optional[Payment],
     manager: PluginsManager,
-    channel_slug: str,
 ):
-    if not payment or not payment.complete_order:
+    if not payment:
         return
 
-    gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+    if len(get_active_payments(checkout_info.checkout)) > 1:
+        return
+
+    gateway.payment_refund_or_void(
+        payment, manager, channel_slug=checkout_info.channel.slug
+    )
