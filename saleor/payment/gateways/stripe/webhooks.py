@@ -193,8 +193,11 @@ def _update_payment_method_metadata_from_payment_intent(
 ) -> None:
     payment_method = payment_intent.get("payment_method")
     metadata = payment_intent.get("metadata")
-    if payment_method is not None and metadata is not None:
-        payment_method["metadata"] = metadata
+    if metadata is not None:
+        if payment_method is not None:
+            payment_method["metadata"] = metadata
+        else:
+            payment_intent["payment_method"] = {"metadata": metadata}
 
 
 def handle_authorized_payment_intent(
@@ -305,8 +308,6 @@ def handle_successful_payment_intent(
         update_payment_method_details(payment, payment_method_info, changed_fields)
         if changed_fields:
             payment.save(update_fields=changed_fields)
-
-            raise Exception(payment.metadata)
 
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:

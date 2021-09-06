@@ -33,11 +33,11 @@ from ..webhooks import (
     ["metadata", "payment_method"],
     [
         ({"key": "value"}, {"metadata": {"key": "value"}}),
-        ({}, {}),
+        ({}, {"metadata": {}}),
         (None, {}),
     ],
 )
-def test_update_payment_method_metadata_from_payment_intent_with_payment_method(
+def test_update_payment_method_metadata_from_payment_intent(
     metadata, payment_method
 ) -> None:
     # given
@@ -50,21 +50,6 @@ def test_update_payment_method_metadata_from_payment_intent_with_payment_method(
 
     # then
     assert payment_intent.payment_method == payment_method
-
-
-@pytest.mark.parametrize("metadata", [{"key": "value"}, {}, None])
-def test_update_payment_method_metadata_from_payment_intent_without_payment_method(
-    metadata,
-) -> None:
-    # given
-    payment_intent = StripeObject(id="token", last_response={})
-    payment_intent["metadata"] = metadata
-
-    # when
-    _update_payment_method_metadata_from_payment_intent(payment_intent)
-
-    # then
-    assert payment_intent.get("payment_method") is None
 
 
 @patch(
