@@ -99,16 +99,14 @@ def _channel_slug_is_different_from_payment_channel_slug(
     elif order is not None:
         return channel_slug != order.channel.slug
     else:
-        raise AssertionError("Both payment.checkout and payment.order cannot be None")
+        raise ValueError("Both payment.checkout and payment.order cannot be None")
 
 
 def _get_payment(payment_intent_id: str) -> Optional[Payment]:
     return (
         Payment.objects.prefetch_related(
-            Prefetch(
-                "checkout", queryset=Checkout.objects.select_related("channel__slug")
-            ),
-            Prefetch("order", queryset=Order.objects.select_related("channel__slug")),
+            Prefetch("checkout", queryset=Checkout.objects.select_related("channel")),
+            Prefetch("order", queryset=Order.objects.select_related("channel")),
         )
         .select_for_update(of=("self",))
         .filter(transactions__token=payment_intent_id, is_active=True)
