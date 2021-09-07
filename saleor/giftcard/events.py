@@ -100,6 +100,26 @@ def gift_card_expiry_date_updated_event(
     )
 
 
+def gift_card_tag_updated_event(
+    gift_card: GiftCard,
+    old_gift_card: GiftCard,
+    user: UserType,
+    app: AppType,
+):
+    if not user_is_valid(user):
+        user = None
+    return GiftCardEvent.objects.create(
+        gift_card=gift_card,
+        user=user,
+        app=app,
+        type=GiftCardEvents.TAG_UPDATED,
+        parameters={
+            "tag": gift_card.tag,
+            "old_tag": old_gift_card.tag,
+        },
+    )
+
+
 def gift_card_activated_event(
     gift_card: GiftCard,
     user: UserType,
