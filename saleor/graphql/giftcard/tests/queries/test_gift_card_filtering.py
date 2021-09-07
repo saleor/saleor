@@ -270,6 +270,47 @@ def test_query_filter_gift_cards_by_is_active(
     }
 
 
+@pytest.mark.parametrize(
+    "filter_value, expected_gift_card_indexes",
+    [
+        (True, [2]),
+        (False, [0, 1]),
+    ],
+)
+def test_query_filter_gift_cards_used(
+    filter_value,
+    expected_gift_card_indexes,
+    staff_api_client,
+    gift_card,
+    gift_card_expiry_date,
+    gift_card_used,
+    permission_manage_gift_card,
+):
+    # given
+    query = QUERY_GIFT_CARDS
+    gift_cards = [
+        gift_card,
+        gift_card_expiry_date,
+        gift_card_used,
+    ]
+
+    variables = {"filter": {"used": filter_value}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCards"]["edges"]
+    assert len(data) == len(expected_gift_card_indexes)
+    assert {card["node"]["id"] for card in data} == {
+        graphene.Node.to_global_id("GiftCard", gift_cards[i].pk)
+        for i in expected_gift_card_indexes
+    }
+
+
 def test_query_filter_gift_cards_by_current_balance_no_currency_given(
     staff_api_client,
     gift_card,
