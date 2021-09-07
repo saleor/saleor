@@ -50,6 +50,8 @@ UPDATE_GIFT_CARD_MUTATION = """
                     app {
                         name
                     }
+                    tag
+                    oldTag
                     balance {
                         initialBalance {
                             amount
@@ -92,6 +94,7 @@ def test_update_gift_card(
     # given
     old_initial_balance = float(gift_card.initial_balance.amount)
     old_current_balance = float(gift_card.current_balance.amount)
+    old_tag = gift_card.tag
 
     initial_balance = 100.0
     currency = gift_card.currency
@@ -136,7 +139,7 @@ def test_update_gift_card(
     assert data["initialBalance"]["amount"] == initial_balance
     assert data["currentBalance"]["amount"] == initial_balance
 
-    assert len(data["events"]) == 2
+    assert len(data["events"]) == 3
     events = [
         {
             "type": GiftCardEvents.BALANCE_RESET.upper(),
@@ -164,6 +167,8 @@ def test_update_gift_card(
             },
             "expiryDate": None,
             "oldExpiryDate": None,
+            "tag": None,
+            "oldTag": None,
         },
         {
             "type": GiftCardEvents.EXPIRY_DATE_UPDATED.upper(),
@@ -174,6 +179,20 @@ def test_update_gift_card(
             "balance": None,
             "expiryDate": date_value.isoformat(),
             "oldExpiryDate": None,
+            "tag": None,
+            "oldTag": None,
+        },
+        {
+            "type": GiftCardEvents.TAG_UPDATED.upper(),
+            "user": {
+                "email": staff_api_client.user.email,
+            },
+            "app": None,
+            "balance": None,
+            "expiryDate": None,
+            "oldExpiryDate": None,
+            "tag": tag,
+            "oldTag": old_tag,
         },
     ]
     for event in data["events"]:
@@ -190,6 +209,7 @@ def test_update_gift_card_by_app(
     # given
     old_initial_balance = float(gift_card.initial_balance.amount)
     old_current_balance = float(gift_card.current_balance.amount)
+    old_tag = gift_card.tag
 
     initial_balance = 100.0
     currency = gift_card.currency
@@ -234,7 +254,7 @@ def test_update_gift_card_by_app(
     assert data["initialBalance"]["amount"] == initial_balance
     assert data["currentBalance"]["amount"] == initial_balance
 
-    assert len(data["events"]) == 2
+    assert len(data["events"]) == 3
     events = [
         {
             "type": GiftCardEvents.BALANCE_RESET.upper(),
@@ -260,6 +280,8 @@ def test_update_gift_card_by_app(
             },
             "expiryDate": None,
             "oldExpiryDate": None,
+            "tag": None,
+            "oldTag": None,
         },
         {
             "type": GiftCardEvents.EXPIRY_DATE_UPDATED.upper(),
@@ -268,6 +290,18 @@ def test_update_gift_card_by_app(
             "balance": None,
             "expiryDate": date_value.isoformat(),
             "oldExpiryDate": None,
+            "tag": None,
+            "oldTag": None,
+        },
+        {
+            "type": GiftCardEvents.TAG_UPDATED.upper(),
+            "user": None,
+            "app": {"name": app_api_client.app.name},
+            "balance": None,
+            "expiryDate": None,
+            "oldExpiryDate": None,
+            "tag": tag,
+            "oldTag": old_tag,
         },
     ]
     for event in data["events"]:
@@ -367,6 +401,8 @@ def test_update_gift_card_balance(
         },
         "expiryDate": None,
         "oldExpiryDate": None,
+        "tag": None,
+        "oldTag": None,
     }
     assert expected_event == data["events"][0]
 
@@ -421,6 +457,8 @@ def test_update_gift_card_change_to_never_expire(
         "app": None,
         "balance": None,
         "expiryDate": None,
+        "tag": None,
+        "oldTag": None,
         "oldExpiryDate": old_expiry_date.isoformat(),
     }
     assert expected_event == data["events"][0]
