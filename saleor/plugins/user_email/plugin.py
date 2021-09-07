@@ -1,6 +1,6 @@
 import logging
 from dataclasses import asdict, dataclass
-from typing import Optional
+from typing import Optional, Union
 
 from ...core.notify_events import NotifyEventType, UserNotifyEvent
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -433,7 +433,7 @@ class UserEmailPlugin(BasePlugin):
             send_gift_card=configuration[constants.SEND_GIFT_CARD_TEMPLATE_FIELD],
         )
 
-    def notify(self, event: NotifyEventType, payload: dict, previous_value):
+    def notify(self, event: Union[NotifyEventType, str], payload: dict, previous_value):
         if not self.active:
             return previous_value
         event_map = get_user_event_map()

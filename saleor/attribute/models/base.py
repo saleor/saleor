@@ -213,7 +213,14 @@ class AttributeValue(SortableModel):
     class Meta:
         ordering = ("sort_order", "pk")
         unique_together = ("slug", "attribute")
-        indexes = [GinIndex(fields=["name", "slug"])]
+        indexes = [
+            GinIndex(
+                name="attribute_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["name", "slug"],
+                opclasses=["gin_trgm_ops"] * 2,
+            )
+        ]
 
     def __str__(self) -> str:
         return self.name

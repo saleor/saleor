@@ -118,16 +118,13 @@ class PluginsManager(PaymentInterface):
         **kwargs
     ):
         """Try to run a method with the given name on each declared plugin."""
-        with opentracing.global_tracer().start_active_span(
-            f"PluginsManager.{method_name}"
-        ):
-            value = default_value
-            plugins = self.get_plugins(channel_slug=channel_slug)
-            for plugin in plugins:
-                value = self.__run_method_on_single_plugin(
-                    plugin, method_name, value, *args, **kwargs
-                )
-            return value
+        value = default_value
+        plugins = self.get_plugins(channel_slug=channel_slug)
+        for plugin in plugins:
+            value = self.__run_method_on_single_plugin(
+                plugin, method_name, value, *args, **kwargs
+            )
+        return value
 
     def __run_method_on_single_plugin(
         self,
@@ -967,8 +964,18 @@ class PluginsManager(PaymentInterface):
         event: "NotifyEventTypeChoice",
         payload: dict,
         channel_slug: Optional[str] = None,
+        plugin_id: Optional[str] = None,
     ):
         default_value = None
+        if plugin_id:
+            plugin = self.get_plugin(plugin_id, channel_slug=channel_slug)
+            return self.__run_method_on_single_plugin(
+                plugin=plugin,
+                method_name="notify",
+                previous_value=default_value,
+                event=event,
+                payload=payload,
+            )
         return self.__run_method_on_plugins(
             "notify", default_value, event, payload, channel_slug=channel_slug
         )

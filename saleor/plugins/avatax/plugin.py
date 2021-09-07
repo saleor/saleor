@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 
 import opentracing
 import opentracing.tags
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django_countries import countries
 from prices import Money, TaxedMoney, TaxedMoneyRange
@@ -203,15 +204,25 @@ class AvataxPlugin(BasePlugin):
         response = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
         if not response or "error" in response:
             return checkout_total
+
+        tax_included = (
+            lambda: Site.objects.get_current().settings.include_taxes_in_prices
+        )
+
         currency = response.get("currencyCode")
         tax = Decimal(response.get("totalTax", 0.0))
-        total_net = Decimal(response.get("totalAmount", 0.0))
-        total_gross = Money(amount=total_net + tax, currency=currency)
-        total_net = Money(amount=total_net, currency=currency)
-        taxed_total = TaxedMoney(net=total_net, gross=total_gross)
-        total = self._append_prices_of_not_taxed_lines(
-            taxed_total, lines, checkout_info.channel, discounts
-        )
+        if currency == "JPY" and tax_included():
+            total_gross = checkout_total.gross
+            total_net = Money(amount=total_gross.amount - tax, currency=currency)
+            total = TaxedMoney(net=total_net, gross=total_gross)
+        else:
+            total_net = Decimal(response.get("totalAmount", 0.0))
+            total_gross = Money(amount=total_net + tax, currency=currency)
+            total_net = Money(amount=total_net, currency=currency)
+            taxed_total = TaxedMoney(net=total_net, gross=total_gross)
+            total = self._append_prices_of_not_taxed_lines(
+                taxed_total, lines, checkout_info.channel, discounts
+            )
         voucher_value = checkout_info.checkout.discount
         if voucher_value:
             total -= voucher_value
@@ -228,8 +239,21 @@ class AvataxPlugin(BasePlugin):
                 shipping_tax = Decimal(line["tax"])
                 break
 
-        shipping_gross = Money(amount=shipping_net + shipping_tax, currency=currency)
-        shipping_net = Money(amount=shipping_net, currency=currency)
+        tax_included = (
+            lambda: Site.objects.get_current().settings.include_taxes_in_prices
+        )
+        if currency == "JPY" and tax_included():
+            shipping_gross = Money(
+                amount=shipping_price.gross.amount, currency=currency
+            )
+            shipping_net = Money(
+                amount=shipping_gross.amount - shipping_tax, currency=currency
+            )
+        else:
+            shipping_gross = Money(
+                amount=shipping_net + shipping_tax, currency=currency
+            )
+            shipping_net = Money(amount=shipping_net, currency=currency)
         return TaxedMoney(net=shipping_net, gross=shipping_gross)
 
     def calculate_checkout_shipping(
@@ -379,14 +403,20 @@ class AvataxPlugin(BasePlugin):
         if not taxes_data or "error" in taxes_data:
             return base_value
 
+        tax_included = (
+            lambda: Site.objects.get_current().settings.include_taxes_in_prices
+        )
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
             if line.get("itemCode") == item_code:
                 tax = Decimal(line.get("tax", 0.0))
                 net = Decimal(line["lineAmount"])
-
-                line_gross = Money(amount=net + tax, currency=currency)
-                line_net = Money(amount=net, currency=currency)
+                if currency == "JPY" and tax_included():
+                    line_gross = base_value.gross
+                    line_net = Money(amount=line_gross.amount - tax, currency=currency)
+                else:
+                    line_gross = Money(amount=net + tax, currency=currency)
+                    line_net = Money(amount=net, currency=currency)
                 return TaxedMoney(net=line_net, gross=line_gross)
 
         return base_value
@@ -436,14 +466,22 @@ class AvataxPlugin(BasePlugin):
     ):
         if taxes_data is None:
             return base_value
+
+        tax_included = (
+            lambda: Site.objects.get_current().settings.include_taxes_in_prices
+        )
         currency = taxes_data.get("currencyCode")
         for line_data in taxes_data.get("lines", []):
             if line_data.get("itemCode") == item_code:
                 tax = Decimal(line_data.get("tax", 0.0)) / line.quantity
                 net = Decimal(line_data.get("lineAmount", 0.0)) / line.quantity
 
-                gross = Money(amount=net + tax, currency=currency)
-                net = Money(amount=net, currency=currency)
+                if currency == "JPY" and tax_included():
+                    gross = base_value.gross
+                    net = Money(amount=gross.amount - tax, currency=currency)
+                else:
+                    gross = Money(amount=net + tax, currency=currency)
+                    net = Money(amount=net, currency=currency)
                 return TaxedMoney(net=net, gross=gross)
 
         return base_value
@@ -460,13 +498,21 @@ class AvataxPlugin(BasePlugin):
         if not _validate_order(order):
             return zero_taxed_money(order.total.currency)
         taxes_data = get_order_tax_data(order, self.config, False)
+
+        tax_included = (
+            lambda: Site.objects.get_current().settings.include_taxes_in_prices
+        )
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
             if line["itemCode"] == "Shipping":
                 tax = Decimal(line.get("tax", 0.0))
                 net = Decimal(line.get("lineAmount", 0.0))
-                gross = Money(amount=net + tax, currency=currency)
-                net = Money(amount=net, currency=currency)
+                if currency == "JPY" and tax_included():
+                    gross = previous_value.gross
+                    net = Money(amount=gross.amount - tax, currency=currency)
+                else:
+                    gross = Money(amount=net + tax, currency=currency)
+                    net = Money(amount=net, currency=currency)
                 return TaxedMoney(net=net, gross=gross)
         return TaxedMoney(
             # Ignore typing checks because it is checked in _validate_order

@@ -6,7 +6,7 @@ from prices import Money, TaxedMoney
 
 from ....core.prices import quantize_price
 from ....order.error_codes import OrderErrorCode
-from ....order.models import FulfillmentStatus
+from ....order.models import FulfillmentLine, FulfillmentStatus
 from ....payment import ChargeStatus, PaymentError
 from ....warehouse.models import Allocation, Stock
 from ...tests.utils import get_graphql_content
@@ -300,6 +300,61 @@ def test_fulfillment_refund_products_fulfillment_lines(
         payment_dummy,
         ANY,
         amount=fulfillment_line_to_refund.order_line.unit_price_gross_amount * 2,
+        channel_slug=fulfilled_order.channel.slug,
+    )
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_refund_products_waiting_fulfillment_lines(
+    mocked_refund,
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    payment_dummy,
+):
+    payment_dummy.total = fulfilled_order.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
+    fulfilled_order.payments.add(payment_dummy)
+    fulfillment_line_to_refund = fulfilled_order.fulfillments.first().lines.first()
+    fulfillment_line_to_refund.order_line.quantity_fulfilled = 0
+    fulfillment_line_to_refund.order_line.save(update_fields=["quantity_fulfilled"])
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    fulfillment_line_id = graphene.Node.to_global_id(
+        "FulfillmentLine", fulfillment_line_to_refund.pk
+    )
+    order_line_id = graphene.Node.to_global_id(
+        "OrderLine", fulfillment_line_to_refund.order_line.pk
+    )
+    variables = {
+        "order": order_id,
+        "input": {
+            "fulfillmentLines": [
+                {"fulfillmentLineId": fulfillment_line_id, "quantity": 3}
+            ]
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentRefundProducts"]
+    refund_fulfillment = data["fulfillment"]
+    errors = data["errors"]
+
+    assert not errors
+    assert refund_fulfillment["status"] == FulfillmentStatus.REFUNDED.upper()
+    assert len(refund_fulfillment["lines"]) == 1
+    assert refund_fulfillment["lines"][0]["orderLine"]["id"] == order_line_id
+    assert refund_fulfillment["lines"][0]["quantity"] == 3
+    assert not FulfillmentLine.objects.filter(pk=fulfillment_line_to_refund.pk).exists()
+    mocked_refund.assert_called_with(
+        payment_dummy,
+        ANY,
+        amount=fulfillment_line_to_refund.order_line.unit_price_gross_amount * 3,
         channel_slug=fulfilled_order.channel.slug,
     )
 

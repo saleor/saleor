@@ -167,7 +167,7 @@ def add_variants_to_checkout(
                 to_update.append(line)
             else:
                 to_delete.append(line)
-        else:
+        elif quantity > 0:
             to_create.append(
                 CheckoutLine(checkout=checkout, variant=variant, quantity=quantity)
             )

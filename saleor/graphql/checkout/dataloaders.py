@@ -26,7 +26,7 @@ class CheckoutByTokenLoader(DataLoader):
 
     def batch_load(self, keys):
         checkouts = Checkout.objects.filter(token__in=keys).in_bulk()
-        return [checkouts[token] for token in keys]
+        return [checkouts.get(token) for token in keys]
 
 
 class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
