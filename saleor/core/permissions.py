@@ -161,7 +161,7 @@ def get_permissions_from_codenames(permission_codenames: List[str]):
     )
 
 
-def _permission_required(perms, context):
+def permissions_required(perms, context):
     User = get_user_model()
     if isinstance(context, User):
         if context.has_perms(perms):
@@ -178,6 +178,6 @@ def has_one_of_permissions(requestor, permissions=None):
     if not permissions:
         return True
     for perm in permissions:
-        if _permission_required((perm,), requestor):
+        if permissions_required((perm,), requestor):
             return True
     return False
