@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
 from decimal import Decimal
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 
 import stripe
@@ -176,6 +176,26 @@ def create_payment_intent(
             "Failed to create Stripe payment intent", extra=_extra_log_data(error)
         )
         return None, error
+
+
+def update_payment_method(
+    api_key: str,
+    payment_method_id: str,
+    channel_slug: str,
+    metadata: Dict[str, str] = None,
+):
+    with stripe_opentracing_trace("stripe.PaymentMethod.modify"):
+        try:
+            stripe.PaymentMethod.modify(
+                payment_method_id,
+                api_key=api_key,
+                metadata={**(metadata or {}), "channel": channel_slug},
+            )
+        except StripeError as error:
+            logger.warning(
+                "Failed to assign channel slug to payment method",
+                extra=_extra_log_data(error),
+            )
 
 
 def list_customer_payment_methods(
