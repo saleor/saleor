@@ -2449,6 +2449,7 @@ input GiftCardFilterInput {
   tags: [String]
   products: [ID]
   usedBy: [ID]
+  used: Boolean
   currency: String
   currentBalance: PriceRangeInput
   initialBalance: PriceRangeInput
