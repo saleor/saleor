@@ -805,6 +805,15 @@ def _move_fulfillment_lines_to_target_fulfillment(
         moved_line.quantity += fulfilled_to_move
         fulfillment_line.quantity -= fulfilled_to_move
 
+        # Fulfillments waiting for approval do not count in quantity_fulfilled of order
+        # in the first place, so we need to increase it.
+        if (
+            fulfillment_line.fulfillment.status
+            == FulfillmentStatus.WAITING_FOR_APPROVAL
+        ):
+            fulfillment_line.order_line.quantity_fulfilled += fulfilled_to_move
+            fulfillment_line.order_line.save(update_fields=["quantity_fulfilled"])
+
         if fulfillment_line.quantity == 0:
             # the fulfillment line without any items will be deleted
             empty_fulfillment_lines_to_delete.append(fulfillment_line)
@@ -897,8 +906,14 @@ def create_refund_fulfillment(
             target_fulfillment=refunded_fulfillment,
         )
 
+        # Delete fulfillments without lines after lines are moved.
         Fulfillment.objects.filter(
-            order=order, lines=None, status=FulfillmentStatus.FULFILLED
+            order=order,
+            lines=None,
+            status__in=[
+                FulfillmentStatus.FULFILLED,
+                FulfillmentStatus.WAITING_FOR_APPROVAL,
+            ],
         ).delete()
         transaction.on_commit(lambda: manager.order_updated(order))
 
