@@ -250,6 +250,10 @@ class GiftCardUpdate(GiftCardCreate):
             events.gift_card_expiry_date_updated_event(
                 instance, old_instance, info.context.user, info.context.app
             )
+        if "tag" in cleaned_input:
+            events.gift_card_tag_updated_event(
+                instance, old_instance, info.context.user, info.context.app
+            )
 
         return cls.success_response(instance)
 
