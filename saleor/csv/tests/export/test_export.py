@@ -321,7 +321,7 @@ def test_export_gift_cards(
     assert export_in_batches_mock.call_count == 1
     args, kwargs = export_in_batches_mock.call_args
     assert set(args[0].values_list("pk", flat=True)) == set(
-        GiftCard.objects.all().values_list("pk", flat=True)
+        GiftCard.objects.exclude(id=gift_card_used.id).values_list("pk", flat=True)
     )
     assert args[1:] == (
         ["code"],
@@ -363,7 +363,7 @@ def test_export_gift_cards_by_app(
     assert export_in_batches_mock.call_count == 1
     args, kwargs = export_in_batches_mock.call_args
     assert set(args[0].values_list("pk", flat=True)) == set(
-        GiftCard.objects.all().values_list("pk", flat=True)
+        GiftCard.objects.exclude(id=gift_card_used.id).values_list("pk", flat=True)
     )
     assert args[1:] == (
         ["code"],
@@ -395,7 +395,7 @@ def test_export_gift_cards_ids(
 
     mock_file = MagicMock(spec=File)
     create_file_with_headers_mock.return_value = mock_file
-    pks = [gift_card.pk, gift_card_used.pk]
+    pks = [gift_card.pk]
 
     # when
     export_gift_cards(user_export_file, {"ids": pks}, file_type)
@@ -431,19 +431,26 @@ def test_export_gift_cards_with_filter(
     gift_card,
     gift_card_expiry_date,
     gift_card_used,
+    shippable_gift_card_product,
 ):
     file_type = FileTypes.CSV
 
     mock_file = MagicMock(spec=File)
     create_file_with_headers_mock.return_value = mock_file
 
+    gift_card_expiry_date.product = shippable_gift_card_product
+    gift_card_used.product = shippable_gift_card_product
+    GiftCard.objects.bulk_update([gift_card_expiry_date, gift_card_used], ["product"])
+
     # when
     export_gift_cards(
         user_export_file,
         {
             "filter": {
-                "used_by": [
-                    graphene.Node.to_global_id("User", gift_card_used.used_by.pk)
+                "products": [
+                    graphene.Node.to_global_id(
+                        "Product", shippable_gift_card_product.pk
+                    )
                 ]
             }
         },
@@ -455,7 +462,7 @@ def test_export_gift_cards_with_filter(
 
     assert export_in_batches_mock.call_count == 1
     args, kwargs = export_in_batches_mock.call_args
-    assert set(args[0].values_list("pk", flat=True)) == {gift_card_used.pk}
+    assert set(args[0].values_list("pk", flat=True)) == {gift_card_expiry_date.pk}
     assert args[1:] == (
         ["code"],
         ",",
@@ -789,7 +796,7 @@ def test_export_gift_cards_in_batches_to_csv(
     tmpdir,
 ):
     # given
-    gift_cards = GiftCard.objects.all().order_by("pk")
+    gift_cards = GiftCard.objects.exclude(id=gift_card_used.id).order_by("pk")
 
     table = etl.wrap([["code"]])
     temp_file = NamedTemporaryFile()
@@ -824,7 +831,7 @@ def test_export_gift_cards_in_batches_to_xlsx(
     tmpdir,
 ):
     # given
-    gift_cards = GiftCard.objects.all().order_by("pk")
+    gift_cards = GiftCard.objects.exclude(id=gift_card_used.id).order_by("pk")
 
     table = etl.wrap([["code"]])
     temp_file = NamedTemporaryFile(suffix=".xlsx")
