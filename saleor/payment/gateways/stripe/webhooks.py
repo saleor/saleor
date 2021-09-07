@@ -79,7 +79,11 @@ def handle_webhook(
     if event.type in webhook_handlers:
         logger.debug(
             "Processing new Stripe webhook",
-            extra={"event_type": event.type, "event_id": event.id},
+            extra={
+                "event_type": event.type,
+                "event_id": event.id,
+                "channel_slug": channel_slug,
+            },
         )
         webhook_handlers[event.type](event.data.object, gateway_config, channel_slug)
     else:
