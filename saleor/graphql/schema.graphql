@@ -2103,6 +2103,29 @@ type ExternalLogout {
   errors: [AccountError!]!
 }
 
+type ExternalNotificationError {
+  field: String
+  message: String
+  code: ExternalNotificationErrorCodes!
+}
+
+enum ExternalNotificationErrorCodes {
+  REQUIRED
+  INVALID_MODEL_TYPE
+  NOT_FOUND
+  CHANNEL_INACTIVE
+}
+
+type ExternalNotificationTrigger {
+  errors: [ExternalNotificationError!]!
+}
+
+input ExternalNotificationTriggerInput {
+  ids: [ID]!
+  extraPayload: JSONString
+  externalEventType: String!
+}
+
 type ExternalObtainAccessTokens {
   token: String
   refreshToken: String
@@ -3839,6 +3862,7 @@ type Mutation {
   giftCardBulkActivate(ids: [ID]!): GiftCardBulkActivate
   giftCardBulkDeactivate(ids: [ID]!): GiftCardBulkDeactivate
   pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
+  externalNotificationTrigger(channel: String!, input: ExternalNotificationTriggerInput!, pluginId: String): ExternalNotificationTrigger
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
@@ -3861,7 +3885,7 @@ type Mutation {
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID, token: UUID): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
-  checkoutCustomerAttach(checkoutId: ID, token: UUID): CheckoutCustomerAttach
+  checkoutCustomerAttach(checkoutId: ID, customerId: ID, token: UUID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID, token: UUID): CheckoutCustomerDetach
   checkoutEmailUpdate(checkoutId: ID, email: String!, token: UUID): CheckoutEmailUpdate
   checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete
@@ -4913,6 +4937,7 @@ type Permission {
 enum PermissionEnum {
   MANAGE_USERS
   MANAGE_STAFF
+  IMPERSONATE_USER
   MANAGE_APPS
   MANAGE_CHANNELS
   MANAGE_DISCOUNTS

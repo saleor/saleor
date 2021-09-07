@@ -1,8 +1,9 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from ...app.models import App
+from ...core.notify_events import NotifyEventType
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
 from ...webhook.event_types import WebhookEventType
@@ -32,7 +33,6 @@ from .utils import (
 if TYPE_CHECKING:
     from ...account.models import User
     from ...checkout.models import Checkout
-    from ...core.notify_events import NotifyEventType
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
@@ -239,12 +239,22 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.CHECKOUT_UPDATED, checkout_data
         )
 
-    def notify(self, event: "NotifyEventType", payload: dict, previous_value) -> Any:
+    def notify(
+        self, event: Union[NotifyEventType, str], payload: dict, previous_value
+    ) -> Any:
         if not self.active:
             return previous_value
+
+        notify_user_event = WebhookEventType.NOTIFY_USER
         data = {"notify_event": event, "payload": payload}
+
+        if event not in NotifyEventType.CHOICES:
+            logger.info(
+                f"Webhook {notify_user_event} triggered for {event} notify event."
+            )
+
         trigger_webhooks_for_event.delay(
-            WebhookEventType.NOTIFY_USER, json.dumps(data, cls=CustomJsonEncoder)
+            notify_user_event, json.dumps(data, cls=CustomJsonEncoder)
         )
 
     def page_created(self, page: "Page", previous_value: Any) -> Any:

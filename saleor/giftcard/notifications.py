@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from ..account.notifications import get_default_user_payload
-from ..core.notifications import get_site_context
+from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 
 if TYPE_CHECKING:
