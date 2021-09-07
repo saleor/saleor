@@ -248,8 +248,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                         payment.order,
                         None,
                         None,
-                        new_transaction.amount,
-                        payment,
+                        [{"amount": new_transaction.amount, "payment": payment}],
                         manager,
                     )
                 else:
@@ -344,7 +343,11 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         if new_transaction.is_success and not capture_transaction:
             gateway_postprocess(new_transaction, payment)
             order_captured(
-                payment.order, None, None, new_transaction.amount, payment, manager
+                payment.order,
+                None,
+                None,
+                [{"amount": new_transaction.amount, "payment": payment}],
+                manager,
             )
 
     reason = notification.get("reason", "-")

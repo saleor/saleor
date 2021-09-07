@@ -969,6 +969,20 @@ ORDER_CONFIRM_MUTATION = """
 """
 
 
+@pytest.mark.parametrize(
+    (
+        "payment_totals, event_count, "
+        "payment_to_test_idx, expected_exists, expected_amount"
+    ),
+    [
+        ([Decimal("98.400")], 2, 0, True, Money("98.400", "USD")),
+        ([Decimal("98.400"), Decimal("88.400")], 2, 0, True, Money("98.400", "USD")),
+        ([Decimal("98.400"), Decimal("88.400")], 2, 1, False, None),
+        ([Decimal("88.400"), Decimal("20.000")], 3, 0, True, Money("88.400", "USD")),
+        ([Decimal("88.400"), Decimal("20.000")], 3, 1, True, Money("10.000", "USD")),
+        ([Decimal("88.400"), Decimal("5.000")], 3, 1, True, Money("5.00", "USD")),
+    ],
+)
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch("saleor.payment.gateway.capture")
 def test_order_confirm(
@@ -977,10 +991,21 @@ def test_order_confirm(
     staff_api_client,
     order_unconfirmed,
     permission_manage_orders,
-    payment_txn_preauth,
+    payment_txn_preauth_factory,
+    payment_totals,
+    event_count,
+    payment_to_test_idx,
+    expected_exists,
+    expected_amount,
 ):
-    payment_txn_preauth.order = order_unconfirmed
-    payment_txn_preauth.save()
+    payments = []
+    for payment_totals in payment_totals:
+        payment_txn_preauth = payment_txn_preauth_factory()
+        payment_txn_preauth.order = order_unconfirmed
+        payment_txn_preauth.total = payment_totals
+        payment_txn_preauth.currency = "USD"
+        payment_txn_preauth.save()
+        payments.append(payment_txn_preauth)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     assert not OrderEvent.objects.exists()
     response = staff_api_client.post_graphql(
@@ -992,23 +1017,40 @@ def test_order_confirm(
     assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
     order_unconfirmed.refresh_from_db()
     assert order_unconfirmed.status == OrderStatus.UNFULFILLED
-    assert OrderEvent.objects.count() == 2
+    assert OrderEvent.objects.count() == event_count
     assert OrderEvent.objects.filter(
         order=order_unconfirmed,
         user=staff_api_client.user,
         type=order_events.OrderEvents.CONFIRMED,
     ).exists()
 
-    assert OrderEvent.objects.filter(
-        order=order_unconfirmed,
-        user=staff_api_client.user,
-        type=order_events.OrderEvents.PAYMENT_CAPTURED,
-        parameters__amount=payment_txn_preauth.get_total().amount,
-    ).exists()
-
-    capture_mock.assert_called_once_with(
-        payment_txn_preauth, ANY, channel_slug=order_unconfirmed.channel.slug
+    payment_txn_preauth_to_test = payments[payment_to_test_idx]
+    assert (
+        OrderEvent.objects.filter(
+            order=order_unconfirmed,
+            user=staff_api_client.user,
+            type=order_events.OrderEvents.PAYMENT_CAPTURED,
+            parameters__amount=payment_txn_preauth_to_test.get_total().amount,
+        ).exists()
+        == expected_exists
     )
+
+    if expected_exists:
+        capture_mock.assert_any_call(
+            payment_txn_preauth_to_test,
+            ANY,
+            channel_slug=order_unconfirmed.channel.slug,
+            amount=expected_amount,
+        )
+    else:
+        with pytest.raises(AssertionError):
+            capture_mock.assert_any_call(
+                payment_txn_preauth_to_test,
+                ANY,
+                channel_slug=order_unconfirmed.channel.slug,
+                amount=expected_amount,
+            )
+
     expected_payload = {
         "order": get_default_order_payload(order_unconfirmed, ""),
         "recipient_email": order_unconfirmed.user.email,
@@ -7002,3 +7044,39 @@ def test_order_shipping_update_mutation_properly_recalculate_total(
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["order"]["shippingMethod"] is None
+
+
+@pytest.mark.parametrize(
+    "is_active, excpected_in",
+    [
+        (True, True),
+        (False, False),
+    ],
+)
+def test_order_active_payments(order, payment_dummy, is_active, excpected_in):
+    # given
+    payment_dummy.order = order
+    payment_dummy.is_active = is_active
+    payment_dummy.save()
+
+    # when
+    payments = order.get_active_payments()
+
+    # then
+    assert (payment_dummy in payments) == excpected_in
+
+
+def test_order_missing_amount_to_be_paid(order):
+    # given
+    order.total = TaxedMoney(
+        net=Money(amount=50, currency="USD"), gross=Money(amount=100, currency="USD")
+    )
+    order.total_paid = Money(amount=70, currency="USD")
+    order.save()
+    order.refresh_from_db()
+
+    # when
+    to_pay = order.missing_amount_to_be_paid()
+
+    # then
+    assert to_pay == Money(amount=30, currency="USD")

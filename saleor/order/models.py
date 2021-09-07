@@ -252,6 +252,9 @@ class Order(ModelWithMetadata):
     def is_fully_paid(self):
         return self.total_paid >= self.total.gross
 
+    def missing_amount_to_be_paid(self):
+        return self.total.gross - self.total_paid
+
     def is_partly_paid(self):
         return self.total_paid_amount > 0
 
@@ -278,6 +281,9 @@ class Order(ModelWithMetadata):
 
     def get_last_payment(self):
         return max(self.payments.all(), default=None, key=attrgetter("pk"))
+
+    def get_active_payments(self):
+        return self.payments.filter(is_active=True).order_by("pk")
 
     def is_pre_authorized(self):
         return (

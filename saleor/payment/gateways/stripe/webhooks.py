@@ -309,8 +309,7 @@ def handle_successful_payment_intent(
                 payment.order,  # type: ignore
                 None,
                 None,
-                capture_transaction.amount,
-                payment,
+                [{"amount": capture_transaction.amount, "payment": payment}],
                 get_plugins_manager(),
             )
         return

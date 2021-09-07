@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 from copy import deepcopy
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, TypedDict
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -89,8 +89,7 @@ def order_created(
                 order=order,
                 user=user,
                 app=app,
-                amount=payment.total,
-                payment=payment,
+                amounts_and_payments=[{"amount": payment.total, "payment": payment}],
                 manager=manager,
             )
         elif order.is_pre_authorized():
@@ -272,17 +271,26 @@ def order_authorized(
     manager.order_updated(order)
 
 
+class AmountPayment(TypedDict):
+    amount: "Decimal"
+    payment: "Payment"
+
+
 def order_captured(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    amount: "Decimal",
-    payment: "Payment",
+    amounts_and_payments: List[AmountPayment],
     manager: "PluginsManager",
 ):
-    events.payment_captured_event(
-        order=order, user=user, app=app, amount=amount, payment=payment
-    )
+    for amount_and_payment in amounts_and_payments:
+        events.payment_captured_event(
+            order=order,
+            user=user,
+            app=app,
+            amount=amount_and_payment["amount"],
+            payment=amount_and_payment["payment"],
+        )
     manager.order_updated(order)
     if order.is_fully_paid():
         handle_fully_paid_order(manager, order, user, app)
