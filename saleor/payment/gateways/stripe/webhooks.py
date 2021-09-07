@@ -26,7 +26,7 @@ from .consts import (
     WEBHOOK_REFUND_EVENT,
     WEBHOOK_SUCCESS_EVENT,
 )
-from .stripe_api import construct_stripe_event
+from .stripe_api import construct_stripe_event, update_payment_method
 
 logger = logging.getLogger(__name__)
 
@@ -183,30 +183,22 @@ def _process_payment_with_checkout(
         _finalize_checkout(checkout, payment, payment_intent, kind, amount, currency)
 
 
-def _update_payment_intent_metadata_from_database(
+def _update_payment_method_metadata(
     payment: Payment,
     payment_intent: StripeObject,
+    gateway_config: "GatewayConfig",
+    channel_slug: str,
 ) -> None:
+    api_key = gateway_config.connection_params["secret_api_key"]
     metadata = payment.metadata
-    if metadata is None:
-        return
 
-    if payment_intent.get("metadata") is not None:
-        payment_intent.metadata |= metadata
-    else:
-        payment_intent.metadata = metadata
-
-    payment_method = payment_intent.get("payment_method")
-
-    if payment_method is not None:
-        payment_method.metadata = metadata
-    else:
-        payment_intent.payment_method = StripeObject()
-        payment_intent.payment_method.metadata = metadata
+    update_payment_method(
+        api_key, payment_intent.payment_method, channel_slug, metadata
+    )
 
 
 def handle_authorized_payment_intent(
-    payment_intent: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
+    payment_intent: StripeObject, gateway_config: "GatewayConfig", channel_slug: str
 ):
     payment = _get_payment(payment_intent.id)
 
@@ -217,7 +209,9 @@ def handle_authorized_payment_intent(
         )
         return
 
-    _update_payment_intent_metadata_from_database(payment, payment_intent)
+    _update_payment_method_metadata(
+        payment, payment_intent, gateway_config, channel_slug
+    )
 
     if payment.order_id:
         if payment.charge_status == ChargeStatus.PENDING:
@@ -300,7 +294,9 @@ def handle_successful_payment_intent(
         )
         return
 
-    _update_payment_intent_metadata_from_database(payment, payment_intent)
+    _update_payment_method_metadata(
+        payment, payment_intent, gateway_config, channel_slug
+    )
 
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:
