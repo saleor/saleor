@@ -44,6 +44,7 @@ CREATE_GIFT_CARD_MUTATION = """
                 }
                 events {
                     type
+                    message
                     user {
                         email
                     }
@@ -94,6 +95,7 @@ def test_create_never_expiry_gift_card(
     initial_balance = 100
     currency = "USD"
     tag = "gift-card-tag"
+    note = "This is gift card note that will be save in gift card event."
     variables = {
         "input": {
             "balance": {
@@ -103,7 +105,7 @@ def test_create_never_expiry_gift_card(
             "userEmail": customer_user.email,
             "channel": channel_USD.slug,
             "tag": tag,
-            "note": "This is gift card note that will be save in gift card event.",
+            "note": note,
             "isActive": True,
         }
     }
@@ -139,8 +141,8 @@ def test_create_never_expiry_gift_card(
     assert data["initialBalance"]["amount"] == initial_balance
     assert data["currentBalance"]["amount"] == initial_balance
 
-    assert len(data["events"]) == 1
-    created_event = data["events"][0]
+    assert len(data["events"]) == 2
+    created_event, note_added = data["events"]
 
     assert created_event["type"] == GiftCardEvents.ISSUED.upper()
     assert created_event["user"]["email"] == staff_api_client.user.email
@@ -151,6 +153,11 @@ def test_create_never_expiry_gift_card(
     assert created_event["balance"]["currentBalance"]["currency"] == currency
     assert not created_event["balance"]["oldInitialBalance"]
     assert not created_event["balance"]["oldCurrentBalance"]
+
+    assert note_added["type"] == GiftCardEvents.NOTE_ADDED.upper()
+    assert note_added["user"]["email"] == staff_api_client.user.email
+    assert not note_added["app"]
+    assert note_added["message"] == note
 
     gift_card = GiftCard.objects.get()
     send_notification_mock.assert_called_once_with(
@@ -177,6 +184,7 @@ def test_create_gift_card_by_app(
     initial_balance = 100
     currency = "USD"
     tag = "gift-card-tag"
+    note = "This is gift card note that will be save in gift card event."
     variables = {
         "input": {
             "balance": {
@@ -184,7 +192,7 @@ def test_create_gift_card_by_app(
                 "currency": currency,
             },
             "tag": tag,
-            "note": "This is gift card note that will be save in gift card event.",
+            "note": note,
             "expiryDate": None,
             "isActive": False,
         }
@@ -217,8 +225,8 @@ def test_create_gift_card_by_app(
     assert data["initialBalance"]["amount"] == initial_balance
     assert data["currentBalance"]["amount"] == initial_balance
 
-    assert len(data["events"]) == 1
-    created_event = data["events"][0]
+    assert len(data["events"]) == 2
+    created_event, note_added = data["events"]
 
     assert created_event["type"] == GiftCardEvents.ISSUED.upper()
     assert not created_event["user"]
@@ -229,6 +237,11 @@ def test_create_gift_card_by_app(
     assert created_event["balance"]["currentBalance"]["currency"] == currency
     assert not created_event["balance"]["oldInitialBalance"]
     assert not created_event["balance"]["oldCurrentBalance"]
+
+    assert note_added["type"] == GiftCardEvents.NOTE_ADDED.upper()
+    assert not note_added["user"]
+    assert note_added["app"]["name"] == app_api_client.app.name
+    assert note_added["message"] == note
 
     send_notification_mock.assert_not_called()
 
@@ -499,7 +512,6 @@ def test_create_gift_card_with_expiry_date(
             "userEmail": customer_user.email,
             "channel": channel_USD.slug,
             "tag": tag,
-            "note": "This is gift card note that will be save in gift card event.",
             "expiryDate": date_value,
             "isActive": True,
         }

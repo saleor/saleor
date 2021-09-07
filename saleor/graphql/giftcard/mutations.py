@@ -183,11 +183,17 @@ class GiftCardCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
+        user = info.context.user
+        app = info.context.app
         events.gift_card_issued_event(
             gift_card=instance,
-            user=info.context.user,
-            app=info.context.app,
+            user=user,
+            app=app,
         )
+        if note := cleaned_input.get("note"):
+            events.gift_card_note_added_event(
+                gift_card=instance, user=user, app=app, message=note
+            )
         if email := cleaned_input.get("user_email"):
             send_gift_card_notification(
                 cleaned_input.get("created_by"),
