@@ -68,7 +68,11 @@ def export_gift_cards(
     from ...graphql.giftcard.filters import GiftCardFilter
 
     file_name = get_filename("gift_card", file_type)
+
     queryset = get_queryset(GiftCard, GiftCardFilter, scope)
+    # only unused gift cards codes can be exported
+    queryset = queryset.filter(used_by_email__isnull=True)
+
     export_fields = ["code"]
     temporary_file = create_file_with_headers(export_fields, delimiter, file_type)
 
