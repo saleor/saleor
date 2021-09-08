@@ -183,7 +183,10 @@ def test_retrieve_payment_intent(mocked_payment_intent):
     intent, _ = retrieve_payment_intent(api_key, payment_intent_id)
 
     mocked_payment_intent.retrieve.assert_called_with(
-        payment_intent_id, api_key=api_key, stripe_version=STRIPE_API_VERSION
+        payment_intent_id,
+        api_key=api_key,
+        stripe_version=STRIPE_API_VERSION,
+        expand=["payment_method"],
     )
     assert isinstance(intent, StripeObject)
 
@@ -201,7 +204,10 @@ def test_retrieve_payment_intent_stripe_returns_error(mocked_payment_intent):
     _, error = retrieve_payment_intent(api_key, payment_intent_id)
 
     mocked_payment_intent.retrieve.assert_called_with(
-        payment_intent_id, api_key=api_key, stripe_version=STRIPE_API_VERSION
+        payment_intent_id,
+        api_key=api_key,
+        stripe_version=STRIPE_API_VERSION,
+        expand=["payment_method"],
     )
 
     assert error == expected_error
@@ -226,6 +232,7 @@ def test_capture_payment_intent(mocked_payment_intent):
         amount_to_capture=amount,
         api_key=api_key,
         stripe_version=STRIPE_API_VERSION,
+        expand=["payment_method"],
     )
     assert isinstance(intent, StripeObject)
 
@@ -250,6 +257,7 @@ def test_capture_payment_intent_stripe_returns_error(mocked_payment_intent):
         amount_to_capture=amount,
         api_key=api_key,
         stripe_version=STRIPE_API_VERSION,
+        expand=["payment_method"],
     )
 
     assert error == expected_error
