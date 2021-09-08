@@ -2225,7 +2225,6 @@ def test_checkout_shipping_address_update_with_reserved_stocks(
     shipping_address["countryArea"] = "New York"
     shipping_address["postalCode"] = "10001"
     variables = {"token": checkout.token, "shippingAddress": shipping_address}
-
     other_checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
     other_checkout_line = other_checkout.lines.create(
         variant=variant,

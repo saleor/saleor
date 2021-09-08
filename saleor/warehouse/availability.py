@@ -166,7 +166,7 @@ def check_stock_quantity_bulk(
 
     if check_reservations:
         variant_reservations = get_reserved_quantity_bulk(
-            all_variants_stocks, existing_lines
+            all_variants_stocks, existing_lines or []
         )
     else:
         variant_reservations = defaultdict(int)

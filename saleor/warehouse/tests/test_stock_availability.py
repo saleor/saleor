@@ -1,5 +1,6 @@
 import pytest
 
+from ...checkout.fetch import fetch_checkout_lines
 from ...core.exceptions import InsufficientStock
 from ..availability import (
     _get_available_quantity,
@@ -284,16 +285,14 @@ def test_check_stock_quantity_bulk_with_reservations(
         )
 
     # test that it passes if checkout lines are excluded
+    checkout_lines = fetch_checkout_lines(checkout_line_with_one_reservation.checkout)
     assert (
         check_stock_quantity_bulk(
             [variant_with_many_stocks],
             country_code,
             [available_quantity + 1],
             channel_USD.slug,
-            [
-                checkout_line_with_reservation_in_many_stocks,
-                checkout_line_with_one_reservation,
-            ],
+            existing_lines=checkout_lines,
             check_reservations=True,
         )
         is None

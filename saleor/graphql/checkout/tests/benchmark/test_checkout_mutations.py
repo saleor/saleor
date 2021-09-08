@@ -706,7 +706,7 @@ def test_update_checkout_lines_with_reservations(
         site_settings=site_settings_with_reservations,
     )
 
-    with django_assert_num_queries(55):
+    with django_assert_num_queries(54):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "token": checkout.token,
@@ -720,7 +720,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(55):
+    with django_assert_num_queries(54):
         variables = {
             "token": checkout.token,
             "lines": [],

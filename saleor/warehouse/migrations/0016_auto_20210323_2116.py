@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("checkout", "0034_remove_checkout_quantity"),
-        ("warehouse", "0014_remove_warehouse_company_name"),
+        ("warehouse", "0015_auto_20210713_0904"),
     ]
 
     operations = [

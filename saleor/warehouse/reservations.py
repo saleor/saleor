@@ -82,23 +82,23 @@ def reserve_stocks(
         variant = stock_data.pop("product_variant")
         variant_to_stocks[variant].append(StockData(**stock_data))
 
-    insufficient_stock: List[InsufficientStockData] = []
+    insufficient_stocks: List[InsufficientStockData] = []
     reservations: List[Reservation] = []
     for line in checkout_lines:
         stock_reservations = variant_to_stocks[line.variant_id]
-        insufficient_stock, reserved_items = _create_reservations(
+        insufficient_stocks, reserved_items = _create_reservations(
             line,
             variants_map[line.variant_id],
             stock_reservations,
             quantity_allocation_for_stocks,
             quantity_reservation_for_stocks,
-            insufficient_stock,
+            insufficient_stocks,
             reserved_until,
         )
         reservations.extend(reserved_items)
 
-    if insufficient_stock:
-        raise InsufficientStock(insufficient_stock)
+    if insufficient_stocks:
+        raise InsufficientStock(insufficient_stocks)
 
     if reservations:
         if replace:
@@ -112,7 +112,7 @@ def _create_reservations(
     stocks: List[StockData],
     quantity_allocation_for_stocks: dict,
     quantity_reservation_for_stocks: dict,
-    insufficient_stock: List[InsufficientStockData],
+    insufficient_stocks: List[InsufficientStockData],
     reserved_until: datetime,
 ) -> Tuple[List[InsufficientStockData], List[Reservation]]:
     quantity = line.quantity
@@ -148,13 +148,16 @@ def _create_reservations(
 
             quantity_reserved += quantity_to_reserve
             if quantity_reserved == quantity:
-                return insufficient_stock, reservations
+                return insufficient_stocks, reservations
 
     if not quantity_reserved == quantity:
-        insufficient_stock.append(
-            InsufficientStockData(variant=variant, checkout_line=line)  # type: ignore
+        insufficient_stocks.append(
+            InsufficientStockData(
+                variant=variant,
+                available_quantity=quantity,
+            )  # type: ignore
         )
-        return insufficient_stock, []
+        return insufficient_stocks, []
 
     return [], []
 

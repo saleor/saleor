@@ -7,9 +7,6 @@ from django.db.models import Exists, OuterRef
 
 from ...channel.models import Channel
 from ...warehouse.models import Reservation, ShippingZone, Stock, Warehouse
-from ..account.dataloaders import AddressByIdLoader
-from ..channel.dataloaders import ChannelBySlugLoader
-from ..checkout.dataloaders import CheckoutLinesByCheckoutTokenLoader
 from ..core.dataloaders import DataLoader
 
 CountryCode = Optional[str]
@@ -213,6 +210,8 @@ class StocksReservationsByCheckoutTokenLoader(DataLoader):
     context_key = "stock_reservations_by_checkout_token"
 
     def batch_load(self, keys):
+        from ..checkout.dataloaders import CheckoutLinesByCheckoutTokenLoader
+
         def with_checkouts_lines(checkouts_lines):
             checkouts_keys_map = {}
             for i, key in enumerate(keys):

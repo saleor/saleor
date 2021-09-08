@@ -9,7 +9,7 @@ from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone
 
-from ..account.models import Addressą
+from ..account.models import Address
 from ..channel.models import Channel
 from ..checkout.models import CheckoutLine
 from ..core.models import ModelWithMetadata
@@ -331,6 +331,6 @@ class Reservation(models.Model):
     class Meta:
         unique_together = [["checkout_line", "stock"]]
         indexes = [
-            models.Index(fields=['checkout_line', 'reserved_until']),
+            models.Index(fields=["checkout_line", "reserved_until"]),
         ]
         ordering = ("pk",)
