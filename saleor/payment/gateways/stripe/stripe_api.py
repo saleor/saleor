@@ -223,6 +223,7 @@ def retrieve_payment_intent(
                 payment_intent_id,
                 api_key=api_key,
                 stripe_version=STRIPE_API_VERSION,
+                expand=["payment_method"],
             )
         return payment_intent, None
     except StripeError as error:
@@ -243,6 +244,7 @@ def capture_payment_intent(
                 amount_to_capture=amount_to_capture,
                 api_key=api_key,
                 stripe_version=STRIPE_API_VERSION,
+                expand=["payment_method"],
             )
         return payment_intent, None
     except StripeError as error:
