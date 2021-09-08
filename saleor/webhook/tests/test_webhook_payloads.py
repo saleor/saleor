@@ -126,6 +126,7 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
         ]
     )
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
+
     assert payload == {
         "currency": "USD",
         "product_name": line.product_name,
