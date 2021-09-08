@@ -8,7 +8,7 @@ from ....core.exceptions import InsufficientStock, InsufficientStockData
 from ....order import OrderStatus
 from ....order.error_codes import OrderErrorCode
 from ....order.events import OrderEvents
-from ....order.models import Fulfillment, FulfillmentStatus
+from ....order.models import Fulfillment, FulfillmentLine, FulfillmentStatus
 from ....warehouse.models import Allocation, Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -126,6 +126,59 @@ def test_order_fulfill(
         True,
         approved=fulfillment_auto_approve,
     )
+
+
+@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
+def test_order_fulfill_above_available_quantity(
+    mock_create_fulfillments,
+    staff_api_client,
+    staff_user,
+    order_with_lines,
+    permission_manage_orders,
+    warehouse,
+):
+    order = order_with_lines
+    query = ORDER_FULFILL_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_line, order_line2 = order.lines.all()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    fulfillment = Fulfillment.objects.create(
+        order=order, status=FulfillmentStatus.WAITING_FOR_APPROVAL
+    )
+    FulfillmentLine.objects.create(
+        order_line=order_line,
+        quantity=1,
+        stock=warehouse.stock_set.first(),
+        fulfillment_id=fulfillment.pk,
+    )
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": True,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
+                },
+                {
+                    "orderLineId": order_line2_id,
+                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                },
+            ],
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfill"]
+    error = data["errors"][0]
+    assert error["field"] == "orderLineId"
+    assert error["code"] == OrderErrorCode.FULFILL_ORDER_LINE.name
+
+    mock_create_fulfillments.assert_not_called()
 
 
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
