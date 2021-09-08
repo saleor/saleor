@@ -1272,7 +1272,12 @@ def create_fulfillments_for_returned_products(
             manager=manager,
         )
         Fulfillment.objects.filter(
-            order=order, lines=None, status=FulfillmentStatus.FULFILLED
+            order=order,
+            lines=None,
+            status__in=[
+                FulfillmentStatus.FULFILLED,
+                FulfillmentStatus.WAITING_FOR_APPROVAL,
+            ],
         ).delete()
 
         transaction.on_commit(lambda: manager.order_updated(order))
