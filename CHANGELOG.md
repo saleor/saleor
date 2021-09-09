@@ -2,8 +2,6 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-
-# 3.1.0 [Unreleased]
 # 3.1.0 [Unreleased]
 - Extend app by `AppExtension` - #7701 by @korycins
 - Add ExternalNotificationTrigger mutation - #7821 by @mstrumeck
