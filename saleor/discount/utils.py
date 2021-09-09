@@ -212,14 +212,11 @@ def fetch_collections(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
 
 
 def fetch_products(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
-    products = (
-        Sale.products.through.objects.filter(sale_id__in=sale_pks)
-        .order_by("id")
-        .values_list("sale_id", "product_id")
-    )
+    sales = Sale.objects.prefetch_related("variants").filter(id__in=sale_pks)
     product_map: Dict[int, Set[int]] = defaultdict(set)
-    for sale_pk, product_pk in products:
-        product_map[sale_pk].add(product_pk)
+
+    for sale in sales.iterator():
+        product_map[sale.pk].update(sale.products.all().values_list("id", flat=True))
     return product_map
 
 
