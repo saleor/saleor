@@ -484,10 +484,20 @@ def test_handle_capture_invalid_payment_id(
 def test_handle_capture_with_payment_already_charged(
     notification, adyen_plugin, payment_adyen_for_order
 ):
+    # given
     payment = payment_adyen_for_order
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = payment.total
     payment.save()
+    payment.transactions.create(
+        action_required=False,
+        kind=TransactionKind.CAPTURE,
+        is_success=True,
+        amount=payment.total,
+        currency=payment.currency,
+        gateway_response={},
+    )
+
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
@@ -495,15 +505,20 @@ def test_handle_capture_with_payment_already_charged(
     )
     config = adyen_plugin().config
 
-    handle_capture(notification, config)
-
-    # Payment is already captured so no need to save capture transaction
-    payment.refresh_from_db()
-    assert payment.transactions.count() == 2
     external_events = payment.order.events.filter(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
-    assert external_events.count() == 1
+    transactions_count = payment.transactions.count()
+    external_events_count = external_events.count()
+
+    # when
+    handle_capture(notification, config)
+
+    # then
+    payment.refresh_from_db()
+    # FIXME a duplicate notification should be probably ignored
+    assert payment.transactions.count() == transactions_count + 1
+    assert external_events.count() == external_events_count + 1
     assert payment.captured_amount == payment.total
 
 
