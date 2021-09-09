@@ -57,4 +57,6 @@ class CategoryNotifyEvent:
 
 
 class NotifyEventType(UserNotifyEvent, AdminNotifyEvent, CategoryNotifyEvent):
-    CHOICES = UserNotifyEvent.CHOICES + AdminNotifyEvent.CHOICES + CategoryNotifyEvent.CHOICES
+    CHOICES = (
+        UserNotifyEvent.CHOICES + AdminNotifyEvent.CHOICES + CategoryNotifyEvent.CHOICES
+    )

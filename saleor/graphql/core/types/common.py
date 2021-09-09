@@ -10,6 +10,7 @@ from ..enums import (
     AccountErrorCode,
     AppErrorCode,
     AttributeErrorCode,
+    CategoryCustomErrorCode,
     ChannelErrorCode,
     CheckoutErrorCode,
     CollectionErrorCode,
@@ -39,7 +40,6 @@ from ..enums import (
     WebhookErrorCode,
     WeightUnitsEnum,
     WishlistErrorCode,
-    CategoryCustomErrorCode,
 )
 from ..scalars import PositiveDecimal
 from .money import VAT

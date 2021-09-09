@@ -4,8 +4,11 @@ from graphql_relay import from_global_id
 
 from saleor.custom.error_codes import CategoryCustomErrorCode
 from saleor.custom.models import CategoryCustom
-from saleor.graphql.custom.mutations.customs import CategoryCustomCreate, \
-    CategoryCustomUpdate, CategoryCustomDelete
+from saleor.graphql.custom.mutations.customs import (
+    CategoryCustomCreate,
+    CategoryCustomDelete,
+    CategoryCustomUpdate,
+)
 from saleor.graphql.custom.types import CategoryCustomType
 
 
@@ -20,7 +23,8 @@ class CategoryCustomQueries(graphene.ObjectType):
             graphene.String,
             description="slug of the category custom.",
         ),
-        description="Detail of the category custom.", )
+        description="Detail of the category custom.",
+    )
 
     categories_custom = graphene.List(
         CategoryCustomType,
@@ -28,7 +32,7 @@ class CategoryCustomQueries(graphene.ObjectType):
     )
 
     def resolve_categories_custom(root, info, **kwargs):
-        slug = kwargs.get('slug')
+        slug = kwargs.get("slug")
         rs = CategoryCustom.objects.filter(is_deleted=False)
         if slug:
             rs = rs.filter(slug__contains=slug)

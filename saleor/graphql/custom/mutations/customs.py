@@ -51,7 +51,7 @@ class CategoryCustomCreate(BaseMutation):
     def perform_mutation(cls, root, info, **data):
         data = data.get("input")
         name = data.get("name")
-        slug = data.get('slug')
+        slug = data.get("slug")
         channel_slug = data.get("channel")
 
         if channel_slug is not None:
@@ -61,10 +61,7 @@ class CategoryCustomCreate(BaseMutation):
 
         check_slug_exists(slug)
 
-        category_custom = CategoryCustom.objects.create(
-            name=name,
-            slug=slug
-        )
+        category_custom = CategoryCustom.objects.create(name=name, slug=slug)
         send_category_notification(
             info.context.plugins,
             channel_slug=channel_slug,
@@ -107,18 +104,19 @@ class CategoryCustomUpdate(BaseMutation):
             )
         data = data.get("input")
         name = data.get("name")
-        slug = data.get('slug')
+        slug = data.get("slug")
 
         if category_custom.slug != slug:
             check_slug_exists(slug)
         try:
             with transaction.atomic():
                 category_custom = category_custom.objects.select_for_update().get(
-                    id=_id)
+                    id=_id
+                )
                 category_custom.name = name
                 category_custom.slug = slug
                 category_custom.save()
-        except Exception as e:
+        except Exception:
             raise ValidationError(
                 {
                     "CategoryCustom": ValidationError(
@@ -163,7 +161,7 @@ class CategoryCustomDelete(BaseMutation):
                     )
                 }
             )
-        except Exception as e:
+        except Exception:
             raise ValidationError(
                 {
                     "CategoryCustom": ValidationError(
