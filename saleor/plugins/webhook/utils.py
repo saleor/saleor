@@ -139,13 +139,14 @@ def parse_list_shipping_methods_response(
     for shipping_method_data in response_data.get("rates"):
         method_id = shipping_method_data.get("id")
         method_name = shipping_method_data.get("carrier")
+        method_service = shipping_method_data.get("service")
         method_rate = shipping_method_data.get("rate")
         method_currency = shipping_method_data.get("currency")
 
         shipping_methods.append(
             ShippingMethod(
                 id=to_shipping_app_id(app, shipment_id, method_id),
-                name=method_name,
+                name=f"{method_name} - {method_service}",
                 price=Money(method_rate, method_currency),
             )
         )
