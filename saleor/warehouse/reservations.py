@@ -11,7 +11,7 @@ from ..product.models import ProductVariant
 from .models import Allocation, Reservation, Stock
 
 if TYPE_CHECKING:
-    from ..checkout.models import CheckoutLine
+    from ..checkout.fetch import CheckoutLine
 
 StockData = namedtuple("StockData", ["pk", "quantity"])
 
@@ -163,12 +163,12 @@ def _create_reservations(
 
 
 def get_checkout_lines_to_reserve(
-    checkout_lines: Iterable["CheckoutLine"],
+    lines: Iterable["CheckoutLine"],
     variants_map: Dict[int, "ProductVariant"],
 ) -> Iterable["CheckoutLine"]:
     """Return order lines which can be reserved."""
     valid_lines = []
-    for line in checkout_lines:
+    for line in lines:
         if (
             line.quantity
             and line.variant_id
