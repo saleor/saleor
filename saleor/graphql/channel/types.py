@@ -67,7 +67,7 @@ class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectTyp
         return ObjectWithMetadata.resolve_private_metadata(root.node, info)
 
 
-class ChannelContextTypeWithMetadata(ChannelContextType):
+class ChannelContextTypeWithMetadata(ChannelContextTypeWithMetadataForObjectType, ChannelContextType):
     """A Graphene type for that uses ChannelContext as root in resolvers.
 
     Same as ChannelContextType, but for types that implement ObjectWithMetadata
