@@ -55,21 +55,27 @@ T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
 
 
 def _clean_product_attributes_filter_input(filter_value, queries):
-    attributes = Attribute.objects.prefetch_related("values")
-    attributes_map: Dict[str, int] = {
-        attribute.slug: attribute.pk for attribute in attributes
-    }
-    values_map: Dict[str, Dict[str, int]] = {
-        attr.slug: {value.slug: value.pk for value in attr.values.all()}
-        for attr in attributes
-    }
+    attributes_slug_pk_map: Dict[str, int] = {}
+    attributes_pk_slug_map: Dict[int, str] = {}
+    values_map: Dict[str, Dict[str, int]] = defaultdict(dict)
+    for attr_slug, attr_pk in Attribute.objects.values_list("slug", "id"):
+        attributes_slug_pk_map[attr_slug] = attr_pk
+        attributes_pk_slug_map[attr_pk] = attr_slug
+
+    for (
+        attr_pk,
+        value_pk,
+        value_slug,
+    ) in AttributeValue.objects.values_list("attribute_id", "pk", "slug"):
+        attr_slug = attributes_pk_slug_map[attr_pk]
+        values_map[attr_slug][value_slug] = value_pk
 
     # Convert attribute:value pairs into a dictionary where
     # attributes are keys and values are grouped in lists
     for attr_name, val_slugs in filter_value:
-        if attr_name not in attributes_map:
+        if attr_name not in attributes_slug_pk_map:
             raise ValueError("Unknown attribute name: %r" % (attr_name,))
-        attr_pk = attributes_map[attr_name]
+        attr_pk = attributes_slug_pk_map[attr_name]
         attr_val_pk = [
             values_map[attr_name][val_slug]
             for val_slug in val_slugs
