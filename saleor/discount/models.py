@@ -327,23 +327,6 @@ class Sale(ModelWithMetadata):
     def __str__(self):
         return self.name
 
-    # @property
-    # def products(self):
-    #     from ..product.models import Product
-
-    #     variants_grouped_by_products = (
-    #         self.variants.values("product__id")
-    #         .annotate(product_count=Count("product_id"))
-    #         .order_by()
-    #     )
-    #     variants_for_given_product = variants_grouped_by_products.filter(
-    #         product__id=OuterRef("id")
-    #     ).values_list("product_count")
-
-    #     return Product.objects.annotate(num_of_variants=Count(F("variants"))).filter(
-    #         num_of_variants=Subquery(variants_for_given_product)
-    #     )
-
     def get_discount(self, sale_channel_listing):
         if not sale_channel_listing:
             raise NotApplicable("This sale is not assigned to this channel.")

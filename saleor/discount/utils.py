@@ -220,6 +220,18 @@ def fetch_products(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     return product_map
 
 
+def fetch_variants(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
+    variants = (
+        Sale.variants.through.objects.filter(sale_id__in=sale_pks)
+        .order_by("id")
+        .values_list("sale_id", "productvariant_id")
+    )
+    variants_map: Dict[int, Set[int]] = defaultdict(set)
+    for sale_pk, variant_pk in variants:
+        variants_map[sale_pk].add(variant_pk)
+    return variants_map
+
+
 def fetch_sale_channel_listings(
     sale_pks: Iterable[str],
 ):
@@ -240,6 +252,7 @@ def fetch_discounts(date: datetime.date) -> List[DiscountInfo]:
     channel_listings = fetch_sale_channel_listings(pks)
     products = fetch_products(pks)
     categories = fetch_categories(pks)
+    variants = fetch_variants(pks)
 
     return [
         DiscountInfo(
@@ -248,6 +261,7 @@ def fetch_discounts(date: datetime.date) -> List[DiscountInfo]:
             channel_listings=channel_listings[sale.pk],
             collection_ids=collections[sale.pk],
             product_ids=products[sale.pk],
+            variants_ids=variants[sale.pk],
         )
         for sale in sales
     ]

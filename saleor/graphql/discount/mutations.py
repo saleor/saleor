@@ -45,6 +45,11 @@ class CatalogueInput(graphene.InputObjectType):
         description="Collections related to the discount.",
         name="collections",
     )
+    variants = graphene.List(
+        graphene.ID,
+        description="Product variant related to the discount.",
+        name="variants",
+    )
 
 
 class BaseDiscountCatalogueMutation(BaseMutation):
@@ -485,6 +490,11 @@ class SaleInput(graphene.InputObjectType):
     value = PositiveDecimal(description="Value of the voucher.")
     products = graphene.List(
         graphene.ID, description="Products related to the discount.", name="products"
+    )
+    variants = graphene.List(
+        graphene.ID,
+        descriptions="Product variant related to the discount.",
+        name="variants",
     )
     categories = graphene.List(
         graphene.ID,

@@ -33,6 +33,8 @@ def _get_product_discounted_price(
             channel=channel,
         )
         discounted_variants_price.append(discounted_variant_price)
+    # What I have to do with that? Minimum price from variants for entire product -
+    # If i touch it, probably i'd destroy some logic based on that fact.
     return min(discounted_variants_price)
 
 
@@ -73,7 +75,7 @@ def update_products_discounted_prices(products, discounts=None):
 
 
 def update_products_discounted_prices_of_catalogues(
-    product_ids=None, category_ids=None, collection_ids=None
+    product_ids=None, category_ids=None, collection_ids=None, variant_ids=None
 ):
     # Building the matching products query
     q_list = []
@@ -83,6 +85,8 @@ def update_products_discounted_prices_of_catalogues(
         q_list.append(Q(category_id__in=category_ids))
     if collection_ids:
         q_list.append(Q(collectionproduct__collection_id__in=collection_ids))
+    if variant_ids:
+        q_list.append()
     # Asserting that the function was called with some ids
     if q_list:
         # Querying the products

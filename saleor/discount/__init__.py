@@ -43,3 +43,4 @@ class DiscountInfo:
     product_ids: Union[List[int], Set[int]]
     category_ids: Union[List[int], Set[int]]
     collection_ids: Union[List[int], Set[int]]
+    variants_ids: Union[List[int], Set[int]]

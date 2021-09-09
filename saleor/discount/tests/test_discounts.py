@@ -124,6 +124,7 @@ def test_variant_discounts(product, channel_USD):
         product_ids={product.id},
         category_ids=set(),
         collection_ids=set(),
+        variants_ids=set(),
     )
     sale = Sale.objects.create(type=DiscountValueType.FIXED)
     sale_channel_listing = SaleChannelListing.objects.create(
@@ -138,6 +139,7 @@ def test_variant_discounts(product, channel_USD):
         product_ids={product.id},
         category_ids=set(),
         collection_ids=set(),
+        variants_ids=set(),
     )
     high_sale = Sale.objects.create(type=DiscountValueType.FIXED)
     high_sale_channel_listing = SaleChannelListing.objects.create(
@@ -152,6 +154,7 @@ def test_variant_discounts(product, channel_USD):
         product_ids={product.id},
         category_ids=set(),
         collection_ids=set(),
+        variants_ids=set(),
     )
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     final_price = variant.get_price(
@@ -181,6 +184,7 @@ def test_percentage_discounts(product, channel_USD):
         product_ids={product.id},
         category_ids=set(),
         collection_ids=set(),
+        variants_ids=set(),
     )
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     final_price = variant.get_price(
@@ -309,6 +313,7 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
         product_ids={product.id},
         category_ids=set(),
         collection_ids=set(),
+        variants_ids=set(),
     )
     product_discount = get_product_discount_on_sale(
         variant.product, set(), discount, channel_USD
