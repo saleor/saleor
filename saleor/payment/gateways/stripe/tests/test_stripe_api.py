@@ -26,6 +26,7 @@ from ..stripe_api import (
     refund_payment_intent,
     retrieve_payment_intent,
     subscribe_webhook,
+    update_payment_method,
 )
 
 
@@ -169,6 +170,27 @@ def test_create_payment_intent_returns_error(mocked_payment_intent):
     )
     assert intent is None
     assert error
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentMethod",
+)
+def test_update_payment_method(mocked_payment_method):
+    # given
+    api_key = "api_key"
+    payment_method_id = "1234"
+    channel_slug = "channel_slug"
+    metadata = {"key": "value"}
+
+    # when
+    update_payment_method(api_key, payment_method_id, channel_slug, metadata)
+
+    # then
+    mocked_payment_method.modify.assert_called_once_with(
+        payment_method_id,
+        api_key=api_key,
+        metadata={**metadata, "channel": channel_slug},
+    )
 
 
 @patch(
