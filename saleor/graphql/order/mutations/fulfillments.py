@@ -93,19 +93,8 @@ class OrderFulfill(BaseMutation):
     @classmethod
     def clean_lines(cls, order_lines, quantities):
         for order_line, line_quantities in zip(order_lines, quantities):
-            quantity_awaiting = sum(
-                [
-                    f_line.quantity
-                    if f_line.fulfillment.status
-                    == FulfillmentStatus.WAITING_FOR_APPROVAL
-                    else 0
-                    for f_line in order_line.fulfillment_lines.all()
-                ]
-            )
 
-            line_quantity_unfulfilled = (
-                order_line.quantity_unfulfilled - quantity_awaiting
-            )
+            line_quantity_unfulfilled = order_line.quantity_unfulfilled
 
             if sum(line_quantities) > line_quantity_unfulfilled:
                 msg = (
@@ -201,12 +190,7 @@ class OrderFulfill(BaseMutation):
         lines_ids = [line["order_line_id"] for line in lines]
         cls.check_lines_for_duplicates(lines_ids)
         order_lines = cls.get_nodes_or_error(
-            lines_ids,
-            field="lines",
-            only_type=OrderLine,
-            qs=order_models.OrderLine.objects.prefetch_related(
-                "fulfillment_lines__fulfillment"
-            ),
+            lines_ids, field="lines", only_type=OrderLine
         )
 
         cls.clean_lines(order_lines, quantities_for_lines)
