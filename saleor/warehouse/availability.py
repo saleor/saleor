@@ -278,7 +278,7 @@ def get_available_quantity(
     variant: "ProductVariant",
     country_code: str,
     channel_slug: str,
-    current_checkout_lines: Optional[List["CheckoutLine"]] = None,
+    checkout_lines: Optional[List["CheckoutLine"]] = None,
     check_reservations: bool = False,
 ) -> int:
     """Return available quantity for given product in given country."""
@@ -287,7 +287,7 @@ def get_available_quantity(
     )
     if not stocks:
         return 0
-    return _get_available_quantity(stocks, current_checkout_lines, check_reservations)
+    return _get_available_quantity(stocks, checkout_lines, check_reservations)
 
 
 def is_product_in_stock(
@@ -319,7 +319,7 @@ def get_reserved_quantity(
 
 def get_reserved_quantity_bulk(
     stocks: Iterable[Stock],
-    lines: List["CheckoutLineInfo"],
+    checkout_lines: List["CheckoutLineInfo"],
 ) -> Dict[int, int]:
     reservations: Dict[int, int] = defaultdict(int)
     if not stocks:
@@ -330,7 +330,7 @@ def get_reserved_quantity_bulk(
             stock__in=stocks,
         )
         .not_expired()
-        .exclude_checkout_lines([line.line for line in current_checkout_lines])
+        .exclude_checkout_lines([line.line for line in checkout_lines])
         .values("stock_id")
         .annotate(
             quantity_reserved=Coalesce(Sum("quantity_reserved"), 0),
