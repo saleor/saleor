@@ -1,12 +1,8 @@
 from unittest.mock import Mock, patch
 
-from saleor.payment import TransactionKind
-from saleor.payment.gateways.stripe.consts import (
-    AUTOMATIC_CAPTURE_METHOD,
-    STRIPE_API_VERSION,
-    SUCCESS_STATUS,
-)
-from saleor.payment.utils import create_payment_information, price_to_minor_unit
+from .... import TransactionKind
+from ....utils import create_payment_information, price_to_minor_unit
+from ..consts import AUTOMATIC_CAPTURE_METHOD, STRIPE_API_VERSION, SUCCESS_STATUS
 
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")

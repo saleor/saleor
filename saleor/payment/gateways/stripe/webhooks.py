@@ -209,14 +209,12 @@ def _update_payment_method_metadata(
     payment: Payment,
     payment_intent: StripeObject,
     gateway_config: "GatewayConfig",
-    channel_slug: str,
 ) -> None:
     api_key = gateway_config.connection_params["secret_api_key"]
     metadata = payment.metadata
 
-    update_payment_method(
-        api_key, payment_intent.payment_method, channel_slug, metadata
-    )
+    if metadata:
+        update_payment_method(api_key, payment_intent.payment_method, metadata)
 
 
 def handle_authorized_payment_intent(
@@ -234,9 +232,7 @@ def handle_authorized_payment_intent(
     if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
         return
 
-    _update_payment_method_metadata(
-        payment, payment_intent, gateway_config, channel_slug
-    )
+    _update_payment_method_metadata(payment, payment_intent, gateway_config)
 
     if payment.order_id:
         if payment.charge_status == ChargeStatus.PENDING:
@@ -331,9 +327,7 @@ def handle_successful_payment_intent(
     if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
         return
 
-    _update_payment_method_metadata(
-        payment, payment_intent, gateway_config, channel_slug
-    )
+    _update_payment_method_metadata(payment, payment_intent, gateway_config)
 
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:
