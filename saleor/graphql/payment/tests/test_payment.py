@@ -989,6 +989,7 @@ def set_dummy_customer_id(customer_user, dummy_customer_id):
 def test_list_payment_sources(
     mocker, dummy_customer_id, set_dummy_customer_id, user_api_client, channel_USD
 ):
+    metadata = {f"key_{i}": f"value_{i}" for i in range(5)}
     gateway = DUMMY_GATEWAY
     query = """
     {
@@ -1000,6 +1001,10 @@ def test_list_payment_sources(
                     lastDigits
                     brand
                     firstDigits
+                }
+                metadata {
+                    key
+                    value
                 }
             }
         }
@@ -1014,7 +1019,10 @@ def test_list_payment_sources(
         brand="cardBrand",
     )
     source = CustomerSource(
-        id="payment-method-id", gateway=gateway, credit_card_info=card
+        id="payment-method-id",
+        gateway=gateway,
+        credit_card_info=card,
+        metadata=metadata,
     )
     mock_get_source_list = mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_payment_sources",
@@ -1034,6 +1042,7 @@ def test_list_payment_sources(
             "lastDigits": "5678",
             "brand": "cardBrand",
         },
+        "metadata": [{"key": key, "value": value} for key, value in metadata.items()],
     }
 
 
