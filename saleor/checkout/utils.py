@@ -690,11 +690,11 @@ def is_shipping_required(lines: Iterable["CheckoutLineInfo"]):
 def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
     variants_listings_map = {line.variant.id: line.channel_listing for line in lines}
 
-    not_available_variants = []
-    for variant_id, channel_listing in variants_listings_map.items():
-        if channel_listing is None or channel_listing.price is None:
-            not_available_variants.append(variant_id)
-
+    not_available_variants = [
+        variant_id
+        for variant_id, channel_listing in variants_listings_map.items()
+        if channel_listing is None or channel_listing.price is None
+    ]
     if not_available_variants:
         not_available_variants_ids = {
             graphene.Node.to_global_id("ProductVariant", pk)
