@@ -6,6 +6,7 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
+from ....giftcard.utils import deactivate_order_gift_cards
 from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
@@ -432,15 +433,19 @@ class OrderCancel(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_cancel(order)
+        user = info.context.user
+        app = info.context.app
         cancel_order(
             order=order,
-            user=info.context.user,
-            app=info.context.app,
+            user=user,
+            app=app,
             manager=info.context.plugins,
         )
+        deactivate_order_gift_cards(order.id, user, app)
         return OrderCancel(order=order)
 
 
