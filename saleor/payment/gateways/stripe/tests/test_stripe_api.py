@@ -179,17 +179,16 @@ def test_update_payment_method(mocked_payment_method):
     # given
     api_key = "api_key"
     payment_method_id = "1234"
-    channel_slug = "channel_slug"
     metadata = {"key": "value"}
 
     # when
-    update_payment_method(api_key, payment_method_id, channel_slug, metadata)
+    update_payment_method(api_key, payment_method_id, metadata)
 
     # then
     mocked_payment_method.modify.assert_called_once_with(
         payment_method_id,
         api_key=api_key,
-        metadata={**metadata, "channel": channel_slug},
+        metadata=metadata,
     )
 
 

@@ -78,7 +78,8 @@ def test_handle_successful_payment_intent_for_checkout(
 
 
 @pytest.mark.parametrize(
-    "metadata", [{f"key{i}": f"value{i}" for i in range(5)}, {}, None]
+    ["metadata", "called"],
+    [({f"key{i}": f"value{i}" for i in range(5)}, True), ({}, False)],
 )
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
@@ -91,12 +92,12 @@ def test_handle_successful_payment_intent_with_metadata(
     stripe_plugin,
     channel_USD,
     metadata,
+    called,
 ):
     # given
     payment = payment_stripe_for_order
     current_metadata = {"currentkey": "currentvalue"}
-    if metadata is not None:
-        payment.metadata = metadata
+    payment.metadata = metadata
     payment.charge_status = ChargeStatus.PENDING
     payment.save()
     plugin = stripe_plugin()
@@ -114,12 +115,14 @@ def test_handle_successful_payment_intent_with_metadata(
     handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     # then
-    wrapped_update_payment_method.assert_called_once_with(
-        plugin.config.connection_params["secret_api_key"],
-        payment_intent.payment_method,
-        channel_USD.slug,
-        metadata or {},
-    )
+    if not called:
+        assert wrapped_update_payment_method.call_count == 0
+    else:
+        wrapped_update_payment_method.assert_called_once_with(
+            plugin.config.connection_params["secret_api_key"],
+            payment_intent.payment_method,
+            metadata,
+        )
 
 
 @patch(
@@ -385,7 +388,9 @@ def test_handle_authorized_payment_intent_for_processing_order_payment(
     assert wrapped_checkout_complete.called is False
 
 
-@pytest.mark.parametrize("metadata", [{"key": "value"}, {}, None])
+@pytest.mark.parametrize(
+    ["metadata", "called"], [({"key": "value"}, True), ({}, False)]
+)
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
@@ -398,12 +403,12 @@ def test_handle_authorized_payment_intent_with_metadata(
     stripe_plugin,
     channel_USD,
     metadata,
+    called,
 ):
     # given
     payment = payment_stripe_for_order
     current_metadata = {"currentkey": "currentvalue"}
-    if metadata is not None:
-        payment.metadata = metadata
+    payment.metadata = metadata
     payment.charge_status = ChargeStatus.PENDING
     payment.save()
     plugin = stripe_plugin()
@@ -418,12 +423,14 @@ def test_handle_authorized_payment_intent_with_metadata(
     handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     # then
-    wrapped_update_payment_method.assert_called_with(
-        plugin.config.connection_params["secret_api_key"],
-        payment_intent.payment_method,
-        channel_USD.slug,
-        metadata or {},
-    )
+    if not called:
+        assert wrapped_update_payment_method.call_count == 0
+    else:
+        wrapped_update_payment_method.assert_called_with(
+            plugin.config.connection_params["secret_api_key"],
+            payment_intent.payment_method,
+            metadata,
+        )
 
 
 @pytest.mark.parametrize("called", [True, False])

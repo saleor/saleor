@@ -181,15 +181,14 @@ def create_payment_intent(
 def update_payment_method(
     api_key: str,
     payment_method_id: str,
-    channel_slug: str,
-    metadata: Dict[str, str] = None,
+    metadata: Dict[str, str],
 ):
     with stripe_opentracing_trace("stripe.PaymentMethod.modify"):
         try:
             stripe.PaymentMethod.modify(
                 payment_method_id,
                 api_key=api_key,
-                metadata={**(metadata or {}), "channel": channel_slug},
+                metadata=metadata,
             )
         except StripeError as error:
             logger.warning(
