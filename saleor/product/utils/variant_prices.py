@@ -13,8 +13,7 @@ from ..models import Product, ProductChannelListing, ProductVariantChannelListin
 def _get_variant_prices_in_channels_dict(product):
     prices_dict = defaultdict(list)
     for variant_channel_listing in ProductVariantChannelListing.objects.filter(
-        variant__product_id=product,
-        price_amount__isnull=False,
+        variant__product_id=product, price_amount__isnull=False
     ):
         channel_id = variant_channel_listing.channel_id
         prices_dict[channel_id].append(variant_channel_listing.price)
