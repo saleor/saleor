@@ -350,7 +350,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     assert replaced_line.product_name == expected_replaced_line.product_name
     assert replaced_line.variant_name == expected_replaced_line.variant_name
     assert replaced_line.product_sku == expected_replaced_line.product_sku
-    assert replaced_line.product_id == expected_replaced_line.product_id
+    assert replaced_line.product_variant_id == expected_replaced_line.product_variant_id
     assert (
         replaced_line.is_shipping_required
         == expected_replaced_line.is_shipping_required
@@ -505,7 +505,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
     assert replaced_line.product_name == expected_replaced_line.product_name
     assert replaced_line.variant_name == expected_replaced_line.variant_name
     assert replaced_line.product_sku == expected_replaced_line.product_sku
-    assert replaced_line.product_id == expected_replaced_line.product_id
+    assert replaced_line.product_variant_id == expected_replaced_line.product_variant_id
     assert (
         replaced_line.is_shipping_required
         == expected_replaced_line.is_shipping_required
@@ -558,7 +558,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
-        product_id=variant.get_global_id(),
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,

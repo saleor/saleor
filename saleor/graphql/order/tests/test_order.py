@@ -1866,7 +1866,7 @@ def test_draft_order_create_without_sku(
 
     order_line = order.lines.get(variant=variant)
     assert order_line.product_sku is None
-    assert order_line.product_id == variant.get_global_id()
+    assert order_line.product_variant_id == variant.get_global_id()
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -3646,7 +3646,7 @@ ORDER_LINES_CREATE_MUTATION = """
                 id
                 quantity
                 productSku
-                productId
+                productVariantId
             }
             order {
                 total {
@@ -3760,7 +3760,7 @@ def test_order_lines_create(
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] == variant.sku
-    assert data["orderLines"][0]["productId"] == variant.get_global_id()
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
     assert data["orderLines"][0]["quantity"] == quantity
 
     # mutation should fail when quantity is lower than 1
@@ -3844,7 +3844,7 @@ def test_order_lines_create_with_existing_variant(
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] == variant.sku
-    assert data["orderLines"][0]["productId"] == variant.get_global_id()
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
     assert data["orderLines"][0]["quantity"] == old_quantity + quantity
     assert_proper_webhook_called_once(
         order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
@@ -3962,7 +3962,7 @@ def test_order_lines_create_without_sku(
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] is None
-    assert data["orderLines"][0]["productId"] == variant.get_global_id()
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
     assert data["orderLines"][0]["quantity"] == quantity
 
     # mutation should fail when quantity is lower than 1
@@ -4268,7 +4268,7 @@ def test_order_line_update_without_sku(
 
     line.refresh_from_db()
     assert line.product_sku
-    assert line.product_id == line.variant.get_global_id()
+    assert line.product_variant_id == line.variant.get_global_id()
 
     # mutation should fail when quantity is lower than 1
     variables = {"lineId": line_id, "quantity": 0}
@@ -6917,7 +6917,7 @@ def test_orders_query_with_filter_search(
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
-        product_id=variant.get_global_id(),
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=3,
@@ -7086,7 +7086,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
                 product_name=str(product),
                 variant_name=str(variants[0]),
                 product_sku=variants[0].sku,
-                product_id=variants[0].get_global_id(),
+                product_variant_id=variants[0].get_global_id(),
                 is_shipping_required=variants[0].is_shipping_required(),
                 is_gift_card=variants[0].is_gift_card(),
                 quantity=quantity,
@@ -7102,7 +7102,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
                 product_name=str(product),
                 variant_name=str(variants[1]),
                 product_sku=variants[1].sku,
-                product_id=variants[1].get_global_id(),
+                product_variant_id=variants[1].get_global_id(),
                 is_shipping_required=variants[1].is_shipping_required(),
                 is_gift_card=variants[1].is_gift_card(),
                 quantity=quantity,

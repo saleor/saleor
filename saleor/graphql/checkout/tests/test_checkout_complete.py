@@ -531,7 +531,7 @@ def test_checkout_complete_with_variant_without_sku(
 
     order_line = order.lines.first()
     assert order_line.product_sku is None
-    assert order_line.product_id == order_line.variant.get_global_id()
+    assert order_line.product_variant_id == order_line.variant.get_global_id()
 
 
 def test_checkout_complete_with_variant_without_price(

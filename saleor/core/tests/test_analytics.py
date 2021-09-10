@@ -30,7 +30,7 @@ def test_get_order_payloads(order_with_lines):
 
 def test_get_order_without_sku_payloads(order_with_lines):
     order = order_with_lines
-    order.lines.update(product_sku=None, product_id="TEST_ID")
+    order.lines.update(product_sku=None, product_variant_id="TEST_ID")
 
     generator = get_order_payloads(order)
     data = list(generator)
@@ -47,7 +47,7 @@ def test_get_order_without_sku_payloads(order_with_lines):
         item = data[i + 1]
         assert item["ti"] == order.pk
         assert item["in"] == line.variant.display_product()
-        assert item["ic"] == line.product_id
+        assert item["ic"] == line.product_variant_id
         assert item["iq"] == str(int(line.quantity))
         assert item["cu"] == line.unit_price.currency
         assert Decimal(item["ip"]) == line.unit_price.gross.amount

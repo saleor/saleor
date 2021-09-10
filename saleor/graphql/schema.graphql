@@ -4357,7 +4357,7 @@ type OrderLine implements Node {
   productName: String!
   variantName: String!
   productSku: String
-  productId: String
+  productVariantId: String
   isShippingRequired: Boolean!
   quantity: Int!
   quantityFulfilled: Int!

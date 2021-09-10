@@ -139,7 +139,7 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
         "product_name": line.product_name,
         "variant_name": line.variant_name,
         "product_sku": line.product_sku,
-        "product_id": line.product_id,
+        "product_variant_id": line.product_variant_id,
         "id": graphene.Node.to_global_id("FulfillmentLine", fulfillment_line.id),
         "product_type": "Default Type",
         "quantity": fulfillment_line.quantity,
@@ -227,7 +227,7 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "translated_product_name": line.translated_product_name,
         "translated_variant_name": line.translated_variant_name,
         "product_sku": line.product_sku,
-        "product_id": line.product_id,
+        "product_variant_id": line.product_variant_id,
         "quantity": line.quantity,
         "currency": line.currency,
         "unit_discount_amount": str(unit_discount_amount),
@@ -274,7 +274,7 @@ def test_order_line_without_sku_still_has_id(order, order_line_with_one_allocati
 
     line_payload = lines_payload[0]
     assert line_payload["product_sku"] is None
-    assert line_payload["product_id"] == line.product_id
+    assert line_payload["product_variant_id"] == line.product_variant_id
 
 
 def test_generate_base_product_variant_payload(product_with_two_variants):
