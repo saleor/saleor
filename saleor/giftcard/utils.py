@@ -258,3 +258,7 @@ def deactivate_order_gift_cards(
     events.gift_cards_deactivated_event(
         gift_cards.values_list("id", flat=True), user, app
     )
+
+
+def order_has_gift_card_lines(order):
+    return any(order.lines.filter(is_gift_card=True))

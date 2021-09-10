@@ -7,7 +7,11 @@ from django.template.defaultfilters import pluralize
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
-from ....giftcard.utils import get_gift_card_lines, gift_cards_create
+from ....giftcard.utils import (
+    get_gift_card_lines,
+    gift_cards_create,
+    order_has_gift_card_lines,
+)
 from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
@@ -363,8 +367,23 @@ class FulfillmentCancel(BaseMutation):
             )
 
     @classmethod
+    def validate_order(cls, order):
+        if order_has_gift_card_lines(order):
+            raise ValidationError(
+                {
+                    "fulfillment": ValidationError(
+                        "Cannot cancel fulfillment with gift card lines.",
+                        code=OrderErrorCode.CANNOT_CANCEL_FULFILLMENT.value,
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
+        order = fulfillment.order
+
+        cls.validate_order(order)
 
         warehouse = None
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
@@ -376,7 +395,6 @@ class FulfillmentCancel(BaseMutation):
 
         cls.validate_fulfillment(fulfillment, warehouse)
 
-        order = fulfillment.order
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
             fulfillment = cancel_waiting_fulfillment(
                 fulfillment,
@@ -510,19 +528,32 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         cleaned_input["payment"] = payment
 
     @classmethod
-    def clean_amount_to_refund(cls, amount_to_refund, payment, cleaned_input):
-        if amount_to_refund is not None and amount_to_refund > payment.captured_amount:
-            raise ValidationError(
-                {
-                    "amount_to_refund": ValidationError(
-                        (
-                            "The amountToRefund is greater than the maximal possible "
-                            "amount to refund."
+    def clean_amount_to_refund(cls, order, amount_to_refund, payment, cleaned_input):
+        if amount_to_refund is not None:
+            if order_has_gift_card_lines(order):
+                raise ValidationError(
+                    {
+                        "amount_to_refund": ValidationError(
+                            (
+                                "Cannot specified amount to refund when order has "
+                                "gift card lines."
+                            ),
+                            code=OrderErrorCode.CANNOT_REFUND.value,
+                        )
+                    }
+                )
+            if amount_to_refund > payment.captured_amount:
+                raise ValidationError(
+                    {
+                        "amount_to_refund": ValidationError(
+                            (
+                                "The amountToRefund is greater than the maximal "
+                                "possible amount to refund."
+                            ),
+                            code=OrderErrorCode.CANNOT_REFUND.value,
                         ),
-                        code=OrderErrorCode.CANNOT_REFUND.value,
-                    ),
-                }
-            )
+                    }
+                )
         cleaned_input["amount_to_refund"] = amount_to_refund
 
     @classmethod
@@ -556,6 +587,14 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         cleaned_fulfillment_lines = []
         for line, line_data in zip(fulfillment_lines, fulfillment_lines_data):
             quantity = line_data["quantity"]
+            if line.order_line.is_gift_card:
+                cls._raise_error_for_line(
+                    "Cannot refund or return gift card line.",
+                    "FulfillmentLine",
+                    line.pk,
+                    "fulfillment_line_id",
+                    OrderErrorCode.GIFT_CARD_LINE.value,
+                )
             if line.quantity < quantity:
                 cls._raise_error_for_line(
                     "Provided quantity is bigger than quantity from "
@@ -605,6 +644,14 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         cleaned_order_lines = []
         for line, line_data in zip(order_lines, lines_data):
             quantity = line_data["quantity"]
+            if line.is_gift_card:
+                cls._raise_error_for_line(
+                    "Cannot refund or return gift card line.",
+                    "OrderLine",
+                    line.pk,
+                    "order_line_id",
+                    OrderErrorCode.GIFT_CARD_LINE.value,
+                )
             if line.quantity < quantity:
                 cls._raise_error_for_line(
                     "Provided quantity is bigger than quantity from order line.",
@@ -666,7 +713,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         )
         payment = order.get_last_payment()
         cls.clean_order_payment(payment, cleaned_input)
-        cls.clean_amount_to_refund(amount_to_refund, payment, cleaned_input)
+        cls.clean_amount_to_refund(order, amount_to_refund, payment, cleaned_input)
 
         cleaned_input.update(
             {"include_shipping_costs": include_shipping_costs, "order": order}
@@ -808,7 +855,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
         payment = order.get_last_payment()
         if refund:
             cls.clean_order_payment(payment, cleaned_input)
-            cls.clean_amount_to_refund(amount_to_refund, payment, cleaned_input)
+            cls.clean_amount_to_refund(order, amount_to_refund, payment, cleaned_input)
 
         cleaned_input.update(
             {

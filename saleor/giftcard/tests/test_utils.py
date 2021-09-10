@@ -23,6 +23,7 @@ from ..utils import (
     get_gift_card_lines,
     get_non_shippable_gift_card_lines,
     gift_cards_create,
+    order_has_gift_card_lines,
     remove_gift_card_code_from_checkout,
 )
 
@@ -626,3 +627,12 @@ def test_deactivate_order_gift_cards_no_order_gift_cards(
     for card in cards:
         card.refresh_from_db()
         assert card.is_active
+
+
+def test_order_has_gift_card_lines_true(gift_card_shippable_order_line):
+    order = gift_card_shippable_order_line.order
+    assert order_has_gift_card_lines(order) is True
+
+
+def test_order_has_gift_card_lines_false(order):
+    assert order_has_gift_card_lines(order) is False

@@ -55,6 +55,7 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,

@@ -58,6 +58,7 @@ def _prepare_lines_for_order(order, variant_with_image):
             variant=variant_with_image,
             quantity=5,
             is_shipping_required=True,
+            is_gift_card=False,
             unit_price=price,
             total_price=price,
         )
