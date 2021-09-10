@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING, Optional
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import Count, F, Q
-from django.db.models.expressions import OuterRef, Subquery
+from django.db.models import F, Q
 from django.utils import timezone
 from django_countries.fields import CountryField
 from django_prices.models import MoneyField
@@ -241,56 +240,6 @@ class VoucherTranslation(Translation):
         return {"name": self.name}
 
 
-class ManyToManyManagerFacade:
-    def __init__(self, instance) -> None:
-        self.instance = instance
-
-    def all(self):
-        from ..product.models import Product
-
-        variants_grouped_by_products = (
-            self.instance.variants.values("product__id")
-            .annotate(product_count=Count("product_id"))
-            .order_by()
-        )
-        variants_for_given_product = variants_grouped_by_products.filter(
-            product__id=OuterRef("id")
-        ).values_list("product_count")
-
-        return Product.objects.annotate(num_of_variants=Count(F("variants"))).filter(
-            num_of_variants=Subquery(variants_for_given_product)
-        )
-
-    def first(self):
-        return self.all().first()
-
-    def exists(self):
-        return self.all().count() > 0
-
-    def add(self, *products):
-        for product in products:
-            variants_to_add = product.variants.values_list("id", flat=True)
-            self.instance.variants.add(*variants_to_add)
-
-    def remove(self, *products):
-        for product in products:
-            variants_ids = product.variants.values_list("id", flat=True)
-            self.instance.variants.remove(*variants_ids)
-
-
-class VariantToProductDescriptor:
-    # If we want to mimic "truly" m2m manager / m2m descriptor it
-    # will take a while...
-
-    def __set_name__(self, owner, name):
-        self._name = name
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return None
-        return ManyToManyManagerFacade(instance)
-
-
 class Sale(ModelWithMetadata):
     name = models.CharField(max_length=255)
     type = models.CharField(
@@ -300,10 +249,10 @@ class Sale(ModelWithMetadata):
     )
     categories = models.ManyToManyField("product.Category", blank=True)
     collections = models.ManyToManyField("product.Collection", blank=True)
+    products = models.ManyToManyField("product.Product", blank=True)
     variants = models.ManyToManyField("product.ProductVariant", blank=True)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
-    products = VariantToProductDescriptor()
 
     objects = models.Manager.from_queryset(SaleQueryset)()
     translated = TranslationProxy()

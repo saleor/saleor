@@ -33,8 +33,6 @@ def _get_product_discounted_price(
             channel=channel,
         )
         discounted_variants_price.append(discounted_variant_price)
-    # What I have to do with that? Minimum price from variants for entire product -
-    # If i touch it, probably i'd destroy some logic based on that fact.
     return min(discounted_variants_price)
 
 
@@ -85,9 +83,9 @@ def update_products_discounted_prices_of_catalogues(
         q_list.append(Q(category_id__in=category_ids))
     if collection_ids:
         q_list.append(Q(collectionproduct__collection_id__in=collection_ids))
-    if variant_ids:
-        q_list.append()
     # Asserting that the function was called with some ids
+    if variant_ids:
+        q_list.append(Q(variants__id__in=variant_ids))
     if q_list:
         # Querying the products
         q_or = reduce(operator.or_, q_list)
@@ -101,4 +99,6 @@ def update_products_discounted_prices_of_discount(discount):
         product_ids=discount.products.all().values_list("id", flat=True),
         category_ids=discount.categories.all().values_list("id", flat=True),
         collection_ids=discount.collections.all().values_list("id", flat=True),
+        # variant_ids=discount.variants.all().values_list("id", flat=True)
+        # Uncomment, when Voucher ready
     )

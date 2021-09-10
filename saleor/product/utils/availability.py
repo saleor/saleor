@@ -99,6 +99,7 @@ def get_variant_price(
         collections=collections,
         discounts=discounts,
         channel=channel,
+        variant=variant,
     )
 
 
