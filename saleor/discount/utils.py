@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..order.models import Order
     from ..plugins.manager import PluginsManager
-    from ..product.models import Collection, Product, ProductVariant
+    from ..product.models import Collection, Product
     from .models import Voucher
 
 
