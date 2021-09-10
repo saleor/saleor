@@ -222,7 +222,6 @@ def retrieve_payment_intent(
                 payment_intent_id,
                 api_key=api_key,
                 stripe_version=STRIPE_API_VERSION,
-                expand=["payment_method"],
             )
         return payment_intent, None
     except StripeError as error:
@@ -243,7 +242,6 @@ def capture_payment_intent(
                 amount_to_capture=amount_to_capture,
                 api_key=api_key,
                 stripe_version=STRIPE_API_VERSION,
-                expand=["payment_method"],
             )
         return payment_intent, None
     except StripeError as error:
@@ -321,14 +319,11 @@ def get_payment_method_details(
             exp_year = int(exp_year) if exp_year else None
             exp_month = card_details.get("exp_month", "")
             exp_month = int(exp_month) if exp_month else None
-            payment_method = payment_intent.get("payment_method", {})
-            metadata = payment_method.get("metadata", {})
             payment_method_info = PaymentMethodInfo(
                 last_4=card_details.get("last4", ""),
                 exp_year=exp_year,
                 exp_month=exp_month,
                 brand=card_details.get("brand", ""),
                 type="card",
-                metadata=metadata,
             )
     return payment_method_info
