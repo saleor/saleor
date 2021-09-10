@@ -169,6 +169,84 @@ def test_variant_discounts(product, channel_USD):
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
+def test_discount_for_variants_when_sale_for_specific_variants_only(
+    product, channel_USD
+):
+    variant = ProductVariant.objects.create(product=product, sku="456")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(20),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    variant = ProductVariant.objects.create(product=product, sku="789")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(20),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    product.refresh_from_db()
+
+    all_variants = list(product.variants.all())
+    first_variant, *rest_variants = all_variants
+
+    first_variant_channel_listing = first_variant.channel_listings.get(
+        channel=channel_USD
+    )
+    sale = Sale.objects.create(type=DiscountValueType.FIXED)
+    sale_channel_listing = SaleChannelListing.objects.create(
+        sale=sale,
+        discount_value=13,
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+    )
+
+    old_price = first_variant.get_price(
+        product, [], channel_USD, first_variant_channel_listing, discounts=[]
+    )
+
+    old_price_for_applied_variants = []
+
+    for variant in rest_variants:
+        variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+        old_price_for_applied_variants.append(
+            variant.get_price(
+                product, [], channel_USD, variant_channel_listing, discounts=[]
+            )
+        )
+
+    discount = DiscountInfo(
+        sale=sale,
+        channel_listings={channel_USD.slug: sale_channel_listing},
+        product_ids=set(),
+        category_ids=set(),
+        collection_ids=set(),
+        variants_ids={variant.id for variant in rest_variants},
+    )
+
+    new_price = first_variant.get_price(
+        product, [], channel_USD, first_variant_channel_listing, discounts=[discount]
+    )
+
+    new_price_for_applied_variants = []
+    for variant in rest_variants:
+        variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+        new_price_for_applied_variants.append(
+            variant.get_price(
+                product, [], channel_USD, variant_channel_listing, discounts=[discount]
+            )
+        )
+
+    assert new_price == old_price
+    for p1, p2 in zip(new_price_for_applied_variants, old_price_for_applied_variants):
+        assert p1 < p2
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
 def test_percentage_discounts(product, channel_USD):
     variant = product.variants.get()
     sale = Sale.objects.create(type=DiscountValueType.PERCENTAGE)

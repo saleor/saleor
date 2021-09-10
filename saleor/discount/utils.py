@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..order.models import Order
     from ..plugins.manager import PluginsManager
-    from ..product.models import Collection, Product, ProductVariant
+    from ..product.models import Collection, Product
     from .models import Voucher
 
 
@@ -56,7 +56,7 @@ def get_product_discount_on_sale(
     product_collections: Set[int],
     discount: DiscountInfo,
     channel: "Channel",
-    variant: Optional["ProductVariant"] = None,
+    variant_id: Optional[int] = None,
 ):
     """Return discount value if product is on sale or raise NotApplicable."""
     is_product_on_sale = (
@@ -64,8 +64,7 @@ def get_product_discount_on_sale(
         or product.category_id in discount.category_ids
         or product_collections.intersection(discount.collection_ids)
     )
-    is_variant_on_sale = variant is not None and variant.id in discount.variants_ids
-
+    is_variant_on_sale = variant_id is not None and variant_id in discount.variants_ids
     if is_product_on_sale or is_variant_on_sale:
         sale_channel_listing = discount.channel_listings.get(channel.slug)
         return discount.sale.get_discount(sale_channel_listing)  # type: ignore
@@ -78,14 +77,14 @@ def get_product_discounts(
     collections: Iterable["Collection"],
     discounts: Iterable[DiscountInfo],
     channel: "Channel",
-    variant: Optional["ProductVariant"] = None
+    variant_id: Optional[int] = None
 ) -> Money:
     """Return discount values for all discounts applicable to a product."""
     product_collections = set(pc.id for pc in collections)
     for discount in discounts or []:
         try:
             yield get_product_discount_on_sale(
-                product, product_collections, discount, channel, variant
+                product, product_collections, discount, channel, variant_id=variant_id
             )
         except NotApplicable:
             pass
@@ -98,7 +97,7 @@ def calculate_discounted_price(
     collections: Iterable["Collection"],
     discounts: Optional[Iterable[DiscountInfo]],
     channel: "Channel",
-    variant: Optional["ProductVariant"] = None
+    variant_id: Optional[int] = None
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:
@@ -108,7 +107,7 @@ def calculate_discounted_price(
                 collections=collections,
                 discounts=discounts,
                 channel=channel,
-                variant=variant,
+                variant_id=variant_id,
             )
         )
         if discount_prices:
