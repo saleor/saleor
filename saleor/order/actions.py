@@ -391,7 +391,7 @@ def approve_fulfillment(
         )
         for f_line in fulfillment.lines.all()
     ]
-    fulfill_order_lines(lines_to_fulfill, manager, increase_order_line_quantity=False)
+    _decrease_stocks(lines_to_fulfill, manager)
     order.refresh_from_db()
     update_order_status(order)
 
@@ -458,26 +458,30 @@ def clean_mark_order_as_paid(order: "Order"):
         )
 
 
+def _decrease_stocks(order_lines_info, manager):
+    lines_to_decrease_stock = get_order_lines_with_track_inventory(order_lines_info)
+    if lines_to_decrease_stock:
+        decrease_stock(lines_to_decrease_stock, manager)
+
+
+def _increase_order_line_quantity(order_lines_info):
+    order_lines = []
+    for line_info in order_lines_info:
+        line = line_info.line
+        line.quantity_fulfilled += line_info.quantity
+        order_lines.append(line)
+
+    OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
+
+
 @traced_atomic_transaction()
 def fulfill_order_lines(
     order_lines_info: Iterable["OrderLineData"],
     manager: "PluginsManager",
-    decrease_stocks=True,
-    increase_order_line_quantity=True,
 ):
     """Fulfill order line with given quantity."""
-    if decrease_stocks:
-        lines_to_decrease_stock = get_order_lines_with_track_inventory(order_lines_info)
-        if lines_to_decrease_stock:
-            decrease_stock(lines_to_decrease_stock, manager)
-    if increase_order_line_quantity:
-        order_lines = []
-        for line_info in order_lines_info:
-            line = line_info.line
-            line.quantity_fulfilled += line_info.quantity
-            order_lines.append(line)
-
-        OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
+    _decrease_stocks(order_lines_info, manager)
+    _increase_order_line_quantity(order_lines_info)
 
 
 @traced_atomic_transaction()
@@ -613,7 +617,9 @@ def _create_fulfillment_lines(
         raise InsufficientStock(insufficient_stocks)
 
     if lines_info:
-        fulfill_order_lines(lines_info, manager, decrease_stocks=decrease_stock)
+        if decrease_stock:
+            _decrease_stocks(lines_info, manager)
+        _increase_order_line_quantity(lines_info)
 
     return fulfillment_lines
 
