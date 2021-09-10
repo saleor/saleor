@@ -207,7 +207,6 @@ def test_retrieve_payment_intent(mocked_payment_intent):
         payment_intent_id,
         api_key=api_key,
         stripe_version=STRIPE_API_VERSION,
-        expand=["payment_method"],
     )
     assert isinstance(intent, StripeObject)
 
@@ -228,7 +227,6 @@ def test_retrieve_payment_intent_stripe_returns_error(mocked_payment_intent):
         payment_intent_id,
         api_key=api_key,
         stripe_version=STRIPE_API_VERSION,
-        expand=["payment_method"],
     )
 
     assert error == expected_error
@@ -253,7 +251,6 @@ def test_capture_payment_intent(mocked_payment_intent):
         amount_to_capture=amount,
         api_key=api_key,
         stripe_version=STRIPE_API_VERSION,
-        expand=["payment_method"],
     )
     assert isinstance(intent, StripeObject)
 
@@ -278,7 +275,6 @@ def test_capture_payment_intent_stripe_returns_error(mocked_payment_intent):
         amount_to_capture=amount,
         api_key=api_key,
         stripe_version=STRIPE_API_VERSION,
-        expand=["payment_method"],
     )
 
     assert error == expected_error
@@ -520,7 +516,6 @@ def test_get_payment_method_details():
             }
         ]
     }
-    payment_intent.payment_method = {"metadata": {"key": "value"}}
 
     payment_method_info = get_payment_method_details(payment_intent)
 
@@ -530,7 +525,6 @@ def test_get_payment_method_details():
         exp_month=12,
         brand="visa",
         type="card",
-        metadata={"key": "value"},
     )
 
 

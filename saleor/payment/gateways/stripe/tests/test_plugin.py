@@ -973,38 +973,6 @@ def test_confirm_payment(
     assert response.error is None
 
 
-@pytest.mark.parametrize("metadata", [{"key": "value"}, {}, None])
-@patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.retrieve")
-def test_confirm_payment_metadata(
-    mocked_intent_retrieve,
-    stripe_plugin,
-    payment_stripe_for_checkout,
-    metadata,
-):
-    # given
-    payment_intent_id = "payment-intent-id"
-
-    payment = payment_stripe_for_checkout
-
-    payment_intent = StripeObject(id=payment_intent_id)
-    payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
-    payment_intent["status"] = SUCCESS_STATUS
-    payment_intent["currency"] = payment.currency
-    payment_intent["charges"] = {"data": [{"payment_method_details": {"type": "card"}}]}
-    if metadata is not None:
-        payment_intent["payment_method"] = {"metadata": metadata}
-    mocked_intent_retrieve.return_value = payment_intent
-
-    payment_info = create_payment_information(payment, payment_token=payment_intent_id)
-
-    # when
-    plugin = stripe_plugin()
-    response = plugin.confirm_payment(payment_info, None)
-
-    # then
-    assert response.payment_method_info.metadata == (metadata or {})
-
-
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.retrieve")
 def test_confirm_payment_incorrect_payment_intent(
     mocked_intent_retrieve, stripe_plugin, payment_stripe_for_checkout
