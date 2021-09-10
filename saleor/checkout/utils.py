@@ -27,11 +27,11 @@ from ..giftcard.utils import (
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
 from ..shipping.models import ShippingMethod
-from ..warehouse.models import Warehouse
 from ..warehouse.availability import (
     check_stock_and_preorder_quantity,
     check_stock_and_preorder_quantity_bulk,
 )
+from ..warehouse.models import Warehouse
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
 from .fetch import (
