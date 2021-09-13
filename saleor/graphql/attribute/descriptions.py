@@ -36,7 +36,6 @@ class AttributeValueDescriptions:
     VALUES_RANGE = "The range that the returned values should be in."
     DATE_TIME_RANGE = "The date time range that the returned values should be in."
     DATE_RANGE = "The date range that the returned values should be in."
-    VALUE = "Represents the value of the attribute value."
     RICH_TEXT = "Represents the text (JSON) of the attribute value."
     BOOLEAN = "Represents the boolean value of the attribute value."
     DATE = "Represents the date value of the attribute value."

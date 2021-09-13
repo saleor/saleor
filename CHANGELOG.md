@@ -5,9 +5,8 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.1.0 [Unreleased]
 - Extend app by `AppExtension` - #7701 by @korycins
 - Add ExternalNotificationTrigger mutation - #7821 by @mstrumeck
-
-
 - Add Click&Collect feature - #7673 by @kuchichan
+- Introduce swatch attributes - #7261 by @IKarbowiak
 
 # 3.0.0 [Unreleased]
 
@@ -79,7 +78,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use GraphQL IDs instead of database IDs in export - #7240 by @IKarbowiak
 - Fix draft order tax mismatch - #7226 by @IKarbowiak
   - Introduce `calculate_order_line_total` plugin method
-- Introduce swatch attributes - #7261 by @IKarbowiak
 - Update core logging for better Celery tasks handling - #7251 by @tomaszszymanski129
 - Raise ValidationError when refund cannot be performed - #7260 by @IKarbowiak
 - Extend order with origin and original order values - #7326 by @IKarbowiak
