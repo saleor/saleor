@@ -22,6 +22,7 @@ from ....payment.error_codes import PaymentErrorCode
 from ....plugins.error_codes import PluginErrorCode
 from ....product.error_codes import ProductErrorCode
 from ....shipping.error_codes import ShippingErrorCode
+from ...notifications.error_codes import ExternalNotificationErrorCodes
 from ...shop.error_codes import OrderSettingsErrorCode
 
 DJANGO_VALIDATORS_ERROR_CODES = [
@@ -60,6 +61,7 @@ SALEOR_ERROR_CODE_ENUMS = [
     CheckoutErrorCode,
     ExportErrorCode,
     DiscountErrorCode,
+    ExternalNotificationErrorCodes,
     PluginErrorCode,
     GiftCardErrorCode,
     InvoiceErrorCode,

@@ -308,3 +308,20 @@ def send_order_confirmed_email_task(payload: dict, configuration: dict):
         app_id=payload["requester_app_id"],
         customer_email=payload["recipient_email"],
     )
+
+
+@app.task(
+    autoretry_for=(SendGridException,),
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
+    compression="zlib",
+)
+def send_email_with_dynamic_template_id(
+    payload: dict, template_id: str, configuration: dict
+):
+    configuration = SendgridConfiguration(**configuration)
+    send_email(
+        configuration=configuration,
+        template_id=template_id,
+        payload=payload,
+    )

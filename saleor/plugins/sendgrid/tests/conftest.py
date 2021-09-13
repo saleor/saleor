@@ -1,7 +1,7 @@
 import pytest
 
+from ....plugins.sendgrid.plugin import SendgridEmailPlugin
 from ...manager import get_plugins_manager
-from ..plugin import SendgridEmailPlugin
 
 
 @pytest.fixture

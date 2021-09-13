@@ -6,7 +6,7 @@ from ...app import error_codes as app_error_codes
 from ...attribute import error_codes as attribute_error_codes
 from ...channel import error_codes as channel_error_codes
 from ...checkout import error_codes as checkout_error_codes
-from ...core import JobStatus
+from ...core import JobStatus, TimePeriodType
 from ...core import error_codes as core_error_codes
 from ...core.permissions import get_permissions_enum_list
 from ...core.units import (
@@ -30,6 +30,7 @@ from ...shipping import error_codes as shipping_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
 from ...wishlist import error_codes as wishlist_error_codes
+from ..notifications import error_codes as external_notifications_error_codes
 from ..shop import error_codes as shop_error_codes
 from .utils import str_to_enum
 
@@ -89,6 +90,7 @@ LanguageCodeEnum = graphene.Enum(
 
 JobStatusEnum = to_enum(JobStatus)
 PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
+TimePeriodTypeEnum = to_enum(TimePeriodType)
 
 # unit enums
 MeasurementUnitsEnum = to_enum(MeasurementUnits)
@@ -103,6 +105,9 @@ AppErrorCode = graphene.Enum.from_enum(app_error_codes.AppErrorCode)
 AttributeErrorCode = graphene.Enum.from_enum(attribute_error_codes.AttributeErrorCode)
 ChannelErrorCode = graphene.Enum.from_enum(channel_error_codes.ChannelErrorCode)
 CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode)
+ExternalNotificationTriggerErrorCode = graphene.Enum.from_enum(
+    external_notifications_error_codes.ExternalNotificationErrorCodes
+)
 ExportErrorCode = graphene.Enum.from_enum(csv_error_codes.ExportErrorCode)
 DiscountErrorCode = graphene.Enum.from_enum(discount_error_codes.DiscountErrorCode)
 PluginErrorCode = graphene.Enum.from_enum(plugin_error_codes.PluginErrorCode)

@@ -6,6 +6,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models.deletion import SET_NULL
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField
@@ -67,6 +68,13 @@ class Checkout(ModelWithMetadata):
     )
     shipping_method = models.ForeignKey(
         ShippingMethod,
+        blank=True,
+        null=True,
+        related_name="checkouts",
+        on_delete=models.SET_NULL,
+    )
+    collection_point = models.ForeignKey(
+        "warehouse.Warehouse",
         blank=True,
         null=True,
         related_name="checkouts",

@@ -56,6 +56,9 @@ class FulfillmentStatus:
     )
     REPLACED = "replaced"  # group of replaced products
     CANCELED = "canceled"  # fulfilled group of products in an order marked as canceled
+    WAITING_FOR_APPROVAL = (
+        "waiting_for_approval"  # group of products waiting for approval
+    )
 
     CHOICES = [
         (FULFILLED, "Fulfilled"),
@@ -64,6 +67,7 @@ class FulfillmentStatus:
         (REPLACED, "Replaced"),
         (REFUNDED_AND_RETURNED, "Refunded and returned"),
         (CANCELED, "Canceled"),
+        (WAITING_FOR_APPROVAL, "Waiting for approval"),
     ]
 
 
@@ -119,6 +123,7 @@ class OrderEvents:
     FULFILLMENT_REFUNDED = "fulfillment_refunded"
     FULFILLMENT_RETURNED = "fulfillment_returned"
     FULFILLMENT_REPLACED = "fulfillment_replaced"
+    FULFILLMENT_AWAITS_APPROVAL = "fulfillment_awaits_approval"
     TRACKING_UPDATED = "tracking_updated"
     NOTE_ADDED = "note_added"
 
@@ -167,6 +172,7 @@ class OrderEvents:
         (FULFILLMENT_REFUNDED, "Some items were refunded"),
         (FULFILLMENT_RETURNED, "Some items were returned"),
         (FULFILLMENT_REPLACED, "Some items were replaced"),
+        (FULFILLMENT_AWAITS_APPROVAL, "Fulfillments awaits approval"),
         (TRACKING_UPDATED, "The fulfillment's tracking code was updated"),
         (NOTE_ADDED, "A note was added to the order"),
         (OTHER, "An unknown order event containing a message"),

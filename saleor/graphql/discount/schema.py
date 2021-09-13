@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import DiscountPermissions
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.fields import ChannelContextFilterConnectionField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
@@ -50,7 +51,12 @@ class DiscountQueries(graphene.ObjectType):
         Sale,
         filter=SaleFilterInput(description="Filtering options for sales."),
         sort_by=SaleSortingInput(description="Sort sales."),
-        query=graphene.String(description="Search sales by name, value or type."),
+        query=graphene.String(
+            description=(
+                "Search sales by name, value or type. "
+                f"{DEPRECATED_IN_3X_INPUT} Use `filter.search` input instead."
+            )
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -70,7 +76,12 @@ class DiscountQueries(graphene.ObjectType):
         Voucher,
         filter=VoucherFilterInput(description="Filtering options for vouchers."),
         sort_by=VoucherSortingInput(description="Sort voucher."),
-        query=graphene.String(description="Search vouchers by name or code."),
+        query=graphene.String(
+            description=(
+                "Search vouchers by name or code. "
+                f"{DEPRECATED_IN_3X_INPUT} Use `filter.search` input instead."
+            )
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),

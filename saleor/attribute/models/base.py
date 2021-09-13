@@ -214,7 +214,14 @@ class AttributeValue(SortableModel):
     class Meta:
         ordering = ("sort_order", "pk")
         unique_together = ("slug", "attribute")
-        indexes = [GinIndex(fields=["name", "slug"])]
+        indexes = [
+            GinIndex(
+                name="attribute_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["name", "slug"],
+                opclasses=["gin_trgm_ops"] * 2,
+            )
+        ]
 
     def __str__(self) -> str:
         return self.name
@@ -279,6 +286,8 @@ class AttributeValueTranslation(Translation):
                 if assigned_page_attribute_value := (
                     attribute_value.pagevalueassignment.first()
                 ):
-                    if page_id := assigned_page_attribute_value.assignment.page_id:
-                        context["page_id"] = page_id
+                    if page := assigned_page_attribute_value.assignment.page:
+                        context["page_id"] = page.id
+                        if page_type_id := page.page_type_id:
+                            context["page_type_id"] = page_type_id
         return context

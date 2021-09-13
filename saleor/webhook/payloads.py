@@ -4,7 +4,7 @@ from dataclasses import asdict
 from typing import TYPE_CHECKING, Iterable, Optional
 
 import graphene
-from django.db.models import F, QuerySet
+from django.db.models import F, QuerySet, Sum
 
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
@@ -23,7 +23,7 @@ from ..payment import ChargeStatus
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
-from ..warehouse.models import Warehouse
+from ..warehouse.models import Stock, Warehouse
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
 from .serializers import (
@@ -126,6 +126,22 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
     )
 
 
+def _generate_collection_point_payload(warehouse: "Warehouse"):
+    serializer = PayloadSerializer()
+    collection_point_fields = (
+        "name",
+        "email",
+        "click_and_collect_option",
+        "is_private",
+    )
+    collection_point_data = serializer.serialize(
+        [warehouse],
+        fields=collection_point_fields,
+        additional_fields={"address": (lambda w: w.address, ADDRESS_FIELDS)},
+    )
+    return collection_point_data
+
+
 def generate_order_payload(order: "Order"):
     serializer = PayloadSerializer()
     fulfillment_fields = (
@@ -197,6 +213,11 @@ def generate_order_payload(order: "Order"):
             "original": graphene.Node.to_global_id("Order", order.original_id),
             "lines": json.loads(generate_order_lines_payload(lines)),
             "fulfillments": json.loads(fulfillments_data),
+            "collection_point": json.loads(
+                _generate_collection_point_payload(order.collection_point)
+            )[0]
+            if order.collection_point
+            else None,
         },
     )
     return order_data
@@ -242,7 +263,12 @@ def generate_checkout_payload(checkout: "Checkout"):
         },
         extra_dict_data={
             # Casting to list to make it json-serializable
-            "lines": list(lines_dict_data)
+            "lines": list(lines_dict_data),
+            "collection_point": json.loads(
+                _generate_collection_point_payload(checkout.collection_point)
+            )[0]
+            if checkout.collection_point
+            else None,
         },
     )
     return checkout_data
@@ -396,6 +422,23 @@ def generate_product_variant_media_payload(product_variant):
     ]
 
 
+def generate_product_variant_with_stock_payload(stocks: Iterable["Stock"]):
+    serializer = PayloadSerializer()
+    extra_dict_data = {
+        "product_id": lambda v: graphene.Node.to_global_id(
+            "Product", v.product_variant.product_id
+        ),
+        "product_variant_id": lambda v: graphene.Node.to_global_id(
+            "ProductVariant", v.product_variant_id
+        ),
+        "warehouse_id": lambda v: graphene.Node.to_global_id(
+            "Warehouse", v.warehouse_id
+        ),
+        "product_slug": lambda v: v.product_variant.product.slug,
+    }
+    return serializer.serialize(stocks, fields=[], extra_dict_data=extra_dict_data)
+
+
 def generate_product_variant_payload(product_variants: Iterable["ProductVariant"]):
     serializer = PayloadSerializer()
     payload = serializer.serialize(
@@ -411,6 +454,10 @@ def generate_product_variant_payload(product_variants: Iterable["ProductVariant"
         },
     )
     return payload
+
+
+def generate_product_variant_stocks_payload(product_variant: "ProductVariant"):
+    return product_variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] or 0
 
 
 def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
@@ -619,6 +666,7 @@ def process_translation_context(context):
         ("product_variant_id", "ProductVariant"),
         ("attribute_id", "Attribute"),
         ("page_id", "Page"),
+        ("page_type_id", "PageType"),
     ]
     result = {}
     for key, type_name in additional_id_fields:

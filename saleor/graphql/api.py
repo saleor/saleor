@@ -1,5 +1,6 @@
 from graphene_federation import build_schema
 
+from ..graphql.notifications.schema import ExternalNotificationMutations
 from .account.schema import AccountMutations, AccountQueries
 from .app.schema import AppMutations, AppQueries
 from .attribute.schema import AttributeMutations, AttributeQueries
@@ -60,6 +61,7 @@ class Mutation(
     CoreMutations,
     CsvMutations,
     DiscountMutations,
+    ExternalNotificationMutations,
     PluginsMutations,
     GiftCardMutations,
     InvoiceMutations,
