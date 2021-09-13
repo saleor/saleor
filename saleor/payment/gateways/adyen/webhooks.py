@@ -703,7 +703,7 @@ def handle_additional_actions(
     payment = get_payment(payment_id, transaction_id=None)
     if not payment:
         logger.warning(
-            "Payment doesn't exist or is not active", extra={"payment_id": payment_id}
+            "Payment doesn't exist or is not active.", extra={"payment_id": payment_id}
         )
         return HttpResponseNotFound(
             "Cannot perform payment.There is no active adyen payment."
@@ -714,7 +714,7 @@ def handle_additional_actions(
     if not payment.order_id:
         if not payment.checkout or str(payment.checkout.token) != checkout_pk:
             logger.warning(
-                "There is no checkout with this payment",
+                "There is no checkout with this payment.",
                 extra={"checkout_pk": checkout_pk, "payment_id": payment_id},
             )
             return HttpResponseNotFound(
@@ -728,7 +728,7 @@ def handle_additional_actions(
 
     if not return_url:
         logger.warning(
-            "Missing return_url for payment",
+            "Missing return_url for payment.",
             extra={"payment_id": payment_id, "checkout_pk": checkout_pk},
         )
         return HttpResponseNotFound(
