@@ -34,7 +34,9 @@ from ..webhooks import (
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_successful_payment_intent_for_checkout(
+    _wrapped_update_payment_method,
     wrapped_checkout_complete,
     payment_stripe_for_checkout,
     checkout_with_items,
@@ -61,6 +63,7 @@ def test_handle_successful_payment_intent_for_checkout(
     payment_intent["setup_future_usage"] = None
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = SUCCESS_STATUS
+    payment_intent["payment_method"] = StripeObject()
 
     handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
@@ -74,54 +77,64 @@ def test_handle_successful_payment_intent_for_checkout(
     assert transaction.token == payment_intent.id
 
 
-@patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentMethod.modify")
+@pytest.mark.parametrize(
+    ["metadata", "called"],
+    [({f"key{i}": f"value{i}" for i in range(5)}, True), ({}, False)],
+)
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
-def test_handle_successful_payment_intent_with_future_usage(
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
+def test_handle_successful_payment_intent_with_metadata(
+    wrapped_update_payment_method,
     _wrapped_checkout_complete,
-    mocked_payment_method_modify,
-    payment_stripe_for_checkout,
-    checkout_with_items,
+    payment_stripe_for_order,
     stripe_plugin,
     channel_USD,
+    metadata,
+    called,
 ):
-    payment = payment_stripe_for_checkout
-    payment.to_confirm = True
+    # given
+    payment = payment_stripe_for_order
+    current_metadata = {"currentkey": "currentvalue"}
+    payment.metadata = metadata
+    payment.charge_status = ChargeStatus.PENDING
     payment.save()
-    payment.transactions.create(
-        is_success=True,
-        action_required=True,
-        kind=TransactionKind.ACTION_TO_CONFIRM,
-        amount=payment.total,
-        currency=payment.currency,
-        token="ABC",
-        gateway_response={},
-    )
     plugin = stripe_plugin()
-    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent = StripeObject(id="token", last_response={})
     payment_intent["amount_received"] = price_to_minor_unit(
         payment.total, payment.currency
     )
-    payment_intent["payment_method"] = "payment_method_id"
-    payment_intent["setup_future_usage"] = "off_line"
+    payment_intent["metadata"] = current_metadata
+    payment_intent["charges"] = {"data": [{"payment_method_details": {"type": "card"}}]}
+    payment_intent["amount"] = payment.total
     payment_intent["currency"] = payment.currency
-    payment_intent["status"] = SUCCESS_STATUS
+    payment_intent["payment_method"] = StripeObject()
 
+    # when
     handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
-    mocked_payment_method_modify.assert_called_once_with(
-        "payment_method_id",
-        api_key="secret_key",
-        metadata={"channel": channel_USD.slug},
-    )
+    # then
+    if not called:
+        assert wrapped_update_payment_method.call_count == 0
+    else:
+        wrapped_update_payment_method.assert_called_once_with(
+            plugin.config.connection_params["secret_api_key"],
+            payment_intent.payment_method,
+            metadata,
+        )
 
 
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_successful_payment_intent_for_order(
-    wrapped_checkout_complete, payment_stripe_for_order, stripe_plugin, channel_USD
+    _wrapped_update_payment_method,
+    wrapped_checkout_complete,
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
 ):
     payment = payment_stripe_for_order
     plugin = stripe_plugin()
@@ -129,6 +142,8 @@ def test_handle_successful_payment_intent_for_order(
     payment_intent["amount"] = payment.total
     payment_intent["currency"] = payment.currency
     payment_intent["capture_method"] = "automatic"
+    payment_intent["payment_method"] = StripeObject()
+
     handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     assert wrapped_checkout_complete.called is False
@@ -137,8 +152,13 @@ def test_handle_successful_payment_intent_for_order(
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_successful_payment_intent_for_order_with_auth_payment(
-    wrapped_checkout_complete, payment_stripe_for_order, stripe_plugin, channel_USD
+    _wrapped_update_payment_method,
+    wrapped_checkout_complete,
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
 ):
     payment = payment_stripe_for_order
 
@@ -151,6 +171,7 @@ def test_handle_successful_payment_intent_for_order_with_auth_payment(
     payment_intent["currency"] = payment.currency
     payment_intent["setup_future_usage"] = None
     payment_intent["status"] = SUCCESS_STATUS
+    payment_intent["payment_method"] = StripeObject()
 
     handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
@@ -166,8 +187,13 @@ def test_handle_successful_payment_intent_for_order_with_auth_payment(
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_successful_payment_intent_for_order_with_pending_payment(
-    wrapped_checkout_complete, payment_stripe_for_order, stripe_plugin, channel_USD
+    _wrapped_update_payment_method,
+    wrapped_checkout_complete,
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
 ):
     payment = payment_stripe_for_order
     transaction = payment.transactions.first()
@@ -183,6 +209,7 @@ def test_handle_successful_payment_intent_for_order_with_pending_payment(
     payment_intent["currency"] = payment.currency
     payment_intent["setup_future_usage"] = None
     payment_intent["status"] = SUCCESS_STATUS
+    payment_intent["payment_method"] = StripeObject()
 
     handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
@@ -200,7 +227,9 @@ def test_handle_successful_payment_intent_for_order_with_pending_payment(
     "saleor.payment.gateways.stripe.webhooks._process_payment_with_checkout",
     wraps=_process_payment_with_checkout,
 )
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_successful_payment_intent_different_checkout_channel_slug(
+    _wrapped_update_payment_method,
     wrapped_process_payment_with_checkout,
     payment_stripe_for_checkout,
     checkout_with_items,
@@ -231,6 +260,7 @@ def test_handle_successful_payment_intent_different_checkout_channel_slug(
     payment_intent["setup_future_usage"] = None
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = SUCCESS_STATUS
+    payment_intent["payment_method"] = StripeObject()
 
     # when
     handle_successful_payment_intent(payment_intent, plugin.config, channel.slug)
@@ -241,7 +271,9 @@ def test_handle_successful_payment_intent_different_checkout_channel_slug(
 
 @pytest.mark.parametrize("called", [True, False])
 @patch("saleor.payment.gateways.stripe.webhooks.order_captured", wraps=order_captured)
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_successful_payment_intent_different_order_channel_slug(
+    _wrapped_update_payment_method,
     wrapped_order_captured,
     payment_stripe_for_order,
     stripe_plugin,
@@ -258,6 +290,7 @@ def test_handle_successful_payment_intent_different_order_channel_slug(
     payment_intent["currency"] = payment.currency
     payment_intent["capture_method"] = "automatic"
     payment_intent["setup_future_usage"] = None
+    payment_intent["payment_method"] = StripeObject()
 
     # when
     handle_successful_payment_intent(payment_intent, plugin.config, channel.slug)
@@ -269,7 +302,9 @@ def test_handle_successful_payment_intent_different_order_channel_slug(
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_authorized_payment_intent_for_checkout(
+    _wrapped_update_payment_method,
     wrapped_checkout_complete,
     payment_stripe_for_checkout,
     checkout_with_items,
@@ -293,6 +328,7 @@ def test_handle_authorized_payment_intent_for_checkout(
     payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = AUTHORIZED_STATUS
+    payment_intent["payment_method"] = StripeObject()
     handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     payment.refresh_from_db()
@@ -308,7 +344,9 @@ def test_handle_authorized_payment_intent_for_checkout(
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_authorized_payment_intent_for_order(
+    _wrapped_update_payment_method,
     wrapped_checkout_complete,
     payment_stripe_for_order,
     checkout_with_items,
@@ -329,7 +367,9 @@ def test_handle_authorized_payment_intent_for_order(
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_authorized_payment_intent_for_processing_order_payment(
+    _wrapped_update_payment_method,
     wrapped_checkout_complete,
     payment_stripe_for_order,
     checkout_with_items,
@@ -348,18 +388,65 @@ def test_handle_authorized_payment_intent_for_processing_order_payment(
     assert wrapped_checkout_complete.called is False
 
 
+@pytest.mark.parametrize(
+    ["metadata", "called"], [({"key": "value"}, True), ({}, False)]
+)
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
+def test_handle_authorized_payment_intent_with_metadata(
+    wrapped_update_payment_method,
+    _wrapped_checkout_complete,
+    payment_stripe_for_order,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+    metadata,
+    called,
+):
+    # given
+    payment = payment_stripe_for_order
+    current_metadata = {"currentkey": "currentvalue"}
+    payment.metadata = metadata
+    payment.charge_status = ChargeStatus.PENDING
+    payment.save()
+    plugin = stripe_plugin()
+    payment_intent = StripeObject(id="token", last_response={})
+    payment_intent["metadata"] = current_metadata
+    payment_intent["payment_method"] = StripeObject()
+    payment_intent["charges"] = {"data": [{"payment_method_details": {"type": "card"}}]}
+    payment_intent["amount"] = payment.total
+    payment_intent["currency"] = payment.currency
+
+    # when
+    handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
+
+    # then
+    if not called:
+        assert wrapped_update_payment_method.call_count == 0
+    else:
+        wrapped_update_payment_method.assert_called_with(
+            plugin.config.connection_params["secret_api_key"],
+            payment_intent.payment_method,
+            metadata,
+        )
+
+
 @pytest.mark.parametrize("called", [True, False])
 @patch(
     "saleor.payment.gateways.stripe.webhooks._update_payment_with_new_transaction",
     wraps=_update_payment_with_new_transaction,
 )
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_authorized_payment_intent_different_order_channel_slug(
+    _wrapped_update_payment_method,
     wrapped_update_payment_with_new_transaction,
+    channel_PLN,
     payment_stripe_for_order,
     checkout_with_items,
     stripe_plugin,
     channel_USD,
-    channel_PLN,
     called,
 ):
     # given
@@ -373,6 +460,7 @@ def test_handle_authorized_payment_intent_different_order_channel_slug(
     payment_intent["amount"] = payment.total
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = AUTHORIZED_STATUS
+    payment_intent["payment_method"] = StripeObject()
 
     # when
     handle_authorized_payment_intent(payment_intent, plugin.config, channel.slug)
@@ -386,7 +474,9 @@ def test_handle_authorized_payment_intent_different_order_channel_slug(
     "saleor.payment.gateways.stripe.webhooks._process_payment_with_checkout",
     wraps=_process_payment_with_checkout,
 )
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_authorized_payment_intent_different_checkout_channel_slug(
+    _wrapped_update_payment_method,
     wrapped_process_payment_with_checkout,
     payment_stripe_for_checkout,
     stripe_plugin,
@@ -413,6 +503,7 @@ def test_handle_authorized_payment_intent_different_checkout_channel_slug(
     payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = AUTHORIZED_STATUS
+    payment_intent["payment_method"] = StripeObject()
 
     # when
     handle_authorized_payment_intent(payment_intent, plugin.config, channel.slug)
