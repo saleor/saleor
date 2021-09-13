@@ -92,7 +92,9 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
-        store_payment_method=StorePaymentMethodEnum[payment.store.upper()],
+        store_payment_method=StorePaymentMethodEnum[
+            payment.store_payment_method.upper()
+        ],
         payment_metadata=payment.metadata,
     )
 
@@ -159,7 +161,7 @@ def create_payment(
         "total": total,
         "return_url": return_url,
         "psp_reference": external_reference or "",
-        "store": store_payment_method,
+        "store_payment_method": store_payment_method,
         "metadata": {} if metadata is None else metadata,
     }
 
