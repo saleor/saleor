@@ -438,6 +438,24 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
     )
 
 
+class PaymentToRefundInput(graphene.InputObjectType):
+    payment_id = graphene.ID(required=True, description="The graphene ID of a payment.")
+    amount = PositiveDecimal(required=True, description="Amount of the refund.")
+    include_shipping_costs = graphene.Boolean(
+        # TODO Anatoly, update the description
+        # description=(
+        #     "If true, Saleor will refund shipping costs."
+        #     "If amountToRefund is provided"
+        #     "includeShippingCosts will be ignored."
+        # ),
+        default_value=False,
+    )
+
+
+# TODO Anatoly
+# deprecate amountToRefund , includeShippingCosts:
+#   add logic which will convert depreacted input to list  of paymentToRefund
+#   raise validation error when order has more than one payment
 class OrderRefundProductsInput(graphene.InputObjectType):
     order_lines = graphene.List(
         graphene.NonNull(OrderRefundLineInput),
@@ -447,6 +465,11 @@ class OrderRefundProductsInput(graphene.InputObjectType):
         graphene.NonNull(OrderRefundFulfillmentLineInput),
         description="List of fulfilled lines to refund.",
     )
+    # payments_to_refund = graphene.List(
+    #     PaymentToRefundInput,
+    #     required=True,
+    #     description=f"{ADDED_IN_31} Payments that need to be refunded.",
+    # )
     amount_to_refund = PositiveDecimal(
         required=False,
         description="The total amount of refund when the value is provided manually.",
@@ -622,6 +645,18 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         error_type_class = OrderError
         error_type_field = "order_errors"
 
+    # TODO Anatoly, finish this logic
+    # Add validation to  FulfillmentRefundProducts.clean_input which will confirm
+    # that recieved list of payments belongs to given order.
+    # Run FulfillmentRefundProducts.clean_order_payment for each payment from the list
+    # Run FulfillmentRefundProducts.clean_amount_to_refund for each payment
+    # from the list
+    # Add validation which will confirm that maximaly only one payment for list of
+    # paymentsToRefund has flag which defines that we should refund shipping costs also
+    @classmethod
+    def _check_payments(cls, order, payments):
+        pass
+
     @classmethod
     def clean_input(cls, info, order_id, input):
         cleaned_input = {}
@@ -656,6 +691,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             )
         return cleaned_input
 
+    # TODO In case when any refund fail - create new order event for this
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))

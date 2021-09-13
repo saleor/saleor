@@ -843,6 +843,11 @@ def __get_shipping_refund_amount(
     return shipping_refund_amount
 
 
+# TODO Anatoly
+# Modify logic from saleor.order.actions.create_refund_fulfillment
+# to be able to handle multiple payments:
+#   all events.payment_refunded_event
+#   send_order_refunded_confirmation for each refunded payment
 def create_refund_fulfillment(
     user: Optional["User"],
     app: Optional["App"],
