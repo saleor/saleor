@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     Dict,
     Iterable,
     List,
@@ -24,7 +25,7 @@ from ..channel.models import Channel
 from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
-from ..core.taxes import TaxType, zero_taxed_money
+from ..core.taxes import TaxData, TaxType, zero_taxed_money
 from ..discount import DiscountInfo
 from .base_plugin import ExternalAccessTokens
 from .models import PluginConfiguration
@@ -146,6 +147,56 @@ class PluginsManager(PaymentInterface):
         returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)
         if returned_value == NotImplemented:
             return previous_value
+        return returned_value
+
+    def __run_method_once_on_plugins(
+        self,
+        method_name: str,
+        default_value: Any,
+        return_value_validator: Callable[[Any], bool],
+        *args,
+        channel_slug: Optional[str] = None,
+        **kwargs
+    ) -> Any:
+        """Try to run a method with the given name on each declared plugin.
+
+        Method will return the first value matching the return_value_validator.
+        """
+        plugins = self.get_plugins(channel_slug=channel_slug)
+        for plugin in plugins:
+            value = self.__run_method_once_on_single_plugin(
+                plugin,
+                method_name,
+                default_value,
+                return_value_validator,
+                *args,
+                **kwargs,
+            )
+            if value is not NotImplemented:
+                return value
+        return default_value
+
+    def __run_method_once_on_single_plugin(
+        self,
+        plugin: Optional["BasePlugin"],
+        method_name: str,
+        previous_value: Any,
+        return_value_validator: Callable[[Any], bool],
+        *args,
+        **kwargs,
+    ) -> Any:
+        """Run method_name on plugin.
+
+        Method will return value returned from plugin's
+        method. If plugin doesn't have own implementation of expected method_name, it
+        will return NotImplemented.
+        """
+        plugin_method = getattr(plugin, method_name, NotImplemented)
+        if plugin_method == NotImplemented:
+            return NotImplemented
+        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)
+        if not return_value_validator(returned_value):
+            return NotImplemented
         return returned_value
 
     def change_user_address(
@@ -426,6 +477,24 @@ class PluginsManager(PaymentInterface):
     def show_taxes_on_storefront(self) -> bool:
         default_value = False
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)
+
+    def get_taxes_for_checkout(self, checkout: "Checkout") -> Optional[TaxData]:
+        default_value = None
+        return self.__run_method_once_on_plugins(
+            "get_taxes_for_checkout",
+            default_value,
+            lambda value: isinstance(value, TaxData),
+            checkout,
+        )
+
+    def get_taxes_for_order(self, order: "Order") -> Optional[TaxData]:
+        default_value = None
+        return self.__run_method_once_on_plugins(
+            "get_taxes_for_order",
+            default_value,
+            lambda value: isinstance(value, TaxData),
+            order,
+        )
 
     def apply_taxes_to_product(
         self, product: "Product", price: Money, country: Country, channel_slug: str

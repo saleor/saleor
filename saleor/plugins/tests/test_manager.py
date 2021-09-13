@@ -511,6 +511,16 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
     assert show_taxes == PluginsManager(plugins=plugins).show_taxes_on_storefront()
 
 
+@pytest.mark.parametrize("plugins, taxes", [([], None)])
+def test_manager_get_taxes_for_checkout(checkout, plugins, taxes):
+    assert taxes == PluginsManager(plugins=plugins).get_taxes_for_checkout(checkout)
+
+
+@pytest.mark.parametrize("plugins, taxes", [([], None)])
+def test_manager_get_taxes_for_order(order, plugins, taxes):
+    assert taxes == PluginsManager(plugins=plugins).get_taxes_for_order(order)
+
+
 @pytest.mark.parametrize(
     "plugins, price",
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
