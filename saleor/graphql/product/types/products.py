@@ -7,13 +7,17 @@ from django_countries.fields import Country
 from graphene import relay
 from graphene_federation import key
 
-from ....account.utils import requestor_is_staff_member_or_app
 from ....attribute import models as attribute_models
-from ....core.permissions import OrderPermissions, ProductPermissions
+from ....core.permissions import (
+    OrderPermissions,
+    ProductPermissions,
+    has_one_of_permissions,
+)
 from ....core.tracing import traced_resolver
 from ....core.utils import get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
+from ....product.models import ALL_PRODUCTS_PERMISSIONS
 from ....product.product_images import get_product_image_thumbnail, get_thumbnail
 from ....product.utils import calculate_revenue_for_variant
 from ....product.utils.availability import (
@@ -733,7 +737,10 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         country_code = address.country if address is not None else None
 
         requestor = get_user_or_app_from_context(info.context)
-        is_staff = requestor_is_staff_member_or_app(requestor)
+
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
         channel_slug = str(root.channel_slug)
 
         def calculate_is_available(quantities):
@@ -749,11 +756,11 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             ).load_many(keys)
 
         def check_variant_availability():
-            if is_staff and not channel_slug:
+            if has_required_permissions and not channel_slug:
                 variants = ProductVariantsByProductIdLoader(info.context).load(
                     root.node.id
                 )
-            elif is_staff and channel_slug:
+            elif has_required_permissions and channel_slug:
                 variants = ProductVariantsByProductIdAndChannel(info.context).load(
                     (root.node.id, channel_slug)
                 )
@@ -802,10 +809,12 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Product], info, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        is_staff = requestor_is_staff_member_or_app(requestor)
-        if is_staff and not root.channel_slug:
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
+        if has_required_permissions and not root.channel_slug:
             variants = ProductVariantsByProductIdLoader(info.context).load(root.node.id)
-        elif is_staff and root.channel_slug:
+        elif has_required_permissions and root.channel_slug:
             variants = ProductVariantsByProductIdAndChannel(info.context).load(
                 (root.node.id, root.channel_slug)
             )
@@ -831,10 +840,13 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @traced_resolver
     def resolve_collections(root: ChannelContext[models.Product], info, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        is_staff = requestor_is_staff_member_or_app(requestor)
+
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
 
         def return_collections(collections):
-            if is_staff:
+            if has_required_permissions:
                 return [
                     ChannelContext(node=collection, channel_slug=root.channel_slug)
                     for collection in collections
@@ -1186,12 +1198,14 @@ class Category(CountableDjangoObjectType):
     @traced_resolver
     def resolve_products(root: models.Category, info, channel=None, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        is_staff = requestor_is_staff_member_or_app(requestor)
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
         tree = root.get_descendants(include_self=True)
-        if channel is None and not is_staff:
+        if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
         qs = models.Product.objects.all()
-        if not is_staff:
+        if not has_required_permissions:
             qs = (
                 qs.published(channel)
                 .annotate_visible_in_listings(channel)
@@ -1199,7 +1213,7 @@ class Category(CountableDjangoObjectType):
                     visible_in_listings=False,
                 )
             )
-        if channel and is_staff:
+        if channel and has_required_permissions:
             qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)
