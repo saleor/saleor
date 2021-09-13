@@ -9,7 +9,9 @@ from ....core.permissions import OrderPermissions
 from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
+    approve_fulfillment,
     cancel_fulfillment,
+    cancel_waiting_fulfillment,
     create_fulfillments,
     create_fulfillments_for_returned_products,
     create_refund_fulfillment,
@@ -17,6 +19,7 @@ from ....order.actions import (
 )
 from ....order.error_codes import OrderErrorCode
 from ....order.notifications import send_fulfillment_update
+from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
@@ -67,12 +70,6 @@ class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
     )
 
 
-class FulfillmentCancelInput(graphene.InputObjectType):
-    warehouse_id = graphene.ID(
-        description="ID of warehouse where items will be restock.", required=True
-    )
-
-
 class OrderFulfill(BaseMutation):
     fulfillments = graphene.List(
         Fulfillment, description="List of created fulfillments."
@@ -84,7 +81,7 @@ class OrderFulfill(BaseMutation):
             description="ID of the order to be fulfilled.", name="order"
         )
         input = OrderFulfillInput(
-            required=True, description="Fields required to create an fulfillment."
+            required=True, description="Fields required to create a fulfillment."
         )
 
     class Meta:
@@ -96,7 +93,19 @@ class OrderFulfill(BaseMutation):
     @classmethod
     def clean_lines(cls, order_lines, quantities):
         for order_line, line_quantities in zip(order_lines, quantities):
-            line_quantity_unfulfilled = order_line.quantity_unfulfilled
+            quantity_awaiting = sum(
+                [
+                    f_line.quantity
+                    if f_line.fulfillment.status
+                    == FulfillmentStatus.WAITING_FOR_APPROVAL
+                    else 0
+                    for f_line in order_line.fulfillment_lines.all()
+                ]
+            )
+
+            line_quantity_unfulfilled = (
+                order_line.quantity_unfulfilled - quantity_awaiting
+            )
 
             if sum(line_quantities) > line_quantity_unfulfilled:
                 msg = (
@@ -163,7 +172,21 @@ class OrderFulfill(BaseMutation):
             )
 
     @classmethod
-    def clean_input(cls, data):
+    def clean_input(cls, info, order, data):
+        site_settings = info.context.site.settings
+        if not order.is_fully_paid() and (
+            site_settings.fulfillment_auto_approve
+            and not site_settings.fulfillment_allow_unpaid
+        ):
+            raise ValidationError(
+                {
+                    "order": ValidationError(
+                        "Cannot fulfill unpaid order.",
+                        code=OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER.value,
+                    )
+                }
+            )
+
         lines = data["lines"]
 
         warehouse_ids_for_lines = [
@@ -178,7 +201,12 @@ class OrderFulfill(BaseMutation):
         lines_ids = [line["order_line_id"] for line in lines]
         cls.check_lines_for_duplicates(lines_ids)
         order_lines = cls.get_nodes_or_error(
-            lines_ids, field="lines", only_type=OrderLine
+            lines_ids,
+            field="lines",
+            only_type=OrderLine,
+            qs=order_models.OrderLine.objects.prefetch_related(
+                "fulfillment_lines__fulfillment"
+            ),
         )
 
         cls.clean_lines(order_lines, quantities_for_lines)
@@ -206,7 +234,7 @@ class OrderFulfill(BaseMutation):
         order = cls.get_node_or_error(info, order, field="order", only_type=Order)
         data = data.get("input")
 
-        cleaned_input = cls.clean_input(data)
+        cleaned_input = cls.clean_input(info, order, data)
 
         user = info.context.user
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
@@ -220,6 +248,7 @@ class OrderFulfill(BaseMutation):
                 dict(lines_for_warehouses),
                 info.context.plugins,
                 notify_customer,
+                approved=info.context.site.settings.fulfillment_auto_approve,
             )
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)
@@ -237,9 +266,9 @@ class FulfillmentUpdateTracking(BaseMutation):
     )
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an fulfillment to update.")
+        id = graphene.ID(required=True, description="ID of a fulfillment to update.")
         input = FulfillmentUpdateTrackingInput(
-            required=True, description="Fields required to update an fulfillment."
+            required=True, description="Fields required to update a fulfillment."
         )
 
     class Meta:
@@ -269,14 +298,22 @@ class FulfillmentUpdateTracking(BaseMutation):
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
+class FulfillmentCancelInput(graphene.InputObjectType):
+    warehouse_id = graphene.ID(
+        description="ID of a warehouse where items will be restocked. Optional "
+        "when fulfillment is in WAITING_FOR_APPROVAL state.",
+        required=False,
+    )
+
+
 class FulfillmentCancel(BaseMutation):
     fulfillment = graphene.Field(Fulfillment, description="A canceled fulfillment.")
     order = graphene.Field(Order, description="Order which fulfillment was cancelled.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an fulfillment to cancel.")
+        id = graphene.ID(required=True, description="ID of a fulfillment to cancel.")
         input = FulfillmentCancelInput(
-            required=True, description="Fields required to cancel an fulfillment."
+            required=False, description="Fields required to cancel a fulfillment."
         )
 
     class Meta:
@@ -286,34 +323,112 @@ class FulfillmentCancel(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        warehouse_id = data.get("input").get("warehouse_id")
-        warehouse = cls.get_node_or_error(
-            info, warehouse_id, only_type="Warehouse", field="warehouse_id"
-        )
-        fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
-
+    def validate_fulfillment(cls, fulfillment, warehouse):
         if not fulfillment.can_edit():
-            err_msg = "This fulfillment can't be canceled"
             raise ValidationError(
                 {
                     "fulfillment": ValidationError(
-                        err_msg, code=OrderErrorCode.CANNOT_CANCEL_FULFILLMENT
+                        "This fulfillment can't be canceled",
+                        code=OrderErrorCode.CANNOT_CANCEL_FULFILLMENT,
+                    )
+                }
+            )
+        if (
+            fulfillment.status != FulfillmentStatus.WAITING_FOR_APPROVAL
+            and not warehouse
+        ):
+            raise ValidationError(
+                {
+                    "warehouseId": ValidationError(
+                        "This parameter is required for fulfillments which are not in "
+                        "WAITING_FOR_APPROVAL state.",
+                        code=OrderErrorCode.REQUIRED,
                     )
                 }
             )
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
+
+        warehouse = None
+        if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
+            warehouse = None
+        elif warehouse_id := data.get("input", {}).get("warehouse_id"):
+            warehouse = cls.get_node_or_error(
+                info, warehouse_id, only_type="Warehouse", field="warehouse_id"
+            )
+
+        cls.validate_fulfillment(fulfillment, warehouse)
+
         order = fulfillment.order
-        cancel_fulfillment(
+        if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
+            fulfillment = cancel_waiting_fulfillment(
+                fulfillment,
+                info.context.user,
+                info.context.app,
+                info.context.plugins,
+            )
+        else:
+            fulfillment = cancel_fulfillment(
+                fulfillment,
+                info.context.user,
+                info.context.app,
+                warehouse,
+                info.context.plugins,
+            )
+        order.refresh_from_db(fields=["status"])
+        return FulfillmentCancel(fulfillment=fulfillment, order=order)
+
+
+class FulfillmentApprove(BaseMutation):
+    fulfillment = graphene.Field(Fulfillment, description="An approved fulfillment.")
+    order = graphene.Field(Order, description="Order which fulfillment was approved.")
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a fulfillment to approve.")
+        notify_customer = graphene.Boolean(
+            required=True, description="True if confirmation email should be send."
+        )
+
+    class Meta:
+        description = f"{ADDED_IN_31} Approve existing fulfillment."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def clean_input(cls, info, fulfillment):
+        if fulfillment.status != FulfillmentStatus.WAITING_FOR_APPROVAL:
+            raise ValidationError(
+                "Invalid fulfillment status, only WAITING_FOR_APPROVAL "
+                "fulfillments can be accepted.",
+                code=OrderErrorCode.INVALID.value,
+            )
+        if (
+            not info.context.site.settings.fulfillment_allow_unpaid
+            and not fulfillment.order.is_fully_paid()
+        ):
+            raise ValidationError(
+                "Cannot fulfill unpaid order.",
+                code=OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER,
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        fulfillment = cls.get_node_or_error(info, data["id"], only_type="Fulfillment")
+        cls.clean_input(info, fulfillment)
+
+        order = fulfillment.order
+        fulfillment = approve_fulfillment(
             fulfillment,
             info.context.user,
             info.context.app,
-            warehouse,
             info.context.plugins,
+            notify_customer=data["notify_customer"],
         )
-        fulfillment.refresh_from_db(fields=["status"])
         order.refresh_from_db(fields=["status"])
-        return FulfillmentCancel(fulfillment=fulfillment, order=order)
+        return FulfillmentApprove(fulfillment=fulfillment, order=order)
 
 
 class OrderRefundLineInput(graphene.InputObjectType):
@@ -554,21 +669,105 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
                 whitelisted_statuses=[
                     FulfillmentStatus.FULFILLED,
                     FulfillmentStatus.RETURNED,
+                    FulfillmentStatus.WAITING_FOR_APPROVAL,
                 ],
             )
         return cleaned_input
 
     @classmethod
+    def remove_waiting_fulfillments(cls, lines_info):
+        """Delete fulfillment lines which fulfillments are `WAITING_FOR_APPROVAL`.
+
+        Delete fulfillments themselves if metioned lines were only lines inside.
+        """
+        if not lines_info:
+            return {}, []
+
+        lines_to_remove = []
+        lines_to_update = []
+        remaining_fulfillment_lines = []
+        order_lines_map = defaultdict(lambda: 0)
+
+        for line_data in lines_info:
+            if (
+                line_data.line.fulfillment.status
+                == FulfillmentStatus.WAITING_FOR_APPROVAL
+            ):
+                if line_data.quantity < line_data.line.quantity:
+                    _line = line_data.line
+                    _line.quantity = _line.quantity - line_data.quantity
+                    lines_to_update.append(_line)
+                else:
+                    lines_to_remove.append(line_data.line.id)
+                order_lines_map[line_data.line.order_line] += line_data.quantity
+            else:
+                remaining_fulfillment_lines.append(line_data)
+
+        lines_to_delete = order_models.FulfillmentLine.objects.filter(
+            id__in=set(lines_to_remove)
+        ).select_related("fulfillment")
+
+        related_fulfillment_ids = [f.fulfillment.pk for f in lines_to_delete]
+        related_fulfillment_ids.extend([f.fulfillment.pk for f in lines_to_update])
+
+        if lines_to_update:
+            order_models.FulfillmentLine.objects.bulk_update(
+                lines_to_update, ["quantity"]
+            )
+
+        if lines_to_delete:
+            lines_to_delete.delete()
+
+        order_models.Fulfillment.objects.filter(
+            pk__in=related_fulfillment_ids, lines=None
+        ).delete()
+
+        return order_lines_map, remaining_fulfillment_lines
+
+    @classmethod
+    def extend_order_lines(cls, order_lines, lines_data):
+        """Extend order_lines with data from lines_data.
+
+        If order line entry existed, increase it's quantity, create if it didn't.
+        """
+        for line, quantity in lines_data.items():
+            appended = False
+            for item in order_lines:
+                if item.line == line:
+                    item.quantity += quantity
+                    appended = True
+            if not appended:
+                order_lines.append(
+                    OrderLineData(
+                        line=line,
+                        quantity=quantity,
+                        variant=None,
+                        replace=False,
+                        warehouse_pk=None,
+                    )
+                )
+        return order_lines
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
+
+        order_lines_map, remaining_fulfillment_lines = cls.remove_waiting_fulfillments(
+            cleaned_input.get("fulfillment_lines", [])
+        )
+
+        order_lines = cls.extend_order_lines(
+            cleaned_input.get("order_lines", []), order_lines_map
+        )
+
         refund_fulfillment = create_refund_fulfillment(
             info.context.user,
             info.context.app,
             order,
             cleaned_input["payment"],
-            cleaned_input.get("order_lines", []),
-            cleaned_input.get("fulfillment_lines", []),
+            order_lines,
+            remaining_fulfillment_lines,
             info.context.plugins,
             cleaned_input["amount_to_refund"],
             cleaned_input["include_shipping_costs"],

@@ -24,7 +24,7 @@
   <span> | </span>
   <a href="https://gitter.im/mirumee/saleor">Gitter</a>
   <span> | </span>
-  <a href="https://spectrum.chat/saleor">Spectrum</a>
+  <a href="https://github.com/mirumee/saleor/discussions">GitHub Discussions</a>
 </div>
 
 <br>
