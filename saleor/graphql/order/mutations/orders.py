@@ -6,14 +6,14 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
-from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
+from ....order import OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
+    make_refund,
     mark_order_as_paid,
     order_captured,
     order_confirmed,
-    order_refunded,
     order_shipping_updated,
     order_voided,
 )
@@ -26,9 +26,11 @@ from ....order.utils import (
     recalculate_order,
     update_order_prices,
 )
-from ....payment import PaymentError, TransactionKind, gateway
+from ....payment import TransactionKind, gateway
+from ....payment.actions import try_payment_action
 from ....shipping import models as shipping_models
 from ...account.types import AddressInput
+from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
@@ -136,22 +138,6 @@ def clean_refund_payment(payment):
                     code=OrderErrorCode.CANNOT_REFUND,
                 )
             }
-        )
-
-
-def try_payment_action(order, user, app, payment, func, *args, **kwargs):
-    try:
-        result = func(*args, **kwargs)
-        # provided order might alter it's total_paid.
-        order.refresh_from_db()
-        return result
-    except (PaymentError, ValueError) as e:
-        message = str(e)
-        events.payment_failed_event(
-            order=order, user=user, app=app, message=message, payment=payment
-        )
-        raise ValidationError(
-            {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
         )
 
 
@@ -579,13 +565,23 @@ class OrderVoid(BaseMutation):
         return OrderVoid(order=order)
 
 
+class OrderPaymentToRefundInput(graphene.InputObjectType):
+    payment_id = graphene.ID(required=True, description="The graphene ID of a payment.")
+    amount = PositiveDecimal(required=True, description="Amount of the refund.")
+
+
 class OrderRefund(BaseMutation):
     order = graphene.Field(Order, description="A refunded order.")
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of the order to refund.")
         amount = PositiveDecimal(
-            required=True, description="Amount of money to refund."
+            required=False, description="Amount of money to refund."
+        )
+        payments_to_refund = graphene.List(
+            OrderPaymentToRefundInput,
+            required=False,
+            description=f"{ADDED_IN_31} Payments that need to be refunded.",
         )
 
     class Meta:
@@ -595,8 +591,13 @@ class OrderRefund(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, amount, **data):
-        if amount <= 0:
+    def _run_checks(cls, amount, payments_to_refund):
+        if (not amount and not payments_to_refund) or (amount and payments_to_refund):
+            raise ValidationError(
+                "Either amount or payments to refund should be specified.",
+                code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
+            )
+        if amount and amount <= 0:
             raise ValidationError(
                 {
                     "amount": ValidationError(
@@ -606,36 +607,69 @@ class OrderRefund(BaseMutation):
                 }
             )
 
+    @classmethod
+    def _prepare_payments(cls, info, order, amount, payments_to_refund):
+        if payments_to_refund:
+            payments = [
+                {
+                    "payment": cls.get_node_or_error(info, item["payment_id"]),
+                    "amount": item["amount"],
+                }
+                for item in payments_to_refund
+            ]
+
+        else:
+            active_payments = order.payments.filter(is_active=True)
+
+            # There might be just one single payment with the specified amount.
+            if payment := active_payments.filter(captured_amount=amount).first():
+                payments = [{"payment": payment, "amount": amount}]
+            else:
+                fit_payments = []
+                amount_left = amount
+
+                # Otherwise, get payments whose total amount
+                # equals the specified amount.
+                for payment in active_payments:
+                    if amount_left > 0 and payment.captured_amount <= amount_left:
+                        fit_payments.append(payment)
+                        amount_left -= payment.captured_amount
+
+                if amount_left > 0:
+                    raise ValidationError(
+                        {
+                            "amount": ValidationError(
+                                "The specified amount cannot be refunded in full.",
+                                code=OrderErrorCode.CANNOT_REFUND,
+                            )
+                        }
+                    )
+                payments = [
+                    {"payment": payment, "amount": payment.captured_amount}
+                    for payment in active_payments
+                ]
+
+        return payments
+
+    @classmethod
+    def perform_mutation(
+        cls, _root, info, amount=None, payments_to_refund=None, **data
+    ):
+        cls._run_checks(amount, payments_to_refund)
+
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        payment = order.get_last_payment()
-        clean_refund_payment(payment)
+        payments = cls._prepare_payments(info, order, amount, payments_to_refund)
 
-        transaction = try_payment_action(
-            order,
-            info.context.user,
-            info.context.app,
-            payment,
-            gateway.refund,
-            payment,
-            info.context.plugins,
-            amount=amount,
-            channel_slug=order.channel.slug,
-        )
-        order.fulfillments.create(
-            status=FulfillmentStatus.REFUNDED, total_refund_amount=amount
-        )
+        if payments:
+            for item in payments:
+                payment = item["payment"]
+                clean_refund_payment(payment)
+        else:
+            # The check still has to be performed.
+            clean_refund_payment(None)
 
-        # Confirm that we changed the status to refund. Some payment can receive
-        # asynchronous webhook with update status
-        if transaction.kind == TransactionKind.REFUND:
-            order_refunded(
-                order,
-                info.context.user,
-                info.context.app,
-                amount,
-                payment,
-                info.context.plugins,
-            )
+        make_refund(order, payments, info)
+
         return OrderRefund(order=order)
 
 
