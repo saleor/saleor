@@ -1008,6 +1008,7 @@ type Checkout implements Node & ObjectWithMetadata {
   token: UUID!
   totalPrice: TaxedMoney
   languageCode: LanguageCodeEnum!
+  payments: [Payment!]!
 }
 
 type CheckoutAddPromoCode {
@@ -3904,7 +3905,7 @@ type Order implements Node & ObjectWithMetadata {
   original: ID
   origin: OrderOriginEnum!
   isPaid: Boolean!
-  paymentStatus: PaymentChargeStatusEnum!
+  paymentStatus: OrderPaymentStatusEnum!
   paymentStatusDisplay: String!
   payments: [Payment]
   total: TaxedMoney!
@@ -4188,7 +4189,7 @@ enum OrderEventsEnum {
 }
 
 input OrderFilterInput {
-  paymentStatus: [PaymentChargeStatusEnum]
+  paymentStatus: [OrderPaymentStatusEnum]
   status: [OrderStatusFilter]
   customer: String
   created: DateRangeInput
@@ -4298,6 +4299,15 @@ enum OrderOriginEnum {
   CHECKOUT
   DRAFT
   REISSUE
+}
+
+enum OrderPaymentStatusEnum {
+  NOT_CHARGED
+  PARTIALLY_CHARGED
+  FULLY_CHARGED
+  OVERPAID
+  PARTIALLY_REFUNDED
+  FULLY_REFUNDED
 }
 
 type OrderRefund {
@@ -4703,6 +4713,7 @@ type Payment implements Node {
   order: Order
   paymentMethodType: String!
   customerIpAddress: String
+  pspReference: String
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
   total: Money
@@ -4721,6 +4732,7 @@ type PaymentCapture {
 
 enum PaymentChargeStatusEnum {
   NOT_CHARGED
+  AUTHORIZED
   PENDING
   PARTIALLY_CHARGED
   FULLY_CHARGED

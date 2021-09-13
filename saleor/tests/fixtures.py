@@ -3124,6 +3124,7 @@ def payment_txn_preauth(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy
     payment.order = order
+    payment.charge_status = ChargeStatus.AUTHORIZED
     payment.save()
 
     payment.transactions.create(
@@ -3848,8 +3849,16 @@ def payment_kwargs(db, order_with_lines):
 
 
 @pytest.fixture
-def payment_dummy(payment_kwargs):
-    return Payment.objects.create(**payment_kwargs)
+def payment_dummy_factory(payment_kwargs):
+    def factory():
+        return Payment.objects.create(**payment_kwargs)
+
+    return factory
+
+
+@pytest.fixture
+def payment_dummy(payment_dummy_factory):
+    return payment_dummy_factory()
 
 
 @pytest.fixture

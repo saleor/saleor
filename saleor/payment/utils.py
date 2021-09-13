@@ -33,6 +33,7 @@ def create_payment_information(
     customer_id: str = None,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
+    partial: bool = False,
 ) -> PaymentData:
     """Extract order information along with payment details.
 
@@ -45,13 +46,16 @@ def create_payment_information(
         shipping = checkout.shipping_address
         email = checkout.get_customer_email()
         user_id = checkout.user_id
+        checkout_token: Optional[str] = str(checkout.token)
     elif payment.order:
         billing = payment.order.billing_address
         shipping = payment.order.shipping_address
         email = payment.order.user_email
         user_id = payment.order.user_id
+        checkout_token = payment.order.checkout_token or None
     else:
         billing, shipping, email, user_id = None, None, payment.billing_email, None
+        checkout_token = None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
@@ -79,6 +83,8 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
+        partial=partial,
+        checkout_token=checkout_token,
     )
 
 
@@ -295,8 +301,9 @@ def gateway_postprocess(transaction, payment):
         changed_fields += ["charge_status", "captured_amount", "modified"]
 
     elif transaction_kind == TransactionKind.VOID:
+        payment.charge_status = ChargeStatus.CANCELLED
         payment.is_active = False
-        changed_fields += ["is_active", "modified"]
+        changed_fields += ["charge_status", "is_active", "modified"]
 
     elif transaction_kind == TransactionKind.REFUND:
         changed_fields += ["captured_amount", "modified"]
@@ -324,6 +331,10 @@ def gateway_postprocess(transaction, payment):
             if payment.captured_amount <= 0:
                 payment.charge_status = ChargeStatus.NOT_CHARGED
             changed_fields += ["charge_status", "captured_amount", "modified"]
+    elif transaction_kind == TransactionKind.AUTH:
+        payment.charge_status = ChargeStatus.AUTHORIZED
+        changed_fields += ["charge_status"]
+
     if changed_fields:
         payment.save(update_fields=changed_fields)
     transaction.already_processed = True

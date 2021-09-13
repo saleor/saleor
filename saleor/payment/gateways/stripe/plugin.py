@@ -1,11 +1,12 @@
 import logging
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http.request import split_domain_port
+from stripe.stripe_object import StripeObject
 
 from ....graphql.core.enums import PluginErrorCode
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
@@ -171,6 +172,8 @@ class StripeGatewayPlugin(BasePlugin):
         auto_capture = self.config.auto_capture
         if self.order_auto_confirmation is False:
             auto_capture = False
+        if payment_information.partial:
+            auto_capture = False
 
         data = payment_information.data
 
@@ -185,7 +188,7 @@ class StripeGatewayPlugin(BasePlugin):
         payment_method_types = data.get("payment_method_types") if data else None
 
         customer = None
-        # confirm that we creates customer on stripe side only for log-in customers
+        # confirm that we create customer on stripe side only for log-in customers
         # Stripe doesn't allow to search users by email, so each create customer
         # call creates new customer on Stripe side.
         if payment_information.graphql_customer_id:

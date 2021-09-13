@@ -1,5 +1,4 @@
 from decimal import Decimal
-from operator import attrgetter
 from typing import Optional
 
 import graphene
@@ -23,10 +22,9 @@ from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
-from ...order import OrderStatus, models
+from ...order import OrderPaymentStatus, OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
-from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import (
     get_last_payment,
@@ -56,7 +54,7 @@ from ..discount.enums import DiscountValueTypeEnum
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
-from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
+from ..payment.types import OrderAction, Payment
 from ..product.dataloaders import (
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
@@ -78,7 +76,13 @@ from .dataloaders import (
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
 )
-from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
+from .enums import (
+    OrderEventsEmailsEnum,
+    OrderEventsEnum,
+    OrderOriginEnum,
+    OrderPaymentStatusEnum,
+)
+from .resolvers import resolve_order_payment_status
 from .utils import validate_draft_order
 
 
@@ -625,7 +629,7 @@ class Order(CountableDjangoObjectType):
     is_paid = graphene.Boolean(
         description="Informs if an order is fully paid.", required=True
     )
-    payment_status = PaymentChargeStatusEnum(
+    payment_status = OrderPaymentStatusEnum(
         description="Internal payment status.", required=True
     )
     payment_status_display = graphene.String(
@@ -950,54 +954,19 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
-        def _map(payments, status_list):
-            return map(lambda p: p.charge_status in status_list, payments)
-
-        def _resolve_payment_status(payments):
-            # TODO: change to overpaid
-            if root.total_paid_amount > root.total_gross_amount:
-                return ChargeStatus.FULLY_CHARGED
-
-            if root.total_paid_amount == root.total_gross_amount:
-                return ChargeStatus.FULLY_CHARGED
-
-            if any(
-                _map(
-                    payments,
-                    [ChargeStatus.FULLY_REFUNDED, ChargeStatus.PARTIALLY_REFUNDED],
-                )
-            ):
-                if all(_map(payments, [ChargeStatus.FULLY_REFUNDED])):
-                    return ChargeStatus.FULLY_REFUNDED
-                return ChargeStatus.PARTIALLY_REFUNDED
-
-            if any(
-                _map(
-                    payments,
-                    [ChargeStatus.FULLY_CHARGED, ChargeStatus.PARTIALLY_CHARGED],
-                )
-            ):
-                return ChargeStatus.PARTIALLY_CHARGED
-
-            return ChargeStatus.NOT_CHARGED
-
         return (
             PaymentsByOrderIdLoader(info.context)
             .load(root.id)
-            .then(_resolve_payment_status)
+            .then(lambda p: resolve_order_payment_status(root, p))
         )
 
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
-        def _resolve_payment_status(payments):
-            if last_payment := max(payments, default=None, key=attrgetter("pk")):
-                return last_payment.get_charge_status_display()
-            return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
-
+        choices = dict(OrderPaymentStatus.CHOICES)
         return (
             PaymentsByOrderIdLoader(info.context)
             .load(root.id)
-            .then(_resolve_payment_status)
+            .then(lambda p: choices.get(resolve_order_payment_status(root, p)))
         )
 
     @staticmethod
