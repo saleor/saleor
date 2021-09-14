@@ -1,3 +1,4 @@
+import sys
 from collections import defaultdict
 from decimal import Decimal
 from typing import (
@@ -147,56 +148,6 @@ class PluginsManager(PaymentInterface):
         returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)
         if returned_value == NotImplemented:
             return previous_value
-        return returned_value
-
-    def __run_method_once_on_plugins(
-        self,
-        method_name: str,
-        default_value: Any,
-        return_value_validator: Callable[[Any], bool],
-        *args,
-        channel_slug: Optional[str] = None,
-        **kwargs
-    ) -> Any:
-        """Try to run a method with the given name on each declared plugin.
-
-        Method will return the first value matching the return_value_validator.
-        """
-        plugins = self.get_plugins(channel_slug=channel_slug)
-        for plugin in plugins:
-            value = self.__run_method_once_on_single_plugin(
-                plugin,
-                method_name,
-                default_value,
-                return_value_validator,
-                *args,
-                **kwargs,
-            )
-            if value is not NotImplemented:
-                return value
-        return default_value
-
-    def __run_method_once_on_single_plugin(
-        self,
-        plugin: Optional["BasePlugin"],
-        method_name: str,
-        previous_value: Any,
-        return_value_validator: Callable[[Any], bool],
-        *args,
-        **kwargs,
-    ) -> Any:
-        """Run method_name on plugin.
-
-        Method will return value returned from plugin's
-        method. If plugin doesn't have own implementation of expected method_name, it
-        will return NotImplemented.
-        """
-        plugin_method = getattr(plugin, method_name, NotImplemented)
-        if plugin_method == NotImplemented:
-            return NotImplemented
-        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)
-        if not return_value_validator(returned_value):
-            return NotImplemented
         return returned_value
 
     def change_user_address(
@@ -479,20 +430,14 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)
 
     def get_taxes_for_checkout(self, checkout: "Checkout") -> Optional[TaxData]:
-        default_value = None
-        return self.__run_method_once_on_plugins(
+        return self.__run_tax_method(
             "get_taxes_for_checkout",
-            default_value,
-            lambda value: isinstance(value, TaxData),
             checkout,
         )
 
     def get_taxes_for_order(self, order: "Order") -> Optional[TaxData]:
-        default_value = None
-        return self.__run_method_once_on_plugins(
+        return self.__run_tax_method(
             "get_taxes_for_order",
-            default_value,
-            lambda value: isinstance(value, TaxData),
             order,
         )
 
@@ -900,6 +845,20 @@ class PluginsManager(PaymentInterface):
             f"Payment plugin {gateway} for {method_name}"
             " payment method is inaccessible!"
         )
+
+    def __run_tax_method(
+        self,
+        method_name: str,
+        payload,
+    ) -> Optional[TaxData]:
+        plugins = self.get_plugins()
+        for plugin in plugins:
+            result = self.__run_method_on_single_plugin(
+                plugin, method_name, None, payload
+            )
+            if isinstance(result, TaxData):
+                return result
+        return None
 
     def _get_all_plugin_configs(self):
         with opentracing.global_tracer().start_active_span("_get_all_plugin_configs"):

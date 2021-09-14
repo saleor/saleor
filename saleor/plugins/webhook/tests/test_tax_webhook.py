@@ -1,25 +1,22 @@
 from unittest import mock
-from unittest.mock import Mock
 
 from saleor.plugins.webhook.utils import parse_tax_data
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.payloads import generate_checkout_payload, generate_order_payload
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_taxes_for_checkout(
+    mock_request,
     permission_handle_taxes,
     webhook_plugin,
     tax_checkout_webhook,
     tax_data_response,
     checkout,
     tax_app,
-    monkeypatch,
 ):
     # given
-    mock_request = Mock(return_value=tax_data_response)
-    monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.send_webhook_request_sync", mock_request
-    )
+    mock_request.return_value = tax_data_response
     plugin = webhook_plugin()
 
     # when
@@ -41,7 +38,6 @@ def test_get_taxes_for_checkout_no_permission(
     mock_request,
     webhook_plugin,
     checkout,
-    monkeypatch,
 ):
     # given
     plugin = webhook_plugin()
@@ -54,20 +50,18 @@ def test_get_taxes_for_checkout_no_permission(
     assert tax_data is None
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_taxes_for_order(
+    mock_request,
     permission_handle_taxes,
     webhook_plugin,
     tax_order_webhook,
     tax_data_response,
     order,
     tax_app,
-    monkeypatch,
 ):
     # given
-    mock_request = Mock(return_value=tax_data_response)
-    monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.send_webhook_request_sync", mock_request
-    )
+    mock_request.return_value = tax_data_response
     plugin = webhook_plugin()
 
     # when
@@ -89,7 +83,6 @@ def test_get_taxes_for_order_no_permission(
     mock_request,
     webhook_plugin,
     order,
-    monkeypatch,
 ):
     # given
     plugin = webhook_plugin()

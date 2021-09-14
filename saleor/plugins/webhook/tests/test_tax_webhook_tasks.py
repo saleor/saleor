@@ -1,3 +1,4 @@
+from unittest import mock
 from unittest.mock import Mock
 
 import pytest
@@ -23,16 +24,14 @@ def tax_checkout_webhooks(tax_app):
     return webhooks
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_trigger_tax_webhook_sync(
+    mock_request,
     tax_checkout_webhook,
     tax_data_response,
-    monkeypatch,
 ):
     # given
-    mock_request = Mock(return_value=tax_data_response)
-    monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.send_webhook_request_sync", mock_request
-    )
+    mock_request.return_value = tax_data_response
     event_type = WebhookEventType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
 
@@ -54,8 +53,8 @@ def test_trigger_tax_webhook_sync(
 def test_trigger_tax_webhook_sync_multiple_webhooks(
     tax_checkout_webhooks,
     tax_data_response,
-    monkeypatch,
     no_of_unsuccessful_webhooks,
+    monkeypatch,
 ):
     # given
     def new_send_webhook_request_sync(pk, *args):
@@ -84,16 +83,14 @@ def test_trigger_tax_webhook_sync_multiple_webhooks(
     assert tax_data == parse_tax_data(tax_data_response)
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_trigger_tax_webhook_sync_invalid_webhooks(
+    mock_request,
     tax_checkout_webhooks,
     tax_data_response,
-    monkeypatch,
 ):
     # given
-    mock_request = Mock(return_value={})
-    monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.send_webhook_request_sync", mock_request
-    )
+    mock_request.return_value = {}
     event_type = WebhookEventType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
 

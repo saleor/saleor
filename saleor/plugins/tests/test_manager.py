@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from unittest import mock
 
 import pytest
 from django.http import HttpResponseNotFound, JsonResponse
@@ -22,6 +23,7 @@ from ..tests.sample_plugins import (
     PluginInactive,
     PluginSample,
 )
+from ..webhook.utils import parse_tax_data
 
 
 def test_get_plugins_manager(settings):
@@ -511,14 +513,54 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
     assert show_taxes == PluginsManager(plugins=plugins).show_taxes_on_storefront()
 
 
-@pytest.mark.parametrize("plugins, taxes", [([], None)])
-def test_manager_get_taxes_for_checkout(checkout, plugins, taxes):
-    assert taxes == PluginsManager(plugins=plugins).get_taxes_for_checkout(checkout)
+def test_manager_get_taxes_for_checkout_no_plugin(checkout):
+    assert PluginsManager(plugins=[]).get_taxes_for_checkout(checkout) is None
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_manager_get_taxes_for_checkout_webhook_plugin(
+    mock_request,
+    checkout,
+    tax_data_response,
+    tax_app,
+    tax_checkout_webhook,
+    monkeypatch,
+):
+    # given
+    mock_request.return_value = tax_data_response
+    plugins = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    # when
+    tax_data = PluginsManager(plugins=plugins).get_taxes_for_checkout(checkout)
+
+    # then
+    assert mock_request.call_count == 1
+    assert tax_data == parse_tax_data(tax_data_response)
 
 
 @pytest.mark.parametrize("plugins, taxes", [([], None)])
-def test_manager_get_taxes_for_order(order, plugins, taxes):
-    assert taxes == PluginsManager(plugins=plugins).get_taxes_for_order(order)
+def test_manager_get_taxes_for_order_no_plugin(order, plugins, taxes):
+    assert PluginsManager(plugins=[]).get_taxes_for_order(order) is None
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_manager_get_taxes_for_order_webhook_plugin(
+    mock_request,
+    order,
+    tax_data_response,
+    tax_app,
+    tax_order_webhook,
+    monkeypatch,
+):
+    mock_request.return_value = tax_data_response
+    plugins = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    # when
+    tax_data = PluginsManager(plugins=plugins).get_taxes_for_order(order)
+
+    # then
+    assert mock_request.call_count == 1
+    assert tax_data == parse_tax_data(tax_data_response)
 
 
 @pytest.mark.parametrize(
