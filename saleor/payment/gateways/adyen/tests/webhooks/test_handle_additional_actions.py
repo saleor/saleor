@@ -9,9 +9,9 @@ import pytest
 from ..... import PaymentError, TransactionKind
 from ...webhooks import handle_additional_actions
 
-ERROR_MSG_MISSING_PAYMENT = "Cannot perform payment.There is no active adyen payment."
+ERROR_MSG_MISSING_PAYMENT = "Cannot perform payment. There is no active Adyen payment."
 ERROR_MSG_MISSING_CHECKOUT = (
-    "Cannot perform payment.There is no checkout with this payment."
+    "Cannot perform payment. There is no checkout with this payment."
 )
 
 
