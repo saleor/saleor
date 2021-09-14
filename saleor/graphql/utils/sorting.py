@@ -37,7 +37,7 @@ def sort_queryset_for_connection(iterable, args):
             or get_default_channel_slug_or_graphql_error(),
         )
     elif query and "-rank" in query.order_by:
-        return iterable, {"field": "rank", "direction": "-"}
+        return iterable, {"field": ["rank", "id"], "direction": "-"}
     else:
         iterable, sort_by = sort_queryset_by_default(
             queryset=iterable, reversed=reversed
@@ -72,7 +72,6 @@ def sort_queryset(
 
     sorting_field = sort_by.field
     sorting_attribute = getattr(sort_by, "attribute_id", None)
-
     if sorting_field is not None and sorting_attribute is not None:
         raise GraphQLError(
             "You must provide either `field` or `attributeId` to sort the products."

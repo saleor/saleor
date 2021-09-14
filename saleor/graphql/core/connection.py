@@ -80,6 +80,12 @@ def _prepare_filter(
                 ('first_field', 'first_value_form_cursor'))
         )
     """
+    if sorting_fields == ["rank", "id"]:
+        # Fast path for filtering by rank
+        if sorting_direction == "gt":
+            return Q(rank__gte=cursor[0], id__lt=cursor[1])
+        return Q(rank__lte=cursor[0], id__gt=cursor[1])
+
     filter_kwargs = Q()
     for index, field_name in enumerate(sorting_fields):
         if cursor[index] is None and sorting_direction == "gt":
@@ -219,6 +225,9 @@ def connection_from_queryset_slice(
     filter_kwargs = (
         _prepare_filter(cursor, sorting_fields, sorting_direction) if cursor else Q()
     )
+    print("filter_kwargs", filter_kwargs)
+    print("sort_by", sort_by)
+    print(qs.query.order_by)
     qs = qs.filter(filter_kwargs)
     qs = qs[:end_margin]
     edges, page_info = _get_edges_for_connection(edge_type, qs, args, sorting_fields)
