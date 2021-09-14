@@ -24,6 +24,7 @@ from ..discount.utils import (
     remove_voucher_usage_by_customer,
 )
 from ..giftcard.models import GiftCard
+from ..giftcard.utils import fulfill_non_shippable_gift_cards
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
@@ -335,8 +336,6 @@ def _prepare_order_data(
     # Get voucher data (last) as they require a transaction
     order_data.update(_get_voucher_data_for_order(checkout_info))
 
-    # assign gift cards to the order
-
     order_data["total_price_left"] = (
         manager.calculate_checkout_subtotal(checkout_info, lines, address, discounts)
         + shipping_total
@@ -368,7 +367,7 @@ def _create_order(
     Current user's language is saved in the order so we can later determine
     which language to use when sending email.
     """
-    from ..order.utils import add_gift_card_to_order
+    from ..order.utils import add_gift_cards_to_order
 
     checkout = checkout_info.checkout
     order = Order.objects.filter(checkout_token=checkout.token).first()
@@ -427,9 +426,7 @@ def _create_order(
         additional_warehouse_lookup,
     )
 
-    # Add gift cards to the order
-    for gift_card in checkout.gift_cards.select_for_update():
-        total_price_left = add_gift_card_to_order(order, gift_card, total_price_left)
+    add_gift_cards_to_order(checkout_info, order, total_price_left, user, app)
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
@@ -440,6 +437,11 @@ def _create_order(
     order.private_metadata = checkout.private_metadata
     order.update_total_paid()
     order.save()
+
+    if site_settings.automatically_fulfill_non_shippable_gift_card:
+        fulfill_non_shippable_gift_cards(
+            order, order_lines, site_settings, user, app, manager
+        )
 
     transaction.on_commit(
         lambda: order_created(order=order, user=user, app=app, manager=manager)

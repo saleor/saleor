@@ -3,7 +3,7 @@ import secrets
 import pytest
 from prices import Money
 
-from .....giftcard import GiftCardEvents, GiftCardExpiryType
+from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 
 GIFT_CARD_COUNT_IN_BENCHMARKS = 20
@@ -23,7 +23,6 @@ def gift_cards_for_benchmarks(
             created_by_email=customer_user.email,
             initial_balance=Money(10, "USD"),
             current_balance=Money(10, "USD"),
-            expiry_type=GiftCardExpiryType.NEVER_EXPIRE,
             tag="test-tag",
         )
         for _ in range(GIFT_CARD_COUNT_IN_BENCHMARKS)

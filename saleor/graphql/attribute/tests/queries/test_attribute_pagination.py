@@ -5,6 +5,7 @@ import pytest
 
 from .....attribute import AttributeType
 from .....attribute.models import Attribute, AttributeProduct, AttributeVariant
+from .....product import ProductTypeKind
 from .....product.models import (
     Product,
     ProductChannelListing,
@@ -57,7 +58,10 @@ def attributes_for_pagination(collection, category, channel_USD):
         ]
     )
 
-    product_type = ProductType.objects.create(name="My Product Type")
+    product_type = ProductType.objects.create(
+        name="My Product Type",
+        kind=ProductTypeKind.NORMAL,
+    )
     product = Product.objects.create(
         name="Test product",
         product_type=product_type,

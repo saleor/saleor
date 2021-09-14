@@ -1111,6 +1111,7 @@ enum CheckoutErrorCode {
   TAX_ERROR
   UNIQUE
   VOUCHER_NOT_APPLICABLE
+  GIFT_CARD_NOT_APPLICABLE
   ZERO_QUANTITY
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
@@ -2253,7 +2254,6 @@ type GiftCard implements Node & ObjectWithMetadata {
   code: String!
   isActive: Boolean!
   expiryDate: Date
-  expiryType: GiftCardExpiryTypeEnum!
   tag: String
   created: DateTime!
   lastUsedOn: DateTime
@@ -2268,9 +2268,9 @@ type GiftCard implements Node & ObjectWithMetadata {
   createdByEmail: String
   usedByEmail: String
   app: App
-  expiryPeriod: TimePeriod
   product: Product
   events: [GiftCardEvent!]!
+  boughtInChannel: String
   user: User @deprecated(reason: "This field will be removed in Saleor 4.0. Use `createdBy` field instead.")
   endDate: DateTime @deprecated(reason: "This field will be removed in Saleor 4.0. Use `expiryDate` field instead.")
   startDate: DateTime @deprecated(reason: "This field will be removed in Saleor 4.0.")
@@ -2279,6 +2279,31 @@ type GiftCard implements Node & ObjectWithMetadata {
 type GiftCardActivate {
   giftCard: GiftCard
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [GiftCardError!]!
+}
+
+type GiftCardAddNote {
+  giftCard: GiftCard
+  event: GiftCardEvent
+  errors: [GiftCardError!]!
+}
+
+input GiftCardAddNoteInput {
+  message: String!
+}
+
+type GiftCardBulkActivate {
+  count: Int!
+  errors: [GiftCardError!]!
+}
+
+type GiftCardBulkDeactivate {
+  count: Int!
+  errors: [GiftCardError!]!
+}
+
+type GiftCardBulkDelete {
+  count: Int!
   errors: [GiftCardError!]!
 }
 
@@ -2301,11 +2326,13 @@ type GiftCardCreate {
 
 input GiftCardCreateInput {
   tag: String
+  expiryDate: Date
   startDate: Date
   endDate: Date
   balance: PriceInput!
   userEmail: String
-  expirySettings: GiftCardExpirySettingsInput!
+  channel: String
+  isActive: Boolean!
   code: String
   note: String
 }
@@ -2350,23 +2377,15 @@ type GiftCardEvent implements Node {
   tag: String
   oldTag: String
   balance: GiftCardEventBalance
-  expiry: GiftCardEventExpiry
+  expiryDate: Date
+  oldExpiryDate: Date
 }
 
 type GiftCardEventBalance {
-  initialBalance: Money!
+  initialBalance: Money
   currentBalance: Money!
   oldInitialBalance: Money
   oldCurrentBalance: Money
-}
-
-type GiftCardEventExpiry {
-  expiryType: GiftCardExpiryTypeEnum
-  expiryPeriod: TimePeriod
-  expiryDate: Date
-  oldExpiryType: GiftCardExpiryTypeEnum
-  oldExpiryPeriod: TimePeriod
-  oldExpiryDate: Date
 }
 
 enum GiftCardEventsEnum {
@@ -2376,25 +2395,78 @@ enum GiftCardEventsEnum {
   ACTIVATED
   DEACTIVATED
   BALANCE_RESET
-  EXPIRY_SETTINGS_UPDATED
+  EXPIRY_DATE_UPDATED
+  TAG_UPDATED
   SENT_TO_CUSTOMER
   RESENT
-}
-
-input GiftCardExpirySettingsInput {
-  expiryType: GiftCardExpiryTypeEnum!
-  expiryDate: Date
-  expiryPeriod: TimePeriodInputType
-}
-
-enum GiftCardExpiryTypeEnum {
-  NEVER_EXPIRE
-  EXPIRY_PERIOD
-  EXPIRY_DATE
+  NOTE_ADDED
+  USED_IN_ORDER
 }
 
 input GiftCardFilterInput {
+  isActive: Boolean
   tag: String
+  tags: [String]
+  products: [ID]
+  usedBy: [ID]
+  currency: String
+  currentBalance: PriceRangeInput
+  initialBalance: PriceRangeInput
+}
+
+type GiftCardResend {
+  giftCard: GiftCard
+  errors: [GiftCardError!]!
+}
+
+input GiftCardResendInput {
+  id: ID!
+  email: String
+  channel: String!
+}
+
+type GiftCardSettings {
+  expiryType: GiftCardSettingsExpiryTypeEnum!
+  expiryPeriod: TimePeriod
+}
+
+type GiftCardSettingsError {
+  field: String
+  message: String
+  code: GiftCardSettingsErrorCode!
+}
+
+enum GiftCardSettingsErrorCode {
+  INVALID
+  REQUIRED
+  GRAPHQL_ERROR
+}
+
+enum GiftCardSettingsExpiryTypeEnum {
+  NEVER_EXPIRE
+  EXPIRY_PERIOD
+}
+
+type GiftCardSettingsUpdate {
+  giftCardSettings: GiftCardSettings
+  errors: [GiftCardSettingsError!]!
+}
+
+input GiftCardSettingsUpdateInput {
+  expiryType: GiftCardSettingsExpiryTypeEnum
+  expiryPeriod: TimePeriodInputType
+}
+
+enum GiftCardSortField {
+  TAG
+  PRODUCT
+  USED_BY
+  CURRENT_BALANCE
+}
+
+input GiftCardSortingInput {
+  direction: OrderDirection!
+  field: GiftCardSortField!
 }
 
 type GiftCardUpdate {
@@ -2405,10 +2477,10 @@ type GiftCardUpdate {
 
 input GiftCardUpdateInput {
   tag: String
+  expiryDate: Date
   startDate: Date
   endDate: Date
   balanceAmount: PositiveDecimal
-  expirySettings: GiftCardExpirySettingsInput
 }
 
 type Group implements Node {
@@ -3645,6 +3717,7 @@ type Mutation {
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
+  giftCardSettingsUpdate(input: GiftCardSettingsUpdateInput!): GiftCardSettingsUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
@@ -3783,6 +3856,11 @@ type Mutation {
   giftCardDelete(id: ID!): GiftCardDelete
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
+  giftCardResend(input: GiftCardResendInput!): GiftCardResend
+  giftCardAddNote(id: ID!, input: GiftCardAddNoteInput!): GiftCardAddNote
+  giftCardBulkDelete(ids: [ID]!): GiftCardBulkDelete
+  giftCardBulkActivate(ids: [ID]!): GiftCardBulkActivate
+  giftCardBulkDeactivate(ids: [ID]!): GiftCardBulkDeactivate
   pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
   externalNotificationTrigger(channel: String!, input: ExternalNotificationTriggerInput!, pluginId: String): ExternalNotificationTrigger
   saleCreate(input: SaleInput!): SaleCreate
@@ -4383,6 +4461,7 @@ input OrderReturnProductsInput {
 
 type OrderSettings {
   automaticallyConfirmAllNewOrders: Boolean!
+  automaticallyFulfillNonShippableGiftCard: Boolean!
 }
 
 type OrderSettingsError {
@@ -4402,7 +4481,8 @@ type OrderSettingsUpdate {
 }
 
 input OrderSettingsUpdateInput {
-  automaticallyConfirmAllNewOrders: Boolean!
+  automaticallyConfirmAllNewOrders: Boolean
+  automaticallyFulfillNonShippableGiftCard: Boolean
 }
 
 enum OrderSortField {
@@ -5235,6 +5315,7 @@ input ProductFilterInput {
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
+  giftCard: Boolean
   ids: [ID]
   channel: String
 }
@@ -5397,6 +5478,7 @@ type ProductType implements Node & ObjectWithMetadata {
   weight: Weight
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  kind: ProductTypeKindEnum!
   products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection @deprecated(reason: "This field will be removed in Saleor 4.0. Use the top-level `products` query with the `productTypes` filter.")
   taxType: TaxType
   variantAttributes(variantSelection: VariantAttributeScope): [Attribute]
@@ -5448,12 +5530,14 @@ input ProductTypeFilterInput {
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
   metadata: [MetadataFilter]
+  kind: ProductTypeKindEnum
   ids: [ID]
 }
 
 input ProductTypeInput {
   name: String
   slug: String
+  kind: ProductTypeKindEnum
   hasVariants: Boolean
   productAttributes: [ID]
   variantAttributes: [ID]
@@ -5461,6 +5545,11 @@ input ProductTypeInput {
   isDigital: Boolean
   weight: WeightScalar
   taxCode: String
+}
+
+enum ProductTypeKindEnum {
+  NORMAL
+  GIFT_CARD
 }
 
 type ProductTypeReorderAttributes {
@@ -5682,6 +5771,7 @@ type Query {
   stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop!
   orderSettings: OrderSettings
+  giftCardSettings: GiftCardSettings!
   shippingZone(id: ID!, channel: String): ShippingZone
   shippingZones(filter: ShippingZoneFilterInput, channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
@@ -5714,7 +5804,7 @@ type Query {
   menuItem(id: ID!, channel: String): MenuItem
   menuItems(channel: String, sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
-  giftCards(filter: GiftCardFilterInput, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
+  giftCards(sortBy: GiftCardSortingInput, filter: GiftCardFilterInput, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   plugin(id: ID!): Plugin
   plugins(filter: PluginFilterInput, sortBy: PluginSortingInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!, channel: String): Sale
@@ -6471,6 +6561,7 @@ input TimePeriodInputType {
 
 enum TimePeriodTypeEnum {
   DAY
+  WEEK
   MONTH
   YEAR
 }

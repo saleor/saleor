@@ -20,6 +20,7 @@ from ...attribute.models import (
     AttributeValue,
 )
 from ...channel.models import Channel
+from ...product import ProductTypeKind
 from ...product.models import (
     Category,
     Collection,
@@ -48,6 +49,7 @@ from .enums import (
     CollectionPublished,
     ProductTypeConfigurable,
     ProductTypeEnum,
+    ProductTypeKindEnum,
     StockAvailability,
 )
 
@@ -471,6 +473,12 @@ def _filter_collections_is_published(qs, _, value, channel_slug):
     )
 
 
+def filter_gift_card(qs, _, value):
+    product_types = ProductType.objects.filter(kind=ProductTypeKind.GIFT_CARD)
+    lookup = Exists(product_types.filter(id=OuterRef("product_type_id")))
+    return qs.filter(lookup) if value is True else qs.exclude(lookup)
+
+
 def filter_product_type_configurable(qs, _, value):
     if value == ProductTypeConfigurable.CONFIGURABLE:
         qs = qs.filter(has_variants=True)
@@ -484,6 +492,12 @@ def filter_product_type(qs, _, value):
         qs = qs.filter(is_digital=True)
     elif value == ProductTypeEnum.SHIPPABLE:
         qs = qs.filter(is_shipping_required=True)
+    return qs
+
+
+def filter_product_type_kind(qs, _, value):
+    if value:
+        qs = qs.filter(kind=value)
     return qs
 
 
@@ -567,6 +581,7 @@ class ProductFilter(MetadataFilterBase):
     product_types = GlobalIDMultipleChoiceFilter(method=filter_product_types)
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
+    gift_card = django_filters.BooleanFilter(method=filter_gift_card)
     ids = GlobalIDMultipleChoiceFilter(method=filter_product_ids)
 
     class Meta:
@@ -661,6 +676,7 @@ class ProductTypeFilter(MetadataFilterBase):
     )
 
     product_type = EnumFilter(input_class=ProductTypeEnum, method=filter_product_type)
+    kind = EnumFilter(input_class=ProductTypeKindEnum, method=filter_product_type_kind)
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
