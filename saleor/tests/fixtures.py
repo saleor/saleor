@@ -1439,6 +1439,11 @@ def permission_manage_apps():
 
 
 @pytest.fixture
+def permission_handle_taxes():
+    return Permission.objects.get(codename="handle_taxes")
+
+
+@pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
         name="Default Type",
