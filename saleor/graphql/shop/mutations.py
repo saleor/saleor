@@ -3,15 +3,23 @@ from django.core.exceptions import ValidationError
 
 from ...account import models as account_models
 from ...core.error_codes import ShopErrorCode
-from ...core.permissions import OrderPermissions, SitePermissions
+from ...core.permissions import GiftcardPermissions, OrderPermissions, SitePermissions
 from ...core.utils.url import validate_storefront_url
+from ...site import GiftCardSettingsExpiryType
+from ...site.error_codes import GiftCardSettingsErrorCode
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..core.descriptions import ADDED_IN_31
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import OrderSettingsError, ShopError
-from .types import OrderSettings, Shop
+from ..core.types.common import (
+    GiftCardSettingsError,
+    OrderSettingsError,
+    ShopError,
+    TimePeriodInputType,
+)
+from .enums import GiftCardSettingsExpiryTypeEnum
+from .types import GiftCardSettings, OrderSettings, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -294,10 +302,15 @@ class StaffNotificationRecipientDelete(ModelDeleteMutation):
 
 class OrderSettingsUpdateInput(graphene.InputObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
-        required=True,
+        required=False,
         description="When disabled, all new orders from checkout "
         "will be marked as unconfirmed. When enabled orders from checkout will "
         "become unfulfilled immediately.",
+    )
+    automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
+        required=False,
+        description="When enabled, all non-shippable gift card orders "
+        "will be fulfilled automatically.",
     )
 
 
@@ -317,9 +330,83 @@ class OrderSettingsUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        instance = info.context.site.settings
-        instance.automatically_confirm_all_new_orders = data["input"][
-            "automatically_confirm_all_new_orders"
+        FIELDS = [
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
         ]
-        instance.save(update_fields=["automatically_confirm_all_new_orders"])
+
+        instance = info.context.site.settings
+        update_fields = []
+        for field in FIELDS:
+            value = data["input"].get(field)
+            if value is not None:
+                setattr(instance, field, value)
+                update_fields.append(field)
+
+        if update_fields:
+            instance.save(update_fields=update_fields)
         return OrderSettingsUpdate(order_settings=instance)
+
+
+class GiftCardSettingsUpdateInput(graphene.InputObjectType):
+    expiry_type = GiftCardSettingsExpiryTypeEnum(
+        description="Defines gift card default expiry settings."
+    )
+    expiry_period = TimePeriodInputType(description="Defines gift card expiry period.")
+
+
+class GiftCardSettingsUpdate(BaseMutation):
+    gift_card_settings = graphene.Field(
+        GiftCardSettings, description="Gift card settings."
+    )
+
+    class Arguments:
+        input = GiftCardSettingsUpdateInput(
+            required=True, description="Fields required to update gift card settings."
+        )
+
+    class Meta:
+        description = "Update gift card settings."
+        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
+        error_type_class = GiftCardSettingsError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        instance = info.context.site.settings
+        input = data["input"]
+        cls.clean_input(input, instance)
+
+        expiry_period = input.get("expiry_period")
+        instance.gift_card_expiry_period_type = (
+            expiry_period["type"] if expiry_period else None
+        )
+        instance.gift_card_expiry_period = (
+            expiry_period["amount"] if expiry_period else None
+        )
+        update_fields = ["gift_card_expiry_period", "gift_card_expiry_period_type"]
+
+        if expiry_type := input.get("expiry_type"):
+            instance.gift_card_expiry_type = expiry_type
+            update_fields.append("gift_card_expiry_type")
+
+        instance.save(update_fields=update_fields)
+        return GiftCardSettingsUpdate(gift_card_settings=instance)
+
+    @staticmethod
+    def clean_input(input, instance):
+        expiry_type = input.get("expiry_type") or instance.gift_card_expiry_type
+        if (
+            expiry_type == GiftCardSettingsExpiryType.EXPIRY_PERIOD
+            and input.get("expiry_period") is None
+        ):
+            raise ValidationError(
+                {
+                    "expiry_period": ValidationError(
+                        "Expiry period settings are required for expiry period "
+                        "gift card settings.",
+                        code=GiftCardSettingsErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+        elif expiry_type == GiftCardSettingsExpiryType.NEVER_EXPIRE:
+            input["expiry_period"] = None

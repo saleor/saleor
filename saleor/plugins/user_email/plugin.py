@@ -26,6 +26,7 @@ from .notify_events import (
     send_account_set_customer_password,
     send_fulfillment_confirmation,
     send_fulfillment_update,
+    send_gift_card,
     send_invoice,
     send_order_canceled,
     send_order_confirmation,
@@ -53,6 +54,7 @@ class UserTemplate:
     order_payment_confirmation: Optional[str]
     order_canceled: Optional[str]
     order_refund_confirmation: Optional[str]
+    send_gift_card: Optional[str]
 
 
 def get_user_template_map(templates: UserTemplate):
@@ -81,6 +83,7 @@ def get_user_template_map(templates: UserTemplate):
         ),
         UserNotifyEvent.ORDER_CANCELED: templates.order_canceled,
         UserNotifyEvent.ORDER_REFUND_CONFIRMATION: templates.order_refund_confirmation,
+        UserNotifyEvent.SEND_GIFT_CARD: templates.send_gift_card,
     }
 
 
@@ -102,6 +105,7 @@ def get_user_event_map():
         UserNotifyEvent.ORDER_PAYMENT_CONFIRMATION: send_payment_confirmation,
         UserNotifyEvent.ORDER_CANCELED: send_order_canceled,
         UserNotifyEvent.ORDER_REFUND_CONFIRMATION: send_order_refund,
+        UserNotifyEvent.SEND_GIFT_CARD: send_gift_card,
     }
 
 
@@ -212,6 +216,14 @@ class UserEmailPlugin(BasePlugin):
         },
         {
             "name": constants.ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": constants.SEND_GIFT_CARD_SUBJECT_FIELD,
+            "value": constants.SEND_GIFT_CARD_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.SEND_GIFT_CARD_TEMPLATE_FIELD,
             "value": DEFAULT_EMAIL_VALUE,
         },
     ] + DEFAULT_EMAIL_CONFIGURATION  # type: ignore
@@ -357,6 +369,16 @@ class UserEmailPlugin(BasePlugin):
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order refund - template",
         },
+        constants.SEND_GIFT_CARD_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.MULTILINE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
+            "label": "Send gift card - subject",
+        },
+        constants.SEND_GIFT_CARD_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.MULTILINE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
+            "label": "Send gift card - template",
+        },
     }
     CONFIG_STRUCTURE.update(DEFAULT_EMAIL_CONFIG_STRUCTURE)
 
@@ -408,6 +430,7 @@ class UserEmailPlugin(BasePlugin):
             order_refund_confirmation=configuration[
                 constants.ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD
             ],
+            send_gift_card=configuration[constants.SEND_GIFT_CARD_TEMPLATE_FIELD],
         )
 
     def notify(self, event: Union[NotifyEventType, str], payload: dict, previous_value):
