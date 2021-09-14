@@ -12,7 +12,7 @@ from ...manager import get_plugins_manager
 from ..tasks import (
     send_webhook_request_sync,
     signature_for_payload,
-    trigger_webhook_sync,
+    trigger_payment_webhook_sync,
 )
 from ..utils import (
     parse_list_payment_gateways_response,
@@ -53,9 +53,10 @@ def webhook_plugin(settings):
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_trigger_webhook_sync(mock_request, payment_app):
     data = {"key": "value"}
-    trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
+    trigger_payment_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
     webhook = payment_app.webhooks.first()
     mock_request.assert_called_once_with(
+        webhook.pk,
         webhook.target_url,
         webhook.secret_key,
         WebhookEventType.PAYMENT_CAPTURE,
@@ -77,8 +78,9 @@ def test_trigger_webhook_sync_use_first_webhook(mock_request, payment_app):
     webhook_2.events.create(event_type=WebhookEventType.PAYMENT_CAPTURE)
 
     data = {"key": "value"}
-    trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
+    trigger_payment_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
     mock_request.assert_called_once_with(
+        webhook_1.pk,
         webhook_1.target_url,
         webhook_1.secret_key,
         WebhookEventType.PAYMENT_CAPTURE,
@@ -90,7 +92,7 @@ def test_trigger_webhook_sync_no_webhook_available():
     app = App.objects.create(name="Dummy app", is_active=True)
     # should raise an error for app with no payment webhooks
     with pytest.raises(PaymentError):
-        trigger_webhook_sync(WebhookEventType.PAYMENT_REFUND, {}, app)
+        trigger_payment_webhook_sync(WebhookEventType.PAYMENT_REFUND, {}, app)
 
 
 @pytest.mark.parametrize(
@@ -99,12 +101,13 @@ def test_trigger_webhook_sync_no_webhook_available():
 )
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_http")
 def test_send_webhook_request_sync(mock_send_http, target_url, site_settings):
+    webhook_id = "id"
     secret = "secret"
     event_type = WebhookEventType.PAYMENT_CAPTURE
     data = json.dumps({"key": "value"})
     message = data.encode("utf-8")
 
-    send_webhook_request_sync(target_url, secret, event_type, data)
+    send_webhook_request_sync(webhook_id, target_url, secret, event_type, data)
     mock_send_http.assert_called_once_with(
         target_url,
         message,
@@ -117,7 +120,7 @@ def test_send_webhook_request_sync(mock_send_http, target_url, site_settings):
 def test_send_webhook_request_sync_invalid_scheme():
     with pytest.raises(ValueError):
         target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
-        send_webhook_request_sync(target_url, "", "", "")
+        send_webhook_request_sync("", target_url, "", "", "")
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

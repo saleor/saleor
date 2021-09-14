@@ -2,12 +2,12 @@ import decimal
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
+from ...core.taxes import TaxData, TaxLineData
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 
 if TYPE_CHECKING:
     from ...app.models import App
     from ...payment.interface import PaymentData
-
 
 APP_GATEWAY_ID_PREFIX = "app"
 
@@ -104,3 +104,68 @@ def parse_payment_action_response(
             "transaction_already_processed", False
         ),
     )
+
+
+def _unsafe_parse_tax_line_data(
+    tax_line_data_response: Any,
+) -> TaxLineData:
+    """Unsafe TaxLineData parser.
+
+    Raises KeyError or DecimalException on invalid data.
+    """
+    id = tax_line_data_response["id"]
+    currency = tax_line_data_response["currency"]
+    unit_net_amount = decimal.Decimal(tax_line_data_response["unit_net_amount"])
+    unit_gross_amount = decimal.Decimal(tax_line_data_response["unit_gross_amount"])
+    total_gross_amount = decimal.Decimal(tax_line_data_response["total_gross_amount"])
+    total_net_amount = decimal.Decimal(tax_line_data_response["total_net_amount"])
+
+    return TaxLineData(
+        id=id,
+        currency=currency,
+        unit_net_amount=unit_net_amount,
+        unit_gross_amount=unit_gross_amount,
+        total_gross_amount=total_gross_amount,
+        total_net_amount=total_net_amount,
+    )
+
+
+def _unsafe_parse_tax_data(
+    tax_data_response: Any,
+) -> TaxData:
+    """Unsafe TaxData parser.
+
+    Raises KeyError or DecimalException on invalid data.
+    """
+    currency = tax_data_response["currency"]
+    total_net_amount = decimal.Decimal(tax_data_response["total_net_amount"])
+    total_gross_amount = decimal.Decimal(tax_data_response["total_gross_amount"])
+    subtotal_net_amount = decimal.Decimal(tax_data_response["subtotal_net_amount"])
+    subtotal_gross_amount = decimal.Decimal(tax_data_response["subtotal_gross_amount"])
+    shipping_price_gross_amount = decimal.Decimal(
+        tax_data_response["shipping_price_gross_amount"]
+    )
+    shipping_price_net_amount = decimal.Decimal(
+        tax_data_response["shipping_price_net_amount"]
+    )
+    lines = [_unsafe_parse_tax_line_data(line) for line in tax_data_response["lines"]]
+
+    return TaxData(
+        currency=currency,
+        total_net_amount=total_net_amount,
+        total_gross_amount=total_gross_amount,
+        subtotal_net_amount=subtotal_net_amount,
+        subtotal_gross_amount=subtotal_gross_amount,
+        shipping_price_gross_amount=shipping_price_gross_amount,
+        shipping_price_net_amount=shipping_price_net_amount,
+        lines=lines,
+    )
+
+
+def parse_tax_data(
+    response_data: Any,
+) -> Optional[TaxData]:
+    try:
+        return _unsafe_parse_tax_data(response_data)
+    except (KeyError, decimal.DecimalException):
+        return None

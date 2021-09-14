@@ -16,6 +16,7 @@ from ...site.models import Site
 from ...webhook.event_types import WebhookEventType
 from ...webhook.models import Webhook
 from . import signature_for_payload
+from .utils import parse_tax_data
 
 if TYPE_CHECKING:
     from ...app.models import App
@@ -68,16 +69,29 @@ def trigger_webhooks_for_event(event_type, data):
         )
 
 
-def trigger_webhook_sync(event_type: str, data: str, app: "App"):
-    """Send a synchronous webhook request."""
+def trigger_payment_webhook_sync(event_type: str, data: str, app: "App"):
+    """Send a synchronous payment webhook request."""
     webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
     webhook = webhooks.first()
     if not webhook:
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
 
     return send_webhook_request_sync(
-        webhook.target_url, webhook.secret_key, event_type, data
+        webhook.pk, webhook.target_url, webhook.secret_key, event_type, data
     )
+
+
+def trigger_tax_webhook_sync(event_type: str, data: str):
+    """Send a synchronous tax webhook request."""
+    webhooks = _get_webhooks_for_event(event_type)
+    for webhook in webhooks:
+        response_data = send_webhook_request_sync(
+            webhook.pk, webhook.target_url, webhook.secret_key, event_type, data
+        )
+        tax_data = parse_tax_data(response_data)
+        if tax_data:
+            return tax_data
+    return None
 
 
 def send_webhook_using_http(target_url, message, domain, signature, event_type):
@@ -173,7 +187,7 @@ def send_webhook_request(webhook_id, target_url, secret, event_type, data):
     )
 
 
-def send_webhook_request_sync(target_url, secret, event_type, data: str):
+def send_webhook_request_sync(webhook_id, target_url, secret, event_type, data: str):
     parts = urlparse(target_url)
     domain = Site.objects.get_current().domain
     message = data.encode("utf-8")
@@ -190,13 +204,20 @@ def send_webhook_request_sync(target_url, secret, event_type, data: str):
             )
             response_data = response.json()
         except RequestException as e:
-            logger.debug("[Webhook] Failed request to %r: %r.", target_url, e)
+            logger.debug(
+                "[Webhook ID:%r] Failed request to %r: %r.", webhook_id, target_url, e
+            )
         except JSONDecodeError as e:
             logger.debug(
-                "[Webhook] Failed parsing JSON response from %r: %r.", target_url, e
+                "[Webhook ID:%r] Failed parsing JSON response from %r: %r.",
+                webhook_id,
+                target_url,
+                e,
             )
         else:
-            logger.debug("[Webhook] Success response from %r.", target_url)
+            logger.debug(
+                "[Webhook ID:%r] Success response from %r.", webhook_id, target_url
+            )
     else:
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
     return response_data
