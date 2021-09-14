@@ -127,6 +127,7 @@ def check_lines_quantity(
     channel_slug,
     allow_zero_quantity=False,
     existing_lines=None,
+    replace=False,
 ):
     """Clean quantities and check if stock is sufficient for each checkout line.
 
@@ -169,7 +170,12 @@ def check_lines_quantity(
             )
     try:
         check_stock_quantity_bulk(
-            variants, country, quantities, channel_slug, existing_lines=existing_lines
+            variants,
+            country,
+            quantities,
+            channel_slug,
+            existing_lines=existing_lines,
+            replace=replace,
         )
     except InsufficientStock as e:
         errors = [
@@ -587,6 +593,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             channel_slug,
             allow_zero_quantity=True,
             existing_lines=lines,
+            replace=True,
         )
 
     @classmethod
