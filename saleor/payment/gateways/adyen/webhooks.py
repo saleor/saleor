@@ -706,7 +706,7 @@ def handle_additional_actions(
             "Payment doesn't exist or is not active.", extra={"payment_id": payment_id}
         )
         return HttpResponseNotFound(
-            "Cannot perform payment.There is no active adyen payment."
+            "Cannot perform payment. There is no active Adyen payment."
         )
 
     # Adyen for some payment methods can call success notification before we will
@@ -718,7 +718,7 @@ def handle_additional_actions(
                 extra={"checkout_pk": checkout_pk, "payment_id": payment_id},
             )
             return HttpResponseNotFound(
-                "Cannot perform payment.There is no checkout with this payment."
+                "Cannot perform payment. There is no checkout with this payment."
             )
 
     extra_data = json.loads(payment.extra_data)
