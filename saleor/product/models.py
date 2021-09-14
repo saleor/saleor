@@ -54,7 +54,7 @@ from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
-from . import ProductMediaTypes
+from . import ProductMediaTypes, ProductTypeKind
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -132,6 +132,7 @@ class CategoryTranslation(SeoModelTranslation):
 class ProductType(ModelWithMetadata):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+    kind = models.CharField(max_length=32, choices=ProductTypeKind.CHOICES)
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
     is_digital = models.BooleanField(default=False)

@@ -50,6 +50,7 @@ from ...core.utils import (
 )
 from ...core.utils.reordering import perform_reordering
 from ...warehouse.types import Warehouse
+from ..enums import ProductTypeKindEnum
 from ..types import (
     Category,
     Collection,
@@ -1081,6 +1082,7 @@ class ProductVariantDelete(ModelDeleteMutation):
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the product type.")
     slug = graphene.String(description="Product type slug.")
+    kind = ProductTypeKindEnum(description="The product type kind.")
     has_variants = graphene.Boolean(
         description=(
             "Determines if product of this type has multiple variants. This option "

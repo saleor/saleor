@@ -17,6 +17,7 @@ from ..enums import (
     ExportErrorCode,
     ExternalNotificationTriggerErrorCode,
     GiftCardErrorCode,
+    GiftCardSettingsErrorCode,
     InvoiceErrorCode,
     JobStatusEnum,
     LanguageCodeEnum,
@@ -173,6 +174,10 @@ class MenuError(Error):
 
 class OrderSettingsError(Error):
     code = OrderSettingsErrorCode(description="The error code.", required=True)
+
+
+class GiftCardSettingsError(Error):
+    code = GiftCardSettingsErrorCode(description="The error code.", required=True)
 
 
 class MetadataError(Error):

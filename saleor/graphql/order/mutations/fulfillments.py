@@ -6,6 +6,8 @@ from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
+from ....core.tracing import traced_atomic_transaction
+from ....giftcard.utils import get_gift_card_lines, gift_cards_create
 from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
@@ -24,6 +26,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import get_duplicated_values
+from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..utils import prepare_insufficient_stock_order_validation_errors
@@ -92,11 +95,11 @@ class OrderFulfill(BaseMutation):
 
     @classmethod
     def clean_lines(cls, order_lines, quantities):
-        for order_line, line_quantities in zip(order_lines, quantities):
-
+        for order_line in order_lines:
+            line_total_quantity = quantities[order_line.pk]
             line_quantity_unfulfilled = order_line.quantity_unfulfilled
 
-            if sum(line_quantities) > line_quantity_unfulfilled:
+            if line_total_quantity > line_quantity_unfulfilled:
                 msg = (
                     "Only %(quantity)d item%(item_pluralize)s remaining "
                     "to fulfill: %(order_line)s."
@@ -192,8 +195,12 @@ class OrderFulfill(BaseMutation):
         order_lines = cls.get_nodes_or_error(
             lines_ids, field="lines", only_type=OrderLine
         )
+        order_line_id_to_total_quantity = {
+            order_line.pk: sum(line_quantities)
+            for order_line, line_quantities in zip(order_lines, quantities_for_lines)
+        }
 
-        cls.clean_lines(order_lines, quantities_for_lines)
+        cls.clean_lines(order_lines, order_line_id_to_total_quantity)
 
         cls.check_total_quantity_of_items(quantities_for_lines)
 
@@ -209,28 +216,52 @@ class OrderFulfill(BaseMutation):
                     )
 
         data["order_lines"] = order_lines
-        data["quantities"] = quantities_for_lines
+        data["gift_card_lines"] = cls.get_gift_card_lines(lines_ids)
+        data["quantities"] = order_line_id_to_total_quantity
         data["lines_for_warehouses"] = lines_for_warehouses
         return data
 
+    @staticmethod
+    def get_gift_card_lines(lines_ids):
+        _, pks = resolve_global_ids_to_primary_keys(
+            lines_ids, OrderLine, raise_error=True
+        )
+        return get_gift_card_lines(pks)
+
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, order, **data):
         order = cls.get_node_or_error(info, order, field="order", only_type=Order)
         data = data.get("input")
 
         cleaned_input = cls.clean_input(info, order, data)
 
-        user = info.context.user
+        context = info.context
+        user = context.user if not context.user.is_anonymous else None
+        app = context.app
+        manager = context.plugins
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
         notify_customer = cleaned_input.get("notify_customer", True)
+        gift_card_lines = cleaned_input["gift_card_lines"]
+        quantities = cleaned_input["quantities"]
+
+        gift_cards_create(
+            order,
+            gift_card_lines,
+            quantities,
+            context.site.settings,
+            user,
+            app,
+            manager,
+        )
 
         try:
             fulfillments = create_fulfillments(
                 user,
-                info.context.app,
+                app,
                 order,
                 dict(lines_for_warehouses),
-                info.context.plugins,
+                manager,
                 notify_customer,
                 approved=info.context.site.settings.fulfillment_auto_approve,
             )
