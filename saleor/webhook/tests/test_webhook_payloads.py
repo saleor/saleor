@@ -156,6 +156,27 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
     }
 
 
+def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
+    # given
+    fulfillment = order_with_lines.fulfillments.create(tracking_number="123")
+    line = order_with_lines.lines.first()
+    stock = line.allocations.get().stock
+    warehouse_pk = stock.warehouse.pk
+    fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
+    fulfill_order_lines(
+        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        get_plugins_manager(),
+    )
+
+    # when
+    line.variant.delete()
+    payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
+
+    # then
+    assert payload["product_type"] is None
+    assert payload["weight"] is None
+
+
 def test_order_lines_have_all_required_fields(order, order_line_with_one_allocation):
     order.lines.add(order_line_with_one_allocation)
     line = order_line_with_one_allocation
