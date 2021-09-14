@@ -473,10 +473,16 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
             "product_name": lambda fl: fl.order_line.product_name,
             "variant_name": lambda fl: fl.order_line.variant_name,
             "product_sku": lambda fl: fl.order_line.product_sku,
-            "weight": (lambda fl: fl.order_line.variant.get_weight().g),
+            "weight": (
+                lambda fl: fl.order_line.variant.get_weight().g
+                if fl.order_line.variant
+                else None
+            ),
             "weight_unit": "gram",
             "product_type": (
                 lambda fl: fl.order_line.variant.product.product_type.name
+                if fl.order_line.variant
+                else None
             ),
             "unit_price_net": lambda fl: fl.order_line.unit_price_net_amount,
             "unit_price_gross": lambda fl: fl.order_line.unit_price_gross_amount,

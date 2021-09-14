@@ -339,7 +339,7 @@ def test_filter_attributes_in_category_not_in_listings_by_staff_without_manage_p
     )["data"]["attributes"]["edges"]
 
     # then
-    assert len(attributes) == attribute_count
+    assert len(attributes) == attribute_count - 1  # product not listed will not count
 
 
 def test_filter_attributes_in_category_not_visible_in_listings_by_app_with_perm(
@@ -430,7 +430,7 @@ def test_filter_attributes_in_category_not_in_listings_by_app_without_manage_pro
     )["data"]["attributes"]["edges"]
 
     # then
-    assert len(attributes) == attribute_count
+    assert len(attributes) == attribute_count - 1  # product not visible will not count
 
 
 def test_filter_attributes_in_category_not_published_by_customer(
@@ -565,7 +565,7 @@ def test_filter_attributes_in_category_not_published_by_staff_without_manage_pro
     )["data"]["attributes"]["edges"]
 
     # then
-    assert len(attributes) == attribute_count
+    assert len(attributes) == attribute_count - 1
 
 
 def test_filter_attributes_in_category_not_published_by_app_with_perm(
@@ -656,7 +656,7 @@ def test_filter_attributes_in_category_not_published_by_app_without_manage_produ
     )["data"]["attributes"]["edges"]
 
     # then
-    assert len(attributes) == attribute_count
+    assert len(attributes) == attribute_count - 1
 
 
 def test_filter_attributes_in_collection_invalid_category_id(
@@ -927,7 +927,7 @@ def test_filter_in_collection_not_published_by_staff_without_manage_products(
     )["data"]["attributes"]["edges"]
 
     # then
-    assert len(attributes) == attribute_count
+    assert len(attributes) == attribute_count - 1
 
 
 def test_filter_in_collection_not_published_by_app_with_perm(
@@ -1024,7 +1024,7 @@ def test_filter_in_collection_not_published_by_app_without_manage_products(
     )["data"]["attributes"]["edges"]
 
     # then
-    assert len(attributes) == attribute_count
+    assert len(attributes) == attribute_count - 1
 
 
 def test_filter_attributes_by_page_type(

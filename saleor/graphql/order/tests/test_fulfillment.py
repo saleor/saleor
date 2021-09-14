@@ -161,7 +161,7 @@ def test_order_fulfill_above_available_quantity(
             "lines": [
                 {
                     "orderLineId": order_line_id,
-                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
+                    "stocks": [{"quantity": 4, "warehouse": warehouse_id}],
                 },
                 {
                     "orderLineId": order_line2_id,

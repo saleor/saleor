@@ -285,8 +285,11 @@ def test_visible_to_staff_user(
     product = product_list[0]
     product.variants.all().delete()
 
+    staff_user.user_permissions.add(permission_manage_products)
+
     available_products = models.Product.objects.visible_to_user(
-        staff_user, channel_USD.slug
+        staff_user,
+        channel_USD.slug,
     )
     assert available_products.count() == 3
 
