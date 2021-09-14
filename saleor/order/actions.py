@@ -843,21 +843,14 @@ def __get_shipping_refund_amount(
     return shipping_refund_amount
 
 
-# TODO Anatoly
-# Modify logic from saleor.order.actions.create_refund_fulfillment
-# to be able to handle multiple payments:
-#   all events.payment_refunded_event
-#   send_order_refunded_confirmation for each refunded payment
 def create_refund_fulfillment(
     user: Optional["User"],
     app: Optional["App"],
     order,
-    payment,
+    payments,
     order_lines_to_refund: List[OrderLineData],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     manager: "PluginsManager",
-    amount=None,
-    refund_shipping_costs=False,
 ):
     """Proceed with all steps required for refunding products.
 
@@ -867,22 +860,28 @@ def create_refund_fulfillment(
     unfulfilled lines will be deallocated.
     """
 
-    shipping_refund_amount = __get_shipping_refund_amount(
-        refund_shipping_costs, amount, order.shipping_price_gross_amount
-    )
+    total_refund_amount = 0
+    shipping_refund_amount = None
 
     with transaction_with_commit_on_errors():
-        total_refund_amount = _process_refund(
-            user=user,
-            app=app,
-            order=order,
-            payment=payment,
-            order_lines_to_refund=order_lines_to_refund,
-            fulfillment_lines_to_refund=fulfillment_lines_to_refund,
-            amount=amount,
-            refund_shipping_costs=refund_shipping_costs,
-            manager=manager,
-        )
+        for item in payments:
+            total_refund_amount += _process_refund(
+                user=user,
+                app=app,
+                order=order,
+                payment=item["payment"],
+                order_lines_to_refund=order_lines_to_refund,
+                fulfillment_lines_to_refund=fulfillment_lines_to_refund,
+                amount=item["amount"],
+                refund_shipping_costs=item["include_shipping_costs"],
+                manager=manager,
+            )
+            if item["include_shipping_costs"]:
+                shipping_refund_amount = __get_shipping_refund_amount(
+                    item["include_shipping_costs"],
+                    item["amount"],
+                    order.shipping_price_gross_amount,
+                )
 
         refunded_fulfillment = Fulfillment.objects.create(
             status=FulfillmentStatus.REFUNDED,

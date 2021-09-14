@@ -4075,6 +4075,8 @@ enum OrderErrorCode {
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
   CHANNEL_INACTIVE
+  PAYEMENTS_DO_NOT_BELONG_TO_ORDER
+  ORDER_HAS_MULTIPLE_PAYMENTS
 }
 
 type OrderEvent implements Node {
@@ -4329,6 +4331,7 @@ input OrderRefundLineInput {
 input OrderRefundProductsInput {
   orderLines: [OrderRefundLineInput!]
   fulfillmentLines: [OrderRefundFulfillmentLineInput!]
+  paymentsToRefund: [PaymentToRefundInput]!
   amountToRefund: PositiveDecimal
   includeShippingCosts: Boolean = false
 }
@@ -4815,6 +4818,12 @@ type PaymentSource {
   gateway: String!
   paymentMethodId: String
   creditCardInfo: CreditCard
+}
+
+input PaymentToRefundInput {
+  paymentId: ID!
+  amount: PositiveDecimal!
+  includeShippingCosts: Boolean = false
 }
 
 type PaymentVoid {

@@ -19,7 +19,7 @@ from ....order.actions import (
 )
 from ....order.error_codes import OrderErrorCode
 from ....order.notifications import send_fulfillment_update
-from ...core.descriptions import ADDED_IN_31
+from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
@@ -442,20 +442,15 @@ class PaymentToRefundInput(graphene.InputObjectType):
     payment_id = graphene.ID(required=True, description="The graphene ID of a payment.")
     amount = PositiveDecimal(required=True, description="Amount of the refund.")
     include_shipping_costs = graphene.Boolean(
-        # TODO Anatoly, update the description
-        # description=(
-        #     "If true, Saleor will refund shipping costs."
-        #     "If amountToRefund is provided"
-        #     "includeShippingCosts will be ignored."
-        # ),
+        description=(
+            "If true, Saleor will refund shipping costs. "
+            "If amountToRefund is provided includeShippingCosts will be ignored. "
+            "Only one such payment per order is allowed."
+        ),
         default_value=False,
     )
 
 
-# TODO Anatoly
-# deprecate amountToRefund , includeShippingCosts:
-#   add logic which will convert depreacted input to list  of paymentToRefund
-#   raise validation error when order has more than one payment
 class OrderRefundProductsInput(graphene.InputObjectType):
     order_lines = graphene.List(
         graphene.NonNull(OrderRefundLineInput),
@@ -465,19 +460,23 @@ class OrderRefundProductsInput(graphene.InputObjectType):
         graphene.NonNull(OrderRefundFulfillmentLineInput),
         description="List of fulfilled lines to refund.",
     )
-    # payments_to_refund = graphene.List(
-    #     PaymentToRefundInput,
-    #     required=True,
-    #     description=f"{ADDED_IN_31} Payments that need to be refunded.",
-    # )
+    payments_to_refund = graphene.List(
+        PaymentToRefundInput,
+        required=True,
+        description=f"{ADDED_IN_31} Payments that need to be refunded.",
+    )
     amount_to_refund = PositiveDecimal(
         required=False,
-        description="The total amount of refund when the value is provided manually.",
+        description=(
+            "The total amount of refund when the value is provided manually. "
+            f"{DEPRECATED_IN_3X_INPUT} Use paymentsToRefund instead."
+        ),
     )
     include_shipping_costs = graphene.Boolean(
         description=(
-            "If true, Saleor will refund shipping costs. If amountToRefund is provided"
-            "includeShippingCosts will be ignored."
+            "If true, Saleor will refund shipping costs. If amountToRefund is provided "
+            "includeShippingCosts will be ignored. "
+            f"{DEPRECATED_IN_3X_INPUT} Use paymentsToRefund instead."
         ),
         default_value=False,
     )
@@ -645,31 +644,124 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         error_type_class = OrderError
         error_type_field = "order_errors"
 
-    # TODO Anatoly, finish this logic
-    # Add validation to  FulfillmentRefundProducts.clean_input which will confirm
-    # that recieved list of payments belongs to given order.
-    # Run FulfillmentRefundProducts.clean_order_payment for each payment from the list
-    # Run FulfillmentRefundProducts.clean_amount_to_refund for each payment
-    # from the list
-    # Add validation which will confirm that maximaly only one payment for list of
-    # paymentsToRefund has flag which defines that we should refund shipping costs also
     @classmethod
-    def _check_payments(cls, order, payments):
-        pass
+    def _check_required_fields(cls, payments_to_refund, amount_to_refund):
+        if (payments_to_refund and amount_to_refund) or (
+            not payments_to_refund and not amount_to_refund
+        ):
+            raise ValidationError(
+                {
+                    "payments_to_refund": ValidationError(
+                        "Either payments_to_refund or "
+                        "amount_to_refund should be specified.",
+                        code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
+                    ),
+                    "amount_to_refund": ValidationError(
+                        "Either payments_to_refund or "
+                        "amount_to_refund should be specified.",
+                        code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
+                    ),
+                }
+            )
+
+    @classmethod
+    def _check_shipping_costs(cls, payments_to_refund):
+        num_of_occurances = 0
+        for payment in payments_to_refund:
+            if payment.get("include_shipping_costs"):
+                num_of_occurances += 1
+
+        if num_of_occurances > 1:
+            raise ValidationError(
+                {
+                    "include_shipping_costs": ValidationError(
+                        "Shipping costs cannot be included in more than one payment.",
+                        code=OrderErrorCode.DUPLICATED_INPUT_ITEM,
+                    )
+                }
+            )
+
+    @classmethod
+    def _check_payments_belong_to_order(cls, order, payments):
+        improper_payments = []
+        order_payments_ids = order.payments.values_list("id", flat=True)
+        for item in payments:
+            if not item["payment"].id in order_payments_ids:
+                improper_payments.append(item["payment"])
+
+        if improper_payments:
+            # TODO Anatoly finish it.
+            improper_payments_ids = []
+            raise ValidationError(
+                {
+                    "payment": ValidationError(
+                        "These payments do not belong to the order.",
+                        code=OrderErrorCode.PAYEMENTS_DO_NOT_BELONG_TO_ORDER,
+                        params={"improper_payments": improper_payments_ids},
+                    )
+                }
+            )
+
+    @classmethod
+    def _check_order_has_single_payment(cls, order):
+        if order.payments.count() > 1:
+            raise ValidationError(
+                {
+                    "amount_to_refund": ValidationError(
+                        "It is not possible to use the amount field "
+                        "for orders with multiple payments.",
+                        code=OrderErrorCode.ORDER_HAS_MULTIPLE_PAYMENTS,
+                    )
+                }
+            )
+
+    @classmethod
+    def _get_payments_to_refund(
+        cls, order, payments_to_refund, amount_to_refund, include_shipping_costs
+    ):
+        if payments_to_refund:
+            cls._check_shipping_costs(payments_to_refund)
+            payments = [
+                {
+                    "payment": item["payment"],
+                    "amount": item["amount"],
+                    "include_shipping_costs": item["include_shipping_costs"],
+                }
+                for item in payments_to_refund
+            ]
+            cls._check_payments_belong_to_order(order, payments)
+        else:
+            cls._check_order_has_single_payment(order)
+            payment = order.payments.first()
+            payments = [
+                {
+                    "payment": payment,
+                    "amount": amount_to_refund,
+                    "include_shipping_costs": include_shipping_costs,
+                }
+            ]
+
+        return payments
 
     @classmethod
     def clean_input(cls, info, order_id, input):
         cleaned_input = {}
+        payments_to_refund = input.get("payments_to_refund")
         amount_to_refund = input.get("amount_to_refund")
-        include_shipping_costs = input["include_shipping_costs"]
+        include_shipping_costs = input.get("include_shipping_costs")
+
+        cls._check_required_fields(payments_to_refund, amount_to_refund)
 
         qs = order_models.Order.objects.prefetch_related("payments")
         order = cls.get_node_or_error(
             info, order_id, field="order", only_type=Order, qs=qs
         )
-        payment = order.get_last_payment()
-        cls.clean_order_payment(payment, cleaned_input)
-        cls.clean_amount_to_refund(amount_to_refund, payment, cleaned_input)
+        payments = cls._get_payments_to_refund(
+            order, payments_to_refund, amount_to_refund, include_shipping_costs
+        )
+        for item in payments:
+            cls.clean_order_payment(item["payment"], cleaned_input)
+            cls.clean_amount_to_refund(amount_to_refund, item["payment"], cleaned_input)
 
         cleaned_input.update(
             {"include_shipping_costs": include_shipping_costs, "order": order}
@@ -691,7 +783,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             )
         return cleaned_input
 
-    # TODO In case when any refund fail - create new order event for this
+    # TODO Anatoly, In case when any refund fail - create new order event for this
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
@@ -700,12 +792,10 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             info.context.user,
             info.context.app,
             order,
-            cleaned_input["payment"],
+            cleaned_input["payments_to_refund"],
             cleaned_input.get("order_lines", []),
             cleaned_input.get("fulfillment_lines", []),
             info.context.plugins,
-            cleaned_input["amount_to_refund"],
-            cleaned_input["include_shipping_costs"],
         )
         return cls(order=order, fulfillment=refund_fulfillment)
 

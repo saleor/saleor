@@ -32,3 +32,5 @@ class OrderErrorCode(Enum):
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"
     CHANNEL_INACTIVE = "channel_inactive"
+    PAYEMENTS_DO_NOT_BELONG_TO_ORDER = "payments_do_not_belong_to_order"
+    ORDER_HAS_MULTIPLE_PAYMENTS = "order_has_multiple_payments"
