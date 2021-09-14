@@ -652,7 +652,7 @@ def test_filter_products_by_gift_card(
     count_queries,
     shippable_gift_card_product,
 ):
-    variables = {"filter": {"giftCard": True}}
+    variables = {"channel": channel_USD.slug, "filter": {"giftCard": True}}
 
     get_graphql_content(
         staff_api_client.post_graphql(QUERY_PRODUCTS_WITH_FILTER, variables)
