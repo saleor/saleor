@@ -365,6 +365,9 @@ def test_shop_reservation_settings_mutation(
     query = """
         mutation updateSettings($input: ShopSettingsInput!) {
             shopSettingsUpdate(input: $input) {
+                shop {
+                    reserveStockDurationMinutes
+                }
                 errors {
                     field,
                     message
@@ -381,7 +384,8 @@ def test_shop_reservation_settings_mutation(
         query, variables, permissions=[permission_manage_settings]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["shopSettingsUpdate"]["errors"]
+    data = content["data"]["shopSettingsUpdate"]["shop"]
+    assert data["reserveStockDurationMinutes"] == 42
     site_settings.refresh_from_db()
     assert site_settings.enable_stock_reservations
     assert site_settings.reserve_stock_duration_minutes == 42
@@ -393,6 +397,9 @@ def test_shop_reservation_disable_settings_mutation(
     query = """
         mutation updateSettings($input: ShopSettingsInput!) {
             shopSettingsUpdate(input: $input) {
+                shop {
+                    reserveStockDurationMinutes
+                }
                 errors {
                     field,
                     message
@@ -409,7 +416,8 @@ def test_shop_reservation_disable_settings_mutation(
         query, variables, permissions=[permission_manage_settings]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["shopSettingsUpdate"]["errors"]
+    data = content["data"]["shopSettingsUpdate"]["shop"]
+    assert data["reserveStockDurationMinutes"] == 0
     site_settings.refresh_from_db()
     assert not site_settings.enable_stock_reservations
     assert site_settings.reserve_stock_duration_minutes == 0
