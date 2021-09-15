@@ -221,6 +221,9 @@ class PluginSample(BasePlugin):
     def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
         return Decimal("0.080").quantize(Decimal(".01"))
 
+    def sample_not_implemented(self, previous_value):
+        return NotImplemented
+
 
 class ChannelPluginSample(PluginSample):
     PLUGIN_ID = "channel.plugin.sample"
