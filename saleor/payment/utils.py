@@ -97,6 +97,7 @@ def create_payment(
     currency: str,
     email: str,
     customer_ip_address: str = "",
+    partial: Optional[bool] = False,
     payment_token: Optional[str] = "",
     extra_data: Dict = None,
     checkout: Checkout = None,
@@ -110,21 +111,9 @@ def create_payment(
     both Django views and GraphQL mutations.
     """
 
-    if extra_data is None:
-        extra_data = {}
-
-    data = {
-        "is_active": True,
-        "customer_ip_address": customer_ip_address,
-        "extra_data": json.dumps(extra_data),
-        "token": payment_token,
-    }
-
     if checkout:
-        data["checkout"] = checkout
         billing_address = checkout.billing_address
     elif order:
-        data["order"] = order
         billing_address = order.billing_address
     else:
         raise TypeError("Must provide checkout or order to create a payment.")
@@ -135,7 +124,17 @@ def create_payment(
             code=PaymentErrorCode.BILLING_ADDRESS_NOT_SET.value,
         )
 
-    defaults = {
+    data = {
+        "checkout": checkout,
+        "order": order,
+        "customer_ip_address": customer_ip_address,
+        "currency": currency,
+        "gateway": gateway,
+        "total": total,
+        "return_url": return_url,
+        "psp_reference": external_reference or "",
+        "partial": partial,
+        "extra_data": json.dumps(extra_data or {}),
         "billing_email": email,
         "billing_first_name": billing_address.first_name,
         "billing_last_name": billing_address.last_name,
@@ -146,15 +145,12 @@ def create_payment(
         "billing_postal_code": billing_address.postal_code,
         "billing_country_code": billing_address.country.code,
         "billing_country_area": billing_address.country_area,
-        "currency": currency,
-        "gateway": gateway,
-        "total": total,
-        "return_url": return_url,
-        "psp_reference": external_reference or "",
     }
 
-    payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
-    return payment
+    if payment_token:
+        return Payment.objects.get_or_create(token=payment_token, defaults=data)[0]
+    else:
+        return Payment.objects.create(**data)
 
 
 def get_already_processed_transaction(

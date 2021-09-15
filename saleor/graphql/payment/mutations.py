@@ -6,7 +6,12 @@ from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
 from ...checkout.complete_checkout import complete_checkout_payment
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...checkout.utils import get_covered_balance, validate_variants_in_checkout_lines
+from ...checkout.utils import (
+    call_payment_refund_or_void,
+    get_active_payments,
+    get_covered_balance,
+    validate_variants_in_checkout_lines,
+)
 from ...core import analytics
 from ...core.permissions import OrderPermissions
 from ...core.transactions import transaction_with_commit_on_errors
@@ -53,6 +58,14 @@ class PaymentInput(graphene.InputObjectType):
             "URL of a storefront view where user should be redirected after "
             "requiring additional actions. Payment with additional actions will not be "
             "finished if this field is not provided."
+        ),
+    )
+    partial = graphene.Boolean(
+        required=False,
+        description=(
+            f"{ADDED_IN_31} When set to True, multiple payments can be attached to "
+            "a single checkout. Creating a payment with partial=False will cancel "
+            "all previous payments."
         ),
     )
 
@@ -179,6 +192,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             discounts=info.context.discounts,
         )
         amount = data.get("amount", checkout_total.gross.amount)
+        partial = data.get("partial", False)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
         clean_billing_address(checkout_info, PaymentErrorCode)
         cls.clean_payment_amount(info, checkout, checkout_total, amount)
@@ -186,11 +200,18 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
         }
 
+        if not partial:
+            for existing_payment in get_active_payments(checkout):
+                call_payment_refund_or_void(
+                    checkout_info, existing_payment, manager, cancel_partial=True
+                )
+
         payment = create_payment(
             gateway=gateway,
             payment_token=data.get("token", ""),
             total=amount,
             currency=checkout.currency,
+            partial=partial,
             email=checkout.get_customer_email(),
             extra_data=extra_data,
             # FIXME this is not a customer IP address. It is a client storefront ip

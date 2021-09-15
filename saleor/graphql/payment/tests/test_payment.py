@@ -304,6 +304,7 @@ def test_checkout_add_partial_payment(
             "token": "sample-token",
             "amount": quarter_total.amount,
             "returnUrl": return_url,
+            "partial": True,
         },
     }
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
@@ -528,7 +529,7 @@ def test_create_payment_for_checkout_with_active_payments(
     checkout.refresh_from_db()
     assert checkout.payments.all().count() == payments_count + 1
     active_payments = checkout.payments.all().filter(is_active=True)
-    assert active_payments.count() == previous_active_payments_count + 1
+    assert active_payments.count() == previous_active_payments_count
 
 
 CHECKOUT_PAYMENT_COMPLETE_MUTATION = """
