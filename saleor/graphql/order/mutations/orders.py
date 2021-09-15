@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from graphql_relay import to_global_id
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
@@ -30,7 +31,7 @@ from ....payment import TransactionKind, gateway
 from ....payment.actions import try_payment_action
 from ....shipping import models as shipping_models
 from ...account.types import AddressInput
-from ...core.descriptions import ADDED_IN_31
+from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
@@ -576,7 +577,11 @@ class OrderRefund(BaseMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of the order to refund.")
         amount = PositiveDecimal(
-            required=False, description="Amount of money to refund."
+            required=False,
+            description=(
+                f"Amount of money to refund. "
+                f"{DEPRECATED_IN_3X_INPUT} Use payments_to_refund instead."
+            ),
         )
         payments_to_refund = graphene.List(
             OrderPaymentToRefundInput,
@@ -594,8 +599,16 @@ class OrderRefund(BaseMutation):
     def _run_checks(cls, amount, payments_to_refund):
         if (not amount and not payments_to_refund) or (amount and payments_to_refund):
             raise ValidationError(
-                "Either amount or payments to refund should be specified.",
-                code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
+                {
+                    "amount": ValidationError(
+                        "Either amount or payments_to_refund should be specified.",
+                        code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
+                    ),
+                    "payments_to_refund": ValidationError(
+                        "Either amount or payments_to_refund should be specified.",
+                        code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
+                    ),
+                }
             )
         if amount and amount <= 0:
             raise ValidationError(
@@ -608,6 +621,43 @@ class OrderRefund(BaseMutation):
             )
 
     @classmethod
+    def _check_amount_to_refund(cls, payments, amount=None):
+        if amount:
+            total_captured_amount = sum(
+                [item["payment"].captrued_amount for item in payments]
+            )
+            if amount > total_captured_amount:
+                raise ValidationError(
+                    {
+                        "amount": ValidationError(
+                            "The total amount to refund cannot be bigger "
+                            "than the total captured amount.",
+                            code=OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG,
+                        )
+                    }
+                )
+
+        else:
+            improper_payments_ids = []
+            for item in payments:
+                if item["payment"].captured_amount < item["amount"]:
+                    improper_payments_ids.append(
+                        to_global_id("Payment", item["payment"].id)
+                    )
+
+            if improper_payments_ids:
+                raise ValidationError(
+                    {
+                        "amount": ValidationError(
+                            "The amount to refund cannot be bigger "
+                            "than the captured amount.",
+                            code=OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG,
+                            params={"improper_payments_ids": improper_payments_ids},
+                        )
+                    }
+                )
+
+    @classmethod
     def _prepare_payments(cls, info, order, amount, payments_to_refund):
         if payments_to_refund:
             payments = [
@@ -618,36 +668,15 @@ class OrderRefund(BaseMutation):
                 for item in payments_to_refund
             ]
 
+            cls._check_amount_to_refund(payments)
+
         else:
             active_payments = order.payments.filter(is_active=True)
-
-            # There might be just one single payment with the specified amount.
-            if payment := active_payments.filter(captured_amount=amount).first():
-                payments = [{"payment": payment, "amount": amount}]
-            else:
-                fit_payments = []
-                amount_left = amount
-
-                # Otherwise, get payments whose total amount
-                # equals the specified amount.
-                for payment in active_payments:
-                    if amount_left > 0 and payment.captured_amount <= amount_left:
-                        fit_payments.append(payment)
-                        amount_left -= payment.captured_amount
-
-                if amount_left > 0:
-                    raise ValidationError(
-                        {
-                            "amount": ValidationError(
-                                "The specified amount cannot be refunded in full.",
-                                code=OrderErrorCode.CANNOT_REFUND,
-                            )
-                        }
-                    )
-                payments = [
-                    {"payment": payment, "amount": payment.captured_amount}
-                    for payment in active_payments
-                ]
+            payments = [
+                {"payment": payment, "amount": payment.captured_amount}
+                for payment in active_payments
+            ]
+            cls._check_amount_to_refund(payments, amount)
 
         return payments
 
