@@ -4727,6 +4727,7 @@ type Payment implements Node {
   pspReference: String
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
+  partial: Boolean
   total: Money
   capturedAmount: Money
   transactions: [Transaction]
@@ -4814,6 +4815,7 @@ input PaymentInput {
   token: String
   amount: PositiveDecimal
   returnUrl: String
+  partial: Boolean
 }
 
 type PaymentRefund {

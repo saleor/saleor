@@ -34,6 +34,7 @@ class Payment(models.Model):
     is_active = models.BooleanField(default=True)
     to_confirm = models.BooleanField(default=False)
     complete_order = models.BooleanField(default=False)
+    partial = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(

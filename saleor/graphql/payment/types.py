@@ -4,6 +4,7 @@ from graphene import relay
 from ...core.tracing import traced_resolver
 from ...payment import models
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31
 from ..core.types import Money
 from .enums import OrderAction, PaymentChargeStatusEnum
 
@@ -74,6 +75,12 @@ class Payment(CountableDjangoObjectType):
             "List of actions that can be performed in the current state of a payment."
         ),
         required=True,
+    )
+    partial = graphene.Boolean(
+        description=(
+            f"{ADDED_IN_31} Indicates whether this payment will"
+            "be processed as a partial payment."
+        )
     )
     total = graphene.Field(Money, description="Total amount of the payment.")
     captured_amount = graphene.Field(
