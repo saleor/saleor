@@ -60,6 +60,12 @@ class ShopSettingsInput(graphene.InputObjectType):
     customer_set_password_url = graphene.String(
         description="URL of a view where customers can set their password."
     )
+    reserve_stock_duration_minutes = graphene.Int(
+        description=(
+            "Default number of minutes stock will be reserved for checkout or 0 to "
+            "disable stock reservations."
+        )
+    )
 
 
 class SiteDomainInput(graphene.InputObjectType):
@@ -90,6 +96,9 @@ class ShopSettingsUpdate(BaseMutation):
                 raise ValidationError(
                     {"customer_set_password_url": error}, code=ShopErrorCode.INVALID
                 )
+        if "reserve_stock_duration_minutes" in data:
+            if data["reserve_stock_duration_minutes"] < 1:
+                data["reserve_stock_duration_minutes"] = 0
         return data
 
     @classmethod

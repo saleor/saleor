@@ -848,29 +848,16 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 id__in=variant_ids
             ).prefetch_related("product__product_type")
         )  # FIXME: is this prefetch needed?
-
-        if site_settings.enable_stock_reservations:
-            # If stock reservations are enabled, we need to pass existing lines
-            # For reservation validation to run correctly
-            quantities = [0] * len(variants)
-            check_lines_quantity(
-                variants,
-                quantities,
-                country,
-                channel_slug,
-                allow_zero_quantity=True,
-                existing_lines=lines,
-                check_reservations=True,
-            )
-        else:
-            quantities = [line_info.line.quantity for line_info in lines]
-            check_lines_quantity(
-                variants,
-                quantities,
-                country,
-                channel_slug,
-                check_reservations=False,
-            )
+        quantities = [line_info.line.quantity for line_info in lines]
+        check_lines_quantity(
+            variants,
+            quantities,
+            country,
+            channel_slug,
+            replace=True,
+            existing_lines=lines,
+            check_reservations=site_settings.enable_stock_reservations,
+        )
 
     @classmethod
     def perform_mutation(

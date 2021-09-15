@@ -359,6 +359,62 @@ def test_shop_settings_mutation(
     assert site_settings.charge_taxes_on_shipping == new_charge_taxes_on_shipping
 
 
+def test_shop_reservation_settings_mutation(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+    variables = {
+        "input": {
+            "reserveStockDurationMinutes": 42,
+        }
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["shopSettingsUpdate"]["errors"]
+    site_settings.refresh_from_db()
+    assert site_settings.enable_stock_reservations
+    assert site_settings.reserve_stock_duration_minutes == 42
+
+
+def test_shop_reservation_disable_settings_mutation(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+    variables = {
+        "input": {
+            "reserveStockDurationMinutes": -14,
+        }
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["shopSettingsUpdate"]["errors"]
+    site_settings.refresh_from_db()
+    assert not site_settings.enable_stock_reservations
+    assert site_settings.reserve_stock_duration_minutes == 0
+
+
 MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS = """
     mutation updateDefaultSenderSettings($input: ShopSettingsInput!) {
       shopSettingsUpdate(input: $input) {
