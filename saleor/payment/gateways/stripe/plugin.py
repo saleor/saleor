@@ -170,9 +170,9 @@ class StripeGatewayPlugin(BasePlugin):
         api_key = self.config.connection_params["secret_api_key"]
 
         auto_capture = self.config.auto_capture
-        if self.order_auto_confirmation is False:
-            auto_capture = False
-        if payment_information.partial:
+        if payment_information.auto_capture is not None:
+            auto_capture = payment_information.auto_capture
+        elif self.order_auto_confirmation is False:
             auto_capture = False
 
         data = payment_information.data
