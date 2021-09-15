@@ -20,7 +20,7 @@ from ..payment import (
     TransactionKind,
     gateway,
 )
-from ..payment.actions import try_payment_action
+from ..payment.actions import try_refund
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
 from ..warehouse.management import (
@@ -175,16 +175,15 @@ def make_refund(order, payments, info):
     for item in payments:
         payment = item["payment"]
         amount = item["amount"]
-        transaction = try_payment_action(
-            order,
-            info.context.user,
-            info.context.app,
-            payment,
-            gateway.refund,
-            payment,
-            info.context.plugins,
-            amount=amount,
+
+        transaction = try_refund(
+            order=order,
+            user=info.context.user,
+            app=info.context.app,
+            payment=payment,
+            manager=info.context.plugins,
             channel_slug=order.channel.slug,
+            amount=amount,
         )
 
         # Confirm that we changed the status to refund. Some payment can receive

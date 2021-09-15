@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 
 from ..order import events
 from ..order.error_codes import OrderErrorCode
+from ..payment import gateway
 from . import PaymentError
 
 
@@ -18,4 +19,19 @@ def try_payment_action(order, user, app, payment, func, *args, **kwargs):
         )
         raise ValidationError(
             {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
+        )
+
+
+def try_refund(order, user, app, payment, manager, channel_slug, amount):
+    try:
+        return gateway.refund(
+            payment,
+            manager,
+            channel_slug,
+            amount,
+        )
+    except (PaymentError, ValueError) as e:
+        message = str(e)
+        events.payment_refund_failed_event(
+            order=order, user=user, app=app, message=message, payment=payment
         )

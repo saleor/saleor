@@ -394,6 +394,20 @@ def payment_refunded_event(
     )
 
 
+def payment_refund_failed_event(
+    *, order: Order, user: UserType, app: AppType, amount: Decimal, payment: Payment
+) -> OrderEvent:
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.PAYMENT_REFUND_FAILED,
+        user=user,
+        app=app,
+        **_get_payment_data(amount, payment),
+    )
+
+
 def payment_voided_event(
     *, order: Order, user: UserType, app: AppType, payment: Payment
 ) -> OrderEvent:
