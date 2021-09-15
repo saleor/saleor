@@ -15,7 +15,6 @@ from ....core.utils import build_absolute_uri
 from ...interface import PaymentMethodInfo
 from ...utils import price_to_minor_unit
 from .consts import (
-    AUTOMATIC_CAPTURE_METHOD,
     MANUAL_CAPTURE_METHOD,
     METADATA_IDENTIFIER,
     PLUGIN_ID,
@@ -125,7 +124,6 @@ def create_payment_intent(
     api_key: str,
     amount: Decimal,
     currency: str,
-    auto_capture: bool = True,
     customer: Optional[StripeObject] = None,
     payment_method_id: Optional[str] = None,
     metadata: Optional[dict] = None,
@@ -135,7 +133,7 @@ def create_payment_intent(
     customer_email: Optional[str] = None,
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
 
-    capture_method = AUTOMATIC_CAPTURE_METHOD if auto_capture else MANUAL_CAPTURE_METHOD
+    capture_method = MANUAL_CAPTURE_METHOD
     additional_params = {}  # type: ignore
 
     if customer:
