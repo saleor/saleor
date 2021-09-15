@@ -33,6 +33,7 @@ def create_payment_information(
     customer_id: str = None,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
+    partial: bool = False,
 ) -> PaymentData:
     """Extract order information along with payment details.
 
@@ -45,13 +46,16 @@ def create_payment_information(
         shipping = checkout.shipping_address
         email = checkout.get_customer_email()
         user_id = checkout.user_id
+        checkout_token: Optional[str] = str(checkout.token)
     elif payment.order:
         billing = payment.order.billing_address
         shipping = payment.order.shipping_address
         email = payment.order.user_email
         user_id = payment.order.user_id
+        checkout_token = payment.order.checkout_token or None
     else:
         billing, shipping, email, user_id = None, None, payment.billing_email, None
+        checkout_token = None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
@@ -79,6 +83,8 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
+        partial=partial,
+        checkout_token=checkout_token,
     )
 
 
@@ -286,7 +292,8 @@ def gateway_postprocess(transaction, payment):
         # Set payment charge status to fully charged
         # only if there is no more amount needs to charge
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
-        if payment.get_charge_amount() <= 0:
+        charge_amount = payment.get_charge_amount()
+        if charge_amount <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
         changed_fields += ["charge_status", "captured_amount", "modified"]
 

@@ -16,6 +16,8 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
+from django.db.models.signals import pre_migrate
+from django.dispatch import receiver
 from django.forms import ModelForm
 from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
@@ -683,9 +685,9 @@ def user_checkout_with_items(user_checkout, product_list):
 
 
 @pytest.fixture
-def order(customer_user, channel_USD):
+def order_kwargs(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
-    return Order.objects.create(
+    return dict(
         billing_address=address,
         channel=channel_USD,
         currency=channel_USD.currency_code,
@@ -693,6 +695,93 @@ def order(customer_user, channel_USD):
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+    )
+
+
+@pytest.fixture
+def order(order_kwargs):
+    return Order.objects.create(**order_kwargs)
+
+
+@pytest.fixture
+def order_with_payments(order_kwargs):
+    def fun(
+        num_payments=2,
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        payments__captured_amount: Optional[List] = None,
+        payments__total: Optional[List] = None,
+        payments__charge_status: Optional[List] = None,
+    ):
+        payments = []
+
+        if payments__total:
+            assert len(payments__total) == num_payments
+        else:
+            payments__total = [total_gross_amount / num_payments] * num_payments
+
+        if payments__captured_amount:
+            assert len(payments__captured_amount) == num_payments
+        else:
+            payments__captured_amount = payments__total
+
+        if payments__charge_status:
+            assert len(payments__captured_amount) == num_payments
+        else:
+            payments__charge_status = []
+            for i in range(num_payments):
+                if payments__total[i] <= payments__captured_amount[i]:
+                    payments__charge_status.append(ChargeStatus.FULLY_CHARGED)
+                else:
+                    payments__charge_status.append(ChargeStatus.PARTIALLY_CHARGED)
+
+        order = Order.objects.create(
+            total_net_amount=total_net_amount,
+            total_gross_amount=total_gross_amount,
+            total_paid_amount=sum(payments__captured_amount),
+            **order_kwargs,
+        )
+
+        for i in range(num_payments):
+            payments.append(
+                Payment(
+                    gateway="mirumee.payments.dummy",
+                    is_active=True,
+                    order=order,
+                    total=payments__total[i],
+                    captured_amount=payments__captured_amount[i],
+                )
+            )
+        Payment.objects.bulk_create(payments)
+        return order
+
+    return fun
+
+
+@pytest.fixture
+def order_fully_paid(order_with_payments):
+    return order_with_payments()
+
+
+@pytest.fixture
+def order_overpaid(order_with_payments):
+    return order_with_payments(
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        num_payments=2,
+        payments__total=[Decimal("76.00"), Decimal("26.00")],
+        payments__captured_amount=[Decimal("75.00"), Decimal("25.01")],
+    )
+
+
+@pytest.fixture
+def order_underpaid(order_with_payments):
+    return order_with_payments(
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        num_payments=2,
+        payments__total=[Decimal("76.00"), Decimal("26.00")],
+        payments__captured_amount=[Decimal("75.00"), Decimal("24.99")],
     )
 
 
@@ -3356,6 +3445,7 @@ def dummy_payment_data(payment_dummy):
         order_id=None,
         customer_ip_address=None,
         customer_email="example@test.com",
+        checkout_token="1-2-3-4",
     )
 
 

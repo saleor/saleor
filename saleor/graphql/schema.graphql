@@ -4420,6 +4420,7 @@ enum OrderStatusFilter {
   PARTIALLY_FULFILLED
   FULFILLED
   CANCELED
+  OVERPAID
 }
 
 type OrderUpdate {
