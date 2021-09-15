@@ -93,9 +93,19 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         error_type_field = "payment_errors"
 
     @classmethod
-    def clean_payment_amount(cls, info, checkout, checkout_total, amount):
-        remaining = checkout_total.gross - get_covered_balance(checkout)
+    def clean_payment_amount(cls, info, partial, checkout, checkout_total, amount):
+        if not partial and amount != checkout_total.gross.amount:
+            raise ValidationError(
+                {
+                    "amount": ValidationError(
+                        "Amount does not cover checkout amount and "
+                        "the payment is not marked as partial.",
+                        code=PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED,
+                    )
+                }
+            )
 
+        remaining = checkout_total.gross - get_covered_balance(checkout)
         if amount > remaining.amount:
             raise ValidationError(
                 {
@@ -195,7 +205,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         partial = data.get("partial", False)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
         clean_billing_address(checkout_info, PaymentErrorCode)
-        cls.clean_payment_amount(info, checkout, checkout_total, amount)
+        cls.clean_payment_amount(info, partial, checkout, checkout_total, amount)
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
         }
