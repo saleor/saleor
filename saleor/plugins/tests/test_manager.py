@@ -1,6 +1,5 @@
 import json
 from decimal import Decimal
-from unittest import mock
 
 import pytest
 from django.http import HttpResponseNotFound, JsonResponse
@@ -9,7 +8,7 @@ from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
-from ...core.taxes import TaxType
+from ...core.taxes import TaxData, TaxLineData, TaxType
 from ...payment.interface import PaymentGateway
 from ...product.models import Product
 from ..base_plugin import ExternalAccessTokens
@@ -23,7 +22,6 @@ from ..tests.sample_plugins import (
     PluginInactive,
     PluginSample,
 )
-from ..webhook.utils import parse_tax_data
 
 
 def test_get_plugins_manager(settings):
@@ -513,54 +511,83 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
     assert show_taxes == PluginsManager(plugins=plugins).show_taxes_on_storefront()
 
 
-def test_manager_get_taxes_for_checkout_no_plugin(checkout):
-    assert PluginsManager(plugins=[]).get_taxes_for_checkout(checkout) is None
-
-
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_manager_get_taxes_for_checkout_webhook_plugin(
-    mock_request,
+@pytest.mark.parametrize(
+    "plugins, expected_tax_data",
+    [
+        ([], None),
+        (
+            ["saleor.plugins.tests.sample_plugins.PluginSample"],
+            TaxData(
+                currency="USD",
+                total_net_amount=Decimal("12.34"),
+                total_gross_amount=Decimal("12.34"),
+                subtotal_net_amount=Decimal("12.34"),
+                subtotal_gross_amount=Decimal("12.34"),
+                shipping_price_gross_amount=Decimal("12.34"),
+                shipping_price_net_amount=Decimal("12.34"),
+                lines=[
+                    TaxLineData(
+                        id=i,
+                        currency="USD",
+                        unit_net_amount=Decimal("12.34"),
+                        unit_gross_amount=Decimal("12.34"),
+                        total_gross_amount=Decimal("12.34"),
+                        total_net_amount=Decimal("12.34"),
+                    )
+                    for i in range(8)
+                ],
+            ),
+        ),
+    ],
+)
+def test_manager_get_taxes_for_checkout(
     checkout,
-    tax_data_response,
-    tax_app,
-    tax_checkout_webhook,
-    monkeypatch,
+    plugins,
+    expected_tax_data,
 ):
-    # given
-    mock_request.return_value = tax_data_response
-    plugins = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-
-    # when
-    tax_data = PluginsManager(plugins=plugins).get_taxes_for_checkout(checkout)
-
-    # then
-    assert mock_request.call_count == 1
-    assert tax_data == parse_tax_data(tax_data_response)
+    assert (
+        PluginsManager(plugins=plugins).get_taxes_for_checkout(checkout)
+        == expected_tax_data
+    )
 
 
-@pytest.mark.parametrize("plugins, taxes", [([], None)])
-def test_manager_get_taxes_for_order_no_plugin(order, plugins, taxes):
-    assert PluginsManager(plugins=[]).get_taxes_for_order(order) is None
-
-
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_manager_get_taxes_for_order_webhook_plugin(
-    mock_request,
+@pytest.mark.parametrize(
+    "plugins, expected_tax_data",
+    [
+        ([], None),
+        (
+            ["saleor.plugins.tests.sample_plugins.PluginSample"],
+            TaxData(
+                currency="USD",
+                total_net_amount=Decimal("12.34"),
+                total_gross_amount=Decimal("12.34"),
+                subtotal_net_amount=Decimal("12.34"),
+                subtotal_gross_amount=Decimal("12.34"),
+                shipping_price_gross_amount=Decimal("12.34"),
+                shipping_price_net_amount=Decimal("12.34"),
+                lines=[
+                    TaxLineData(
+                        id=i,
+                        currency="USD",
+                        unit_net_amount=Decimal("12.34"),
+                        unit_gross_amount=Decimal("12.34"),
+                        total_gross_amount=Decimal("12.34"),
+                        total_net_amount=Decimal("12.34"),
+                    )
+                    for i in range(8)
+                ],
+            ),
+        ),
+    ],
+)
+def test_manager_get_taxes_for_order(
     order,
-    tax_data_response,
-    tax_app,
-    tax_order_webhook,
-    monkeypatch,
+    plugins,
+    expected_tax_data,
 ):
-    mock_request.return_value = tax_data_response
-    plugins = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-
-    # when
-    tax_data = PluginsManager(plugins=plugins).get_taxes_for_order(order)
-
-    # then
-    assert mock_request.call_count == 1
-    assert tax_data == parse_tax_data(tax_data_response)
+    assert (
+        PluginsManager(plugins=plugins).get_taxes_for_order(order) == expected_tax_data
+    )
 
 
 @pytest.mark.parametrize(

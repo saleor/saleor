@@ -1,8 +1,8 @@
 from unittest import mock
 
-from saleor.plugins.webhook.utils import parse_tax_data
-from saleor.webhook.event_types import WebhookEventType
-from saleor.webhook.payloads import generate_checkout_payload, generate_order_payload
+from ....webhook.event_types import WebhookEventType
+from ....webhook.payloads import generate_checkout_payload, generate_order_payload
+from ..utils import parse_tax_data
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

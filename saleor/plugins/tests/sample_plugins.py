@@ -7,7 +7,7 @@ from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from ...account.models import User
-from ...core.taxes import TaxType
+from ...core.taxes import TaxData, TaxLineData, TaxType
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
@@ -220,6 +220,54 @@ class PluginSample(BasePlugin):
 
     def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
         return Decimal("0.080").quantize(Decimal(".01"))
+
+    def get_taxes_for_checkout(
+        self, checkout: "Checkout", previous_value
+    ) -> Optional["TaxData"]:
+        return TaxData(
+            currency=checkout.currency,
+            total_net_amount=Decimal("12.34"),
+            total_gross_amount=Decimal("12.34"),
+            subtotal_net_amount=Decimal("12.34"),
+            subtotal_gross_amount=Decimal("12.34"),
+            shipping_price_gross_amount=Decimal("12.34"),
+            shipping_price_net_amount=Decimal("12.34"),
+            lines=[
+                TaxLineData(
+                    id=i,
+                    currency=checkout.currency,
+                    unit_net_amount=Decimal("12.34"),
+                    unit_gross_amount=Decimal("12.34"),
+                    total_gross_amount=Decimal("12.34"),
+                    total_net_amount=Decimal("12.34"),
+                )
+                for i in range(8)
+            ],
+        )
+
+    def get_taxes_for_order(
+        self, order: "Order", previous_value
+    ) -> Optional["TaxData"]:
+        return TaxData(
+            currency=order.currency,
+            total_net_amount=Decimal("12.34"),
+            total_gross_amount=Decimal("12.34"),
+            subtotal_net_amount=Decimal("12.34"),
+            subtotal_gross_amount=Decimal("12.34"),
+            shipping_price_gross_amount=Decimal("12.34"),
+            shipping_price_net_amount=Decimal("12.34"),
+            lines=[
+                TaxLineData(
+                    id=i,
+                    currency=order.currency,
+                    unit_net_amount=Decimal("12.34"),
+                    unit_gross_amount=Decimal("12.34"),
+                    total_gross_amount=Decimal("12.34"),
+                    total_net_amount=Decimal("12.34"),
+                )
+                for i in range(8)
+            ],
+        )
 
 
 class ChannelPluginSample(PluginSample):

@@ -849,7 +849,7 @@ class PluginsManager(PaymentInterface):
     def __run_tax_method(
         self,
         method_name: str,
-        payload,
+        payload: Union["Order", "Checkout"],
     ) -> Optional[TaxData]:
         plugins = self.get_plugins()
         for plugin in plugins:

@@ -1,25 +1,31 @@
 from unittest import mock
-from unittest.mock import Mock
 
 import pytest
 
 from saleor.plugins.webhook.tasks import trigger_tax_webhook_sync
 from saleor.plugins.webhook.utils import parse_tax_data
 from saleor.webhook.event_types import WebhookEventType
-from saleor.webhook.models import Webhook
+from saleor.webhook.models import Webhook, WebhookEvent
 
 
 @pytest.fixture
 def tax_checkout_webhooks(tax_app):
-    webhooks = []
-    for i in range(8):
-        webhook = Webhook.objects.create(
-            name="Tax checkout webhook",
+    webhooks = [
+        Webhook(
+            name=f"Tax checkout webhook no {i}",
             app=tax_app,
-            target_url="https://www.example.com/tax-checkout",
+            target_url=f"https://www.example.com/tax-checkout-{i}",
         )
-        webhook.events.create(event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES)
-        webhooks.append(webhook)
+        for i in range(3)
+    ]
+    Webhook.objects.bulk_create(webhooks)
+    WebhookEvent.objects.bulk_create(
+        WebhookEvent(
+            event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
+            webhook=webhook,
+        )
+        for webhook in webhooks
+    )
 
     return webhooks
 
@@ -49,23 +55,18 @@ def test_trigger_tax_webhook_sync(
     assert tax_data == parse_tax_data(tax_data_response)
 
 
-@pytest.mark.parametrize("no_of_unsuccessful_webhooks", [0, 4, 7])
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@pytest.mark.parametrize("no_of_unsuccessful_webhooks", [0, 1, 2])
 def test_trigger_tax_webhook_sync_multiple_webhooks(
+    mock_request,
     tax_checkout_webhooks,
     tax_data_response,
     no_of_unsuccessful_webhooks,
-    monkeypatch,
 ):
     # given
-    def new_send_webhook_request_sync(pk, *args):
-        if pk == tax_checkout_webhooks[no_of_unsuccessful_webhooks].pk:
-            return tax_data_response
-        else:
-            return {}
-
-    mock_request = Mock(wraps=new_send_webhook_request_sync)
-    monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.send_webhook_request_sync", mock_request
+    mock_request.side_effect = (
+        tax_data_response if i == no_of_unsuccessful_webhooks else {}
+        for i in range(len(tax_checkout_webhooks))
     )
     event_type = WebhookEventType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
