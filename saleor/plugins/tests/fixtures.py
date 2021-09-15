@@ -7,7 +7,12 @@ from django_prices_vatlayer.utils import get_tax_for_rate
 from ..base_plugin import ConfigurationTypeField
 from ..manager import PluginsManager
 from ..models import PluginConfiguration
-from .sample_plugins import ChannelPluginSample, PluginInactive, PluginSample
+from .sample_plugins import (
+    ALL_PLUGINS,
+    ChannelPluginSample,
+    PluginInactive,
+    PluginSample,
+)
 
 
 @pytest.fixture
@@ -144,13 +149,4 @@ def plugins_manager():
 
 @pytest.fixture
 def all_plugins_manager():
-    plugins = [
-        "saleor.plugins.tests.sample_plugins.ChannelPluginSample",
-        "saleor.plugins.tests.sample_plugins.InactiveChannelPluginSample",
-        "saleor.plugins.tests.sample_plugins.PluginInactive",
-        "saleor.plugins.tests.sample_plugins.ActivePlugin",
-        "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
-        "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway",
-        "saleor.plugins.tests.sample_plugins.InactivePaymentGateway",
-    ]
-    return PluginsManager(plugins=plugins)
+    return PluginsManager(plugins=ALL_PLUGINS)
