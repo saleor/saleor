@@ -324,3 +324,19 @@ class InactivePaymentGateway(BasePlugin):
 
     def process_payment(self, payment_information, previous_value):
         pass
+
+
+ACTIVE_PLUGINS = (
+    __name__ + "." + ChannelPluginSample.__name__,
+    __name__ + "." + ActivePaymentGateway.__name__,
+    __name__ + "." + ActivePlugin.__name__,
+    __name__ + "." + ActiveDummyPaymentGateway.__name__,
+)
+
+INACTIVE_PLUGINS = (
+    __name__ + "." + InactivePaymentGateway.__name__,
+    __name__ + "." + PluginInactive.__name__,
+    __name__ + "." + InactiveChannelPluginSample.__name__,
+)
+
+ALL_PLUGINS = ACTIVE_PLUGINS + INACTIVE_PLUGINS

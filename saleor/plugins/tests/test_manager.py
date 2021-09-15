@@ -16,6 +16,8 @@ from ..base_plugin import ExternalAccessTokens
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
+    ACTIVE_PLUGINS,
+    ALL_PLUGINS,
     ActiveDummyPaymentGateway,
     ActivePaymentGateway,
     ChannelPluginSample,
@@ -922,10 +924,14 @@ def test_run_method_on_plugins_only_on_active_ones(
         method_name="test_method_name",
         default_value="default_value",
     )
+    active_plugins_count = len(ACTIVE_PLUGINS)
 
-    assert len(all_plugins_manager.all_plugins) == 7
-    assert len([p for p in all_plugins_manager.all_plugins if p.active]) == 4
-    assert mocked_method.call_count == 4
+    assert len(all_plugins_manager.all_plugins) == len(ALL_PLUGINS)
+    assert (
+        len([p for p in all_plugins_manager.all_plugins if p.active])
+        == active_plugins_count
+    )
+    assert mocked_method.call_count == active_plugins_count
 
 
 def test_run_method_on_single_plugin_method_does_not_exist(plugins_manager):
