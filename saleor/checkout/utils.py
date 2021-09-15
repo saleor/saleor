@@ -705,7 +705,7 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
 
 
 def call_payment_refund_or_void(
-    checkout_info: "CheckoutInfo",
+    channel_slug: str,
     payment: Optional[Payment],
     manager: PluginsManager,
     cancel_partial=False,
@@ -716,8 +716,6 @@ def call_payment_refund_or_void(
     if payment.partial and not cancel_partial:
         return
 
-    gateway.payment_refund_or_void(
-        payment, manager, channel_slug=checkout_info.channel.slug
-    )
+    gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
     payment.is_active = False
     payment.save(update_fields=["is_active"])

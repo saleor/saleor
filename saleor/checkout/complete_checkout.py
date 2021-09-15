@@ -521,7 +521,7 @@ def _get_order_data(
 
 
 def _process_payment(
-    checkout_info: "CheckoutInfo",
+    channel_slug: "str",
     payment: Payment,
     customer_id: Optional[str],
     store_source: bool,
@@ -537,7 +537,7 @@ def _process_payment(
                 payment,
                 manager,
                 additional_data=payment_data,
-                channel_slug=checkout_info.channel.slug,
+                channel_slug=channel_slug,
             )
         else:
             txn = gateway.process_payment(
@@ -547,7 +547,7 @@ def _process_payment(
                 customer_id=customer_id,
                 store_source=store_source,
                 additional_data=payment_data,
-                channel_slug=checkout_info.channel.slug,
+                channel_slug=channel_slug,
             )
         payment.refresh_from_db()
         payment.complete_order = complete_order
@@ -557,13 +557,13 @@ def _process_payment(
     except PaymentError as e:
         if order_data:
             release_voucher_usage(order_data)
-        call_payment_refund_or_void(checkout_info, payment, manager)
+        call_payment_refund_or_void(channel_slug, payment, manager)
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
     return txn
 
 
 def _complete_checkout_payment(
-    checkout_info: "CheckoutInfo",
+    channel_slug: str,
     payment: "Optional[Payment]",
     manager: "PluginsManager",
     payment_data,
@@ -585,7 +585,7 @@ def _complete_checkout_payment(
         customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
 
     txn = _process_payment(
-        checkout_info=checkout_info,
+        channel_slug=channel_slug,
         payment=payment,  # type: ignore
         customer_id=customer_id,
         store_source=store_source,
@@ -622,18 +622,9 @@ def complete_checkout_payment(
     for thread race.
     :raises ValidationError
     """
-    _prepare_checkout(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        discounts=discounts,
-        tracking_code=tracking_code,
-        redirect_url=redirect_url,
-        payment=payment,
-    )
 
     action_data, action_required = _complete_checkout_payment(
-        checkout_info,
+        checkout_info.channel.slug,
         payment,
         manager,
         payment_data,
@@ -698,11 +689,11 @@ def complete_checkout(
     try:
         order_data = _get_order_data(manager, checkout_info, lines, discounts)
     except ValidationError as exc:
-        call_payment_refund_or_void(checkout_info, payment, manager)
+        call_payment_refund_or_void(checkout_info.channel.slug, payment, manager)
         raise exc
 
     action_data, action_required = _complete_checkout_payment(
-        checkout_info,
+        checkout_info.channel.slug,
         payment,
         manager,
         payment_data,
@@ -727,7 +718,7 @@ def complete_checkout(
             checkout.delete()
         except InsufficientStock as e:
             release_voucher_usage(order_data)
-            call_payment_refund_or_void(checkout_info, payment, manager)
+            call_payment_refund_or_void(checkout_info.channel.slug, payment, manager)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
     return order, action_required, action_data

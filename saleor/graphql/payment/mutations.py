@@ -213,7 +213,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         if not partial:
             for existing_payment in get_active_payments(checkout):
                 call_payment_refund_or_void(
-                    checkout_info, existing_payment, manager, cancel_partial=True
+                    checkout_info.channel.slug,
+                    existing_payment,
+                    manager,
+                    cancel_partial=True,
                 )
 
         payment = create_payment(
