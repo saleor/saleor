@@ -381,8 +381,7 @@ def test_checkout_add_payment_bad_amount(
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert (
-        data["errors"][0]["code"]
-        == PaymentErrorCode.PARTIAL_PAYMENT_TOTAL_EXCEEDED.name
+        data["errors"][0]["code"] == PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED.name
     )
 
 
@@ -417,6 +416,7 @@ def test_checkout_add_payment_bad_partial_amount(
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": str(half_total.amount + Decimal(1)),
+            "partial": True,
         },
     }
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
