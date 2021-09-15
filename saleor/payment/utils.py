@@ -36,7 +36,6 @@ def create_payment_information(
     customer_id: str = None,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
-    partial: bool = False,
 ) -> PaymentData:
     """Extract order information along with payment details.
 
@@ -70,6 +69,10 @@ def create_payment_information(
     if user_id:
         graphql_customer_id = graphene.Node.to_global_id("User", user_id)
 
+    auto_capture = None
+    if payment.partial:
+        auto_capture = False
+
     return PaymentData(
         gateway=payment.gateway,
         token=payment_token,
@@ -86,7 +89,7 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
-        partial=partial,
+        auto_capture=auto_capture,
         checkout_token=checkout_token,
     )
 

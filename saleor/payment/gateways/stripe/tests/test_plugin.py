@@ -864,13 +864,12 @@ def test_process_payment_with_partial(
     payment_intent.id = payment_intent_id
     payment_intent.client_secret = client_secret
     payment_intent.last_response.data = dummy_response
+    payment_stripe_for_checkout.partial = True
+    payment_stripe_for_checkout.save()
 
     plugin = stripe_plugin(auto_capture=True)
 
-    payment_info = create_payment_information(
-        payment_stripe_for_checkout,
-        partial=True,
-    )
+    payment_info = create_payment_information(payment_stripe_for_checkout)
 
     plugin.process_payment(payment_info, None)
 
