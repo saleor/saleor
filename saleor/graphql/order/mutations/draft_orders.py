@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....account.models import User
@@ -313,6 +314,16 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 code=OrderErrorCode.TAX_ERROR.value,
             )
 
+        if new_instance:
+            transaction.on_commit(
+                lambda: info.context.plugins.draft_order_created(instance)
+            )
+
+        else:
+            transaction.on_commit(
+                lambda: info.context.plugins.draft_order_updated(instance)
+            )
+
         # Post-process the results
         recalculate_order(instance)
 
@@ -371,6 +382,14 @@ class DraftOrderDelete(ModelDeleteMutation):
                     )
                 }
             )
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, **data):
+        order = cls.get_instance(info, **data)
+        response = super().perform_mutation(_root, info, **data)
+        transaction.on_commit(lambda: info.context.plugins.draft_order_deleted(order))
+        return response
 
 
 class DraftOrderComplete(BaseMutation):

@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
@@ -228,7 +229,7 @@ class OrderUpdate(DraftOrderCreate):
             info.context.plugins,
             info.context.site.settings.include_taxes_in_prices,
         )
-        info.context.plugins.order_updated(instance)
+        transaction.on_commit(lambda: info.context.plugins.order_updated(instance))
 
 
 class OrderUpdateShippingInput(graphene.InputObjectType):
@@ -420,6 +421,7 @@ class OrderAddNote(BaseMutation):
         return cleaned_input
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cleaned_input = cls.clean_input(info, order, data)
@@ -429,6 +431,7 @@ class OrderAddNote(BaseMutation):
             app=info.context.app,
             message=cleaned_input["message"],
         )
+        transaction.on_commit(lambda: info.context.plugins.order_updated(order))
         return OrderAddNote(order=order, event=event)
 
 
@@ -806,6 +809,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             )
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cls.validate_order(order)
@@ -830,6 +834,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         )
 
         recalculate_order(order)
+        transaction.on_commit(lambda: info.context.plugins.order_updated(order))
+
         return OrderLinesCreate(order=order, order_lines=lines)
 
 
@@ -849,6 +855,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, id):
         manager = info.context.plugins
         line = cls.get_node_or_error(
@@ -896,6 +903,8 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         )
 
         recalculate_order(order)
+        transaction.on_commit(lambda: info.context.plugins.order_updated(order))
+
         return OrderLineDelete(order=order, order_line=line)
 
 
@@ -934,6 +943,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
         return cleaned_input
 
     @classmethod
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         manager = info.context.plugins
         warehouse_pk = (
@@ -963,6 +973,9 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
             )
         recalculate_order(instance.order)
+        transaction.on_commit(
+            lambda: info.context.plugins.order_updated(instance.order)
+        )
 
     @classmethod
     def success_response(cls, instance):

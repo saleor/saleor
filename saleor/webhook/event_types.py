@@ -19,6 +19,10 @@ class WebhookEventType:
     FULFILLMENT_CANCELED = "fulfillment_canceled"
     ORDER_FULFILLED = "order_fulfilled"
 
+    DRAFT_ORDER_CREATED = "draft_order_created"
+    DRAFT_ORDER_UPDATED = "draft_order_updated"
+    DRAFT_ORDER_DELETED = "draft_order_deleted"
+
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
     INVOICE_SENT = "invoice_sent"
