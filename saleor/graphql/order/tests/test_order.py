@@ -3925,7 +3925,7 @@ def test_invalid_order_when_updating_lines(
     content = get_graphql_content(response)
     data = content["data"]["orderLineUpdate"]
     assert data["errors"]
-    assert not order_update_webhook_mock.called
+    order_update_webhook_mock.assert_not_called()
 
 
 QUERY_GET_FIRST_EVENT = """
@@ -4140,7 +4140,7 @@ def test_invalid_order_when_removing_lines(
     content = get_graphql_content(response)
     data = content["data"]["orderLineDelete"]
     assert data["errors"]
-    assert not order_update_webhook_mock.called
+    order_update_webhook_mock.assert_not_called()
 
 
 ORDER_UPDATE_MUTATION = """
