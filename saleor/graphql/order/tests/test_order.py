@@ -3331,7 +3331,9 @@ ORDER_LINES_CREATE_MUTATION = """
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create(
+    order_updated_webhook_mock,
     status,
     order_with_lines,
     permission_manage_orders,
@@ -3352,10 +3354,12 @@ def test_order_lines_create(
     response = staff_api_client.post_graphql(query, variables)
     assert_no_permission(response)
     assert not OrderEvent.objects.exists()
+    assert not order_updated_webhook_mock.called
 
     # assign permissions
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query, variables)
+    order_updated_webhook_mock.assert_called_once_with(order)
     assert OrderEvent.objects.count() == 1
     assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
     content = get_graphql_content(response)
@@ -3373,8 +3377,9 @@ def test_order_lines_create(
     assert data["errors"][0]["variants"] == [variant_id]
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_with_unavailable_variant(
-    draft_order, permission_manage_orders, staff_api_client
+    order_updated_webhook_mock, draft_order, permission_manage_orders, staff_api_client
 ):
     query = ORDER_LINES_CREATE_MUTATION
     order = draft_order
@@ -3395,10 +3400,13 @@ def test_order_lines_create_with_unavailable_variant(
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     assert error["field"] == "input"
     assert error["variants"] == [variant_id]
+    assert not order_updated_webhook_mock.called
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_with_existing_variant(
+    order_updated_webhook_mock,
     status,
     order_with_lines,
     permission_manage_orders,
@@ -3420,6 +3428,7 @@ def test_order_lines_create_with_existing_variant(
     response = staff_api_client.post_graphql(query, variables)
     assert_no_permission(response)
     assert not OrderEvent.objects.exists()
+    assert not order_updated_webhook_mock.called
 
     # assign permissions
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -3430,11 +3439,18 @@ def test_order_lines_create_with_existing_variant(
     data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] == variant.sku
     assert data["orderLines"][0]["quantity"] == old_quantity + quantity
+    order_updated_webhook_mock.assert_called_once_with(order)
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_with_product_and_variant_not_assigned_to_channel(
-    status, order_with_lines, permission_manage_orders, staff_api_client, variant
+    order_updated_webhook_mock,
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+    variant,
 ):
     query = ORDER_LINES_CREATE_MUTATION
     order = order_with_lines
@@ -3456,10 +3472,13 @@ def test_order_lines_create_with_product_and_variant_not_assigned_to_channel(
     assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
     assert error["field"] == "input"
     assert error["variants"] == [variant_id]
+    assert not order_updated_webhook_mock.called
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_with_variant_not_assigned_to_channel(
+    order_update_webhook_mock,
     status,
     order_with_lines,
     staff_api_client,
@@ -3489,10 +3508,15 @@ def test_order_lines_create_with_variant_not_assigned_to_channel(
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     assert error["field"] == "input"
     assert error["variants"] == [variant_id]
+    assert not order_update_webhook_mock.called
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_invalid_order_when_creating_lines(
-    order_with_lines, staff_api_client, permission_manage_orders
+    order_updated_webhook_mock,
+    order_with_lines,
+    staff_api_client,
+    permission_manage_orders,
 ):
     query = ORDER_LINES_CREATE_MUTATION
     order = order_with_lines
@@ -3507,6 +3531,7 @@ def test_invalid_order_when_creating_lines(
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
     assert data["errors"]
+    assert not order_updated_webhook_mock.called
 
 
 ORDER_LINE_UPDATE_MUTATION = """
@@ -3533,7 +3558,9 @@ ORDER_LINE_UPDATE_MUTATION = """
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_line_update(
+    order_updated_webhook_mock,
     status,
     order_with_lines,
     permission_manage_orders,
@@ -3559,6 +3586,7 @@ def test_order_line_update(
     # mutation should fail without proper permissions
     response = staff_api_client.post_graphql(query, variables)
     assert_no_permission(response)
+    assert not order_updated_webhook_mock.called
 
     # assign permissions
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -3566,6 +3594,7 @@ def test_order_line_update(
     content = get_graphql_content(response)
     data = content["data"]["orderLineUpdate"]
     assert data["orderLine"]["quantity"] == new_quantity
+    order_updated_webhook_mock.assert_called_once_with(order)
 
     removed_items_event = OrderEvent.objects.last()  # type: OrderEvent
     assert removed_items_event.type == order_events.OrderEvents.REMOVED_PRODUCTS
@@ -3583,8 +3612,12 @@ def test_order_line_update(
     assert data["errors"][0]["field"] == "quantity"
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_invalid_order_when_updating_lines(
-    order_with_lines, staff_api_client, permission_manage_orders
+    order_update_webhook_mock,
+    order_with_lines,
+    staff_api_client,
+    permission_manage_orders,
 ):
     query = ORDER_LINE_UPDATE_MUTATION
     order = order_with_lines
@@ -3597,6 +3630,7 @@ def test_invalid_order_when_updating_lines(
     content = get_graphql_content(response)
     data = content["data"]["orderLineUpdate"]
     assert data["errors"]
+    assert not order_update_webhook_mock.called
 
 
 QUERY_GET_FIRST_EVENT = """
@@ -3708,8 +3742,13 @@ ORDER_LINE_DELETE_MUTATION = """
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_line_remove(
-    status, order_with_lines, permission_manage_orders, staff_api_client
+    order_udate_webhook_mock,
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
 ):
     query = ORDER_LINE_DELETE_MUTATION
     order = order_with_lines
@@ -3728,10 +3767,15 @@ def test_order_line_remove(
     assert OrderEvent.objects.last().type == order_events.OrderEvents.REMOVED_PRODUCTS
     assert data["orderLine"]["id"] == line_id
     assert line not in order.lines.all()
+    assert order_udate_webhook_mock.called_once_with(order)
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_invalid_order_when_removing_lines(
-    staff_api_client, order_with_lines, permission_manage_orders
+    order_update_webhook_mock,
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
 ):
     query = ORDER_LINE_DELETE_MUTATION
     order = order_with_lines
@@ -3744,6 +3788,7 @@ def test_invalid_order_when_removing_lines(
     content = get_graphql_content(response)
     data = content["data"]["orderLineDelete"]
     assert data["errors"]
+    assert not order_update_webhook_mock.called
 
 
 ORDER_UPDATE_MUTATION = """
@@ -3765,9 +3810,9 @@ ORDER_UPDATE_MUTATION = """
 """
 
 
-@patch("saleor.plugins.base_plugin.BasePlugin.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_update(
-    plugin_mock,
+    order_updated_webhook_mock,
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
@@ -3798,12 +3843,12 @@ def test_order_update(
     assert order.user_email == email
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
-    assert plugin_mock.called is True
+    order_updated_webhook_mock.assert_called_once_with(order)
 
 
-@patch("saleor.plugins.base_plugin.BasePlugin.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_update_with_draft_order(
-    plugin_mock,
+    order_updated_webhook_mock,
     staff_api_client,
     permission_manage_orders,
     draft_order,
@@ -3822,7 +3867,7 @@ def test_order_update_with_draft_order(
     error = content["data"]["orderUpdate"]["errors"][0]
     assert error["field"] == "id"
     assert error["code"] == OrderErrorCode.INVALID.name
-    assert plugin_mock.called is False
+    assert order_updated_webhook_mock.called is False
 
 
 def test_order_update_anonymous_user_no_user_email(
@@ -3933,8 +3978,13 @@ ORDER_ADD_NOTE_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_add_note_as_staff_user(
-    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+    order_updated_webhook_mock,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    staff_user,
 ):
     """We are testing that adding a note to an order as a staff user is doing the
     expected behaviors."""
@@ -3952,6 +4002,7 @@ def test_order_add_note_as_staff_user(
     assert data["order"]["id"] == order_id
     assert data["event"]["user"]["email"] == staff_user.email
     assert data["event"]["message"] == message
+    order_updated_webhook_mock.assert_called_once_with(order)
 
     order.refresh_from_db()
     assert order.status == OrderStatus.UNFULFILLED
@@ -3973,8 +4024,13 @@ def test_order_add_note_as_staff_user(
         "   ",
     ),
 )
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_add_note_fail_on_empty_message(
-    staff_api_client, permission_manage_orders, order_with_lines, message
+    order_updated_webhook_mock,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    message,
 ):
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     variables = {"id": order_id, "message": message}
@@ -3985,6 +4041,7 @@ def test_order_add_note_fail_on_empty_message(
     data = content["data"]["orderAddNote"]
     assert data["errors"][0]["field"] == "message"
     assert data["errors"][0]["code"] == OrderErrorCode.REQUIRED.name
+    assert not order_updated_webhook_mock.called
 
 
 MUTATION_ORDER_CANCEL = """
