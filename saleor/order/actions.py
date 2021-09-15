@@ -185,7 +185,6 @@ def make_refund(order, payments, info):
             channel_slug=order.channel.slug,
             amount=amount,
         )
-
         # Confirm that we changed the status to refund. Some payment can receive
         # asynchronous webhook with update status
         if transaction.kind != TransactionKind.REFUND:
@@ -199,6 +198,7 @@ def make_refund(order, payments, info):
     refunded_payments = [
         item for item in payments if item["payment"].id not in not_refunded_payments
     ]
+
     order_refunded(
         order,
         info.context.user,

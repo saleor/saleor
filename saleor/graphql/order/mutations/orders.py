@@ -624,7 +624,7 @@ class OrderRefund(BaseMutation):
     def _check_amount_to_refund(cls, payments, amount=None):
         if amount:
             total_captured_amount = sum(
-                [item["payment"].captrued_amount for item in payments]
+                [item["payment"].captured_amount for item in payments]
             )
             if amount > total_captured_amount:
                 raise ValidationError(

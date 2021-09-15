@@ -354,12 +354,12 @@ def test_order_refunded_creates_an_event_for_each_payment(
     assert payment_refunded_event_mock.call_count == num_of_payments
 
 
-@patch("saleor.order.actions.try_payment_action")
+@patch("saleor.payment.actions.try_refund")
 @patch("saleor.order.actions.order_refunded")
 @pytest.mark.parametrize("transaction_kind", TransactionKind.CHOICES)
 def test_make_refund_calls_order_refunded_only_with_refunded_payments(
     order_refunded_mock,
-    try_payment_action_mock,
+    try_refund_mock,
     transaction_kind,
     order,
     checkout_with_item,
@@ -384,7 +384,7 @@ def test_make_refund_calls_order_refunded_only_with_refunded_payments(
 
     payments = Payment.objects.all()
     payments = [{"payment": payment, "amount": amount} for payment in payments]
-    try_payment_action_mock.return_value.kind = transaction_kind
+    try_refund_mock.return_value.kind = transaction_kind
     refunded_payments = [
         {"payment": payment, "amount": amount}
         for payment in payments
@@ -396,7 +396,7 @@ def test_make_refund_calls_order_refunded_only_with_refunded_payments(
     info.context.user = None
     info.context.app = app
     info.context.plugins = get_plugins_manager()
-    make_refund(order, payments, info)
+    make_refund(order, refunded_payments, info)
 
     # then
     order_refunded_mock.assert_called_once_with(
@@ -408,25 +408,32 @@ def test_make_refund_calls_order_refunded_only_with_refunded_payments(
     )
 
 
-@patch("saleor.order.actions.try_payment_action")
+@patch("saleor.payment.actions.try_refund")
 def test_make_refund_creates_only_one_order_fullfilment_for_multiple_payments(
-    try_payment_action_mock, order, checkout_with_item, app
+    try_refund_mock, order, checkout_with_item, app
 ):
     # given
-    try_payment_action_mock.return_value.currency = order.currency
+    try_refund_mock.return_value.currency = order.currency
     num_of_payments = 2
     money = Money(amount=Decimal("60"), currency=order.currency)
     order.total = TaxedMoney(money, money)
     order.save()
     amount = order.total.gross.amount / num_of_payments
     for _ in range(num_of_payments):
-        Payment.objects.create(
+        payment = Payment.objects.create(
             gateway="mirumee.payments.dummy",
             is_active=True,
             checkout=checkout_with_item,
             currency=order.currency,
             captured_amount=amount,
             charge_status=ChargeStatus.FULLY_CHARGED,
+        )
+        payment.transactions.create(
+            amount=payment.total,
+            currency=payment.currency,
+            kind=TransactionKind.CAPTURE,
+            gateway_response={},
+            is_success=True,
         )
 
     payments = Payment.objects.all()
@@ -444,9 +451,9 @@ def test_make_refund_creates_only_one_order_fullfilment_for_multiple_payments(
     assert order.fulfillments.count() == 1
 
 
-@patch("saleor.order.actions.try_payment_action")
-def test_make_refund_calls_try_payment_action_for_each_payment(
-    try_payment_action_mock,
+@patch("saleor.order.actions.try_refund")
+def test_make_refund_calls_try_refund_for_each_payment(
+    try_refund_mock,
     order,
     checkout_with_item,
     app,
@@ -458,13 +465,20 @@ def test_make_refund_calls_try_payment_action_for_each_payment(
     order.save()
     amount = order.total.gross.amount / num_of_payments
     for _ in range(num_of_payments):
-        Payment.objects.create(
+        payment = Payment.objects.create(
             gateway="mirumee.payments.dummy",
             is_active=True,
             checkout=checkout_with_item,
             currency=order.currency,
             captured_amount=amount,
             charge_status=ChargeStatus.FULLY_CHARGED,
+        )
+        payment.transactions.create(
+            amount=payment.captured_amount,
+            currency=payment.currency,
+            kind=TransactionKind.CAPTURE,
+            gateway_response={},
+            is_success=True,
         )
 
     payments = Payment.objects.all()
@@ -478,7 +492,7 @@ def test_make_refund_calls_try_payment_action_for_each_payment(
     make_refund(order, payments, info)
 
     # then
-    assert try_payment_action_mock.call_count == num_of_payments
+    assert try_refund_mock.call_count == num_of_payments
 
 
 def test_fulfill_order_lines(order_with_lines):

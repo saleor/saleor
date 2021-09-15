@@ -23,15 +23,19 @@ def try_payment_action(order, user, app, payment, func, *args, **kwargs):
 
 
 def try_refund(order, user, app, payment, manager, channel_slug, amount):
+    import pdb
+
     try:
-        return gateway.refund(
+        result = gateway.refund(
             payment,
             manager,
             channel_slug,
             amount,
         )
+        return result
     except (PaymentError, ValueError) as e:
         message = str(e)
+        pdb.set_trace()
         events.payment_refund_failed_event(
             order=order, user=user, app=app, message=message, payment=payment
         )
