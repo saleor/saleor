@@ -555,27 +555,28 @@ def test_update_product(
     assert not data["errors"]
 
 
+QUERY_PRODUCTS_WITH_FILTER = """
+    query ($channel: String, $filter: ProductFilterInput){
+        products(
+            channel: $channel,
+            filter: $filter,
+            first: 20,
+        ) {
+            edges {
+                node {
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_filter_products_by_attributes(
     api_client, product_list, channel_USD, count_queries
 ):
-    query = """
-      query ($channel: String, $filter: ProductFilterInput){
-          products(
-              channel: $channel,
-              filter: $filter,
-              first: 20,
-          ) {
-              edges {
-                  node {
-                      name
-                  }
-              }
-          }
-      }
-    """
-
     product = product_list[0]
     attr_assignment = product.attributes.first()
     attr = attr_assignment.attribute
@@ -587,7 +588,7 @@ def test_filter_products_by_attributes(
             ]
         },
     }
-    get_graphql_content(api_client.post_graphql(query, variables))
+    get_graphql_content(api_client.post_graphql(QUERY_PRODUCTS_WITH_FILTER, variables))
 
 
 @pytest.mark.django_db
@@ -595,22 +596,6 @@ def test_filter_products_by_attributes(
 def test_filter_products_by_numeric_attributes(
     api_client, product_list, numeric_attribute, channel_USD, count_queries
 ):
-    query = """
-      query ($channel: String,  $filter: ProductFilterInput){
-          products(
-              channel: $channel,
-              filter: $filter,
-              first: 20,
-          ) {
-              edges {
-                  node {
-                      name
-                  }
-              }
-          }
-      }
-    """
-
     product = product_list[0]
     product.product_type.product_attributes.add(numeric_attribute)
     associate_attribute_values_to_instance(
@@ -630,7 +615,7 @@ def test_filter_products_by_numeric_attributes(
             ]
         },
     }
-    get_graphql_content(api_client.post_graphql(query, variables))
+    get_graphql_content(api_client.post_graphql(QUERY_PRODUCTS_WITH_FILTER, variables))
 
 
 @pytest.mark.django_db
@@ -638,22 +623,6 @@ def test_filter_products_by_numeric_attributes(
 def test_filter_products_by_boolean_attributes(
     api_client, product_list, boolean_attribute, channel_USD, count_queries
 ):
-    query = """
-      query ($channel: String,  $filter: ProductFilterInput){
-          products(
-              channel: $channel,
-              filter: $filter,
-              first: 20,
-          ) {
-              edges {
-                  node {
-                      name
-                  }
-              }
-          }
-      }
-    """
-
     product = product_list[0]
     product.product_type.product_attributes.add(boolean_attribute)
     associate_attribute_values_to_instance(
@@ -670,7 +639,24 @@ def test_filter_products_by_boolean_attributes(
             ]
         },
     }
-    get_graphql_content(api_client.post_graphql(query, variables))
+    get_graphql_content(api_client.post_graphql(QUERY_PRODUCTS_WITH_FILTER, variables))
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_filter_products_by_gift_card(
+    staff_api_client,
+    product_list,
+    boolean_attribute,
+    channel_USD,
+    count_queries,
+    shippable_gift_card_product,
+):
+    variables = {"channel": channel_USD.slug, "filter": {"giftCard": True}}
+
+    get_graphql_content(
+        staff_api_client.post_graphql(QUERY_PRODUCTS_WITH_FILTER, variables)
+    )
 
 
 @pytest.mark.django_db

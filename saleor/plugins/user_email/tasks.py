@@ -1,5 +1,6 @@
 from ...account import events as account_events
 from ...celeryconf import app
+from ...giftcard import events as gift_card_events
 from ...invoice import events as invoice_events
 from ...order import events as order_events
 from ..email_common import EmailConfig, send_email
@@ -110,6 +111,29 @@ def send_set_user_password_email_task(
         subject=subject,
         template_str=template,
     )
+
+
+@app.task(compression="zlib")
+def send_gift_card_email_task(recipient_email, payload, config, subject, template):
+    email_config = EmailConfig(**config)
+
+    send_email(
+        config=email_config,
+        recipient_list=[recipient_email],
+        context=payload,
+        subject=subject,
+        template_str=template,
+    )
+    email_data = {
+        "gift_card_id": payload["gift_card"]["id"],
+        "user_id": payload["requester_user_id"],
+        "app_id": payload["requester_app_id"],
+        "email": payload["recipient_email"],
+    }
+    if payload["resending"] is True:
+        gift_card_events.gift_card_resent_event(**email_data)
+    else:
+        gift_card_events.gift_card_sent_event(**email_data)
 
 
 @app.task(compression="zlib")

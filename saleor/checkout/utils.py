@@ -486,7 +486,12 @@ def add_promo_code_to_checkout(
             manager, checkout_info, lines, promo_code, discounts
         )
     elif promo_code_is_gift_card(promo_code):
-        add_gift_card_code_to_checkout(checkout_info.checkout, promo_code)
+        add_gift_card_code_to_checkout(
+            checkout_info.checkout,
+            checkout_info.get_customer_email(),
+            promo_code,
+            checkout_info.channel.currency_code,
+        )
     else:
         raise InvalidPromoCode()
 

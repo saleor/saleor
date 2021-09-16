@@ -3173,7 +3173,7 @@ def test_product_variants_visible_in_listings_by_staff_without_manage_products(
         staff_api_client, variables={"channel": channel_USD.slug}
     )
 
-    assert data["totalCount"] == product_count
+    assert data["totalCount"] == product_count - 1  # invisible doesn't count
 
 
 def test_product_variants_visible_in_listings_by_staff_with_perm(
@@ -3205,7 +3205,7 @@ def test_product_variants_visible_in_listings_by_app_without_manage_products(
     # when
     data = _fetch_all_variants(app_api_client, variables={"channel": channel_USD.slug})
 
-    assert data["totalCount"] == product_count
+    assert data["totalCount"] == product_count - 1  # invisible doesn't count
 
 
 def test_product_variants_visible_in_listings_by_app_with_perm(

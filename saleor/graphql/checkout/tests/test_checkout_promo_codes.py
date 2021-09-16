@@ -557,6 +557,86 @@ def test_checkout_add_many_gift_card_code(
     assert gift_card_id in {gift_card["id"] for gift_card in gift_card_data}
 
 
+def test_checkout_add_inactive_gift_card_code(
+    staff_api_client, checkout_with_item, gift_card
+):
+    # given
+    gift_card.is_active = False
+    gift_card.save(update_fields=["is_active"])
+
+    variables = {"token": checkout_with_item.token, "promoCode": gift_card.code}
+
+    # when
+    data = _mutate_checkout_add_promo_code(staff_api_client, variables)
+
+    # then
+    assert not data["checkout"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.INVALID.name
+    assert data["errors"][0]["field"] == "promoCode"
+
+
+def test_checkout_add_expired_gift_card_code(
+    staff_api_client, checkout_with_item, gift_card
+):
+    # given
+    gift_card.expiry_date = date.today() - timedelta(days=10)
+    gift_card.save(update_fields=["expiry_date"])
+
+    variables = {"token": checkout_with_item.token, "promoCode": gift_card.code}
+
+    # when
+    data = _mutate_checkout_add_promo_code(staff_api_client, variables)
+
+    # then
+    assert not data["checkout"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.INVALID.name
+    assert data["errors"][0]["field"] == "promoCode"
+
+
+def test_checkout_add_used_gift_card_code(
+    staff_api_client, checkout_with_item, gift_card_used, customer_user
+):
+    # given
+    checkout_with_item.email = gift_card_used.used_by_email
+    checkout_with_item.save(update_fields=["email"])
+
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card_used.pk)
+
+    variables = {"token": checkout_with_item.token, "promoCode": gift_card_used.code}
+
+    # when
+    data = _mutate_checkout_add_promo_code(staff_api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
+    assert data["checkout"]["giftCards"][0]["id"] == gift_card_id
+    assert (
+        data["checkout"]["giftCards"][0]["displayCode"] == gift_card_used.display_code
+    )
+
+
+def test_checkout_add_used_gift_card_code_invalid_user(
+    staff_api_client, checkout_with_item, gift_card_used, staff_user
+):
+    # given
+    checkout_with_item.user = staff_user
+    assert gift_card_used.used_by_email != checkout_with_item.user.email
+
+    variables = {"token": checkout_with_item.token, "promoCode": gift_card_used.code}
+
+    # when
+    data = _mutate_checkout_add_promo_code(staff_api_client, variables)
+
+    # then
+    assert not data["checkout"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.INVALID.name
+    assert data["errors"][0]["field"] == "promoCode"
+
+
 def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_card):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
@@ -609,8 +689,11 @@ def test_checkout_get_total_with_many_gift_card(
 
 
 def test_checkout_get_total_with_more_money_on_gift_card(
-    api_client, checkout_with_item, gift_card_used
+    api_client, checkout_with_item, gift_card_used, customer_user
 ):
+    checkout_with_item.email = gift_card_used.used_by_email
+    checkout_with_item.save(update_fields=["email"])
+
     variables = {"token": checkout_with_item.token, "promoCode": gift_card_used.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 

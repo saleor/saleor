@@ -4,9 +4,13 @@ from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import F, Q
 
-from ...account.utils import requestor_is_staff_member_or_app
 from ...core.db.fields import SanitizedJSONField
 from ...core.models import ModelWithMetadata, SortableModel
+from ...core.permissions import (
+    PageTypePermissions,
+    ProductTypePermissions,
+    has_one_of_permissions,
+)
 from ...core.units import MeasurementUnits
 from ...core.utils.editorjs import clean_editor_js
 from ...core.utils.translations import Translation, TranslationProxy
@@ -41,7 +45,13 @@ class BaseAttributeQuerySet(models.QuerySet):
         raise NotImplementedError
 
     def get_visible_to_user(self, requestor: Union["User", "App"]):
-        if requestor_is_staff_member_or_app(requestor):
+        if has_one_of_permissions(
+            requestor,
+            [
+                PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+                ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+            ],
+        ):
             return self.all()
         return self.get_public_attributes()
 

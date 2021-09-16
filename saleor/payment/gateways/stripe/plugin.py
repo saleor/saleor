@@ -211,14 +211,17 @@ class StripeGatewayPlugin(BasePlugin):
             customer_email=payment_information.customer_email,
         )
 
-        if error and payment_method_id and not intent:
-            # we can receive an error which is caused by a required authentication
-            # but stripe already created payment_intent.
-            stripe_error = error.error
-            intent = getattr(stripe_error, "payment_intent", None)
-            error = None if intent else error
-
         raw_response = None
+        if error:
+            raw_response = getattr(error, "json_body", None)
+            if payment_method_id and not intent:
+                # we can receive an error which is caused by a required authentication
+                # but stripe already created payment_intent.
+                if error.code == "authentication_required":
+                    stripe_error = error.error
+                    intent = getattr(stripe_error, "payment_intent", None)
+                error = None if intent else error
+
         client_secret = None
         intent_id = None
         kind = TransactionKind.ACTION_TO_CONFIRM
@@ -228,7 +231,8 @@ class StripeGatewayPlugin(BasePlugin):
                 intent.status
             )
             client_secret = intent.client_secret
-            raw_response = intent.last_response.data
+            last_response = intent.last_response
+            raw_response = last_response.data if last_response else None
             intent_id = intent.id
 
         return GatewayResponse(
