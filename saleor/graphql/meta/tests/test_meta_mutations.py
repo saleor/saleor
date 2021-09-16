@@ -732,6 +732,40 @@ def test_update_public_metadata_for_item_without_meta(api_client, address):
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
+def test_add_public_metadata_for_warehouse(
+    staff_api_client, permission_manage_products, warehouse
+):
+    # given
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client, permission_manage_products, warehouse_id, "Warehouse"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], warehouse, warehouse_id
+    )
+
+
+def test_add_public_metadata_for_gift_card(
+    staff_api_client, permission_manage_gift_card, gift_card
+):
+    # given
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client, permission_manage_gift_card, gift_card_id, "GiftCard"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], gift_card, gift_card_id
+    )
+
+
 DELETE_PUBLIC_METADATA_MUTATION = """
 mutation DeletePublicMetadata($id: ID!, $keys: [String!]!) {
     deleteMetadata(
@@ -1420,6 +1454,44 @@ def test_delete_public_metadata_for_one_key(api_client, checkout):
     )
 
 
+def test_delete_public_metadata_for_warehouse(
+    staff_api_client, permission_manage_products, warehouse
+):
+    # given
+    warehouse.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    warehouse.save(update_fields=["metadata"])
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, warehouse_id, "Warehouse"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], warehouse, warehouse_id
+    )
+
+
+def test_delete_public_metadata_for_gift_card(
+    staff_api_client, permission_manage_gift_card, gift_card
+):
+    # given
+    gift_card.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    gift_card.save(update_fields=["metadata"])
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_gift_card, gift_card_id, "GiftCard"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], gift_card, gift_card_id
+    )
+
+
 UPDATE_PRIVATE_METADATA_MUTATION = """
 mutation UpdatePrivateMetadata($id: ID!, $input: [MetadataInput!]!) {
     updatePrivateMetadata(
@@ -2097,6 +2169,40 @@ def test_update_private_metadata_for_item_without_meta(api_client, address):
     errors = response["data"]["updatePrivateMetadata"]["errors"]
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
+
+
+def test_add_private_metadata_for_warehouse(
+    staff_api_client, permission_manage_products, warehouse
+):
+    # given
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_products, warehouse_id, "Warehouse"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], warehouse, warehouse_id
+    )
+
+
+def test_add_private_metadata_for_gift_card(
+    staff_api_client, permission_manage_gift_card, gift_card
+):
+    # given
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_gift_card, gift_card_id, "GiftCard"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], gift_card, gift_card_id
+    )
 
 
 DELETE_PRIVATE_METADATA_MUTATION = """
@@ -2821,59 +2927,6 @@ def test_delete_private_metadata_for_one_key(
     )
 
 
-def test_add_public_metadata_for_warehouse(
-    staff_api_client, permission_manage_products, warehouse
-):
-    # given
-    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
-
-    # when
-    response = execute_update_public_metadata_for_item(
-        staff_api_client, permission_manage_products, warehouse_id, "Warehouse"
-    )
-
-    # then
-    assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], warehouse, warehouse_id
-    )
-
-
-def test_delete_public_metadata_for_warehouse(
-    staff_api_client, permission_manage_products, warehouse
-):
-    # given
-    warehouse.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    warehouse.save(update_fields=["metadata"])
-    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
-
-    # when
-    response = execute_clear_public_metadata_for_item(
-        staff_api_client, permission_manage_products, warehouse_id, "Warehouse"
-    )
-
-    # then
-    assert item_without_public_metadata(
-        response["data"]["deleteMetadata"]["item"], warehouse, warehouse_id
-    )
-
-
-def test_add_private_metadata_for_warehouse(
-    staff_api_client, permission_manage_products, warehouse
-):
-    # given
-    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
-
-    # when
-    response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_products, warehouse_id, "Warehouse"
-    )
-
-    # then
-    assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"], warehouse, warehouse_id
-    )
-
-
 def test_delete_private_metadata_for_warehouse(
     staff_api_client, permission_manage_products, warehouse
 ):
@@ -2890,6 +2943,25 @@ def test_delete_private_metadata_for_warehouse(
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], warehouse, warehouse_id
+    )
+
+
+def test_delete_private_metadata_for_gift_card(
+    staff_api_client, permission_manage_gift_card, gift_card
+):
+    # given
+    gift_card.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    gift_card.save(update_fields=["private_metadata"])
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_gift_card, gift_card_id, "GiftCard"
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], gift_card, gift_card_id
     )
 
 

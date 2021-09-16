@@ -1,10 +1,13 @@
 import graphene
 
 from ...core.permissions import AppPermission
+from ..core.descriptions import ADDED_IN_31
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
-from ..decorators import permission_required
-from .filters import AppFilter
+from ..core.utils import from_global_id_or_error
+from ..decorators import permission_required, staff_member_or_app_required
+from .dataloaders import AppByIdLoader, AppExtensionByIdLoader
+from .filters import AppExtensionFilter, AppFilter
 from .mutations import (
     AppActivate,
     AppCreate,
@@ -19,14 +22,24 @@ from .mutations import (
     AppTokenVerify,
     AppUpdate,
 )
-from .resolvers import resolve_app, resolve_apps, resolve_apps_installations
+from .resolvers import (
+    resolve_app,
+    resolve_app_extensions,
+    resolve_apps,
+    resolve_apps_installations,
+)
 from .sorters import AppSortingInput
-from .types import App, AppInstallation
+from .types import App, AppExtension, AppInstallation
 
 
 class AppFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = AppFilter
+
+
+class AppExtensionFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = AppExtensionFilter
 
 
 class AppQueries(graphene.ObjectType):
@@ -50,6 +63,21 @@ class AppQueries(graphene.ObjectType):
         ),
     )
 
+    app_extensions = FilterInputConnectionField(
+        AppExtension,
+        filter=AppExtensionFilterInput(
+            description="Filtering options for apps extensions."
+        ),
+        description=f"{ADDED_IN_31} List of all extensions",
+    )
+    app_extension = graphene.Field(
+        AppExtension,
+        id=graphene.Argument(
+            graphene.ID, description="ID of the app extension.", required=True
+        ),
+        description=f"{ADDED_IN_31} Look up an app extension by ID.",
+    )
+
     @permission_required(AppPermission.MANAGE_APPS)
     def resolve_apps_installations(self, info, **kwargs):
         return resolve_apps_installations(info, **kwargs)
@@ -63,6 +91,28 @@ class AppQueries(graphene.ObjectType):
         if not id and app:
             return app
         return resolve_app(info, id)
+
+    @staff_member_or_app_required
+    def resolve_app_extensions(self, info, **kwargs):
+        return resolve_app_extensions(info)
+
+    @staff_member_or_app_required
+    def resolve_app_extension(self, info, id):
+        def app_is_active(app_extension):
+            def is_active(app):
+                if app.is_active:
+                    return app_extension
+                return None
+
+            if not app_extension:
+                return None
+
+            return (
+                AppByIdLoader(info.context).load(app_extension.app_id).then(is_active)
+            )
+
+        _, id = from_global_id_or_error(id, "AppExtension")
+        return AppExtensionByIdLoader(info.context).load(int(id)).then(app_is_active)
 
 
 class AppMutations(graphene.ObjectType):

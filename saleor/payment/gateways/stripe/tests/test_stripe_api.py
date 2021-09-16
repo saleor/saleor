@@ -479,13 +479,15 @@ def test_get_payment_method_details():
     payment_intent.charges = {
         "data": [
             {
-                "type": "card",
-                "card": {
-                    "last4": "1234",
-                    "exp_year": "2222",
-                    "exp_month": "12",
-                    "brand": "visa",
-                },
+                "payment_method_details": {
+                    "type": "card",
+                    "card": {
+                        "last4": "1234",
+                        "exp_year": "2222",
+                        "exp_month": "12",
+                        "brand": "visa",
+                    },
+                }
             }
         ]
     }

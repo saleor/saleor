@@ -16,6 +16,8 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
+from django.db.models.signals import pre_migrate
+from django.dispatch import receiver
 from django.forms import ModelForm
 from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
@@ -25,8 +27,8 @@ from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App, AppInstallation
-from ..app.types import AppType
+from ..app.models import App, AppExtension, AppInstallation
+from ..app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
@@ -38,7 +40,7 @@ from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
-from ..core import JobStatus
+from ..core import JobStatus, TimePeriodType
 from ..core.payments import PaymentInterface
 from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
@@ -54,7 +56,8 @@ from ..discount.models import (
     VoucherCustomer,
     VoucherTranslation,
 )
-from ..giftcard.models import GiftCard
+from ..giftcard import GiftCardEvents, GiftCardExpiryType
+from ..giftcard.models import GiftCard, GiftCardEvent
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
@@ -63,11 +66,17 @@ from ..order.events import (
     fulfillment_refunded_event,
     order_added_products_event,
 )
-from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
+from ..order.models import (
+    FulfillmentLine,
+    FulfillmentStatus,
+    Order,
+    OrderEvent,
+    OrderLine,
+)
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.interface import GatewayConfig, PaymentData
+from ..payment.interface import AddressData, GatewayConfig, PaymentData
 from ..payment.models import Payment
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
@@ -568,9 +577,9 @@ def user_checkout_with_items(user_checkout, product_list):
 
 
 @pytest.fixture
-def order(customer_user, channel_USD):
+def order_kwargs(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
-    return Order.objects.create(
+    return dict(
         billing_address=address,
         channel=channel_USD,
         currency=channel_USD.currency_code,
@@ -578,6 +587,93 @@ def order(customer_user, channel_USD):
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+    )
+
+
+@pytest.fixture
+def order(order_kwargs):
+    return Order.objects.create(**order_kwargs)
+
+
+@pytest.fixture
+def order_with_payments(order_kwargs):
+    def fun(
+        num_payments=2,
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        payments__captured_amount: Optional[List] = None,
+        payments__total: Optional[List] = None,
+        payments__charge_status: Optional[List] = None,
+    ):
+        payments = []
+
+        if payments__total:
+            assert len(payments__total) == num_payments
+        else:
+            payments__total = [total_gross_amount / num_payments] * num_payments
+
+        if payments__captured_amount:
+            assert len(payments__captured_amount) == num_payments
+        else:
+            payments__captured_amount = payments__total
+
+        if payments__charge_status:
+            assert len(payments__captured_amount) == num_payments
+        else:
+            payments__charge_status = []
+            for i in range(num_payments):
+                if payments__total[i] <= payments__captured_amount[i]:
+                    payments__charge_status.append(ChargeStatus.FULLY_CHARGED)
+                else:
+                    payments__charge_status.append(ChargeStatus.PARTIALLY_CHARGED)
+
+        order = Order.objects.create(
+            total_net_amount=total_net_amount,
+            total_gross_amount=total_gross_amount,
+            total_paid_amount=sum(payments__captured_amount),
+            **order_kwargs,
+        )
+
+        for i in range(num_payments):
+            payments.append(
+                Payment(
+                    gateway="mirumee.payments.dummy",
+                    is_active=True,
+                    order=order,
+                    total=payments__total[i],
+                    captured_amount=payments__captured_amount[i],
+                )
+            )
+        Payment.objects.bulk_create(payments)
+        return order
+
+    return fun
+
+
+@pytest.fixture
+def order_fully_paid(order_with_payments):
+    return order_with_payments()
+
+
+@pytest.fixture
+def order_overpaid(order_with_payments):
+    return order_with_payments(
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        num_payments=2,
+        payments__total=[Decimal("76.00"), Decimal("26.00")],
+        payments__captured_amount=[Decimal("75.00"), Decimal("25.01")],
+    )
+
+
+@pytest.fixture
+def order_underpaid(order_with_payments):
+    return order_with_payments(
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        num_payments=2,
+        payments__total=[Decimal("76.00"), Decimal("26.00")],
+        payments__captured_amount=[Decimal("75.00"), Decimal("24.99")],
     )
 
 
@@ -2550,30 +2646,107 @@ def order_line_with_one_allocation(
 
 
 @pytest.fixture
-def gift_card(customer_user, staff_user):
+def gift_card(customer_user):
     return GiftCard.objects.create(
-        code="mirumee_giftcard",
-        user=customer_user,
+        code="never_expiry",
+        created_by=customer_user,
+        created_by_email=customer_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
+        expiry_type=GiftCardExpiryType.NEVER_EXPIRE,
+        tag="test-tag",
     )
 
 
 @pytest.fixture
-def gift_card_used(staff_user):
+def gift_card_expiry_period(customer_user):
     return GiftCard.objects.create(
-        code="gift_card_used",
-        initial_balance=Money(150, "USD"),
+        code="expiry_period",
+        created_by=customer_user,
+        created_by_email=customer_user.email,
+        initial_balance=Money(10, "USD"),
+        current_balance=Money(10, "USD"),
+        expiry_type=GiftCardExpiryType.EXPIRY_PERIOD,
+        expiry_period_type=TimePeriodType.YEAR,
+        expiry_period=2,
+        tag="another-tag",
+    )
+
+
+@pytest.fixture
+def gift_card_expiry_date(customer_user):
+    return GiftCard.objects.create(
+        code="expiry_date",
+        created_by=customer_user,
+        created_by_email=customer_user.email,
+        initial_balance=Money(10, "USD"),
+        current_balance=Money(10, "USD"),
+        expiry_type=GiftCardExpiryType.EXPIRY_DATE,
+        expiry_date=datetime.date.today() + datetime.timedelta(days=100),
+        tag="another-tag",
+    )
+
+
+@pytest.fixture
+def gift_card_used(staff_user, customer_user):
+    return GiftCard.objects.create(
+        code="giftcard_used",
+        created_by=staff_user,
+        used_by=customer_user,
+        created_by_email=staff_user.email,
+        used_by_email=customer_user.email,
+        initial_balance=Money(100, "USD"),
         current_balance=Money(100, "USD"),
+        expiry_type=GiftCardExpiryType.NEVER_EXPIRE,
+        tag="tag",
     )
 
 
 @pytest.fixture
 def gift_card_created_by_staff(staff_user):
     return GiftCard.objects.create(
-        code="mirumee_staff",
-        initial_balance=Money(5, "USD"),
-        current_balance=Money(5, "USD"),
+        code="created_by_staff",
+        created_by=staff_user,
+        created_by_email=staff_user.email,
+        initial_balance=Money(10, "USD"),
+        current_balance=Money(10, "USD"),
+        expiry_type=GiftCardExpiryType.EXPIRY_PERIOD,
+        expiry_period_type=TimePeriodType.YEAR,
+        expiry_period=2,
+        tag="test-tag",
+    )
+
+
+@pytest.fixture
+def gift_card_event(gift_card, order, app, staff_user):
+    parameters = {
+        "message": "test message",
+        "email": "testemail@email.com",
+        "order_id": order.pk,
+        "tag": "test tag",
+        "old_tag": "test old tag",
+        "balance": {
+            "currency": "USD",
+            "initial_balance": 10,
+            "old_initial_balance": 20,
+            "current_balance": 10,
+            "old_current_balance": 5,
+        },
+        "expiry": {
+            "expiry_type": GiftCardExpiryType.EXPIRY_PERIOD,
+            "old_expiry_type": GiftCardExpiryType.EXPIRY_DATE,
+            "expiry_period_type": TimePeriodType.MONTH,
+            "expiry_period": 10,
+            "expiry_date": datetime.date(2050, 1, 1),
+        },
+    }
+    return GiftCardEvent.objects.create(
+        user=staff_user,
+        app=app,
+        gift_card=gift_card,
+        type=GiftCardEvents.UPDATED,
+        parameters=parameters,
+        date=timezone.now() + datetime.timedelta(days=10),
     )
 
 
@@ -2907,7 +3080,7 @@ def order_events(order):
 @pytest.fixture
 def fulfilled_order(order_with_lines):
     order = order_with_lines
-    invoice = order.invoices.create(
+    order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
         created=datetime.datetime.now(tz=pytz.utc),
@@ -2931,6 +3104,7 @@ def fulfilled_order(order_with_lines):
                 line=line_2, quantity=line_2.quantity, warehouse_pk=warehouse_2_pk
             ),
         ],
+        manager=get_plugins_manager(),
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
@@ -2948,7 +3122,8 @@ def fulfilled_order_without_inventory_tracking(
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)]
+        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        get_plugins_manager(),
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
@@ -2979,6 +3154,25 @@ def fulfilled_order_with_all_cancelled_fulfillments(
 @pytest.fixture
 def fulfillment(fulfilled_order):
     return fulfilled_order.fulfillments.first()
+
+
+@pytest.fixture
+def fulfillment_awaiting_approval(fulfilled_order):
+    order_line = fulfilled_order.lines.first()
+    order_line.quantity_fulfilled = 0
+    order_line.save(update_fields=["quantity_fulfilled"])
+
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
+
+    fulfillment_lines_to_update = []
+    for f_line in fulfillment.lines.all():
+        f_line.quantity = 1
+        fulfillment_lines_to_update.append(f_line)
+    FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
+
+    return fulfillment
 
 
 @pytest.fixture
@@ -3019,6 +3213,7 @@ def payment_txn_preauth(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy
     payment.order = order
+    payment.charge_status = ChargeStatus.AUTHORIZED
     payment.save()
 
     payment.transactions.create(
@@ -3142,6 +3337,24 @@ def dummy_payment_data(payment_dummy):
         order_id=None,
         customer_ip_address=None,
         customer_email="example@test.com",
+        checkout_token="1-2-3-4",
+    )
+
+
+@pytest.fixture
+def dummy_address_data(address):
+    return AddressData(
+        first_name=address.first_name,
+        last_name=address.last_name,
+        company_name=address.company_name,
+        street_address_1=address.street_address_1,
+        street_address_2=address.street_address_2,
+        city=address.city,
+        city_area=address.city_area,
+        postal_code=address.postal_code,
+        country=address.country,
+        country_area=address.country_area,
+        phone=address.phone,
     )
 
 
@@ -3578,6 +3791,51 @@ def translated_attribute_value(pink_attribute_value):
 
 
 @pytest.fixture
+def translated_page_unique_attribute_value(page, rich_text_attribute_page_type):
+    page_type = page.page_type
+    page_type.page_attributes.add(rich_text_attribute_page_type)
+    attribute_value = rich_text_attribute_page_type.values.first()
+    associate_attribute_values_to_instance(
+        page, rich_text_attribute_page_type, attribute_value
+    )
+    return AttributeValueTranslation.objects.create(
+        language_code="fr",
+        attribute_value=attribute_value,
+        rich_text=dummy_editorjs("French description."),
+    )
+
+
+@pytest.fixture
+def translated_product_unique_attribute_value(product, rich_text_attribute):
+    product_type = product.product_type
+    product_type.product_attributes.add(rich_text_attribute)
+    attribute_value = rich_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        product, rich_text_attribute, attribute_value
+    )
+    return AttributeValueTranslation.objects.create(
+        language_code="fr",
+        attribute_value=attribute_value,
+        rich_text=dummy_editorjs("French description."),
+    )
+
+
+@pytest.fixture
+def translated_variant_unique_attribute_value(variant, rich_text_attribute):
+    product_type = variant.product.product_type
+    product_type.variant_attributes.add(rich_text_attribute)
+    attribute_value = rich_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant, rich_text_attribute, attribute_value
+    )
+    return AttributeValueTranslation.objects.create(
+        language_code="fr",
+        attribute_value=attribute_value,
+        rich_text=dummy_editorjs("French description."),
+    )
+
+
+@pytest.fixture
 def voucher_translation_fr(voucher):
     return VoucherTranslation.objects.create(
         language_code="fr", voucher=voucher, name="French name"
@@ -3655,8 +3913,8 @@ def menu_item_translation_fr(menu_item):
 
 
 @pytest.fixture
-def payment_dummy(db, order_with_lines):
-    return Payment.objects.create(
+def payment_kwargs(db, order_with_lines):
+    return dict(
         gateway="mirumee.payments.dummy",
         order=order_with_lines,
         is_active=True,
@@ -3678,6 +3936,19 @@ def payment_dummy(db, order_with_lines):
         billing_country_area=order_with_lines.billing_address.country_area,
         billing_email=order_with_lines.user_email,
     )
+
+
+@pytest.fixture
+def payment_dummy_factory(payment_kwargs):
+    def factory():
+        return Payment.objects.create(**payment_kwargs)
+
+    return factory
+
+
+@pytest.fixture
+def payment_dummy(payment_dummy_factory):
+    return payment_dummy_factory()
 
 
 @pytest.fixture
@@ -3915,6 +4186,33 @@ def app(db):
 
 
 @pytest.fixture
+def app_with_extensions(app, permission_manage_products):
+    first_app_extension = AppExtension(
+        app=app,
+        label="Create product with App",
+        url="www.example.com/app-product",
+        view=AppExtensionView.PRODUCT,
+        type=AppExtensionType.OVERVIEW,
+        target=AppExtensionTarget.MORE_ACTIONS,
+    )
+    extensions = AppExtension.objects.bulk_create(
+        [
+            first_app_extension,
+            AppExtension(
+                app=app,
+                label="Update product with App",
+                url="www.example.com/app-product-update",
+                view=AppExtensionView.PRODUCT,
+                type=AppExtensionType.DETAILS,
+                target=AppExtensionTarget.MORE_ACTIONS,
+            ),
+        ]
+    )
+    first_app_extension.permissions.add(permission_manage_products)
+    return app, extensions
+
+
+@pytest.fixture
 def payment_app(db, permission_manage_payments):
     app = App.objects.create(name="Payment App", is_active=True)
     app.tokens.create(name="Default")
@@ -4012,18 +4310,18 @@ def warehouse(address, shipping_zone):
 
 
 @pytest.fixture
-def warehouses(address):
+def warehouses(address, address_usa):
     return Warehouse.objects.bulk_create(
         [
             Warehouse(
                 address=address.get_copy(),
-                name="Warehouse1",
+                name="Warehouse PL",
                 slug="warehouse1",
                 email="warehouse1@example.com",
             ),
             Warehouse(
-                address=address.get_copy(),
-                name="Warehouse2",
+                address=address_usa.get_copy(),
+                name="Warehouse USA",
                 slug="warehouse2",
                 email="warehouse2@example.com",
             ),
@@ -4223,3 +4521,21 @@ def app_export_event(app_export_file):
         app=app_export_file.app,
         parameters={"message": "Example error message"},
     )
+
+
+@pytest.fixture
+def app_manifest():
+    return {
+        "name": "Sample Saleor App",
+        "version": "0.1",
+        "about": "Sample Saleor App serving as an example.",
+        "dataPrivacy": "",
+        "dataPrivacyUrl": "",
+        "homepageUrl": "http://172.17.0.1:5000/homepageUrl",
+        "supportUrl": "http://172.17.0.1:5000/supportUrl",
+        "id": "saleor-complex-sample",
+        "permissions": ["MANAGE_PRODUCTS", "MANAGE_USERS"],
+        "appUrl": "",
+        "configurationUrl": "http://127.0.0.1:5000/configuration/",
+        "tokenTargetUrl": "http://127.0.0.1:5000/configuration/install",
+    }

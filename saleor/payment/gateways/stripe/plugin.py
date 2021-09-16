@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -122,7 +122,7 @@ class StripeGatewayPlugin(BasePlugin):
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         config = self.config
         if path.startswith(WEBHOOK_PATH, 1):  # 1 as we don't check the '/'
-            return handle_webhook(request, config)
+            return handle_webhook(request, config, self.channel.slug)  # type: ignore
         logger.warning(
             "Received request to incorrect stripe path", extra={"path": path}
         )
@@ -172,6 +172,8 @@ class StripeGatewayPlugin(BasePlugin):
         auto_capture = self.config.auto_capture
         if self.order_auto_confirmation is False:
             auto_capture = False
+        if payment_information.partial:
+            auto_capture = False
 
         data = payment_information.data
 
@@ -186,7 +188,7 @@ class StripeGatewayPlugin(BasePlugin):
         payment_method_types = data.get("payment_method_types") if data else None
 
         customer = None
-        # confirm that we creates customer on stripe side only for log-in customers
+        # confirm that we create customer on stripe side only for log-in customers
         # Stripe doesn't allow to search users by email, so each create customer
         # call creates new customer on Stripe side.
         if payment_information.graphql_customer_id:
@@ -417,19 +419,21 @@ class StripeGatewayPlugin(BasePlugin):
             customer_id=customer_id,
         )
         if payment_methods:
+            channel_slug: str = self.channel.slug  # type: ignore
             customer_sources = [
                 CustomerSource(
-                    id=c.id,
+                    id=payment_method.id,
                     gateway=PLUGIN_ID,
                     credit_card_info=PaymentMethodInfo(
-                        exp_year=c.card.exp_year,
-                        exp_month=c.card.exp_month,
-                        last_4=c.card.last4,
+                        exp_year=payment_method.card.exp_year,
+                        exp_month=payment_method.card.exp_month,
+                        last_4=payment_method.card.last4,
                         name=None,
-                        brand=c.card.brand,
+                        brand=payment_method.card.brand,
                     ),
                 )
-                for c in payment_methods
+                for payment_method in payment_methods
+                if payment_method.metadata.get("channel") == channel_slug
             ]
             previous_value.extend(customer_sources)
         return previous_value

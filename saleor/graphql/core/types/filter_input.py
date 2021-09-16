@@ -1,8 +1,9 @@
-from graphene import InputField, InputObjectType
+from graphene import Argument, InputField, InputObjectType, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_django.filter.utils import get_filterset_class
 
+from ..descriptions import DEPRECATED_IN_3X_INPUT
 from .converter import convert_form_field
 
 
@@ -62,3 +63,16 @@ class FilterInputObjectType(InputObjectType):
             field_type.kwargs = kwargs
             args[name] = field_type
         return args
+
+
+class ChannelFilterInputObjectType(FilterInputObjectType):
+    channel = Argument(
+        String,
+        description=(
+            "Specifies the channel by which the data should be filtered. "
+            f"{DEPRECATED_IN_3X_INPUT} Use root-level channel argument instead."
+        ),
+    )
+
+    class Meta:
+        abstract = True

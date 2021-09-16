@@ -14,7 +14,7 @@ from ..core.tracing import traced_atomic_transaction
 from ..order.models import Order
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
-from .interface import AddressData, GatewayResponse, PaymentData
+from .interface import AddressData, GatewayResponse, PaymentData, PaymentMethodInfo
 from .models import Payment, Transaction
 
 if TYPE_CHECKING:
@@ -33,6 +33,7 @@ def create_payment_information(
     customer_id: str = None,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
+    partial: bool = False,
 ) -> PaymentData:
     """Extract order information along with payment details.
 
@@ -45,13 +46,16 @@ def create_payment_information(
         shipping = checkout.shipping_address
         email = checkout.get_customer_email()
         user_id = checkout.user_id
+        checkout_token: Optional[str] = str(checkout.token)
     elif payment.order:
         billing = payment.order.billing_address
         shipping = payment.order.shipping_address
         email = payment.order.user_email
         user_id = payment.order.user_id
+        checkout_token = payment.order.checkout_token or None
     else:
         billing, shipping, email, user_id = None, None, payment.billing_email, None
+        checkout_token = None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
@@ -79,6 +83,8 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
+        partial=partial,
+        checkout_token=checkout_token,
     )
 
 
@@ -290,13 +296,15 @@ def gateway_postprocess(transaction, payment):
         # Set payment charge status to fully charged
         # only if there is no more amount needs to charge
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
-        if payment.get_charge_amount() <= 0:
+        charge_amount = payment.get_charge_amount()
+        if charge_amount <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
         changed_fields += ["charge_status", "captured_amount", "modified"]
 
     elif transaction_kind == TransactionKind.VOID:
+        payment.charge_status = ChargeStatus.CANCELLED
         payment.is_active = False
-        changed_fields += ["is_active", "modified"]
+        changed_fields += ["charge_status", "is_active", "modified"]
 
     elif transaction_kind == TransactionKind.REFUND:
         changed_fields += ["captured_amount", "modified"]
@@ -324,6 +332,10 @@ def gateway_postprocess(transaction, payment):
             if payment.captured_amount <= 0:
                 payment.charge_status = ChargeStatus.NOT_CHARGED
             changed_fields += ["charge_status", "captured_amount", "modified"]
+    elif transaction_kind == TransactionKind.AUTH:
+        payment.charge_status = ChargeStatus.AUTHORIZED
+        changed_fields += ["charge_status"]
+
     if changed_fields:
         payment.save(update_fields=changed_fields)
     transaction.already_processed = True
@@ -356,31 +368,35 @@ def update_payment(payment: "Payment", gateway_response: "GatewayResponse"):
         changed_fields.append("psp_reference")
 
     if gateway_response.payment_method_info:
-        _update_payment_method_details(payment, gateway_response, changed_fields)
+        update_payment_method_details(
+            payment, gateway_response.payment_method_info, changed_fields
+        )
 
     if changed_fields:
         payment.save(update_fields=changed_fields)
 
 
-def _update_payment_method_details(
-    payment: "Payment", gateway_response: "GatewayResponse", changed_fields: List[str]
+def update_payment_method_details(
+    payment: "Payment",
+    payment_method_info: Optional["PaymentMethodInfo"],
+    changed_fields: List[str],
 ):
-    if not gateway_response.payment_method_info:
+    if not payment_method_info:
         return
-    if gateway_response.payment_method_info.brand:
-        payment.cc_brand = gateway_response.payment_method_info.brand
+    if payment_method_info.brand:
+        payment.cc_brand = payment_method_info.brand
         changed_fields.append("cc_brand")
-    if gateway_response.payment_method_info.last_4:
-        payment.cc_last_digits = gateway_response.payment_method_info.last_4
+    if payment_method_info.last_4:
+        payment.cc_last_digits = payment_method_info.last_4
         changed_fields.append("cc_last_digits")
-    if gateway_response.payment_method_info.exp_year:
-        payment.cc_exp_year = gateway_response.payment_method_info.exp_year
+    if payment_method_info.exp_year:
+        payment.cc_exp_year = payment_method_info.exp_year
         changed_fields.append("cc_exp_year")
-    if gateway_response.payment_method_info.exp_month:
-        payment.cc_exp_month = gateway_response.payment_method_info.exp_month
+    if payment_method_info.exp_month:
+        payment.cc_exp_month = payment_method_info.exp_month
         changed_fields.append("cc_exp_month")
-    if gateway_response.payment_method_info.type:
-        payment.payment_method_type = gateway_response.payment_method_info.type
+    if payment_method_info.type:
+        payment.payment_method_type = payment_method_info.type
         changed_fields.append("payment_method_type")
 
 

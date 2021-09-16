@@ -1,5 +1,4 @@
 from decimal import Decimal
-from operator import attrgetter
 from typing import Optional
 
 import graphene
@@ -23,10 +22,9 @@ from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
-from ...order import OrderStatus, models
+from ...order import OrderPaymentStatus, OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
-from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import (
     get_last_payment,
@@ -43,6 +41,7 @@ from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
@@ -55,7 +54,7 @@ from ..discount.enums import DiscountValueTypeEnum
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
-from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
+from ..payment.types import OrderAction, Payment
 from ..product.dataloaders import (
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
@@ -69,6 +68,7 @@ from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentLinesAwaitingApprovalByOrderLineIdLoader,
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
@@ -76,7 +76,13 @@ from .dataloaders import (
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
 )
-from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
+from .enums import (
+    OrderEventsEmailsEnum,
+    OrderEventsEnum,
+    OrderOriginEnum,
+    OrderPaymentStatusEnum,
+)
+from .resolvers import resolve_order_payment_status
 from .utils import validate_draft_order
 
 
@@ -452,6 +458,10 @@ class OrderLine(CountableDjangoObjectType):
         graphene.NonNull(Allocation),
         description="List of allocations across warehouses.",
     )
+    quantity_to_fulfill = graphene.Int(
+        required=True,
+        description=f"{ADDED_IN_31} A quantity of items remaining to be fulfilled.",
+    )
     unit_discount_type = graphene.Field(
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
@@ -521,6 +531,18 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_unit_price(root: models.OrderLine, _info):
         return root.unit_price
+
+    @staticmethod
+    def resolve_quantity_to_fulfill(root: models.OrderLine, info):
+        def _resolve_quantity_to_fulfill(fulfillment_lines):
+            awaiting_quantity = sum(map(lambda f: f.quantity, fulfillment_lines)) or 0
+            return root.quantity - root.quantity_fulfilled - awaiting_quantity
+
+        return (
+            FulfillmentLinesAwaitingApprovalByOrderLineIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_quantity_to_fulfill)
+        )
 
     @staticmethod
     def resolve_undiscounted_unit_price(root: models.OrderLine, _info):
@@ -619,7 +641,7 @@ class Order(CountableDjangoObjectType):
     is_paid = graphene.Boolean(
         description="Informs if an order is fully paid.", required=True
     )
-    payment_status = PaymentChargeStatusEnum(
+    payment_status = OrderPaymentStatusEnum(
         description="Internal payment status.", required=True
     )
     payment_status_display = graphene.String(
@@ -671,8 +693,8 @@ class Order(CountableDjangoObjectType):
     )
     language_code = graphene.String(
         deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
             "Use the `languageCodeEnum` field to fetch the language code. "
-            "This field will be removed in Saleor 4.0."
         ),
         required=True,
     )
@@ -682,22 +704,16 @@ class Order(CountableDjangoObjectType):
     discount = graphene.Field(
         Money,
         description="Returns applied discount.",
-        deprecation_reason=(
-            "Use discounts field. This field will be removed in Saleor 4.0."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
     )
     discount_name = graphene.String(
         description="Discount name.",
-        deprecation_reason=(
-            "Use discounts field. This field will be removed in Saleor 4.0."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
     )
 
     translated_discount_name = graphene.String(
         description="Translated discount name.",
-        deprecation_reason=(
-            "Use discounts field. This field will be removed in Saleor 4.0."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field. ",
     )
 
     discounts = graphene.List(
@@ -950,28 +966,19 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
-        def _resolve_payment_status(payments):
-            if last_payment := max(payments, default=None, key=attrgetter("pk")):
-                return last_payment.charge_status
-            return ChargeStatus.NOT_CHARGED
-
         return (
             PaymentsByOrderIdLoader(info.context)
             .load(root.id)
-            .then(_resolve_payment_status)
+            .then(lambda p: resolve_order_payment_status(root, p))
         )
 
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
-        def _resolve_payment_status(payments):
-            if last_payment := max(payments, default=None, key=attrgetter("pk")):
-                return last_payment.get_charge_status_display()
-            return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
-
+        choices = dict(OrderPaymentStatus.CHOICES)
         return (
             PaymentsByOrderIdLoader(info.context)
             .load(root.id)
-            .then(_resolve_payment_status)
+            .then(lambda p: choices.get(resolve_order_payment_status(root, p)))
         )
 
     @staticmethod

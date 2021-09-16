@@ -1,5 +1,5 @@
 import django_filters
-from django.db.models import Exists, OuterRef, Q, Sum
+from django.db.models import Exists, OuterRef, Q
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...account.models import User
@@ -9,10 +9,9 @@ from ...payment.models import Payment
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_or_error
-from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_range_field
-from .enums import OrderStatusFilter
+from .enums import OrderPaymentStatusEnum, OrderStatusFilter
 
 
 def filter_payment_status(qs, _, value):
@@ -47,13 +46,13 @@ def filter_status(qs, _, value):
         query_objects |= qs.filter(status__in=value)
 
     if OrderStatusFilter.READY_TO_FULFILL in value:
-        # to use & between queries both of them need to have applied the same
-        # annotate
-        qs = qs.annotate(amount_paid=Sum("payments__captured_amount"))
         query_objects |= qs.ready_to_fulfill()
 
     if OrderStatusFilter.READY_TO_CAPTURE in value:
         query_objects |= qs.ready_to_capture()
+
+    if OrderStatusFilter.OVERPAID in value:
+        query_objects |= qs.overpaid()
 
     return qs & query_objects
 
@@ -122,7 +121,7 @@ class DraftOrderFilter(MetadataFilterBase):
 
 class OrderFilter(DraftOrderFilter):
     payment_status = ListObjectTypeFilter(
-        input_class=PaymentChargeStatusEnum, method=filter_payment_status
+        input_class=OrderPaymentStatusEnum, method=filter_payment_status
     )
     status = ListObjectTypeFilter(input_class=OrderStatusFilter, method=filter_status)
     customer = django_filters.CharFilter(method=filter_customer)

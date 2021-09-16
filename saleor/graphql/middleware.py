@@ -7,6 +7,7 @@ from django.db.models import Exists, OuterRef
 from django.utils.functional import SimpleLazyObject
 
 from ..app.models import App, AppToken
+from ..core.auth import get_token_from_request
 from ..core.exceptions import ReadOnlyException
 from .views import API_PATH, GraphQLView
 
@@ -36,19 +37,14 @@ def get_app(auth_token) -> Optional[App]:
 
 
 def app_middleware(next, root, info, **kwargs):
-
-    app_auth_header = "HTTP_AUTHORIZATION"
-    prefix = "bearer"
     request = info.context
 
     if request.path == API_PATH:
         if not hasattr(request, "app"):
             request.app = None
-            auth = request.META.get(app_auth_header, "").split()
-            if len(auth) == 2:
-                auth_prefix, auth_token = auth
-                if len(auth_token) == 30 and auth_prefix.lower() == prefix:
-                    request.app = SimpleLazyObject(lambda: get_app(auth_token))
+            auth_token = get_token_from_request(request)
+            if auth_token and len(auth_token) == 30:
+                request.app = SimpleLazyObject(lambda: get_app(auth_token))
     return next(root, info, **kwargs)
 
 
