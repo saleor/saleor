@@ -683,21 +683,23 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
 
     @classmethod
     def _check_payments_belong_to_order(cls, order, payments):
-        improper_payments = []
+        improper_payments_ids = []
         order_payments_ids = order.payments.values_list("id", flat=True)
         for item in payments:
             if not item["payment"].id in order_payments_ids:
-                improper_payments.append(item["payment"])
+                improper_payments_ids.append(item["payment"].id)
 
-        if improper_payments:
-            # TODO Anatoly finish it.
-            improper_payments_ids = []
+        if improper_payments_ids:
+            improper_payments_global_ids = [
+                graphene.Node.to_global_id("Payment", payment_id)
+                for payment_id in improper_payments_ids
+            ]
             raise ValidationError(
                 {
                     "payment": ValidationError(
                         "These payments do not belong to the order.",
                         code=OrderErrorCode.PAYEMENTS_DO_NOT_BELONG_TO_ORDER,
-                        params={"improper_payments": improper_payments_ids},
+                        params={"improper_payments": improper_payments_global_ids},
                     )
                 }
             )

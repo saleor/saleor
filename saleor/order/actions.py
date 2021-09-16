@@ -1329,7 +1329,10 @@ def _process_refund(
             gateway.refund(
                 payment, manager, amount=amount, channel_slug=order.channel.slug
             )
-        except PaymentError:
+        except PaymentError as error:
+            events.payment_refund_failed_event(
+                order=order, user=user, app=app, message=str(error), payment=payment
+            )
             raise ValidationError(
                 "The refund operation is not available yet.",
                 code=OrderErrorCode.CANNOT_REFUND.value,
