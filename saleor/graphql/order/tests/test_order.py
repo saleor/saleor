@@ -4903,55 +4903,114 @@ def test_order_refund_fails_if_both_amount_and_payments_to_refund_missing(
     assert order_refund_data["order"] is None
 
 
-# TODO Anatoly, replace by a new test
-# def test_order_refund_raises_error_if_amount_cannot_be_fully_refunded(
-#     staff_api_client, permission_manage_orders, payment_txn_captured
-# ):
-#     # given
-#     order = payment_txn_captured.order
-#     query = """
-#         mutation refundOrder(
-#             $id: ID!,
-#             $amount: PositiveDecimal!,
-#         ) {
-#             orderRefund(
-#                 id: $id,
-#                 amount: $amount,
-#             ) {
-#                 order {
-#                     paymentStatus
-#                     paymentStatusDisplay
-#                     isPaid
-#                     status
-#                 },
-#                 errors {
-#                     field,
-#                     message,
-#                     variants,
-#                     code
-#                 }
-#             }
-#         }
-#     """
-#     order_id = graphene.Node.to_global_id("Order", order.id)
-#     amount = float(payment_txn_captured.total + 50)
-#     variables = {
-#         "id": order_id,
-#         "amount": amount,
-#     }
+def test_order_refund_raises_error_when_total_amount_is_bigger_than_captured_amount(
+    staff_api_client, permission_manage_orders, payment_txn_captured
+):
+    # given
+    order = payment_txn_captured.order
+    query = """
+        mutation refundOrder(
+            $id: ID!,
+            $amount: PositiveDecimal!,
+        ) {
+            orderRefund(
+                id: $id,
+                amount: $amount,
+            ) {
+                order {
+                    paymentStatus
+                    paymentStatusDisplay
+                    isPaid
+                    status
+                },
+                errors {
+                    field,
+                    message,
+                    variants,
+                    code
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = float(payment_txn_captured.total + 50)
+    variables = {
+        "id": order_id,
+        "amount": amount,
+    }
 
-#     # when
-#     message = "The specified amount cannot be refunded in full."
-#     response = staff_api_client.post_graphql(
-#         query, variables, permissions=[permission_manage_orders]
-#     )
-#     content = get_graphql_content_from_response(response)
-#     order_refund_data = content["data"]["orderRefund"]
+    # when
+    message = (
+        "The total amount to refund cannot be bigger than the total captured amount."
+    )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content_from_response(response)
+    order_refund_data = content["data"]["orderRefund"]
 
-#     # then
-#     assert len(order_refund_data["errors"]) == 1
-#     assert order_refund_data["errors"][0]["message"] == message
-#     assert order_refund_data["order"] is None
+    # then
+    assert len(order_refund_data["errors"]) == 1
+    assert order_refund_data["errors"][0]["message"] == message
+    assert order_refund_data["order"] is None
+
+
+def test_order_refund_raises_error_when_amount_is_bigger_than_captured_amount(
+    staff_api_client, permission_manage_orders, payment_txn_captured
+):
+    # given
+    order = payment_txn_captured.order
+    query = """
+        mutation refundOrder(
+            $id: ID!,
+            $paymentsToRefund: [OrderPaymentToRefundInput],
+        ) {
+            orderRefund(
+                id: $id,
+                paymentsToRefund: $paymentsToRefund,
+            ) {
+                order {
+                    paymentStatus
+                    paymentStatusDisplay
+                    isPaid
+                    status
+                },
+                errors {
+                    field,
+                    message,
+                    variants,
+                    code
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = float(payment_txn_captured.total + 50)
+
+    variables = {
+        "id": order_id,
+        "paymentsToRefund": [
+            {
+                "paymentId": graphene.Node.to_global_id(
+                    "Payment", payment_txn_captured.id
+                ),
+                "amount": amount,
+            },
+        ],
+    }
+
+    # when
+    message = "The amount to refund cannot be bigger than the captured amount."
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content_from_response(response)
+    order_refund_data = content["data"]["orderRefund"]
+
+    # then
+    assert len(order_refund_data["errors"]) == 1
+    assert order_refund_data["errors"][0]["message"] == message
+    assert order_refund_data["order"] is None
 
 
 def test_order_refund_does_not_refund_more_than_was_captured(
