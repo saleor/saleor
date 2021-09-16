@@ -553,6 +553,22 @@ def customer_user(address):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def customer_user2(address):
+    default_address = address.get_copy()
+    user = User.objects.create_user(
+        "test2@example.com",
+        "password",
+        default_billing_address=default_address,
+        default_shipping_address=default_address,
+        first_name="Jane",
+        last_name="Doe",
+    )
+    user.addresses.add(default_address)
+    user._password = "password"
+    return user
+
+
+@pytest.fixture
 def user_checkout(customer_user, channel_USD):
     checkout = Checkout.objects.create(
         user=customer_user,
@@ -4137,6 +4153,15 @@ def payment_dummy(db, order_with_lines):
         billing_country_area=order_with_lines.billing_address.country_area,
         billing_email=order_with_lines.user_email,
     )
+
+
+@pytest.fixture
+def payment(payment_dummy, payment_app):
+    gateway_id = "credit-card"
+    gateway = to_payment_app_id(payment_app, gateway_id)
+    payment_dummy.gateway = gateway
+    payment_dummy.save()
+    return payment_dummy
 
 
 @pytest.fixture

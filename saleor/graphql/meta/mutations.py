@@ -15,6 +15,7 @@ from ..channel import ChannelContext
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetadataError
 from ..core.utils import from_global_id_or_error
+from ..payment.utils import metadata_contains_empty_key
 from .extra_methods import MODEL_EXTRA_METHODS, MODEL_EXTRA_PREFETCH
 from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from .types import ObjectWithMetadata
@@ -67,8 +68,7 @@ class BaseMetadataMutation(BaseMutation):
 
     @classmethod
     def validate_metadata_keys(cls, metadata_list: List[dict]):
-        # raise an error when any of the key is empty
-        if not all([data["key"].strip() for data in metadata_list]):
+        if metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {
                     "input": ValidationError(

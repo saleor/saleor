@@ -22,15 +22,6 @@ from ..utils import (
 
 
 @pytest.fixture
-def payment(payment_dummy, payment_app):
-    gateway_id = "credit-card"
-    gateway = to_payment_app_id(payment_app, gateway_id)
-    payment_dummy.gateway = gateway
-    payment_dummy.save()
-    return payment_dummy
-
-
-@pytest.fixture
 def payment_invalid_app(payment_dummy):
     app = App.objects.create(name="Dummy app", is_active=True)
     gateway_id = "credit-card"

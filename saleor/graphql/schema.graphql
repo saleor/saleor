@@ -4821,7 +4821,7 @@ type PasswordChange {
   errors: [AccountError!]!
 }
 
-type Payment implements Node {
+type Payment implements Node & ObjectWithMetadata {
   id: ID!
   gateway: String!
   isActive: Boolean!
@@ -4832,6 +4832,8 @@ type Payment implements Node {
   order: Order
   paymentMethodType: String!
   customerIpAddress: String
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
   total: Money
@@ -4920,6 +4922,8 @@ input PaymentInput {
   token: String
   amount: PositiveDecimal
   returnUrl: String
+  storePaymentMethod: StorePaymentMethodEnum = none
+  metadata: [MetadataInput!]
 }
 
 type PaymentRefund {
@@ -4932,6 +4936,7 @@ type PaymentSource {
   gateway: String!
   paymentMethodId: String
   creditCardInfo: CreditCard
+  metadata: [MetadataItem]!
 }
 
 type PaymentVoid {
@@ -6541,6 +6546,12 @@ input StockFilterInput {
 input StockInput {
   warehouse: ID!
   quantity: Int!
+}
+
+enum StorePaymentMethodEnum {
+  ON_SESSION
+  OFF_SESSION
+  NONE
 }
 
 type TaxType {

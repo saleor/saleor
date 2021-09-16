@@ -6,15 +6,28 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 import graphene
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Q
 
 from ..account.models import User
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..order.models import Order
-from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
+from . import (
+    ChargeStatus,
+    GatewayError,
+    PaymentError,
+    StorePaymentMethod,
+    TransactionKind,
+)
 from .error_codes import PaymentErrorCode
-from .interface import AddressData, GatewayResponse, PaymentData, PaymentMethodInfo
+from .interface import (
+    AddressData,
+    GatewayResponse,
+    PaymentData,
+    PaymentMethodInfo,
+    StorePaymentMethodEnum,
+)
 from .models import Payment, Transaction
 
 if TYPE_CHECKING:
@@ -79,6 +92,10 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
+        store_payment_method=StorePaymentMethodEnum[
+            payment.store_payment_method.upper()
+        ],
+        payment_metadata=payment.metadata,
     )
 
 
@@ -94,6 +111,8 @@ def create_payment(
     order: Order = None,
     return_url: str = None,
     external_reference: Optional[str] = None,
+    store_payment_method: str = StorePaymentMethod.NONE,
+    metadata: Optional[Dict[str, str]] = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -142,6 +161,8 @@ def create_payment(
         "total": total,
         "return_url": return_url,
         "psp_reference": external_reference or "",
+        "store_payment_method": store_payment_method,
+        "metadata": {} if metadata is None else metadata,
     }
 
     payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
@@ -427,3 +448,14 @@ def price_to_minor_unit(value: Decimal, currency: str):
     number_places = Decimal("10.0") ** precision
     value_without_comma = value * number_places
     return str(value_without_comma.quantize(Decimal("1")))
+
+
+def payment_owned_by_user(payment_pk: int, user) -> bool:
+    if user.is_anonymous:
+        return False
+    return (
+        Payment.objects.filter(
+            (Q(order__user=user) | Q(checkout__user=user)) & Q(pk=payment_pk)
+        ).first()
+        is not None
+    )

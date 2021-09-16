@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -16,6 +16,7 @@ from ...interface import (
     GatewayResponse,
     PaymentData,
     PaymentMethodInfo,
+    StorePaymentMethodEnum,
 )
 from ...models import Transaction
 from ...utils import price_from_minor_unit, price_to_minor_unit
@@ -161,6 +162,16 @@ class StripeGatewayPlugin(BasePlugin):
 
         return kind, action_required
 
+    def _get_setup_future_usage_from_store_payment_method(
+        self, store_payment_method: StorePaymentMethodEnum
+    ) -> Optional[str]:
+        if store_payment_method == StorePaymentMethodEnum.ON_SESSION:
+            return "on_session"
+        elif store_payment_method == StorePaymentMethodEnum.OFF_SESSION:
+            return "off_session"
+        else:
+            return None
+
     @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
@@ -177,12 +188,18 @@ class StripeGatewayPlugin(BasePlugin):
         payment_method_id = data.get("payment_method_id") if data else None
 
         setup_future_usage = None
+        # DEPRECATED: reuse_source will be removed in Saleor 4.0
         if payment_information.reuse_source:
             setup_future_usage = data.get("setup_future_usage") if data else None
 
         off_session = data.get("off_session") if data else None
 
         payment_method_types = data.get("payment_method_types") if data else None
+
+        if not setup_future_usage:
+            setup_future_usage = self._get_setup_future_usage_from_store_payment_method(
+                payment_information.store_payment_method
+            )
 
         customer = None
         # confirm that we creates customer on stripe side only for log-in customers
@@ -202,6 +219,7 @@ class StripeGatewayPlugin(BasePlugin):
             customer=customer,
             payment_method_id=payment_method_id,
             metadata={
+                **payment_information.payment_metadata,
                 "channel": self.channel.slug,  # type: ignore
                 "payment_id": payment_information.graphql_payment_id,
             },
@@ -298,8 +316,10 @@ class StripeGatewayPlugin(BasePlugin):
             kind, action_required = self._get_transaction_details_for_stripe_status(
                 payment_intent.status
             )
+
             if kind == TransactionKind.CAPTURE:
                 payment_method_info = get_payment_method_details(payment_intent)
+
         else:
             action_required = False
             amount = payment_information.amount
@@ -420,7 +440,6 @@ class StripeGatewayPlugin(BasePlugin):
             customer_id=customer_id,
         )
         if payment_methods:
-            channel_slug: str = self.channel.slug  # type: ignore
             customer_sources = [
                 CustomerSource(
                     id=payment_method.id,
@@ -432,9 +451,9 @@ class StripeGatewayPlugin(BasePlugin):
                         name=None,
                         brand=payment_method.card.brand,
                     ),
+                    metadata=payment_method.metadata,
                 )
                 for payment_method in payment_methods
-                if payment_method.metadata.get("channel") == channel_slug
             ]
             previous_value.extend(customer_sources)
         return previous_value
