@@ -141,6 +141,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow impersonating user by an app/staff - #7754 by @korycins:
   - Add `customerId` to `checkoutCustomerAttach` mutation
   - Add new permision `IMPERSONATE_USER`
+- Fix missing transaction id in Braintree - #8110 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
