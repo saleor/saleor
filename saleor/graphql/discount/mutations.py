@@ -21,7 +21,7 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import DiscountError
 from ..core.validators import validate_end_is_after_start, validate_price_precision
-from ..product.types import Category, Collection, Product
+from ..product.types import Category, Collection, Product, ProductVariant
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 from .types import Sale, Voucher
 
@@ -79,6 +79,10 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         if collections:
             collections = cls.get_nodes_or_error(collections, "collections", Collection)
             node.collections.add(*collections)
+        variants = input.get("variants", [])
+        if variants:
+            variants = cls.get_nodes_or_error(variants, "variants", ProductVariant)
+            node.variants.add(*variants)
         # Updated the db entries, recalculating discounts of affected products
         cls.recalculate_discounted_prices(products, categories, collections)
 
@@ -110,6 +114,10 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         if collections:
             collections = cls.get_nodes_or_error(collections, "collections", Collection)
             node.collections.remove(*collections)
+        variants = input.get("variants", [])
+        if variants:
+            variants = cls.get_nodes_or_error(variants, "variants", ProductVariant)
+            node.variants.remove(*variants)
         # Updated the db entries, recalculating discounts of affected products
         cls.recalculate_discounted_prices(products, categories, collections)
 
