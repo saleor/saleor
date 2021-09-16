@@ -327,16 +327,16 @@ class InactivePaymentGateway(BasePlugin):
 
 
 ACTIVE_PLUGINS = (
-    __name__ + "." + ChannelPluginSample.__name__,
-    __name__ + "." + ActivePaymentGateway.__name__,
-    __name__ + "." + ActivePlugin.__name__,
-    __name__ + "." + ActiveDummyPaymentGateway.__name__,
+    ChannelPluginSample,
+    ActivePaymentGateway,
+    ActivePlugin,
+    ActiveDummyPaymentGateway,
 )
 
 INACTIVE_PLUGINS = (
-    __name__ + "." + InactivePaymentGateway.__name__,
-    __name__ + "." + PluginInactive.__name__,
-    __name__ + "." + InactiveChannelPluginSample.__name__,
+    InactivePaymentGateway,
+    PluginInactive,
+    InactiveChannelPluginSample,
 )
 
 ALL_PLUGINS = ACTIVE_PLUGINS + INACTIVE_PLUGINS

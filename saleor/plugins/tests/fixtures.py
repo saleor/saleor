@@ -149,4 +149,5 @@ def plugins_manager():
 
 @pytest.fixture
 def all_plugins_manager():
-    return PluginsManager(plugins=ALL_PLUGINS)
+    plugins_as_module_paths = [p.__module__ + "." + p.__name__ for p in ALL_PLUGINS]
+    return PluginsManager(plugins=plugins_as_module_paths)
