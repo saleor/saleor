@@ -99,12 +99,12 @@ def test_create_fulfillments_require_approval(
     assert fulfillment_lines[1].stock == order_line2.variant.stocks.get()
     assert fulfillment_lines[1].quantity == 2
 
-    assert order.status == OrderStatus.UNFULFILLED
+    assert order.status == OrderStatus.FULFILLED
     assert order.fulfillments.get() == fulfillment
 
     order_line1, order_line2 = order.lines.all()
-    assert order_line1.quantity_fulfilled == 0
-    assert order_line2.quantity_fulfilled == 0
+    assert order_line1.quantity_fulfilled == 3
+    assert order_line2.quantity_fulfilled == 2
 
     assert (
         Allocation.objects.filter(
@@ -155,12 +155,12 @@ def test_create_fulfillments_require_approval_as_app(
     assert fulfillment_lines[1].stock == order_line2.variant.stocks.get()
     assert fulfillment_lines[1].quantity == 2
 
-    assert order.status == OrderStatus.UNFULFILLED
+    assert order.status == OrderStatus.FULFILLED
     assert order.fulfillments.get() == fulfillment
 
     order_line1, order_line2 = order.lines.all()
-    assert order_line1.quantity_fulfilled == 0
-    assert order_line2.quantity_fulfilled == 0
+    assert order_line1.quantity_fulfilled == 3
+    assert order_line2.quantity_fulfilled == 2
 
     assert (
         Allocation.objects.filter(

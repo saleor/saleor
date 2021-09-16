@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ExternalNotificationTrigger mutation - #7821 by @mstrumeck
 - Add Click&Collect feature - #7673 by @kuchichan
 - Introduce swatch attributes - #7261 by @IKarbowiak
+- Introduce gift card feature - #7827 by @IKarbowiak, @tomaszszymanski129
 
 # 3.0.0 [Unreleased]
 

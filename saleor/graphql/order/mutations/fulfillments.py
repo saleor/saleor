@@ -6,6 +6,8 @@ from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
+from ....core.tracing import traced_atomic_transaction
+from ....giftcard.utils import get_gift_card_lines, gift_cards_create
 from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
@@ -24,6 +26,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import get_duplicated_values
+from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..utils import prepare_insufficient_stock_order_validation_errors
@@ -92,22 +95,11 @@ class OrderFulfill(BaseMutation):
 
     @classmethod
     def clean_lines(cls, order_lines, quantities):
-        for order_line, line_quantities in zip(order_lines, quantities):
-            quantity_awaiting = sum(
-                [
-                    f_line.quantity
-                    if f_line.fulfillment.status
-                    == FulfillmentStatus.WAITING_FOR_APPROVAL
-                    else 0
-                    for f_line in order_line.fulfillment_lines.all()
-                ]
-            )
+        for order_line in order_lines:
+            line_total_quantity = quantities[order_line.pk]
+            line_quantity_unfulfilled = order_line.quantity_unfulfilled
 
-            line_quantity_unfulfilled = (
-                order_line.quantity_unfulfilled - quantity_awaiting
-            )
-
-            if sum(line_quantities) > line_quantity_unfulfilled:
+            if line_total_quantity > line_quantity_unfulfilled:
                 msg = (
                     "Only %(quantity)d item%(item_pluralize)s remaining "
                     "to fulfill: %(order_line)s."
@@ -201,15 +193,14 @@ class OrderFulfill(BaseMutation):
         lines_ids = [line["order_line_id"] for line in lines]
         cls.check_lines_for_duplicates(lines_ids)
         order_lines = cls.get_nodes_or_error(
-            lines_ids,
-            field="lines",
-            only_type=OrderLine,
-            qs=order_models.OrderLine.objects.prefetch_related(
-                "fulfillment_lines__fulfillment"
-            ),
+            lines_ids, field="lines", only_type=OrderLine
         )
+        order_line_id_to_total_quantity = {
+            order_line.pk: sum(line_quantities)
+            for order_line, line_quantities in zip(order_lines, quantities_for_lines)
+        }
 
-        cls.clean_lines(order_lines, quantities_for_lines)
+        cls.clean_lines(order_lines, order_line_id_to_total_quantity)
 
         cls.check_total_quantity_of_items(quantities_for_lines)
 
@@ -225,28 +216,52 @@ class OrderFulfill(BaseMutation):
                     )
 
         data["order_lines"] = order_lines
-        data["quantities"] = quantities_for_lines
+        data["gift_card_lines"] = cls.get_gift_card_lines(lines_ids)
+        data["quantities"] = order_line_id_to_total_quantity
         data["lines_for_warehouses"] = lines_for_warehouses
         return data
 
+    @staticmethod
+    def get_gift_card_lines(lines_ids):
+        _, pks = resolve_global_ids_to_primary_keys(
+            lines_ids, OrderLine, raise_error=True
+        )
+        return get_gift_card_lines(pks)
+
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, order, **data):
         order = cls.get_node_or_error(info, order, field="order", only_type=Order)
         data = data.get("input")
 
         cleaned_input = cls.clean_input(info, order, data)
 
-        user = info.context.user
+        context = info.context
+        user = context.user if not context.user.is_anonymous else None
+        app = context.app
+        manager = context.plugins
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
         notify_customer = cleaned_input.get("notify_customer", True)
+        gift_card_lines = cleaned_input["gift_card_lines"]
+        quantities = cleaned_input["quantities"]
+
+        gift_cards_create(
+            order,
+            gift_card_lines,
+            quantities,
+            context.site.settings,
+            user,
+            app,
+            manager,
+        )
 
         try:
             fulfillments = create_fulfillments(
                 user,
-                info.context.app,
+                app,
                 order,
                 dict(lines_for_warehouses),
-                info.context.plugins,
+                manager,
                 notify_customer,
                 approved=info.context.site.settings.fulfillment_auto_approve,
             )
@@ -675,99 +690,17 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         return cleaned_input
 
     @classmethod
-    def remove_waiting_fulfillments(cls, lines_info):
-        """Delete fulfillment lines which fulfillments are `WAITING_FOR_APPROVAL`.
-
-        Delete fulfillments themselves if metioned lines were only lines inside.
-        """
-        if not lines_info:
-            return {}, []
-
-        lines_to_remove = []
-        lines_to_update = []
-        remaining_fulfillment_lines = []
-        order_lines_map = defaultdict(lambda: 0)
-
-        for line_data in lines_info:
-            if (
-                line_data.line.fulfillment.status
-                == FulfillmentStatus.WAITING_FOR_APPROVAL
-            ):
-                if line_data.quantity < line_data.line.quantity:
-                    _line = line_data.line
-                    _line.quantity = _line.quantity - line_data.quantity
-                    lines_to_update.append(_line)
-                else:
-                    lines_to_remove.append(line_data.line.id)
-                order_lines_map[line_data.line.order_line] += line_data.quantity
-            else:
-                remaining_fulfillment_lines.append(line_data)
-
-        lines_to_delete = order_models.FulfillmentLine.objects.filter(
-            id__in=set(lines_to_remove)
-        ).select_related("fulfillment")
-
-        related_fulfillment_ids = [f.fulfillment.pk for f in lines_to_delete]
-        related_fulfillment_ids.extend([f.fulfillment.pk for f in lines_to_update])
-
-        if lines_to_update:
-            order_models.FulfillmentLine.objects.bulk_update(
-                lines_to_update, ["quantity"]
-            )
-
-        if lines_to_delete:
-            lines_to_delete.delete()
-
-        order_models.Fulfillment.objects.filter(
-            pk__in=related_fulfillment_ids, lines=None
-        ).delete()
-
-        return order_lines_map, remaining_fulfillment_lines
-
-    @classmethod
-    def extend_order_lines(cls, order_lines, lines_data):
-        """Extend order_lines with data from lines_data.
-
-        If order line entry existed, increase it's quantity, create if it didn't.
-        """
-        for line, quantity in lines_data.items():
-            appended = False
-            for item in order_lines:
-                if item.line == line:
-                    item.quantity += quantity
-                    appended = True
-            if not appended:
-                order_lines.append(
-                    OrderLineData(
-                        line=line,
-                        quantity=quantity,
-                        variant=None,
-                        replace=False,
-                        warehouse_pk=None,
-                    )
-                )
-        return order_lines
-
-    @classmethod
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
-
-        order_lines_map, remaining_fulfillment_lines = cls.remove_waiting_fulfillments(
-            cleaned_input.get("fulfillment_lines", [])
-        )
-
-        order_lines = cls.extend_order_lines(
-            cleaned_input.get("order_lines", []), order_lines_map
-        )
 
         refund_fulfillment = create_refund_fulfillment(
             info.context.user,
             info.context.app,
             order,
             cleaned_input["payment"],
-            order_lines,
-            remaining_fulfillment_lines,
+            cleaned_input.get("order_lines", []),
+            cleaned_input.get("fulfillment_lines", []),
             info.context.plugins,
             cleaned_input["amount_to_refund"],
             cleaned_input["include_shipping_costs"],
@@ -897,6 +830,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
                 whitelisted_statuses=[
                     FulfillmentStatus.FULFILLED,
                     FulfillmentStatus.REFUNDED,
+                    FulfillmentStatus.WAITING_FOR_APPROVAL,
                 ],
             )
         return cleaned_input

@@ -19,6 +19,7 @@ from ....checkout.fetch import (
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
+from ....product import ProductTypeKind
 from ....product.models import Product, ProductType
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
@@ -947,7 +948,9 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
 
     manager = get_plugins_manager()
 
-    product_type = ProductType.objects.create(name="non-taxable")
+    product_type = ProductType.objects.create(
+        name="non-taxable", kind=ProductTypeKind.NORMAL
+    )
     product2 = product_with_two_variants
     product2.product_type = product_type
     manager.assign_tax_code_to_object_meta(product_type, "NT")

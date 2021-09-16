@@ -210,7 +210,7 @@ def order_returned(
 @traced_atomic_transaction()
 def order_fulfilled(
     fulfillments: List["Fulfillment"],
-    user: "User",
+    user: Optional["User"],
     app: Optional["App"],
     fulfillment_lines: List["FulfillmentLine"],
     manager: "PluginsManager",
@@ -350,6 +350,14 @@ def cancel_waiting_fulfillment(
     events.fulfillment_canceled_event(
         order=fulfillment.order, user=user, app=app, fulfillment=None
     )
+
+    order_lines = []
+    for line in fulfillment:
+        order_line = line.order_line
+        order_line.quantity_fulfilled -= line.quantity
+        order_lines.append(order_line)
+    OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
+
     fulfillment.delete()
     update_order_status(fulfillment.order)
     transaction.on_commit(lambda: manager.fulfillment_canceled(fulfillment))
@@ -383,7 +391,7 @@ def approve_fulfillment(
         )
         for f_line in fulfillment.lines.all()
     ]
-    fulfill_order_lines(lines_to_fulfill, manager)
+    _decrease_stocks(lines_to_fulfill, manager)
     order.refresh_from_db()
     update_order_status(order)
 
@@ -450,14 +458,13 @@ def clean_mark_order_as_paid(order: "Order"):
         )
 
 
-@traced_atomic_transaction()
-def fulfill_order_lines(
-    order_lines_info: Iterable["OrderLineData"], manager: "PluginsManager"
-):
-    """Fulfill order line with given quantity."""
+def _decrease_stocks(order_lines_info, manager):
     lines_to_decrease_stock = get_order_lines_with_track_inventory(order_lines_info)
     if lines_to_decrease_stock:
         decrease_stock(lines_to_decrease_stock, manager)
+
+
+def _increase_order_line_quantity(order_lines_info):
     order_lines = []
     for line_info in order_lines_info:
         line = line_info.line
@@ -465,6 +472,16 @@ def fulfill_order_lines(
         order_lines.append(line)
 
     OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
+
+
+@traced_atomic_transaction()
+def fulfill_order_lines(
+    order_lines_info: Iterable["OrderLineData"],
+    manager: "PluginsManager",
+):
+    """Fulfill order line with given quantity."""
+    _decrease_stocks(order_lines_info, manager)
+    _increase_order_line_quantity(order_lines_info)
 
 
 @traced_atomic_transaction()
@@ -599,15 +616,17 @@ def _create_fulfillment_lines(
     if insufficient_stocks:
         raise InsufficientStock(insufficient_stocks)
 
-    if lines_info and decrease_stock:
-        fulfill_order_lines(lines_info, manager)
+    if lines_info:
+        if decrease_stock:
+            _decrease_stocks(lines_info, manager)
+        _increase_order_line_quantity(lines_info)
 
     return fulfillment_lines
 
 
 @traced_atomic_transaction()
 def create_fulfillments(
-    user: "User",
+    user: Optional["User"],
     app: Optional["App"],
     order: "Order",
     fulfillment_lines_for_warehouses: Dict,
@@ -676,9 +695,9 @@ def create_fulfillments(
         order_fulfilled if approved else order_awaits_fulfillment_approval
     )
     transaction.on_commit(
-        lambda: post_creation_func(  # type: ignore
+        lambda: post_creation_func(
             fulfillments,
-            user,
+            user,  # type: ignore
             app,
             fulfillment_lines,
             manager,
@@ -897,8 +916,14 @@ def create_refund_fulfillment(
             target_fulfillment=refunded_fulfillment,
         )
 
+        # Delete fulfillments without lines after lines are moved.
         Fulfillment.objects.filter(
-            order=order, lines=None, status=FulfillmentStatus.FULFILLED
+            order=order,
+            lines=None,
+            status__in=[
+                FulfillmentStatus.FULFILLED,
+                FulfillmentStatus.WAITING_FOR_APPROVAL,
+            ],
         ).delete()
         transaction.on_commit(lambda: manager.order_updated(order))
 
@@ -1257,7 +1282,12 @@ def create_fulfillments_for_returned_products(
             manager=manager,
         )
         Fulfillment.objects.filter(
-            order=order, lines=None, status=FulfillmentStatus.FULFILLED
+            order=order,
+            lines=None,
+            status__in=[
+                FulfillmentStatus.FULFILLED,
+                FulfillmentStatus.WAITING_FOR_APPROVAL,
+            ],
         ).delete()
 
         transaction.on_commit(lambda: manager.order_updated(order))
