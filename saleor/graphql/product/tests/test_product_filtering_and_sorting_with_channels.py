@@ -4,6 +4,7 @@ from decimal import Decimal
 
 import pytest
 
+from ....product import ProductTypeKind
 from ....product.models import (
     Product,
     ProductChannelListing,
@@ -17,7 +18,7 @@ from ...tests.utils import assert_graphql_error_with_message, get_graphql_conten
 
 @pytest.fixture
 def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
-    product_type = ProductType.objects.create(name="Apple")
+    product_type = ProductType.objects.create(name="Apple", kind=ProductTypeKind.NORMAL)
     products = Product.objects.bulk_create(
         [
             Product(

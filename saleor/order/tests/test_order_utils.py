@@ -4,11 +4,15 @@ from unittest.mock import Mock
 import pytest
 from prices import Money, TaxedMoney
 
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...giftcard import GiftCardEvents
+from ...giftcard.models import GiftCardEvent
 from ...plugins.manager import get_plugins_manager
 from .. import OrderLineData, OrderStatus
 from ..events import OrderEvents
 from ..models import Order, OrderEvent
 from ..utils import (
+    add_gift_cards_to_order,
     add_variant_to_order,
     change_order_line_quantity,
     get_valid_shipping_methods_for_order,
@@ -275,3 +279,54 @@ def test_add_variant_to_order(order, customer_user, variant):
     assert line.undiscounted_unit_price == unit_price
     assert line.undiscounted_total_price == total_price
     assert line.tax_rate == tax_rate
+
+
+def test_add_gift_cards_to_order(
+    checkout_with_item, gift_card, gift_card_expiry_date, order, staff_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.gift_cards.add(gift_card, gift_card_expiry_date)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    add_gift_cards_to_order(
+        checkout_info, order, Money(20, gift_card.currency), staff_user, None
+    )
+
+    # then
+    gift_card.refresh_from_db()
+    gift_card_expiry_date.refresh_from_db()
+    assert gift_card.current_balance_amount == 0
+    assert gift_card_expiry_date.current_balance_amount == 0
+
+    gift_card_events = GiftCardEvent.objects.filter(gift_card_id=gift_card.id)
+    assert gift_card_events.count() == 1
+    gift_card_event = gift_card_events[0]
+    assert gift_card_event.type == GiftCardEvents.USED_IN_ORDER
+    assert gift_card_event.user == staff_user
+    assert gift_card_event.app is None
+    assert gift_card_event.parameters == {
+        "balance": {
+            "currency": "USD",
+            "current_balance": "0",
+            "old_current_balance": "10.000",
+        },
+        "order_id": order.id,
+    }
+
+    order_created_event = GiftCardEvent.objects.get(
+        gift_card_id=gift_card_expiry_date.id
+    )
+    assert order_created_event.user == staff_user
+    assert order_created_event.app is None
+    assert order_created_event.parameters == {
+        "balance": {
+            "currency": "USD",
+            "current_balance": "0",
+            "old_current_balance": "20.000",
+        },
+        "order_id": order.id,
+    }

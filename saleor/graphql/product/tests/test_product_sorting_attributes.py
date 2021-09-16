@@ -7,6 +7,7 @@ import pytest
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....product import ProductTypeKind
 from ....product import models as product_models
 from ...tests.utils import get_graphql_content
 
@@ -560,7 +561,7 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
         name="Apples", slug="apples"
     )
     other_product_type = product_models.ProductType.objects.create(
-        name="Chocolates", slug="chocolates"
+        name="Chocolates", slug="chocolates", kind=ProductTypeKind.NORMAL
     )
 
     # Assign an attribute to the product type
