@@ -933,6 +933,11 @@ def test_run_method_on_plugins_only_on_active_ones(
     )
     assert mocked_method.call_count == active_plugins_count
 
+    called_plugins_id = [arg.args[0].PLUGIN_ID for arg in mocked_method.call_args_list]
+    expected_active_plugins_id = [p.PLUGIN_ID for p in ACTIVE_PLUGINS]
+
+    assert called_plugins_id == expected_active_plugins_id
+
 
 def test_run_method_on_single_plugin_method_does_not_exist(plugins_manager):
     default_value = "default_value"
