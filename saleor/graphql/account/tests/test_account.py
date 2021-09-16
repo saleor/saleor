@@ -4822,7 +4822,6 @@ def test_address_query_as_app_with_permission(
     address_other_country,
     permission_manage_users,
 ):
-
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
     response = app_api_client.post_graphql(
         ADDRESS_QUERY, variables, permissions=[permission_manage_users]
