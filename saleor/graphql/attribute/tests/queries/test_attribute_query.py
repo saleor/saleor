@@ -78,6 +78,7 @@ QUERY_ATTRIBUTE = """
                     node {
                         slug
                         inputType
+                        value
                         file {
                             url
                             contentType
@@ -364,6 +365,68 @@ def test_get_single_numeric_attribute_by_staff(
         content["data"]["attribute"]["storefrontSearchPosition"]
         == numeric_attribute.storefront_search_position
     )
+
+
+def test_get_single_swatch_attribute_by_staff(
+    staff_api_client, swatch_attribute, permission_manage_products
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id("Attribute", swatch_attribute.id)
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["id"] == attribute_gql_id
+    assert content["data"]["attribute"]["slug"] == swatch_attribute.slug
+    assert (
+        content["data"]["attribute"]["inputType"] == swatch_attribute.input_type.upper()
+    )
+    assert content["data"]["attribute"]["unit"] is None
+    assert (
+        content["data"]["attribute"]["valueRequired"] == swatch_attribute.value_required
+    )
+    assert (
+        content["data"]["attribute"]["visibleInStorefront"]
+        == swatch_attribute.visible_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInStorefront"]
+        == swatch_attribute.filterable_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInDashboard"]
+        == swatch_attribute.filterable_in_dashboard
+    )
+    assert (
+        content["data"]["attribute"]["availableInGrid"]
+        == swatch_attribute.available_in_grid
+    )
+    assert (
+        content["data"]["attribute"]["storefrontSearchPosition"]
+        == swatch_attribute.storefront_search_position
+    )
+    assert (
+        len(content["data"]["attribute"]["choices"]["edges"])
+        == swatch_attribute.values.all().count()
+    )
+    attribute_value_data = []
+    for value in swatch_attribute.values.all():
+        data = {
+            "node": {
+                "slug": value.slug,
+                "value": value.value,
+                "inputType": value.input_type.upper(),
+                "file": {"url": value.file_url, "contentType": value.content_type}
+                if value.file_url
+                else None,
+            }
+        }
+        attribute_value_data.append(data)
+
+    for data in attribute_value_data:
+        assert data in content["data"]["attribute"]["choices"]["edges"]
 
 
 QUERY_ATTRIBUTES = """

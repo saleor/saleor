@@ -1133,8 +1133,8 @@ def numeric_attribute(db):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(attribute=attribute, name="10", slug="10")
-    AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
+    AttributeValue.objects.create(attribute=attribute, name="9.5", slug="10_5")
+    AttributeValue.objects.create(attribute=attribute, name="15.2", slug="15_2")
     return attribute
 
 
@@ -1171,6 +1171,33 @@ def file_attribute_with_file_input_type_without_values(db):
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.FILE,
     )
+
+
+@pytest.fixture
+def swatch_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="T-shirt color",
+        name="t-shirt-color",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.SWATCH,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="Red", slug="red", value="#ff0000"
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="White", slug="whit", value="#fffff"
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="Logo",
+        slug="logo",
+        file_url="http://mirumee.com/test_media/test_file.jpeg",
+        content_type="image/jpeg",
+    )
+    return attribute
 
 
 @pytest.fixture

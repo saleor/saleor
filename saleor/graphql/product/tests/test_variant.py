@@ -3368,6 +3368,52 @@ def test_product_variant_bulk_create_by_attribute_id(
     assert product_variant_created_webhook_mock.call_count == data["count"]
 
 
+def test_product_variant_bulk_create_with_swatch_attribute(
+    staff_api_client, product, swatch_attribute, permission_manage_products
+):
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.set([swatch_attribute])
+    attribute_value_count = swatch_attribute.values.count()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", swatch_attribute.pk)
+    attribute_value_1 = swatch_attribute.values.first()
+    attribute_value_2 = swatch_attribute.values.last()
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": attribute_id, "values": [attribute_value_1.name]}],
+        },
+        {
+            "sku": sku + "a",
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": attribute_id, "values": [attribute_value_2.name]}],
+        },
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+    assert not data["errors"]
+    assert data["count"] == 2
+    assert {variant["name"] for variant in data["productVariants"]} == {
+        attribute_value_1.name,
+        attribute_value_2.name,
+    }
+    assert product_variant_count + 2 == ProductVariant.objects.count()
+    assert attribute_value_count == swatch_attribute.values.count()
+    product_variant = ProductVariant.objects.get(sku=sku)
+    product.refresh_from_db()
+    assert product.default_variant == product_variant
+
+
 def test_product_variant_bulk_create_only_not_variant_selection_attributes(
     staff_api_client, product, size_attribute, permission_manage_products
 ):
