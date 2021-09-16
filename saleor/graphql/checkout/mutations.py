@@ -1291,7 +1291,8 @@ class CheckoutComplete(BaseMutation):
         store_source = graphene.Boolean(
             default_value=False,
             description=(
-                "Determines whether to store the payment source for future usage."
+                "Determines whether to store the payment source for future usage. "
+                f"{DEPRECATED_IN_3X_INPUT} Use checkoutPaymentCreate for this action."
             ),
         )
         redirect_url = graphene.String(

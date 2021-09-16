@@ -4,10 +4,14 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.1.0 [Unreleased]
 - Extend app by `AppExtension` - #7701 by @korycins
+- Deprecate interface field `PaymentData.reuse_source` - #7988 by @mateuszgrzyb
 - Add ExternalNotificationTrigger mutation - #7821 by @mstrumeck
 - Add Click&Collect feature - #7673 by @kuchichan
 - Introduce swatch attributes - #7261 by @IKarbowiak
 - Introduce gift card feature - #7827 by @IKarbowiak, @tomaszszymanski129
+- Deprecate `setup_future_usage` from `checkoutComplete.paymentData` input - will be removed in Saleor 4.0 - #7994 by @mateuszgrzyb
+- Possibility to pass metadata in input of `checkoutPaymentCreate` - #8076 by @mateuszgrzyb
+
 
 # 3.0.0 [Unreleased]
 

@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
 from decimal import Decimal
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 
 import stripe
@@ -178,11 +178,17 @@ def create_payment_intent(
         return None, error
 
 
-def update_payment_method(api_key: str, payment_method_id: str, channel_slug: str):
+def update_payment_method(
+    api_key: str,
+    payment_method_id: str,
+    metadata: Dict[str, str],
+):
     with stripe_opentracing_trace("stripe.PaymentMethod.modify"):
         try:
             stripe.PaymentMethod.modify(
-                payment_method_id, api_key=api_key, metadata={"channel": channel_slug}
+                payment_method_id,
+                api_key=api_key,
+                metadata=metadata,
             )
         except StripeError as error:
             logger.warning(

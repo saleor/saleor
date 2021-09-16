@@ -3648,7 +3648,6 @@ REQUEST_PASSWORD_RESET_MUTATION = """
     }
 """
 
-
 CONFIRM_ACCOUNT_MUTATION = """
     mutation ConfirmAccount($email: String!, $token: String!) {
         confirmAccount(email: $email, token: $token) {
@@ -4835,7 +4834,6 @@ def test_address_query_as_app_with_permission(
 def test_address_query_as_app_without_permission(
     app_api_client, app, address_other_country
 ):
-
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
     response = app_api_client.post_graphql(ADDRESS_QUERY, variables)
     assert_no_permission(response)
