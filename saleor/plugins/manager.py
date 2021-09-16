@@ -849,12 +849,12 @@ class PluginsManager(PaymentInterface):
     def __run_tax_method(
         self,
         method_name: str,
-        payload: Union["Order", "Checkout"],
+        taxable_object: Union["Order", "Checkout"],
     ) -> Optional[TaxData]:
         plugins = self.get_plugins()
         for plugin in plugins:
             result = self.__run_method_on_single_plugin(
-                plugin, method_name, None, payload
+                plugin, method_name, None, taxable_object
             )
             if isinstance(result, TaxData):
                 return result
