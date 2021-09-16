@@ -1,4 +1,5 @@
 import graphene
+import pytest
 from django.utils.text import slugify
 
 from .....attribute.error_codes import AttributeErrorCode
@@ -6,9 +7,9 @@ from ....tests.utils import get_graphql_content
 
 UPDATE_ATTRIBUTE_VALUE_MUTATION = """
 mutation AttributeValueUpdate(
-        $id: ID!, $name: String!) {
+        $id: ID!, $input: AttributeValueUpdateInput!) {
     attributeValueUpdate(
-    id: $id, input: {name: $name}) {
+    id: $id, input: $input) {
         errors {
             field
             message
@@ -17,6 +18,11 @@ mutation AttributeValueUpdate(
         attributeValue {
             name
             slug
+            value
+            file {
+                url
+                contentType
+            }
         }
         attribute {
             choices(first: 10) {
@@ -42,7 +48,7 @@ def test_update_attribute_value(
     value = pink_attribute_value
     node_id = graphene.Node.to_global_id("AttributeValue", value.id)
     name = "Crimson name"
-    variables = {"name": name, "id": node_id}
+    variables = {"input": {"name": name}, "id": node_id}
 
     # when
     response = staff_api_client.post_graphql(
@@ -71,7 +77,7 @@ def test_update_attribute_value_name_not_unique(
         name="Example Name", slug="example-name", value="#RED"
     )
     node_id = graphene.Node.to_global_id("AttributeValue", value.id)
-    variables = {"name": pink_attribute_value.name, "id": node_id}
+    variables = {"input": {"name": pink_attribute_value.name}, "id": node_id}
 
     # when
     response = staff_api_client.post_graphql(
@@ -85,3 +91,134 @@ def test_update_attribute_value_name_not_unique(
     assert data["errors"][0]["message"]
     assert data["errors"][0]["field"] == "name"
     assert data["errors"][0]["code"] == AttributeErrorCode.ALREADY_EXISTS.name
+
+
+def test_update_swatch_attribute_value(
+    staff_api_client,
+    swatch_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_MUTATION
+    value = swatch_attribute.values.filter(value__isnull=False).first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    name = "New name"
+    variables = {"input": {"name": name, "value": "", "fileUrl": ""}, "id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueUpdate"]
+    value.refresh_from_db()
+    assert data["attributeValue"]["name"] == value.name
+    assert data["attributeValue"]["slug"] == value.slug
+    assert data["attributeValue"]["value"] == ""
+    assert data["attributeValue"]["file"] is None
+    assert value.name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
+
+
+@pytest.mark.parametrize("additional_field", [{"value": ""}, {"value": None}, {}])
+def test_update_swatch_attribute_value_clear_value(
+    additional_field,
+    staff_api_client,
+    swatch_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_MUTATION
+    value = swatch_attribute.values.filter(value__isnull=False).first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    file_url = "http://mirumee.com/test_media/test_file.jpeg"
+    variables = {"input": {"fileUrl": file_url, **additional_field}, "id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueUpdate"]
+    value.refresh_from_db()
+    assert data["attributeValue"]["name"] == value.name
+    assert data["attributeValue"]["slug"] == value.slug
+    assert data["attributeValue"]["value"] == ""
+    assert data["attributeValue"]["file"]["url"] == file_url
+    assert value.name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
+
+
+@pytest.mark.parametrize("additional_field", [{"fileUrl": ""}, {"fileUrl": None}, {}])
+def test_update_swatch_attribute_value_clear_file_value(
+    additional_field,
+    staff_api_client,
+    swatch_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_MUTATION
+    value = swatch_attribute.values.filter(file_url__isnull=False).first()
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    input_value = "#ffffff"
+    variables = {"input": {"value": input_value, **additional_field}, "id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueUpdate"]
+    value.refresh_from_db()
+    assert data["attributeValue"]["name"] == value.name
+    assert data["attributeValue"]["slug"] == value.slug
+    assert data["attributeValue"]["value"] == input_value
+    assert data["attributeValue"]["file"] is None
+    assert value.name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
+
+
+@pytest.mark.parametrize(
+    "field, input_value",
+    [
+        ("value", "#ffffff"),
+        ("fileUrl", "http://mirumee.com/test_media/test_file.jpeg"),
+        ("contentType", "jpeg"),
+    ],
+)
+def test_update_attribute_value_invalid_input_data(
+    field,
+    input_value,
+    staff_api_client,
+    pink_attribute_value,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_MUTATION
+    value = pink_attribute_value
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    name = "Crimson name"
+    variables = {"input": {"name": name, field: input_value}, "id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueUpdate"]
+    value.refresh_from_db()
+    assert not data["attributeValue"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == AttributeErrorCode.INVALID.name
+    assert data["errors"][0]["field"] == field

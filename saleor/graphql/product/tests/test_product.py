@@ -2019,6 +2019,60 @@ def test_products_query_with_filter_by_attributes_values_and_range(
     assert products[0]["node"]["name"] == product.name
 
 
+def test_products_query_with_filter_swatch_attributes(
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    category,
+    swatch_attribute,
+    permission_manage_products,
+):
+    product.product_type.product_attributes.add(swatch_attribute)
+    associate_attribute_values_to_instance(
+        product, swatch_attribute, *swatch_attribute.values.all()
+    )
+
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    swatch_attribute.product_types.add(product_type)
+
+    second_product = Product.objects.create(
+        name="Second product",
+        slug="second-product",
+        product_type=product_type,
+        category=category,
+    )
+    attr_value = AttributeValue.objects.create(
+        attribute=swatch_attribute, name="Dark", slug="dark"
+    )
+
+    associate_attribute_values_to_instance(second_product, swatch_attribute, attr_value)
+
+    second_product.refresh_from_db()
+
+    variables = {
+        "filter": {
+            "attributes": [
+                {"slug": swatch_attribute.slug, "values": [attr_value.slug]},
+            ]
+        }
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id("Product", second_product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == second_product_id
+    assert products[0]["node"]["name"] == second_product.name
+
+
 def test_products_query_filter_by_non_existing_attribute(
     query_products_with_filter, api_client, product_list, channel_USD
 ):
@@ -4609,6 +4663,116 @@ def test_create_product_with_numeric_attribute_existing_value(
 
     numeric_attribute.refresh_from_db()
     assert numeric_attribute.values.count() == values_count + 1
+
+
+def test_create_product_with_swatch_attribute_new_attribute_value(
+    staff_api_client,
+    product_type,
+    category,
+    swatch_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    values_count = swatch_attribute.values.count()
+    new_value = "Yellow"
+
+    # Add second attribute
+    product_type.product_attributes.set([swatch_attribute])
+    attr_id = graphene.Node.to_global_id("Attribute", swatch_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": attr_id, "values": [new_value]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 1
+    assert (
+        data["product"]["attributes"][0]["attribute"]["slug"] == swatch_attribute.slug
+    )
+    values = data["product"]["attributes"][0]["values"]
+    assert len(values) == 1
+    assert values[0]["name"] == new_value
+    assert values[0]["slug"] == slugify(new_value)
+
+    swatch_attribute.refresh_from_db()
+    assert swatch_attribute.values.count() == values_count + 1
+
+
+def test_create_product_with_swatch_attribute_existing_value(
+    staff_api_client,
+    product_type,
+    category,
+    swatch_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    values_count = swatch_attribute.values.count()
+
+    # Add second attribute
+    product_type.product_attributes.set([swatch_attribute])
+    attr_id = graphene.Node.to_global_id("Attribute", swatch_attribute.id)
+    existing_value = swatch_attribute.values.first()
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": attr_id, "values": [existing_value.name]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 1
+    assert (
+        data["product"]["attributes"][0]["attribute"]["slug"] == swatch_attribute.slug
+    )
+    values = data["product"]["attributes"][0]["values"]
+    assert len(values) == 1
+    assert values[0]["name"] == existing_value.name
+    assert values[0]["slug"] == existing_value.slug
+
+    swatch_attribute.refresh_from_db()
+    assert swatch_attribute.values.count() == values_count
 
 
 def test_create_product_with_numeric_attribute_not_numeric_value_given(
