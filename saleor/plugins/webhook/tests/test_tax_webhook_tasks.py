@@ -2,10 +2,10 @@ from unittest import mock
 
 import pytest
 
-from saleor.plugins.webhook.tasks import trigger_tax_webhook_sync
-from saleor.plugins.webhook.utils import parse_tax_data
-from saleor.webhook.event_types import WebhookEventType
-from saleor.webhook.models import Webhook, WebhookEvent
+from ....webhook.event_types import WebhookEventType
+from ....webhook.models import Webhook, WebhookEvent
+from ..tasks import trigger_tax_webhook_sync
+from ..utils import parse_tax_data
 
 
 @pytest.fixture

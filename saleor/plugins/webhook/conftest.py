@@ -1,8 +1,8 @@
 import pytest
 
-from saleor.plugins.manager import get_plugins_manager
-from saleor.webhook.event_types import WebhookEventType
-from saleor.webhook.models import Webhook
+from ...webhook.event_types import WebhookEventType
+from ...webhook.models import Webhook
+from ..manager import get_plugins_manager
 
 
 @pytest.fixture

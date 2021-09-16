@@ -2,12 +2,8 @@ import decimal
 
 import pytest
 
-from saleor.core.taxes import TaxData
-from saleor.plugins.webhook.utils import (
-    _unsafe_parse_tax_data,
-    _unsafe_parse_tax_line_data,
-    parse_tax_data,
-)
+from ....core.taxes import TaxData
+from ..utils import _unsafe_parse_tax_data, _unsafe_parse_tax_line_data, parse_tax_data
 
 
 def test_unsafe_parse_tax_line_data_success(tax_line_data_response):
