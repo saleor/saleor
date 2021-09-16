@@ -160,6 +160,14 @@ def test_get_order_line_payload(order_line):
     }
 
 
+def test_get_order_line_payload_deleted_variant(order_line):
+    order_line.variant = None
+    payload = get_order_line_payload(order_line)
+
+    assert payload["variant"] is None
+    assert payload["product"] is None
+
+
 def test_get_address_payload(address):
     payload = get_address_payload(address)
     assert payload == {

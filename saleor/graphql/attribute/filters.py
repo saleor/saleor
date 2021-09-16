@@ -2,9 +2,10 @@ import django_filters
 from django.db.models import Q
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
-from ...account.utils import requestor_is_staff_member_or_app
 from ...attribute.models import Attribute, AttributeValue
+from ...core.permissions import has_one_of_permissions
 from ...product import models
+from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..attribute.enums import AttributeTypeEnum
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, MetadataFilterBase
@@ -30,7 +31,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
         tree = category.get_descendants(include_self=True)
         product_qs = product_qs.filter(category__in=tree)
 
-        if not requestor_is_staff_member_or_app(requestor):
+        if not has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             product_qs = product_qs.annotate_visible_in_listings(channel_slug).exclude(
                 visible_in_listings=False
             )
@@ -65,7 +66,7 @@ class AttributeValueFilter(django_filters.FilterSet):
     def filter_search(cls, queryset, _name, value):
         if not value:
             return queryset
-        name_slug_qs = Q(name__trigram_similar=value) | Q(slug__trigram_similar=value)
+        name_slug_qs = Q(name__ilike=value) | Q(slug__ilike=value)
 
         return queryset.filter(name_slug_qs)
 
