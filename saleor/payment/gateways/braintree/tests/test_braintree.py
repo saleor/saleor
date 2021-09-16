@@ -1,6 +1,7 @@
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
+import graphene
 import pytest
 from braintree import Environment, ErrorResult, SuccessfulResult, Transaction
 from braintree.errors import Errors
@@ -92,8 +93,9 @@ def test_get_customer_data(payment_dummy):
     payment = payment_dummy
     payment_info = create_payment_information(payment)
     result = get_customer_data(payment_info)
+    payment_global_id = graphene.Node.to_global_id("Payment", payment.id)
     expected_result = {
-        "order_id": payment.order_id,
+        "order_id": payment_global_id,
         "billing": {
             "first_name": payment.billing_first_name,
             "last_name": payment.billing_last_name,
