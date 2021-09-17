@@ -1,7 +1,14 @@
 import logging
 from unittest.mock import patch
 
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
+from freezegun import freeze_time
+
+from ..models import ProductVariant
 from ..tasks import (
+    deactivate_preorder_for_variant_task,
+    delete_deactivate_preorder_for_variant_task,
+    schedule_deactivate_preorder_for_variant_task,
     update_product_discounted_price_task,
     update_products_discounted_prices_of_discount_task,
     update_variants_names,
@@ -87,3 +94,83 @@ def test_update_variants_names_product_type_does_not_exist(
     # then
     update_variants_names_mock.assert_not_called()
     assert f"Cannot find product type with id: {product_type_id}" in caplog.text
+
+
+@patch("saleor.product.tasks.deactivate_preorder_for_variant")
+@patch("saleor.product.tasks.delete_deactivate_preorder_for_variant_task")
+def test_deactivate_preorder_for_variant_task(
+    mock_delete_deactivate_preorder_for_variant_task,
+    mock_deactivate_preorder_for_variant,
+    preorder_variant_end_date,
+):
+    with freeze_time(preorder_variant_end_date.preorder_end_date):
+        deactivate_preorder_for_variant_task(preorder_variant_end_date.pk)
+
+    mock_deactivate_preorder_for_variant.assert_called_once()
+    mock_delete_deactivate_preorder_for_variant_task.assert_called_once()
+
+
+@patch("saleor.product.tasks.deactivate_preorder_for_variant")
+@patch("saleor.product.tasks.delete_deactivate_preorder_for_variant_task")
+def test_deactivate_preorder_for_variant_task_no_product_variant(
+    mock_delete_deactivate_preorder_for_variant_task,
+    mock_deactivate_preorder_for_variant,
+):
+    """If product variant was removed, remove scheduled task."""
+    pk = ProductVariant.objects.count() + 1
+    assert not ProductVariant.objects.filter(pk=pk)
+
+    deactivate_preorder_for_variant_task(pk)
+
+    mock_deactivate_preorder_for_variant.assert_not_called()
+    mock_delete_deactivate_preorder_for_variant_task.assert_called_once()
+
+
+@patch("saleor.product.tasks.deactivate_preorder_for_variant")
+@patch("saleor.product.tasks.delete_deactivate_preorder_for_variant_task")
+def test_deactivate_preorder_for_variant_task_no_preorder_end_date(
+    mock_delete_deactivate_preorder_for_variant_task,
+    mock_deactivate_preorder_for_variant,
+    preorder_variant_global_threshold,
+):
+    """If preorder was manually ended, remove scheduled task."""
+    assert preorder_variant_global_threshold.preorder_end_date is None
+
+    deactivate_preorder_for_variant_task(preorder_variant_global_threshold.pk)
+
+    mock_deactivate_preorder_for_variant.assert_not_called()
+    mock_delete_deactivate_preorder_for_variant_task.assert_called_once()
+
+
+@patch("saleor.product.tasks.deactivate_preorder_for_variant")
+@patch("saleor.product.tasks.delete_deactivate_preorder_for_variant_task")
+def test_deactivate_preorder_for_variant_task_bad_preorder_end_date(
+    mock_delete_deactivate_preorder_for_variant_task,
+    mock_deactivate_preorder_for_variant,
+    preorder_variant_end_date,
+):
+    """If task is called with a different date (e.g. different year),
+    remove scheduled task."""
+    preorder_end_date = preorder_variant_end_date.preorder_end_date
+    with freeze_time(preorder_end_date.replace(year=preorder_end_date.year + 1)):
+        deactivate_preorder_for_variant_task(preorder_variant_end_date.pk)
+
+    mock_deactivate_preorder_for_variant.assert_not_called()
+    mock_delete_deactivate_preorder_for_variant_task.assert_called_once()
+
+
+def test_schedule_deactivate_preorder_for_variant_task(
+    preorder_variant_end_date,
+):
+    schedules_before = CrontabSchedule.objects.count()
+    tasks_before = PeriodicTask.objects.count()
+
+    schedule_deactivate_preorder_for_variant_task(preorder_variant_end_date)
+
+    assert CrontabSchedule.objects.count() == schedules_before + 1
+    assert PeriodicTask.objects.count() == tasks_before + 1
+
+    delete_deactivate_preorder_for_variant_task(preorder_variant_end_date.pk)
+
+    assert CrontabSchedule.objects.count() == schedules_before
+    assert PeriodicTask.objects.count() == tasks_before
