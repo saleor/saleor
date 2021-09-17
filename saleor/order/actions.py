@@ -862,26 +862,29 @@ def create_refund_fulfillment(
 
     total_refund_amount = 0
     shipping_refund_amount = None
+    refund_amount = Decimal(
+        sum([item["amount"] for item in payments if item["amount"]])
+    )
 
     with transaction_with_commit_on_errors():
         for item in payments:
-            total_refund_amount += _process_refund(
-                user=user,
-                app=app,
-                order=order,
-                payment=item["payment"],
-                order_lines_to_refund=order_lines_to_refund,
-                fulfillment_lines_to_refund=fulfillment_lines_to_refund,
-                amount=item["amount"],
-                refund_shipping_costs=item["include_shipping_costs"],
-                manager=manager,
-            )
             if item["include_shipping_costs"]:
                 shipping_refund_amount = __get_shipping_refund_amount(
                     item["include_shipping_costs"],
                     item["amount"],
                     order.shipping_price_gross_amount,
                 )
+        total_refund_amount = _process_refund(
+            user=user,
+            app=app,
+            order=order,
+            payments=payments,
+            order_lines_to_refund=order_lines_to_refund,
+            fulfillment_lines_to_refund=fulfillment_lines_to_refund,
+            amount=refund_amount,
+            refund_shipping_costs=bool(shipping_refund_amount),
+            manager=manager,
+        )
 
         refunded_fulfillment = Fulfillment.objects.create(
             status=FulfillmentStatus.REFUNDED,
@@ -1225,11 +1228,15 @@ def create_fulfillments_for_returned_products(
     total_refund_amount = None
     with traced_atomic_transaction():
         if refund and payment:
+            # FIXME this line is temporary and is for compatability
+            #  with the new changes of the _process_refund().
+            #  It should be refactored in this issue SALEOR-3670
+            payments = [{"payment": payment, "amount": amount}]
             total_refund_amount = _process_refund(
                 user=user,
                 app=app,
                 order=order,
-                payment=payment,
+                payments=payments,
                 order_lines_to_refund=return_order_lines,
                 fulfillment_lines_to_refund=return_fulfillment_lines,
                 amount=amount,
@@ -1306,7 +1313,7 @@ def _process_refund(
     user: Optional["User"],
     app: Optional["App"],
     order: "Order",
-    payment: Payment,
+    payments: List[dict],
     order_lines_to_refund: List[OrderLineData],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     amount: Optional[Decimal],
@@ -1317,38 +1324,49 @@ def _process_refund(
     refund_amount = _calculate_refund_amount(
         order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
     )
-    if amount is None:
+
+    # If the amount is still None then there can be only one payment.
+    if amount is None and len(payments) == 1:
         amount = refund_amount
         # we take into consideration the shipping costs only when amount is not
         # provided.
         if refund_shipping_costs:
             amount += order.shipping_price_gross_amount
+        payments[0]["amount"] = min(payments[0]["payment"].captrued_amount, amount)
+
     if amount:
-        amount = min(payment.captured_amount, amount)
-        try:
-            gateway.refund(
-                payment, manager, amount=amount, channel_slug=order.channel.slug
+        for item in payments:
+            try:
+                gateway.refund(
+                    item["payment"],
+                    manager,
+                    amount=item["amount"],
+                    channel_slug=order.channel.slug,
+                )
+            except PaymentError as error:
+                events.payment_refund_failed_event(
+                    order=order,
+                    user=user,
+                    app=app,
+                    message=str(error),
+                    payment=item["payment"],
+                )
+                raise ValidationError(
+                    "The refund operation is not available yet.",
+                    code=OrderErrorCode.CANNOT_REFUND.value,
+                )
+            transaction.on_commit(
+                lambda: events.payment_refunded_event(
+                    order=order,
+                    user=user,
+                    app=app,
+                    amount=amount,  # type: ignore
+                    payment=item["payment"],
+                )
             )
-        except PaymentError as error:
-            events.payment_refund_failed_event(
-                order=order, user=user, app=app, message=str(error), payment=payment
-            )
-            raise ValidationError(
-                "The refund operation is not available yet.",
-                code=OrderErrorCode.CANNOT_REFUND.value,
-            )
-        transaction.on_commit(
-            lambda: events.payment_refunded_event(
-                order=order,
-                user=user,
-                app=app,
-                amount=amount,  # type: ignore
-                payment=payment,
-            )
-        )
         transaction.on_commit(
             lambda: send_order_refunded_confirmation(
-                order, user, app, amount, payment.currency, manager  # type: ignore
+                order, user, app, amount, order.currency, manager  # type: ignore
             )
         )
 

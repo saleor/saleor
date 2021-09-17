@@ -440,7 +440,7 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
 
 class PaymentToRefundInput(graphene.InputObjectType):
     payment_id = graphene.ID(required=True, description="The graphene ID of a payment.")
-    amount = PositiveDecimal(required=True, description="Amount of the refund.")
+    amount = PositiveDecimal(required=False, description="Amount of the refund.")
     include_shipping_costs = graphene.Boolean(
         description=(
             "If true, Saleor will refund shipping costs. "
@@ -462,7 +462,7 @@ class OrderRefundProductsInput(graphene.InputObjectType):
     )
     payments_to_refund = graphene.List(
         PaymentToRefundInput,
-        required=True,
+        required=False,
         description=f"{ADDED_IN_31} Payments that need to be refunded.",
     )
     amount_to_refund = PositiveDecimal(
@@ -644,25 +644,25 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         error_type_class = OrderError
         error_type_field = "order_errors"
 
-    @classmethod
-    def _check_required_fields(cls, payments_to_refund, amount_to_refund):
-        if (payments_to_refund and amount_to_refund) or (
-            not payments_to_refund and not amount_to_refund
-        ):
-            raise ValidationError(
-                {
-                    "payments_to_refund": ValidationError(
-                        "Either payments_to_refund or "
-                        "amount_to_refund should be specified.",
-                        code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
-                    ),
-                    "amount_to_refund": ValidationError(
-                        "Either payments_to_refund or "
-                        "amount_to_refund should be specified.",
-                        code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
-                    ),
-                }
-            )
+    # @classmethod
+    # def _check_required_fields(cls, payments_to_refund, amount_to_refund):
+    #     if (payments_to_refund and amount_to_refund) or (
+    #         not payments_to_refund and not amount_to_refund
+    #     ):
+    #         raise ValidationError(
+    #             {
+    #                 "payments_to_refund": ValidationError(
+    #                     "Either payments_to_refund or "
+    #                     "amount_to_refund should be specified.",
+    #                     code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
+    #                 ),
+    #                 "amount_to_refund": ValidationError(
+    #                     "Either payments_to_refund or "
+    #                     "amount_to_refund should be specified.",
+    #                     code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
+    #                 ),
+    #             }
+    #         )
 
     @classmethod
     def _check_shipping_costs(cls, payments_to_refund):
@@ -723,11 +723,14 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
     ):
         if payments_to_refund:
             cls._check_shipping_costs(payments_to_refund)
+            # TODO Anatoly, add a check for the amount
             payments = [
                 {
                     "payment": item["payment"],
-                    "amount": item["amount"],
-                    "include_shipping_costs": item["include_shipping_costs"],
+                    "amount": item["amount"]
+                    if item.get("amount")
+                    else item["payment"].captured_amount,
+                    "include_shipping_costs": item.get("include_shipping_costs"),
                 }
                 for item in payments_to_refund
             ]
@@ -735,6 +738,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         else:
             cls._check_order_has_single_payment(order)
             payment = order.payments.first()
+            # TODO Anatoly, add a check for the amount
             payments = [
                 {
                     "payment": payment,
@@ -752,7 +756,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         amount_to_refund = input.get("amount_to_refund")
         include_shipping_costs = input.get("include_shipping_costs")
 
-        cls._check_required_fields(payments_to_refund, amount_to_refund)
+        # cls._check_required_fields(payments_to_refund, amount_to_refund)
 
         qs = order_models.Order.objects.prefetch_related("payments")
         order = cls.get_node_or_error(
@@ -785,7 +789,6 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             )
         return cleaned_input
 
-    # TODO Anatoly, In case when any refund fail - create new order event for this
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
@@ -794,7 +797,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             info.context.user,
             info.context.app,
             order,
-            cleaned_input["payments_to_refund"],
+            cleaned_input.get("payments_to_refund", []),
             cleaned_input.get("order_lines", []),
             cleaned_input.get("fulfillment_lines", []),
             info.context.plugins,
