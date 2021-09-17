@@ -8,7 +8,7 @@ from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
-from ...core.taxes import TaxData, TaxLineData, TaxType
+from ...core.taxes import TaxType
 from ...payment.interface import PaymentGateway
 from ...product.models import Product
 from ..base_plugin import ExternalAccessTokens
@@ -21,6 +21,7 @@ from ..tests.sample_plugins import (
     InactivePaymentGateway,
     PluginInactive,
     PluginSample,
+    sample_tax_data,
 )
 
 
@@ -515,29 +516,7 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
     "plugins, expected_tax_data",
     [
         ([], None),
-        (
-            ["saleor.plugins.tests.sample_plugins.PluginSample"],
-            TaxData(
-                currency="USD",
-                total_net_amount=Decimal("12.34"),
-                total_gross_amount=Decimal("12.34"),
-                subtotal_net_amount=Decimal("12.34"),
-                subtotal_gross_amount=Decimal("12.34"),
-                shipping_price_gross_amount=Decimal("12.34"),
-                shipping_price_net_amount=Decimal("12.34"),
-                lines=[
-                    TaxLineData(
-                        id=i,
-                        currency="USD",
-                        unit_net_amount=Decimal("12.34"),
-                        unit_gross_amount=Decimal("12.34"),
-                        total_gross_amount=Decimal("12.34"),
-                        total_net_amount=Decimal("12.34"),
-                    )
-                    for i in range(8)
-                ],
-            ),
-        ),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data()),
     ],
 )
 def test_manager_get_taxes_for_checkout(
@@ -555,29 +534,7 @@ def test_manager_get_taxes_for_checkout(
     "plugins, expected_tax_data",
     [
         ([], None),
-        (
-            ["saleor.plugins.tests.sample_plugins.PluginSample"],
-            TaxData(
-                currency="USD",
-                total_net_amount=Decimal("12.34"),
-                total_gross_amount=Decimal("12.34"),
-                subtotal_net_amount=Decimal("12.34"),
-                subtotal_gross_amount=Decimal("12.34"),
-                shipping_price_gross_amount=Decimal("12.34"),
-                shipping_price_net_amount=Decimal("12.34"),
-                lines=[
-                    TaxLineData(
-                        id=i,
-                        currency="USD",
-                        unit_net_amount=Decimal("12.34"),
-                        unit_gross_amount=Decimal("12.34"),
-                        total_gross_amount=Decimal("12.34"),
-                        total_net_amount=Decimal("12.34"),
-                    )
-                    for i in range(8)
-                ],
-            ),
-        ),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data()),
     ],
 )
 def test_manager_get_taxes_for_order(

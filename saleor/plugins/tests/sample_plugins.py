@@ -21,6 +21,40 @@ if TYPE_CHECKING:
     from ...product.models import Product, ProductType, ProductVariant
 
 
+def sample_tax_data() -> TaxData:
+
+    unit = Decimal("10.00")
+    unit_gross = Decimal("12.30")
+    lines = [
+        TaxLineData(
+            id=i,
+            currency="USD",
+            unit_net_amount=unit,
+            unit_gross_amount=unit_gross,
+            total_net_amount=unit * 3,
+            total_gross_amount=unit_gross * 3,
+        )
+        for i in range(8)
+    ]
+
+    subtotal = sum(line.total_net_amount for line in lines)
+    subtotal_gross = sum(line.total_gross_amount for line in lines)
+
+    shipping = Decimal("50.00")
+    shipping_gross = Decimal("63.20")
+
+    return TaxData(
+        currency="USD",
+        subtotal_net_amount=subtotal,
+        subtotal_gross_amount=subtotal_gross,
+        shipping_price_net_amount=shipping,
+        shipping_price_gross_amount=shipping_gross,
+        total_net_amount=subtotal + shipping,
+        total_gross_amount=subtotal_gross + shipping_gross,
+        lines=lines,
+    )
+
+
 class PluginSample(BasePlugin):
     PLUGIN_ID = "plugin.sample"
     PLUGIN_NAME = "PluginSample"
@@ -224,50 +258,12 @@ class PluginSample(BasePlugin):
     def get_taxes_for_checkout(
         self, checkout: "Checkout", previous_value
     ) -> Optional["TaxData"]:
-        return TaxData(
-            currency=checkout.currency,
-            total_net_amount=Decimal("12.34"),
-            total_gross_amount=Decimal("12.34"),
-            subtotal_net_amount=Decimal("12.34"),
-            subtotal_gross_amount=Decimal("12.34"),
-            shipping_price_gross_amount=Decimal("12.34"),
-            shipping_price_net_amount=Decimal("12.34"),
-            lines=[
-                TaxLineData(
-                    id=i,
-                    currency=checkout.currency,
-                    unit_net_amount=Decimal("12.34"),
-                    unit_gross_amount=Decimal("12.34"),
-                    total_gross_amount=Decimal("12.34"),
-                    total_net_amount=Decimal("12.34"),
-                )
-                for i in range(8)
-            ],
-        )
+        return sample_tax_data()
 
     def get_taxes_for_order(
         self, order: "Order", previous_value
     ) -> Optional["TaxData"]:
-        return TaxData(
-            currency=order.currency,
-            total_net_amount=Decimal("12.34"),
-            total_gross_amount=Decimal("12.34"),
-            subtotal_net_amount=Decimal("12.34"),
-            subtotal_gross_amount=Decimal("12.34"),
-            shipping_price_gross_amount=Decimal("12.34"),
-            shipping_price_net_amount=Decimal("12.34"),
-            lines=[
-                TaxLineData(
-                    id=i,
-                    currency=order.currency,
-                    unit_net_amount=Decimal("12.34"),
-                    unit_gross_amount=Decimal("12.34"),
-                    total_gross_amount=Decimal("12.34"),
-                    total_net_amount=Decimal("12.34"),
-                )
-                for i in range(8)
-            ],
-        )
+        return sample_tax_data()
 
 
 class ChannelPluginSample(PluginSample):
