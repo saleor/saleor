@@ -38,7 +38,8 @@ from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
     clean_refund_payment,
-    try_payment_action,
+    try_payment_capture_action,
+    try_payment_void_action,
 )
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import (
@@ -4501,6 +4502,10 @@ def test_order_capture(
         "amount": str(amount),
         "payment_gateway": "mirumee.payments.dummy",
         "payment_id": "",
+        "graphql_payment_id": graphene.Node.to_global_id(
+            "Payment", payment_txn_preauth.pk
+        ),
+        "psp_reference": None,
     }
 
     assert event_order_fully_paid.type == order_events.OrderEvents.ORDER_FULLY_PAID
@@ -5160,7 +5165,16 @@ def test_clean_payment_without_payment_associated_to_order(
     assert not OrderEvent.objects.exists()
 
 
-def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
+@pytest.mark.parametrize(
+    "try_payment_action, exp_type",
+    (
+        (try_payment_capture_action, order_events.OrderEvents.PAYMENT_CAPTURE_FAILED),
+        (try_payment_void_action, order_events.OrderEvents.PAYMENT_VOID_FAILED),
+    ),
+)
+def test_try_payment_action_generates_event(
+    order, try_payment_action, exp_type, staff_user, payment_dummy
+):
     message = "The payment did a oopsie!"
     assert not OrderEvent.objects.exists()
 
@@ -5179,7 +5193,7 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
     assert exc.value.args[0]["payment"].message == message
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
+    assert error_event.type == exp_type
     assert error_event.user == staff_user
     assert not error_event.app
     assert error_event.parameters == {
@@ -5197,14 +5211,14 @@ def test_try_payment_action_generates_app_event(order, app, payment_dummy):
         raise PaymentError(message)
 
     with pytest.raises(ValidationError) as exc:
-        try_payment_action(
+        try_payment_capture_action(
             order=order, user=None, app=app, payment=payment_dummy, func=_test_operation
         )
 
     assert exc.value.args[0]["payment"].message == message
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
+    assert error_event.type == order_events.OrderEvents.PAYMENT_CAPTURE_FAILED
     assert not error_event.user
     assert error_event.app == app
     assert error_event.parameters == {
@@ -6395,6 +6409,57 @@ def test_order_query_with_filter_status(
 
     orders_ids_from_response = [o["node"]["id"] for o in orders]
     assert len(orders) == count
+    assert order_id in orders_ids_from_response
+
+
+def test_order_query_with_ready_to_fulfill_filter_status(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    order_fully_paid,
+    order_overpaid,
+    order_underpaid,
+    channel_USD,
+):
+    order_underpaid.status = OrderStatus.UNFULFILLED
+    order_underpaid.save()
+    order_fully_paid.status = OrderStatus.UNFULFILLED
+    order_fully_paid.save()
+    order_overpaid.status = OrderStatus.PARTIALLY_FULFILLED
+    order_overpaid.save()
+    Order.objects.create(channel=channel_USD, total_gross_amount=Decimal("10"))
+
+    variables = {"filter": {"status": "READY_TO_FULFILL"}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    order_id = graphene.Node.to_global_id("Order", order_overpaid.pk)
+
+    orders_ids_from_response = [o["node"]["id"] for o in orders]
+    assert len(orders) == 2
+    assert order_id in orders_ids_from_response
+
+
+def test_order_query_with_overpaid_filter_status(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    order_fully_paid,
+    order_overpaid,
+    channel_USD,
+):
+    Order.objects.create(channel=channel_USD)
+
+    variables = {"filter": {"status": "OVERPAID"}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    order_id = graphene.Node.to_global_id("Order", order_overpaid.pk)
+
+    orders_ids_from_response = [o["node"]["id"] for o in orders]
+    assert len(orders) == 1
     assert order_id in orders_ids_from_response
 
 

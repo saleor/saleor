@@ -296,7 +296,8 @@ def gateway_postprocess(transaction, payment):
         # Set payment charge status to fully charged
         # only if there is no more amount needs to charge
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
-        if payment.get_charge_amount() <= 0:
+        charge_amount = payment.get_charge_amount()
+        if charge_amount <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
         changed_fields += ["charge_status", "captured_amount", "modified"]
 
