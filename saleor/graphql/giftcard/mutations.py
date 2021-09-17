@@ -30,7 +30,7 @@ def clean_gift_card(gift_card: GiftCard):
         raise ValidationError(
             {
                 "id": ValidationError(
-                    "Expired gift card can only be deleted.",
+                    "Expired gift card cannot be activated and resend.",
                     code=GiftCardErrorCode.EXPIRED_GIFT_CARD.value,
                 )
             }
@@ -256,7 +256,6 @@ class GiftCardUpdate(GiftCardCreate):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
-        clean_gift_card(instance)
 
         old_instance = deepcopy(instance)
 
@@ -469,7 +468,6 @@ class GiftCardAddNote(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         gift_card = cls.get_node_or_error(info, data.get("id"), only_type=GiftCard)
-        clean_gift_card(gift_card)
         cleaned_input = cls.clean_input(info, gift_card, data)
         event = events.gift_card_note_added_event(
             gift_card=gift_card,

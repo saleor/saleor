@@ -158,6 +158,8 @@ def test_gift_card_add_note_expired_card(
     gift_card,
 ):
     # given
+    staff_user = staff_api_client.user
+
     gift_card.expiry_date = date.today() - timedelta(days=1)
     gift_card.save(update_fields=["expiry_date"])
 
@@ -179,5 +181,13 @@ def test_gift_card_add_note_expired_card(
     # then
     content = get_graphql_content(response)
     data = content["data"]["giftCardAddNote"]
-    assert data["errors"][0]["field"] == "id"
-    assert data["errors"][0]["code"] == GiftCardErrorCode.EXPIRED_GIFT_CARD.name
+
+    assert data["giftCard"]["id"] == gift_card_id
+    assert data["event"]["user"]["email"] == staff_user.email
+    assert data["event"]["app"] is None
+    assert data["event"]["message"] == message
+
+    event = gift_card.events.get()
+    assert event.type == GiftCardEvents.NOTE_ADDED
+    assert event.user == staff_user
+    assert event.parameters == {"message": message}

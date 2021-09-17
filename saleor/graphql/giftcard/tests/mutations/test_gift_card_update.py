@@ -583,20 +583,21 @@ def test_update_gift_card_date_in_past(
     assert errors[0]["code"] == GiftCardErrorCode.INVALID.name
 
 
-def test_update_gift_card_cannot_update_expired_card(
-    staff_api_client, gift_card, permission_manage_gift_card
+def test_update_gift_card_expired_card(
+    staff_api_client,
+    gift_card,
+    permission_manage_gift_card,
+    permission_manage_users,
+    permission_manage_apps,
 ):
     # given
     gift_card.expiry_date = date.today() - timedelta(days=1)
     gift_card.save(update_fields=["expiry_date"])
 
-    initial_balance = 100.0
-    tag = "new-gift-card-tag"
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
         "input": {
-            "balanceAmount": initial_balance,
-            "tag": tag,
+            "expiryDate": None,
         },
     }
 
@@ -606,6 +607,8 @@ def test_update_gift_card_cannot_update_expired_card(
         variables,
         permissions=[
             permission_manage_gift_card,
+            permission_manage_users,
+            permission_manage_apps,
         ],
     )
 
@@ -614,7 +617,12 @@ def test_update_gift_card_cannot_update_expired_card(
     errors = content["data"]["giftCardUpdate"]["errors"]
     data = content["data"]["giftCardUpdate"]["giftCard"]
 
-    assert not data
-    assert len(errors) == 1
-    assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == GiftCardErrorCode.EXPIRED_GIFT_CARD.name
+    assert not errors
+    assert data["displayCode"]
+    assert not data["expiryDate"]
+    assert data["tag"] == gift_card.tag
+    assert data["createdBy"]["email"] == gift_card.created_by.email
+    assert data["createdByEmail"] == gift_card.created_by_email
+
+    assert len(data["events"]) == 1
+    assert data["events"][0]["type"] == GiftCardEvents.EXPIRY_DATE_UPDATED.upper()
