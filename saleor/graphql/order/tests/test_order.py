@@ -4845,6 +4845,7 @@ def test_order_refund_fails_if_both_amount_and_payments_to_refund_specified(
 
     # when
     message = "Either amount or payments_to_refund should be specified."
+    code = OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED.name
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
@@ -4854,7 +4855,11 @@ def test_order_refund_fails_if_both_amount_and_payments_to_refund_specified(
     # then
     assert len(order_refund_data["errors"]) == 2
     assert order_refund_data["errors"][0]["message"] == message
+    assert order_refund_data["errors"][0]["code"] == code
+    assert order_refund_data["errors"][0]["field"] == "amount"
     assert order_refund_data["errors"][1]["message"] == message
+    assert order_refund_data["errors"][1]["code"] == code
+    assert order_refund_data["errors"][1]["field"] == "payments_to_refund"
     assert order_refund_data["order"] is None
 
 
@@ -4890,6 +4895,7 @@ def test_order_refund_fails_if_both_amount_and_payments_to_refund_missing(
 
     # when
     message = "Either amount or payments_to_refund should be specified."
+    code = OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED.name
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
@@ -4899,7 +4905,11 @@ def test_order_refund_fails_if_both_amount_and_payments_to_refund_missing(
     # then
     assert len(order_refund_data["errors"]) == 2
     assert order_refund_data["errors"][0]["message"] == message
+    assert order_refund_data["errors"][0]["code"] == code
+    assert order_refund_data["errors"][0]["field"] == "amount"
     assert order_refund_data["errors"][1]["message"] == message
+    assert order_refund_data["errors"][1]["code"] == code
+    assert order_refund_data["errors"][1]["field"] == "payments_to_refund"
     assert order_refund_data["order"] is None
 
 
@@ -4943,6 +4953,7 @@ def test_order_refund_raises_error_when_total_amount_is_bigger_than_captured_amo
     message = (
         "The total amount to refund cannot be bigger than the total captured amount."
     )
+    code = OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG.name
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
@@ -4952,6 +4963,8 @@ def test_order_refund_raises_error_when_total_amount_is_bigger_than_captured_amo
     # then
     assert len(order_refund_data["errors"]) == 1
     assert order_refund_data["errors"][0]["message"] == message
+    assert order_refund_data["errors"][0]["code"] == code
+    assert order_refund_data["errors"][0]["field"] == "amount"
     assert order_refund_data["order"] is None
 
 
@@ -4978,22 +4991,20 @@ def test_order_refund_raises_error_when_amount_is_bigger_than_captured_amount(
                 errors {
                     field,
                     message,
-                    variants,
-                    code
+                    payments,
+                    code,
                 }
             }
         }
     """
     order_id = graphene.Node.to_global_id("Order", order.id)
     amount = float(payment_txn_captured.total + 50)
-
+    payment_global_id = graphene.Node.to_global_id("Payment", payment_txn_captured.id)
     variables = {
         "id": order_id,
         "paymentsToRefund": [
             {
-                "paymentId": graphene.Node.to_global_id(
-                    "Payment", payment_txn_captured.id
-                ),
+                "paymentId": payment_global_id,
                 "amount": amount,
             },
         ],
@@ -5001,6 +5012,7 @@ def test_order_refund_raises_error_when_amount_is_bigger_than_captured_amount(
 
     # when
     message = "The amount to refund cannot be bigger than the captured amount."
+    code = OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG.name
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
@@ -5010,6 +5022,9 @@ def test_order_refund_raises_error_when_amount_is_bigger_than_captured_amount(
     # then
     assert len(order_refund_data["errors"]) == 1
     assert order_refund_data["errors"][0]["message"] == message
+    assert order_refund_data["errors"][0]["code"] == code
+    assert order_refund_data["errors"][0]["field"] == "amount"
+    assert order_refund_data["errors"][0]["payments"] == [payment_global_id]
     assert order_refund_data["order"] is None
 
 

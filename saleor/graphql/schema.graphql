@@ -4041,6 +4041,7 @@ type OrderError {
   warehouse: ID
   orderLines: [ID!]
   variants: [ID!]
+  payments: [ID!]
   addressType: AddressTypeEnum
 }
 

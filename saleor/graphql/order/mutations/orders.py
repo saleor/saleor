@@ -652,7 +652,7 @@ class OrderRefund(BaseMutation):
                             "The amount to refund cannot be bigger "
                             "than the captured amount.",
                             code=OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG,
-                            params={"improper_payments_ids": improper_payments_ids},
+                            params={"payments": improper_payments_ids},
                         )
                     }
                 )
