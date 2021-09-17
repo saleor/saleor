@@ -3322,6 +3322,20 @@ def test_customer_update_own_address(
     assert address_obj.city == address_data["city"].upper()
 
 
+def test_update_address_as_anonymous_user(
+    api_client, customer_user, graphql_address_data
+):
+    query = ACCOUNT_ADDRESS_UPDATE_MUTATION
+    address_obj = customer_user.addresses.first()
+
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address_obj.id),
+        "address": graphql_address_data,
+    }
+    response = api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+
+
 def test_customer_update_own_address_not_updated_when_validation_fails(
     user_api_client, customer_user, graphql_address_data
 ):

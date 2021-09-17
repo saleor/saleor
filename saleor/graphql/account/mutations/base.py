@@ -46,7 +46,7 @@ def can_edit_address(context, address):
     requester = get_user_or_app_from_context(context)
     if requester.has_perm(AccountPermissions.MANAGE_USERS):
         return True
-    if not context.app:
+    if not context.app and not context.user.is_anonymous:
         return requester.addresses.filter(pk=address.pk).exists()
 
 
