@@ -770,7 +770,10 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             cls.clean_amount_to_refund(amount_to_refund, item["payment"], cleaned_input)
 
         cleaned_input.update(
-            {"include_shipping_costs": include_shipping_costs, "order": order}
+            {
+                "order": order,
+                "payments_to_refund": payments,
+            },
         )
 
         order_lines_data = input.get("order_lines", [])
