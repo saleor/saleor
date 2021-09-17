@@ -862,8 +862,8 @@ def create_refund_fulfillment(
 
     total_refund_amount = 0
     shipping_refund_amount = None
-    refund_amount = Decimal(
-        sum([item["amount"] for item in payments if item["amount"]])
+    refund_amount = (
+        Decimal(sum([item["amount"] for item in payments if item["amount"]])) or None
     )
 
     with transaction_with_commit_on_errors():
@@ -1332,7 +1332,7 @@ def _process_refund(
         # provided.
         if refund_shipping_costs:
             amount += order.shipping_price_gross_amount
-        payments[0]["amount"] = min(payments[0]["payment"].captrued_amount, amount)
+        payments[0]["amount"] = min(payments[0]["payment"].captured_amount, amount)
 
     if amount:
         for item in payments:
