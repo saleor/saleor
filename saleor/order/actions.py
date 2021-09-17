@@ -371,6 +371,7 @@ def approve_fulfillment(
     app: Optional["App"],
     manager: "PluginsManager",
     notify_customer=True,
+    allow_stock_to_be_exceeded: bool = False,
 ):
     fulfillment.status = FulfillmentStatus.FULFILLED
     fulfillment.save()
@@ -391,7 +392,7 @@ def approve_fulfillment(
         )
         for f_line in fulfillment.lines.all()
     ]
-    _decrease_stocks(lines_to_fulfill, manager)
+    _decrease_stocks(lines_to_fulfill, manager, allow_stock_to_be_exceeded)
     order.refresh_from_db()
     update_order_status(order)
 
@@ -458,10 +459,14 @@ def clean_mark_order_as_paid(order: "Order"):
         )
 
 
-def _decrease_stocks(order_lines_info, manager):
+def _decrease_stocks(order_lines_info, manager, allow_stock_to_be_exceeded=False):
     lines_to_decrease_stock = get_order_lines_with_track_inventory(order_lines_info)
     if lines_to_decrease_stock:
-        decrease_stock(lines_to_decrease_stock, manager)
+        decrease_stock(
+            lines_to_decrease_stock,
+            manager,
+            allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
+        )
 
 
 def _increase_order_line_quantity(order_lines_info):
@@ -478,9 +483,10 @@ def _increase_order_line_quantity(order_lines_info):
 def fulfill_order_lines(
     order_lines_info: Iterable["OrderLineData"],
     manager: "PluginsManager",
+    allow_stock_to_be_exceeded: bool = False,
 ):
     """Fulfill order line with given quantity."""
-    _decrease_stocks(order_lines_info, manager)
+    _decrease_stocks(order_lines_info, manager, allow_stock_to_be_exceeded)
     _increase_order_line_quantity(order_lines_info)
 
 
@@ -538,6 +544,7 @@ def _create_fulfillment_lines(
     channel_slug: str,
     manager: "PluginsManager",
     decrease_stock: bool = True,
+    allow_stock_to_be_exceeded: bool = False,
 ) -> List[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
 
@@ -556,6 +563,8 @@ def _create_fulfillment_lines(
         channel_slug (str): Channel for which fulfillment lines should be created.
         manager (PluginsManager): Plugin manager from given context
         decrease_stock (Bool): Stocks will get decreased if this is True.
+        allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
+            Default value is set to `False`.
 
     Return:
         List[FulfillmentLine]: Unsaved fulfillmet lines created for this fulfillment
@@ -618,7 +627,7 @@ def _create_fulfillment_lines(
 
     if lines_info:
         if decrease_stock:
-            _decrease_stocks(lines_info, manager)
+            _decrease_stocks(lines_info, manager, allow_stock_to_be_exceeded)
         _increase_order_line_quantity(lines_info)
 
     return fulfillment_lines
@@ -633,6 +642,7 @@ def create_fulfillments(
     manager: "PluginsManager",
     notify_customer: bool = True,
     approved: bool = True,
+    allow_stock_to_be_exceeded: bool = False,
 ) -> List[Fulfillment]:
     """Fulfill order.
 
@@ -659,6 +669,8 @@ def create_fulfillments(
             fulfillments to customer.
         approved (Boolean): fulfillments will have status fulfilled if it's True,
             otherwise waiting_for_approval.
+        allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
+            Default value is set to `False`.
 
     Return:
         List[Fulfillment]: Fulfillmet with lines created for this order
@@ -687,6 +699,7 @@ def create_fulfillments(
                 order.channel.slug,
                 manager,
                 decrease_stock=approved,
+                allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
             )
         )
 
