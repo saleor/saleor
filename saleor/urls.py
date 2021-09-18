@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from django.contrib.staticfiles.views import serve
 from django.views.decorators.csrf import csrf_exempt
 
+from .core.views import jwks
 from .graphql.api import schema
 from .graphql.views import GraphQLView
 from .plugins.views import (
@@ -36,6 +37,7 @@ urlpatterns = [
         handle_plugin_webhook,
         name="plugins",
     ),
+    url(r".well-known/jwks.json", jwks, name="jwks"),
 ]
 
 if settings.DEBUG:

@@ -1,35 +1,75 @@
 import json
 import logging
 from os.path import exists
+from typing import Union
 
 import jwt
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
+from django.utils.module_loading import import_string
 from jwt.algorithms import RSAAlgorithm
 
 logger = logging.getLogger(__name__)
 
+PUBLIC_KEY = None
+KID = "1"
 
-class JWTManager:
+
+class JWTManagerBase:
+    @classmethod
+    def get_private_key(cls) -> rsa.RSAPrivateKey:
+        return NotImplemented
+
+    @classmethod
+    def get_public_key(cls) -> rsa.RSAPublicKey:
+        return NotImplemented
+
+    @classmethod
+    def encode(cls, payload: dict) -> str:
+        return NotImplemented
+
+    @classmethod
+    def decode(cls, token: str, verify_expiration: bool = True) -> dict:
+        return NotImplemented
+
+    @classmethod
+    def validate_configuration(cls):
+        return NotImplemented
+
+    @classmethod
+    def get_jwks(cls) -> dict:
+        return NotImplemented
+
+
+class JWTManager(JWTManagerBase):
     KEY_FILE_FOR_DEBUG = ".jwt_key.pem"
 
     @classmethod
-    def get_private_key(cls, *_args, **_kwargs):
+    def get_private_key(cls) -> rsa.RSAPrivateKey:
         pem = settings.RSA_PRIVATE_KEY
         if not pem and settings.DEBUG:
             logger.warning(
                 "RSA_PRIVATE_KEY is missing. Using temporary key for local development."
             )
-            return cls.load_debug_private_key()
-        if isinstance(pem, str):
-            pem = pem.encode("utf-8")
-        return serialization.load_pem_private_key(
-            pem, password=None
-        )  # TODO Add password env
+            return cls._load_debug_private_key()
+        return cls._get_private_key(pem)  # type: ignore
 
     @classmethod
-    def load_debug_private_key(cls):
+    def _get_private_key(cls, pem: Union[str, bytes]):
+        if isinstance(pem, str):
+            pem = pem.encode("utf-8")
+
+        password = settings.RSA_PRIVATE_PASSWORD
+        if isinstance(password, str):
+            password = password.encode("utf-8")  # type: ignore
+        return serialization.load_pem_private_key(
+            pem, password=password  # type: ignore
+        )
+
+    @classmethod
+    def _load_debug_private_key(cls):
         key_path = f"{settings.PROJECT_ROOT}/{cls.KEY_FILE_FOR_DEBUG}"
         if exists(key_path):
             return cls._load_local_private_key(key_path)
@@ -62,33 +102,52 @@ class JWTManager:
     @classmethod
     def get_public_key(cls, *_args, **_kwargs):
         private_key = cls.get_private_key()
-        return private_key.public_key()
+        global PUBLIC_KEY
+        if PUBLIC_KEY is None:
+            PUBLIC_KEY = private_key.public_key()
+        return PUBLIC_KEY
 
     @classmethod
-    def get_jwk(cls) -> dict:
+    def get_jwks(cls) -> dict:
         jwk_dict = json.loads(RSAAlgorithm.to_jwk(cls.get_public_key()))
-        jwk_dict.update({"use": "sig", "kid": "1"})
-        return jwk_dict
+        jwk_dict.update({"use": "sig", "kid": KID})
+        return {"keys": [jwk_dict]}
 
     @classmethod
     def encode(cls, payload):
         return jwt.encode(
-            payload, cls.get_private_key(), algorithm="RS256", headers={"kid": "1"}
+            payload, cls.get_private_key(), algorithm="RS256", headers={"kid": KID}
         )
 
     @classmethod
     def decode(cls, token, verify_expiration: bool = True):
         headers = jwt.get_unverified_header(token)
-        if headers.get("alg") == "HS256":
+        if headers.get("alg") == "RS256":
             return jwt.decode(
                 token,
-                settings.SECRET_KEY,  # type: ignore
-                algorithms=["HS256"],
+                cls.get_public_key(),
+                algorithms=["RS256"],
                 options={"verify_exp": verify_expiration},
             )
         return jwt.decode(
             token,
-            cls.get_public_key(),
-            algorithms=["RS256"],
+            settings.SECRET_KEY,  # type: ignore
+            algorithms=["HS256"],
             options={"verify_exp": verify_expiration},
         )
+
+    @classmethod
+    def validate_configuration(cls):
+        if not settings.RSA_PRIVATE_KEY and not settings.DEBUG:
+            raise ImproperlyConfigured(
+                "Variable RSA_PRIVATE_KEY is not provided. "
+                "It is required for running in not DEBUG mode."
+            )
+        try:
+            cls._get_private_key(settings.RSA_PRIVATE_KEY)
+        except Exception as e:
+            raise ImproperlyConfigured(f"Unable to load provided pem private key. {e}")
+
+
+def get_jwt_manager() -> JWTManagerBase:
+    return import_string(settings.JWT_MANAGER_PATH)
