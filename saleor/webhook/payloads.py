@@ -8,7 +8,6 @@ from django.db.models import F, QuerySet
 
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
-from ..checkout.utils import get_app_shipping_id
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,
@@ -543,13 +542,6 @@ def generate_shipping_methods_payload(checkout: Optional["Checkout"]):
             checkout.channel.pk
         )
 
-        extra_shipping_dict_data = {}
-        app_shipping_id = get_app_shipping_id(checkout=checkout)
-        if app_shipping_id:
-            shipping_app_data = from_shipping_app_id(app_shipping_id)
-            extra_shipping_dict_data = {
-                "shipping_method_id": shipping_app_data.shipping_method_id
-            }
         checkout_data = serializer.serialize(
             [checkout],
             fields=checkout_fields,
@@ -560,7 +552,6 @@ def generate_shipping_methods_payload(checkout: Optional["Checkout"]):
             },
             extra_dict_data={
                 "lines": list(serialize_checkout_lines(checkout)),
-                **extra_shipping_dict_data,
             },
         )
         checkout_data = json.loads(checkout_data)[0]

@@ -41,7 +41,7 @@ from ..warehouse.management import allocate_stocks
 from . import AddressType
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
-from .utils import get_voucher_for_checkout
+from .utils import get_app_shipping_id, get_voucher_for_checkout
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -90,10 +90,14 @@ def _process_shipping_data_for_order(
         if checkout_info.user.addresses.filter(pk=shipping_address.pk).exists():
             shipping_address = shipping_address.get_copy()
 
+    shipping_method = (
+        checkout_info.shipping_method if not get_app_shipping_id(checkout_info.checkout) else None
+    )
+
     return {
         "shipping_address": shipping_address,
-        "shipping_method": checkout_info.shipping_method,
-        "shipping_method_name": smart_text(checkout_info.shipping_method),
+        "shipping_method": shipping_method,
+        "shipping_method_name": smart_text(checkout_info.shipping_method.name),
         "shipping_price": shipping_price,
         "weight": checkout_info.checkout.get_total_weight(lines),
     }

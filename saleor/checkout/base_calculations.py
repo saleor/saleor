@@ -36,9 +36,13 @@ def base_checkout_shipping_price(
 
     if not shipping_method or not shipping_required:
         return zero_taxed_money(checkout_info.checkout.currency)
-    shipping_price = shipping_method.channel_listings.get(
-        channel_id=checkout_info.checkout.channel_id,
-    ).get_total()
+
+    if hasattr(shipping_method, "price"):
+        shipping_price = shipping_method.price
+    else:
+        shipping_price = shipping_method.channel_listings.get(
+            channel_id=checkout_info.checkout.channel_id,
+        ).get_total()
 
     return quantize_price(
         TaxedMoney(net=shipping_price, gross=shipping_price), shipping_price.currency

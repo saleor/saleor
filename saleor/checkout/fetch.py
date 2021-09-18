@@ -96,12 +96,26 @@ def fetch_checkout_info(
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
 
+    from .utils import get_app_shipping_id
+
     channel = checkout.channel
+
+    app_shipping_id = get_app_shipping_id(checkout)
+    if app_shipping_id:
+        shipping_method = manager.get_shipping_method(
+                checkout=checkout,
+                channel_slug=channel.slug,
+                shipping_method_id=app_shipping_id,
+            )
+        shipping_channel_listings = None
+    else:
+        shipping_method = checkout.shipping_method
+        shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
+            shipping_method=shipping_method, channel=channel
+        ).first()
+
     shipping_address = checkout.shipping_address
-    shipping_method = checkout.shipping_method
-    shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
-        shipping_method=shipping_method, channel=channel
-    ).first()
+
     checkout_info = CheckoutInfo(
         checkout=checkout,
         user=checkout.user,
@@ -141,7 +155,12 @@ def get_valid_shipping_method_list_for_checkout_info(
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
 ):
-    from .utils import get_valid_shipping_methods_for_checkout
+    from .utils import get_valid_shipping_methods_for_checkout, get_app_shipping_id
+
+    app_shipping_id = get_app_shipping_id(checkout_info.checkout)
+    if app_shipping_id:
+        return manager.list_shipping_methods(
+            checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug)
 
     country_code = shipping_address.country.code if shipping_address else None
     subtotal = manager.calculate_checkout_subtotal(
