@@ -19,7 +19,7 @@ class CoreAppConfig(AppConfig):
         jwt_manager_path = getattr(settings, "JWT_MANAGER_PATH", None)
         if not jwt_manager_path:
             raise ImportError(
-                "Missing settings value for path for JWT Manager - JWT_MANAGER_PATH"
+                "Missing setting value for JWT Manager path - JWT_MANAGER_PATH"
             )
         try:
             jwt_manager = import_string(jwt_manager_path)
