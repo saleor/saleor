@@ -716,9 +716,6 @@ def call_payment_refund_or_void(
     if payment.partial and not cancel_partial:
         return
 
-    try:
-        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
-        payment.is_active = False
-        payment.save(update_fields=["is_active"])
-    except PaymentError:
-        pass
+    gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+    payment.is_active = False
+    payment.save(update_fields=["is_active"])

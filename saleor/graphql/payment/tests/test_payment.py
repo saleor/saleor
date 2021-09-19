@@ -301,6 +301,7 @@ def test_checkout_add_partial_payment(
         is_active=True,
         charge_status=ChargeStatus.FULLY_CHARGED,
         total=3 * quarter_total.amount,
+        captured_amount=3 * quarter_total.amount,
         checkout=checkout,
     )
 
