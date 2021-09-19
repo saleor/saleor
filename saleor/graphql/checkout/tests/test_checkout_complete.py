@@ -1007,7 +1007,7 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     checkout = checkout_with_payments_factory(
         num_payments=1,
         charge_status=ChargeStatus.NOT_CHARGED,
-        token=ChargeStatus.NOT_CHARGED,
+        payment_token=ChargeStatus.NOT_CHARGED,
     )
     payment = checkout.payments.get()
 

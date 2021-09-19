@@ -347,7 +347,7 @@ def checkout_with_item(checkout, product):
 def checkout_with_payments_factory(
     checkout_with_item, payment_kwargs, address, shipping_method
 ):
-    def fun(num_payments=1, charge_status=None, token=""):
+    def fun(num_payments=1, charge_status=None, payment_token=""):
         checkout = checkout_with_item
         checkout.shipping_address = address
         checkout.shipping_method = shipping_method
@@ -378,7 +378,7 @@ def checkout_with_payments_factory(
                             "checkout": checkout,
                             "currency": checkout.currency,
                             "charge_status": charge_status,
-                            "token": token,
+                            "token": payment_token,
                             "total": amount,
                             "captured_amount": captured_amount,
                         },

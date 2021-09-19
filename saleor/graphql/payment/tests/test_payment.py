@@ -113,8 +113,31 @@ CREATE_PAYMENT_MUTATION = """
     """
 
 
+@pytest.fixture
+def create_payment_input():
+    def _factory(
+        checkout, amount=None, partial=None, return_url=None, token="sample-token"
+    ):
+        payload = {
+            "token": checkout.token,
+            "input": {
+                "gateway": DUMMY_GATEWAY,
+                "token": token,
+            },
+        }
+        if amount is not None:
+            payload["input"]["amount"] = str(amount)
+        if partial is not None:
+            payload["input"]["partial"] = partial
+        if return_url is not None:
+            payload["input"]["returnUrl"] = return_url
+        return payload
+
+    return _factory
+
+
 def test_checkout_add_payment_without_shipping_method_and_not_shipping_required(
-    user_api_client, checkout_without_shipping_required, address
+    user_api_client, checkout_without_shipping_required, address, create_payment_input
 ):
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
@@ -126,14 +149,7 @@ def test_checkout_add_payment_without_shipping_method_and_not_shipping_required(
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
-    variables = {
-        "token": checkout.token,
-        "input": {
-            "gateway": DUMMY_GATEWAY,
-            "token": "sample-token",
-            "amount": total.gross.amount,
-        },
-    }
+    variables = create_payment_input(checkout, total.gross.amount)
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
@@ -153,7 +169,7 @@ def test_checkout_add_payment_without_shipping_method_and_not_shipping_required(
 
 
 def test_checkout_add_payment_without_shipping_method_with_shipping_required(
-    user_api_client, checkout_with_shipping_required, address
+    user_api_client, checkout_with_shipping_required, address, create_payment_input
 ):
     checkout = checkout_with_shipping_required
 
@@ -166,14 +182,7 @@ def test_checkout_add_payment_without_shipping_method_with_shipping_required(
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
-    variables = {
-        "token": checkout.token,
-        "input": {
-            "gateway": DUMMY_GATEWAY,
-            "token": "sample-token",
-            "amount": total.gross.amount,
-        },
-    }
+    variables = create_payment_input(checkout, total.gross.amount)
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
@@ -183,7 +192,11 @@ def test_checkout_add_payment_without_shipping_method_with_shipping_required(
 
 
 def test_checkout_add_payment_with_shipping_method_and_shipping_required(
-    user_api_client, checkout_with_shipping_required, other_shipping_method, address
+    user_api_client,
+    checkout_with_shipping_required,
+    other_shipping_method,
+    address,
+    create_payment_input,
 ):
     checkout = checkout_with_shipping_required
     checkout.billing_address = address
@@ -197,14 +210,7 @@ def test_checkout_add_payment_with_shipping_method_and_shipping_required(
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
-    variables = {
-        "token": checkout.token,
-        "input": {
-            "gateway": DUMMY_GATEWAY,
-            "token": "sample-token",
-            "amount": total.gross.amount,
-        },
-    }
+    variables = create_payment_input(checkout, total.gross.amount)
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
@@ -225,7 +231,11 @@ def test_checkout_add_payment_with_shipping_method_and_shipping_required(
 
 
 def test_checkout_add_payment(
-    user_api_client, checkout_without_shipping_required, address, customer_user
+    user_api_client,
+    checkout_without_shipping_required,
+    address,
+    customer_user,
+    create_payment_input,
 ):
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
@@ -240,15 +250,9 @@ def test_checkout_add_payment(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     return_url = "https://www.example.com"
-    variables = {
-        "token": checkout.token,
-        "input": {
-            "gateway": DUMMY_GATEWAY,
-            "token": "sample-token",
-            "amount": total.gross.amount,
-            "returnUrl": return_url,
-        },
-    }
+    variables = create_payment_input(
+        checkout, total.gross.amount, return_url=return_url
+    )
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
@@ -271,7 +275,11 @@ def test_checkout_add_payment(
 
 
 def test_checkout_add_partial_payment(
-    user_api_client, checkout_without_shipping_required, address, customer_user
+    user_api_client,
+    checkout_without_shipping_required,
+    address,
+    customer_user,
+    create_payment_input,
 ):
     # given
     checkout = checkout_without_shipping_required
@@ -298,16 +306,9 @@ def test_checkout_add_partial_payment(
 
     # when
     return_url = "https://www.example.com"
-    variables = {
-        "token": checkout.token,
-        "input": {
-            "gateway": DUMMY_GATEWAY,
-            "token": "sample-token",
-            "amount": quarter_total.amount,
-            "returnUrl": return_url,
-            "partial": True,
-        },
-    }
+    variables = create_payment_input(
+        checkout, quarter_total.amount, return_url=return_url, partial=True
+    )
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
@@ -324,7 +325,7 @@ def test_checkout_add_partial_payment(
 
 
 def test_checkout_add_payment_default_amount(
-    user_api_client, checkout_without_shipping_required, address
+    user_api_client, checkout_without_shipping_required, address, create_payment_input
 ):
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
@@ -337,10 +338,7 @@ def test_checkout_add_payment_default_amount(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
-    variables = {
-        "token": checkout.token,
-        "input": {"gateway": DUMMY_GATEWAY, "token": "sample-token"},
-    }
+    variables = create_payment_input(checkout, amount=None)
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
@@ -357,7 +355,7 @@ def test_checkout_add_payment_default_amount(
 
 
 def test_checkout_add_payment_bad_amount(
-    user_api_client, checkout_without_shipping_required, address
+    user_api_client, checkout_without_shipping_required, address, create_payment_input
 ):
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
@@ -370,14 +368,7 @@ def test_checkout_add_payment_bad_amount(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
-    variables = {
-        "token": checkout.token,
-        "input": {
-            "gateway": DUMMY_GATEWAY,
-            "token": "sample-token",
-            "amount": str(total.gross.amount + Decimal(1)),
-        },
-    }
+    variables = create_payment_input(checkout, str(total.gross.amount + Decimal(1)))
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
@@ -387,7 +378,7 @@ def test_checkout_add_payment_bad_amount(
 
 
 def test_checkout_add_payment_bad_partial_amount(
-    user_api_client, checkout_without_shipping_required, address
+    user_api_client, checkout_without_shipping_required, address, create_payment_input
 ):
     # given
     checkout = checkout_without_shipping_required
@@ -411,15 +402,9 @@ def test_checkout_add_payment_bad_partial_amount(
     )
 
     # when
-    variables = {
-        "token": checkout.token,
-        "input": {
-            "gateway": DUMMY_GATEWAY,
-            "token": "sample-token",
-            "amount": str(half_total.amount + Decimal(1)),
-            "partial": True,
-        },
-    }
+    variables = create_payment_input(
+        checkout, str(half_total.amount + Decimal(1)), partial=True
+    )
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
@@ -432,17 +417,14 @@ def test_checkout_add_payment_bad_partial_amount(
 
 
 def test_checkout_add_payment_not_supported_gateways(
-    user_api_client, checkout_without_shipping_required, address
+    user_api_client, checkout_without_shipping_required, address, create_payment_input
 ):
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
     checkout.currency = "EUR"
     checkout.save(update_fields=["billing_address", "currency"])
 
-    variables = {
-        "token": checkout.token,
-        "input": {"gateway": DUMMY_GATEWAY, "token": "sample-token", "amount": "10.0"},
-    }
+    variables = create_payment_input(checkout, "10.0")
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
@@ -451,7 +433,7 @@ def test_checkout_add_payment_not_supported_gateways(
 
 
 def test_use_checkout_billing_address_as_payment_billing(
-    user_api_client, checkout_without_shipping_required, address
+    user_api_client, checkout_without_shipping_required, address, create_payment_input
 ):
     checkout = checkout_without_shipping_required
     manager = get_plugins_manager()
@@ -460,14 +442,7 @@ def test_use_checkout_billing_address_as_payment_billing(
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
-    variables = {
-        "token": checkout.token,
-        "input": {
-            "gateway": DUMMY_GATEWAY,
-            "token": "sample-token",
-            "amount": total.gross.amount,
-        },
-    }
+    variables = create_payment_input(checkout, total.gross.amount)
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
@@ -491,7 +466,7 @@ def test_use_checkout_billing_address_as_payment_billing(
 
 
 def test_create_payment_for_checkout_with_active_payments(
-    checkout_with_payments, user_api_client, address
+    checkout_with_payments, user_api_client, address, create_payment_input
 ):
     # given
     checkout = checkout_with_payments
@@ -506,14 +481,7 @@ def test_create_payment_for_checkout_with_active_payments(
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
-    variables = {
-        "token": checkout.token,
-        "input": {
-            "gateway": DUMMY_GATEWAY,
-            "token": "sample-token",
-            "amount": total.gross.amount,
-        },
-    }
+    variables = create_payment_input(checkout, total.gross.amount)
 
     payments_count = checkout.payments.count()
     previous_active_payments_count = checkout.payments.filter(is_active=True).count()
@@ -534,7 +502,7 @@ def test_create_payment_for_checkout_with_active_payments(
 
 
 def test_create_partial_payments(
-    user_api_client, checkout_without_shipping_required, address
+    user_api_client, checkout_without_shipping_required, address, create_payment_input
 ):
     # given
     checkout = checkout_without_shipping_required
@@ -548,20 +516,19 @@ def test_create_partial_payments(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
-    def _variables():
-        return {
-            "token": checkout.token,
-            "input": {
-                "gateway": DUMMY_GATEWAY,
-                "token": uuid4().hex,
-                "amount": total.gross.amount,
-                "partial": True,
-            },
-        }
-
     # when
-    response_1 = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, _variables())
-    response_2 = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, _variables())
+    response_1 = user_api_client.post_graphql(
+        CREATE_PAYMENT_MUTATION,
+        create_payment_input(
+            checkout, total.gross.amount, partial=True, token=uuid4().hex
+        ),
+    )
+    response_2 = user_api_client.post_graphql(
+        CREATE_PAYMENT_MUTATION,
+        create_payment_input(
+            checkout, total.gross.amount, partial=True, token=uuid4().hex
+        ),
+    )
     content_1 = get_graphql_content(response_1)
     content_2 = get_graphql_content(response_2)
     data_1 = content_1["data"]["checkoutPaymentCreate"]
@@ -573,12 +540,8 @@ def test_create_partial_payments(
     assert checkout.payments.filter(is_active=True, partial=True).count() == 2
 
 
-@pytest.mark.parametrize("first_payment_is_partial", [True, False])
-def test_create_subsequent_full_payment(
-    user_api_client,
-    checkout_without_shipping_required,
-    address,
-    first_payment_is_partial,
+def test_create_subsequent_partial_payment_with_full_payment(
+    user_api_client, checkout_without_shipping_required, address, create_payment_input
 ):
     # given
     checkout = checkout_without_shipping_required
@@ -592,23 +555,66 @@ def test_create_subsequent_full_payment(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
-    def _variables(partial):
-        return {
-            "token": checkout.token,
-            "input": {
-                "gateway": DUMMY_GATEWAY,
-                "token": uuid4().hex,
-                "amount": total.gross.amount,
-                "partial": partial,
-            },
-        }
+    # when
+    response_1 = user_api_client.post_graphql(
+        CREATE_PAYMENT_MUTATION,
+        create_payment_input(
+            checkout,
+            total.gross.amount,
+        ),
+    )
+    response_2 = user_api_client.post_graphql(
+        CREATE_PAYMENT_MUTATION,
+        create_payment_input(
+            checkout, total.gross.amount, token=uuid4().hex, partial=True
+        ),
+    )
+    content_1 = get_graphql_content(response_1)
+    content_2 = get_graphql_content(response_2)
+    data_1 = content_1["data"]["checkoutPaymentCreate"]
+    data_2 = content_2["data"]["checkoutPaymentCreate"]
+
+    # then
+    assert data_1["payment"]
+    assert data_2["payment"]
+    assert checkout.payments.filter(is_active=True).count() == 1
+
+
+@pytest.mark.parametrize("first_payment_is_partial", [True, False])
+def test_create_subsequent_full_payment(
+    user_api_client,
+    checkout_without_shipping_required,
+    address,
+    first_payment_is_partial,
+    create_payment_input,
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
 
     # when
     response_1 = user_api_client.post_graphql(
-        CREATE_PAYMENT_MUTATION, _variables(first_payment_is_partial)
+        CREATE_PAYMENT_MUTATION,
+        create_payment_input(
+            checkout,
+            total.gross.amount,
+            token=uuid4().hex,
+            partial=first_payment_is_partial,
+        ),
     )
     response_2 = user_api_client.post_graphql(
-        CREATE_PAYMENT_MUTATION, _variables(False)
+        CREATE_PAYMENT_MUTATION,
+        create_payment_input(
+            checkout, total.gross.amount, token=uuid4().hex, partial=False
+        ),
     )
     content_1 = get_graphql_content(response_1)
     content_2 = get_graphql_content(response_2)
@@ -623,7 +629,7 @@ def test_create_subsequent_full_payment(
 
 CHECKOUT_PAYMENT_COMPLETE_MUTATION = """
     mutation CheckoutPaymentComplete(
-        $token: UUID,
+        $token: UUID!,
         $paymentId: ID!,
         $redirectUrl: String
     ) {
@@ -726,6 +732,7 @@ def test_checkout_payment_complete_confirmation_needed(
     user_api_client,
     checkout_with_payments_factory,
     action_required_gateway_response,
+    create_payment_input,
 ):
     # given
     mocked_process_payment.return_value = action_required_gateway_response

@@ -25,7 +25,7 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
-from ..payment import gateway
+from ..payment import PaymentError, gateway
 from ..payment.models import Payment
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
@@ -716,6 +716,9 @@ def call_payment_refund_or_void(
     if payment.partial and not cancel_partial:
         return
 
-    gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
-    payment.is_active = False
-    payment.save(update_fields=["is_active"])
+    try:
+        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        payment.is_active = False
+        payment.save(update_fields=["is_active"])
+    except PaymentError:
+        pass
