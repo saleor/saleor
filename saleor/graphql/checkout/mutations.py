@@ -199,11 +199,12 @@ def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
         )
 
 
-def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []):
+def get_checkout_by_token(token: uuid.UUID, qs=None):
+    if qs is None:
+        qs = models.Checkout.objects.all()
+
     try:
-        checkout = models.Checkout.objects.prefetch_related(*prefetch_lookups).get(
-            token=token
-        )
+        checkout = qs.get(token=token)
     except ObjectDoesNotExist:
         raise ValidationError(
             {
@@ -741,9 +742,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         )
 
         if token:
-            checkout = get_checkout_by_token(
-                token, prefetch_lookups=["lines__variant__product__product_type"]
+            qs = models.Checkout.objects.prefetch_related(
+                "lines__variant__product__product_type"
             )
+            checkout = get_checkout_by_token(token, qs)
         # DEPRECATED
         if checkout_id:
             pk = cls.get_global_id_or_error(
@@ -1103,8 +1105,9 @@ class CheckoutComplete(BaseMutation):
         tracking_code = analytics.get_client_id(info.context)
         with transaction_with_commit_on_errors():
             try:
+                qs = models.Checkout.objects.select_for_update(of=["self"])
                 if token:
-                    checkout = get_checkout_by_token(token)
+                    checkout = get_checkout_by_token(token, qs)
                 # DEPRECATED
                 else:
                     checkout = cls.get_node_or_error(
