@@ -1,6 +1,7 @@
 import json
 from decimal import Decimal
 from unittest.mock import ANY, patch
+from uuid import uuid4
 
 import graphene
 import pytest
@@ -530,6 +531,94 @@ def test_create_payment_for_checkout_with_active_payments(
     assert checkout.payments.all().count() == payments_count + 1
     active_payments = checkout.payments.all().filter(is_active=True)
     assert active_payments.count() == previous_active_payments_count
+
+
+def test_create_partial_payments(
+    user_api_client, checkout_without_shipping_required, address
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    def _variables():
+        return {
+            "token": checkout.token,
+            "input": {
+                "gateway": DUMMY_GATEWAY,
+                "token": uuid4().hex,
+                "amount": total.gross.amount,
+                "partial": True,
+            },
+        }
+
+    # when
+    response_1 = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, _variables())
+    response_2 = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, _variables())
+    content_1 = get_graphql_content(response_1)
+    content_2 = get_graphql_content(response_2)
+    data_1 = content_1["data"]["checkoutPaymentCreate"]
+    data_2 = content_2["data"]["checkoutPaymentCreate"]
+
+    # then
+    assert data_1["payment"]
+    assert data_2["payment"]
+    assert checkout.payments.filter(is_active=True, partial=True).count() == 2
+
+
+@pytest.mark.parametrize("first_payment_is_partial", [True, False])
+def test_create_subsequent_full_payment(
+    user_api_client,
+    checkout_without_shipping_required,
+    address,
+    first_payment_is_partial,
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    def _variables(partial):
+        return {
+            "token": checkout.token,
+            "input": {
+                "gateway": DUMMY_GATEWAY,
+                "token": uuid4().hex,
+                "amount": total.gross.amount,
+                "partial": partial,
+            },
+        }
+
+    # when
+    response_1 = user_api_client.post_graphql(
+        CREATE_PAYMENT_MUTATION, _variables(first_payment_is_partial)
+    )
+    response_2 = user_api_client.post_graphql(
+        CREATE_PAYMENT_MUTATION, _variables(False)
+    )
+    content_1 = get_graphql_content(response_1)
+    content_2 = get_graphql_content(response_2)
+    data_1 = content_1["data"]["checkoutPaymentCreate"]
+    data_2 = content_2["data"]["checkoutPaymentCreate"]
+
+    # then
+    assert data_1["payment"]
+    assert data_2["payment"]
+    assert checkout.payments.filter(is_active=True).count() == 1
 
 
 CHECKOUT_PAYMENT_COMPLETE_MUTATION = """
