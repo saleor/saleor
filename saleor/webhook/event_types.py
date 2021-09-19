@@ -91,6 +91,7 @@ class WebhookEventType:
         PAYMENT_PROCESS: "Process payment",
         PAYMENT_REFUND: "Refund payment",
         PAYMENT_VOID: "Void payment",
+        SHIPPING_LIST_METHODS: "Shipping list methods",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
     }
@@ -128,6 +129,7 @@ class WebhookEventType:
         (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
         (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
         (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
+        (SHIPPING_LIST_METHODS, DISPLAY_LABELS[SHIPPING_LIST_METHODS]),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
     ]
