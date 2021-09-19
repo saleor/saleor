@@ -367,21 +367,25 @@ def checkout_with_payments_factory(
             amount if charge_status != ChargeStatus.AUTHORIZED else Decimal("0")
         )
 
+        payments = []
         for i in range(num_payments):
-            Payment.objects.create(
-                **{
-                    **payment_kwargs,
+            payments.append(
+                Payment(
                     **{
-                        "order": None,
-                        "checkout": checkout,
-                        "currency": checkout.currency,
-                        "charge_status": charge_status,
-                        "token": token,
-                        "total": amount,
-                        "captured_amount": captured_amount,
-                    },
-                }
+                        **payment_kwargs,
+                        **{
+                            "order": None,
+                            "checkout": checkout,
+                            "currency": checkout.currency,
+                            "charge_status": charge_status,
+                            "token": token,
+                            "total": amount,
+                            "captured_amount": captured_amount,
+                        },
+                    }
+                )
             )
+        Payment.objects.bulk_create(payments)
 
         return checkout
 
