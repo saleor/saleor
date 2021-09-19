@@ -254,7 +254,7 @@ class CheckoutPaymentComplete(BaseMutation, I18nMixin):
     )
 
     class Arguments:
-        token = UUID(description="Checkout token.", required=False)
+        token = UUID(required=True, description="Checkout token.")
         payment_id = graphene.ID(required=True, description="Payment ID.")
         payment_data = graphene.JSONString(
             required=False,
