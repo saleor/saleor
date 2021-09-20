@@ -557,6 +557,8 @@ if (
         "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
     )
 
+# Timeouts for webhook requests. Sync webhooks (eg. payment webhook) need more time
+# for getting response from the server.
 WEBHOOK_TIMEOUT = 10
 WEBHOOK_SYNC_TIMEOUT = 20
 
