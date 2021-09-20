@@ -69,7 +69,7 @@ class OrderFulfillInput(graphene.InputObjectType):
     )
 
     allow_stock_to_be_exceeded = graphene.Boolean(
-        description="If true, then allow proceed fulfillment when stock is exceeded",
+        description="If true, then allow proceed fulfillment when stock is exceeded.",
         default_value=False,
     )
 
