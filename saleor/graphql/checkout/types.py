@@ -491,22 +491,27 @@ class Checkout(CountableDjangoObjectType):
     @traced_resolver
     def resolve_available_collection_points(root: models.Checkout, info):
         def get_available_collection_points(data):
-            address, lines, checkout_info = data
+            address, lines, checkout_info, channel = data
+            country_code = address.country.code if address else None
+
             return get_valid_collection_points_for_checkout(
                 lines,
                 checkout_info,
-                country_code=address.country.code if address else None,
+                country_code=country_code
+                if country_code is not None
+                else channel.default_country.code,
             )
 
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
         address = (
             AddressByIdLoader(info.context).load(root.shipping_address_id)
             if root.shipping_address_id
             else None
         )
 
-        return Promise.all([address, lines, checkout_info]).then(
+        return Promise.all([address, lines, checkout_info, channel]).then(
             get_available_collection_points
         )
 
