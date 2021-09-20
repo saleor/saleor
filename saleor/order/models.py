@@ -420,6 +420,7 @@ class OrderLine(models.Model):
     translated_variant_name = models.CharField(max_length=255, default="", blank=True)
     product_sku = models.CharField(max_length=255)
     is_shipping_required = models.BooleanField()
+    is_gift_card = models.BooleanField()
     quantity = models.IntegerField(validators=[MinValueValidator(1)])
     quantity_fulfilled = models.IntegerField(
         validators=[MinValueValidator(0)], default=0

@@ -12,16 +12,18 @@ from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
 from ...site import GiftCardSettingsExpiryType
 from ...warehouse.models import Allocation
-from .. import GiftCardEvents
+from .. import GiftCardEvents, events
 from ..models import GiftCardEvent
 from ..utils import (
     add_gift_card_code_to_checkout,
     calculate_expiry_date,
+    deactivate_order_gift_cards,
     fulfill_gift_card_lines,
     fulfill_non_shippable_gift_cards,
     get_gift_card_lines,
     get_non_shippable_gift_card_lines,
     gift_cards_create,
+    order_has_gift_card_lines,
     remove_gift_card_code_from_checkout,
 )
 
@@ -585,3 +587,52 @@ def test_fulfill_gift_card_lines_lack_of_stock(
     # when
     with pytest.raises(ValidationError):
         fulfill_gift_card_lines(lines, staff_user, None, order, manager)
+
+
+def test_deactivate_order_gift_cards(
+    gift_card, gift_card_expiry_date, gift_card_created_by_staff, order, staff_user
+):
+    # given
+    bought_cards = [gift_card, gift_card_expiry_date]
+    events.gift_cards_bought_event(bought_cards, order.id, staff_user, None)
+
+    for card in [gift_card, gift_card_expiry_date, gift_card_created_by_staff]:
+        assert card.is_active
+
+    # when
+    deactivate_order_gift_cards(order.id, staff_user, None)
+
+    # then
+    for card in bought_cards:
+        card.refresh_from_db()
+        assert not card.is_active
+        assert card.events.filter(type=GiftCardEvents.DEACTIVATED)
+
+    assert gift_card_created_by_staff.is_active
+    assert not gift_card_created_by_staff.events.filter(type=GiftCardEvents.DEACTIVATED)
+
+
+def test_deactivate_order_gift_cards_no_order_gift_cards(
+    gift_card, gift_card_expiry_date, gift_card_created_by_staff, order, staff_user
+):
+    # given
+    cards = [gift_card, gift_card_expiry_date, gift_card_created_by_staff]
+    for card in cards:
+        assert card.is_active
+
+    # when
+    deactivate_order_gift_cards(order.id, staff_user, None)
+
+    # then
+    for card in cards:
+        card.refresh_from_db()
+        assert card.is_active
+
+
+def test_order_has_gift_card_lines_true(gift_card_shippable_order_line):
+    order = gift_card_shippable_order_line.order
+    assert order_has_gift_card_lines(order) is True
+
+
+def test_order_has_gift_card_lines_false(order):
+    assert order_has_gift_card_lines(order) is False

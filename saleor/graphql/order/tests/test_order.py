@@ -21,6 +21,8 @@ from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
+from ....giftcard import GiftCardEvents
+from ....giftcard.events import gift_cards_bought_event
 from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
@@ -4361,6 +4363,38 @@ def test_order_cancel_as_app(
     )
 
 
+@patch("saleor.graphql.order.mutations.orders.cancel_order")
+@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+def test_order_cancel_with_bought_gift_cards(
+    mock_clean_order_cancel,
+    mock_cancel_order,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    gift_card,
+):
+    order = order_with_lines
+    gift_cards_bought_event([gift_card], order.id, staff_api_client.user, None)
+    assert gift_card.is_active is True
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        MUTATION_ORDER_CANCEL, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderCancel"]
+    assert not data["errors"]
+
+    mock_clean_order_cancel.assert_called_once_with(order)
+    mock_cancel_order.assert_called_once_with(
+        order=order, user=staff_api_client.user, app=None, manager=ANY
+    )
+
+    gift_card.refresh_from_db()
+    assert gift_card.is_active is False
+    assert gift_card.events.filter(type=GiftCardEvents.DEACTIVATED)
+
+
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_order_capture(
     mocked_notify,
@@ -4610,20 +4644,27 @@ def test_order_void_payment_error(
     mock_void_payment.assert_called_once()
 
 
-def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
-    order = payment_txn_captured.order
-    query = """
-        mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
-            orderRefund(id: $id, amount: $amount) {
-                order {
-                    paymentStatus
-                    paymentStatusDisplay
-                    isPaid
-                    status
-                }
+ORDER_REFUND_MUTATION = """
+    mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
+        orderRefund(id: $id, amount: $amount) {
+            order {
+                paymentStatus
+                paymentStatusDisplay
+                isPaid
+                status
+            }
+            errors {
+                code
+                field
             }
         }
-    """
+    }
+"""
+
+
+def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
+    order = payment_txn_captured.order
+    query = ORDER_REFUND_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     amount = float(payment_txn_captured.total)
     variables = {"id": order_id, "amount": amount}
@@ -4650,6 +4691,25 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
     assert refunded_fulfillment
     assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
     assert refunded_fulfillment.shipping_refund_amount is None
+
+
+def test_order_refund_with_gift_card_lines(
+    staff_api_client, permission_manage_orders, gift_card_shippable_order_line
+):
+    order = gift_card_shippable_order_line.order
+    query = ORDER_REFUND_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {"id": order_id, "amount": 10.0}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]
+    assert not data["order"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_REFUND.name
+    assert data["errors"][0]["field"] == "id"
 
 
 @pytest.mark.parametrize(
@@ -6305,6 +6365,7 @@ def test_orders_query_with_filter_search(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=3,
         variant=variant,
         unit_price=unit_price,
@@ -6472,6 +6533,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
                 variant_name=str(variants[0]),
                 product_sku=variants[0].sku,
                 is_shipping_required=variants[0].is_shipping_required(),
+                is_gift_card=variants[0].is_gift_card(),
                 quantity=quantity,
                 variant=variants[0],
                 unit_price=unit_price,
@@ -6486,6 +6548,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
                 variant_name=str(variants[1]),
                 product_sku=variants[1].sku,
                 is_shipping_required=variants[1].is_shipping_required(),
+                is_gift_card=variants[1].is_gift_card(),
                 quantity=quantity,
                 variant=variants[1],
                 unit_price=unit_price,

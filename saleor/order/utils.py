@@ -358,6 +358,7 @@ def add_variant_to_order(
             translated_variant_name=translated_variant_name,
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
+            is_gift_card=variant.is_gift_card(),
             quantity=quantity,
             unit_price=unit_price,
             total_price=total_price,

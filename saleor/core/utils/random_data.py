@@ -600,6 +600,7 @@ def create_order_lines(order, discounts, how_many=10):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
+                is_gift_card=variant.is_gift_card(),
                 quantity=quantity,
                 variant=variant,
                 unit_price=unit_price,

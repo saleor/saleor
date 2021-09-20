@@ -10,6 +10,7 @@ class OrderErrorCode(Enum):
     CANNOT_REFUND = "cannot_refund"
     CANNOT_FULFILL_UNPAID_ORDER = "cannot_fulfill_unpaid_order"
     CAPTURE_INACTIVE_PAYMENT = "capture_inactive_payment"
+    GIFT_CARD_LINE = "gift_card_line"
     NOT_EDITABLE = "not_editable"
     FULFILL_ORDER_LINE = "fulfill_order_line"
     GRAPHQL_ERROR = "graphql_error"
