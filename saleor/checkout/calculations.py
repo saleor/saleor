@@ -186,10 +186,10 @@ def fetch_checkout_prices_if_expired(
 
     webhooks_tax_data = manager.get_taxes_for_checkout(checkout)
 
-    if plugins_tax_data:
-        _apply_tax_data(checkout, plugins_tax_data)
     if webhooks_tax_data:
         _apply_tax_data(checkout, webhooks_tax_data)
+    elif plugins_tax_data:
+        _apply_tax_data(checkout, plugins_tax_data)
 
     return checkout
 
@@ -207,25 +207,6 @@ def _apply_tax_data(checkout: "Checkout", tax_data: TaxData) -> None:
     checkout.shipping_price_net_amount = QP(tax_data.shipping_price_net_amount)
     checkout.shipping_price_gross_amount = QP(tax_data.shipping_price_gross_amount)
 
-    for (checkout_line, tax_line_data) in zip(
-        checkout.lines.iterator(), tax_data.lines
-    ):
-        checkout_line.unit_price_net_amount = QP(tax_line_data.unit_net_amount)
-        checkout_line.unit_price_gross_amount = QP(tax_line_data.unit_gross_amount)
-
-        checkout_line.total_price_net_amount = QP(tax_line_data.total_net_amount)
-        checkout_line.total_price_gross_amount = QP(tax_line_data.total_gross_amount)
-
-    CheckoutLine.objects.bulk_update(
-        checkout.lines.all(),
-        [
-            "unit_price_net_amount",
-            "unit_price_gross_amount",
-            "total_price_net_amount",
-            "total_price_gross_amount",
-        ],
-    )
-
     checkout.price_expiration += settings.CHECKOUT_PRICES_TTL
     checkout.save(
         update_fields=[
@@ -239,6 +220,28 @@ def _apply_tax_data(checkout: "Checkout", tax_data: TaxData) -> None:
         ]
     )
 
+    checkout_lines = checkout.lines.all()
+
+    for (checkout_line, tax_line_data) in zip(checkout_lines, tax_data.lines):
+        checkout_line.currency = tax_line_data.currency
+
+        checkout_line.unit_price_net_amount = QP(tax_line_data.unit_net_amount)
+        checkout_line.unit_price_gross_amount = QP(tax_line_data.unit_gross_amount)
+
+        checkout_line.total_price_net_amount = QP(tax_line_data.total_net_amount)
+        checkout_line.total_price_gross_amount = QP(tax_line_data.total_gross_amount)
+
+    CheckoutLine.objects.bulk_update(
+        checkout_lines,
+        [
+            "currency",
+            "unit_price_net_amount",
+            "unit_price_gross_amount",
+            "total_price_net_amount",
+            "total_price_gross_amount",
+        ],
+    )
+
 
 def _get_tax_data_from_plugins(
     checkout: "Checkout",
@@ -248,11 +251,20 @@ def _get_tax_data_from_plugins(
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> Optional[TaxData]:
+    def get_line_total_price(line_info: "CheckoutLineInfo") -> "TaxedMoney":
+        return manager.calculate_checkout_line_total(
+            checkout_info,
+            lines,
+            line_info,
+            address,
+            discounts or [],
+        )
+
     def get_line_unit_price(
-        line: CheckoutLine, line_info: "CheckoutLineInfo"
+        total: "TaxedMoney", line: CheckoutLine, line_info: "CheckoutLineInfo"
     ) -> "TaxedMoney":
         return manager.calculate_checkout_line_unit_price(
-            line.total_price,
+            total,
             line.quantity,
             checkout_info,
             lines,
@@ -266,14 +278,16 @@ def _get_tax_data_from_plugins(
             TaxLineData(
                 id=0,
                 currency=checkout.currency,
+                total_net_amount=(
+                    total_price := get_line_total_price(line_info)
+                ).net.amount,
+                total_gross_amount=total_price.gross.amount,
                 unit_net_amount=(
-                    unit_price := get_line_unit_price(line, line_info)
+                    unit_price := get_line_unit_price(total_price, line, line_info)
                 ).net.amount,
                 unit_gross_amount=unit_price.gross.amount,
-                total_net_amount=(total_price := unit_price * line.quantity).net.amount,
-                total_gross_amount=total_price.gross.amount,
             )
-            for (line, line_info) in zip(checkout.lines.iterator(), lines)
+            for (line, line_info) in zip(checkout.lines.all(), lines)
         ]
 
         shipping_price = manager.calculate_checkout_shipping(
