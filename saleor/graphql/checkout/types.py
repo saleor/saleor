@@ -493,7 +493,9 @@ class Checkout(CountableDjangoObjectType):
         def get_available_collection_points(data):
             address, lines, checkout_info = data
             return get_valid_collection_points_for_checkout(
-                lines, checkout_info, country_code=address.country.code
+                lines,
+                checkout_info,
+                country_code=address.country.code if address else None,
             )
 
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)

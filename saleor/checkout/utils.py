@@ -624,7 +624,7 @@ def get_valid_collection_points_for_checkout(
 
     if not is_shipping_required(lines):
         return []
-    if not checkout_info.shipping_address:
+    if not checkout_info.shipping_address or not country_code:
         return []
     line_ids = [line_info.line.id for line_info in lines]
     lines = CheckoutLine.objects.filter(id__in=line_ids)
