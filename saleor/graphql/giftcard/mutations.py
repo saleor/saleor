@@ -11,7 +11,11 @@ from ...core.utils.validators import is_date_in_future, user_is_valid
 from ...giftcard import events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.notifications import send_gift_card_notification
-from ...giftcard.utils import activate_gift_card, deactivate_gift_card
+from ...giftcard.utils import (
+    activate_gift_card,
+    deactivate_gift_card,
+    is_gift_card_expired,
+)
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
@@ -19,6 +23,18 @@ from ..core.types.common import GiftCardError, PriceInput
 from ..core.utils import validate_required_string_field
 from ..core.validators import validate_price_precision
 from .types import GiftCard, GiftCardEvent
+
+
+def clean_gift_card(gift_card: GiftCard):
+    if is_gift_card_expired(gift_card):
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    "Expired gift card cannot be activated and resend.",
+                    code=GiftCardErrorCode.EXPIRED_GIFT_CARD.value,
+                )
+            }
+        )
 
 
 class GiftCardInput(graphene.InputObjectType):
@@ -240,6 +256,7 @@ class GiftCardUpdate(GiftCardCreate):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
+
         old_instance = deepcopy(instance)
 
         data = data.get("input")
@@ -322,6 +339,7 @@ class GiftCardActivate(BaseMutation):
         gift_card = cls.get_node_or_error(
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
+        clean_gift_card(gift_card)
         # create event only when is_active value has changed
         create_event = not gift_card.is_active
         activate_gift_card(gift_card)
@@ -391,6 +409,7 @@ class GiftCardResend(BaseMutation):
         gift_card = cls.get_node_or_error(
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
+        clean_gift_card(gift_card)
         target_email = cls.get_target_email(data, gift_card)
         customer_user = cls.get_customer_user(target_email)
         user = info.context.user

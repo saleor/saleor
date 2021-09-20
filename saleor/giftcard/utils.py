@@ -243,3 +243,9 @@ def send_gift_cards_to_customer(
             channel_slug,
             resending=False,
         )
+
+
+def is_gift_card_expired(gift_card: GiftCard):
+    """Return True when gift card expiry date pass."""
+    today = timezone.now().date()
+    return bool(gift_card.expiry_date) and gift_card.expiry_date < today  # type: ignore
