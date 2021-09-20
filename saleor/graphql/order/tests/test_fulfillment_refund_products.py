@@ -644,3 +644,31 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     mocked_refund.assert_called_with(
         payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
     )
+
+
+def test_fulfillment_refund_products_check_shipping_costs_in_payments():
+    pass
+
+
+def test_fulfillment_refund_products_payments_belong_to_orders():
+    pass
+
+
+def test_fulfillment_refund_products_payments_do_not_belong_to_orders():
+    pass
+
+
+def test_fulfillment_refund_products_with_amount_to_refund_requires_only_one_payment():
+    pass
+
+
+def test_fulfillment_refund_products_get_payments_to_refund_with_payments_passed():
+    pass
+
+
+def test_fulfillment_refund_products_get_payments_to_refund_with_amount_passed():
+    pass
+
+
+def test_fulfillment_refund_products_with_payments_to_refund_passed():
+    pass
