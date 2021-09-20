@@ -355,6 +355,7 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
         product_ids=[product.pk],
         category_ids=[category.pk],
         collection_ids=[collection.pk],
+        variant_ids=[],
     )
 
 
@@ -412,4 +413,5 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
         product_ids=[product.pk],
         category_ids=[category.pk],
         collection_ids=[collection.pk],
+        variant_ids=[],
     )

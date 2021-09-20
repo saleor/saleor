@@ -6863,6 +6863,7 @@ type Voucher implements Node & ObjectWithMetadata {
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
   discountValue: Float
@@ -6954,6 +6955,7 @@ input VoucherInput {
   endDate: DateTime
   discountValueType: DiscountValueTypeEnum
   products: [ID]
+  variants: [ID]
   collections: [ID]
   categories: [ID]
   minCheckoutItemsQuantity: Int

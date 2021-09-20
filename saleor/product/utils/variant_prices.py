@@ -99,6 +99,5 @@ def update_products_discounted_prices_of_discount(discount):
         product_ids=discount.products.all().values_list("id", flat=True),
         category_ids=discount.categories.all().values_list("id", flat=True),
         collection_ids=discount.collections.all().values_list("id", flat=True),
-        # variant_ids=discount.variants.all().values_list("id", flat=True)
-        # Uncomment, when Voucher ready
+        variant_ids=discount.variants.all().values_list("id", flat=True),
     )

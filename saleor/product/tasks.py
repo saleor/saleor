@@ -65,9 +65,10 @@ def update_products_discounted_prices_of_catalogues_task(
     product_ids: Optional[List[int]] = None,
     category_ids: Optional[List[int]] = None,
     collection_ids: Optional[List[int]] = None,
+    variant_ids: Optional[List[int]] = None,
 ):
     update_products_discounted_prices_of_catalogues(
-        product_ids, category_ids, collection_ids
+        product_ids, category_ids, collection_ids, variant_ids
     )
 
 

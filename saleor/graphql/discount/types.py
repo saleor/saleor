@@ -159,6 +159,9 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     products = ChannelContextFilterConnectionField(
         Product, description="List of products this voucher applies to."
     )
+    variants = ChannelContextFilterConnectionField(
+        ProductVariant, description="List of product variants this voucher applies to."
+    )
     countries = graphene.List(
         types.CountryDisplay,
         description="List of countries available for the shipping voucher.",
@@ -224,6 +227,12 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_products(root: ChannelContext[models.Voucher], info, **_kwargs):
         qs = root.node.products.all()
+        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+
+    @staticmethod
+    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
+    def resolve_variants(root: ChannelContext[models.Voucher], info, **_kwargs):
+        qs = root.node.variants.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod

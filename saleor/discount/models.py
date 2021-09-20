@@ -85,6 +85,7 @@ class Voucher(ModelWithMetadata):
     countries = CountryField(multiple=True, blank=True)
     min_checkout_items_quantity = models.PositiveIntegerField(null=True, blank=True)
     products = models.ManyToManyField("product.Product", blank=True)
+    variants = models.ManyToManyField("product.ProductVariant", blank=True)
     collections = models.ManyToManyField("product.Collection", blank=True)
     categories = models.ManyToManyField("product.Category", blank=True)
 
