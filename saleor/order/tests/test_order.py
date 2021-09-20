@@ -1235,5 +1235,9 @@ def test_email_sent_event_without_user_and_app_pk(
     }
 
 
-def test_process_refund_if_not_amount_and_one_payment():
+def test_process_refund_if_no_amount_and_one_payment():
+    pass
+
+
+def test_process_refund_calls_refund_for_every_payment():
     pass
