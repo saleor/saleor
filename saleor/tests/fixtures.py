@@ -271,6 +271,15 @@ def checkout(db, channel_USD):
 
 
 @pytest.fixture
+def checkout_line(checkout, db, channel_USD, product_with_single_variant):
+    return CheckoutLine.objects.create(
+        checkout=checkout,
+        variant=product_with_single_variant.variants.first(),
+        quantity=1,
+    )
+
+
+@pytest.fixture
 def checkout_with_item(checkout, product):
     variant = product.variants.first()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())

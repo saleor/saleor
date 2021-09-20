@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
@@ -25,7 +26,7 @@ from ..fetch import (
     fetch_checkout_lines,
     get_delivery_method_info,
 )
-from ..models import Checkout
+from ..models import Checkout, CheckoutLine
 from ..utils import (
     add_voucher_to_checkout,
     calculate_checkout_quantity,
@@ -1238,3 +1239,121 @@ def test_chckout_without_delivery_method_creates_empty_delivery_method(
     assert not delivery_method_info.is_valid_delivery_method()
     assert not delivery_method_info.is_local_collection_point
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
+
+
+def test_checkout_total_setter():
+    # given
+    currency = "USD"
+    net_amount = Decimal(10)
+    net = Money(net_amount, currency)
+    gross_amount = Decimal(15)
+    gross = Money(gross_amount, currency)
+
+    # when
+    price = TaxedMoney(net=net, gross=gross)
+    checkout = Checkout()
+    checkout.total = price
+
+    # then
+    assert checkout.currency == currency
+    assert checkout.total_net_amount == net_amount
+    assert checkout.total.net == net
+    assert checkout.total_gross_amount == gross_amount
+    assert checkout.total.gross == gross
+    assert checkout.total.tax == gross - net
+
+
+def test_checkout_subtotal_setter():
+    # given
+    currency = "USD"
+    net_amount = Decimal(10)
+    net = Money(net_amount, currency)
+    gross_amount = Decimal(15)
+    gross = Money(gross_amount, currency)
+
+    # when
+    price = TaxedMoney(net=net, gross=gross)
+    checkout = Checkout()
+    checkout.subtotal = price
+
+    # then
+    assert checkout.currency == currency
+    assert checkout.subtotal_net_amount == net_amount
+    assert checkout.subtotal.net == net
+    assert checkout.subtotal_gross_amount == gross_amount
+    assert checkout.subtotal.gross == gross
+    assert checkout.subtotal.tax == gross - net
+
+
+def test_checkout_shipping_price_setter():
+    # given
+    currency = "USD"
+    net_amount = Decimal(10)
+    net = Money(net_amount, currency)
+    gross_amount = Decimal(15)
+    gross = Money(gross_amount, currency)
+
+    # when
+    price = TaxedMoney(net=net, gross=gross)
+    checkout = Checkout()
+    checkout.shipping_price = price
+
+    # then
+    assert checkout.currency == currency
+    assert checkout.shipping_price_net_amount == net_amount
+    assert checkout.shipping_price.net == net
+    assert checkout.shipping_price_gross_amount == gross_amount
+    assert checkout.shipping_price.gross == gross
+    assert checkout.shipping_price.tax == gross - net
+
+
+def test_checkout_line_unit_price_setter():
+    # given
+    currency = "USD"
+    net_amount = Decimal(10)
+    net = Money(net_amount, currency)
+    gross_amount = Decimal(15)
+    gross = Money(gross_amount, currency)
+
+    # when
+    price = TaxedMoney(net=net, gross=gross)
+    checkout_line = CheckoutLine()
+    checkout_line.unit_price = price
+
+    # then
+    assert checkout_line.currency == currency
+    assert checkout_line.unit_price_net_amount == net_amount
+    assert checkout_line.unit_price.net == net
+    assert checkout_line.unit_price_gross_amount == gross_amount
+    assert checkout_line.unit_price.gross == gross
+    assert checkout_line.unit_price.tax == gross - net
+
+
+def test_checkout_line_total_price_setter():
+    # given
+    currency = "USD"
+    net_amount = Decimal(10)
+    net = Money(net_amount, currency)
+    gross_amount = Decimal(15)
+    gross = Money(gross_amount, currency)
+
+    # when
+    price = TaxedMoney(net=net, gross=gross)
+    checkout_line = CheckoutLine()
+    checkout_line.total_price = price
+
+    # then
+    assert checkout_line.currency == currency
+    assert checkout_line.total_price_net_amount == net_amount
+    assert checkout_line.total_price.net == net
+    assert checkout_line.total_price_gross_amount == gross_amount
+    assert checkout_line.total_price.gross == gross
+    assert checkout_line.total_price.tax == gross - net
+
+
+def test_checkout_has_currency(checkout):
+    assert hasattr(checkout, "currency")
+
+
+def test_checkout_line_has_currency(checkout_line):
+    assert hasattr(checkout_line, "currency")
