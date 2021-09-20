@@ -302,9 +302,8 @@ def test_handle_cancel(
         value=price_to_minor_unit(payment.total, payment.currency),
     )
     config = adyen_plugin().config
-    manager = get_plugins_manager()
 
-    handle_cancellation(notification, config, manager)
+    handle_cancellation(notification, config)
 
     payment.order.refresh_from_db()
     assert payment.transactions.count() == 2
@@ -332,9 +331,8 @@ def test_handle_cancel_invalid_payment_id(
     transaction_count = payment.transactions.count()
 
     caplog.set_level(logging.WARNING)
-    manager = get_plugins_manager()
 
-    handle_cancellation(notification, config, manager)
+    handle_cancellation(notification, config)
 
     payment.order.refresh_from_db()
     assert payment.transactions.count() == transaction_count
@@ -356,9 +354,8 @@ def test_handle_cancel_already_canceled(
     )
     config = adyen_plugin().config
     create_new_transaction(notification, payment, TransactionKind.CANCEL)
-    manager = get_plugins_manager()
 
-    handle_cancellation(notification, config, manager)
+    handle_cancellation(notification, config)
 
     assert payment.transactions.count() == 2
 
@@ -972,7 +969,7 @@ def test_handle_cancel_or_refund_action_cancel(
 
     handle_cancel_or_refund(notification, config)
 
-    mock_handle_cancellation.assert_called_once_with(notification, config, mock.ANY)
+    mock_handle_cancellation.assert_called_once_with(notification, config)
 
 
 def test_handle_cancel_or_refund_action_cancel_invalid_payment_id(
