@@ -7,6 +7,7 @@ from ...core.utils.promo_code import generate_promo_code
 from ...core.utils.validators import is_date_in_future
 from ...giftcard import events, models
 from ...giftcard.error_codes import GiftCardErrorCode
+from ...giftcard.utils import is_gift_card_expired
 from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
 from ..core.types.common import GiftCardError, PriceInput
@@ -150,6 +151,14 @@ class GiftCardBulkActivate(BaseBulkMutation):
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        if is_gift_card_expired(instance):
+            raise ValidationError(
+                "Cannot activate expired card.",
+                code=GiftCardErrorCode.EXPIRED_GIFT_CARD,
+            )
 
     @classmethod
     @traced_atomic_transaction()
