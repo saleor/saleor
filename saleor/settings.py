@@ -557,6 +557,9 @@ if (
         "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
     )
 
+WEBHOOK_TIMEOUT = 10
+WEBHOOK_SYNC_TIMEOUT = 20
+
 # Initialize a simple and basic Jaeger Tracing integration
 # for open-tracing if enabled.
 #
