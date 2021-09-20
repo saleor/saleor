@@ -585,6 +585,9 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     def is_shipping_required(self) -> bool:
         return self.product.product_type.is_shipping_required
 
+    def is_gift_card(self) -> bool:
+        return self.product.product_type.kind == ProductTypeKind.GIFT_CARD
+
     def is_digital(self) -> bool:
         is_digital = self.product.product_type.is_digital
         return not self.is_shipping_required() and is_digital

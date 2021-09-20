@@ -1340,11 +1340,10 @@ def _process_refund(
     manager: "PluginsManager",
 ):
     lines_to_refund: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
-    refund_amount = _calculate_refund_amount(
-        order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
-    )
     if amount is None:
-        amount = refund_amount
+        amount = _calculate_refund_amount(
+            order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
+        )
         # we take into consideration the shipping costs only when amount is not
         # provided.
         if refund_shipping_costs:

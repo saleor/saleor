@@ -16,8 +16,8 @@ from ..order.models import OrderLine
 from ..product import ProductTypeKind
 from ..product.models import Product, ProductType, ProductVariant
 from ..site import GiftCardSettingsExpiryType
-from . import events
-from .models import GiftCard
+from . import GiftCardEvents, events
+from .models import GiftCard, GiftCardEvent
 from .notifications import send_gift_card_notification
 
 if TYPE_CHECKING:
@@ -243,3 +243,22 @@ def send_gift_cards_to_customer(
             channel_slug,
             resending=False,
         )
+
+
+def deactivate_order_gift_cards(
+    order_id: int, user: Optional["User"], app: Optional["App"]
+):
+    gift_card_events = GiftCardEvent.objects.filter(
+        type=GiftCardEvents.BOUGHT, parameters__order_id=order_id
+    )
+    gift_cards = GiftCard.objects.filter(
+        Exists(gift_card_events.filter(gift_card_id=OuterRef("id")))
+    )
+    gift_cards.update(is_active=False)
+    events.gift_cards_deactivated_event(
+        gift_cards.values_list("id", flat=True), user, app
+    )
+
+
+def order_has_gift_card_lines(order):
+    return any(order.lines.filter(is_gift_card=True))

@@ -197,6 +197,7 @@ def _create_line_for_order(
         translated_variant_name=translated_variant_name,
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,  # type: ignore
