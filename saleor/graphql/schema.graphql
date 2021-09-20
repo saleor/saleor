@@ -2400,6 +2400,7 @@ enum GiftCardErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  EXPIRED_GIFT_CARD
 }
 
 type GiftCardEvent implements Node {
