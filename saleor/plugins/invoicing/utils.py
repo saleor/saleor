@@ -1,12 +1,16 @@
 import os
 import re
 from datetime import datetime
+from decimal import Decimal
 
 import pytz
 from django.conf import settings
 from django.template.loader import get_template
+from prices import Money
 from weasyprint import HTML
 
+from ...giftcard import GiftCardEvents
+from ...giftcard.models import GiftCardEvent
 from ...invoice.models import Invoice
 
 MAX_PRODUCTS_WITH_TABLE = 3
@@ -62,6 +66,19 @@ def get_product_limit_first_page(products):
     return MAX_PRODUCTS_WITHOUT_TABLE
 
 
+def get_gift_cards_payment_amount(order):
+    events = GiftCardEvent.objects.filter(
+        type=GiftCardEvents.USED_IN_ORDER, parameters__order_id=order.id
+    )
+    total_paid = 0
+    for event in events:
+        balance = event.parameters["balance"]
+        total_paid += Decimal(balance["old_current_balance"]) - Decimal(
+            balance["current_balance"]
+        )
+    return Money(total_paid, order.currency)
+
+
 def generate_invoice_pdf(invoice):
     font_path = os.path.join(
         settings.PROJECT_ROOT, "templates", "invoices", "inter.ttf"
@@ -75,12 +92,15 @@ def generate_invoice_pdf(invoice):
     rest_of_products = chunk_products(
         all_products[product_limit_first_page:], MAX_PRODUCTS_PER_PAGE
     )
+    order = invoice.order
+    gift_cards_payment = get_gift_cards_payment_amount(order)
     creation_date = datetime.now(tz=pytz.utc)
     rendered_template = get_template("invoices/invoice.html").render(
         {
             "invoice": invoice,
             "creation_date": creation_date.strftime("%d %b %Y"),
-            "order": invoice.order,
+            "order": order,
+            "gift_cards_payment": gift_cards_payment,
             "font_path": f"file://{font_path}",
             "products_first_page": products_first_page,
             "rest_of_products": rest_of_products,
