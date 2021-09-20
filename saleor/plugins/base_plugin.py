@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.notify_events import NotifyEventType
-    from ..core.taxes import TaxType
+    from ..core.taxes import TaxData, TaxType
     from ..discount import DiscountInfo
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
@@ -594,6 +594,16 @@ class BasePlugin:
 
     def fetch_taxes_data(self, previous_value: Any) -> Any:
         """Triggered when ShopFetchTaxRates mutation is called."""
+        return NotImplemented
+
+    def get_taxes_for_checkout(
+        self, checkout: "Checkout", previous_value
+    ) -> Optional["TaxData"]:
+        return NotImplemented
+
+    def get_taxes_for_order(
+        self, order: "Order", previous_value
+    ) -> Optional["TaxData"]:
         return NotImplemented
 
     def initialize_payment(

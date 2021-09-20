@@ -7,7 +7,7 @@ from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from ...account.models import User
-from ...core.taxes import TaxType
+from ...core.taxes import TaxData, TaxLineData, TaxType
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
@@ -19,6 +19,40 @@ if TYPE_CHECKING:
     from ...discount import DiscountInfo
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductType, ProductVariant
+
+
+def sample_tax_data() -> TaxData:
+
+    unit = Decimal("10.00")
+    unit_gross = Decimal("12.30")
+    lines = [
+        TaxLineData(
+            id=i,
+            currency="USD",
+            unit_net_amount=unit,
+            unit_gross_amount=unit_gross,
+            total_net_amount=unit * 3,
+            total_gross_amount=unit_gross * 3,
+        )
+        for i in range(8)
+    ]
+
+    subtotal = sum(line.total_net_amount for line in lines)
+    subtotal_gross = sum(line.total_gross_amount for line in lines)
+
+    shipping = Decimal("50.00")
+    shipping_gross = Decimal("63.20")
+
+    return TaxData(
+        currency="USD",
+        subtotal_net_amount=subtotal,
+        subtotal_gross_amount=subtotal_gross,
+        shipping_price_net_amount=shipping,
+        shipping_price_gross_amount=shipping_gross,
+        total_net_amount=subtotal + shipping,
+        total_gross_amount=subtotal_gross + shipping_gross,
+        lines=lines,
+    )
 
 
 class PluginSample(BasePlugin):
@@ -220,6 +254,16 @@ class PluginSample(BasePlugin):
 
     def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
         return Decimal("0.080").quantize(Decimal(".01"))
+
+    def get_taxes_for_checkout(
+        self, checkout: "Checkout", previous_value
+    ) -> Optional["TaxData"]:
+        return sample_tax_data()
+
+    def get_taxes_for_order(
+        self, order: "Order", previous_value
+    ) -> Optional["TaxData"]:
+        return sample_tax_data()
 
 
 class ChannelPluginSample(PluginSample):

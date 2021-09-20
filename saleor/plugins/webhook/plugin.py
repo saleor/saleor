@@ -23,7 +23,11 @@ from ...webhook.payloads import (
     generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
-from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
+from .tasks import (
+    trigger_payment_webhook_sync,
+    trigger_tax_webhook_sync,
+    trigger_webhooks_for_event,
+)
 from .utils import (
     from_payment_app_id,
     parse_list_payment_gateways_response,
@@ -33,6 +37,7 @@ from .utils import (
 if TYPE_CHECKING:
     from ...account.models import User
     from ...checkout.models import Checkout
+    from ...core.taxes import TaxData
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
@@ -324,7 +329,7 @@ class WebhookPlugin(BasePlugin):
             )
 
         webhook_payload = generate_payment_payload(payment_information)
-        response_data = trigger_webhook_sync(event_type, webhook_payload, app)
+        response_data = trigger_payment_webhook_sync(event_type, webhook_payload, app)
         if response_data is None:
             raise PaymentError(
                 f"Payment method {payment_information.gateway} is not available: "
@@ -350,7 +355,7 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.PAYMENT_LIST_GATEWAYS
         ).prefetch_related("webhooks")
         for app in apps:
-            response_data = trigger_webhook_sync(
+            response_data = trigger_payment_webhook_sync(
                 event_type=WebhookEventType.PAYMENT_LIST_GATEWAYS,
                 data=generate_list_gateways_payload(currency, checkout),
                 app=app,
@@ -429,3 +434,17 @@ class WebhookPlugin(BasePlugin):
             previous_value,
             **kwargs,
         )
+
+    def get_taxes_for_checkout(
+        self, checkout: "Checkout", previous_value
+    ) -> Optional["TaxData"]:
+        payload = generate_checkout_payload(checkout)
+        return trigger_tax_webhook_sync(
+            WebhookEventType.CHECKOUT_CALCULATE_TAXES, payload
+        )
+
+    def get_taxes_for_order(
+        self, order: "Order", previous_value
+    ) -> Optional["TaxData"]:
+        payload = generate_order_payload(order)
+        return trigger_tax_webhook_sync(WebhookEventType.ORDER_CALCULATE_TAXES, payload)

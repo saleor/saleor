@@ -1,8 +1,10 @@
+import sys
 from collections import defaultdict
 from decimal import Decimal
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     Dict,
     Iterable,
     List,
@@ -24,7 +26,7 @@ from ..channel.models import Channel
 from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
-from ..core.taxes import TaxType, zero_taxed_money
+from ..core.taxes import TaxData, TaxType, zero_taxed_money
 from ..discount import DiscountInfo
 from .base_plugin import ExternalAccessTokens
 from .models import PluginConfiguration
@@ -426,6 +428,18 @@ class PluginsManager(PaymentInterface):
     def show_taxes_on_storefront(self) -> bool:
         default_value = False
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)
+
+    def get_taxes_for_checkout(self, checkout: "Checkout") -> Optional[TaxData]:
+        return self.__run_tax_method(
+            "get_taxes_for_checkout",
+            checkout,
+        )
+
+    def get_taxes_for_order(self, order: "Order") -> Optional[TaxData]:
+        return self.__run_tax_method(
+            "get_taxes_for_order",
+            order,
+        )
 
     def apply_taxes_to_product(
         self, product: "Product", price: Money, country: Country, channel_slug: str
@@ -831,6 +845,20 @@ class PluginsManager(PaymentInterface):
             f"Payment plugin {gateway} for {method_name}"
             " payment method is inaccessible!"
         )
+
+    def __run_tax_method(
+        self,
+        method_name: str,
+        taxable_object: Union["Order", "Checkout"],
+    ) -> Optional[TaxData]:
+        plugins = self.get_plugins()
+        for plugin in plugins:
+            result = self.__run_method_on_single_plugin(
+                plugin, method_name, None, taxable_object
+            )
+            if isinstance(result, TaxData):
+                return result
+        return None
 
     def _get_all_plugin_configs(self):
         with opentracing.global_tracer().start_active_span("_get_all_plugin_configs"):

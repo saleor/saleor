@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Union
+from decimal import Decimal
+from typing import List, Union
 
 from django.contrib.sites.models import Site
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
@@ -57,3 +58,25 @@ class TaxType:
 
     code: str
     description: str
+
+
+@dataclass
+class TaxLineData:
+    id: int
+    currency: str
+    unit_net_amount: Decimal
+    unit_gross_amount: Decimal
+    total_gross_amount: Decimal
+    total_net_amount: Decimal
+
+
+@dataclass
+class TaxData:
+    currency: str
+    total_net_amount: Decimal
+    total_gross_amount: Decimal
+    subtotal_net_amount: Decimal
+    subtotal_gross_amount: Decimal
+    shipping_price_gross_amount: Decimal
+    shipping_price_net_amount: Decimal
+    lines: List[TaxLineData]

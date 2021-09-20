@@ -56,6 +56,9 @@ class WebhookEventType:
     PAYMENT_CONFIRM = "payment_confirm"
     PAYMENT_PROCESS = "payment_process"
 
+    CHECKOUT_CALCULATE_TAXES = "checkout_calculate_taxes"
+    ORDER_CALCULATE_TAXES = "order_calculate_taxes"
+
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
 
@@ -95,6 +98,8 @@ class WebhookEventType:
         PAYMENT_PROCESS: "Process payment",
         PAYMENT_REFUND: "Refund payment",
         PAYMENT_VOID: "Void payment",
+        CHECKOUT_CALCULATE_TAXES: "Checkout calculate taxes",
+        ORDER_CALCULATE_TAXES: "Order calculate taxes",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
     }
@@ -135,6 +140,8 @@ class WebhookEventType:
         (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
         (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
         (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
+        (CHECKOUT_CALCULATE_TAXES, DISPLAY_LABELS[CHECKOUT_CALCULATE_TAXES]),
+        (ORDER_CALCULATE_TAXES, DISPLAY_LABELS[ORDER_CALCULATE_TAXES]),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
     ]
@@ -184,6 +191,8 @@ class WebhookEventType:
         PAYMENT_PROCESS: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_REFUND: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
+        CHECKOUT_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
+        ORDER_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
     }

@@ -21,6 +21,7 @@ from ..tests.sample_plugins import (
     InactivePaymentGateway,
     PluginInactive,
     PluginSample,
+    sample_tax_data,
 )
 
 
@@ -509,6 +510,41 @@ def test_manager_uses_get_tax_rate_choices(plugins, tax_rate_list):
 )
 def test_manager_show_taxes_on_storefront(plugins, show_taxes):
     assert show_taxes == PluginsManager(plugins=plugins).show_taxes_on_storefront()
+
+
+@pytest.mark.parametrize(
+    "plugins, expected_tax_data",
+    [
+        ([], None),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data()),
+    ],
+)
+def test_manager_get_taxes_for_checkout(
+    checkout,
+    plugins,
+    expected_tax_data,
+):
+    assert (
+        PluginsManager(plugins=plugins).get_taxes_for_checkout(checkout)
+        == expected_tax_data
+    )
+
+
+@pytest.mark.parametrize(
+    "plugins, expected_tax_data",
+    [
+        ([], None),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data()),
+    ],
+)
+def test_manager_get_taxes_for_order(
+    order,
+    plugins,
+    expected_tax_data,
+):
+    assert (
+        PluginsManager(plugins=plugins).get_taxes_for_order(order) == expected_tax_data
+    )
 
 
 @pytest.mark.parametrize(
