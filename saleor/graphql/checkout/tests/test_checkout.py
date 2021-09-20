@@ -1560,7 +1560,10 @@ def test_checkout_avail_collect_fallbacks_to_channel_country_when_no_shipping_ad
     data = content["data"]["checkout"]
 
     assert data["availableCollectionPoints"] == [
-        {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Local Warehouse"}
+        {
+            "address": {"streetAddress1": warehouse_for_cc.address.street_address_1},
+            "name": warehouse_for_cc.name,
+        }
     ]
 
 

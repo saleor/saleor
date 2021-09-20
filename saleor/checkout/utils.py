@@ -611,7 +611,6 @@ def get_valid_shipping_methods_for_checkout(
 
 def get_valid_collection_points_for_checkout(
     lines: Iterable["CheckoutLineInfo"],
-    checkout_info: "CheckoutInfo",
     country_code: Optional[str] = None,
     quantity_check: bool = True,
 ):

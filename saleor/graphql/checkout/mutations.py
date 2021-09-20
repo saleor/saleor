@@ -512,7 +512,7 @@ class CheckoutLinesAdd(BaseMutation):
         )
         checkout_info.valid_pick_up_points = (
             get_valid_collection_points_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines
+                checkout_info.shipping_address, lines
             )
         )
         return lines
@@ -562,7 +562,7 @@ class CheckoutLinesAdd(BaseMutation):
         )
         checkout_info.valid_pick_up_points = (
             get_valid_collection_points_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines
+                checkout_info.shipping_address, lines
             )
         )
 
