@@ -255,3 +255,9 @@ def order_has_gift_card_lines(order):
 def assign_user_gift_cards(user):
     GiftCard.objects.filter(used_by_email=user.email).update(used_by=user)
     GiftCard.objects.filter(created_by_email=user.email).update(created_by=user)
+
+
+def is_gift_card_expired(gift_card: GiftCard):
+    """Return True when gift card expiry date pass."""
+    today = timezone.now().date()
+    return bool(gift_card.expiry_date) and gift_card.expiry_date < today  # type: ignore
