@@ -32,3 +32,5 @@ class OrderErrorCode(Enum):
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"
     CHANNEL_INACTIVE = "channel_inactive"
+    TOO_MANY_OR_NONE_FIELDS_SPECIFIED = "too_many_or_none_fields_specified"
+    AMOUNT_TO_REFUND_TOO_BIG = "amount_to_refund_too_big"

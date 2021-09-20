@@ -362,11 +362,12 @@ def handle_refund(
         payment, refund, TransactionKind.REFUND, refund.amount, refund.currency
     )
     if payment.order:
+        payments = [{"payment": payment, "amount": refund_transaction.amount}]
         order_refunded(
             payment.order,
             None,
             None,
-            refund_transaction.amount,
-            payment,
+            payments,
             get_plugins_manager(),
+            send_notification=False,
         )

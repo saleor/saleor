@@ -690,8 +690,10 @@ def test_handle_refund(
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
     assert payment.captured_amount == Decimal("0.00")
 
+    payments = [{"payment": payment, "amount": transaction.amount}]
+
     mock_order_refunded.assert_called_once_with(
-        payment.order, None, None, transaction.amount, payment, mock.ANY
+        payment.order, None, None, payments, mock.ANY, send_notification=False
     )
     external_events = payment.order.events.filter(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION

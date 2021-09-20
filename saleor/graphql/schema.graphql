@@ -3720,7 +3720,7 @@ type Mutation {
   orderLineDiscountUpdate(input: OrderDiscountCommonInput!, orderLineId: ID!): OrderLineDiscountUpdate
   orderLineDiscountRemove(orderLineId: ID!): OrderLineDiscountRemove
   orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
-  orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
+  orderRefund(amount: PositiveDecimal, id: ID!, paymentsToRefund: [OrderPaymentToRefundInput]): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput!): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
@@ -4041,6 +4041,7 @@ type OrderError {
   warehouse: ID
   orderLines: [ID!]
   variants: [ID!]
+  payments: [ID!]
   addressType: AddressTypeEnum
 }
 
@@ -4075,6 +4076,8 @@ enum OrderErrorCode {
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
   CHANNEL_INACTIVE
+  TOO_MANY_OR_NONE_FIELDS_SPECIFIED
+  AMOUNT_TO_REFUND_TOO_BIG
 }
 
 type OrderEvent implements Node {
@@ -4312,6 +4315,11 @@ enum OrderPaymentStatusEnum {
   OVERPAID
   PARTIALLY_REFUNDED
   FULLY_REFUNDED
+}
+
+input OrderPaymentToRefundInput {
+  paymentId: ID!
+  amount: PositiveDecimal!
 }
 
 type OrderRefund {
