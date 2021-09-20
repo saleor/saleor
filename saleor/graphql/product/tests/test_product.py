@@ -10991,3 +10991,107 @@ def test_hidden_product_access_with_permission_manage_channels(
     content = get_graphql_content(response)
     total_count = content["data"]["products"]["totalCount"]
     assert total_count == 2
+
+
+def test_query_product_for_federation(api_client, product, channel_USD):
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "Product",
+                "id": product_id,
+                "channel": channel_USD.slug,
+            },
+        ],
+    }
+    query = """
+      query GetProductInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on Product {
+            id
+            name
+          }
+        }
+      }
+    """
+
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "Product",
+            "id": product_id,
+            "name": product.name,
+        }
+    ]
+
+
+def test_query_product_media_for_federation(
+    api_client, product_with_image, channel_USD
+):
+    media = product_with_image.media.first()
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductMedia",
+                "id": media_id,
+            },
+        ],
+    }
+    query = """
+      query GetProductMediaInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on ProductMedia {
+            id
+            url
+          }
+        }
+      }
+    """
+
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "ProductMedia",
+            "id": media_id,
+            "url": "http://testserver/media/products/product.jpg",
+        }
+    ]
+
+
+def test_query_product_type_for_federation(api_client, product, channel_USD):
+    product_type = product.product_type
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductType",
+                "id": product_type_id,
+            },
+        ],
+    }
+    query = """
+      query GetProductTypeInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on ProductType {
+            id
+            name
+          }
+        }
+      }
+    """
+
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "ProductType",
+            "id": product_type_id,
+            "name": product_type.name,
+        }
+    ]

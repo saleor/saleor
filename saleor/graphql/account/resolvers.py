@@ -162,7 +162,7 @@ def resolve_address(info, id):
         return models.Address.objects.filter(pk=address_pk).first()
     if user and not user.is_anonymous:
         return user.addresses.filter(id=address_pk).first()
-    return PermissionDenied()
+    raise PermissionDenied()
 
 
 def resolve_permissions(root: models.User):

@@ -153,6 +153,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `customerId` to `checkoutCustomerAttach` mutation
   - Add new permision `IMPERSONATE_USER`
 
+
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
 - Drop deprecated meta mutations - #6422 by @maarcingebala
