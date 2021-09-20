@@ -250,3 +250,9 @@ def deactivate_order_gift_cards(
 
 def order_has_gift_card_lines(order):
     return any(order.lines.filter(is_gift_card=True))
+
+
+def is_gift_card_expired(gift_card: GiftCard):
+    """Return True when gift card expiry date pass."""
+    today = timezone.now().date()
+    return bool(gift_card.expiry_date) and gift_card.expiry_date < today  # type: ignore

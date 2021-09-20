@@ -23,6 +23,7 @@ from ..utils import (
     get_gift_card_lines,
     get_non_shippable_gift_card_lines,
     gift_cards_create,
+    is_gift_card_expired,
     order_has_gift_card_lines,
     remove_gift_card_code_from_checkout,
 )
@@ -662,3 +663,41 @@ def test_order_has_gift_card_lines_true(gift_card_shippable_order_line):
 
 def test_order_has_gift_card_lines_false(order):
     assert order_has_gift_card_lines(order) is False
+
+
+def test_is_gift_card_expired_never_expired_gift_card(gift_card):
+    # given
+    assert not gift_card.expiry_date
+
+    # when
+    result = is_gift_card_expired(gift_card)
+
+    # then
+    assert result is False
+
+
+def test_is_gift_card_expired_true(gift_card):
+    # given
+    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.save(update_fields=["expiry_date"])
+
+    # when
+    result = is_gift_card_expired(gift_card)
+
+    # then
+    assert result is True
+
+
+@pytest.mark.parametrize(
+    "expiry_date", [date.today(), date.today() + timedelta(days=1)]
+)
+def test_is_gift_card_expired_false(expiry_date, gift_card):
+    # given
+    gift_card.expiry_date = expiry_date
+    gift_card.save(update_fields=["expiry_date"])
+
+    # when
+    result = is_gift_card_expired(gift_card)
+
+    # then
+    assert result is False
