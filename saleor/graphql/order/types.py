@@ -4,7 +4,7 @@ from typing import Optional
 import graphene
 import prices
 from django.core.exceptions import ValidationError
-from graphene import relay
+from graphene import String, relay
 from promise import Promise
 
 from ...account.models import Address
@@ -191,6 +191,10 @@ class OrderEvent(CountableDjangoObjectType):
         OrderEventDiscountObject, description="The discount applied to the order."
     )
 
+    psp_reference = graphene.String(description="PSP reference.")
+
+    grapqhl_payment_id: String = graphene.String(description="Grapqhl payment id.")
+
     class Meta:
         description = "History log of the order."
         model = models.OrderEvent
@@ -343,6 +347,14 @@ class OrderEvent(CountableDjangoObjectType):
         if not discount_obj:
             return None
         return get_order_discount_event(discount_obj)
+
+    @staticmethod
+    def resolve_psp_reference(root: models.OrderEvent, _info):
+        return root.parameters.get("psp_reference", None)
+
+    @staticmethod
+    def resolve_grapqhl_payment_id(root: models.OrderEvent, _info):
+        return root.parameters.get("grapqhl_payment_id", None)
 
 
 class FulfillmentLine(CountableDjangoObjectType):
