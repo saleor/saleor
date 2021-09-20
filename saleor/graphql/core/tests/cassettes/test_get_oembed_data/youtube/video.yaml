@@ -5,15 +5,15 @@ interactions:
       Connection:
       - close
       Host:
-      - www.youtube.com
+      - youtube
       User-Agent:
       - python-micawber
     method: GET
-    uri: https://www.youtube.com/oembed?scheme=https&format=json&maxheight=1080&maxwidth=1920&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DdQw4w9WgXcQ%26ab_channel%3DTestingChannel
+    uri: https://youtube/oembed?format=json&maxheight=1080&maxwidth=1920&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DdQw4w9WgXcQ
   response:
     body:
-      string: '{"title":"Rick Astley - Never Gonna Give You Up (Video)","author_name":"RickAstleyVEVO","author_url":"https://www.youtube.com/user/RickAstleyVEVO","type":"video","height":1080,"width":1920,"version":"1.0","provider_name":"YouTube","provider_url":"https://www.youtube.com/","thumbnail_height":360,"thumbnail_width":480,"thumbnail_url":"https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg","html":"\u003ciframe
-        width=\u00221920\u0022 height=\u00221080\u0022 src=\u0022https://www.youtube.com/embed/dQw4w9WgXcQ?feature=oembed\u0022
+      string: '{"title":"Rick Astley - Never Gonna Give You Up (Video)","author_name":"RickAstleyVEVO","author_url":"https://youtube/user/RickAstleyVEVO","type":"video","height":1080,"width":1920,"version":"1.0","provider_name":"YouTube","provider_url":"https://youtube/","thumbnail_height":360,"thumbnail_width":480,"thumbnail_url":"https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg","html":"\u003ciframe
+        width=\u00221920\u0022 height=\u00221080\u0022 src=\u0022https://youtube/embed/dQw4w9WgXcQ?feature=oembed\u0022
         frameborder=\u00220\u0022 allow=\u0022accelerometer; autoplay; clipboard-write;
         encrypted-media; gyroscope; picture-in-picture\u0022 allowfullscreen\u003e\u003c/iframe\u003e"}'
     headers:
@@ -29,7 +29,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 18 Mar 2021 09:22:45 GMT
+      - Thu, 18 Mar 2021 09:22:47 GMT
       Server:
       - scaffolding on HTTPServer2
       Transfer-Encoding:

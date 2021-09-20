@@ -5,19 +5,19 @@ interactions:
       Connection:
       - close
       Host:
-      - www.flickr.com
+      - flickr
       User-Agent:
       - python-micawber
     method: GET
-    uri: https://www.flickr.com/services/oembed/?format=json&maxheight=1080&maxwidth=1920&url=https%3A%2F%2Fwww.flickr.com%2Fphotos%2Fmegane_wakui%2F31740618232%2F
+    uri: https://flickr/services/oembed/?format=json&maxheight=1080&maxwidth=1920&url=https%3A%2F%2Fwww.flickr.com%2Fphotos%2Fmegane_wakui%2F31740618232%2F
   response:
     body:
       string: '{"type":"photo","flickr_type":"photo","title":"","author_name":"Masashi
-        Wakui","author_url":"https:\/\/www.flickr.com\/photos\/megane_wakui\/","width":1024,"height":681,"url":"https:\/\/live.staticflickr.com\/408\/31740618232_e5e8717408_b.jpg","web_page":"https:\/\/www.flickr.com\/photos\/megane_wakui\/31740618232\/","thumbnail_url":"https:\/\/live.staticflickr.com\/408\/31740618232_e5e8717408_q.jpg","thumbnail_width":150,"thumbnail_height":150,"web_page_short_url":"https:\/\/flic.kr\/p\/QmNXYu","license":"All
-        Rights Reserved","license_id":0,"html":"<a data-flickr-embed=\"true\" href=\"https:\/\/www.flickr.com\/photos\/megane_wakui\/31740618232\/\"
+        Wakui","author_url":"https:\/\/flickr\/photos\/megane_wakui\/","width":1024,"height":681,"url":"https:\/\/live.staticflickr.com\/408\/31740618232_e5e8717408_b.jpg","web_page":"https:\/\/flickr\/photos\/megane_wakui\/31740618232\/","thumbnail_url":"https:\/\/live.staticflickr.com\/408\/31740618232_e5e8717408_q.jpg","thumbnail_width":150,"thumbnail_height":150,"web_page_short_url":"https:\/\/flic.kr\/p\/QmNXYu","license":"All
+        Rights Reserved","license_id":0,"html":"<a data-flickr-embed=\"true\" href=\"https:\/\/flickr\/photos\/megane_wakui\/31740618232\/\"
         title=\"Untitled by Masashi Wakui, on Flickr\"><img src=\"https:\/\/live.staticflickr.com\/408\/31740618232_e5e8717408_b.jpg\"
         width=\"1024\" height=\"681\" alt=\"Untitled\"><\/a><script async src=\"https:\/\/embedr.flickr.com\/assets\/client-code.js\"
-        charset=\"utf-8\"><\/script>","version":"1.0","cache_age":3600,"provider_name":"Flickr","provider_url":"https:\/\/www.flickr.com\/"}
+        charset=\"utf-8\"><\/script>","version":"1.0","cache_age":3600,"provider_name":"Flickr","provider_url":"https:\/\/flickr\/"}
 
         '
     headers:
