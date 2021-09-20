@@ -4864,7 +4864,7 @@ def test_order_refund_fails_if_both_amount_and_payments_to_refund_specified(
     assert order_refund_data["errors"][0]["field"] == "amount"
     assert order_refund_data["errors"][1]["message"] == message
     assert order_refund_data["errors"][1]["code"] == code
-    assert order_refund_data["errors"][1]["field"] == "payments_to_refund"
+    assert order_refund_data["errors"][1]["field"] == "paymentsToRefund"
     assert order_refund_data["order"] is None
 
 
@@ -4914,7 +4914,7 @@ def test_order_refund_fails_if_both_amount_and_payments_to_refund_missing(
     assert order_refund_data["errors"][0]["field"] == "amount"
     assert order_refund_data["errors"][1]["message"] == message
     assert order_refund_data["errors"][1]["code"] == code
-    assert order_refund_data["errors"][1]["field"] == "payments_to_refund"
+    assert order_refund_data["errors"][1]["field"] == "paymentsToRefund"
     assert order_refund_data["order"] is None
 
 
