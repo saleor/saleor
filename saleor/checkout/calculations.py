@@ -1,8 +1,12 @@
 from typing import TYPE_CHECKING, Iterable, Optional
 
+from django.conf import settings
+from django.utils import timezone
+
 from ..core.prices import quantize_price
-from ..core.taxes import zero_taxed_money
+from ..core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
 from ..discount import DiscountInfo
+from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
     from prices import TaxedMoney
@@ -17,17 +21,22 @@ def checkout_shipping_price(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    address: Optional["Address"],
+    address: Optional["Address"] = None,
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    force_update: bool = False,
 ) -> "TaxedMoney":
     """Return checkout shipping price.
 
     It takes in account all plugins.
     """
-    calculated_checkout_shipping = manager.calculate_checkout_shipping(
-        checkout_info, lines, address, discounts or []
-    )
-    return quantize_price(calculated_checkout_shipping, checkout_info.checkout.currency)
+    return fetch_checkout_prices_if_expired(
+        checkout_info,
+        manager=manager,
+        lines=lines,
+        address=address,
+        discounts=discounts,
+        force_update=force_update,
+    ).shipping_price
 
 
 def checkout_subtotal(
@@ -35,25 +44,31 @@ def checkout_subtotal(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    address: Optional["Address"],
+    address: Optional["Address"] = None,
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    force_update: bool = False,
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
     It takes in account all plugins.
     """
-    calculated_checkout_subtotal = manager.calculate_checkout_subtotal(
-        checkout_info, lines, address, discounts or []
-    )
-    return quantize_price(calculated_checkout_subtotal, checkout_info.checkout.currency)
+    return fetch_checkout_prices_if_expired(
+        checkout_info,
+        manager=manager,
+        lines=lines,
+        address=address,
+        discounts=discounts,
+        force_update=force_update,
+    ).subtotal
 
 
 def calculate_checkout_total_with_gift_cards(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    address: Optional["Address"],
+    address: Optional["Address"] = None,
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    force_update: bool = False,
 ) -> "TaxedMoney":
     total = (
         checkout_total(
@@ -62,6 +77,7 @@ def calculate_checkout_total_with_gift_cards(
             lines=lines,
             address=address,
             discounts=discounts,
+            force_update=force_update,
         )
         - checkout_info.checkout.get_total_gift_cards_balance()
     )
@@ -74,8 +90,9 @@ def checkout_total(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    address: Optional["Address"],
+    address: Optional["Address"] = None,
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    force_update: bool = False,
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -84,30 +101,198 @@ def checkout_total(
 
     It takes in account all plugins.
     """
-    calculated_checkout_total = manager.calculate_checkout_total(
-        checkout_info, lines, address, discounts or []
-    )
-    return quantize_price(calculated_checkout_total, checkout_info.checkout.currency)
+    return fetch_checkout_prices_if_expired(
+        checkout_info,
+        manager=manager,
+        lines=lines,
+        address=address,
+        discounts=discounts,
+        force_update=force_update,
+    ).total
 
 
 def checkout_line_total(
     *,
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    discounts: Iterable[DiscountInfo] = [],
+    lines: Iterable["CheckoutLineInfo"],
+    address: Optional["Address"] = None,
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+    force_update: bool = False,
 ) -> "TaxedMoney":
     """Return the total price of provided line, taxes included.
 
     It takes in account all plugins.
     """
-    address = checkout_info.shipping_address or checkout_info.billing_address
-    calculated_line_total = manager.calculate_checkout_line_total(
-        checkout_info,
-        lines,
-        checkout_line_info,
-        address,
-        discounts or [],
+    return (
+        fetch_checkout_prices_if_expired(
+            checkout_info=checkout_info,
+            manager=manager,
+            lines=lines,
+            address=address,
+            discounts=discounts,
+            force_update=force_update,
+        )
+        .lines.get(pk=checkout_line_info.line.pk)
+        .total_price
     )
-    return quantize_price(calculated_line_total, checkout_info.checkout.currency)
+
+
+def checkout_line_unit_price(
+    *,
+    manager: "PluginsManager",
+    checkout_info: "CheckoutInfo",
+    checkout_line_info: "CheckoutLineInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    address: Optional["Address"] = None,
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+    force_update: bool = False,
+) -> "TaxedMoney":
+    """Return the unit price of provided line, taxes included.
+
+    It takes in account all plugins.
+    """
+    return (
+        fetch_checkout_prices_if_expired(
+            checkout_info=checkout_info,
+            manager=manager,
+            lines=lines,
+            address=address,
+            discounts=discounts,
+            force_update=force_update,
+        )
+        .lines.get(pk=checkout_line_info.line.pk)
+        .unit_price
+    )
+
+
+def fetch_checkout_prices_if_expired(
+    checkout_info: "CheckoutInfo",
+    manager: "PluginsManager",
+    lines: Iterable["CheckoutLineInfo"],
+    address: Optional["Address"] = None,
+    discounts: Optional[Iterable["DiscountInfo"]] = None,
+    force_update: bool = False,
+) -> "Checkout":
+    checkout = checkout_info.checkout
+
+    if not force_update and checkout.price_expiration < timezone.now():
+        return checkout
+
+    plugins_tax_data = _get_tax_data_from_plugins(
+        checkout, manager, checkout_info, lines, address, discounts
+    )
+
+    webhooks_tax_data = manager.get_taxes_for_checkout(checkout)
+
+    if plugins_tax_data:
+        _apply_tax_data(checkout, plugins_tax_data)
+    if webhooks_tax_data:
+        _apply_tax_data(checkout, webhooks_tax_data)
+
+    return checkout
+
+
+def _apply_tax_data(checkout: "Checkout", tax_data: TaxData) -> None:
+    def QP(price):
+        return quantize_price(price, checkout.currency)
+
+    checkout.total_net_amount = QP(tax_data.total_net_amount)
+    checkout.total_gross_amount = QP(tax_data.total_gross_amount)
+
+    checkout.subtotal_net_amount = QP(tax_data.subtotal_net_amount)
+    checkout.subtotal_gross_amount = QP(tax_data.subtotal_gross_amount)
+
+    checkout.shipping_price_net_amount = QP(tax_data.shipping_price_net_amount)
+    checkout.shipping_price_gross_amount = QP(tax_data.shipping_price_gross_amount)
+
+    for (checkout_line, tax_line_data) in zip(
+        checkout.lines.iterator(), tax_data.lines
+    ):
+        checkout_line.unit_price_net_amount = QP(tax_line_data.unit_net_amount)
+        checkout_line.unit_price_gross_amount = QP(tax_line_data.unit_gross_amount)
+
+        checkout_line.total_price_net_amount = QP(tax_line_data.total_net_amount)
+        checkout_line.total_price_gross_amount = QP(tax_line_data.total_gross_amount)
+
+    CheckoutLine.objects.bulk_update(
+        checkout.lines.all(),
+        [
+            "unit_price_net_amount",
+            "unit_price_gross_amount",
+            "total_price_net_amount",
+            "total_price_gross_amount",
+        ],
+    )
+
+    checkout.price_expiration += settings.CHECKOUT_PRICES_TTL
+    checkout.save(
+        update_fields=[
+            "total_net_amount",
+            "total_gross_amount",
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
+            "shipping_price_net_amount",
+            "shipping_price_gross_amount",
+            "price_expiration",
+        ]
+    )
+
+
+def _get_tax_data_from_plugins(
+    checkout: "Checkout",
+    manager: "PluginsManager",
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    address: Optional["Address"],
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+) -> Optional[TaxData]:
+    def get_line_unit_price(
+        line: CheckoutLine, line_info: "CheckoutLineInfo"
+    ) -> "TaxedMoney":
+        return manager.calculate_checkout_line_unit_price(
+            line.total_price,
+            line.quantity,
+            checkout_info,
+            lines,
+            line_info,
+            address,
+            discounts or [],
+        )
+
+    try:
+        tax_lines = [
+            TaxLineData(
+                id=0,
+                currency=checkout.currency,
+                unit_net_amount=(
+                    unit_price := get_line_unit_price(line, line_info)
+                ).net.amount,
+                unit_gross_amount=unit_price.gross.amount,
+                total_net_amount=(total_price := unit_price * line.quantity).net.amount,
+                total_gross_amount=total_price.gross.amount,
+            )
+            for (line, line_info) in zip(checkout.lines.iterator(), lines)
+        ]
+
+        shipping_price = manager.calculate_checkout_shipping(
+            checkout_info, lines, address, discounts or []
+        )
+        subtotal = manager.calculate_checkout_subtotal(
+            checkout_info, lines, address, discounts or []
+        )
+        total = shipping_price + subtotal
+
+        return TaxData(
+            currency=checkout.currency,
+            total_net_amount=total.net.amount,
+            total_gross_amount=total.gross.amount,
+            subtotal_net_amount=subtotal.net.amount,
+            subtotal_gross_amount=subtotal.gross.amount,
+            shipping_price_net_amount=shipping_price.net.amount,
+            shipping_price_gross_amount=shipping_price.gross.amount,
+            lines=tax_lines,
+        )
+    except TaxError:
+        return None
