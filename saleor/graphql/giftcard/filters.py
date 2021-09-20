@@ -12,7 +12,6 @@ from ...product import models as product_models
 from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
 from ..core.types.common import PriceRangeInput
-from ..core.utils import from_global_id_or_error
 from ..utils import resolve_global_ids_to_primary_keys
 from .enums import GiftCardEventsEnum
 
@@ -123,15 +122,15 @@ def filter_events_by_type(events: List[models.GiftCardEvent], type_value: str):
     return filtered_events
 
 
-def filter_events_by_order_id(events: List[models.GiftCardEvent], order_id: str):
-    _type, order_pk = from_global_id_or_error(order_id, "Order")
+def filter_events_by_orders(events: List[models.GiftCardEvent], order_ids: List[str]):
+    _, order_pks = resolve_global_ids_to_primary_keys(order_ids, "Order")
     filtered_events = []
     for event in events:
-        if str(event.parameters.get("order_id")) == order_pk:
+        if str(event.parameters.get("order_id")) in order_pks:
             filtered_events.append(event)
     return filtered_events
 
 
 class GiftCardEventFilterInput(graphene.InputObjectType):
     type = graphene.Argument(GiftCardEventsEnum)
-    order_id = graphene.Argument(graphene.ID)
+    orders = graphene.List(graphene.NonNull(graphene.ID))

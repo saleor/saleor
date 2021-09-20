@@ -27,7 +27,7 @@ from .dataloaders import GiftCardEventsByGiftCardIdLoader
 from .enums import GiftCardEventsEnum
 from .filters import (
     GiftCardEventFilterInput,
-    filter_events_by_order_id,
+    filter_events_by_orders,
     filter_events_by_type,
 )
 
@@ -390,8 +390,8 @@ class GiftCard(CountableDjangoObjectType):
             event_filter = kwargs.get("filter", {})
             if event_type_value := event_filter.get("type"):
                 events = filter_events_by_type(events, event_type_value)
-            if order_id_value := event_filter.get("order_id"):
-                events = filter_events_by_order_id(events, order_id_value)
+            if orders_value := event_filter.get("orders"):
+                events = filter_events_by_orders(events, orders_value)
             return events
 
         return (

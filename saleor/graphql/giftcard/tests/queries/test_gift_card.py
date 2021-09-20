@@ -689,11 +689,10 @@ def test_query_gift_card_events_filter_by_type(
         assert event_data["type"] == gift_card_type
 
 
-def test_query_gift_card_events_filter_by_order_id(
+def test_query_gift_card_events_filter_by_orders(
     staff_api_client,
     gift_card_expiry_date,
     gift_card,
-    order,
     app,
     permission_manage_gift_card,
     permission_manage_apps,
@@ -701,21 +700,27 @@ def test_query_gift_card_events_filter_by_order_id(
 ):
     # given
     previous_balance = 10.0
-    balance_data = [(gift_card, previous_balance)]
-    order_pk = 1
+    order_pk_1 = 1
     events.gift_cards_bought_event(
-        [gift_card, gift_card_expiry_date], order.id, None, app
+        [gift_card, gift_card_expiry_date], order_pk_1, None, app
     )
-    events.gift_cards_used_in_order_event(balance_data, order_pk, None, app)
+    balance_data = [(gift_card, previous_balance)]
+    order_pk_2 = 2
+    events.gift_cards_used_in_order_event(balance_data, order_pk_2, None, app)
+    order_pk_3 = 3
+    events.gift_cards_used_in_order_event(balance_data, order_pk_3, None, app)
 
-    assert gift_card.events.count() == 2
-    assert GiftCardEvent.objects.count() == 3
+    assert gift_card.events.count() == 3
+    assert GiftCardEvent.objects.count() == 4
 
-    order_id = graphene.Node.to_global_id("Order", order_pk)
+    order_ids = [
+        graphene.Node.to_global_id("Order", order_pk)
+        for order_pk in [order_pk_1, order_pk_2]
+    ]
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
         "filter": {
-            "orderId": order_id,
+            "orders": order_ids,
         },
     }
 
@@ -734,11 +739,15 @@ def test_query_gift_card_events_filter_by_order_id(
     content = get_graphql_content(response)
     data = content["data"]["giftCard"]
     events_data = data["events"]
-    assert len(events_data) == 1
-    assert events_data[0]["orderId"] == order_id
+    assert len(events_data) == 2
+    assert {event["orderId"] for event in events_data} == set(order_ids)
+    assert {event["type"] for event in events_data} == {
+        GiftCardEvents.USED_IN_ORDER.upper(),
+        GiftCardEvents.BOUGHT.upper(),
+    }
 
 
-def test_query_gift_card_events_filter_by_order_id_no_events(
+def test_query_gift_card_events_filter_by_orders_no_events(
     staff_api_client,
     gift_card_expiry_date,
     gift_card,
@@ -764,7 +773,7 @@ def test_query_gift_card_events_filter_by_order_id_no_events(
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
         "filter": {
-            "orderId": order_id,
+            "orders": [order_id],
         },
     }
 

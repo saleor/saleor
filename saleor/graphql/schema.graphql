@@ -2416,7 +2416,7 @@ type GiftCardEventBalance {
 
 input GiftCardEventFilterInput {
   type: GiftCardEventsEnum
-  orderId: ID
+  orders: [ID!]
 }
 
 enum GiftCardEventsEnum {
