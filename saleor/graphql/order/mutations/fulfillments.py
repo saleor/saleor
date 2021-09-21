@@ -1,4 +1,5 @@
 from collections import defaultdict
+from decimal import Decimal
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -644,26 +645,6 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         error_type_class = OrderError
         error_type_field = "order_errors"
 
-    # @classmethod
-    # def _check_required_fields(cls, payments_to_refund, amount_to_refund):
-    #     if (payments_to_refund and amount_to_refund) or (
-    #         not payments_to_refund and not amount_to_refund
-    #     ):
-    #         raise ValidationError(
-    #             {
-    #                 "payments_to_refund": ValidationError(
-    #                     "Either payments_to_refund or "
-    #                     "amount_to_refund should be specified.",
-    #                     code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
-    #                 ),
-    #                 "amount_to_refund": ValidationError(
-    #                     "Either payments_to_refund or "
-    #                     "amount_to_refund should be specified.",
-    #                     code=OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED,
-    #                 ),
-    #             }
-    #         )
-
     @classmethod
     def _check_shipping_costs(cls, payments_to_refund):
         num_of_occurances = 0
@@ -696,10 +677,10 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             ]
             raise ValidationError(
                 {
-                    "payment": ValidationError(
+                    "payments_to_refund": ValidationError(
                         "These payments do not belong to the order.",
                         code=OrderErrorCode.PAYEMENTS_DO_NOT_BELONG_TO_ORDER,
-                        params={"improper_payments": improper_payments_global_ids},
+                        params={"payments": improper_payments_global_ids},
                     )
                 }
             )
@@ -719,34 +700,42 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
 
     @classmethod
     def _get_payments_to_refund(
-        cls, order, payments_to_refund, amount_to_refund, include_shipping_costs
+        cls, info, order, payments_to_refund, amount_to_refund, include_shipping_costs
     ):
         if payments_to_refund:
             cls._check_shipping_costs(payments_to_refund)
-            # TODO Anatoly, add a check for the amount
-            payments = [
-                {
-                    "payment": item["payment"],
-                    "amount": item["amount"]
-                    if item.get("amount")
-                    else item["payment"].captured_amount,
-                    "include_shipping_costs": item.get("include_shipping_costs"),
+            payments = []
+            for item in payments_to_refund:
+                payment = cls.get_node_or_error(info, item["payment_id"])
+                include_shipping_costs = item.get("include_shipping_costs")
+                amount = item.get("amount")
+                # If the shipping costs are included then the amount should be None.
+                amount = (
+                    amount
+                    if amount or include_shipping_costs
+                    else payment.captured_amount
+                )
+                data = {
+                    "payment": payment,
+                    "amount": amount,
+                    "include_shipping_costs": include_shipping_costs,
                 }
-                for item in payments_to_refund
-            ]
+                payments.append(data)
+
             cls._check_payments_belong_to_order(order, payments)
         else:
             cls._check_order_has_single_payment(order)
             payment = order.payments.first()
-            # TODO Anatoly, add a check for the amount
             payments = [
                 {
                     "payment": payment,
-                    "amount": amount_to_refund,
+                    "amount": amount_to_refund or Decimal("0"),
                     "include_shipping_costs": include_shipping_costs,
                 }
             ]
+            # import pdb
 
+            # pdb.set_trace()
         return payments
 
     @classmethod
@@ -754,20 +743,19 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         cleaned_input = {}
         payments_to_refund = input.get("payments_to_refund")
         amount_to_refund = input.get("amount_to_refund")
-        include_shipping_costs = input.get("include_shipping_costs")
 
-        # cls._check_required_fields(payments_to_refund, amount_to_refund)
+        include_shipping_costs = input.get("include_shipping_costs")
 
         qs = order_models.Order.objects.prefetch_related("payments")
         order = cls.get_node_or_error(
             info, order_id, field="order", only_type=Order, qs=qs
         )
         payments = cls._get_payments_to_refund(
-            order, payments_to_refund, amount_to_refund, include_shipping_costs
+            info, order, payments_to_refund, amount_to_refund, include_shipping_costs
         )
         for item in payments:
             cls.clean_order_payment(item["payment"], cleaned_input)
-            cls.clean_amount_to_refund(amount_to_refund, item["payment"], cleaned_input)
+            cls.clean_amount_to_refund(item["amount"], item["payment"], cleaned_input)
 
         cleaned_input.update(
             {

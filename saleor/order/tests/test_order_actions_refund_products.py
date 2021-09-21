@@ -256,3 +256,11 @@ def test_create_refund_fulfillment_custom_amount(
 
     assert returned_fulfillemnt.total_refund_amount == amount
     assert returned_fulfillemnt.shipping_refund_amount is None
+
+
+def test_process_refund_if_no_amount_and_one_payment():
+    pass
+
+
+def test_process_refund_calls_refund_for_every_payment():
+    pass

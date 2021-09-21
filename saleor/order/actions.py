@@ -908,20 +908,29 @@ def create_refund_fulfillment(
     unfulfilled lines will be deallocated.
     """
 
-    total_refund_amount = 0
-    shipping_refund_amount = None
-    refund_amount = (
-        Decimal(sum([item["amount"] for item in payments if item["amount"]])) or None
-    )
-
     with transaction_with_commit_on_errors():
+        shipping_refund_amount = None
         for item in payments:
             if item["include_shipping_costs"]:
-                shipping_refund_amount = __get_shipping_refund_amount(
-                    item["include_shipping_costs"],
-                    item["amount"],
-                    order.shipping_price_gross_amount,
-                )
+                # shipping_refund_amount = __get_shipping_refund_amount(
+                #     item["include_shipping_costs"],
+                #     item["amount"],
+                #     order.shipping_price_gross_amount,
+                # )
+                shipping_refund_amount = order.shipping_price_gross_amount
+                # If payments_to_refind has been specified.
+                if item["amount"] is None:
+                    item["amount"] = shipping_refund_amount
+                # If amount_to_refind has been specified.
+                elif item["amount"] > 0:
+                    item["amount"] += shipping_refund_amount
+        refund_amount = (
+            Decimal(sum([item["amount"] for item in payments if item["amount"]]))
+            or None
+        )
+        # import pdb
+
+        # pdb.set_trace()
         total_refund_amount = _process_refund(
             user=user,
             app=app,
@@ -1373,15 +1382,17 @@ def _process_refund(
         order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
     )
 
-    # If the amount is still None then there can be only one payment.
-    if amount is None and len(payments) == 1:
+    # Happens when neither payments_to_refund nor amount_to_refund were specified.
+    if amount is None:
         amount = refund_amount
         # we take into consideration the shipping costs only when amount is not
         # provided.
         if refund_shipping_costs:
             amount += order.shipping_price_gross_amount
         payments[0]["amount"] = min(payments[0]["payment"].captured_amount, amount)
+    # import pdb
 
+    # pdb.set_trace()
     if amount:
         for item in payments:
             try:
@@ -1408,7 +1419,7 @@ def _process_refund(
                     order=order,
                     user=user,
                     app=app,
-                    amount=amount,  # type: ignore
+                    amount=item["amount"],  # type: ignore
                     payment=item["payment"],
                 )
             )
