@@ -110,7 +110,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             raise ValidationError(
                 {
                     "amount": ValidationError(
-                        "Amount should not exceed checkout's total.",
+                        "Amount should not exceed checkout's remaining amount.",
                         code=PaymentErrorCode.PARTIAL_PAYMENT_TOTAL_EXCEEDED,
                     )
                 }
