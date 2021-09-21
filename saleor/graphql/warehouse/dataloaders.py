@@ -49,7 +49,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             for variant_id, quantity in quantities:
                 quantity_by_variant_and_country[
                     (variant_id, country_code, channel_slug)
-                ] = quantity
+                ] = max(0, quantity)
 
         return [quantity_by_variant_and_country[key] for key in keys]
 
