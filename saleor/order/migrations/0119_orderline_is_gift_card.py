@@ -5,11 +5,13 @@ from django.db import migrations, models
 
 def set_is_gift_card_field(apps, schema_editor):
     OrderLine = apps.get_model("order", "OrderLine")
-    for line in OrderLine.objects.iterator():
+    for line in OrderLine.objects.prefetch_related(
+        "variant__product__product_type"
+    ).iterator():
         line.is_gift_card = (
-            line.variant and line.variant.product.product_type.kind == "gift_card"
+            bool(line.variant) and line.variant.product.product_type.kind == "gift_card"
         )
-        line.save()
+        line.save(update_fields=["is_gift_card"])
 
 
 class Migration(migrations.Migration):
