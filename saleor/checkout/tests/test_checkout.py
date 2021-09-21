@@ -393,25 +393,25 @@ def test_get_discount_for_checkout_shipping_voucher(
 ):
     manager = get_plugins_manager()
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
+    shipping = TaxedMoney(Money(shipping_cost, "USD"), Money(shipping_cost, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
         lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: subtotal,
+        "saleor.discount.utils.calculations.checkout_shipping_price",
+        lambda manager, checkout_info, lines, address, discounts: shipping,
     )
     monkeypatch.setattr(
         "saleor.checkout.utils.is_shipping_required", lambda lines: True
     )
-    shipping_total = Money(shipping_cost, "USD")
     checkout = Mock(
         spec=Checkout,
         is_shipping_required=Mock(return_value=True),
         channel_id=channel_USD.id,
         channel=channel_USD,
         shipping_method=shipping_method,
-        get_shipping_price=Mock(return_value=shipping_total),
+        get_shipping_price=Mock(return_value=shipping.gross),
         shipping_address=Mock(country=Country(shipping_country_code)),
     )
     voucher = Voucher.objects.create(
