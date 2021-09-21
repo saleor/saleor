@@ -592,9 +592,11 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     @classmethod
     @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
+        # For update maybe good idea will be to put webhook into perform_mutation
+        # in order to grab "old" values and calculate differences correctly...
         instance.save()
         transaction.on_commit(
-            functools.partial(info.context.plugins.sale_created, instance)
+            functools.partial(info.context.plugins.sale_updated, instance)
         )
 
 
@@ -617,7 +619,7 @@ class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
         response = super().perform_mutation(_root, info, **data)
 
         transaction.on_commit(
-            functools.partial(info.context.plugins.sale_created, instance)
+            functools.partial(info.context.plugins.sale_deleted, instance)
         )
         return response
 
