@@ -288,10 +288,15 @@ class CheckoutPaymentComplete(BaseMutation, I18nMixin):
     def perform_mutation(cls, _root, info, token, payment_id, **data):
         tracking_code = analytics.get_client_id(info.context)
         with transaction_with_commit_on_errors():
-            checkout = get_checkout_by_token(token)
-            qs = models.Payment.objects.filter(checkout=checkout)
+            checkout = get_checkout_by_token(
+                token, qs=models.Checkout.objects.select_for_update(of=["self"])
+            )
             payment = cls.get_node_or_error(
-                info, payment_id, field="payment_id", only_type=Payment, qs=qs
+                info,
+                payment_id,
+                field="payment_id",
+                only_type=Payment,
+                qs=models.Payment.objects.filter(checkout=checkout),
             )
 
             manager = info.context.plugins

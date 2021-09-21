@@ -659,22 +659,20 @@ def complete_checkout(
     """
     checkout = checkout_info.checkout
 
-    # For individual payments, checkoutComplete will process the payment,
-    # otherwise a specific paymentID has to be provided
-    incomplete_payments = [
-        p for p in get_active_payments(checkout) if not p.is_authorized
-    ]
-
     if payment is None:
-        if len(incomplete_payments) > 1:
-            raise ValidationError(
-                "When multiple active payments are present you have to provide "
-                "a specific paymentID as the input parameter.",
-                code=CheckoutErrorCode.PAYMENT_NOT_SET.value,
-            )
+        active_payments = get_active_payments(checkout)
+        if len(active_payments) == 1:
+            payment = active_payments[0]
 
-        elif len(incomplete_payments) == 1:
-            payment = incomplete_payments[0]
+        # Implies partial payments
+        elif len(active_payments) > 1:
+            incomplete_payments = [p for p in active_payments if p.not_charged]
+            if len(incomplete_payments) > 1:
+                raise ValidationError(
+                    "When multiple active payments are present you have to provide "
+                    "a specific paymentID as the input parameter.",
+                    code=CheckoutErrorCode.PAYMENT_NOT_SET.value,
+                )
 
     _prepare_checkout(
         manager=manager,

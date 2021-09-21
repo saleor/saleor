@@ -297,12 +297,19 @@ def test_checkout_add_partial_payment(
     quarter_total = total.gross / 4
     assert quarter_total.amount > 0
 
-    Payment.objects.create(
+    partial_payment = Payment.objects.create(
         is_active=True,
         charge_status=ChargeStatus.FULLY_CHARGED,
         total=3 * quarter_total.amount,
         captured_amount=3 * quarter_total.amount,
         checkout=checkout,
+        gateway="mirumee.payments.dummy",
+    )
+    partial_payment.transactions.create(
+        kind=TransactionKind.CAPTURE,
+        is_success=True,
+        amount=3 * quarter_total.amount,
+        gateway_response={},
     )
 
     # when

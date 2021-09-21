@@ -84,7 +84,7 @@ from ..payment.interface import (
     PaymentData,
     PaymentMethodInfo,
 )
-from ..payment.models import Payment
+from ..payment.models import Payment, Transaction
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
@@ -366,26 +366,43 @@ def checkout_with_payments_factory(
         captured_amount = (
             amount if charge_status != ChargeStatus.AUTHORIZED else Decimal("0")
         )
+        kind = None
+        if charge_status == ChargeStatus.AUTHORIZED:
+            kind = TransactionKind.AUTH
+        elif charge_status == ChargeStatus.FULLY_CHARGED:
+            kind = TransactionKind.CAPTURE
 
         payments = []
+        transactions = []
         for i in range(num_payments):
-            payments.append(
-                Payment(
+            payment = Payment(
+                **{
+                    **payment_kwargs,
                     **{
-                        **payment_kwargs,
-                        **{
-                            "order": None,
-                            "checkout": checkout,
-                            "currency": checkout.currency,
-                            "charge_status": charge_status,
-                            "token": payment_token,
-                            "total": amount,
-                            "captured_amount": captured_amount,
-                        },
-                    }
-                )
+                        "order": None,
+                        "checkout": checkout,
+                        "currency": checkout.currency,
+                        "charge_status": charge_status,
+                        "token": payment_token,
+                        "total": amount,
+                        "captured_amount": captured_amount,
+                    },
+                }
             )
+            payments.append(payment)
+
+            if kind:
+                transactions.append(
+                    Transaction(
+                        payment=payment,
+                        amount=amount,
+                        kind=kind,
+                        is_success=True,
+                        gateway_response={},
+                    )
+                )
         Payment.objects.bulk_create(payments)
+        Transaction.objects.bulk_create(transactions)
 
         return checkout
 

@@ -627,7 +627,7 @@ def clear_shipping_method(checkout_info: "CheckoutInfo"):
     checkout.save(update_fields=["shipping_method", "last_change"])
 
 
-def get_active_payments(checkout: Checkout):
+def get_active_payments(checkout: Checkout) -> List[Payment]:
     return [p for p in checkout.payments.all() if p.is_active]
 
 
