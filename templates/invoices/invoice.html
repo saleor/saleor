@@ -158,12 +158,12 @@
         }
 
         .cell-total-price {
-            width: 15%;
+            width: 20%;
             text-align: right;
         }
 
         .cell-summary {
-            width: 80%;
+            width: 70%;
             text-align: right;
             padding-right: 30px;
         }
@@ -319,7 +319,7 @@
                     {% if product_set|length > 11 %}
                         <div class="page-break"></div>
                     {% endif %}
-                    {% include "invoices/invoice_summary_table.html" with order=order %}
+                    {% include "invoices/invoice_summary_table.html" with order=order gift_cards_payment=gift_cards_payment %}
                 {% endif %}
             {% endfor %}
         {% endif %}
