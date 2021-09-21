@@ -117,9 +117,9 @@ class PluginsManager(PaymentInterface):
         channel_slug: Optional[str] = None,
         **kwargs
     ):
-        """Try to run a method with the given name on each declared plugin."""
+        """Try to run a method with the given name on each declared active plugin."""
         value = default_value
-        plugins = self.get_plugins(channel_slug=channel_slug)
+        plugins = self.get_plugins(channel_slug=channel_slug, active_only=True)
         for plugin in plugins:
             value = self.__run_method_on_single_plugin(
                 plugin, method_name, value, *args, **kwargs
