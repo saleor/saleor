@@ -17,6 +17,7 @@ from ...product.tasks import (
 from ...product.utils import get_products_ids_without_variants
 from ..channel import ChannelContext
 from ..channel.mutations import BaseChannelListingMutation
+from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import DiscountError
@@ -47,7 +48,7 @@ class CatalogueInput(graphene.InputObjectType):
     )
     variants = graphene.List(
         graphene.ID,
-        description="Product variant related to the discount.",
+        description=f"{ADDED_IN_31} Product variant related to the discount.",
         name="variants",
     )
 
@@ -142,7 +143,9 @@ class VoucherInput(graphene.InputObjectType):
         graphene.ID, description="Products discounted by the voucher.", name="products"
     )
     variants = graphene.List(
-        graphene.ID, description="Variants discounted by the voucher.", name="variants"
+        graphene.ID,
+        description=f"{ADDED_IN_31} Variants discounted by the voucher.",
+        name="variants",
     )
     collections = graphene.List(
         graphene.ID,

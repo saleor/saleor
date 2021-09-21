@@ -64,7 +64,7 @@ def get_product_discount_on_sale(
         or product.category_id in discount.category_ids
         or product_collections.intersection(discount.collection_ids)
     )
-    is_variant_on_sale = variant_id is not None and variant_id in discount.variants_ids
+    is_variant_on_sale = variant_id and variant_id in discount.variants_ids
     if is_product_on_sale or is_variant_on_sale:
         sale_channel_listing = discount.channel_listings.get(channel.slug)
         return discount.sale.get_discount(sale_channel_listing)  # type: ignore

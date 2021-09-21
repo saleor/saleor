@@ -11,6 +11,7 @@ from ..channel.types import (
 )
 from ..core import types
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31
 from ..core.fields import (
     ChannelContextFilterConnectionField,
     ChannelQsContext,
@@ -55,7 +56,8 @@ class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         Product, description="List of products this sale applies to."
     )
     variants = ChannelContextFilterConnectionField(
-        ProductVariant, description="List of product variants this sale applies to."
+        ProductVariant,
+        description=f"{ADDED_IN_31} List of product variants this sale applies to.",
     )
     translation = TranslationField(
         SaleTranslation,
@@ -160,7 +162,8 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         Product, description="List of products this voucher applies to."
     )
     variants = ChannelContextFilterConnectionField(
-        ProductVariant, description="List of product variants this voucher applies to."
+        ProductVariant,
+        description=f"{ADDED_IN_31} List of product variants this voucher applies to.",
     )
     countries = graphene.List(
         types.CountryDisplay,

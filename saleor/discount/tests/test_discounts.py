@@ -110,13 +110,13 @@ def test_valid_voucher_min_checkout_items_quantity(voucher):
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_discount_for_variants_is_applied_to_single_variant(product, channel_USD):
-
+    discount_value = 5
     variant = product.variants.get()
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     sale = Sale.objects.create(type=DiscountValueType.FIXED)
     sale_channel_listing = SaleChannelListing.objects.create(
         sale=sale,
-        discount_value=5,
+        discount_value=discount_value,
         currency=channel_USD.currency_code,
         channel=channel_USD,
     )
@@ -137,7 +137,7 @@ def test_discount_for_variants_is_applied_to_single_variant(product, channel_USD
         product, [], channel_USD, variant_channel_listing, discounts=[discount_info]
     )
 
-    assert new_price == old_price - Money("5", "USD")
+    assert new_price == old_price - Money(discount_value, "USD")
 
 
 @pytest.mark.integration
@@ -145,13 +145,13 @@ def test_discount_for_variants_is_applied_to_single_variant(product, channel_USD
 def test_discount_for_variants_are_not_applied_twice_for_variant_assigned_to_product(
     product, channel_USD
 ):
-
+    discount_value = 5
     variant = product.variants.get()
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     sale = Sale.objects.create(type=DiscountValueType.FIXED)
     sale_channel_listing = SaleChannelListing.objects.create(
         sale=sale,
-        discount_value=5,
+        discount_value=discount_value,
         currency=channel_USD.currency_code,
         channel=channel_USD,
     )
@@ -172,7 +172,7 @@ def test_discount_for_variants_are_not_applied_twice_for_variant_assigned_to_pro
         product, [], channel_USD, variant_channel_listing, discounts=[discount_info]
     )
 
-    assert new_price == old_price - Money("5", "USD")
+    assert new_price == old_price - Money(discount_value, "USD")
 
 
 @pytest.mark.integration
@@ -240,6 +240,7 @@ def test_variant_discounts(product, channel_USD):
 def test_discount_for_variants_when_sale_for_specific_variants_only(
     product, channel_USD
 ):
+    discount_value = 5
     variant = ProductVariant.objects.create(product=product, sku="456")
     ProductVariantChannelListing.objects.create(
         variant=variant,
@@ -258,7 +259,7 @@ def test_discount_for_variants_when_sale_for_specific_variants_only(
     )
     product.refresh_from_db()
 
-    all_variants = list(product.variants.all())
+    all_variants = product.variants.all()
     first_variant, *rest_variants = all_variants
 
     first_variant_channel_listing = first_variant.channel_listings.get(
@@ -267,7 +268,7 @@ def test_discount_for_variants_when_sale_for_specific_variants_only(
     sale = Sale.objects.create(type=DiscountValueType.FIXED)
     sale_channel_listing = SaleChannelListing.objects.create(
         sale=sale,
-        discount_value=13,
+        discount_value=discount_value,
         currency=channel_USD.currency_code,
         channel=channel_USD,
     )
@@ -310,7 +311,7 @@ def test_discount_for_variants_when_sale_for_specific_variants_only(
 
     assert new_price == old_price
     for p1, p2 in zip(new_price_for_applied_variants, old_price_for_applied_variants):
-        assert p1 < p2
+        assert p1 == p2 - Money(discount_value, "USD")
 
 
 @pytest.mark.integration
