@@ -406,6 +406,7 @@ def test_checkout_add_payment_bad_partial_amount(
         is_active=True,
         charge_status=ChargeStatus.FULLY_CHARGED,
         total=half_total.amount,
+        captured_amount=half_total.amount,
         checkout=checkout,
     )
 

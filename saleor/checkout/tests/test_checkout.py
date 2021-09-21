@@ -1133,7 +1133,7 @@ def test_is_fully_covered_many_payments(checkout_with_item, payment_dummy):
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
-    payment.total = total.gross.amount - 1
+    payment.total = payment.captured_amount = total.gross.amount - 1
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.charge_status = ChargeStatus.AUTHORIZED
@@ -1142,12 +1142,12 @@ def test_is_fully_covered_many_payments(checkout_with_item, payment_dummy):
     payment2.pk = None
     payment2.is_active = True
     payment2.order = None
-    payment2.total = 1
+    payment.total = payment.captured_amount = 1
     payment2.currency = total.gross.currency
     payment2.checkout = checkout
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment2.save()
-    is_paid = is_fully_covered(manager, checkout_info, lines, None)
+    is_paid = is_fully_covered(manager, checkout_info, lines, [], None)
     assert is_paid
 
 

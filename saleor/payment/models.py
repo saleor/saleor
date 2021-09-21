@@ -125,15 +125,9 @@ class Payment(models.Model):
 
         Partially refunded payments are included in the covered amount.
         """
-        if self.charge_status == ChargeStatus.PARTIALLY_REFUNDED:
-            return self.captured_amount
-
-        if self.charge_status in {
-            ChargeStatus.AUTHORIZED,
-            ChargeStatus.FULLY_CHARGED,
-        }:
+        if self.charge_status == ChargeStatus.AUTHORIZED:
             return self.total
-        return Decimal("0")
+        return self.captured_amount
 
     def get_authorized_amount(self):
         money = zero_money(self.currency)
