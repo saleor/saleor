@@ -360,6 +360,18 @@ class DraftOrderDelete(ModelDeleteMutation):
         error_type_class = OrderError
         error_type_field = "order_errors"
 
+    @classmethod
+    def clean_instance(cls, info, instance):
+        if instance.status != OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to non-draft order.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+
 
 class DraftOrderComplete(BaseMutation):
     order = graphene.Field(Order, description="Completed order.")
