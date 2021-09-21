@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
+from django.utils.timezone import now
 from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField
 from prices import Money
@@ -72,6 +73,7 @@ class Checkout(ModelWithMetadata):
         related_name="checkouts",
         on_delete=models.SET_NULL,
     )
+    shipping_methods_expiration = models.DateTimeField(default=now)
     note = models.TextField(blank=True, default="")
 
     currency = models.CharField(

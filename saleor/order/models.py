@@ -133,6 +133,7 @@ class Order(ModelWithMetadata):
     shipping_method_name = models.CharField(
         max_length=255, null=True, default=None, blank=True, editable=False
     )
+    shipping_methods_expiration = models.DateTimeField(default=now)
     channel = models.ForeignKey(
         Channel,
         related_name="orders",

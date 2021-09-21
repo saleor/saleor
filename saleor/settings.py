@@ -606,6 +606,11 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
     seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
 )
 
+# Default expiration time for fetched shipping methods
+SHIPPING_METHODS_TTL = timedelta(
+    seconds=parse(os.environ.get("SHIPPING_METHODS_TTL", "10 minutes"))
+)
+
 # Support multiple interface notation in schema for Apollo tooling.
 
 # In `graphql-core` V2 separator for interface is `,`.
