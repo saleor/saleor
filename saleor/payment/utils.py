@@ -144,8 +144,7 @@ def create_payment(
 
     if payment_token:
         return Payment.objects.get_or_create(token=payment_token, defaults=data)[0]
-    else:
-        return Payment.objects.create(**data)
+    return Payment.objects.create(**data)
 
 
 def get_already_processed_transaction(
