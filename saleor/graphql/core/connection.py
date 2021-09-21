@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, Iterable, List, Tuple, Union
 
 import graphene
@@ -13,6 +14,8 @@ from graphql_relay.utils import base64, unbase64
 from ..core.enums import OrderDirection
 
 ConnectionArguments = Dict[str, Any]
+
+EPSILON = Decimal("0.000001")
 
 
 def to_global_cursor(values):
@@ -37,6 +40,25 @@ def get_field_value(instance: DjangoModel, field_name: str):
     if callable(attr):
         return "%s" % attr()
     return attr
+
+
+def _prepare_filter_by_rank_expression(
+    cursor: List[str],
+    sorting_direction: str,
+) -> Q:
+    try:
+        rank = Decimal(cursor[0])
+        int(cursor[1])
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        raise ValueError("Invalid cursor for sorting by rank.")
+
+    if sorting_direction == "gt":
+        return Q(rank__range=(rank - EPSILON, rank + EPSILON), id__lt=cursor[1]) | Q(
+            rank__gt=rank + EPSILON
+        )
+    return Q(rank__range=(rank - EPSILON, rank + EPSILON), id__gt=cursor[1]) | Q(
+        rank__lt=rank - EPSILON
+    )
 
 
 def _prepare_filter_expression(
@@ -82,9 +104,7 @@ def _prepare_filter(
     """
     if sorting_fields == ["rank", "id"]:
         # Fast path for filtering by rank
-        if sorting_direction == "gt":
-            return Q(rank__gte=cursor[0], id__lt=cursor[1])
-        return Q(rank__lte=cursor[0], id__gt=cursor[1])
+        return _prepare_filter_by_rank_expression(cursor, sorting_direction)
 
     filter_kwargs = Q()
     for index, field_name in enumerate(sorting_fields):
@@ -225,9 +245,6 @@ def connection_from_queryset_slice(
     filter_kwargs = (
         _prepare_filter(cursor, sorting_fields, sorting_direction) if cursor else Q()
     )
-    print("filter_kwargs", filter_kwargs)
-    print("sort_by", sort_by)
-    print(qs.query.order_by)
     qs = qs.filter(filter_kwargs)
     qs = qs[:end_margin]
     edges, page_info = _get_edges_for_connection(edge_type, qs, args, sorting_fields)

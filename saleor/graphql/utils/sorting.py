@@ -89,8 +89,15 @@ def sort_queryset(
     if custom_sort_by:
         queryset = custom_sort_by(queryset, channel_slug=channel_slug)
 
-    sorting_field_value = sorting_fields.value
-    sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
+    if sorting_field_name == "rank":
+        # In rank sorting ID is sorted in opposite direction to rank
+        if sorting_direction == "-":
+            sorting_list = ["-rank", "id"]
+        else:
+            sorting_list = ["rank", "-id"]
+    else:
+        sorting_field_value = sorting_fields.value
+        sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
 
     return queryset.order_by(*sorting_list)
 
