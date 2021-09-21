@@ -1547,6 +1547,26 @@ def test_checkout_avail_collect_points_returns_empty_list_when_not_in_shipping_z
     assert not data["availableCollectionPoints"]
 
 
+def test_checkout_avail_collect_fallbacks_to_channel_country_when_no_shipping_address(
+    api_client, warehouse_for_cc, checkout_with_items_for_cc
+):
+    query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
+    checkout_with_items_for_cc.shipping_address = None
+    checkout_with_items_for_cc.save()
+
+    variables = {"token": checkout_with_items_for_cc.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    assert data["availableCollectionPoints"] == [
+        {
+            "address": {"streetAddress1": warehouse_for_cc.address.street_address_1},
+            "name": warehouse_for_cc.name,
+        }
+    ]
+
+
 def test_create_checkout_with_unpublished_product(
     user_api_client, checkout_with_item, stock, channel_USD
 ):
