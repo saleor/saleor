@@ -147,8 +147,14 @@ def test_order_fulfill_with_stock_exceeded_with_flag_disabled(
 
     # set stocks to out of quantity and assert
     Stock.objects.filter(warehouse=warehouse).update(quantity=0)
+
+    # make first stock quantity < 0
+    stock = Stock.objects.filter(warehouse=warehouse).first()
+    stock.quantity = -99
+    stock.save()
+
     for stock in Stock.objects.filter(warehouse=warehouse):
-        assert stock.quantity == 0
+        assert stock.quantity <= 0
 
     variables = {
         "order": order_id,
