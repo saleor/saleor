@@ -681,6 +681,7 @@ def test_voucher_add_catalogues(
     category,
     product,
     collection,
+    product_variant_list,
     permission_manage_discounts,
 ):
     query = """
@@ -700,12 +701,17 @@ def test_voucher_add_catalogues(
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
+    variant_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.id)
+        for variant in product_variant_list
+    ]
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
         "input": {
             "products": [product_id],
             "collections": [collection_id],
             "categories": [category_id],
+            "variants": variant_ids,
         },
     }
 
@@ -719,6 +725,7 @@ def test_voucher_add_catalogues(
     assert product in voucher.products.all()
     assert category in voucher.categories.all()
     assert collection in voucher.collections.all()
+    assert set(product_variant_list) == set(voucher.variants.all())
 
 
 def test_voucher_add_catalogues_with_product_without_variant(
@@ -772,11 +779,13 @@ def test_voucher_remove_catalogues(
     category,
     product,
     collection,
+    product_variant_list,
     permission_manage_discounts,
 ):
     voucher.products.add(product)
     voucher.collections.add(collection)
     voucher.categories.add(category)
+    voucher.variants.add(*product_variant_list)
 
     query = """
         mutation voucherCataloguesRemove($id: ID!, $input: CatalogueInput!) {
@@ -795,12 +804,17 @@ def test_voucher_remove_catalogues(
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
+    variant_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.id)
+        for variant in product_variant_list
+    ]
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
         "input": {
             "products": [product_id],
             "collections": [collection_id],
             "categories": [category_id],
+            "variants": variant_ids,
         },
     }
 
@@ -809,11 +823,13 @@ def test_voucher_remove_catalogues(
     )
     content = get_graphql_content(response)
     data = content["data"]["voucherCataloguesRemove"]
+    voucher_variants = list(voucher.variants.all())
 
     assert not data["errors"]
     assert product not in voucher.products.all()
     assert category not in voucher.categories.all()
     assert collection not in voucher.collections.all()
+    assert not any(v in voucher_variants for v in product_variant_list)
 
 
 def test_voucher_add_no_catalogues(
@@ -835,7 +851,7 @@ def test_voucher_add_no_catalogues(
     """
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
-        "input": {"products": [], "collections": [], "categories": []},
+        "input": {"products": [], "collections": [], "categories": [], "variants": []},
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
@@ -847,6 +863,7 @@ def test_voucher_add_no_catalogues(
     assert not voucher.products.exists()
     assert not voucher.categories.exists()
     assert not voucher.collections.exists()
+    assert not voucher.variants.exists()
 
 
 def test_voucher_remove_no_catalogues(
@@ -855,11 +872,13 @@ def test_voucher_remove_no_catalogues(
     category,
     product,
     collection,
+    product_variant_list,
     permission_manage_discounts,
 ):
     voucher.products.add(product)
     voucher.collections.add(collection)
     voucher.categories.add(category)
+    voucher.variants.add(*product_variant_list)
 
     query = """
         mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
@@ -877,7 +896,7 @@ def test_voucher_remove_no_catalogues(
     """
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
-        "input": {"products": [], "collections": [], "categories": []},
+        "input": {"products": [], "collections": [], "categories": [], "variants": []},
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
@@ -889,6 +908,7 @@ def test_voucher_remove_no_catalogues(
     assert voucher.products.exists()
     assert voucher.categories.exists()
     assert voucher.collections.exists()
+    assert voucher.variants.exists()
 
 
 def test_create_sale(staff_api_client, permission_manage_discounts):
@@ -1039,7 +1059,13 @@ def test_sale_delete_mutation(staff_api_client, sale, permission_manage_discount
 
 
 def test_sale_add_catalogues(
-    staff_api_client, sale, category, product, collection, permission_manage_discounts
+    staff_api_client,
+    sale,
+    category,
+    product,
+    collection,
+    product_variant_list,
+    permission_manage_discounts,
 ):
     query = """
         mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
@@ -1058,12 +1084,17 @@ def test_sale_add_catalogues(
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
+    variant_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.id)
+        for variant in product_variant_list
+    ]
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "input": {
             "products": [product_id],
             "collections": [collection_id],
             "categories": [category_id],
+            "variants": variant_ids,
         },
     }
 
@@ -1077,6 +1108,7 @@ def test_sale_add_catalogues(
     assert product in sale.products.all()
     assert category in sale.categories.all()
     assert collection in sale.collections.all()
+    assert set(product_variant_list) == set(sale.variants.all())
 
 
 def test_sale_add_catalogues_with_product_without_variants(
@@ -1100,6 +1132,7 @@ def test_sale_add_catalogues_with_product_without_variants(
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
+
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "input": {
@@ -1120,11 +1153,18 @@ def test_sale_add_catalogues_with_product_without_variants(
 
 
 def test_sale_remove_catalogues(
-    staff_api_client, sale, category, product, collection, permission_manage_discounts
+    staff_api_client,
+    sale,
+    category,
+    product,
+    collection,
+    product_variant_list,
+    permission_manage_discounts,
 ):
     sale.products.add(product)
     sale.collections.add(collection)
     sale.categories.add(category)
+    sale.variants.add(*product_variant_list)
 
     query = """
         mutation saleCataloguesRemove($id: ID!, $input: CatalogueInput!) {
@@ -1143,12 +1183,17 @@ def test_sale_remove_catalogues(
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
+    variant_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.id)
+        for variant in product_variant_list
+    ]
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "input": {
             "products": [product_id],
             "collections": [collection_id],
             "categories": [category_id],
+            "variants": variant_ids,
         },
     }
 
@@ -1157,11 +1202,13 @@ def test_sale_remove_catalogues(
     )
     content = get_graphql_content(response)
     data = content["data"]["saleCataloguesRemove"]
+    product_variants = list(sale.variants.all())
 
     assert not data["errors"]
     assert product not in sale.products.all()
     assert category not in sale.categories.all()
     assert collection not in sale.collections.all()
+    assert not any(v in product_variants for v in product_variant_list)
 
 
 def test_sale_add_no_catalogues(
@@ -1183,7 +1230,7 @@ def test_sale_add_no_catalogues(
     """
     variables = {
         "id": graphene.Node.to_global_id("Sale", new_sale.id),
-        "input": {"products": [], "collections": [], "categories": []},
+        "input": {"products": [], "collections": [], "categories": [], "variants": []},
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
@@ -1195,14 +1242,22 @@ def test_sale_add_no_catalogues(
     assert not new_sale.products.exists()
     assert not new_sale.categories.exists()
     assert not new_sale.collections.exists()
+    assert not new_sale.variants.exists()
 
 
 def test_sale_remove_no_catalogues(
-    staff_api_client, sale, category, product, collection, permission_manage_discounts
+    staff_api_client,
+    sale,
+    category,
+    product,
+    collection,
+    product_variant_list,
+    permission_manage_discounts,
 ):
     sale.products.add(product)
     sale.collections.add(collection)
     sale.categories.add(category)
+    sale.variants.add(*product_variant_list)
 
     query = """
         mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
@@ -1220,7 +1275,7 @@ def test_sale_remove_no_catalogues(
     """
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
-        "input": {"products": [], "collections": [], "categories": []},
+        "input": {"products": [], "collections": [], "categories": [], "variants": []},
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
@@ -1232,6 +1287,7 @@ def test_sale_remove_no_catalogues(
     assert sale.products.exists()
     assert sale.categories.exists()
     assert sale.collections.exists()
+    assert sale.variants.exists()
 
 
 @pytest.mark.parametrize(

@@ -109,6 +109,74 @@ def test_valid_voucher_min_checkout_items_quantity(voucher):
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
+def test_discount_for_variants_is_applied_to_single_variant(product, channel_USD):
+
+    variant = product.variants.get()
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    sale = Sale.objects.create(type=DiscountValueType.FIXED)
+    sale_channel_listing = SaleChannelListing.objects.create(
+        sale=sale,
+        discount_value=5,
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+    )
+    old_price = variant.get_price(
+        product, [], channel_USD, variant_channel_listing, discounts=[]
+    )
+
+    discount_info = DiscountInfo(
+        sale=sale,
+        channel_listings={channel_USD.slug: sale_channel_listing},
+        product_ids=set(),
+        category_ids=set(),
+        collection_ids=set(),
+        variants_ids={variant.id},
+    )
+
+    new_price = variant.get_price(
+        product, [], channel_USD, variant_channel_listing, discounts=[discount_info]
+    )
+
+    assert new_price == old_price - Money("5", "USD")
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+def test_discount_for_variants_are_not_applied_twice_for_variant_assigned_to_product(
+    product, channel_USD
+):
+
+    variant = product.variants.get()
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    sale = Sale.objects.create(type=DiscountValueType.FIXED)
+    sale_channel_listing = SaleChannelListing.objects.create(
+        sale=sale,
+        discount_value=5,
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+    )
+    old_price = variant.get_price(
+        product, [], channel_USD, variant_channel_listing, discounts=[]
+    )
+
+    discount_info = DiscountInfo(
+        sale=sale,
+        channel_listings={channel_USD.slug: sale_channel_listing},
+        product_ids={product.id},
+        category_ids=set(),
+        collection_ids=set(),
+        variants_ids={variant.id},
+    )
+
+    new_price = variant.get_price(
+        product, [], channel_USD, variant_channel_listing, discounts=[discount_info]
+    )
+
+    assert new_price == old_price - Money("5", "USD")
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
 def test_variant_discounts(product, channel_USD):
     variant = product.variants.get()
     low_sale = Sale.objects.create(type=DiscountValueType.FIXED)

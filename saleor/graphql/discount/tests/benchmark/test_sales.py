@@ -63,6 +63,13 @@ query GetSales($channel: String){
             }
           }
         }
+        variants(first: 10) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
         channelListings {
           id
           discountValue
