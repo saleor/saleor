@@ -11,10 +11,6 @@ def set_default_checkout_line_currency(apps, schema_editor):
         checkout_line.save(updated_fields=["currency"])
 
 
-def noop(apps, schema_editor):
-    pass
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("checkout", "0039_alter_checkout_options"),
@@ -61,7 +57,7 @@ class Migration(migrations.Migration):
             name="currency",
             field=models.CharField(null=True, max_length=3),
         ),
-        migrations.RunPython(set_default_checkout_line_currency, noop),
+        migrations.RunPython(set_default_checkout_line_currency),
         migrations.AlterField(
             model_name="checkoutline",
             name="currency",

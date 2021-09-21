@@ -17,16 +17,21 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     data = []
     channel = checkout.channel
     for line_info in fetch_checkout_lines(checkout):
+        line_id = graphene.Node.to_global_id("Attribute", line_info.line.id)
         variant = line_info.variant
         channel_listing = line_info.channel_listing
         collections = line_info.collections
         product = variant.product
         base_price = variant.get_price(product, collections, channel, channel_listing)
+        price = line_info.line.unit_price
         data.append(
             {
+                "id": line_id,
                 "sku": variant.sku,
                 "quantity": line_info.line.quantity,
+                "charge_taxes": product.charge_taxes,
                 "base_price": str(base_price.amount),
+                "price": str(price),
                 "currency": channel.currency_code,
                 "full_name": variant.display_product(),
                 "product_name": product.name,

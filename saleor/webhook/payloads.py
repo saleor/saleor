@@ -8,6 +8,7 @@ from django.db.models import F, QuerySet, Sum
 
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
+from ..core.taxes import include_taxes_in_prices
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,
@@ -251,6 +252,13 @@ def generate_checkout_payload(checkout: "Checkout"):
     shipping_method_fields = ("name", "type", "currency", "price_amount")
     lines_dict_data = serialize_checkout_lines(checkout)
 
+    included_taxes_in_price = include_taxes_in_prices()
+
+    # TODO: ???
+    voucher_amount = ...
+    subtotal = checkout.subtotal - ...
+    total = checkout.total - ...
+
     checkout_data = serializer.serialize(
         [checkout],
         fields=checkout_fields,
@@ -263,7 +271,11 @@ def generate_checkout_payload(checkout: "Checkout"):
         },
         extra_dict_data={
             # Casting to list to make it json-serializable
+            "included_taxes_in_price": included_taxes_in_price,
             "lines": list(lines_dict_data),
+            "voucher_amount": voucher_amount,
+            "subtotal": subtotal,
+            "total": total,
             "collection_point": json.loads(
                 _generate_collection_point_payload(checkout.collection_point)
             )[0]
