@@ -223,8 +223,6 @@ def _apply_tax_data(checkout: "Checkout", tax_data: TaxData) -> None:
     checkout_lines = checkout.lines.all()
 
     for (checkout_line, tax_line_data) in zip(checkout_lines, tax_data.lines):
-        checkout_line.currency = tax_line_data.currency
-
         checkout_line.unit_price_net_amount = QP(tax_line_data.unit_net_amount)
         checkout_line.unit_price_gross_amount = QP(tax_line_data.unit_gross_amount)
 
@@ -234,7 +232,6 @@ def _apply_tax_data(checkout: "Checkout", tax_data: TaxData) -> None:
     CheckoutLine.objects.bulk_update(
         checkout_lines,
         [
-            "currency",
             "unit_price_net_amount",
             "unit_price_gross_amount",
             "total_price_net_amount",
