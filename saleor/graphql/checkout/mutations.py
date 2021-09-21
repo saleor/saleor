@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
+from django.utils import timezone
 
 from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
@@ -226,6 +227,10 @@ def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []
             }
         )
     return checkout
+
+
+def invalidate_checkout_prices(checkout: models.Checkout) -> None:
+    checkout.price_expiration = timezone.now()
 
 
 class CheckoutLineInput(graphene.InputObjectType):
@@ -565,6 +570,9 @@ class CheckoutLinesAdd(BaseMutation):
             manager, checkout_info, lines, info.context.discounts
         )
         manager.checkout_updated(checkout)
+
+        invalidate_checkout_prices(checkout)
+
         return CheckoutLinesAdd(checkout=checkout)
 
 
@@ -591,6 +599,16 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
 
     @classmethod
     def perform_mutation(cls, root, info, lines, checkout_id=None, token=None):
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
+        invalidate_checkout_prices(checkout)
+
         return super().perform_mutation(
             root, info, lines, checkout_id, token, replace=True
         )
@@ -646,6 +664,9 @@ class CheckoutLineDelete(BaseMutation):
             manager, checkout_info, lines, info.context.discounts
         )
         manager.checkout_updated(checkout)
+
+        invalidate_checkout_prices(checkout)
+
         return CheckoutLineDelete(checkout=checkout)
 
 
@@ -869,6 +890,9 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         recalculate_checkout_discount(manager, checkout_info, lines, discounts)
 
         manager.checkout_updated(checkout)
+
+        invalidate_checkout_prices(checkout)
+
         return CheckoutShippingAddressUpdate(checkout=checkout)
 
 
@@ -920,6 +944,9 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             billing_address.save()
             change_billing_address_in_checkout(checkout, billing_address)
             info.context.plugins.checkout_updated(checkout)
+
+        invalidate_checkout_prices(checkout)
+
         return CheckoutBillingAddressUpdate(checkout=checkout)
 
 
