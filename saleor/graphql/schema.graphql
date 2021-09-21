@@ -2293,7 +2293,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   usedByEmail: String
   app: App
   product: Product
-  events: [GiftCardEvent!]!
+  events(filter: GiftCardEventFilterInput): [GiftCardEvent!]!
   boughtInChannel: String
   user: User @deprecated(reason: "This field will be removed in Saleor 4.0. Use `createdBy` field instead.")
   endDate: DateTime @deprecated(reason: "This field will be removed in Saleor 4.0. Use `expiryDate` field instead.")
@@ -2425,6 +2425,11 @@ type GiftCardEventBalance {
   currentBalance: Money!
   oldInitialBalance: Money
   oldCurrentBalance: Money
+}
+
+input GiftCardEventFilterInput {
+  type: GiftCardEventsEnum
+  orders: [ID!]
 }
 
 enum GiftCardEventsEnum {
