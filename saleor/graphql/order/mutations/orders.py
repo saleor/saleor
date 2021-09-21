@@ -169,6 +169,13 @@ def clean_order_refund(order):
         )
 
 
+def get_webhook_handler_by_order_status(status, info):
+    if status == OrderStatus.DRAFT:
+        return info.context.plugins.draft_order_updated
+    else:
+        return info.context.plugins.order_updated
+
+
 class OrderUpdateInput(graphene.InputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
     user_email = graphene.String(description="Email address of the customer.")
@@ -431,7 +438,8 @@ class OrderAddNote(BaseMutation):
             app=info.context.app,
             message=cleaned_input["message"],
         )
-        transaction.on_commit(lambda: info.context.plugins.order_updated(order))
+        func = get_webhook_handler_by_order_status(order.status, info)
+        transaction.on_commit(lambda: func(order))
         return OrderAddNote(order=order, event=event)
 
 
@@ -834,7 +842,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         )
 
         recalculate_order(order)
-        transaction.on_commit(lambda: info.context.plugins.order_updated(order))
+
+        func = get_webhook_handler_by_order_status(order.status, info)
+        transaction.on_commit(lambda: func(order))
 
         return OrderLinesCreate(order=order, order_lines=lines)
 
@@ -903,8 +913,8 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         )
 
         recalculate_order(order)
-        transaction.on_commit(lambda: info.context.plugins.order_updated(order))
-
+        func = get_webhook_handler_by_order_status(order.status, info)
+        transaction.on_commit(lambda: func(order))
         return OrderLineDelete(order=order, order_line=line)
 
 
@@ -973,9 +983,9 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
             )
         recalculate_order(instance.order)
-        transaction.on_commit(
-            lambda: info.context.plugins.order_updated(instance.order)
-        )
+
+        func = get_webhook_handler_by_order_status(instance.order.status, info)
+        transaction.on_commit(lambda: func(instance.order))
 
     @classmethod
     def success_response(cls, instance):
