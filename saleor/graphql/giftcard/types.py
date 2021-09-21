@@ -25,6 +25,11 @@ from ..product.dataloaders.products import ProductByIdLoader
 from ..utils import get_user_or_app_from_context
 from .dataloaders import GiftCardEventsByGiftCardIdLoader
 from .enums import GiftCardEventsEnum
+from .filters import (
+    GiftCardEventFilterInput,
+    filter_events_by_orders,
+    filter_events_by_type,
+)
 
 
 class GiftCardEventBalance(graphene.ObjectType):
@@ -215,6 +220,9 @@ class GiftCard(CountableDjangoObjectType):
     )
     events = graphene.List(
         graphene.NonNull(GiftCardEvent),
+        filter=GiftCardEventFilterInput(
+            description="Filtering options for gift card events."
+        ),
         description=f"{ADDED_IN_31} List of events associated with the gift card.",
         required=True,
     )
@@ -377,8 +385,20 @@ class GiftCard(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
-    def resolve_events(root: models.GiftCard, _info):
-        return GiftCardEventsByGiftCardIdLoader(_info.context).load(root.id)
+    def resolve_events(root: models.GiftCard, info, **kwargs):
+        def filter_events(events):
+            event_filter = kwargs.get("filter", {})
+            if event_type_value := event_filter.get("type"):
+                events = filter_events_by_type(events, event_type_value)
+            if orders_value := event_filter.get("orders"):
+                events = filter_events_by_orders(events, orders_value)
+            return events
+
+        return (
+            GiftCardEventsByGiftCardIdLoader(info.context)
+            .load(root.id)
+            .then(filter_events)
+        )
 
     @staticmethod
     @traced_resolver
