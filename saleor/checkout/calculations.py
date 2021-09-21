@@ -23,7 +23,7 @@ def checkout_shipping_price(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     discounts: Optional[Iterable[DiscountInfo]] = None,
-    force_update: bool = False,
+    # force_update: bool = False,
 ) -> "TaxedMoney":
     """Return checkout shipping price.
 
@@ -35,7 +35,7 @@ def checkout_shipping_price(
         lines=lines,
         address=address,
         discounts=discounts,
-        force_update=force_update,
+        # force_update=force_update,
     ).shipping_price
 
 
@@ -46,7 +46,7 @@ def checkout_subtotal(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     discounts: Optional[Iterable[DiscountInfo]] = None,
-    force_update: bool = False,
+    # force_update: bool = False,
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
@@ -58,7 +58,7 @@ def checkout_subtotal(
         lines=lines,
         address=address,
         discounts=discounts,
-        force_update=force_update,
+        # force_update=force_update,
     ).subtotal
 
 
@@ -68,7 +68,7 @@ def calculate_checkout_total_with_gift_cards(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     discounts: Optional[Iterable[DiscountInfo]] = None,
-    force_update: bool = False,
+    # force_update: bool = False,
 ) -> "TaxedMoney":
     total = (
         checkout_total(
@@ -77,7 +77,7 @@ def calculate_checkout_total_with_gift_cards(
             lines=lines,
             address=address,
             discounts=discounts,
-            force_update=force_update,
+            # force_update=force_update,
         )
         - checkout_info.checkout.get_total_gift_cards_balance()
     )
@@ -92,7 +92,7 @@ def checkout_total(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     discounts: Optional[Iterable[DiscountInfo]] = None,
-    force_update: bool = False,
+    # force_update: bool = False,
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -107,7 +107,7 @@ def checkout_total(
         lines=lines,
         address=address,
         discounts=discounts,
-        force_update=force_update,
+        # force_update=force_update,
     ).total
 
 
@@ -119,7 +119,7 @@ def checkout_line_total(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     discounts: Optional[Iterable[DiscountInfo]] = None,
-    force_update: bool = False,
+    # force_update: bool = False,
 ) -> "TaxedMoney":
     """Return the total price of provided line, taxes included.
 
@@ -132,7 +132,7 @@ def checkout_line_total(
             lines=lines,
             address=address,
             discounts=discounts,
-            force_update=force_update,
+            # force_update=force_update,
         )
         .lines.get(pk=checkout_line_info.line.pk)
         .total_price
@@ -147,7 +147,7 @@ def checkout_line_unit_price(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     discounts: Optional[Iterable[DiscountInfo]] = None,
-    force_update: bool = False,
+    # force_update: bool = False,
 ) -> "TaxedMoney":
     """Return the unit price of provided line, taxes included.
 
@@ -160,7 +160,7 @@ def checkout_line_unit_price(
             lines=lines,
             address=address,
             discounts=discounts,
-            force_update=force_update,
+            # force_update=force_update,
         )
         .lines.get(pk=checkout_line_info.line.pk)
         .unit_price
@@ -293,7 +293,9 @@ def _get_tax_data_from_plugins(
         subtotal = manager.calculate_checkout_subtotal(
             checkout_info, lines, address, discounts or []
         )
-        total = shipping_price + subtotal
+        total = manager.calculate_checkout_total(
+            checkout_info, lines, address, discounts or []
+        )
 
         return TaxData(
             currency=checkout.currency,

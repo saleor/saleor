@@ -153,19 +153,13 @@ class VatlayerPlugin(BasePlugin):
 
         manager = get_plugins_manager()
         return (
-            calculations.checkout_subtotal(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                address=address,
-                discounts=discounts,
+            # TODO: With calculation functions we have here infinite recursion problem
+            #  Do we really need them instead of manager methods?
+            manager.calculate_checkout_subtotal(
+                checkout_info, lines, address, discounts
             )
-            + calculations.checkout_shipping_price(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                address=address,
-                discounts=discounts,
+            + manager.calculate_checkout_shipping(
+                checkout_info, lines, address, discounts
             )
             - checkout_info.checkout.discount
         )
