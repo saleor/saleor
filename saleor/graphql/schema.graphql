@@ -1134,6 +1134,14 @@ enum CheckoutErrorCode {
   UNAVAILABLE_VARIANT_IN_CHANNEL
 }
 
+input CheckoutFilterInput {
+  customer: String
+  created: DateRangeInput
+  search: String
+  metadata: [MetadataFilter]
+  channels: [ID]
+}
+
 type CheckoutLanguageCodeUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -1205,6 +1213,17 @@ type CheckoutShippingMethodUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
+}
+
+enum CheckoutSortField {
+  CREATION_DATE
+  CUSTOMER
+  PAYMENT
+}
+
+input CheckoutSortingInput {
+  direction: OrderDirection!
+  field: CheckoutSortField!
 }
 
 type ChoiceValue {
@@ -5876,7 +5895,7 @@ type Query {
   exportFiles(filter: ExportFileFilterInput, sortBy: ExportFileSortingInput, before: String, after: String, first: Int, last: Int): ExportFileCountableConnection
   taxTypes: [TaxType]
   checkout(token: UUID): Checkout
-  checkouts(channel: String, before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
+  checkouts(sortBy: CheckoutSortingInput, filter: CheckoutFilterInput, channel: String, before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   channel(id: ID): Channel
   channels: [Channel!]
