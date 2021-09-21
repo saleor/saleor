@@ -12,7 +12,12 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="sitesettings",
-            name="reserve_stock_duration_minutes",
+            name="reserve_stock_duration_minutes_anonymous",
+            field=models.IntegerField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name="sitesettings",
+            name="reserve_stock_duration_minutes_authenticated",
             field=models.IntegerField(blank=True, null=True),
         ),
     ]

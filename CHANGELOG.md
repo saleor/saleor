@@ -18,6 +18,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce sales / vouchers per product variant - #8064 by @kuchichan
 - Introduce sales webhooks - #8157 @kuchichan
 - Batch loads in queries for Apollo Federation - #8273 by @rafalp
+- Reserve stocks for checkouts - #7589 by @rafalp
+
 
 # 3.0.0 [Unreleased]
 

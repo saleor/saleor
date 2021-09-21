@@ -69,7 +69,9 @@ class SiteSettings(models.Model):
     automatically_confirm_all_new_orders = models.BooleanField(default=True)
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)
-    reserve_stock_duration_minutes = models.IntegerField(blank=True, null=True)
+
+    reserve_stock_duration_minutes_anonymous = models.IntegerField(blank=True, null=True)
+    reserve_stock_duration_minutes_authenticated = models.IntegerField(blank=True, null=True)
 
     # gift card settings
     gift_card_expiry_type = models.CharField(
@@ -114,12 +116,6 @@ class SiteSettings(models.Model):
         # Refer to email.header.Header and django.core.mail.message.sanitize_address.
         value = str(Address(sender_name, addr_spec=sender_address))
         return value
-
-    @property
-    def enable_stock_reservations(self) -> bool:
-        if self.reserve_stock_duration_minutes:
-            return self.reserve_stock_duration_minutes > 0
-        return False
 
 
 class SiteSettingsTranslation(Translation):

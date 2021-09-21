@@ -217,10 +217,16 @@ class Shop(graphene.ObjectType):
         description="Enable automatic fulfillment for all digital products."
     )
 
-    reserve_stock_duration_minutes = graphene.Int(
+    reserve_stock_duration_minutes_anonymous = graphene.Int(
         description=(
-            "Default number of minutes stock will be reserved for checkout or 0 to "
-            "disable stock reservations."
+            "Default number of minutes stock will be reserved for anonymous checkout "
+            "or 0 to disable stock reservations."
+        )
+    )
+    reserve_stock_duration_minutes_authenticated = graphene.Int(
+        description=(
+            "Default number of minutes stock will be reserved for authenticated "
+            "checkout or 0 to disable stock reservations."
         )
     )
 
@@ -404,9 +410,15 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)
-    def resolve_reserve_stock_duration_minutes(_, info):
+    def resolve_reserve_stock_duration_minutes_anonymous(_, info):
         site_settings = info.context.site.settings
-        return site_settings.reserve_stock_duration_minutes
+        return site_settings.reserve_stock_duration_minutes_anonymous
+
+    @staticmethod
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
+    def resolve_reserve_stock_duration_minutes_authenticated(_, info):
+        site_settings = info.context.site.settings
+        return site_settings.reserve_stock_duration_minutes_authenticated
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)

@@ -1,6 +1,6 @@
 from collections import defaultdict, namedtuple
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
 from django.db.models import Sum
 from django.utils import timezone
@@ -176,3 +176,9 @@ def get_checkout_lines_to_reserve(
         ):
             valid_lines.append(line)
     return valid_lines
+
+
+def get_reservation_length(request) -> Optional[int]:
+    if request.user.is_authenticated:
+        return request.site.settings.reserve_stock_duration_minutes_authenticated
+    return request.site.settings.reserve_stock_duration_minutes_anonymous

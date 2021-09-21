@@ -271,7 +271,8 @@ def site_settings(db, settings) -> SiteSettings:
 
 @pytest.fixture
 def site_settings_with_reservations(site_settings):
-    site_settings.reserve_stock_duration_minutes = 5
+    site_settings.reserve_stock_duration_minutes_anonymous = 5
+    site_settings.reserve_stock_duration_minutes_authenticated = 5
     site_settings.save()
     return site_settings
 

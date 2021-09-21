@@ -366,7 +366,8 @@ def test_shop_reservation_settings_mutation(
         mutation updateSettings($input: ShopSettingsInput!) {
             shopSettingsUpdate(input: $input) {
                 shop {
-                    reserveStockDurationMinutes
+                    reserveStockDurationMinutesAnonymous
+                    reserveStockDurationMinutesAuthenticated
                 }
                 errors {
                     field,
@@ -377,7 +378,8 @@ def test_shop_reservation_settings_mutation(
     """
     variables = {
         "input": {
-            "reserveStockDurationMinutes": 42,
+            "reserveStockDurationMinutesAnonymous": 42,
+            "reserveStockDurationMinutesAuthenticated": 24,
         }
     }
     response = staff_api_client.post_graphql(
@@ -385,10 +387,11 @@ def test_shop_reservation_settings_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]["shop"]
-    assert data["reserveStockDurationMinutes"] == 42
+    assert data["reserveStockDurationMinutesAnonymous"] == 42
+    assert data["reserveStockDurationMinutesAuthenticated"] == 24
     site_settings.refresh_from_db()
-    assert site_settings.enable_stock_reservations
-    assert site_settings.reserve_stock_duration_minutes == 42
+    assert site_settings.reserve_stock_duration_minutes_anonymous == 42
+    assert site_settings.reserve_stock_duration_minutes_authenticated == 24
 
 
 def test_shop_reservation_disable_settings_mutation(
@@ -398,7 +401,8 @@ def test_shop_reservation_disable_settings_mutation(
         mutation updateSettings($input: ShopSettingsInput!) {
             shopSettingsUpdate(input: $input) {
                 shop {
-                    reserveStockDurationMinutes
+                    reserveStockDurationMinutesAnonymous
+                    reserveStockDurationMinutesAuthenticated
                 }
                 errors {
                     field,
@@ -409,7 +413,8 @@ def test_shop_reservation_disable_settings_mutation(
     """
     variables = {
         "input": {
-            "reserveStockDurationMinutes": -14,
+            "reserveStockDurationMinutesAnonymous": -14,
+            "reserveStockDurationMinutesAuthenticated": -6,
         }
     }
     response = staff_api_client.post_graphql(
@@ -417,10 +422,11 @@ def test_shop_reservation_disable_settings_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]["shop"]
-    assert data["reserveStockDurationMinutes"] == 0
+    assert data["reserveStockDurationMinutesAnonymous"] == 0
+    assert data["reserveStockDurationMinutesAuthenticated"] == 0
     site_settings.refresh_from_db()
-    assert not site_settings.enable_stock_reservations
-    assert site_settings.reserve_stock_duration_minutes == 0
+    assert site_settings.reserve_stock_duration_minutes_anonymous == 0
+    assert site_settings.reserve_stock_duration_minutes_authenticated == 0
 
 
 MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS = """
