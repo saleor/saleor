@@ -38,6 +38,7 @@ if TYPE_CHECKING:
 
 if TYPE_CHECKING:
     from ..account.models import User
+    from ..discount.models import Sale
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData
     from ..translation.models import Translation
@@ -221,6 +222,13 @@ def generate_order_payload(order: "Order"):
         },
     )
     return order_data
+
+
+def generate_sale_payload(sale: "Sale"):
+    serializer = PayloadSerializer()
+    sale_fields = ("id",)
+
+    return serializer.serialize([sale], fields=sale_fields)
 
 
 def generate_invoice_payload(invoice: "Invoice"):

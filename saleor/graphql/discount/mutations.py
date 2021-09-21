@@ -1,8 +1,10 @@
+import functools
 from collections import defaultdict
 from typing import TYPE_CHECKING, DefaultDict, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ...core.permissions import DiscountPermissions
 from ...core.tracing import traced_atomic_transaction
@@ -564,6 +566,14 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             error.code = DiscountErrorCode.INVALID.value
             raise ValidationError({"end_date": error})
 
+    @classmethod
+    @traced_atomic_transaction()
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        transaction.on_commit(
+            functools.partial(info.context.plugins.sale_created, instance)
+        )
+
 
 class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     class Arguments:
@@ -579,6 +589,14 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         error_type_class = DiscountError
         error_type_field = "discount_errors"
 
+    @classmethod
+    @traced_atomic_transaction()
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        transaction.on_commit(
+            functools.partial(info.context.plugins.sale_created, instance)
+        )
+
 
 class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
     class Arguments:
@@ -590,6 +608,18 @@ class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        instance = cls.get_node_or_error(info, node_id, only_type=Sale)
+        response = super().perform_mutation(_root, info, **data)
+
+        transaction.on_commit(
+            functools.partial(info.context.plugins.sale_created, instance)
+        )
+        return response
 
 
 class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):

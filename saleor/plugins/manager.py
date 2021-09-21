@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
+    from ..discount.models import Sale
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
@@ -561,6 +562,18 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins(
             "draft_order_deleted", default_value, order, channel_slug=order.channel.slug
         )
+
+    def sale_created(self, sale: "Sale"):
+        default_value = None
+        return self.__run_method_on_plugins("sale_created", default_value, sale)
+
+    def sale_deleted(self, sale: "Sale"):
+        default_value = None
+        return self.__run_method_on_plugins("sale_deleted", default_value, sale)
+
+    def sale_updated(self, sale: "Sale"):
+        default_value = None
+        return self.__run_method_on_plugins("sale_updated", default_value, sale)
 
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]

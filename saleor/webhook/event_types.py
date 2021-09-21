@@ -23,6 +23,10 @@ class WebhookEventType:
     DRAFT_ORDER_UPDATED = "draft_order_updated"
     DRAFT_ORDER_DELETED = "draft_order_deleted"
 
+    SALE_CREATED = "sale_created"
+    SALE_UPDATED = "sale_updated"
+    SALE_DELETED = "sale_deleted"
+
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
     INVOICE_SENT = "invoice_sent"
@@ -74,6 +78,9 @@ class WebhookEventType:
         DRAFT_ORDER_CREATED: "Draft order created",
         DRAFT_ORDER_UPDATED: "Draft order updated",
         DRAFT_ORDER_DELETED: "Draft order deleted",
+        SALE_CREATED: "Sale created",
+        SALE_UPDATED: "Sale updated",
+        SALE_DELETED: "Sale deleted",
         INVOICE_REQUESTED: "Invoice requested",
         INVOICE_DELETED: "Invoice deleted",
         INVOICE_SENT: "Invoice sent",
@@ -117,6 +124,9 @@ class WebhookEventType:
         (DRAFT_ORDER_CREATED, DISPLAY_LABELS[DRAFT_ORDER_CREATED]),
         (DRAFT_ORDER_UPDATED, DISPLAY_LABELS[DRAFT_ORDER_UPDATED]),
         (DRAFT_ORDER_DELETED, DISPLAY_LABELS[DRAFT_ORDER_DELETED]),
+        (SALE_CREATED, DISPLAY_LABELS[SALE_CREATED]),
+        (SALE_UPDATED, DISPLAY_LABELS[SALE_UPDATED]),
+        (SALE_DELETED, DISPLAY_LABELS[SALE_DELETED]),
         (INVOICE_REQUESTED, DISPLAY_LABELS[INVOICE_REQUESTED]),
         (INVOICE_DELETED, DISPLAY_LABELS[INVOICE_DELETED]),
         (INVOICE_SENT, DISPLAY_LABELS[INVOICE_SENT]),
