@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from unittest import mock
 
 import pytest
 from django.http import HttpResponseNotFound, JsonResponse
@@ -15,6 +16,8 @@ from ..base_plugin import ExternalAccessTokens
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
+    ACTIVE_PLUGINS,
+    ALL_PLUGINS,
     ActiveDummyPaymentGateway,
     ActivePaymentGateway,
     ChannelPluginSample,
@@ -875,3 +878,101 @@ def test_list_external_authentications_active_only(channel_USD):
         "id": PluginSample.PLUGIN_ID,
         "name": PluginSample.PLUGIN_NAME,
     } in external_auths
+
+
+def test_run_method_on_plugins_default_value(plugins_manager):
+    default_value = "default"
+    value = plugins_manager._PluginsManager__run_method_on_plugins(
+        method_name="test_method",
+        default_value=default_value,
+    )
+
+    assert value == default_value
+
+
+def test_run_method_on_plugins_default_value_when_not_existing_method_is_called(
+    channel_USD, all_plugins_manager
+):
+    default_value = "default"
+    value = all_plugins_manager._PluginsManager__run_method_on_plugins(
+        method_name="test_method",
+        default_value=default_value,
+    )
+
+    assert value == default_value
+
+
+def test_run_method_on_plugins_value_overridden_by_plugin_method(
+    channel_USD, all_plugins_manager
+):
+    expected = ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES  # last active plugin
+    value = all_plugins_manager._PluginsManager__run_method_on_plugins(
+        method_name="get_supported_currencies",
+        default_value="default_value",
+    )
+
+    assert value == expected
+
+
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_single_plugin"
+)
+def test_run_method_on_plugins_only_on_active_ones(
+    mocked_method, channel_USD, all_plugins_manager
+):
+    all_plugins_manager._PluginsManager__run_method_on_plugins(
+        method_name="test_method_name",
+        default_value="default_value",
+    )
+    active_plugins_count = len(ACTIVE_PLUGINS)
+
+    assert len(all_plugins_manager.all_plugins) == len(ALL_PLUGINS)
+    assert (
+        len([p for p in all_plugins_manager.all_plugins if p.active])
+        == active_plugins_count
+    )
+    assert mocked_method.call_count == active_plugins_count
+
+    called_plugins_id = [arg.args[0].PLUGIN_ID for arg in mocked_method.call_args_list]
+    expected_active_plugins_id = [p.PLUGIN_ID for p in ACTIVE_PLUGINS]
+
+    assert called_plugins_id == expected_active_plugins_id
+
+
+def test_run_method_on_single_plugin_method_does_not_exist(plugins_manager):
+    default_value = "default_value"
+    method_name = "method_does_not_exist"
+    plugin = ActivePaymentGateway
+
+    assert (
+        plugins_manager._PluginsManager__run_method_on_single_plugin(
+            plugin, method_name, default_value
+        )
+        == default_value
+    )
+
+
+def test_run_method_on_single_plugin_method_not_implemented(plugins_manager):
+    default_value = "default_value"
+    plugin = ChannelPluginSample(configuration=None, active=True)
+    method_name = ChannelPluginSample.sample_not_implemented.__name__
+
+    assert (
+        plugins_manager._PluginsManager__run_method_on_single_plugin(
+            plugin, method_name, default_value
+        )
+        == default_value
+    )
+
+
+def test_run_method_on_single_plugin_valid_response(plugins_manager):
+    default_value = "default_value"
+    plugin = ActiveDummyPaymentGateway(configuration=None, active=True)
+    method_name = ActivePaymentGateway.get_supported_currencies.__name__
+
+    assert (
+        plugins_manager._PluginsManager__run_method_on_single_plugin(
+            plugin, method_name, default_value
+        )
+        == plugin.SUPPORTED_CURRENCIES
+    )
