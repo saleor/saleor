@@ -1,0 +1,2 @@
+class NPAtobarai(Exception):
+    pass
