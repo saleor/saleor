@@ -6,6 +6,8 @@ import pytest
 from django.utils import timezone
 from django_countries import countries
 
+from saleor.discount.utils import fetch_catalogue_info
+
 from ....discount import DiscountValueType, VoucherType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import Sale, SaleChannelListing, Voucher
@@ -957,7 +959,8 @@ def test_create_sale(
     assert data["endDate"] == end_date.isoformat()
 
     sale = Sale.objects.first()
-    created_webhook_mock.assert_called_once_with(sale)
+    current_catalogue = fetch_catalogue_info(sale)
+    created_webhook_mock.assert_called_once_with(sale, current_catalogue)
 
 
 def test_create_sale_with_enddate_before_startdate(
@@ -1027,6 +1030,7 @@ def test_update_sale(
     # Set discount value type to 'fixed' and change it in mutation
     sale.type = DiscountValueType.FIXED
     sale.save()
+    previous_catalogue = fetch_catalogue_info(sale)
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "type": DiscountValueTypeEnum.PERCENTAGE.name,
@@ -1035,11 +1039,15 @@ def test_update_sale(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )
+    current_catalogue = fetch_catalogue_info(sale)
+
     content = get_graphql_content(response)
     data = content["data"]["saleUpdate"]["sale"]
     assert data["type"] == DiscountValueType.PERCENTAGE.upper()
 
-    updated_webhook_mock.assert_called_once_with(sale)
+    updated_webhook_mock.assert_called_once_with(
+        sale, previous_catalogue, current_catalogue
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.sale_deleted")
@@ -1062,14 +1070,14 @@ def test_sale_delete_mutation(
             }
     """
     variables = {"id": graphene.Node.to_global_id("Sale", sale.id)}
-
+    previous_catalogue = fetch_catalogue_info(sale)
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
     data = content["data"]["saleDelete"]
     assert data["sale"]["name"] == sale.name
-    deleted_webhook_mock.assert_called_once_with(sale)
+    deleted_webhook_mock.assert_called_once_with(sale, previous_catalogue)
     with pytest.raises(sale._meta.model.DoesNotExist):
         sale.refresh_from_db()
 

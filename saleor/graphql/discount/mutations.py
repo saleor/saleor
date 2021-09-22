@@ -571,7 +571,10 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        transaction.on_commit(lambda: info.context.plugins.sale_created(instance))
+        current_catalogue = fetch_catalogue_info(instance)
+        transaction.on_commit(
+            lambda: info.context.plugins.sale_created(instance, current_catalogue)
+        )
 
 
 class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
@@ -620,9 +623,12 @@ class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=Sale)
+        previous_catalogue = fetch_catalogue_info(instance)
         response = super().perform_mutation(_root, info, **data)
 
-        transaction.on_commit(lambda: info.context.plugins.sale_deleted(instance))
+        transaction.on_commit(
+            lambda: info.context.plugins.sale_deleted(instance, previous_catalogue)
+        )
         return response
 
 

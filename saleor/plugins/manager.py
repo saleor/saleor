@@ -563,13 +563,17 @@ class PluginsManager(PaymentInterface):
             "draft_order_deleted", default_value, order, channel_slug=order.channel.slug
         )
 
-    def sale_created(self, sale: "Sale"):
+    def sale_created(self, sale: "Sale", current_catalogue):
         default_value = None
-        return self.__run_method_on_plugins("sale_created", default_value, sale)
+        return self.__run_method_on_plugins(
+            "sale_created", default_value, sale, current_catalogue
+        )
 
-    def sale_deleted(self, sale: "Sale"):
+    def sale_deleted(self, sale: "Sale", previous_catalogue):
         default_value = None
-        return self.__run_method_on_plugins("sale_deleted", default_value, sale)
+        return self.__run_method_on_plugins(
+            "sale_deleted", default_value, sale, previous_catalogue
+        )
 
     def sale_updated(self, sale: "Sale", previous_catalogue, current_catalogue):
         default_value = None
