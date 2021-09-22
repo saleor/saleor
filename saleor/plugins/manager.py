@@ -571,9 +571,11 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("sale_deleted", default_value, sale)
 
-    def sale_updated(self, sale: "Sale"):
+    def sale_updated(self, sale: "Sale", previous_catalogue, current_catalogue):
         default_value = None
-        return self.__run_method_on_plugins("sale_updated", default_value, sale)
+        return self.__run_method_on_plugins(
+            "sale_updated", default_value, sale, previous_catalogue, current_catalogue
+        )
 
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]

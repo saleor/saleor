@@ -95,10 +95,12 @@ class WebhookPlugin(BasePlugin):
         sale_data = generate_sale_payload(sale)
         trigger_webhooks_for_event.delay(WebhookEventType.SALE_CREATED, sale_data)
 
-    def sale_updated(self, sale: "Sale", previous_value: Any) -> Any:
+    def sale_updated(
+        self, sale: "Sale", previous_catalogue, current_catalogue, previous_value: Any
+    ) -> Any:
         if not self.active:
             return previous_value
-        sale_data = generate_sale_payload(sale)
+        sale_data = generate_sale_payload(sale, previous_catalogue, current_catalogue)
         trigger_webhooks_for_event.delay(WebhookEventType.SALE_UPDATED, sale_data)
 
     def sale_deleted(self, sale: "Sale", previous_value: Any) -> Any:

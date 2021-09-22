@@ -1,5 +1,6 @@
 import json
 import uuid
+from collections import defaultdict
 from dataclasses import asdict
 from typing import TYPE_CHECKING, Iterable, Optional
 
@@ -224,11 +225,49 @@ def generate_order_payload(order: "Order"):
     return order_data
 
 
-def generate_sale_payload(sale: "Sale"):
+def calculate_added(previous_catalogue, current_catalogue, key):
+    return list(current_catalogue[key] - previous_catalogue[key])
+
+
+def calculate_removed(previous_catalogue, current_catalogue, key):
+    return calculate_added(current_catalogue, previous_catalogue, key)
+
+
+def generate_sale_payload(
+    sale: "Sale", previous_catalogue=None, current_catalogue=None
+):
+    if previous_catalogue is None:
+        previous_catalogue = defaultdict(set)
+    if current_catalogue is None:
+        current_catalogue = defaultdict(set)
+
     serializer = PayloadSerializer()
     sale_fields = ("id",)
 
-    return serializer.serialize([sale], fields=sale_fields)
+    return serializer.serialize(
+        [sale],
+        fields=sale_fields,
+        extra_dict_data={
+            "categories_added": calculate_added(
+                previous_catalogue, current_catalogue, "categories"
+            ),
+            "categories_removed": calculate_removed(
+                previous_catalogue, current_catalogue, "categories"
+            ),
+            "collections_added": calculate_added(
+                previous_catalogue, current_catalogue, "collections"
+            ),
+            "collections_removed": calculate_removed(
+                previous_catalogue, current_catalogue, "collections"
+            ),
+            "products_added": calculate_added(
+                previous_catalogue, current_catalogue, "products"
+            ),
+            "products_removed": calculate_removed(
+                previous_catalogue, current_catalogue, "products"
+            ),
+        },
+    )
 
 
 def generate_invoice_payload(invoice: "Invoice"):

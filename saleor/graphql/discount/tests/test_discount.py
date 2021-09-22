@@ -1023,6 +1023,7 @@ def test_update_sale(
             }
         }
     """
+
     # Set discount value type to 'fixed' and change it in mutation
     sale.type = DiscountValueType.FIXED
     sale.save()

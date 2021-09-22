@@ -276,3 +276,15 @@ def fetch_discounts(date: datetime.date) -> List[DiscountInfo]:
 
 def fetch_active_discounts() -> List[DiscountInfo]:
     return fetch_discounts(timezone.now())
+
+
+def fetch_catalogue_info(instance: Sale) -> Dict[str, Set[int]]:
+    catalogue_fields = ["categories", "collections", "products"]  # variants
+    catalogue_info: Dict[str, Set[int]] = defaultdict(set)
+
+    for field in catalogue_fields:
+        catalogue_info[field].update(
+            id_ for id_ in getattr(instance, field).all().values_list("id", flat=True)
+        )
+
+    return catalogue_info

@@ -1,10 +1,11 @@
-import functools
 from collections import defaultdict
 from typing import TYPE_CHECKING, DefaultDict, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+
+from saleor.discount.utils import fetch_catalogue_info
 
 from ...core.permissions import DiscountPermissions
 from ...core.tracing import traced_atomic_transaction
@@ -570,9 +571,7 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        transaction.on_commit(
-            functools.partial(info.context.plugins.sale_created, instance)
-        )
+        transaction.on_commit(lambda: info.context.plugins.sale_created(instance))
 
 
 class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
@@ -591,13 +590,18 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def save(cls, info, instance, cleaned_input):
-        # For update maybe good idea will be to put webhook into perform_mutation
-        # in order to grab "old" values and calculate differences correctly...
-        instance.save()
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        instance = cls.get_node_or_error(info, node_id, only_type=Sale)
+        previous_catalogue = fetch_catalogue_info(instance)
+        response = super().perform_mutation(_root, info, **data)
+        current_catalogue = fetch_catalogue_info(instance)
         transaction.on_commit(
-            functools.partial(info.context.plugins.sale_updated, instance)
+            lambda: info.context.plugins.sale_updated(
+                instance, previous_catalogue, current_catalogue
+            )
         )
+        return response
 
 
 class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
@@ -618,9 +622,7 @@ class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
         instance = cls.get_node_or_error(info, node_id, only_type=Sale)
         response = super().perform_mutation(_root, info, **data)
 
-        transaction.on_commit(
-            functools.partial(info.context.plugins.sale_deleted, instance)
-        )
+        transaction.on_commit(lambda: info.context.plugins.sale_deleted(instance))
         return response
 
 
