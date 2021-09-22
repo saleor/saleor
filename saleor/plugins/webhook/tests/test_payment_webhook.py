@@ -1,7 +1,9 @@
 import json
+from collections import namedtuple
 from unittest import mock
 
 import pytest
+from django.conf import settings
 
 from ....app.models import App
 from ....payment import PaymentError, TransactionKind
@@ -10,6 +12,7 @@ from ....webhook.event_types import WebhookEventType
 from ....webhook.models import Webhook, WebhookEvent
 from ...manager import get_plugins_manager
 from ..tasks import (
+    send_webhook_request,
     send_webhook_request_sync,
     signature_for_payload,
     trigger_webhook_sync,
@@ -39,6 +42,18 @@ def webhook_plugin(settings):
         return manager.global_plugins[0]
 
     return factory
+
+
+WebhookTestData = namedtuple("WebhookTestData", "secret, event_type, data, message")
+
+
+@pytest.fixture
+def webhook_data():
+    secret = "secret"
+    event_type = WebhookEventType.ANY
+    data = json.dumps({"key": "value"})
+    message = data.encode("utf-8")
+    return WebhookTestData(secret, event_type, data, message)
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
@@ -89,20 +104,39 @@ def test_trigger_webhook_sync_no_webhook_available():
     ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
 )
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_http")
-def test_send_webhook_request_sync(mock_send_http, target_url, site_settings):
-    secret = "secret"
-    event_type = WebhookEventType.PAYMENT_CAPTURE
-    data = json.dumps({"key": "value"})
-    message = data.encode("utf-8")
-
-    send_webhook_request_sync(target_url, secret, event_type, data)
+def test_send_webhook_request_sync(
+    mock_send_http, target_url, site_settings, webhook_data
+):
+    send_webhook_request_sync(
+        target_url, webhook_data.secret, webhook_data.event_type, webhook_data.data
+    )
     mock_send_http.assert_called_once_with(
         target_url,
-        message,
+        webhook_data.message,
         site_settings.site.domain,
-        signature_for_payload(message, secret),
-        event_type,
+        signature_for_payload(webhook_data.message, webhook_data.secret),
+        webhook_data.event_type,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
+
+
+@pytest.mark.parametrize(
+    "target_url",
+    ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
+)
+@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+def test_send_webhook_request_with_proper_timeout(
+    mock_post, target_url, site_settings, webhook_data
+):
+    send_webhook_request(
+        "ID",
+        target_url,
+        webhook_data.secret,
+        webhook_data.event_type,
+        webhook_data.data,
+    )
+    assert mock_post.call_count == 1
+    assert mock_post.call_args.kwargs["timeout"] == settings.WEBHOOK_TIMEOUT
 
 
 def test_send_webhook_request_sync_invalid_scheme():
