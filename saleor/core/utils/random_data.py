@@ -600,6 +600,7 @@ def create_order_lines(order, discounts, how_many=10):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
+                is_gift_card=variant.is_gift_card(),
                 quantity=quantity,
                 variant=variant,
                 unit_price=unit_price,
@@ -847,7 +848,7 @@ def create_product_sales(how_many=5):
         yield "Sale: %s" % (sale,)
 
 
-def create_channel(channel_name, currency_code, slug=None):
+def create_channel(channel_name, currency_code, slug=None, country=None):
     if not slug:
         slug = slugify(channel_name)
     channel, _ = Channel.objects.get_or_create(
@@ -856,6 +857,7 @@ def create_channel(channel_name, currency_code, slug=None):
             "name": channel_name,
             "currency_code": currency_code,
             "is_active": True,
+            "default_country": country,
         },
     )
     return f"Channel: {channel}"
@@ -866,11 +868,9 @@ def create_channels():
         channel_name="Channel-USD",
         currency_code="USD",
         slug=settings.DEFAULT_CHANNEL_SLUG,
+        country=settings.DEFAULT_COUNTRY,
     )
-    yield create_channel(
-        channel_name="Channel-PLN",
-        currency_code="PLN",
-    )
+    yield create_channel(channel_name="Channel-PLN", currency_code="PLN", country="PL")
 
 
 def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):

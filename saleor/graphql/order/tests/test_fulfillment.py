@@ -1085,6 +1085,31 @@ def test_cancel_fulfillment(
     ).exists()
 
 
+def test_cancel_fulfillment_for_order_with_gift_card_lines(
+    staff_api_client,
+    fulfillment,
+    gift_card_shippable_order_line,
+    staff_user,
+    permission_manage_orders,
+    warehouse,
+):
+    query = CANCEL_FULFILLMENT_MUTATION
+    order = gift_card_shippable_order_line.order
+    order_fulfillment = order.fulfillments.first()
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", order_fulfillment.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    variables = {"id": fulfillment_id, "warehouseId": warehouse_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentCancel"]
+    assert not data["fulfillment"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_CANCEL_FULFILLMENT.name
+    assert data["errors"][0]["field"] == "fulfillment"
+
+
 def test_cancel_fulfillment_no_warehouse_id(
     staff_api_client, fulfillment, permission_manage_orders
 ):

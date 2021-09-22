@@ -585,6 +585,7 @@ enum AttributeInputTypeEnum {
   REFERENCE
   NUMERIC
   RICH_TEXT
+  SWATCH
   BOOLEAN
   DATE
   DATE_TIME
@@ -648,7 +649,7 @@ input AttributeUpdateInput {
   slug: String
   unit: MeasurementUnitsEnum
   removeValues: [ID]
-  addValues: [AttributeValueCreateInput]
+  addValues: [AttributeValueUpdateInput]
   valueRequired: Boolean
   isVariantOnly: Boolean
   visibleInStorefront: Boolean
@@ -698,9 +699,11 @@ type AttributeValueCreate {
 }
 
 input AttributeValueCreateInput {
-  name: String!
   value: String
   richText: JSONString
+  fileUrl: String
+  contentType: String
+  name: String!
 }
 
 type AttributeValueDelete {
@@ -757,6 +760,14 @@ type AttributeValueUpdate {
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AttributeError!]!
   attributeValue: AttributeValue
+}
+
+input AttributeValueUpdateInput {
+  value: String
+  richText: JSONString
+  fileUrl: String
+  contentType: String
+  name: String
 }
 
 input BulkAttributeValueInput {
@@ -1205,6 +1216,7 @@ type Collection implements Node & ObjectWithMetadata {
   slug: String!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  channel: String
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
   products(filter: ProductFilterInput, sortBy: ProductOrder, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
@@ -3910,7 +3922,7 @@ type Mutation {
   attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
-  attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
+  attributeValueUpdate(id: ID!, input: AttributeValueUpdateInput!): AttributeValueUpdate
   attributeValueTranslate(id: ID!, input: AttributeValueTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
   attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   appCreate(input: AppInput!): AppCreate
@@ -4168,6 +4180,7 @@ enum OrderErrorCode {
   CANNOT_REFUND
   CANNOT_FULFILL_UNPAID_ORDER
   CAPTURE_INACTIVE_PAYMENT
+  GIFT_CARD_LINE
   NOT_EDITABLE
   FULFILL_ORDER_LINE
   GRAPHQL_ERROR
@@ -4810,7 +4823,7 @@ type PasswordChange {
   errors: [AccountError!]!
 }
 
-type Payment implements Node {
+type Payment implements Node & ObjectWithMetadata {
   id: ID!
   gateway: String!
   isActive: Boolean!
@@ -4821,6 +4834,8 @@ type Payment implements Node {
   order: Order
   paymentMethodType: String!
   customerIpAddress: String
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
   total: Money
@@ -4909,6 +4924,8 @@ input PaymentInput {
   token: String
   amount: PositiveDecimal
   returnUrl: String
+  storePaymentMethod: StorePaymentMethodEnum = none
+  metadata: [MetadataInput!]
 }
 
 type PaymentRefund {
@@ -4921,6 +4938,7 @@ type PaymentSource {
   gateway: String!
   paymentMethodId: String
   creditCardInfo: CreditCard
+  metadata: [MetadataItem]!
 }
 
 type PaymentVoid {
@@ -5130,6 +5148,7 @@ type Product implements Node & ObjectWithMetadata {
   rating: Float
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  channel: String
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
   thumbnail(size: Int): Image
   pricing(address: AddressInput): ProductPricingInfo
@@ -5590,6 +5609,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   weight: Weight
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  channel: String
   channelListings: [ProductVariantChannelListing!]
   pricing(address: AddressInput): VariantPricingInfo
   attributes(variantSelection: VariantAttributeScope): [SelectedAttribute!]!
@@ -6530,6 +6550,12 @@ input StockFilterInput {
 input StockInput {
   warehouse: ID!
   quantity: Int!
+}
+
+enum StorePaymentMethodEnum {
+  ON_SESSION
+  OFF_SESSION
+  NONE
 }
 
 type TaxType {

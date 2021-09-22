@@ -121,8 +121,13 @@ class Address(CountableDjangoObjectType):
         return False
 
     @staticmethod
-    def __resolve_reference(root, _info, **_kwargs):
-        return graphene.Node.get_node_from_global_id(_info, root.id)
+    def __resolve_reference(root: "Address", info, **_kwargs):
+        try:
+            from .resolvers import resolve_address
+
+            return resolve_address(info, root.id)
+        except PermissionDenied:
+            return None
 
 
 class CustomerEvent(CountableDjangoObjectType):
@@ -373,10 +378,28 @@ class User(CountableDjangoObjectType):
         return resolve_wishlist_items_from_user(root)
 
     @staticmethod
-    def __resolve_reference(root, _info, **_kwargs):
-        if root.id is not None:
-            return graphene.Node.get_node_from_global_id(_info, root.id)
-        return get_user_model().objects.get(email=root.email)
+    def __resolve_reference(root: "User", info, **_kwargs):
+        User = get_user_model()
+
+        try:
+            if root.id is not None:
+                user = graphene.Node.get_node_from_global_id(info, root.id)
+            else:
+                user = get_user_model().objects.get(email=root.email)
+        except User.DoesNotExist:
+            user = None
+
+        if not user:
+            return None
+
+        auth_user = info.context.user
+        manage_staff = auth_user.has_perm(AccountPermissions.MANAGE_STAFF)
+        manage_users = auth_user.has_perm(AccountPermissions.MANAGE_USERS)
+
+        if user == auth_user or manage_staff or manage_users:
+            return user
+
+        return None
 
     @staticmethod
     def resolve_language_code(root, _info, **_kwargs):

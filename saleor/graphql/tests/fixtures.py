@@ -139,6 +139,11 @@ def user_api_client(customer_user):
 
 
 @pytest.fixture
+def user2_api_client(customer_user2):
+    return ApiClient(user=customer_user2)
+
+
+@pytest.fixture
 def api_client():
     return ApiClient(user=AnonymousUser())
 

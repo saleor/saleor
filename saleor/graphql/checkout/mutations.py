@@ -90,7 +90,7 @@ def clean_delivery_method(
             ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
         )
 
-    if not checkout_info.shipping_address:
+    if not checkout_info.shipping_address and isinstance(method, models.ShippingMethod):
         raise ValidationError(
             "Cannot choose a shipping method for a checkout without the "
             "shipping address.",
@@ -512,7 +512,7 @@ class CheckoutLinesAdd(BaseMutation):
         )
         checkout_info.valid_pick_up_points = (
             get_valid_collection_points_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines
+                checkout_info.shipping_address, lines, checkout_info
             )
         )
         return lines
@@ -562,7 +562,7 @@ class CheckoutLinesAdd(BaseMutation):
         )
         checkout_info.valid_pick_up_points = (
             get_valid_collection_points_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines
+                checkout_info.shipping_address, lines, checkout_info
             )
         )
 
@@ -1291,7 +1291,8 @@ class CheckoutComplete(BaseMutation):
         store_source = graphene.Boolean(
             default_value=False,
             description=(
-                "Determines whether to store the payment source for future usage."
+                "Determines whether to store the payment source for future usage. "
+                f"{DEPRECATED_IN_3X_INPUT} Use checkoutPaymentCreate for this action."
             ),
         )
         redirect_url = graphene.String(

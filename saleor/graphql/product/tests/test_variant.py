@@ -2851,6 +2851,7 @@ def test_delete_variant_in_draft_order(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         unit_price=unit_price,
         total_price=unit_price * quantity,
         quantity=quantity,
@@ -2866,6 +2867,7 @@ def test_delete_variant_in_draft_order(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         unit_price=unit_price,
         total_price=unit_price * quantity,
         quantity=quantity,
@@ -3366,6 +3368,52 @@ def test_product_variant_bulk_create_by_attribute_id(
     product.refresh_from_db()
     assert product.default_variant == product_variant
     assert product_variant_created_webhook_mock.call_count == data["count"]
+
+
+def test_product_variant_bulk_create_with_swatch_attribute(
+    staff_api_client, product, swatch_attribute, permission_manage_products
+):
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.set([swatch_attribute])
+    attribute_value_count = swatch_attribute.values.count()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", swatch_attribute.pk)
+    attribute_value_1 = swatch_attribute.values.first()
+    attribute_value_2 = swatch_attribute.values.last()
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": attribute_id, "values": [attribute_value_1.name]}],
+        },
+        {
+            "sku": sku + "a",
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": attribute_id, "values": [attribute_value_2.name]}],
+        },
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+    assert not data["errors"]
+    assert data["count"] == 2
+    assert {variant["name"] for variant in data["productVariants"]} == {
+        attribute_value_1.name,
+        attribute_value_2.name,
+    }
+    assert product_variant_count + 2 == ProductVariant.objects.count()
+    assert attribute_value_count == swatch_attribute.values.count()
+    product_variant = ProductVariant.objects.get(sku=sku)
+    product.refresh_from_db()
+    assert product.default_variant == product_variant
 
 
 def test_product_variant_bulk_create_only_not_variant_selection_attributes(
@@ -4640,3 +4688,37 @@ def test_product_variant_stocks_delete_mutation_invalid_object_type_of_warehouse
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.GRAPHQL_ERROR.name
     assert errors[0]["field"] == "warehouseIds"
+
+
+def test_query_product_variant_for_federation(api_client, variant, channel_USD):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductVariant",
+                "id": variant_id,
+                "channel": channel_USD.slug,
+            },
+        ],
+    }
+    query = """
+      query GetProductVariantInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on ProductVariant {
+            id
+            name
+          }
+        }
+      }
+    """
+
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "ProductVariant",
+            "id": variant_id,
+            "name": variant.name,
+        }
+    ]

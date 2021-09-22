@@ -191,7 +191,7 @@ class App(CountableDjangoObjectType):
         return root.tokens.all()  # type: ignore
 
     @staticmethod
-    def __resolve_reference(root, _info, **_kwargs):
+    def __resolve_reference(root: "App", _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
     @staticmethod
