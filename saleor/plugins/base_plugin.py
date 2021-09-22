@@ -61,6 +61,23 @@ class ExternalAccessTokens:
     user: Optional["User"] = None
 
 
+@dataclass
+class ExcludedShippingMethod:
+    id: str
+    reason: Optional[str]
+
+
+@dataclass
+class ShippingMethod:
+    id: str
+    price: Decimal
+    name: str
+    maximum_order_weight: Decimal
+    minimum_order_weight: Decimal
+    maximum_delivery_days: Decimal
+    minimum_delivery_days: Decimal
+
+
 class BasePlugin:
     """Abstract class for storing all methods available for any plugin.
 
