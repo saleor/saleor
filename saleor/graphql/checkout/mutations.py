@@ -606,8 +606,8 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             checkout = cls.get_node_or_error(
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
-
-        invalidate_checkout_prices(checkout)
+        if checkout:
+            invalidate_checkout_prices(checkout)
 
         return super().perform_mutation(
             root, info, lines, checkout_id, token, replace=True

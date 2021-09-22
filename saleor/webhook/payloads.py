@@ -255,9 +255,18 @@ def generate_checkout_payload(checkout: "Checkout"):
     included_taxes_in_price = include_taxes_in_prices()
 
     # TODO: ???
-    voucher_amount = ...
-    subtotal = checkout.subtotal - ...
-    total = checkout.total - ...
+    # voucher_amount = Money(checkout.discount_amount, checkout.currency)
+
+    subtotal = (
+        checkout.subtotal.gross.amount
+        if included_taxes_in_price
+        else checkout.subtotal.net.amount
+    )
+    total = (
+        checkout.total.gross.amount
+        if included_taxes_in_price
+        else checkout.total.net.amount
+    )
 
     checkout_data = serializer.serialize(
         [checkout],
@@ -273,7 +282,7 @@ def generate_checkout_payload(checkout: "Checkout"):
             # Casting to list to make it json-serializable
             "included_taxes_in_price": included_taxes_in_price,
             "lines": list(lines_dict_data),
-            "voucher_amount": voucher_amount,
+            # "voucher_amount": voucher_amount,
             "subtotal": subtotal,
             "total": total,
             "collection_point": json.loads(
