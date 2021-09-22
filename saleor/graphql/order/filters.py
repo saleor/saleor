@@ -109,6 +109,13 @@ def filter_channels(qs, _, values):
     return qs
 
 
+def filter_order_ids(qs, _, values):
+    if values:
+        _, order_ids = resolve_global_ids_to_primary_keys(values, "Order")
+        qs = qs.filter(id__in=order_ids)
+    return qs
+
+
 class DraftOrderFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
@@ -129,6 +136,7 @@ class OrderFilter(DraftOrderFilter):
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
     search = django_filters.CharFilter(method=filter_order_search)
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
+    ids = GlobalIDMultipleChoiceFilter(method=filter_order_ids)
 
     class Meta:
         model = Order
