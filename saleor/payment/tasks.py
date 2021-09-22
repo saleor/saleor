@@ -22,8 +22,8 @@ def release_unfinished_payments_task():
 
 @app.task(
     autoretry_for=(ReleasePaymentException,),
-    default_retry_delay=3 * 3600,  # 3 hours
-    retry_kwargs={"max_retries": 3},
+    default_retry_delay=4 * 3600,  # 4 hours
+    retry_kwargs={"max_retries": 6},
 )
 def release_dangling_unfinished_payment_task(pk):
     payment = Payment.objects.get(pk=pk)
