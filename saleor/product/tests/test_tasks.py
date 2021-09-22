@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 from unittest.mock import patch
 
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
@@ -6,6 +7,7 @@ from freezegun import freeze_time
 
 from ..models import ProductVariant
 from ..tasks import (
+    _get_deactivate_preorder_for_variant_task_name,
     deactivate_preorder_for_variant_task,
     delete_deactivate_preorder_for_variant_task,
     schedule_deactivate_preorder_for_variant_task,
@@ -174,3 +176,89 @@ def test_schedule_deactivate_preorder_for_variant_task(
 
     assert CrontabSchedule.objects.count() == schedules_before
     assert PeriodicTask.objects.count() == tasks_before
+
+
+@patch("saleor.product.tasks.update_schedule_deactivate_preorder_for_variant_task")
+def test_schedule_deactivate_preorder_for_variant_task_no_update(
+    mock_update_schedule_deactivate_preorder_for_variant_task,
+    preorder_variant_end_date,
+):
+    schedules_before = CrontabSchedule.objects.count()
+    tasks_before = PeriodicTask.objects.count()
+
+    schedule_deactivate_preorder_for_variant_task(preorder_variant_end_date)
+
+    assert CrontabSchedule.objects.count() == schedules_before + 1
+    assert PeriodicTask.objects.count() == tasks_before + 1
+
+    schedule_deactivate_preorder_for_variant_task(preorder_variant_end_date)
+    mock_update_schedule_deactivate_preorder_for_variant_task.assert_not_called()
+
+
+def test_schedule_deactivate_preorder_for_variant_task_update_existing_crontab(
+    preorder_variant_end_date,
+):
+    schedules_before = CrontabSchedule.objects.count()
+    tasks_before = PeriodicTask.objects.count()
+
+    schedule_deactivate_preorder_for_variant_task(preorder_variant_end_date)
+
+    new_preorder_end_date = preorder_variant_end_date.preorder_end_date + timedelta(
+        days=1
+    )
+    preorder_variant_end_date.preorder_end_date = new_preorder_end_date
+
+    schedule_deactivate_preorder_for_variant_task(preorder_variant_end_date)
+
+    assert CrontabSchedule.objects.count() == schedules_before + 1
+    assert PeriodicTask.objects.count() == tasks_before + 1
+
+    periodic_task = (
+        PeriodicTask.objects.filter(
+            name=_get_deactivate_preorder_for_variant_task_name(
+                preorder_variant_end_date.pk
+            )
+        )
+        .select_related("crontab")
+        .first()
+    )
+    assert periodic_task.crontab.day_of_month == str(new_preorder_end_date.date().day)
+
+
+def test_schedule_deactivate_preorder_for_variant_task_update_new_crontab(
+    preorder_variant_end_date,
+):
+    schedules_before = CrontabSchedule.objects.count()
+    tasks_before = PeriodicTask.objects.count()
+
+    schedule_deactivate_preorder_for_variant_task(preorder_variant_end_date)
+
+    preorder_variant_end_date.pk = None
+    preorder_variant_end_date.sku += "2"
+    preorder_variant_end_date.save()
+
+    schedule_deactivate_preorder_for_variant_task(preorder_variant_end_date)
+
+    assert CrontabSchedule.objects.count() == schedules_before + 1
+    assert PeriodicTask.objects.count() == tasks_before + 2
+
+    new_preorder_end_date = preorder_variant_end_date.preorder_end_date + timedelta(
+        days=1
+    )
+    preorder_variant_end_date.preorder_end_date = new_preorder_end_date
+
+    schedule_deactivate_preorder_for_variant_task(preorder_variant_end_date)
+
+    assert CrontabSchedule.objects.count() == schedules_before + 2
+    assert PeriodicTask.objects.count() == tasks_before + 2
+
+    periodic_task = (
+        PeriodicTask.objects.filter(
+            name=_get_deactivate_preorder_for_variant_task_name(
+                preorder_variant_end_date.pk
+            )
+        )
+        .select_related("crontab")
+        .first()
+    )
+    assert periodic_task.crontab.day_of_month == str(new_preorder_end_date.date().day)

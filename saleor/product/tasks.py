@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime
 from typing import Iterable, List, Optional
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -95,22 +96,70 @@ def schedule_deactivate_preorder_for_variant_task(product_variant: ProductVarian
     """Schedule a task that will trigger preorder deactivation at preorder end date."""
     if not product_variant.is_preorder or product_variant.preorder_end_date is None:
         return
-    end_time = product_variant.preorder_end_date.timetz()
-    end_date = product_variant.preorder_end_date.date()
-    schedule, _ = CrontabSchedule.objects.get_or_create(
-        minute=str(end_time.minute),
-        hour=str(end_time.hour),
-        day_of_week="*",
-        day_of_month=str(end_date.day),
-        month_of_year=str(end_date.month),
-        timezone=product_variant.preorder_end_date.tzinfo,
+
+    periodic_task = (
+        PeriodicTask.objects.filter(
+            name=_get_deactivate_preorder_for_variant_task_name(product_variant.pk)
+        )
+        .select_related("crontab")
+        .first()
     )
-    PeriodicTask.objects.create(
-        crontab=schedule,
-        name=_get_deactivate_preorder_for_variant_task_name(product_variant.pk),
-        task="saleor.product.tasks.deactivate_preorder_for_variant_task",
-        args=json.dumps([product_variant.pk]),
+    crontab_schedule_settings = _get_crontab_schedule_settings(
+        product_variant.preorder_end_date
     )
+
+    if not periodic_task:
+        schedule, _ = CrontabSchedule.objects.get_or_create(**crontab_schedule_settings)
+        PeriodicTask.objects.create(
+            crontab=schedule,
+            name=_get_deactivate_preorder_for_variant_task_name(product_variant.pk),
+            task="saleor.product.tasks.deactivate_preorder_for_variant_task",
+            args=json.dumps([product_variant.pk]),
+        )
+    else:
+        crontab = periodic_task.crontab
+        if crontab_schedule_settings == {
+            "minute": crontab.minute,
+            "hour": crontab.hour,
+            "day_of_week": crontab.day_of_week,
+            "day_of_month": crontab.day_of_month,
+            "month_of_year": crontab.month_of_year,
+            "timezone": crontab.timezone,
+        }:
+            return
+        update_schedule_deactivate_preorder_for_variant_task(
+            periodic_task, crontab_schedule_settings
+        )
+
+
+def update_schedule_deactivate_preorder_for_variant_task(
+    periodic_task: PeriodicTask, crontab_schedule_settings: dict
+):
+    """Update crontab schedule for given task."""
+    crontab = periodic_task.crontab
+    if crontab.periodictask_set.count() == 1:
+        for attr, value in crontab_schedule_settings.items():
+            setattr(crontab, attr, value)
+        crontab.save()
+    else:
+        new_crontab, _ = CrontabSchedule.objects.get_or_create(
+            **crontab_schedule_settings
+        )
+        periodic_task.crontab = new_crontab
+        periodic_task.save()
+
+
+def _get_crontab_schedule_settings(preorder_end_date: datetime):
+    end_time = preorder_end_date.timetz()
+    end_date = preorder_end_date.date()
+    return {
+        "minute": str(end_time.minute),
+        "hour": str(end_time.hour),
+        "day_of_week": "*",
+        "day_of_month": str(end_date.day),
+        "month_of_year": str(end_date.month),
+        "timezone": preorder_end_date.tzinfo,
+    }
 
 
 def deactivate_preorder_for_variant_task(product_variant_id: int):
