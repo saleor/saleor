@@ -121,7 +121,7 @@ def test_fulfillment_refund_products_amount_and_shipping_costs(
         payment_dummy,
         ANY,
         amount=quantize_price(
-            amount_to_refund + fulfilled_order.shipping_price_gross_amount,
+            amount_to_refund,
             fulfilled_order.currency,
         ),
         channel_slug=fulfilled_order.channel.slug,
@@ -973,13 +973,11 @@ def test_fulfillment_refund_products_with_amount_to_refund_passed(
     fulfillment = fulfilled_order.fulfillments.filter(
         status=FulfillmentStatus.REFUNDED
     ).get()
-    shipping_refund_amount = fulfilled_order.shipping_price_gross_amount
-    total_refund_amount = payment_1.captured_amount + shipping_refund_amount
 
     # then
     assert data["errors"] == []
     assert data["fulfillment"]["id"] == graphene.Node.to_global_id(
         "Fulfillment", fulfillment.id
     )
-    assert fulfillment.shipping_refund_amount == shipping_refund_amount
-    assert fulfillment.total_refund_amount == total_refund_amount
+    assert fulfillment.shipping_refund_amount is None
+    assert fulfillment.total_refund_amount == payment_1.captured_amount

@@ -708,8 +708,9 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             for item in payments_to_refund:
                 payment = cls.get_node_or_error(info, item["payment_id"])
                 include_shipping_costs = item.get("include_shipping_costs")
+                # If amount_to_refund isn't specified and the shipping costs
+                # are included then the amount should be None.
                 amount = item.get("amount")
-                # If the shipping costs are included then the amount should be None.
                 amount = (
                     amount
                     if amount or include_shipping_costs
@@ -729,13 +730,13 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             payments = [
                 {
                     "payment": payment,
+                    # For future calculations we need to distinguish
+                    # whether amount_to_refund was specified.
                     "amount": amount_to_refund or Decimal("0"),
                     "include_shipping_costs": include_shipping_costs,
                 }
             ]
-            # import pdb
 
-            # pdb.set_trace()
         return payments
 
     @classmethod

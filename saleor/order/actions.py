@@ -909,28 +909,24 @@ def create_refund_fulfillment(
     """
 
     with transaction_with_commit_on_errors():
+        refund_shipping_costs = False
         shipping_refund_amount = None
         for item in payments:
             if item["include_shipping_costs"]:
-                # shipping_refund_amount = __get_shipping_refund_amount(
-                #     item["include_shipping_costs"],
-                #     item["amount"],
-                #     order.shipping_price_gross_amount,
-                # )
-                shipping_refund_amount = order.shipping_price_gross_amount
-                # If payments_to_refind has been specified.
-                if item["amount"] is None:
+                refund_shipping_costs = True
+                shipping_refund_amount = __get_shipping_refund_amount(
+                    item["include_shipping_costs"],
+                    item["amount"],
+                    order.shipping_price_gross_amount,
+                )
+                if shipping_refund_amount:
                     item["amount"] = shipping_refund_amount
-                # If amount_to_refind has been specified.
-                elif item["amount"] > 0:
-                    item["amount"] += shipping_refund_amount
+
         refund_amount = (
             Decimal(sum([item["amount"] for item in payments if item["amount"]]))
             or None
         )
-        # import pdb
 
-        # pdb.set_trace()
         total_refund_amount = _process_refund(
             user=user,
             app=app,
@@ -939,7 +935,7 @@ def create_refund_fulfillment(
             order_lines_to_refund=order_lines_to_refund,
             fulfillment_lines_to_refund=fulfillment_lines_to_refund,
             amount=refund_amount,
-            refund_shipping_costs=bool(shipping_refund_amount),
+            refund_shipping_costs=refund_shipping_costs,
             manager=manager,
         )
 
@@ -1390,9 +1386,7 @@ def _process_refund(
         if refund_shipping_costs:
             amount += order.shipping_price_gross_amount
         payments[0]["amount"] = min(payments[0]["payment"].captured_amount, amount)
-    # import pdb
 
-    # pdb.set_trace()
     if amount:
         for item in payments:
             try:
