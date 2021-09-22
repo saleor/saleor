@@ -64,6 +64,7 @@ from .utils import (
 if TYPE_CHECKING:
     from ..app.models import App
     from ..plugins.manager import PluginsManager
+    from ..site.models import SiteSettings
     from ..warehouse.models import Warehouse
 
 logger = logging.getLogger(__name__)
@@ -370,6 +371,7 @@ def approve_fulfillment(
     user: "User",
     app: Optional["App"],
     manager: "PluginsManager",
+    settings: "SiteSettings",
     notify_customer=True,
     allow_stock_to_be_exceeded: bool = False,
 ):
@@ -400,7 +402,40 @@ def approve_fulfillment(
     if order.status == OrderStatus.FULFILLED:
         transaction.on_commit(lambda: manager.order_fulfilled(order))
 
+    create_gift_cards_when_approving_fulfillment(
+        fulfillment.order, lines_to_fulfill, user, app, manager, settings
+    )
+
     return fulfillment
+
+
+def create_gift_cards_when_approving_fulfillment(
+    order: "Order",
+    lines_data: List[OrderLineData],
+    user: "User",
+    app: Optional["App"],
+    manager: "PluginsManager",
+    settings: "SiteSettings",
+):
+    from ..giftcard.utils import gift_cards_create
+
+    gift_card_lines = []
+    quantities = {}
+    for line_data in lines_data:
+        if line_data.line.is_gift_card:
+            line = line_data.line
+            gift_card_lines.append(line)
+            quantities[line.pk] = line_data.quantity
+
+    gift_cards_create(
+        order,
+        gift_card_lines,
+        quantities,
+        settings,
+        user,
+        app,
+        manager,
+    )
 
 
 @traced_atomic_transaction()

@@ -225,13 +225,13 @@ class OrderFulfill(BaseMutation):
                     )
 
         data["order_lines"] = order_lines
-        data["gift_card_lines"] = cls.get_gift_card_lines(lines_ids)
+        data["gift_card_lines"] = cls.get_gift_card_order_lines(lines_ids)
         data["quantities"] = order_line_id_to_total_quantity
         data["lines_for_warehouses"] = lines_for_warehouses
         return data
 
     @staticmethod
-    def get_gift_card_lines(lines_ids):
+    def get_gift_card_order_lines(lines_ids):
         _, pks = resolve_global_ids_to_primary_keys(
             lines_ids, OrderLine, raise_error=True
         )
@@ -257,15 +257,18 @@ class OrderFulfill(BaseMutation):
         gift_card_lines = cleaned_input["gift_card_lines"]
         quantities = cleaned_input["quantities"]
 
-        gift_cards_create(
-            order,
-            gift_card_lines,
-            quantities,
-            context.site.settings,
-            user,
-            app,
-            manager,
-        )
+        approved = info.context.site.settings.fulfillment_auto_approve
+
+        if approved:
+            gift_cards_create(
+                order,
+                gift_card_lines,
+                quantities,
+                context.site.settings,
+                user,
+                app,
+                manager,
+            )
 
         try:
             fulfillments = create_fulfillments(
@@ -276,7 +279,7 @@ class OrderFulfill(BaseMutation):
                 manager,
                 notify_customer,
                 allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
-                approved=info.context.site.settings.fulfillment_auto_approve,
+                approved=approved,
             )
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)
@@ -470,8 +473,9 @@ class FulfillmentApprove(BaseMutation):
             info.context.user,
             info.context.app,
             info.context.plugins,
-            allow_stock_to_be_exceeded=data.get("allow_stock_to_be_exceeded"),
+            info.context.site.settings,
             notify_customer=data["notify_customer"],
+            allow_stock_to_be_exceeded=data.get("allow_stock_to_be_exceeded"),
         )
         order.refresh_from_db(fields=["status"])
         return FulfillmentApprove(fulfillment=fulfillment, order=order)
