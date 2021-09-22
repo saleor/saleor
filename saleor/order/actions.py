@@ -1385,6 +1385,7 @@ def _process_refund(
         # provided.
         if refund_shipping_costs:
             amount += order.shipping_price_gross_amount
+        # At this point there can be only one payment.
         payments[0]["amount"] = min(payments[0]["payment"].captured_amount, amount)
 
     if amount:
