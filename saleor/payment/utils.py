@@ -449,9 +449,15 @@ def get_unfinished_payments():
     )
     payments = (
         Payment.objects.get_queryset()
-        .filter(is_active=True, order=None)
+        .filter(order=None)
         .annotate(newest_trx_date=Subquery(newest.values("created")[:1]))
         .filter(newest_trx_date__lte=day_before)
+        .exclude(
+            transactions__kind__in=[
+                TransactionKind.VOID,
+                TransactionKind.REFUND,
+            ]
+        )
     )
 
     return payments
@@ -464,8 +470,6 @@ def is_payment_unfinished_and_ready_to_release(payment: Payment):
 
 class ReleasePaymentException(Exception):
     """Exception occured on attempt to release payment."""
-
-    pass
 
 
 def release_checkout_payment(payment: Payment, manager: "PluginsManager"):
