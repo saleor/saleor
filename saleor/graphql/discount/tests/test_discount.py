@@ -6,11 +6,12 @@ import pytest
 from django.utils import timezone
 from django_countries import countries
 
-from saleor.discount.utils import fetch_catalogue_info
+from saleor.graphql.discount.mutations import convert_catalogue_info_to_global_ids
 
 from ....discount import DiscountValueType, VoucherType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import Sale, SaleChannelListing, Voucher
+from ....discount.utils import fetch_catalogue_info
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -959,7 +960,7 @@ def test_create_sale(
     assert data["endDate"] == end_date.isoformat()
 
     sale = Sale.objects.first()
-    current_catalogue = fetch_catalogue_info(sale)
+    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
     created_webhook_mock.assert_called_once_with(sale, current_catalogue)
 
 
@@ -1030,7 +1031,9 @@ def test_update_sale(
     # Set discount value type to 'fixed' and change it in mutation
     sale.type = DiscountValueType.FIXED
     sale.save()
-    previous_catalogue = fetch_catalogue_info(sale)
+    previous_catalogue = convert_catalogue_info_to_global_ids(
+        fetch_catalogue_info(sale)
+    )
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "type": DiscountValueTypeEnum.PERCENTAGE.name,
@@ -1039,7 +1042,7 @@ def test_update_sale(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )
-    current_catalogue = fetch_catalogue_info(sale)
+    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
 
     content = get_graphql_content(response)
     data = content["data"]["saleUpdate"]["sale"]
@@ -1070,7 +1073,9 @@ def test_sale_delete_mutation(
             }
     """
     variables = {"id": graphene.Node.to_global_id("Sale", sale.id)}
-    previous_catalogue = fetch_catalogue_info(sale)
+    previous_catalogue = convert_catalogue_info_to_global_ids(
+        fetch_catalogue_info(sale)
+    )
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )

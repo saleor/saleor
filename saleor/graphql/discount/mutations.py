@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, DefaultDict, Dict, List
+from typing import TYPE_CHECKING, DefaultDict, Dict, List, Set
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -33,6 +33,21 @@ if TYPE_CHECKING:
     from ...discount.models import Sale as SaleModel
 
 ErrorType = DefaultDict[str, List[ValidationError]]
+
+
+def convert_catalogue_info_to_global_ids(
+    catalogue_info: Dict[str, Set[int]]
+) -> Dict[str, Set[str]]:
+    catalogue_fields = ["categories", "collections", "products"]  # variants
+    type_names = ["Category", "Collection", "Product"]
+    converted_catalogue_info: Dict[str, Set[str]] = defaultdict(set)
+
+    for type_name, catalogue_field in zip(type_names, catalogue_fields):
+        converted_catalogue_info[catalogue_field].update(
+            graphene.Node.to_global_id(type_name, id_)
+            for id_ in catalogue_info[catalogue_field]
+        )
+    return converted_catalogue_info
 
 
 class CatalogueInput(graphene.InputObjectType):
@@ -573,7 +588,9 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         instance.save()
         current_catalogue = fetch_catalogue_info(instance)
         transaction.on_commit(
-            lambda: info.context.plugins.sale_created(instance, current_catalogue)
+            lambda: info.context.plugins.sale_created(
+                instance, convert_catalogue_info_to_global_ids(current_catalogue)
+            )
         )
 
 
@@ -601,7 +618,9 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         current_catalogue = fetch_catalogue_info(instance)
         transaction.on_commit(
             lambda: info.context.plugins.sale_updated(
-                instance, previous_catalogue, current_catalogue
+                instance,
+                convert_catalogue_info_to_global_ids(previous_catalogue),
+                convert_catalogue_info_to_global_ids(current_catalogue),
             )
         )
         return response
@@ -627,7 +646,9 @@ class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
         response = super().perform_mutation(_root, info, **data)
 
         transaction.on_commit(
-            lambda: info.context.plugins.sale_deleted(instance, previous_catalogue)
+            lambda: info.context.plugins.sale_deleted(
+                instance, convert_catalogue_info_to_global_ids(previous_catalogue)
+            )
         )
         return response
 
@@ -656,11 +677,24 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
         error_type_field = "discount_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         sale = cls.get_node_or_error(
             info, data.get("id"), only_type=Sale, field="sale_id"
         )
         cls.add_catalogues_to_node(sale, data.get("input"))
+        current_catalogue = fetch_catalogue_info(sale)
+
+        transaction.on_commit(
+            lambda: info.context.plugins.sale_updated(
+                sale,
+                previous_catalogue=None,
+                current_catalogue=convert_catalogue_info_to_global_ids(
+                    current_catalogue
+                ),
+            )
+        )
+
         return SaleAddCatalogues(sale=ChannelContext(node=sale, channel_slug=None))
 
 
@@ -672,11 +706,24 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
         error_type_field = "discount_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         sale = cls.get_node_or_error(
             info, data.get("id"), only_type=Sale, field="sale_id"
         )
+        previous_catalogue = fetch_catalogue_info(sale)
         cls.remove_catalogues_from_node(sale, data.get("input"))
+
+        transaction.on_commit(
+            lambda: info.context.plugins.sale_updated(
+                sale,
+                previous_catalogue=convert_catalogue_info_to_global_ids(
+                    previous_catalogue
+                ),
+                current_catalogue=None,
+            )
+        )
+
         return SaleRemoveCatalogues(sale=ChannelContext(node=sale, channel_slug=None))
 
 
