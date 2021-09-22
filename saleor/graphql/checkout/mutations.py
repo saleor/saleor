@@ -599,16 +599,6 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
 
     @classmethod
     def perform_mutation(cls, root, info, lines, checkout_id=None, token=None):
-        if token:
-            checkout = get_checkout_by_token(token)
-        # DEPRECATED
-        else:
-            checkout = cls.get_node_or_error(
-                info, checkout_id or token, only_type=Checkout, field="checkout_id"
-            )
-        if checkout:
-            invalidate_checkout_prices(checkout)
-
         return super().perform_mutation(
             root, info, lines, checkout_id, token, replace=True
         )
