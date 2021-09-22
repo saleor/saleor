@@ -231,6 +231,7 @@ def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []
 
 def invalidate_checkout_prices(checkout: models.Checkout) -> None:
     checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
 
 
 class CheckoutLineInput(graphene.InputObjectType):
