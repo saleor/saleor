@@ -89,18 +89,11 @@ def test_create_refund_fulfillment_included_shipping_costs(
     payment_dummy.save()
     order_with_lines.payments.add(payment_dummy)
     payment = order_with_lines.get_last_payment()
-    payments = [
-        {
-            "payment": payment,
-            "amount": payment.captured_amount,
-            "include_shipping_costs": True,
-        }
-    ]
     order_lines_to_refund = order_with_lines.lines.all()
     payments = [
         {
             "payment": payment,
-            "amount": None,
+            "amount": Decimal("0"),
             "include_shipping_costs": True,
         }
     ]

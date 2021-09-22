@@ -910,9 +910,12 @@ def create_refund_fulfillment(
 
     with transaction_with_commit_on_errors():
         refund_shipping_costs = False
-        shipping_refund_amount = None
+        # Amount to be eventually specified in the Fulfillment object.
+        counted_shipping_amount = None
         for item in payments:
             if item["include_shipping_costs"]:
+                if not item["amount"]:
+                    counted_shipping_amount = order.shipping_price_gross_amount
                 refund_shipping_costs = True
                 shipping_refund_amount = __get_shipping_refund_amount(
                     item["include_shipping_costs"],
@@ -943,7 +946,7 @@ def create_refund_fulfillment(
             status=FulfillmentStatus.REFUNDED,
             order=order,
             total_refund_amount=total_refund_amount,
-            shipping_refund_amount=shipping_refund_amount,
+            shipping_refund_amount=counted_shipping_amount,
         )
         created_fulfillment_lines = _move_order_lines_to_target_fulfillment(
             order_lines_to_move=order_lines_to_refund,
