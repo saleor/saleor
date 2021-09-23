@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import Sum
 
 from ...channel.models import Channel
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
@@ -132,6 +133,18 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 {"redirect_url": error}, code=PaymentErrorCode.INVALID
             )
 
+    def check_covered_amount(cls, checkout, checkout_total, amount):
+        if amount < checkout_total:
+
+            aggregation = checkout.payments.aggregate(
+                total_captured_amount=Sum("captured_amount")
+            )
+            total_captured_amount = aggregation["total_captured_amount"]
+            if total_captured_amount < checkout_total:
+                return False
+
+        return True
+
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id=None, token=None, **data):
         # DEPRECATED
@@ -176,7 +189,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         amount = data.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
         clean_billing_address(checkout_info, PaymentErrorCode)
-        cls.clean_payment_amount(info, checkout_total, amount)
+        is_amount_fully_covered = cls.check_covered_amount(
+            checkout, checkout_total, amount
+        )
+        # cls.clean_payment_amount(info, checkout_total, amount)
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
         }
@@ -194,6 +210,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
             return_url=data.get("return_url"),
+            is_amount_fully_covered=is_amount_fully_covered,
         )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
 

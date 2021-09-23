@@ -59,6 +59,14 @@ class Payment(models.Model):
     order = models.ForeignKey(
         "order.Order", null=True, related_name="payments", on_delete=models.PROTECT
     )
+    # create_order = models.BooleanField(
+    #     blank=True,
+    #     null=True,
+    #     help_text=(
+    #         "Indicates whether a payment should convert a checkout into an order. "
+    #         "Used for partial payments."
+    #     ),
+    # )
 
     billing_email = models.EmailField(blank=True)
     billing_first_name = models.CharField(max_length=256, blank=True)
