@@ -68,6 +68,11 @@ class OrderFulfillInput(graphene.InputObjectType):
         description="If true, send an email notification to the customer."
     )
 
+    allow_stock_to_be_exceeded = graphene.Boolean(
+        description="If true, then allow proceed fulfillment when stock is exceeded.",
+        default_value=False,
+    )
+
 
 class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
     tracking_number = graphene.String(description="Fulfillment tracking number.")
@@ -246,6 +251,9 @@ class OrderFulfill(BaseMutation):
         manager = context.plugins
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
         notify_customer = cleaned_input.get("notify_customer", True)
+        allow_stock_to_be_exceeded = cleaned_input.get(
+            "allow_stock_to_be_exceeded", False
+        )
         gift_card_lines = cleaned_input["gift_card_lines"]
         quantities = cleaned_input["quantities"]
 
@@ -267,6 +275,7 @@ class OrderFulfill(BaseMutation):
                 dict(lines_for_warehouses),
                 manager,
                 notify_customer,
+                allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
                 approved=info.context.site.settings.fulfillment_auto_approve,
             )
         except InsufficientStock as exc:
@@ -423,6 +432,9 @@ class FulfillmentApprove(BaseMutation):
         notify_customer = graphene.Boolean(
             required=True, description="True if confirmation email should be send."
         )
+        allow_stock_to_be_exceeded = graphene.Boolean(
+            default_value=False, description="True if stock could be exceeded."
+        )
 
     class Meta:
         description = f"{ADDED_IN_31} Approve existing fulfillment."
@@ -458,6 +470,7 @@ class FulfillmentApprove(BaseMutation):
             info.context.user,
             info.context.app,
             info.context.plugins,
+            allow_stock_to_be_exceeded=data.get("allow_stock_to_be_exceeded"),
             notify_customer=data["notify_customer"],
         )
         order.refresh_from_db(fields=["status"])
