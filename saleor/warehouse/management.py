@@ -307,7 +307,10 @@ def decrease_allocations(lines_info: Iterable["OrderLineData"], manager):
 
 @traced_atomic_transaction()
 def decrease_stock(
-    order_lines_info: Iterable["OrderLineData"], manager, update_stocks=True
+    order_lines_info: Iterable["OrderLineData"],
+    manager,
+    update_stocks=True,
+    allow_stock_to_be_exceeded: bool = False,
 ):
     """Decrease stocks quantities for given `order_lines` in given warehouses.
 
@@ -318,6 +321,7 @@ def decrease_stock(
     function decrease it by given value.
     If update_stocks is False, allocations will decrease but stocks quantities
     will stay unmodified (case of unconfirmed order editing).
+    If allow_stock_to_be_exceeded flag is True then quantity could be < 0.
     """
     variants = [line_info.variant for line_info in order_lines_info]
     warehouse_pks = [line_info.warehouse_pk for line_info in order_lines_info]
@@ -361,6 +365,7 @@ def decrease_stock(
             order_lines_info,
             variant_and_warehouse_to_stock,
             quantity_allocation_for_stocks,
+            allow_stock_to_be_exceeded,
         )
 
         stock_ids = (s.id for s in stocks)
@@ -377,6 +382,7 @@ def _decrease_stocks_quantity(
     order_lines_info: Iterable["OrderLineData"],
     variant_and_warehouse_to_stock: Dict[int, Dict[str, Stock]],
     quantity_allocation_for_stocks: Dict[int, int],
+    allow_stock_to_be_exceeded: bool = False,
 ):
     insufficient_stocks: List[InsufficientStockData] = []
     stocks_to_update = []
@@ -396,7 +402,8 @@ def _decrease_stocks_quantity(
 
         quantity_allocated = quantity_allocation_for_stocks.get(stock.pk, 0)
 
-        if stock.quantity - quantity_allocated < line_info.quantity:
+        is_stock_exceeded = stock.quantity - quantity_allocated < line_info.quantity
+        if is_stock_exceeded and not allow_stock_to_be_exceeded:
             insufficient_stocks.append(
                 InsufficientStockData(
                     variant=variant,  # type: ignore

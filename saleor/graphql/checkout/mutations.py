@@ -181,7 +181,7 @@ def check_lines_quantity(
         errors = [
             ValidationError(
                 f"Could not add items {item.variant}. "
-                f"Only {item.available_quantity} remaining in stock.",
+                f"Only {max(item.available_quantity, 0)} remaining in stock.",
                 code=e.code,
             )
             for item in e.items
