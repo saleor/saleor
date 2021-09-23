@@ -682,13 +682,16 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
         sale = cls.get_node_or_error(
             info, data.get("id"), only_type=Sale, field="sale_id"
         )
+        previous_catalogue = fetch_catalogue_info(sale)
         cls.add_catalogues_to_node(sale, data.get("input"))
         current_catalogue = fetch_catalogue_info(sale)
 
         transaction.on_commit(
             lambda: info.context.plugins.sale_updated(
                 sale,
-                previous_catalogue=None,
+                previous_catalogue=convert_catalogue_info_to_global_ids(
+                    previous_catalogue
+                ),
                 current_catalogue=convert_catalogue_info_to_global_ids(
                     current_catalogue
                 ),
@@ -713,6 +716,7 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
         )
         previous_catalogue = fetch_catalogue_info(sale)
         cls.remove_catalogues_from_node(sale, data.get("input"))
+        current_catalogue = fetch_catalogue_info(sale)
 
         transaction.on_commit(
             lambda: info.context.plugins.sale_updated(
@@ -720,7 +724,9 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
                 previous_catalogue=convert_catalogue_info_to_global_ids(
                     previous_catalogue
                 ),
-                current_catalogue=None,
+                current_catalogue=convert_catalogue_info_to_global_ids(
+                    current_catalogue
+                ),
             )
         )
 

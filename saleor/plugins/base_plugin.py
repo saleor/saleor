@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo
+    from ..discount.models import Sale
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
@@ -376,6 +377,29 @@ class BasePlugin:
 
         Overwrite this method if you need to trigger specific logic after an order is
         confirmed.
+        """
+        return NotImplemented
+
+    def sale_created(self, sale: "Sale", current_catalogue, previous_value: Any):
+        """Trigger when sale is created.
+
+        Overwrite this method if you need to trigger specific logic after sale is created.
+        """
+        return NotImplemented
+
+    def sale_deleted(self, sale: "Sale", previous_catalogue, previous_value: Any):
+        """Trigger when sale is deleted.
+
+        Overwrite this method if you need to trigger specific logic after sale is deleted.
+        """
+        return NotImplemented
+
+    def sale_updated(
+        self, sale: "Sale", previous_catalogue, current_catalogue, previous_value: Any
+    ):
+        """Trigger when sale is updated.
+
+        Overwrite this method if you need to trigger specific logic after sale is updated.
         """
         return NotImplemented
 
