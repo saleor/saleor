@@ -2,6 +2,7 @@ from unittest.mock import ANY
 
 import graphene
 import pytest
+from django.test import override_settings
 from django_countries import countries
 
 from .... import __version__
@@ -446,8 +447,7 @@ def test_update_default_sender_settings_invalid_email(
     ]
 
 
-def test_shop_domain_update(staff_api_client, permission_manage_settings):
-    query = """
+SHOP_DOMAIN_UPDATE_QUERY = """
         mutation updateSettings($input: SiteDomainInput!) {
             shopDomainUpdate(input: $input) {
                 shop {
@@ -455,16 +455,24 @@ def test_shop_domain_update(staff_api_client, permission_manage_settings):
                     domain {
                         host,
                     }
+
+                }
+                errors {
+                    field
+                    code
                 }
             }
         }
     """
+
+
+def test_shop_domain_update(staff_api_client, permission_manage_settings):
     new_name = "saleor test store"
     variables = {"input": {"domain": "lorem-ipsum.com", "name": new_name}}
     site = Site.objects.get_current()
     assert site.domain != "lorem-ipsum.com"
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
+        SHOP_DOMAIN_UPDATE_QUERY, variables, permissions=[permission_manage_settings]
     )
     content = get_graphql_content(response)
     data = content["data"]["shopDomainUpdate"]["shop"]
@@ -473,6 +481,18 @@ def test_shop_domain_update(staff_api_client, permission_manage_settings):
     site.refresh_from_db()
     assert site.domain == "lorem-ipsum.com"
     assert site.name == new_name
+
+
+@override_settings(IS_CLOUD_INSTANCE=True)
+def test_shop_domain_update_cloud_instance(
+    staff_api_client, permission_manage_settings
+):
+    new_name = "saleor test store"
+    variables = {"input": {"domain": "lorem-ipsum.com", "name": new_name}}
+    response = staff_api_client.post_graphql(
+        SHOP_DOMAIN_UPDATE_QUERY, variables, permissions=[permission_manage_settings]
+    )
+    assert_no_permission(response)
 
 
 MUTATION_CUSTOMER_SET_PASSWORD_URL_UPDATE = """

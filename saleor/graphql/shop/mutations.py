@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ...account import models as account_models
@@ -142,6 +143,13 @@ class ShopDomainUpdate(BaseMutation):
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
+
+    @classmethod
+    def check_permissions(cls, context, permissions=None):
+        # for cloud instances this mutation is disabled and raises PermissionDenied
+        if settings.IS_CLOUD_INSTANCE:
+            return False
+        return super().check_permissions(context, permissions)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
