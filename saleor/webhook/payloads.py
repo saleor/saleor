@@ -1,13 +1,16 @@
 import json
 import uuid
 from dataclasses import asdict
+from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional
 
 import graphene
 from django.db.models import F, QuerySet, Sum
 
 from ..attribute.models import AttributeValueTranslation
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
+from ..checkout.utils import get_voucher_discount_for_checkout, get_voucher_for_checkout
 from ..core.taxes import include_taxes_in_prices
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
@@ -21,6 +24,7 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
+from ..plugins.manager import get_plugins_manager
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
@@ -234,6 +238,25 @@ def generate_invoice_payload(invoice: "Invoice"):
     )
 
 
+def get_voucher_amount(checkout: "Checkout", taxes_included: bool) -> Decimal:
+    lines = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    voucher = get_voucher_for_checkout(checkout_info)
+
+    if not voucher:
+        return Decimal("0.00")
+
+    return get_voucher_discount_for_checkout(
+        manager,
+        voucher,
+        checkout_info,
+        lines,
+        address=None,
+        taxes_included=taxes_included,
+    ).amount
+
+
 def generate_checkout_payload(checkout: "Checkout"):
     serializer = PayloadSerializer()
     checkout_fields = (
@@ -254,8 +277,7 @@ def generate_checkout_payload(checkout: "Checkout"):
 
     included_taxes_in_price = include_taxes_in_prices()
 
-    # TODO: ???
-    # voucher_amount = Money(checkout.discount_amount, checkout.currency)
+    voucher_amount = get_voucher_amount(checkout, included_taxes_in_price)
 
     subtotal = (
         checkout.subtotal.gross.amount
@@ -282,9 +304,9 @@ def generate_checkout_payload(checkout: "Checkout"):
             # Casting to list to make it json-serializable
             "included_taxes_in_price": included_taxes_in_price,
             "lines": list(lines_dict_data),
-            # "voucher_amount": voucher_amount,
+            "voucher_amount": voucher_amount,
             "subtotal": subtotal,
-            "total": total,
+            "total": total - voucher_amount,
             "collection_point": json.loads(
                 _generate_collection_point_payload(checkout.collection_point)
             )[0]

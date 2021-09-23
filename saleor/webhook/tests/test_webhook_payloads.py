@@ -692,8 +692,9 @@ def test_generate_checkout_payload(
     payload = json.loads(generate_checkout_payload(checkout))[0]
 
     # then
-    payload_subtotal = str((subtotal.gross if taxes_included else subtotal.net).amount)
-    payload_total = str((total.gross if taxes_included else total.net).amount)
+    payload_voucher_amount = Decimal("0.00")
+    payload_subtotal = (subtotal.gross if taxes_included else subtotal.net).amount
+    payload_total = (total.gross if taxes_included else total.net).amount
 
     assert payload == {
         "type": "Checkout",
@@ -750,8 +751,9 @@ def test_generate_checkout_payload(
         },
         "included_taxes_in_price": taxes_included,
         "lines": serialize_checkout_lines(checkout),
-        "subtotal": payload_subtotal,
-        "total": payload_total,
+        "voucher_amount": str(payload_voucher_amount),
+        "subtotal": str(payload_subtotal),
+        "total": str(payload_total - payload_voucher_amount),
         "collection_point": json.loads(
             _generate_collection_point_payload(collection_point)
         )[0],
