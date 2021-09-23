@@ -217,11 +217,11 @@ def _get_tax_data_from_plugins(
         )
 
     def get_line_unit_price(
-        total: "TaxedMoney", line: CheckoutLine, line_info: "CheckoutLineInfo"
+        total: "TaxedMoney", line_info: "CheckoutLineInfo"
     ) -> "TaxedMoney":
         return manager.calculate_checkout_line_unit_price(
             total,
-            line.quantity,
+            line_info.line.quantity,
             checkout_info,
             lines,
             line_info,
@@ -239,11 +239,11 @@ def _get_tax_data_from_plugins(
                 ).net.amount,
                 total_gross_amount=total_price.gross.amount,
                 unit_net_amount=(
-                    unit_price := get_line_unit_price(total_price, line, line_info)
+                    unit_price := get_line_unit_price(total_price, line_info)
                 ).net.amount,
                 unit_gross_amount=unit_price.gross.amount,
             )
-            for (line, line_info) in zip(checkout.lines.all(), lines)
+            for line_info in lines
         ]
 
         shipping_price = manager.calculate_checkout_shipping(

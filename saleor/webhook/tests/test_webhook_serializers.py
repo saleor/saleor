@@ -106,7 +106,6 @@ def test_serialize_checkout_lines(
     checkout_lines_data = serialize_checkout_lines(checkout)
 
     # then
-    # assert len(checkout_lines) == len(checkout_lines_data)
     data_len = 0
     for data, line in zip(checkout_lines_data, checkout_lines):
         variant = line.variant

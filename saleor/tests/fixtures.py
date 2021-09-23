@@ -4459,6 +4459,7 @@ def checkout_for_cc(channel_USD, customer_user, product_variant_list):
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
         currency="USD",
+        price_expiration=timezone.now() + settings.CHECKOUT_PRICES_TTL,
     )
 
 
