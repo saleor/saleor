@@ -3,11 +3,16 @@ from typing import TYPE_CHECKING
 import opentracing
 from django.core.exceptions import ValidationError
 
-from saleor.payment.gateways.np_atobarai import api
+from saleor.payment.gateways.np_atobarai import api, get_api_config
+from saleor.payment.gateways.np_atobarai.const import (
+    MERCHANT_CODE,
+    SP_CODE,
+    TERMINAL_ID,
+    USE_SANDBOX,
+)
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from saleor.plugins.error_codes import PluginErrorCode
 
-from ..utils import require_active_plugin
 from . import GatewayConfig, capture, process_payment, refund, void
 
 GATEWAY_NAME = "NP後払い"
@@ -20,21 +25,6 @@ if TYPE_CHECKING:
 
 
 __all__ = ["NPAtobaraiGatewayPlugin"]
-
-
-MERCHANT_CODE = "merchant_code"
-SP_CODE = "sp_code"
-TERMINAL_ID = "terminal_id"
-USE_SANDBOX = "use_sandbox"
-
-
-def get_api_config(conf) -> api.ApiConfig:
-    return api.ApiConfig(
-        test_mode=conf[USE_SANDBOX],
-        merchant_code=conf[MERCHANT_CODE],
-        sp_code=conf[SP_CODE],
-        terminal_id=conf[TERMINAL_ID],
-    )
 
 
 class NPAtobaraiGatewayPlugin(BasePlugin):
@@ -81,10 +71,10 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             auto_capture=False,
             supported_currencies=self.SUPPORTED_CURRENCIES,
             connection_params={
-                "merchant_code": configuration[MERCHANT_CODE],
-                "sp_code": configuration[SP_CODE],
-                "terminal_id": configuration[TERMINAL_ID],
-                "sandbox_mode": configuration[USE_SANDBOX],
+                MERCHANT_CODE: configuration[MERCHANT_CODE],
+                SP_CODE: configuration[SP_CODE],
+                TERMINAL_ID: configuration[TERMINAL_ID],
+                USE_SANDBOX: configuration[USE_SANDBOX],
             },
         )
 
