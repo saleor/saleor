@@ -1105,7 +1105,9 @@ class CheckoutComplete(BaseMutation):
         tracking_code = analytics.get_client_id(info.context)
         with transaction_with_commit_on_errors():
             try:
-                qs = models.Checkout.objects.select_for_update(of=["self"])
+                qs = models.Checkout.objects.select_for_update(
+                    of=["self"]
+                ).prefetch_related("payments")
                 if token:
                     checkout = get_checkout_by_token(token, qs)
                 # DEPRECATED

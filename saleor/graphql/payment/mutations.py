@@ -288,7 +288,10 @@ class CheckoutPaymentComplete(BaseMutation, I18nMixin):
         tracking_code = analytics.get_client_id(info.context)
         with transaction_with_commit_on_errors():
             checkout = get_checkout_by_token(
-                token, qs=models.Checkout.objects.select_for_update(of=["self"])
+                token,
+                qs=models.Checkout.objects.select_for_update(
+                    of=["self"]
+                ).prefetch_related("payments"),
             )
             payment = cls.get_node_or_error(
                 info,
