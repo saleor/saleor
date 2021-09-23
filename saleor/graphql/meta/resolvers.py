@@ -56,7 +56,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         product_models.ProductVariant: product_types.ProductVariant,
         menu_models.Menu: menu_types.Menu,
         menu_models.MenuItem: menu_types.MenuItem,
-        shipping_models.ShippingMethod: shipping_types.ShippingMethod,
+        shipping_models.ShippingMethod: shipping_types.ShippingMethodType,
         shipping_models.ShippingZone: shipping_types.ShippingZone,
         account_models.User: account_types.User,
         warehouse_models.Warehouse: warehouse_types.Warehouse,

@@ -40,7 +40,7 @@ def test_delete_shipping_methods(
 
     variables = {
         "ids": [
-            graphene.Node.to_global_id("ShippingMethod", method.id)
+            graphene.Node.to_global_id("ShippingMethodType", method.id)
             for method in shipping_method_list
         ]
     }

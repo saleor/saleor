@@ -362,7 +362,7 @@ def test_translation_query_shipping_method(
     permission_manage_shipping,
 ):
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.id
+        "ShippingMethodType", shipping_method.id
     )
     variables = {
         "id": shipping_method_id,
