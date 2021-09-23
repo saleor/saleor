@@ -7114,3 +7114,96 @@ def test_order_shipping_update_mutation_properly_recalculate_total(
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["order"]["shippingMethod"] is None
+
+
+QUERY_ORDER_BY_TOKEN_WITH_PAYMENT = """
+    query OrderByToken($token: UUID!) {
+        orderByToken(token: $token){
+            id
+            payments{
+              id
+              gateway
+              isActive
+              created
+              modified
+              paymentMethodType
+              transactions{
+                gatewayResponse
+
+              }
+              actions
+              availableCaptureAmount{
+                amount
+              }
+              availableRefundAmount{
+                amount
+              }
+
+              creditCard{
+                brand
+                firstDigits
+                lastDigits
+                expMonth
+                expYear
+              }
+            }
+        }
+  }
+"""
+
+QUERY_ORDER_WITH_PAYMENT_AVAILABLE_FIELDS = """
+    query OrderByToken($token: UUID!) {
+        orderByToken(token: $token){
+            id
+            payments{
+              id
+              gateway
+              isActive
+              created
+              modified
+              paymentMethodType
+              availableCaptureAmount{
+                amount
+              }
+            chargeStatus
+              creditCard{
+                brand
+                firstDigits
+                lastDigits
+                expMonth
+                expYear
+              }
+            }
+        }
+  }
+"""
+
+
+def test_order_by_token_query_for_payment_details_without_permissions(
+    api_client, payment_txn_captured
+):
+    response = api_client.post_graphql(
+        QUERY_ORDER_BY_TOKEN_WITH_PAYMENT, {"token": payment_txn_captured.order.token}
+    )
+    assert_no_permission(response)
+
+    response = api_client.post_graphql(
+        QUERY_ORDER_WITH_PAYMENT_AVAILABLE_FIELDS,
+        {"token": payment_txn_captured.order.token},
+    )
+
+    content = get_graphql_content(response)
+    assert "errors" not in content, content
+
+
+def test_order_by_token_query_payment_details_with_permissions(
+    staff_api_client, payment_txn_captured, permission_manage_orders
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_BY_TOKEN_WITH_PAYMENT, {"token": payment_txn_captured.order.token}
+    )
+
+    content = get_graphql_content(response)
+    assert "errors" not in content, content
