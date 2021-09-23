@@ -282,7 +282,6 @@ class CheckoutPaymentComplete(BaseMutation, I18nMixin):
             "held until the payment is confirmed with second call of this mutation."
         )
         error_type_class = CheckoutError
-        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, token, payment_id, **data):

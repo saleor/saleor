@@ -1164,7 +1164,6 @@ type CheckoutPaymentComplete {
   payment: Payment
   confirmationNeeded: Boolean!
   confirmationData: JSONString
-  checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
 }
 
