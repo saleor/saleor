@@ -1,2 +1,2 @@
-class NPAtobarai(Exception):
+class NPAtobaraiError(Exception):
     pass

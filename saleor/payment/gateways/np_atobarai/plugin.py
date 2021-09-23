@@ -91,31 +91,26 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     def _get_gateway_config(self) -> GatewayConfig:
         return self.config
 
-    @require_active_plugin
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return capture(payment_information, self._get_gateway_config())
 
-    @require_active_plugin
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return refund(payment_information, self._get_gateway_config())
 
-    @require_active_plugin
     def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return void(payment_information, self._get_gateway_config())
 
-    @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return process_payment(payment_information, self._get_gateway_config())
 
-    @require_active_plugin
     def get_supported_currencies(self, previous_value):
         return self.SUPPORTED_CURRENCIES
 
