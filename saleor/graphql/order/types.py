@@ -1,6 +1,7 @@
 from decimal import Decimal
 from operator import attrgetter
 from typing import Optional
+from uuid import UUID
 
 import graphene
 import prices
@@ -9,7 +10,6 @@ from graphene import relay
 from promise import Promise
 
 from ...account.models import Address
-from ...account.utils import requestor_is_staff_member_or_app
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
@@ -17,15 +17,21 @@ from ...core.permissions import (
     AppPermission,
     OrderPermissions,
     ProductPermissions,
+    has_one_of_permissions,
 )
 from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
+from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
-from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
+from ...order.utils import (
+    get_order_country,
+    get_valid_collection_points_for_order,
+    get_valid_shipping_methods_for_order,
+)
 from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import (
@@ -34,6 +40,7 @@ from ...payment.model_helpers import (
     get_total_authorized,
 )
 from ...product import ProductMediaTypes
+from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.product_images import get_product_image_thumbnail
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -43,6 +50,7 @@ from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
@@ -313,7 +321,7 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_warehouse(root: models.OrderEvent, info):
         if warehouse_pk := root.parameters.get("warehouse"):
-            return WarehouseByIdLoader(info.context).load(warehouse_pk)
+            return WarehouseByIdLoader(info.context).load(UUID(warehouse_pk))
         return None
 
     @staticmethod
@@ -440,6 +448,10 @@ class OrderLine(CountableDjangoObjectType):
         graphene.NonNull(Allocation),
         description="List of allocations across warehouses.",
     )
+    quantity_to_fulfill = graphene.Int(
+        required=True,
+        description=f"{ADDED_IN_31} A quantity of items remaining to be fulfilled.",
+    )
     unit_discount_type = graphene.Field(
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
@@ -511,6 +523,10 @@ class OrderLine(CountableDjangoObjectType):
         return root.unit_price
 
     @staticmethod
+    def resolve_quantity_to_fulfill(root: models.OrderLine, info):
+        return root.quantity_unfulfilled
+
+    @staticmethod
     def resolve_undiscounted_unit_price(root: models.OrderLine, _info):
         return root.undiscounted_unit_price
 
@@ -549,8 +565,10 @@ class OrderLine(CountableDjangoObjectType):
             variant, channel = data
 
             requester = get_user_or_app_from_context(context)
-            is_staff = requestor_is_staff_member_or_app(requester)
-            if is_staff:
+            has_required_permission = has_one_of_permissions(
+                requester, ALL_PRODUCTS_PERMISSIONS
+            )
+            if has_required_permission:
                 return ChannelContext(node=variant, channel_slug=channel.slug)
 
             def product_is_available(product_channel_listing):
@@ -596,6 +614,11 @@ class Order(CountableDjangoObjectType):
         required=False,
         description="Shipping methods that can be used with this order.",
     )
+    available_collection_points = graphene.List(
+        graphene.NonNull(Warehouse),
+        required=True,
+        description=f"{ADDED_IN_31} Collection points that can be used for this order.",
+    )
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
     )
@@ -620,6 +643,13 @@ class Order(CountableDjangoObjectType):
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
+
+    shipping_method = graphene.Field(
+        ShippingMethod,
+        description="The shipping method related with order.",
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
+    )
+
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
@@ -657,10 +687,14 @@ class Order(CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
     )
+    delivery_method = graphene.Field(
+        DeliveryMethod,
+        description=f"{ADDED_IN_31} The delivery method selected for this checkout.",
+    )
     language_code = graphene.String(
         deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
             "Use the `languageCodeEnum` field to fetch the language code. "
-            "This field will be removed in Saleor 4.0."
         ),
         required=True,
     )
@@ -670,22 +704,16 @@ class Order(CountableDjangoObjectType):
     discount = graphene.Field(
         Money,
         description="Returns applied discount.",
-        deprecation_reason=(
-            "Use discounts field. This field will be removed in Saleor 4.0."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
     )
     discount_name = graphene.String(
         description="Discount name.",
-        deprecation_reason=(
-            "Use discounts field. This field will be removed in Saleor 4.0."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
     )
 
     translated_discount_name = graphene.String(
         description="Translated discount name.",
-        deprecation_reason=(
-            "Use discounts field. This field will be removed in Saleor 4.0."
-        ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field. ",
     )
 
     discounts = graphene.List(
@@ -715,8 +743,8 @@ class Order(CountableDjangoObjectType):
             "gift_cards",
             "id",
             "shipping_address",
-            "shipping_method",
             "shipping_method_name",
+            "collection_point_name",
             "shipping_price",
             "shipping_tax_rate",
             "status",
@@ -1029,6 +1057,17 @@ class Order(CountableDjangoObjectType):
             wrap_shipping_method_with_channel_context
         )
 
+    @classmethod
+    def resolve_delivery_method(cls, root: models.Order, info):
+        if root.shipping_method_id:
+            return cls.resolve_shipping_method(root, info)
+        if root.collection_point_id:
+            collection_point = WarehouseByIdLoader(info.context).load(
+                root.collection_point_id
+            )
+            return collection_point
+        return None
+
     @staticmethod
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
@@ -1063,6 +1102,18 @@ class Order(CountableDjangoObjectType):
         ]
 
         return instances
+
+    @classmethod
+    @traced_resolver
+    def resolve_available_collection_points(cls, root: models.Order, info):
+        def get_available_collection_points(data):
+            lines, address = data
+
+            return get_valid_collection_points_for_order(lines, address)
+
+        lines = cls.resolve_lines(root, info)
+        address = cls.resolve_shipping_address(root, info)
+        return Promise.all([lines, address]).then(get_available_collection_points)
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):

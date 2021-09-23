@@ -5,4 +5,5 @@ pytest_plugins = [
     "saleor.graphql.channel.tests.fixtures",
     "saleor.graphql.account.tests.benchmark.fixtures",
     "saleor.graphql.order.tests.benchmark.fixtures",
+    "saleor.graphql.giftcard.tests.benchmark.fixtures",
 ]

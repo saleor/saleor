@@ -3,15 +3,19 @@ import uuid
 from typing import Set
 
 from django.db import models
-from django.db.models import Exists, F, OuterRef, Sum
+from django.db.models import Count, Exists, F, OuterRef, Prefetch, Q, Sum
+from django.db.models.expressions import Subquery
 from django.db.models.functions import Coalesce
+from django.db.models.query import QuerySet
 
 from ..account.models import Address
 from ..channel.models import Channel
+from ..checkout.models import CheckoutLine
 from ..core.models import ModelWithMetadata
 from ..order.models import OrderLine
 from ..product.models import Product, ProductVariant
 from ..shipping.models import ShippingZone
+from . import WarehouseClickAndCollectOption
 
 
 class WarehouseQueryset(models.QuerySet):
@@ -25,11 +29,74 @@ class WarehouseQueryset(models.QuerySet):
             .order_by("pk")
         )
 
-    def get_first_warehouse_for_channel(self, channel_pk: int):
-        return self.filter(shipping_zones__channels=channel_pk).first()
+    def applicable_for_click_and_collect_no_quantity_check(
+        self, lines_qs: QuerySet[CheckoutLine], country: str
+    ):
+        """Return the queryset of a `Warehouse` which are applicable for click and collect.
+
+        Note this method does not check stocks quantity for given `CheckoutLine`s.
+        This method should be used only if stocks quantity will be checked in further
+        validation steps, for instance in checkout completion.
+        """
+
+        stocks_qs = Stock.objects.filter(
+            product_variant__id__in=lines_qs.values("variant_id"),
+        ).select_related("product_variant")
+
+        return self._for_country_lines_and_stocks(lines_qs, stocks_qs, country)
+
+    def applicable_for_click_and_collect(
+        self, lines_qs: QuerySet[CheckoutLine], country: str
+    ) -> QuerySet["Warehouse"]:
+        """Return the queryset of a `Warehouse` which are applicable for click and collect.
+
+        Note additional check of stocks quantity for given `CheckoutLine`s.
+        For `WarehouseClickAndCollect.LOCAL` all `CheckoutLine`s must be available from
+        a single warehouse.
+        """
+
+        lines_quantity = (
+            lines_qs.filter(variant_id=OuterRef("product_variant_id"))
+            .annotate(prod_sum=Sum("quantity"))
+            .values_list("prod_sum")
+        )
+
+        stocks_qs = (
+            Stock.objects.annotate_available_quantity()
+            .annotate(line_quantity=F("available_quantity") - Subquery(lines_quantity))
+            .order_by("line_quantity")
+            .filter(
+                product_variant__id__in=lines_qs.values("variant_id"),
+                line_quantity__gte=0,
+            )
+            .select_related("product_variant")
+        )
+
+        return self._for_country_lines_and_stocks(lines_qs, stocks_qs, country)
+
+    def _for_country_lines_and_stocks(
+        self,
+        lines_qs: QuerySet[CheckoutLine],
+        stocks_qs: QuerySet["Stock"],
+        country: str,
+    ) -> QuerySet["Warehouse"]:
+        warehouse_cc_option_enum = WarehouseClickAndCollectOption
+
+        return (
+            self.for_country(country)
+            .prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
+            .filter(stock__in=stocks_qs)
+            .annotate(stock_num=Count("stock__id", distinct=True))
+            .filter(
+                Q(stock_num=lines_qs.count())
+                & Q(click_and_collect_option=warehouse_cc_option_enum.LOCAL_STOCK)
+                | Q(click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES)
+            )
+        )
 
 
 class Warehouse(ModelWithMetadata):
+
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
@@ -38,6 +105,12 @@ class Warehouse(ModelWithMetadata):
     )
     address = models.ForeignKey(Address, on_delete=models.PROTECT)
     email = models.EmailField(blank=True, default="")
+    click_and_collect_option = models.CharField(
+        max_length=30,
+        choices=WarehouseClickAndCollectOption.CHOICES,
+        default=WarehouseClickAndCollectOption.DISABLED,
+    )
+    is_private = models.BooleanField(default=True)
 
     objects = models.Manager.from_queryset(WarehouseQueryset)()
 
@@ -62,7 +135,13 @@ class StockQuerySet(models.QuerySet):
     def annotate_available_quantity(self):
         return self.annotate(
             available_quantity=F("quantity")
-            - Coalesce(Sum("allocations__quantity_allocated"), 0)
+            - Coalesce(
+                Sum(
+                    "allocations__quantity_allocated",
+                    filter=Q(allocations__quantity_allocated__gt=0),
+                ),
+                0,
+            )
         )
 
     def for_channel(self, channel_slug: str):
@@ -140,6 +219,23 @@ class Stock(models.Model):
             self.save(update_fields=["quantity"])
 
 
+class AllocationQueryset(models.QuerySet):
+    def annotate_stock_available_quantity(self):
+        return self.annotate(
+            stock_available_quantity=F("stock__quantity")
+            - Coalesce(Sum("stock__allocations__quantity_allocated"), 0)
+        )
+
+    def available_quantity_for_stock(self, stock: "Stock"):
+        allocated_quantity = (
+            self.filter(stock=stock).aggregate(Sum("quantity_allocated"))[
+                "quantity_allocated__sum"
+            ]
+            or 0
+        )
+        return max(stock.quantity - allocated_quantity, 0)
+
+
 class Allocation(models.Model):
     order_line = models.ForeignKey(
         OrderLine,
@@ -156,6 +252,8 @@ class Allocation(models.Model):
         related_name="allocations",
     )
     quantity_allocated = models.PositiveIntegerField(default=0)
+
+    objects = models.Manager.from_queryset(AllocationQueryset)()
 
     class Meta:
         unique_together = [["order_line", "stock"]]

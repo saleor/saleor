@@ -17,6 +17,7 @@ from ....payment.interface import (
     CustomerSource,
     InitializedPaymentResponse,
     PaymentMethodInfo,
+    StorePaymentMethodEnum,
     TokenConfig,
 )
 from ....payment.models import ChargeStatus, Payment, TransactionKind
@@ -91,8 +92,14 @@ def test_payment_void_gateway_error(
 
 
 CREATE_PAYMENT_MUTATION = """
-    mutation CheckoutPaymentCreate($token: UUID, $input: PaymentInput!) {
-        checkoutPaymentCreate(token: $token, input: $input) {
+    mutation CheckoutPaymentCreate(
+        $token: UUID,
+        $input: PaymentInput!,
+    ) {
+        checkoutPaymentCreate(
+            token: $token,
+            input: $input,
+        ) {
             payment {
                 transactions {
                     kind,
@@ -433,6 +440,85 @@ def test_create_payment_for_checkout_with_active_payments(
     active_payments = checkout.payments.all().filter(is_active=True)
     assert active_payments.count() == 1
     assert active_payments.first().pk not in previous_active_payments_ids
+
+
+@pytest.mark.parametrize(
+    "store",
+    [
+        StorePaymentMethodEnum.NONE,
+        StorePaymentMethodEnum.ON_SESSION,
+        StorePaymentMethodEnum.OFF_SESSION,
+    ],
+)
+def test_create_payment_with_store(
+    user_api_client, checkout_without_shipping_required, address, store
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+            "storePaymentMethod": store,
+        },
+    }
+
+    # when
+    user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
+    checkout.refresh_from_db()
+    payment = checkout.payments.first()
+    assert payment.store_payment_method == store.lower()
+
+
+@pytest.mark.parametrize(
+    "metadata", [[{"key": f"key{i}", "value": f"value{i}"} for i in range(5)], [], None]
+)
+def test_create_payment_with_metadata(
+    user_api_client, checkout_without_shipping_required, address, metadata
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+            "metadata": metadata,
+        },
+    }
+
+    # when
+    user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
+    checkout.refresh_from_db()
+    payment = checkout.payments.first()
+    assert payment.metadata == {m["key"]: m["value"] for m in metadata or {}}
 
 
 CAPTURE_QUERY = """
@@ -903,6 +989,7 @@ def set_dummy_customer_id(customer_user, dummy_customer_id):
 def test_list_payment_sources(
     mocker, dummy_customer_id, set_dummy_customer_id, user_api_client, channel_USD
 ):
+    metadata = {f"key_{i}": f"value_{i}" for i in range(5)}
     gateway = DUMMY_GATEWAY
     query = """
     {
@@ -914,6 +1001,10 @@ def test_list_payment_sources(
                     lastDigits
                     brand
                     firstDigits
+                }
+                metadata {
+                    key
+                    value
                 }
             }
         }
@@ -928,7 +1019,10 @@ def test_list_payment_sources(
         brand="cardBrand",
     )
     source = CustomerSource(
-        id="payment-method-id", gateway=gateway, credit_card_info=card
+        id="payment-method-id",
+        gateway=gateway,
+        credit_card_info=card,
+        metadata=metadata,
     )
     mock_get_source_list = mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_payment_sources",
@@ -948,6 +1042,7 @@ def test_list_payment_sources(
             "lastDigits": "5678",
             "brand": "cardBrand",
         },
+        "metadata": [{"key": key, "value": value} for key, value in metadata.items()],
     }
 
 

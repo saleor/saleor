@@ -3,7 +3,7 @@ from prices import Money
 
 
 @dataclass
-class ShippingMethod:
+class ExternalShippingMethod:
     """Dataclass for storing information about a shipping method."""
 
     id: str

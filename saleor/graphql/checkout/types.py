@@ -4,6 +4,7 @@ from promise import Promise
 from ...checkout import calculations, models
 from ...checkout.utils import (
     get_app_shipping_id,
+    get_valid_collection_points_for_checkout,
     get_valid_shipping_methods_for_checkout,
 )
 from ...core.exceptions import PermissionDenied
@@ -15,6 +16,7 @@ from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
@@ -33,6 +35,8 @@ from ..shipping.dataloaders import (
 )
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
+from ..warehouse.dataloaders import WarehouseByIdLoader
+from ..warehouse.types import Warehouse
 from .dataloaders import (
     CheckoutByTokenLoader,
     CheckoutInfoByCheckoutTokenLoader,
@@ -157,11 +161,32 @@ class CheckoutLine(CountableDjangoObjectType):
         )
 
 
+class DeliveryMethod(graphene.Union):
+    class Meta:
+        description = (
+            "Represents a delivery method chosen for the checkout. `Warehouse` "
+            'type is used when checkout is marked as "click and collect" and '
+            "`ShippingMethod` otherwise."
+        )
+        types = (Warehouse, ShippingMethod)
+
+    @classmethod
+    def resolve_type(cls, instance, info):
+        if isinstance(instance, ChannelContext):
+            return ShippingMethod
+        return super(DeliveryMethod, cls).resolve_type(instance, info)
+
+
 class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod,
         required=True,
         description="Shipping methods that can be used with this order.",
+    )
+    available_collection_points = graphene.List(
+        graphene.NonNull(Warehouse),
+        required=True,
+        description=f"{ADDED_IN_31} Collection points that can be used for this order.",
     )
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),
@@ -190,7 +215,14 @@ class Checkout(CountableDjangoObjectType):
     shipping_method = graphene.Field(
         ShippingMethod,
         description="The shipping method related with checkout.",
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
+
+    delivery_method = graphene.Field(
+        DeliveryMethod,
+        description=f"{ADDED_IN_31} The delivery method selected for this checkout.",
+    )
+
     subtotal_price = graphene.Field(
         TaxedMoney,
         description="The price of the checkout before shipping, with taxes included.",
@@ -281,6 +313,14 @@ class Checkout(CountableDjangoObjectType):
         return Promise.all([shipping_method, channel]).then(
             wrap_shipping_method_with_channel_context
         )
+
+    @staticmethod
+    def resolve_delivery_method(root: models.Checkout, info):
+        if root.shipping_method_id:
+            return Checkout.resolve_shipping_method(root, info)
+        if root.collection_point_id:
+            return WarehouseByIdLoader(info.context).load(root.collection_point_id)
+        return None
 
     @staticmethod
     def resolve_quantity(root: models.Checkout, info):
@@ -470,6 +510,33 @@ class Checkout(CountableDjangoObjectType):
 
         return Promise.all([address, lines, checkout_info, discounts, channel]).then(
             calculate_available_shipping_methods
+        )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_available_collection_points(root: models.Checkout, info):
+        def get_available_collection_points(data):
+            address, lines, channel = data
+
+            if address:
+                country_code = address.country.code
+            else:
+                country_code = channel.default_country.code
+
+            return get_valid_collection_points_for_checkout(
+                lines, country_code=country_code
+            )
+
+        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+        address = (
+            AddressByIdLoader(info.context).load(root.shipping_address_id)
+            if root.shipping_address_id
+            else None
+        )
+
+        return Promise.all([address, lines, channel]).then(
+            get_available_collection_points
         )
 
     @staticmethod

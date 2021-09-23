@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 from django.forms import model_to_dict
 
 from ..account.models import StaffNotificationRecipient
-from ..core.notifications import get_site_context
+from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils.url import prepare_url
 from ..discount import OrderDiscountType
@@ -91,13 +91,19 @@ def get_order_line_payload(line: "OrderLine"):
     if line.is_digital:
         content = DigitalContentUrl.objects.filter(line=line).first()
         digital_url = content.get_absolute_url() if content else None  # type: ignore
+    variant_dependent_fields = {}
+    if line.variant:
+        variant_dependent_fields = {
+            "product": get_product_payload(line.variant.product),
+            "variant": get_product_variant_payload(line.variant),
+        }
     return {
         "id": line.id,
-        "product": get_product_payload(line.variant.product),  # type: ignore
+        "product": variant_dependent_fields.get("product"),  # type: ignore
         "product_name": line.product_name,
         "translated_product_name": line.translated_product_name or line.product_name,
         "variant_name": line.variant_name,
-        "variant": get_product_variant_payload(line.variant),  # type: ignore
+        "variant": variant_dependent_fields.get("variant"),  # type: ignore
         "translated_variant_name": line.translated_variant_name or line.variant_name,
         "product_sku": line.product_sku,
         "quantity": line.quantity,
@@ -194,6 +200,15 @@ ORDER_MODEL_FIELDS = [
     "user_id",
     "language_code",
 ]
+
+
+def get_custom_order_payload(order: Order):
+    payload = {
+        "order": get_default_order_payload(order),
+        "recipient_email": order.get_customer_email(),
+        **get_site_context(),
+    }
+    return payload
 
 
 def get_default_order_payload(order: "Order", redirect_url: str = ""):

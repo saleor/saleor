@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Any, Dict, Optional, Tuple
 
 import micawber
@@ -38,3 +39,8 @@ def get_oembed_data(url: str, field_name: str) -> Tuple[Dict[str, Any], str]:
 def user_is_valid(user: Optional[User]) -> bool:
     """Return True when user is provided and is not anonymous."""
     return bool(user and not user.is_anonymous)
+
+
+def is_date_in_future(given_date):
+    """Return true when the date is in the future."""
+    return given_date > date.today()

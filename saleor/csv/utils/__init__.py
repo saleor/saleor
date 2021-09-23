@@ -21,9 +21,11 @@ class ProductExportFields:
     }
 
     PRODUCT_ATTRIBUTE_FIELDS = {
-        "value": "attributes__values__slug",
+        "value_slug": "attributes__values__slug",
+        "value_name": "attributes__values__name",
         "file_url": "attributes__values__file_url",
         "rich_text": "attributes__values__rich_text",
+        "value": "attributes__values__value",
         "boolean": "attributes__values__boolean",
         "date_time": "attributes__values__date_time",
         "slug": "attributes__assignment__attribute__slug",
@@ -50,9 +52,11 @@ class ProductExportFields:
     }
 
     VARIANT_ATTRIBUTE_FIELDS = {
-        "value": "variants__attributes__values__slug",
+        "value_slug": "variants__attributes__values__slug",
+        "value_name": "variants__attributes__values__name",
         "file_url": "variants__attributes__values__file_url",
         "rich_text": "variants__attributes__values__rich_text",
+        "value": "variants__attributes__values__value",
         "boolean": "variants__attributes__values__boolean",
         "date_time": "variants__attributes__values__date_time",
         "slug": "variants__attributes__assignment__attribute__slug",

@@ -8,7 +8,7 @@ from stripe.stripe_object import StripeObject
 
 from .....plugins.models import PluginConfiguration
 from .... import TransactionKind
-from ....interface import GatewayResponse
+from ....interface import GatewayResponse, StorePaymentMethodEnum
 from ....utils import (
     create_payment_information,
     create_transaction,
@@ -289,9 +289,89 @@ def test_process_payment_with_customer(
     )
 
 
+@pytest.mark.parametrize(
+    "store_payment_method",
+    [StorePaymentMethodEnum.OFF_SESSION, StorePaymentMethodEnum.ON_SESSION],
+)
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
 def test_process_payment_with_customer_and_future_usage(
+    mocked_payment_intent,
+    mocked_customer_create,
+    stripe_plugin,
+    payment_stripe_for_checkout,
+    channel_USD,
+    customer_user,
+    store_payment_method,
+):
+    customer = Mock()
+    mocked_customer_create.return_value = customer
+
+    payment_intent = Mock()
+    mocked_payment_intent.return_value = payment_intent
+
+    client_secret = "client-secret"
+    dummy_response = {
+        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
+    }
+    payment_intent_id = "payment-intent-id"
+    payment_intent.id = payment_intent_id
+    payment_intent.client_secret = client_secret
+    payment_intent.last_response.data = dummy_response
+    payment_intent.status = SUCCESS_STATUS
+
+    plugin = stripe_plugin(auto_capture=True)
+
+    payment_stripe_for_checkout.checkout.user = customer_user
+    payment_stripe_for_checkout.checkout.email = customer_user.email
+    payment_stripe_for_checkout.store_payment_method = store_payment_method
+
+    payment_info = create_payment_information(
+        payment_stripe_for_checkout,
+        customer_id=None,
+    )
+
+    response = plugin.process_payment(payment_info, None)
+
+    assert response.is_success is True
+    assert response.action_required is False
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.amount == payment_info.amount
+    assert response.currency == payment_info.currency
+    assert response.transaction_id == payment_intent_id
+    assert response.error is None
+    assert response.raw_response == dummy_response
+    assert response.action_required_data == {
+        "client_secret": client_secret,
+        "id": payment_intent_id,
+    }
+
+    api_key = plugin.config.connection_params["secret_api_key"]
+    mocked_payment_intent.assert_called_once_with(
+        api_key=api_key,
+        amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
+        currency=payment_info.currency,
+        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        customer=customer,
+        setup_future_usage=store_payment_method.lower(),
+        metadata={
+            "channel": channel_USD.slug,
+            "payment_id": payment_info.graphql_payment_id,
+        },
+        receipt_email=payment_stripe_for_checkout.checkout.email,
+        stripe_version=STRIPE_API_VERSION,
+    )
+
+    mocked_customer_create.assert_called_once_with(
+        api_key="secret_key",
+        email=customer_user.email,
+        stripe_version=STRIPE_API_VERSION,
+    )
+
+
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
+def test_process_payment_with_customer_and_future_usage_no_store(
     mocked_payment_intent,
     mocked_customer_create,
     stripe_plugin,
@@ -319,11 +399,11 @@ def test_process_payment_with_customer_and_future_usage(
 
     payment_stripe_for_checkout.checkout.user = customer_user
     payment_stripe_for_checkout.checkout.email = customer_user.email
+    payment_stripe_for_checkout.store_payment_method = StorePaymentMethodEnum.NONE
+
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
         customer_id=None,
-        store_source=True,
-        additional_data={"setup_future_usage": "off_session"},
     )
 
     response = plugin.process_payment(payment_info, None)
@@ -348,7 +428,6 @@ def test_process_payment_with_customer_and_future_usage(
         currency=payment_info.currency,
         capture_method=AUTOMATIC_CAPTURE_METHOD,
         customer=customer,
-        setup_future_usage="off_session",
         metadata={
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
@@ -595,7 +674,7 @@ def test_process_payment_offline(
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
-def test_process_payment_with_customer_and_payment_method_raises_card_error(
+def test_process_payment_with_customer_and_payment_method_raises_authentication_error(
     mocked_payment_intent,
     mocked_customer_create,
     stripe_plugin,
@@ -609,6 +688,7 @@ def test_process_payment_with_customer_and_payment_method_raises_card_error(
     payment_intent = Mock()
     stripe_error_object = StripeError()
     stripe_error_object.error = StripeError()
+    stripe_error_object.code = "authentication_required"
     stripe_error_object.error.payment_intent = payment_intent
     mocked_payment_intent.side_effect = stripe_error_object
 
@@ -648,6 +728,86 @@ def test_process_payment_with_customer_and_payment_method_raises_card_error(
         "client_secret": client_secret,
         "id": payment_intent_id,
     }
+
+    api_key = plugin.config.connection_params["secret_api_key"]
+    mocked_payment_intent.assert_called_once_with(
+        api_key=api_key,
+        amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
+        currency=payment_info.currency,
+        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        customer=customer,
+        payment_method="pm_ID",
+        confirm=True,
+        off_session=True,
+        metadata={
+            "channel": channel_USD.slug,
+            "payment_id": payment_info.graphql_payment_id,
+        },
+        receipt_email=payment_stripe_for_checkout.checkout.email,
+        stripe_version=STRIPE_API_VERSION,
+    )
+
+    mocked_customer_create.assert_called_once_with(
+        api_key="secret_key",
+        email=customer_user.email,
+        stripe_version=STRIPE_API_VERSION,
+    )
+
+
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
+def test_process_payment_with_customer_and_payment_method_raises_error(
+    mocked_payment_intent,
+    mocked_customer_create,
+    stripe_plugin,
+    payment_stripe_for_checkout,
+    channel_USD,
+    customer_user,
+):
+    customer = Mock()
+    mocked_customer_create.return_value = customer
+
+    payment_intent = Mock()
+    stripe_error_object = StripeError(
+        message="Card declined", json_body={"error": "body"}
+    )
+    stripe_error_object.error = StripeError()
+    stripe_error_object.code = "card_declined"
+    stripe_error_object.error.payment_intent = payment_intent
+    mocked_payment_intent.side_effect = stripe_error_object
+
+    client_secret = "client-secret"
+    dummy_response = {
+        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
+    }
+    payment_intent_id = "payment-intent-id"
+    payment_intent.id = payment_intent_id
+    payment_intent.client_secret = client_secret
+    payment_intent.last_response.data = dummy_response
+
+    plugin = stripe_plugin(auto_capture=True)
+
+    payment_stripe_for_checkout.checkout.user = customer_user
+    payment_stripe_for_checkout.checkout.email = customer_user.email
+
+    payment_info = create_payment_information(
+        payment_stripe_for_checkout,
+        customer_id=None,
+        store_source=True,
+        additional_data={"payment_method_id": "pm_ID", "off_session": True},
+    )
+
+    response = plugin.process_payment(payment_info, None)
+
+    assert response.is_success is False
+    assert response.action_required is True
+    assert response.kind == TransactionKind.ACTION_TO_CONFIRM
+    assert response.amount == payment_info.amount
+    assert response.currency == payment_info.currency
+    assert not response.transaction_id
+    assert response.error == "Card declined"
+    assert response.raw_response == {"error": "body"}
+    assert response.action_required_data == {"client_secret": None, "id": None}
 
     api_key = plugin.config.connection_params["secret_api_key"]
     mocked_payment_intent.assert_called_once_with(
@@ -773,7 +933,9 @@ def test_process_payment_with_manual_capture(
 def test_process_payment_with_error(
     mocked_payment_intent, stripe_plugin, payment_stripe_for_checkout, channel_USD
 ):
-    mocked_payment_intent.side_effect = StripeError(message="stripe-error")
+    mocked_payment_intent.side_effect = StripeError(
+        message="stripe-error", json_body={"error": "body"}
+    )
 
     plugin = stripe_plugin()
 
@@ -790,7 +952,7 @@ def test_process_payment_with_error(
     assert response.currency == payment_info.currency
     assert response.transaction_id == ""
     assert response.error == "stripe-error"
-    assert response.raw_response is None
+    assert response.raw_response == {"error": "body"}
     assert response.action_required_data == {"client_secret": None, "id": None}
 
     api_key = plugin.config.connection_params["secret_api_key"]

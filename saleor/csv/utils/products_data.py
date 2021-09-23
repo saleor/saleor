@@ -295,11 +295,13 @@ AttributeData = namedtuple(
     "AttributeData",
     [
         "slug",
-        "file_url",
-        "value",
         "input_type",
         "entity_type",
         "unit",
+        "value_slug",
+        "value_name",
+        "value",
+        "file_url",
         "rich_text",
         "boolean",
         "date_time",
@@ -320,6 +322,8 @@ def handle_attribute_data(
         slug=data.pop(attribute_fields["slug"], None),
         input_type=data.pop(attribute_fields["input_type"], None),
         file_url=data.pop(attribute_fields["file_url"], None),
+        value_slug=data.pop(attribute_fields["value_slug"], None),
+        value_name=data.pop(attribute_fields["value_name"], None),
         value=data.pop(attribute_fields["value"], None),
         entity_type=data.pop(attribute_fields["entity_type"], None),
         unit=data.pop(attribute_fields["unit"], None),
@@ -398,41 +402,59 @@ def add_attribute_info_to_data(
     """
     slug = attribute_data.slug
     header = None
-    if slug:
-        header = f"{slug} ({attribute_owner})"
-        input_type = attribute_data.input_type
-        if input_type == AttributeInputType.FILE:
-            file_url = attribute_data.file_url
-            value = (
-                build_absolute_uri(urljoin(settings.MEDIA_URL, file_url))
-                if file_url
-                else ""
-            )
-        elif input_type == AttributeInputType.REFERENCE and attribute_data.value:
-            reference_id = attribute_data.value.split("_")[1]
-            value = f"{attribute_data.entity_type}_{reference_id}"
-        elif input_type == AttributeInputType.NUMERIC:
-            value = f"{attribute_data.value}"
-            if attribute_data.unit:
-                value += f" {attribute_data.unit}"
-        elif input_type == AttributeInputType.RICH_TEXT:
-            value = clean_editor_js(attribute_data.rich_text, to_string=True)
-        elif (
-            input_type == AttributeInputType.BOOLEAN
-            and attribute_data.boolean is not None
-        ):
-            value = str(attribute_data.boolean)
-        elif input_type == AttributeInputType.DATE:
-            value = str(attribute_data.date_time.date())
-        elif input_type == AttributeInputType.DATE_TIME:
-            value = str(attribute_data.date_time)
-        else:
-            value = attribute_data.value if attribute_data.value else ""
-        if header in result_data[pk]:
-            result_data[pk][header].add(value)  # type: ignore
-        else:
-            result_data[pk][header] = {value}
+
+    if not slug:
+        return result_data
+
+    header = f"{slug} ({attribute_owner})"
+    value = prepare_attribute_value(attribute_data)
+
+    if header in result_data[pk]:
+        result_data[pk][header].add(value)  # type: ignore
+    else:
+        result_data[pk][header] = {value}
+
     return result_data
+
+
+def prepare_attribute_value(attribute_data: AttributeData):
+    """Prepare value of attribute value depending on the attribute input type."""
+    input_type = attribute_data.input_type
+    if input_type == AttributeInputType.FILE:
+        file_url = attribute_data.file_url
+        value = (
+            build_absolute_uri(urljoin(settings.MEDIA_URL, file_url))
+            if file_url
+            else ""
+        )
+    elif input_type == AttributeInputType.REFERENCE and attribute_data.value_slug:
+        reference_id = attribute_data.value_slug.split("_")[1]
+        value = f"{attribute_data.entity_type}_{reference_id}"
+    elif input_type == AttributeInputType.NUMERIC:
+        value = f"{attribute_data.value_name}"
+        if attribute_data.unit:
+            value += f" {attribute_data.unit}"
+    elif input_type == AttributeInputType.RICH_TEXT:
+        value = clean_editor_js(attribute_data.rich_text, to_string=True)
+    elif (
+        input_type == AttributeInputType.BOOLEAN and attribute_data.boolean is not None
+    ):
+        value = str(attribute_data.boolean)
+    elif input_type == AttributeInputType.DATE:
+        value = str(attribute_data.date_time.date())
+    elif input_type == AttributeInputType.DATE_TIME:
+        value = str(attribute_data.date_time)
+    elif input_type == AttributeInputType.SWATCH:
+        if attribute_data.file_url:
+            value = build_absolute_uri(
+                urljoin(settings.MEDIA_URL, attribute_data.file_url)
+            )
+        else:
+            value = attribute_data.value
+    else:
+        value = attribute_data.value_name or attribute_data.value_slug or ""
+
+    return value
 
 
 def add_warehouse_info_to_data(

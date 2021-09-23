@@ -1,10 +1,16 @@
 import graphene
 from graphene import relay
 
+from ...core.exceptions import PermissionDenied
 from ...core.tracing import traced_resolver
 from ...payment import models
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31
 from ..core.types import Money
+from ..meta.permissions import public_payment_permissions
+from ..meta.resolvers import resolve_metadata
+from ..meta.types import MetadataItem, ObjectWithMetadata
+from ..utils import get_user_or_app_from_context
 from .enums import OrderAction, PaymentChargeStatusEnum
 
 
@@ -62,6 +68,14 @@ class PaymentSource(graphene.ObjectType):
     credit_card_info = graphene.Field(
         CreditCard, description="Stored credit card details if available."
     )
+    metadata = graphene.List(
+        MetadataItem,
+        required=True,
+        description=(
+            f"{ADDED_IN_31} List of public metadata items. "
+            "Can be accessed without permissions."
+        ),
+    )
 
 
 class Payment(CountableDjangoObjectType):
@@ -94,7 +108,7 @@ class Payment(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a payment of a given type."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Payment
         filter_fields = ["id"]
         only_fields = [
@@ -160,6 +174,14 @@ class Payment(CountableDjangoObjectType):
         if not any(data.values()):
             return None
         return CreditCard(**data)
+
+    @staticmethod
+    def resolve_metadata(root: models.Payment, info):
+        permissions = public_payment_permissions(info, root.pk)
+        requester = get_user_or_app_from_context(info.context)
+        if not requester.has_perms(permissions):
+            raise PermissionDenied()
+        return resolve_metadata(root.metadata)
 
 
 class PaymentInitialized(graphene.ObjectType):

@@ -13,11 +13,13 @@ from ....checkout.fetch import (
     CheckoutInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
+    get_delivery_method_info,
     get_valid_shipping_method_list_for_checkout_info,
 )
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
+from ....product import ProductTypeKind
 from ....product.models import Product, ProductType
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
@@ -836,13 +838,16 @@ def test_get_checkout_line_tax_rate(
 
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            checkout_with_item.shipping_method
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
         shipping_method_channel_listings=None,
         valid_shipping_methods=[],
+        valid_pick_up_points=[],
     )
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
@@ -889,13 +894,16 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
 
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            checkout_with_item.shipping_method
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
         shipping_method_channel_listings=None,
         valid_shipping_methods=[],
+        valid_pick_up_points=[],
     )
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
@@ -940,7 +948,9 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
 
     manager = get_plugins_manager()
 
-    product_type = ProductType.objects.create(name="non-taxable")
+    product_type = ProductType.objects.create(
+        name="non-taxable", kind=ProductTypeKind.NORMAL
+    )
     product2 = product_with_two_variants
     product2.product_type = product_type
     manager.assign_tax_code_to_object_meta(product_type, "NT")
@@ -954,13 +964,16 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
     variant2 = product2.variants.first()
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            checkout_with_item.shipping_method
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
         shipping_method_channel_listings=None,
         valid_shipping_methods=[],
+        valid_pick_up_points=[],
     )
     add_variant_to_checkout(checkout_info, variant2, 1)
 
@@ -1179,13 +1192,16 @@ def test_get_checkout_shipping_tax_rate(
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            checkout_with_item.shipping_method
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
         shipping_method_channel_listings=None,
         valid_shipping_methods=[],
+        valid_pick_up_points=[],
     )
 
     # when
@@ -1199,6 +1215,32 @@ def test_get_checkout_shipping_tax_rate(
 
     # then
     assert tax_rate == Decimal("0.23")
+
+
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test__get_shipping_tax_rate_handles_multiple_tax_districts(
+    avalara_response_for_checkout_with_items_and_shipping, channel_USD
+):
+    manager = get_plugins_manager()
+    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+
+    # 0.46 == sum of two tax districts
+    assert Decimal("0.46") == plugin._get_shipping_tax_rate(
+        avalara_response_for_checkout_with_items_and_shipping, Decimal(0.0)
+    ).quantize(Decimal(".01"))
+
+
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test__get_unit_tax_rate_handles_multiple_tax_districts(
+    avalara_response_for_checkout_with_items_and_shipping, channel_USD
+):
+    manager = get_plugins_manager()
+    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+
+    # 0.36 == sum of two tax districts
+    assert Decimal("0.36") == plugin._get_unit_tax_rate(
+        avalara_response_for_checkout_with_items_and_shipping, "123", Decimal(0.0)
+    ).quantize(Decimal(".01"))
 
 
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])

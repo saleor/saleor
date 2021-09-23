@@ -82,6 +82,7 @@ from ...shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
+from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
 from ...warehouse.models import Stock, Warehouse
 
@@ -599,6 +600,7 @@ def create_order_lines(order, discounts, how_many=10):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
+                is_gift_card=variant.is_gift_card(),
                 quantity=quantity,
                 variant=variant,
                 unit_price=unit_price,
@@ -846,7 +848,7 @@ def create_product_sales(how_many=5):
         yield "Sale: %s" % (sale,)
 
 
-def create_channel(channel_name, currency_code, slug=None):
+def create_channel(channel_name, currency_code, slug=None, country=None):
     if not slug:
         slug = slugify(channel_name)
     channel, _ = Channel.objects.get_or_create(
@@ -855,6 +857,7 @@ def create_channel(channel_name, currency_code, slug=None):
             "name": channel_name,
             "currency_code": currency_code,
             "is_active": True,
+            "default_country": country,
         },
     )
     return f"Channel: {channel}"
@@ -865,11 +868,9 @@ def create_channels():
         channel_name="Channel-USD",
         currency_code="USD",
         slug=settings.DEFAULT_CHANNEL_SLUG,
+        country=settings.DEFAULT_COUNTRY,
     )
-    yield create_channel(
-        channel_name="Channel-PLN",
-        currency_code="PLN",
-    )
+    yield create_channel(channel_name="Channel-PLN", currency_code="PLN", country="PL")
 
 
 def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
@@ -1202,15 +1203,46 @@ def create_shipping_zones():
     )
 
 
+def create_additional_cc_warehouse():
+    shipping_zone = ShippingZone.objects.first()
+    warehouse_name = f"{shipping_zone.name} for click and collect"
+    warehouse, _ = Warehouse.objects.update_or_create(
+        name=warehouse_name,
+        slug=slugify(warehouse_name),
+        defaults={
+            "address": create_address(),
+            "is_private": False,
+            "click_and_collect_option": WarehouseClickAndCollectOption.LOCAL_STOCK,
+        },
+    )
+    warehouse.shipping_zones.add(shipping_zone)
+
+
 def create_warehouses():
     for shipping_zone in ShippingZone.objects.all():
         shipping_zone_name = shipping_zone.name
+        is_private = random.choice([True, False])
+        cc_option = random.choice(
+            [
+                option[0]
+                for option in WarehouseClickAndCollectOption.CHOICES
+                if not (
+                    is_private and option == WarehouseClickAndCollectOption.LOCAL_STOCK
+                )
+            ]
+        )
         warehouse, _ = Warehouse.objects.update_or_create(
             name=shipping_zone_name,
             slug=slugify(shipping_zone_name),
-            defaults={"address": create_address(company_name=fake.company())},
+            defaults={
+                "address": create_address(company_name=fake.company()),
+                "is_private": is_private,
+                "click_and_collect_option": cc_option,
+            },
         )
         warehouse.shipping_zones.add(shipping_zone)
+
+    create_additional_cc_warehouse()
 
 
 def create_vouchers():
@@ -1288,7 +1320,7 @@ def create_gift_card():
     gift_card, created = GiftCard.objects.get_or_create(
         code="Gift_card_10",
         defaults={
-            "user": user,
+            "created_by": user,
             "initial_balance": Money(10, DEFAULT_CURRENCY),
             "current_balance": Money(10, DEFAULT_CURRENCY),
         },

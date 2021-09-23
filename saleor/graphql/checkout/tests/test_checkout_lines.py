@@ -3,12 +3,14 @@ import uuid
 from unittest import mock
 
 import graphene
+import pytest
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import calculate_checkout_quantity
 from ....plugins.manager import get_plugins_manager
 from ....product.models import ProductChannelListing
+from ....warehouse import WarehouseClickAndCollectOption
 from ...tests.utils import get_graphql_content
 from ..mutations import update_checkout_shipping_method_if_invalid
 
@@ -91,6 +93,25 @@ def test_checkout_lines_add_existing_variant(user_api_client, checkout_with_item
     assert line.quantity == 10
 
 
+def test_checkout_lines_add_existing_variant_over_allowed_stock(
+    user_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    current_stock = line.variant.stocks.first()
+
+    variables = {
+        "token": checkout.token,
+        "lines": [{"variantId": variant_id, "quantity": current_stock.quantity - 1}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutLinesAdd"]["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+
+
 def test_checkout_lines_add_with_unavailable_variant(
     user_api_client, checkout_with_item, stock
 ):
@@ -131,6 +152,40 @@ def test_checkout_lines_add_with_insufficient_stock(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)
     errors = content["data"]["checkoutLinesAdd"]["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
+
+
+@pytest.mark.parametrize(
+    "cc_option",
+    [
+        WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+        WarehouseClickAndCollectOption.LOCAL_STOCK,
+    ],
+)
+def test_checkout_lines_for_click_and_collect_insufficient_stock(
+    user_api_client, checkout_with_item_for_cc, warehouse_for_cc, cc_option
+):
+    checkout = checkout_with_item_for_cc
+    checkout.collection_point = warehouse_for_cc
+
+    warehouse_for_cc.click_and_collect_option = cc_option
+    warehouse_for_cc.save(update_fields=["click_and_collect_option"])
+    checkout.refresh_from_db()
+
+    variant = checkout.lines.last().variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "token": checkout.token,
+        "lines": [{"variantId": variant_id, "quantity": 42}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutLinesAdd"]["errors"]
+
     assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
     assert errors[0]["field"] == "quantity"
 
@@ -472,6 +527,27 @@ def test_checkout_lines_update_channel_without_shipping_zones(
     assert errors[0]["field"] == "quantity"
 
 
+def test_checkout_lines_update_variant_quantity_over_avability_stock(
+    user_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    current_stock = line.variant.stocks.first()
+    line.quantity = current_stock.quantity - 1
+    line.save()
+
+    variables = {
+        "token": checkout.token,
+        "lines": [{"variantId": variant_id, "quantity": current_stock.quantity - 2}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesUpdate"]
+    assert data["checkout"]["lines"][0]["quantity"] == variables["lines"][0]["quantity"]
+
+
 @mock.patch(
     "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
@@ -484,6 +560,40 @@ def test_checkout_line_delete_by_zero_quantity(
     line = checkout.lines.first()
     variant = line.variant
     assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "token": checkout.token,
+        "lines": [{"variantId": variant_id, "quantity": 0}],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == 0
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+def test_checkout_line_update_by_zero_quantity_dont_create_new_lines(
+    mocked_update_shipping_method,
+    user_api_client,
+    checkout_with_item,
+):
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    variant = line.variant
+    checkout.lines.all().delete()
+    assert checkout.lines.count() == 0
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 

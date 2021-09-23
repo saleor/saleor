@@ -1,9 +1,10 @@
 import datetime
 import uuid
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 import graphene
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 
@@ -14,6 +15,7 @@ from ...checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
+    get_valid_collection_points_for_checkout_info,
     get_valid_shipping_method_list_for_checkout_info,
 )
 from ...checkout.utils import (
@@ -22,7 +24,7 @@ from ...checkout.utils import (
     calculate_checkout_quantity,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    clear_shipping_method,
+    clear_delivery_method,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
@@ -31,6 +33,7 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
+from ...core.permissions import AccountPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
@@ -38,15 +41,21 @@ from ...plugins.webhook.utils import from_shipping_app_id
 from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import models as shipping_models
+from ...warehouse import models as warehouse_models
 from ...warehouse.availability import check_stock_quantity_bulk
-from ...warehouse.models import Warehouse
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..channel.utils import clean_channel
+from ..core.descriptions import (
+    ADDED_IN_31,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
+)
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import UUID
 from ..core.types.common import CheckoutError
+from ..core.utils import from_global_id_or_error
 from ..core.validators import (
     validate_one_of_args_is_in_mutation,
     validate_variants_available_in_channel,
@@ -54,6 +63,8 @@ from ..core.validators import (
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
+from ..utils import get_user_or_app_from_context
+from ..warehouse.types import Warehouse
 from .types import Checkout, CheckoutLine
 from .utils import prepare_insufficient_stock_checkout_validation_error
 
@@ -65,10 +76,10 @@ if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo
 
 
-def clean_shipping_method(
+def clean_delivery_method(
     checkout_info: "CheckoutInfo",
     lines: Iterable[CheckoutLineInfo],
-    method: Optional[models.ShippingMethod],
+    method: Optional[Union[models.ShippingMethod, warehouse_models.Warehouse]],
 ) -> bool:
     """Check if current shipping method is valid."""
 
@@ -81,14 +92,14 @@ def clean_shipping_method(
             ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
         )
 
-    if not checkout_info.shipping_address:
+    if not checkout_info.shipping_address and isinstance(method, models.ShippingMethod):
         raise ValidationError(
             "Cannot choose a shipping method for a checkout without the "
             "shipping address.",
             code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
         )
 
-    valid_methods = checkout_info.valid_shipping_methods
+    valid_methods = checkout_info.valid_delivery_methods
     return method in valid_methods
 
 
@@ -99,21 +110,26 @@ def update_checkout_shipping_method_if_invalid(
 
     # remove shipping method when empty checkout
     if quantity == 0 or not is_shipping_required(lines):
-        clear_shipping_method(checkout_info)
+        clear_delivery_method(checkout_info)
 
-    is_valid = clean_shipping_method(
+    is_valid = clean_delivery_method(
         checkout_info=checkout_info,
         lines=lines,
-        method=checkout_info.shipping_method,
+        method=checkout_info.delivery_method_info.delivery_method,
     )
 
     if not is_valid:
-        # remove shipping method when it is no longer valid
-        clear_shipping_method(checkout_info)
+        clear_delivery_method(checkout_info)
 
 
 def check_lines_quantity(
-    variants, quantities, country, channel_slug, allow_zero_quantity=False
+    variants,
+    quantities,
+    country,
+    channel_slug,
+    allow_zero_quantity=False,
+    existing_lines=None,
+    replace=False,
 ):
     """Clean quantities and check if stock is sufficient for each checkout line.
 
@@ -155,7 +171,14 @@ def check_lines_quantity(
                 }
             )
     try:
-        check_stock_quantity_bulk(variants, country, quantities, channel_slug)
+        check_stock_quantity_bulk(
+            variants,
+            country,
+            quantities,
+            channel_slug,
+            existing_lines=existing_lines,
+            replace=replace,
+        )
     except InsufficientStock as e:
         errors = [
             ValidationError(
@@ -251,8 +274,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             "Whether the checkout was created or the current active one was returned. "
             "Refer to checkoutLinesAdd and checkoutLinesUpdate to merge a cart "
             "with an active checkout."
-            "DEPRECATED: Will be removed in Saleor 4.0. Always returns True."
         ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `True`.",
     )
 
     class Arguments:
@@ -325,12 +348,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if shipping_address:
             country = shipping_address.country.code
         else:
-            warehouse = Warehouse.objects.get_first_warehouse_for_channel(channel.pk)
-            if warehouse:
-                country = warehouse.address.country.code
-            else:
-                # fallback when channel has no warehouses
-                country = settings.DEFAULT_COUNTRY
+            country = channel.default_country
 
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
@@ -418,8 +436,7 @@ class CheckoutLinesAdd(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                "The ID of the checkout."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -442,16 +459,28 @@ class CheckoutLinesAdd(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def validate_checkout_lines(cls, variants, quantities, country, channel_slug):
-        check_lines_quantity(variants, quantities, country, channel_slug)
+    def validate_checkout_lines(
+        cls, variants, quantities, country, channel_slug, lines=None
+    ):
+        check_lines_quantity(
+            variants, quantities, country, channel_slug, existing_lines=lines
+        )
 
     @classmethod
     def clean_input(
-        cls, checkout, variants, quantities, checkout_info, manager, discounts, replace
+        cls,
+        checkout,
+        variants,
+        quantities,
+        checkout_info,
+        lines,
+        manager,
+        discounts,
+        replace,
     ):
         channel_slug = checkout_info.channel.slug
         cls.validate_checkout_lines(
-            variants, quantities, checkout.get_country(), channel_slug
+            variants, quantities, checkout.get_country(), channel_slug, lines=lines
         )
         variants_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variants_db_ids, checkout.channel_id)
@@ -483,6 +512,12 @@ class CheckoutLinesAdd(BaseMutation):
                 checkout_info, checkout_info.shipping_address, lines, discounts, manager
             )
         )
+        checkout_info.valid_pick_up_points = (
+            get_valid_collection_points_for_checkout_info(
+                checkout_info.shipping_address, lines, checkout_info
+            )
+        )
+        return lines
 
     @classmethod
     def perform_mutation(
@@ -509,14 +544,27 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
-        cls.clean_input(
-            checkout, variants, quantities, checkout_info, manager, discounts, replace
-        )
 
         lines = fetch_checkout_lines(checkout)
+        lines = cls.clean_input(
+            checkout,
+            variants,
+            quantities,
+            checkout_info,
+            lines,
+            manager,
+            discounts,
+            replace,
+        )
+
         checkout_info.valid_shipping_methods = (
             get_valid_shipping_method_list_for_checkout_info(
                 checkout_info, checkout_info.shipping_address, lines, discounts, manager
+            )
+        )
+        checkout_info.valid_pick_up_points = (
+            get_valid_collection_points_for_checkout_info(
+                checkout_info.shipping_address, lines, checkout_info
             )
         )
 
@@ -537,9 +585,17 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def validate_checkout_lines(cls, variants, quantities, country, channel_slug):
+    def validate_checkout_lines(
+        cls, variants, quantities, country, channel_slug, lines=None
+    ):
         check_lines_quantity(
-            variants, quantities, country, channel_slug, allow_zero_quantity=True
+            variants,
+            quantities,
+            country,
+            channel_slug,
+            allow_zero_quantity=True,
+            existing_lines=lines,
+            replace=True,
         )
 
     @classmethod
@@ -555,8 +611,7 @@ class CheckoutLineDelete(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                "The ID of the checkout."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -610,8 +665,14 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout_id = graphene.ID(
             required=False,
             description=(
-                "ID of the checkout."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
+            ),
+        )
+        customer_id = graphene.ID(
+            required=False,
+            description=(
+                "ID of customer to attach to checkout. Can be used to attach customer "
+                "to checkout by staff or app. Requires IMPERSONATE_USER permission."
             ),
         )
         token = UUID(description="Checkout token.", required=False)
@@ -623,7 +684,7 @@ class CheckoutCustomerAttach(BaseMutation):
 
     @classmethod
     def check_permissions(cls, context):
-        return context.user.is_authenticated
+        return context.user.is_authenticated or context.app
 
     @classmethod
     def perform_mutation(
@@ -644,11 +705,19 @@ class CheckoutCustomerAttach(BaseMutation):
 
         # Raise error when trying to attach a user to a checkout
         # that is already owned by another user.
-        if checkout.user:
+        if checkout.user_id:
             raise PermissionDenied()
 
-        checkout.user = info.context.user
-        checkout.email = info.context.user.email
+        if customer_id:
+            requestor = get_user_or_app_from_context(info.context)
+            if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+                raise PermissionDenied()
+            customer = cls.get_node_or_error(info, customer_id, only_type="User")
+        else:
+            customer = info.context.user
+
+        checkout.user = customer
+        checkout.email = customer.email
         checkout.save(update_fields=["email", "user", "last_change"])
 
         info.context.plugins.checkout_updated(checkout)
@@ -661,8 +730,7 @@ class CheckoutCustomerDetach(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                "Checkout ID."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -675,7 +743,7 @@ class CheckoutCustomerDetach(BaseMutation):
 
     @classmethod
     def check_permissions(cls, context):
-        return context.user.is_authenticated
+        return context.user.is_authenticated or context.app
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id=None, token=None):
@@ -692,9 +760,11 @@ class CheckoutCustomerDetach(BaseMutation):
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
 
-        # Raise error if the current user doesn't own the checkout of the given ID.
-        if checkout.user and checkout.user != info.context.user:
-            raise PermissionDenied()
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+            # Raise error if the current user doesn't own the checkout of the given ID.
+            if checkout.user and checkout.user != info.context.user:
+                raise PermissionDenied()
 
         checkout.user = None
         checkout.save(update_fields=["user", "last_change"])
@@ -710,8 +780,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         checkout_id = graphene.ID(
             required=False,
             description=(
-                "ID of the checkout."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
         )
         token = UUID(description="Checkout token.", required=False)
@@ -819,8 +888,8 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         checkout_id = graphene.ID(
             required=False,
             description=(
-                "ID of the checkout."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} "
+                "Use token instead."
             ),
         )
         token = UUID(description="Checkout token.", required=False)
@@ -870,8 +939,7 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
         checkout_id = graphene.ID(
             required=False,
             description=(
-                "ID of the checkout."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
         )
         token = UUID(description="Checkout token.", required=False)
@@ -911,8 +979,7 @@ class CheckoutEmailUpdate(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                "Checkout ID."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -952,8 +1019,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                "Checkout ID."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -1012,7 +1078,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 ),
             )
 
-            shipping_method_is_valid = clean_shipping_method(
+            shipping_method_is_valid = clean_delivery_method(
                 checkout_info=checkout_info,
                 lines=lines,
                 method=shipping_method,
@@ -1036,6 +1102,174 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
 
+class CheckoutDeliveryMethodUpdate(BaseMutation):
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
+
+    class Arguments:
+        token = UUID(description="Checkout token.", required=False)
+        delivery_method_id = graphene.ID(
+            description="Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID).",
+            required=False,
+        )
+
+    class Meta:
+        description = (
+            f"{ADDED_IN_31} Updates the delivery method "
+            "(shipping method or pick up point) of the checkout."
+        )
+        error_type_class = CheckoutError
+
+    @classmethod
+    def perform_on_shipping_method(
+        cls, info, shipping_method_id, checkout_info, lines, checkout, manager
+    ):
+        shipping_method = cls.get_node_or_error(
+            info,
+            shipping_method_id,
+            only_type=ShippingMethod,
+            field="delivery_method_id",
+            qs=shipping_models.ShippingMethod.objects.prefetch_related(
+                "postal_code_rules"
+            ),
+        )
+
+        cls._check_delivery_method(
+            checkout_info, lines, shipping_method=shipping_method, collection_point=None
+        )
+
+        cls._update_delivery_method(
+            manager,
+            checkout,
+            shipping_method=shipping_method,
+            collection_point=None,
+        )
+        recalculate_checkout_discount(
+            manager, checkout_info, lines, info.context.discounts
+        )
+        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+
+    @classmethod
+    def perform_on_collection_point(
+        cls, info, collection_point_id, checkout_info, lines, checkout, manager
+    ):
+        collection_point = cls.get_node_or_error(
+            info,
+            collection_point_id,
+            only_type=Warehouse,
+            field="delivery_method_id",
+            qs=warehouse_models.Warehouse.objects.select_related("address"),
+        )
+        cls._check_delivery_method(
+            checkout_info,
+            lines,
+            shipping_method=None,
+            collection_point=collection_point,
+        )
+        cls._update_delivery_method(
+            manager, checkout, shipping_method=None, collection_point=collection_point
+        )
+        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+
+    @staticmethod
+    def _check_delivery_method(
+        checkout_info,
+        lines,
+        *,
+        shipping_method: Optional[ShippingMethod],
+        collection_point: Optional[Warehouse]
+    ) -> None:
+        delivery_method = shipping_method
+        error_msg = "This shipping method is not applicable."
+
+        if collection_point is not None:
+            delivery_method = collection_point
+            error_msg = "This pick up point is not applicable."
+
+        delivery_method_is_valid = clean_delivery_method(
+            checkout_info=checkout_info, lines=lines, method=delivery_method
+        )
+        if not delivery_method_is_valid:
+            raise ValidationError(
+                {
+                    "delivery_method_id": ValidationError(
+                        error_msg,
+                        code=CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.value,
+                    )
+                }
+            )
+
+    @staticmethod
+    def _update_delivery_method(
+        manager,
+        checkout: Checkout,
+        *,
+        shipping_method: Optional[ShippingMethod],
+        collection_point: Optional[Warehouse]
+    ) -> None:
+        checkout.shipping_method = shipping_method
+        checkout.collection_point = collection_point
+        checkout.save(
+            update_fields=["shipping_method", "collection_point", "last_change"]
+        )
+        manager.checkout_updated(checkout)
+
+    @staticmethod
+    def _resolve_delivery_method_type(id_) -> Optional[str]:
+        if id_ is None:
+            return None
+
+        possible_types = ("Warehouse", "ShippingMethod")
+        type_, id_ = from_global_id_or_error(id_)
+        str_type = str(type_)
+
+        if str_type not in possible_types:
+            raise ValidationError(
+                {
+                    "delivery_method_id": ValidationError(
+                        "ID does not belong to Warehouse or ShippingMethod",
+                        code=CheckoutErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+        return str_type
+
+    @classmethod
+    def perform_mutation(
+        cls,
+        _,
+        info,
+        token,
+        delivery_method_id=None,
+    ):
+
+        checkout = get_checkout_by_token(token)
+
+        manager = info.context.plugins
+        lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(
+            checkout, lines, info.context.discounts, manager
+        )
+        if not is_shipping_required(lines):
+            raise ValidationError(
+                {
+                    "delivery_method": ValidationError(
+                        ERROR_DOES_NOT_SHIP,
+                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED,
+                    )
+                }
+            )
+        type_name = cls._resolve_delivery_method_type(delivery_method_id)
+
+        if type_name == "Warehouse":
+            return cls.perform_on_collection_point(
+                info, delivery_method_id, checkout_info, lines, checkout, manager
+            )
+        return cls.perform_on_shipping_method(
+            info, delivery_method_id, checkout_info, lines, checkout, manager
+        )
+
+
 class CheckoutComplete(BaseMutation):
     order = graphene.Field(Order, description="Placed order.")
     confirmation_needed = graphene.Boolean(
@@ -1056,8 +1290,7 @@ class CheckoutComplete(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                "Checkout ID."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -1065,7 +1298,8 @@ class CheckoutComplete(BaseMutation):
         store_source = graphene.Boolean(
             default_value=False,
             description=(
-                "Determines whether to store the payment source for future usage."
+                "Determines whether to store the payment source for future usage. "
+                f"{DEPRECATED_IN_3X_INPUT} Use checkoutPaymentCreate for this action."
             ),
         )
         redirect_url = graphene.String(
@@ -1148,6 +1382,15 @@ class CheckoutComplete(BaseMutation):
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )
+
+            requestor = get_user_or_app_from_context(info.context)
+            if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+                # Allow impersonating user and process a checkout by using user details
+                # assigned to checkout.
+                customer = checkout.user or AnonymousUser()
+            else:
+                customer = info.context.user
+
             order, action_required, action_data = complete_checkout(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -1155,7 +1398,7 @@ class CheckoutComplete(BaseMutation):
                 payment_data=data.get("payment_data", {}),
                 store_source=store_source,
                 discounts=info.context.discounts,
-                user=info.context.user,
+                user=customer,
                 app=info.context.app,
                 site_settings=info.context.site.settings,
                 tracking_code=tracking_code,
@@ -1178,8 +1421,7 @@ class CheckoutAddPromoCode(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                "Checkout ID. "
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )
@@ -1213,12 +1455,6 @@ class CheckoutAddPromoCode(BaseMutation):
         lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
-        if info.context.user and checkout.user == info.context.user:
-            # reassign user from request to make sure that we will take into account
-            # that user can have granted staff permissions from external resources.
-            # Which is required to determine if user has access to 'staff discount'
-            checkout_info.user = info.context.user
-
         add_promo_code_to_checkout(
             manager,
             checkout_info,
@@ -1246,8 +1482,7 @@ class CheckoutRemovePromoCode(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(
             description=(
-                "Checkout ID."
-                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
             ),
             required=False,
         )

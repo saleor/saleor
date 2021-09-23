@@ -9,14 +9,16 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ... import __version__
 from ...account import models as account_models
+from ...channel import models as channel_models
 from ...core.permissions import SitePermissions, get_permissions
 from ...core.tracing import traced_resolver
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
-from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
+from ..core.types.common import CountryDisplay, LanguageDisplay, Permission, TimePeriod
 from ..core.utils import str_to_enum
 from ..decorators import (
     permission_required,
@@ -28,6 +30,7 @@ from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
+from .enums import GiftCardSettingsExpiryTypeEnum
 from .resolvers import resolve_available_shipping_methods
 
 
@@ -44,9 +47,36 @@ class Domain(graphene.ObjectType):
 
 class OrderSettings(CountableDjangoObjectType):
     class Meta:
-        only_fields = ["automatically_confirm_all_new_orders"]
+        only_fields = [
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
+        ]
         description = "Order related settings from site settings."
         model = site_models.SiteSettings
+
+
+class GiftCardSettings(CountableDjangoObjectType):
+    expiry_type = GiftCardSettingsExpiryTypeEnum(
+        description="The gift card expiry type settings.", required=True
+    )
+    expiry_period = graphene.Field(
+        TimePeriod, description="The gift card expiry period settings.", required=False
+    )
+
+    class Meta:
+        description = "Gift card related settings from site settings."
+        model = site_models.SiteSettings
+        only_fields = ["expiry_type"]
+
+    def resolve_expiry_type(root, info):
+        return root.gift_card_expiry_type
+
+    def resolve_expiry_period(root, info):
+        if root.gift_card_expiry_period_type is None:
+            return None
+        return TimePeriod(
+            amount=root.gift_card_expiry_period, type=root.gift_card_expiry_period_type
+        )
 
 
 class ExternalAuthentication(graphene.ObjectType):
@@ -83,9 +113,8 @@ class Shop(graphene.ObjectType):
         currency=graphene.Argument(
             graphene.String,
             description=(
-                "DEPRECATED: use `channel` argument instead. This argument will be "
-                "removed in Saleor 4.0."
-                "A currency for which gateways will be returned."
+                "A currency for which gateways will be returned. "
+                f"{DEPRECATED_IN_3X_INPUT} Use `channel` argument instead."
             ),
             required=False,
         ),
@@ -119,11 +148,21 @@ class Shop(graphene.ObjectType):
         required=False,
         description="Shipping methods that are available for the shop.",
     )
+    channel_currencies = graphene.List(
+        graphene.NonNull(graphene.String),
+        description=(
+            f"{ADDED_IN_31} List of all currencies supported by shop's channels."
+        ),
+        required=True,
+    )
     countries = graphene.List(
         graphene.NonNull(CountryDisplay),
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="A language code to return the translation for.",
+            description=(
+                "A language code to return the translation for. "
+                f"{DEPRECATED_IN_3X_INPUT}"
+            ),
         ),
         description="List of countries available in the shop.",
         required=True,
@@ -154,6 +193,14 @@ class Shop(graphene.ObjectType):
     header_text = graphene.String(description="Header text.")
     include_taxes_in_prices = graphene.Boolean(
         description="Include taxes in prices.", required=True
+    )
+    fulfillment_auto_approve = graphene.Boolean(
+        description=f"{ADDED_IN_31} Automatically approve all new fulfillments.",
+        required=True,
+    )
+    fulfillment_allow_unpaid = graphene.Boolean(
+        description=f"{ADDED_IN_31} Allow to approve fulfillments which are unpaid.",
+        required=True,
     )
     display_gross_prices = graphene.Boolean(
         description="Display prices with tax in store.", required=True
@@ -219,8 +266,17 @@ class Shop(graphene.ObjectType):
         return resolve_available_shipping_methods(info, channel, address)
 
     @staticmethod
+    @staff_member_or_app_required
+    def resolve_channel_currencies(_, info):
+        return set(
+            channel_models.Channel.objects.values_list("currency_code", flat=True)
+        )
+
+    @staticmethod
     def resolve_countries(_, _info, language_code=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
+
+        # DEPRECATED: translation.override will be dropped in Saleor 4.0
         with translation.override(language_code):
             return [
                 CountryDisplay(
@@ -272,6 +328,14 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_include_taxes_in_prices(_, info):
         return info.context.site.settings.include_taxes_in_prices
+
+    @staticmethod
+    def resolve_fulfillment_auto_approve(_, info):
+        return info.context.site.settings.fulfillment_auto_approve
+
+    @staticmethod
+    def resolve_fulfillment_allow_unpaid(_, info):
+        return info.context.site.settings.fulfillment_allow_unpaid
 
     @staticmethod
     def resolve_display_gross_prices(_, info):

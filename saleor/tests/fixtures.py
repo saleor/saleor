@@ -25,8 +25,8 @@ from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App, AppInstallation
-from ..app.types import AppType
+from ..app.models import App, AppExtension, AppInstallation
+from ..app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
@@ -36,9 +36,9 @@ from ..attribute.models import (
 )
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info
-from ..checkout.models import Checkout
+from ..checkout.models import Checkout, CheckoutLine
 from ..checkout.utils import add_variant_to_checkout
-from ..core import JobStatus
+from ..core import JobStatus, TimePeriodType
 from ..core.payments import PaymentInterface
 from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
@@ -54,7 +54,8 @@ from ..discount.models import (
     VoucherCustomer,
     VoucherTranslation,
 )
-from ..giftcard.models import GiftCard
+from ..giftcard import GiftCardEvents
+from ..giftcard.models import GiftCard, GiftCardEvent
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
@@ -63,17 +64,23 @@ from ..order.events import (
     fulfillment_refunded_event,
     order_added_products_event,
 )
-from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
+from ..order.models import (
+    FulfillmentLine,
+    FulfillmentStatus,
+    Order,
+    OrderEvent,
+    OrderLine,
+)
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.interface import GatewayConfig, PaymentData
+from ..payment.interface import AddressData, GatewayConfig, PaymentData
 from ..payment.models import Payment
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
 from ..plugins.webhook.utils import to_payment_app_id
-from ..product import ProductMediaTypes
+from ..product import ProductMediaTypes, ProductTypeKind
 from ..product.models import (
     Category,
     CategoryTranslation,
@@ -101,6 +108,7 @@ from ..shipping.models import (
     ShippingZone,
 )
 from ..site.models import SiteSettings
+from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Allocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
 from ..webhook.models import Webhook, WebhookEvent
@@ -264,7 +272,7 @@ def checkout(db, channel_USD):
 
 @pytest.fixture
 def checkout_with_item(checkout, product):
-    variant = product.variants.get()
+    variant = product.variants.first()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
@@ -433,6 +441,19 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
 
 
 @pytest.fixture
+def checkout_with_gift_card_items(
+    checkout, non_shippable_gift_card_product, shippable_gift_card_product
+):
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    non_shippable_variant = non_shippable_gift_card_product.variants.get()
+    shippable_variant = shippable_gift_card_product.variants.get()
+    add_variant_to_checkout(checkout_info, non_shippable_variant, 1)
+    add_variant_to_checkout(checkout_info, shippable_variant, 2)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_voucher_percentage_and_shipping(
     checkout_with_voucher_percentage, shipping_method, address
 ):
@@ -532,12 +553,42 @@ def customer_user(address):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def customer_user2(address):
+    default_address = address.get_copy()
+    user = User.objects.create_user(
+        "test2@example.com",
+        "password",
+        default_billing_address=default_address,
+        default_shipping_address=default_address,
+        first_name="Jane",
+        last_name="Doe",
+    )
+    user.addresses.add(default_address)
+    user._password = "password"
+    return user
+
+
+@pytest.fixture
 def user_checkout(customer_user, channel_USD):
     checkout = Checkout.objects.create(
         user=customer_user,
         channel=channel_USD,
         billing_address=customer_user.default_billing_address,
         shipping_address=customer_user.default_shipping_address,
+        note="Test notes",
+        currency="USD",
+    )
+    return checkout
+
+
+@pytest.fixture
+def user_checkout_for_cc(customer_user, channel_USD, warehouse_for_cc):
+    checkout = Checkout.objects.create(
+        user=customer_user,
+        channel=channel_USD,
+        billing_address=customer_user.default_billing_address,
+        shipping_address=warehouse_for_cc.address,
+        collection_point=warehouse_for_cc,
         note="Test notes",
         currency="USD",
     )
@@ -565,6 +616,28 @@ def user_checkout_with_items(user_checkout, product_list):
         add_variant_to_checkout(checkout_info, variant, 1)
     user_checkout.refresh_from_db()
     return user_checkout
+
+
+@pytest.fixture
+def user_checkout_with_items_for_cc(user_checkout_for_cc, product_list):
+    checkout_info = fetch_checkout_info(
+        user_checkout_for_cc, [], [], get_plugins_manager()
+    )
+    for product in product_list:
+        variant = product.variants.get()
+        add_variant_to_checkout(checkout_info, variant, 1)
+    user_checkout_for_cc.refresh_from_db()
+    return user_checkout_for_cc
+
+
+@pytest.fixture
+def user_checkouts(request, user_checkout_with_items, user_checkout_with_items_for_cc):
+    if request.param == "regular":
+        return user_checkout_with_items
+    elif request.param == "click_and_collect":
+        return user_checkout_with_items_for_cc
+    else:
+        raise ValueError("Internal test error")
 
 
 @pytest.fixture
@@ -1076,8 +1149,8 @@ def numeric_attribute(db):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(attribute=attribute, name="10", slug="10")
-    AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
+    AttributeValue.objects.create(attribute=attribute, name="9.5", slug="10_5")
+    AttributeValue.objects.create(attribute=attribute, name="15.2", slug="15_2")
     return attribute
 
 
@@ -1114,6 +1187,33 @@ def file_attribute_with_file_input_type_without_values(db):
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.FILE,
     )
+
+
+@pytest.fixture
+def swatch_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="T-shirt color",
+        name="t-shirt-color",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.SWATCH,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="Red", slug="red", value="#ff0000"
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="White", slug="whit", value="#fffff"
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="Logo",
+        slug="logo",
+        file_url="http://mirumee.com/test_media/test_file.jpeg",
+        content_type="image/jpeg",
+    )
+    return attribute
 
 
 @pytest.fixture
@@ -1399,11 +1499,36 @@ def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
         name="Default Type",
         slug="default-type",
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
     product_type.product_attributes.add(color_attribute)
     product_type.variant_attributes.add(size_attribute)
+    return product_type
+
+
+@pytest.fixture
+def non_shippable_gift_card_product_type(db):
+    product_type = ProductType.objects.create(
+        name="Gift card type no shipping",
+        slug="gift-card-type-no-shipping",
+        kind=ProductTypeKind.GIFT_CARD,
+        has_variants=True,
+        is_shipping_required=False,
+    )
+    return product_type
+
+
+@pytest.fixture
+def shippable_gift_card_product_type(db):
+    product_type = ProductType.objects.create(
+        name="Gift card type with shipping",
+        slug="gift-card-type-with-shipping",
+        kind=ProductTypeKind.GIFT_CARD,
+        has_variants=True,
+        is_shipping_required=True,
+    )
     return product_type
 
 
@@ -1414,6 +1539,7 @@ def product_type_with_rich_text_attribute(
     product_type = ProductType.objects.create(
         name="Default Type",
         slug="default-type",
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -1425,7 +1551,11 @@ def product_type_with_rich_text_attribute(
 @pytest.fixture
 def product_type_without_variant():
     product_type = ProductType.objects.create(
-        name="Type", slug="type", has_variants=False, is_shipping_required=True
+        name="Type",
+        slug="type",
+        has_variants=False,
+        is_shipping_required=True,
+        kind=ProductTypeKind.NORMAL,
     )
     return product_type
 
@@ -1467,6 +1597,80 @@ def product(product_type, category, warehouse, channel_USD):
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    return product
+
+
+@pytest.fixture
+def shippable_gift_card_product(
+    shippable_gift_card_product_type, category, warehouse, channel_USD
+):
+    product_type = shippable_gift_card_product_type
+
+    product = Product.objects.create(
+        name="Shippable gift card",
+        slug="shippable-gift-card",
+        product_type=product_type,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        discounted_price_amount="100.00",
+        currency=channel_USD.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+    )
+
+    variant = ProductVariant.objects.create(
+        product=product, sku="958", track_inventory=False
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(100),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=1)
+
+    return product
+
+
+@pytest.fixture
+def non_shippable_gift_card_product(
+    non_shippable_gift_card_product_type, category, warehouse, channel_USD
+):
+    product_type = non_shippable_gift_card_product_type
+
+    product = Product.objects.create(
+        name="Non shippable gift card",
+        slug="non-shippable-gift-card",
+        product_type=product_type,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        discounted_price_amount="200.00",
+        currency=channel_USD.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+    )
+
+    variant = ProductVariant.objects.create(
+        product=product, sku="785", track_inventory=False
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(250),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=1)
+
     return product
 
 
@@ -1622,6 +1826,7 @@ def product_with_variant_with_two_attributes(
     product_type = ProductType.objects.create(
         name="Type with two variants",
         slug="two-variants",
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -1673,6 +1878,7 @@ def product_with_variant_with_external_media(
     product_type = ProductType.objects.create(
         name="Type with two variants",
         slug="two-variants",
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -1730,6 +1936,7 @@ def product_with_variant_with_file_attribute(
     product_type = ProductType.objects.create(
         name="Type with variant and file attribute",
         slug="type-with-file-attribute",
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=True,
     )
@@ -1904,6 +2111,46 @@ def variant_with_many_stocks_different_shipping_zones(
 
 
 @pytest.fixture
+def gift_card_shippable_variant(shippable_gift_card_product, channel_USD, warehouse):
+    product = shippable_gift_card_product
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_CARD_A", track_inventory=False
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=product_variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(
+        warehouse=warehouse, product_variant=product_variant, quantity=1
+    )
+    return product_variant
+
+
+@pytest.fixture
+def gift_card_non_shippable_variant(
+    non_shippable_gift_card_product, channel_USD, warehouse
+):
+    product = non_shippable_gift_card_product
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_CARD_B", track_inventory=False
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=product_variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(
+        warehouse=warehouse, product_variant=product_variant, quantity=1
+    )
+    return product_variant
+
+
+@pytest.fixture
 def product_variant_list(product, channel_USD, channel_PLN):
     variants = list(
         ProductVariant.objects.bulk_create(
@@ -1911,6 +2158,7 @@ def product_variant_list(product, channel_USD, channel_PLN):
                 ProductVariant(product=product, sku="1"),
                 ProductVariant(product=product, sku="2"),
                 ProductVariant(product=product, sku="3"),
+                ProductVariant(product=product, sku="4"),
             ]
         )
     )
@@ -1937,6 +2185,13 @@ def product_variant_list(product, channel_USD, channel_PLN):
                 price_amount=Decimal(10),
                 currency=channel_PLN.currency_code,
             ),
+            ProductVariantChannelListing(
+                variant=variants[3],
+                channel=channel_USD,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
         ]
     )
     return variants
@@ -1947,6 +2202,7 @@ def product_without_shipping(category, warehouse, channel_USD):
     product_type = ProductType.objects.create(
         name="Type with no shipping",
         slug="no-shipping",
+        kind=ProductTypeKind.NORMAL,
         has_variants=False,
         is_shipping_required=False,
     )
@@ -2448,6 +2704,61 @@ def order_line(order, variant):
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+
+
+@pytest.fixture
+def gift_card_non_shippable_order_line(order, gift_card_non_shippable_variant):
+    variant = gift_card_non_shippable_variant
+    product = variant.product
+    channel = order.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 1
+    unit_price = TaxedMoney(net=net, gross=gross)
+    return order.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+
+
+@pytest.fixture
+def gift_card_shippable_order_line(order, gift_card_shippable_variant):
+    variant = gift_card_shippable_variant
+    product = variant.product
+    channel = order.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+    return order.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,
@@ -2486,6 +2797,7 @@ def order_line_with_allocation_in_many_stocks(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,
@@ -2533,6 +2845,7 @@ def order_line_with_one_allocation(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,
@@ -2550,30 +2863,81 @@ def order_line_with_one_allocation(
 
 
 @pytest.fixture
-def gift_card(customer_user, staff_user):
+def gift_card(customer_user):
     return GiftCard.objects.create(
-        code="mirumee_giftcard",
-        user=customer_user,
+        code="never_expiry",
+        created_by=customer_user,
+        created_by_email=customer_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
+        tag="test-tag",
     )
 
 
 @pytest.fixture
-def gift_card_used(staff_user):
+def gift_card_expiry_date(customer_user):
     return GiftCard.objects.create(
-        code="gift_card_used",
-        initial_balance=Money(150, "USD"),
-        current_balance=Money(100, "USD"),
+        code="expiry_date",
+        created_by=customer_user,
+        created_by_email=customer_user.email,
+        initial_balance=Money(20, "USD"),
+        current_balance=Money(20, "USD"),
+        expiry_date=datetime.date.today() + datetime.timedelta(days=100),
+        tag="another-tag",
+    )
+
+
+@pytest.fixture
+def gift_card_used(staff_user, customer_user):
+    return GiftCard.objects.create(
+        code="giftcard_used",
+        created_by=staff_user,
+        used_by=customer_user,
+        created_by_email=staff_user.email,
+        used_by_email=customer_user.email,
+        initial_balance=Money(100, "USD"),
+        current_balance=Money(80, "USD"),
+        tag="tag",
     )
 
 
 @pytest.fixture
 def gift_card_created_by_staff(staff_user):
     return GiftCard.objects.create(
-        code="mirumee_staff",
-        initial_balance=Money(5, "USD"),
-        current_balance=Money(5, "USD"),
+        code="created_by_staff",
+        created_by=staff_user,
+        created_by_email=staff_user.email,
+        initial_balance=Money(10, "USD"),
+        current_balance=Money(10, "USD"),
+        tag="test-tag",
+    )
+
+
+@pytest.fixture
+def gift_card_event(gift_card, order, app, staff_user):
+    parameters = {
+        "message": "test message",
+        "email": "testemail@email.com",
+        "order_id": order.pk,
+        "tag": "test tag",
+        "old_tag": "test old tag",
+        "balance": {
+            "currency": "USD",
+            "initial_balance": 10,
+            "old_initial_balance": 20,
+            "current_balance": 10,
+            "old_current_balance": 5,
+        },
+        "expiry_date": datetime.date(2050, 1, 1),
+        "old_expiry_date": datetime.date(2010, 1, 1),
+    }
+    return GiftCardEvent.objects.create(
+        user=staff_user,
+        app=app,
+        gift_card=gift_card,
+        type=GiftCardEvents.UPDATED,
+        parameters=parameters,
+        date=timezone.now() + datetime.timedelta(days=10),
     )
 
 
@@ -2615,6 +2979,7 @@ def order_with_lines(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,
@@ -2651,6 +3016,7 @@ def order_with_lines(
     stock = Stock.objects.create(
         product_variant=variant, warehouse=warehouse, quantity=2
     )
+    stock.refresh_from_db()
 
     net = variant.get_price(product, [], channel_USD, channel_listing)
     currency = net.currency
@@ -2662,6 +3028,7 @@ def order_with_lines(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,
@@ -2684,6 +3051,33 @@ def order_with_lines(
     net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
+    order.save()
+
+    recalculate_order(order)
+
+    order.refresh_from_db()
+    return order
+
+
+@pytest.fixture
+def order_with_lines_for_cc(
+    warehouse_for_cc,
+    channel_USD,
+    customer_user,
+):
+    address = customer_user.default_billing_address.get_copy()
+
+    order = Order.objects.create(
+        billing_address=address,
+        channel=channel_USD,
+        currency=channel_USD.currency_code,
+        shipping_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
+        origin=OrderOrigin.CHECKOUT,
+    )
+
+    order.collection_point = warehouse_for_cc
     order.save()
 
     recalculate_order(order)
@@ -2786,6 +3180,7 @@ def order_with_lines_channel_PLN(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,
@@ -2833,6 +3228,7 @@ def order_with_lines_channel_PLN(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,
@@ -2883,6 +3279,7 @@ def order_with_line_without_inventory_tracking(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,
@@ -2907,7 +3304,7 @@ def order_events(order):
 @pytest.fixture
 def fulfilled_order(order_with_lines):
     order = order_with_lines
-    invoice = order.invoices.create(
+    order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
         created=datetime.datetime.now(tz=pytz.utc),
@@ -2931,6 +3328,7 @@ def fulfilled_order(order_with_lines):
                 line=line_2, quantity=line_2.quantity, warehouse_pk=warehouse_2_pk
             ),
         ],
+        manager=get_plugins_manager(),
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
@@ -2948,7 +3346,8 @@ def fulfilled_order_without_inventory_tracking(
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)]
+        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        get_plugins_manager(),
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
@@ -2979,6 +3378,25 @@ def fulfilled_order_with_all_cancelled_fulfillments(
 @pytest.fixture
 def fulfillment(fulfilled_order):
     return fulfilled_order.fulfillments.first()
+
+
+@pytest.fixture
+def fulfillment_awaiting_approval(fulfilled_order):
+    order_line = fulfilled_order.lines.first()
+    order_line.quantity_fulfilled = 0
+    order_line.save(update_fields=["quantity_fulfilled"])
+
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
+
+    fulfillment_lines_to_update = []
+    for f_line in fulfillment.lines.all():
+        f_line.quantity = 1
+        fulfillment_lines_to_update.append(f_line)
+    FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
+
+    return fulfillment
 
 
 @pytest.fixture
@@ -3146,6 +3564,23 @@ def dummy_payment_data(payment_dummy):
 
 
 @pytest.fixture
+def dummy_address_data(address):
+    return AddressData(
+        first_name=address.first_name,
+        last_name=address.last_name,
+        company_name=address.company_name,
+        street_address_1=address.street_address_1,
+        street_address_2=address.street_address_2,
+        city=address.city,
+        city_area=address.city_area,
+        postal_code=address.postal_code,
+        country=address.country,
+        country_area=address.country_area,
+        phone=address.phone,
+    )
+
+
+@pytest.fixture
 def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
     dummy_payment_data.gateway = to_payment_app_id(payment_app, "credit-card")
     return dummy_payment_data
@@ -3235,6 +3670,11 @@ def permission_manage_shipping():
 @pytest.fixture
 def permission_manage_users():
     return Permission.objects.get(codename="manage_users")
+
+
+@pytest.fixture
+def permission_impersonate_user():
+    return Permission.objects.get(codename="impersonate_user")
 
 
 @pytest.fixture
@@ -3726,6 +4166,15 @@ def payment_dummy(db, order_with_lines):
 
 
 @pytest.fixture
+def payment(payment_dummy, payment_app):
+    gateway_id = "credit-card"
+    gateway = to_payment_app_id(payment_app, gateway_id)
+    payment_dummy.gateway = gateway
+    payment_dummy.save()
+    return payment_dummy
+
+
+@pytest.fixture
 def payment_dummy_fully_charged(payment_dummy):
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -3764,6 +4213,7 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
     product_type = ProductType.objects.create(
         name="Digital Type",
         slug="digital-type",
+        kind=ProductTypeKind.NORMAL,
         has_variants=True,
         is_shipping_required=False,
         is_digital=True,
@@ -3960,6 +4410,33 @@ def app(db):
 
 
 @pytest.fixture
+def app_with_extensions(app, permission_manage_products):
+    first_app_extension = AppExtension(
+        app=app,
+        label="Create product with App",
+        url="www.example.com/app-product",
+        view=AppExtensionView.PRODUCT,
+        type=AppExtensionType.OVERVIEW,
+        target=AppExtensionTarget.MORE_ACTIONS,
+    )
+    extensions = AppExtension.objects.bulk_create(
+        [
+            first_app_extension,
+            AppExtension(
+                app=app,
+                label="Update product with App",
+                url="www.example.com/app-product-update",
+                view=AppExtensionView.PRODUCT,
+                type=AppExtensionType.DETAILS,
+                target=AppExtensionTarget.MORE_ACTIONS,
+            ),
+        ]
+    )
+    first_app_extension.permissions.add(permission_manage_products)
+    return app, extensions
+
+
+@pytest.fixture
 def payment_app(db, permission_manage_payments):
     app = App.objects.create(name="Payment App", is_active=True)
     app.tokens.create(name="Default")
@@ -4076,6 +4553,177 @@ def warehouses(address, address_usa):
     )
 
 
+@pytest.fixture()
+def warehouses_for_cc(address, shipping_zones):
+    warehouses = Warehouse.objects.bulk_create(
+        [
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse1",
+                slug="warehouse1",
+                email="warehouse1@example.com",
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse2",
+                slug="warehouse2",
+                email="warehouse2@example.com",
+                click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse3",
+                slug="warehouse3",
+                email="warehouse3@example.com",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+                is_private=False,
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse4",
+                slug="warehouse4",
+                email="warehouse4@example.com",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+                is_private=False,
+            ),
+        ]
+    )
+    for warehouse in warehouses:
+        warehouse.shipping_zones.add(shipping_zones[0])
+        warehouse.shipping_zones.add(shipping_zones[1])
+        warehouse.save()
+    return warehouses
+
+
+@pytest.fixture
+def warehouse_for_cc(address, product_variant_list, shipping_zones):
+    warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="Local Warehouse",
+        slug="local-warehouse",
+        email="local@example.com",
+        is_private=False,
+        click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+    )
+    warehouse.shipping_zones.add(shipping_zones[0])
+    warehouse.shipping_zones.add(shipping_zones[1])
+
+    Stock.objects.bulk_create(
+        [
+            Stock(
+                warehouse=warehouse, product_variant=product_variant_list[0], quantity=1
+            ),
+            Stock(
+                warehouse=warehouse, product_variant=product_variant_list[1], quantity=2
+            ),
+            Stock(
+                warehouse=warehouse, product_variant=product_variant_list[2], quantity=2
+            ),
+        ]
+    )
+    return warehouse
+
+
+@pytest.fixture(params=["warehouse_for_cc", "shipping_method"])
+def delivery_method(request, warehouse_for_cc, shipping_method):
+    if request.param == "warehouse":
+        return warehouse_for_cc
+    if request.param == "shipping_method":
+        return shipping_method
+
+
+@pytest.fixture
+def stocks_for_cc(warehouses_for_cc, product_variant_list, product_with_two_variants):
+    return Stock.objects.bulk_create(
+        [
+            Stock(
+                warehouse=warehouses_for_cc[0],
+                product_variant=product_variant_list[0],
+                quantity=5,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[1],
+                product_variant=product_variant_list[0],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[1],
+                product_variant=product_variant_list[1],
+                quantity=10,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[1],
+                product_variant=product_variant_list[2],
+                quantity=10,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[2],
+                product_variant=product_variant_list[0],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[3],
+                product_variant=product_variant_list[0],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[3],
+                product_variant=product_variant_list[1],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[3],
+                product_variant=product_with_two_variants.variants.last(),
+                quantity=7,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[3],
+                product_variant=product_variant_list[2],
+                quantity=3,
+            ),
+        ]
+    )
+
+
+@pytest.fixture
+def checkout_for_cc(channel_USD, customer_user, product_variant_list):
+    return Checkout.objects.create(
+        channel=channel_USD,
+        billing_address=customer_user.default_billing_address,
+        shipping_address=customer_user.default_shipping_address,
+        note="Test notes",
+        currency="USD",
+    )
+
+
+@pytest.fixture
+def checkout_with_items_for_cc(checkout_for_cc, product_variant_list):
+    CheckoutLine.objects.bulk_create(
+        [
+            CheckoutLine(
+                checkout=checkout_for_cc, variant=product_variant_list[0], quantity=1
+            ),
+            CheckoutLine(
+                checkout=checkout_for_cc, variant=product_variant_list[1], quantity=1
+            ),
+            CheckoutLine(
+                checkout=checkout_for_cc, variant=product_variant_list[2], quantity=1
+            ),
+        ]
+    )
+    checkout_for_cc.set_country("US", commit=True)
+
+    return checkout_for_cc
+
+
+@pytest.fixture
+def checkout_with_item_for_cc(checkout_for_cc, product_variant_list):
+    CheckoutLine.objects.create(
+        checkout=checkout_for_cc, variant=product_variant_list[0], quantity=1
+    )
+    return checkout_for_cc
+
+
 @pytest.fixture
 def warehouses_with_shipping_zone(warehouses, shipping_zone):
     warehouses[0].shipping_zones.add(shipping_zone)
@@ -4133,6 +4781,7 @@ def allocations(order_list, stock, channel_USD):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
+                is_gift_card=variant.is_gift_card(),
                 unit_price=price,
                 total_price=price,
                 tax_rate=Decimal("0.23"),
@@ -4145,6 +4794,7 @@ def allocations(order_list, stock, channel_USD):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
+                is_gift_card=variant.is_gift_card(),
                 unit_price=price,
                 total_price=price,
                 tax_rate=Decimal("0.23"),
@@ -4157,6 +4807,7 @@ def allocations(order_list, stock, channel_USD):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
+                is_gift_card=variant.is_gift_card(),
                 unit_price=price,
                 total_price=price,
                 tax_rate=Decimal("0.23"),
@@ -4268,3 +4919,21 @@ def app_export_event(app_export_file):
         app=app_export_file.app,
         parameters={"message": "Example error message"},
     )
+
+
+@pytest.fixture
+def app_manifest():
+    return {
+        "name": "Sample Saleor App",
+        "version": "0.1",
+        "about": "Sample Saleor App serving as an example.",
+        "dataPrivacy": "",
+        "dataPrivacyUrl": "",
+        "homepageUrl": "http://172.17.0.1:5000/homepageUrl",
+        "supportUrl": "http://172.17.0.1:5000/supportUrl",
+        "id": "saleor-complex-sample",
+        "permissions": ["MANAGE_PRODUCTS", "MANAGE_USERS"],
+        "appUrl": "",
+        "configurationUrl": "http://127.0.0.1:5000/configuration/",
+        "tokenTargetUrl": "http://127.0.0.1:5000/configuration/install",
+    }

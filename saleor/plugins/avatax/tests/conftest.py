@@ -1,7 +1,7 @@
 import pytest
 
 from ....account.models import Address
-from ....checkout.fetch import CheckoutInfo
+from ....checkout.fetch import CheckoutInfo, get_delivery_method_info
 from ....shipping.models import ShippingMethodChannelListing
 from ...models import PluginConfiguration
 from ..plugin import AvataxPlugin
@@ -91,9 +91,12 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
         channel=channel,
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
-        shipping_method=shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            shipping_method, shipping_address
+        ),
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=[],
+        valid_pick_up_points=[],
     )
     return checkout_info
 
@@ -196,7 +199,40 @@ def avalara_response_for_checkout_with_items_and_shipping():
                         "reportingTax": 0.93,
                         "reportingTaxCalculated": 0.93,
                         "liabilityType": "Seller",
-                    }
+                    },
+                    {
+                        "id": 0,
+                        "transactionLineId": 0,
+                        "transactionId": 0,
+                        "country": "PL",
+                        "region": "PL",
+                        "exemptAmount": 0.0,
+                        "jurisCode": "EU",
+                        "jurisName": "EUROPE",
+                        "stateAssignedNo": "",
+                        "jurisType": "CNT",
+                        "jurisdictionType": "Country",
+                        "nonTaxableAmount": 0.0,
+                        "rate": 0.13,
+                        "tax": 0.93,
+                        "taxableAmount": 4.07,
+                        "taxType": "Output",
+                        "taxSubTypeId": "O",
+                        "taxName": "Standard Rate",
+                        "taxAuthorityTypeId": 45,
+                        "taxCalculated": 0.93,
+                        "rateType": "Standard",
+                        "rateTypeCode": "S",
+                        "unitOfBasis": "PerCurrencyUnit",
+                        "isNonPassThru": False,
+                        "isFee": False,
+                        "reportingTaxableUnits": 4.07,
+                        "reportingNonTaxableUnits": 0.0,
+                        "reportingExemptUnits": 0.0,
+                        "reportingTax": 0.93,
+                        "reportingTaxCalculated": 0.93,
+                        "liabilityType": "Seller",
+                    },
                 ],
                 "nonPassthroughDetails": [],
                 "hsCode": "",
@@ -261,7 +297,40 @@ def avalara_response_for_checkout_with_items_and_shipping():
                         "reportingTax": 1.87,
                         "reportingTaxCalculated": 1.87,
                         "liabilityType": "Seller",
-                    }
+                    },
+                    {
+                        "id": 0,
+                        "transactionLineId": 0,
+                        "transactionId": 0,
+                        "country": "PL",
+                        "region": "PL",
+                        "exemptAmount": 0.0,
+                        "jurisCode": "EU",
+                        "jurisName": "EUROPE",
+                        "stateAssignedNo": "",
+                        "jurisType": "CNT",
+                        "jurisdictionType": "Country",
+                        "nonTaxableAmount": 0.0,
+                        "rate": 0.23,
+                        "tax": 1.87,
+                        "taxableAmount": 8.13,
+                        "taxType": "Output",
+                        "taxSubTypeId": "O",
+                        "taxName": "Standard Rate",
+                        "taxAuthorityTypeId": 45,
+                        "taxCalculated": 1.87,
+                        "rateType": "Standard",
+                        "rateTypeCode": "S",
+                        "unitOfBasis": "PerCurrencyUnit",
+                        "isNonPassThru": False,
+                        "isFee": False,
+                        "reportingTaxableUnits": 8.13,
+                        "reportingNonTaxableUnits": 0.0,
+                        "reportingExemptUnits": 0.0,
+                        "reportingTax": 1.87,
+                        "reportingTaxCalculated": 1.87,
+                        "liabilityType": "Seller",
+                    },
                 ],
                 "nonPassthroughDetails": [],
                 "hsCode": "",

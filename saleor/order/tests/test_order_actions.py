@@ -55,6 +55,7 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,
@@ -303,6 +304,7 @@ def test_fulfill_order_lines(order_with_lines):
                 warehouse_pk=stock.warehouse.pk,
             )
         ],
+        get_plugins_manager(),
     )
 
     stock.refresh_from_db()
@@ -341,6 +343,7 @@ def test_fulfill_order_lines_multiple_lines(order_with_lines):
                 warehouse_pk=stock_2.warehouse.pk,
             ),
         ],
+        get_plugins_manager(),
     )
 
     stock_1.refresh_from_db()
@@ -362,7 +365,9 @@ def test_fulfill_order_lines_with_variant_deleted(order_with_lines):
 
     line.refresh_from_db()
 
-    fulfill_order_lines([OrderLineData(line=line, quantity=line.quantity)])
+    fulfill_order_lines(
+        [OrderLineData(line=line, quantity=line.quantity)], get_plugins_manager()
+    )
 
 
 def test_fulfill_order_lines_without_inventory_tracking(order_with_lines):
@@ -385,7 +390,8 @@ def test_fulfill_order_lines_without_inventory_tracking(order_with_lines):
                 variant=variant,
                 warehouse_pk=stock.warehouse.pk,
             )
-        ]
+        ],
+        get_plugins_manager(),
     )
 
     stock.refresh_from_db()

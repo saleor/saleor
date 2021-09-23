@@ -6,6 +6,7 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
+from ....giftcard.utils import deactivate_order_gift_cards, order_has_gift_card_lines
 from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
@@ -155,6 +156,18 @@ def try_payment_action(order, user, app, payment, func, *args, **kwargs):
         )
 
 
+def clean_order_refund(order):
+    if order_has_gift_card_lines(order):
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    "Cannot refund order with gift card lines.",
+                    code=OrderErrorCode.CANNOT_REFUND.value,
+                )
+            }
+        )
+
+
 class OrderUpdateInput(graphene.InputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
     user_email = graphene.String(description="Email address of the customer.")
@@ -220,7 +233,9 @@ class OrderUpdate(DraftOrderCreate):
 
 class OrderUpdateShippingInput(graphene.InputObjectType):
     shipping_method = graphene.ID(
-        description="ID of the selected shipping method.", name="shippingMethod"
+        description="ID of the selected shipping method,"
+        " pass null to remove currently assigned shipping method.",
+        name="shippingMethod",
     )
 
 
@@ -251,11 +266,16 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             description="ID of the order to update a shipping method.",
         )
         input = OrderUpdateShippingInput(
-            description="Fields required to change shipping method of the order."
+            description="Fields required to change shipping method of the order.",
+            required=True,
         )
 
     class Meta:
-        description = "Updates a shipping method of the order."
+        description = (
+            "Updates a shipping method of the order."
+            " Requires shipping method ID to update, when null is passed "
+            "then currently assigned shipping method is removed."
+        )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -269,14 +289,36 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             qs=models.Order.objects.prefetch_related("lines"),
         )
         cls.validate_order(order)
+
         data = data.get("input")
 
-        if not data["shipping_method"]:
+        if "shipping_method" not in data:
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        "Shipping method must be provided to perform mutation.",
+                        code=OrderErrorCode.SHIPPING_METHOD_REQUIRED,
+                    )
+                }
+            )
+
+        if not data.get("shipping_method"):
             if not order.is_draft() and order.is_shipping_required():
                 raise ValidationError(
                     {
                         "shipping_method": ValidationError(
                             "Shipping method is required for this order.",
+                            code=OrderErrorCode.SHIPPING_METHOD_REQUIRED,
+                        )
+                    }
+                )
+
+            # Shipping method is detached only when null is passed in input.
+            if data["shipping_method"] == "":
+                raise ValidationError(
+                    {
+                        "shipping_method": ValidationError(
+                            "Shipping method cannot be empty.",
                             code=OrderErrorCode.SHIPPING_METHOD_REQUIRED,
                         )
                     }
@@ -294,6 +336,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                     "shipping_method_name",
                 ]
             )
+            recalculate_order(order)
             return OrderUpdateShipping(order=order)
 
         method = cls.get_node_or_error(
@@ -402,15 +445,19 @@ class OrderCancel(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_cancel(order)
+        user = info.context.user
+        app = info.context.app
         cancel_order(
             order=order,
-            user=info.context.user,
-            app=info.context.app,
+            user=user,
+            app=app,
             manager=info.context.plugins,
         )
+        deactivate_order_gift_cards(order.id, user, app)
         return OrderCancel(order=order)
 
 
@@ -577,6 +624,8 @@ class OrderRefund(BaseMutation):
             )
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+        clean_order_refund(order)
+
         payment = order.get_last_payment()
         clean_refund_payment(payment)
 
@@ -801,6 +850,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, id):
+        manager = info.context.plugins
         line = cls.get_node_or_error(
             info,
             id,
@@ -821,9 +871,22 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             variant=line.variant,
             warehouse_pk=warehouse_pk,
         )
-        delete_order_line(line_info)
+        delete_order_line(line_info, manager)
         line.id = db_id
 
+        if not order.is_shipping_required():
+            order.shipping_method = None
+            order.shipping_price = zero_taxed_money(order.currency)
+            order.shipping_method_name = None
+            order.save(
+                update_fields=[
+                    "currency",
+                    "shipping_method",
+                    "shipping_price_net_amount",
+                    "shipping_price_gross_amount",
+                    "shipping_method_name",
+                ]
+            )
         # Create the removal event
         events.order_removed_products_event(
             order=order,
@@ -872,6 +935,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
+        manager = info.context.plugins
         warehouse_pk = (
             instance.allocations.first().stock.warehouse.pk
             if instance.order.is_unconfirmed()
@@ -891,6 +955,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 instance.old_quantity,
                 instance.quantity,
                 instance.order.channel.slug,
+                manager,
             )
         except InsufficientStock:
             raise ValidationError(

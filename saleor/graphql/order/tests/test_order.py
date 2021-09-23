@@ -9,6 +9,7 @@ import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
+from django.db.models import Sum
 from freezegun import freeze_time
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
@@ -20,6 +21,8 @@ from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
+from ....giftcard import GiftCardEvents
+from ....giftcard.events import gift_cards_bought_event
 from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
@@ -31,7 +34,7 @@ from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
 from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
-from ....warehouse.models import Allocation, Stock
+from ....warehouse.models import Allocation, Stock, Warehouse
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...order.mutations.orders import (
     clean_order_cancel,
@@ -331,8 +334,21 @@ query OrdersQuery {
                     }
                     type
                 }
+                availableCollectionPoints {
+                    id
+                    name
+                }
                 shippingMethod{
                     id
+                }
+                deliveryMethod {
+                    __typename
+                    ... on ShippingMethod {
+                        id
+                    }
+                    ... on Warehouse {
+                        id
+                    }
                 }
             }
         }
@@ -393,18 +409,27 @@ def test_order_query(
         country_code=order.shipping_address.country.code,
         channel_id=order.channel_id,
     )
+    expected_collection_points = Warehouse.objects.applicable_for_click_and_collect(
+        lines_qs=order.lines, country=order.shipping_address.country.code
+    )
+
     assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
+    assert len(order_data["availableCollectionPoints"]) == (
+        expected_collection_points.count()
+    )
 
     method = order_data["availableShippingMethods"][0]
     expected_method = expected_methods.first()
     expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
     )
+
     assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
     assert expected_method.type.upper() == method["type"]
+    assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
 
 
 def test_order_query_shipping_method_channel_listing_does_not_exist(
@@ -2582,10 +2607,8 @@ def test_draft_order_update_doing_nothing_generates_no_events(
     assert not OrderEvent.objects.exists()
 
 
-def test_draft_order_delete(
-    staff_api_client, permission_manage_orders, order_with_lines
-):
-    order = order_with_lines
+def test_draft_order_delete(staff_api_client, permission_manage_orders, draft_order):
+    order = draft_order
     query = """
         mutation draftDelete($id: ID!) {
             draftOrderDelete(id: $id) {
@@ -2602,6 +2625,49 @@ def test_draft_order_delete(
     )
     with pytest.raises(order._meta.model.DoesNotExist):
         order.refresh_from_db()
+
+
+@pytest.mark.parametrize(
+    "order_status",
+    [
+        OrderStatus.UNFULFILLED,
+        OrderStatus.UNCONFIRMED,
+        OrderStatus.CANCELED,
+        OrderStatus.PARTIALLY_FULFILLED,
+        OrderStatus.FULFILLED,
+        OrderStatus.PARTIALLY_RETURNED,
+        OrderStatus.RETURNED,
+    ],
+)
+def test_draft_order_delete_non_draft_order(
+    staff_api_client, permission_manage_orders, order_with_lines, order_status
+):
+    order = order_with_lines
+    order.status = order_status
+    order.save(update_fields=["status"])
+    query = """
+        mutation draftDelete($id: ID!) {
+            draftOrderDelete(id: $id) {
+                order {
+                    id
+                }
+                errors {
+                    code
+                    field
+                }
+            }
+        }
+        """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    account_errors = content["data"]["draftOrderDelete"]["errors"]
+    assert len(account_errors) == 1
+    assert account_errors[0]["field"] == "id"
+    assert account_errors[0]["code"] == OrderErrorCode.INVALID.name
 
 
 ORDER_CAN_FINALIZE_QUERY = """
@@ -2908,7 +2974,9 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_draft_order_complete(
+    product_variant_out_of_stock_webhook_mock,
     staff_api_client,
     permission_manage_orders,
     staff_user,
@@ -2950,6 +3018,38 @@ def test_draft_order_complete(
     assert matching_events.count() == 2
     assert matching_events[0].type != matching_events[1].type
     assert not OrderEvent.objects.exclude(**event_params).exists()
+    product_variant_out_of_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.last()
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_draft_order_complete_with_out_of_stock_webhook(
+    product_variant_out_of_stock_webhook_mock,
+    staff_api_client,
+    permission_manage_orders,
+    draft_order,
+):
+    order = draft_order
+    first_line = order.lines.first()
+    first_line.quantity = 5
+    first_line.save()
+
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    total_stock = Stock.objects.aggregate(Sum("quantity"))["quantity__sum"]
+    total_allocation = Allocation.objects.filter(order_line__order=order).aggregate(
+        Sum("quantity_allocated")
+    )["quantity_allocated__sum"]
+    assert total_stock == total_allocation
+    assert product_variant_out_of_stock_webhook_mock.call_count == 2
+    product_variant_out_of_stock_webhook_mock.assert_called_with(Stock.objects.last())
 
 
 def test_draft_order_from_reissue_complete(
@@ -3330,8 +3430,68 @@ ORDER_LINES_CREATE_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_order_lines_create_with_out_of_stock_webhook(
+    product_variant_out_of_stock_webhook_mock,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+):
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    variant = line.variant
+    quantity = 2
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.post_graphql(query, variables)
+
+    quantity_allocated = Allocation.objects.aggregate(Sum("quantity_allocated"))[
+        "quantity_allocated__sum"
+    ]
+    stock_quantity = Allocation.objects.aggregate(Sum("stock__quantity"))[
+        "stock__quantity__sum"
+    ]
+    assert quantity_allocated == stock_quantity
+    product_variant_out_of_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.first()
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_order_lines_create_for_variant_with_many_stocks_with_out_of_stock_webhook(
+    product_variant_out_of_stock_webhook_mock,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+):
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    variant = variant_with_many_stocks
+    quantity = 4
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.post_graphql(query, variables)
+    product_variant_out_of_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.all()[3]
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_order_lines_create(
+    product_variant_out_of_stock_webhook_mock,
     status,
     order_with_lines,
     permission_manage_orders,
@@ -3371,6 +3531,7 @@ def test_order_lines_create(
     assert data["errors"]
     assert data["errors"][0]["field"] == "quantity"
     assert data["errors"][0]["variants"] == [variant_id]
+    product_variant_out_of_stock_webhook_mock.assert_not_called()
 
 
 def test_order_lines_create_with_unavailable_variant(
@@ -3530,6 +3691,140 @@ ORDER_LINE_UPDATE_MUTATION = """
         }
     }
 """
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scenario(
+    out_of_stock_mock,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+):
+    Stock.objects.update(quantity=5)
+    query = ORDER_LINE_UPDATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    first_line, second_line = order.lines.all()
+    new_quantity = 5
+
+    first_line_id = graphene.Node.to_global_id("OrderLine", first_line.id)
+    second_line_id = graphene.Node.to_global_id("OrderLine", second_line.id)
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    variables = {"lineId": first_line_id, "quantity": new_quantity}
+    staff_api_client.post_graphql(query, variables)
+
+    variables = {"lineId": second_line_id, "quantity": new_quantity}
+    staff_api_client.post_graphql(query, variables)
+
+    assert out_of_stock_mock.call_count == 2
+    out_of_stock_mock.assert_called_with(Stock.objects.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_order_line_update_with_out_of_stock_webhook_success_scenario(
+    out_of_stock_mock,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+):
+    query = ORDER_LINE_UPDATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    new_quantity = 5
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    variables = {"lineId": line_id, "quantity": new_quantity}
+    staff_api_client.post_graphql(query, variables)
+
+    out_of_stock_mock.assert_called_once_with(Stock.objects.first())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+def test_order_line_update_with_back_in_stock_webhook_fail_scenario(
+    product_variant_back_in_stock_webhook_mock,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+):
+    query = ORDER_LINE_UPDATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    new_quantity = 1
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    variables = {"lineId": line_id, "quantity": new_quantity}
+    staff_api_client.post_graphql(query, variables)
+
+    product_variant_back_in_stock_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+def test_order_line_update_with_back_in_stock_webhook_called_once_success_scenario(
+    back_in_stock_mock,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+):
+    first_allocated = Allocation.objects.first()
+    first_allocated.quantity_allocated = 5
+    first_allocated.save()
+
+    query = ORDER_LINE_UPDATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    new_quantity = 1
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"lineId": line_id, "quantity": new_quantity}
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    staff_api_client.post_graphql(query, variables)
+    back_in_stock_mock.assert_called_once_with(first_allocated.stock)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+def test_order_line_update_with_back_in_stock_webhook_called_twice_success_scenario(
+    product_variant_back_in_stock_webhook_mock,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+):
+    first_allocation = Allocation.objects.first()
+    first_allocation.quantity_allocated = 5
+    first_allocation.save()
+
+    query = ORDER_LINE_UPDATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    first_line, second_line = order.lines.all()
+    new_quantity = 1
+    first_line_id = graphene.Node.to_global_id("OrderLine", first_line.id)
+    second_line_id = graphene.Node.to_global_id("OrderLine", second_line.id)
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    variables = {"lineId": first_line_id, "quantity": new_quantity}
+    staff_api_client.post_graphql(query, variables)
+
+    variables = {"lineId": second_line_id, "quantity": new_quantity}
+    staff_api_client.post_graphql(query, variables)
+
+    assert product_variant_back_in_stock_webhook_mock.call_count == 2
+    product_variant_back_in_stock_webhook_mock.assert_called_with(Stock.objects.last())
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
@@ -3701,10 +3996,67 @@ ORDER_LINE_DELETE_MUTATION = """
             }
             order {
                 id
+                total{
+                    gross{
+                        currency
+                        amount
+                    }
+                }
             }
         }
     }
 """
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+def test_order_line_remove_with_back_in_stock_webhook(
+    back_in_stock_webhook_mock,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+):
+    Stock.objects.update(quantity=3)
+    first_stock = Stock.objects.first()
+    assert (
+        first_stock.quantity
+        - (
+            first_stock.allocations.aggregate(Sum("quantity_allocated"))[
+                "quantity_allocated__sum"
+            ]
+            or 0
+        )
+    ) == 0
+
+    query = ORDER_LINE_DELETE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
+    line = order.lines.first()
+
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"id": line_id}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDelete"]
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.REMOVED_PRODUCTS
+    assert data["orderLine"]["id"] == line_id
+    assert line not in order.lines.all()
+    first_stock.refresh_from_db()
+    assert (
+        first_stock.quantity
+        - (
+            first_stock.allocations.aggregate(Sum("quantity_allocated"))[
+                "quantity_allocated__sum"
+            ]
+            or 0
+        )
+    ) == 3
+    back_in_stock_webhook_mock.assert_called_once_with(Stock.objects.first())
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
@@ -4052,6 +4404,38 @@ def test_order_cancel_as_app(
     )
 
 
+@patch("saleor.graphql.order.mutations.orders.cancel_order")
+@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+def test_order_cancel_with_bought_gift_cards(
+    mock_clean_order_cancel,
+    mock_cancel_order,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    gift_card,
+):
+    order = order_with_lines
+    gift_cards_bought_event([gift_card], order.id, staff_api_client.user, None)
+    assert gift_card.is_active is True
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        MUTATION_ORDER_CANCEL, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderCancel"]
+    assert not data["errors"]
+
+    mock_clean_order_cancel.assert_called_once_with(order)
+    mock_cancel_order.assert_called_once_with(
+        order=order, user=staff_api_client.user, app=None, manager=ANY
+    )
+
+    gift_card.refresh_from_db()
+    assert gift_card.is_active is False
+    assert gift_card.events.filter(type=GiftCardEvents.DEACTIVATED)
+
+
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_order_capture(
     mocked_notify,
@@ -4301,20 +4685,27 @@ def test_order_void_payment_error(
     mock_void_payment.assert_called_once()
 
 
-def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
-    order = payment_txn_captured.order
-    query = """
-        mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
-            orderRefund(id: $id, amount: $amount) {
-                order {
-                    paymentStatus
-                    paymentStatusDisplay
-                    isPaid
-                    status
-                }
+ORDER_REFUND_MUTATION = """
+    mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
+        orderRefund(id: $id, amount: $amount) {
+            order {
+                paymentStatus
+                paymentStatusDisplay
+                isPaid
+                status
+            }
+            errors {
+                code
+                field
             }
         }
-    """
+    }
+"""
+
+
+def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
+    order = payment_txn_captured.order
+    query = ORDER_REFUND_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     amount = float(payment_txn_captured.total)
     variables = {"id": order_id, "amount": amount}
@@ -4341,6 +4732,25 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
     assert refunded_fulfillment
     assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
     assert refunded_fulfillment.shipping_refund_amount is None
+
+
+def test_order_refund_with_gift_card_lines(
+    staff_api_client, permission_manage_orders, gift_card_shippable_order_line
+):
+    order = gift_card_shippable_order_line.order
+    query = ORDER_REFUND_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {"id": order_id, "amount": 10.0}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]
+    assert not data["order"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_REFUND.name
+    assert data["errors"][0]["field"] == "id"
 
 
 @pytest.mark.parametrize(
@@ -5361,6 +5771,27 @@ def test_order_bulk_cancel(
     mock_cancel_order.call_count == expected_count
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+def test_order_bulk_cancel_with_back_in_stock_webhook(
+    product_variant_back_in_stock_webhook_mock,
+    staff_api_client,
+    fulfilled_order_with_all_cancelled_fulfillments,
+    permission_manage_orders,
+):
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id(
+                "Order", fulfilled_order_with_all_cancelled_fulfillments.id
+            )
+        ]
+    }
+    staff_api_client.post_graphql(
+        MUTATION_ORDER_BULK_CANCEL, variables, permissions=[permission_manage_orders]
+    )
+
+    product_variant_back_in_stock_webhook_mock.assert_called_once()
+
+
 @patch("saleor.graphql.order.bulk_mutations.orders.cancel_order")
 def test_order_bulk_cancel_as_app(
     mock_cancel_order,
@@ -5975,6 +6406,7 @@ def test_orders_query_with_filter_search(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         quantity=3,
         variant=variant,
         unit_price=unit_price,
@@ -6142,6 +6574,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
                 variant_name=str(variants[0]),
                 product_sku=variants[0].sku,
                 is_shipping_required=variants[0].is_shipping_required(),
+                is_gift_card=variants[0].is_gift_card(),
                 quantity=quantity,
                 variant=variants[0],
                 unit_price=unit_price,
@@ -6156,6 +6589,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
                 variant_name=str(variants[1]),
                 product_sku=variants[1].sku,
                 is_shipping_required=variants[1].is_shipping_required(),
+                is_gift_card=variants[1].is_gift_card(),
                 quantity=quantity,
                 variant=variants[1],
                 unit_price=unit_price,
@@ -6483,3 +6917,95 @@ def test_get_variant_from_order_line_variant_not_exists_as_staff(
     content = get_graphql_content(response)
     orders = content["data"]["me"]["orders"]["edges"]
     assert orders[0]["node"]["lines"][0]["variant"] is None
+
+
+def test_draft_order_properly_recalculate_total_after_shipping_product_removed(
+    staff_api_client,
+    draft_order,
+    permission_manage_orders,
+):
+    order = draft_order
+    line = order.lines.get(product_sku="SKU_AA")
+    line.is_shipping_required = True
+    line.save()
+
+    query = ORDER_LINE_DELETE_MUTATION
+    line = order.lines.get(product_sku="SKU_B")
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"id": line_id}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDelete"]
+
+    assert data["order"]["total"]["gross"]["amount"] == float(
+        order.total_gross_amount
+    ) - float(line.total_price_gross_amount)
+
+
+ORDER_UPDATE_SHIPPING_QUERY_WITH_TOTAL = """
+mutation OrderUpdateShipping(
+    $orderId: ID!
+    $shippingMethod: OrderUpdateShippingInput!
+) {
+    orderUpdateShipping(order: $orderId, input: $shippingMethod) {
+        order {
+            shippingMethod {
+                id
+            }
+        }
+        errors {
+            field
+            message
+        }
+    }
+}
+"""
+
+
+@pytest.mark.parametrize(
+    "input, response_msg",
+    [
+        ({"shippingMethod": ""}, "Shipping method cannot be empty."),
+        ({}, "Shipping method must be provided to perform mutation."),
+    ],
+)
+def test_order_shipping_update_mutation_return_error_for_empty_value(
+    draft_order, permission_manage_orders, staff_api_client, input, response_msg
+):
+    query = ORDER_UPDATE_SHIPPING_QUERY_WITH_TOTAL
+
+    order = draft_order
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"orderId": order_id, "shippingMethod": input}
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+
+    assert data["errors"][0]["message"] == response_msg
+
+
+def test_order_shipping_update_mutation_properly_recalculate_total(
+    draft_order,
+    permission_manage_orders,
+    staff_api_client,
+):
+    query = ORDER_UPDATE_SHIPPING_QUERY_WITH_TOTAL
+
+    order = draft_order
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"orderId": order_id, "shippingMethod": {"shippingMethod": None}}
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    assert data["order"]["shippingMethod"] is None

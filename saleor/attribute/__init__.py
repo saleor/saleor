@@ -10,6 +10,7 @@ class AttributeInputType:
     REFERENCE = "reference"
     NUMERIC = "numeric"
     RICH_TEXT = "rich-text"
+    SWATCH = "swatch"
     BOOLEAN = "boolean"
     DATE = "date"
     DATE_TIME = "date-time"
@@ -21,20 +22,19 @@ class AttributeInputType:
         (REFERENCE, "Reference"),
         (NUMERIC, "Numeric"),
         (RICH_TEXT, "Rich Text"),
+        (SWATCH, "Swatch"),
         (BOOLEAN, "Boolean"),
         (DATE, "Date"),
         (DATE_TIME, "Date Time"),
     ]
 
     # list of the input types that can be used in variant selection
-    ALLOWED_IN_VARIANT_SELECTION = [
-        DROPDOWN,
-        BOOLEAN,
-    ]
+    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, BOOLEAN, SWATCH]
 
     TYPES_WITH_CHOICES = [
         DROPDOWN,
         MULTISELECT,
+        SWATCH,
     ]
 
     # list of the input types that are unique per instances
@@ -46,12 +46,12 @@ class AttributeInputType:
     ]
 
 
-# list of input types that are allowed for given attribute property
 ATTRIBUTE_PROPERTIES_CONFIGURATION = {
     "filterable_in_storefront": [
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
+        AttributeInputType.SWATCH,
         AttributeInputType.BOOLEAN,
         AttributeInputType.DATE,
         AttributeInputType.DATE_TIME,
@@ -60,6 +60,7 @@ ATTRIBUTE_PROPERTIES_CONFIGURATION = {
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
+        AttributeInputType.SWATCH,
         AttributeInputType.BOOLEAN,
         AttributeInputType.DATE,
         AttributeInputType.DATE_TIME,
@@ -68,6 +69,7 @@ ATTRIBUTE_PROPERTIES_CONFIGURATION = {
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
+        AttributeInputType.SWATCH,
         AttributeInputType.BOOLEAN,
         AttributeInputType.DATE,
         AttributeInputType.DATE_TIME,

@@ -360,6 +360,18 @@ class DraftOrderDelete(ModelDeleteMutation):
         error_type_class = OrderError
         error_type_field = "order_errors"
 
+    @classmethod
+    def clean_instance(cls, info, instance):
+        if instance.status != OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to non-draft order.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+
 
 class DraftOrderComplete(BaseMutation):
     order = graphene.Field(Order, description="Completed order.")
@@ -387,6 +399,7 @@ class DraftOrderComplete(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, id):
+        manager = info.context.plugins
         order = cls.get_node_or_error(info, id, only_type=Order)
         country = get_order_country(order)
         validate_draft_order(order, country)
@@ -408,7 +421,7 @@ class DraftOrderComplete(BaseMutation):
                     line=line, quantity=line.quantity, variant=line.variant
                 )
                 try:
-                    allocate_stocks([line_data], country, order.channel.slug)
+                    allocate_stocks([line_data], country, order.channel.slug, manager)
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})

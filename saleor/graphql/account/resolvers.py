@@ -11,6 +11,7 @@ from ...core.tracing import traced_resolver
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
 from ..core.utils import from_global_id_or_error
+from ..meta.resolvers import resolve_metadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .types import Address, AddressValidationData, ChoiceValue, User
 from .utils import (
@@ -146,6 +147,7 @@ def prepare_graphql_payment_sources_type(payment_sources):
                     "brand": src.credit_card_info.brand,
                     "first_digits": src.credit_card_info.first_4,
                 },
+                "metadata": resolve_metadata(src.metadata),
             }
         )
     return sources
@@ -160,7 +162,7 @@ def resolve_address(info, id):
         return models.Address.objects.filter(pk=address_pk).first()
     if user and not user.is_anonymous:
         return user.addresses.filter(id=address_pk).first()
-    return PermissionDenied()
+    raise PermissionDenied()
 
 
 def resolve_permissions(root: models.User):

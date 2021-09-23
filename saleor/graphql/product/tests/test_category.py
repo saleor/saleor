@@ -246,7 +246,9 @@ def test_query_category_product_visible_in_listings_as_staff_without_manage_prod
 
     # then
     content = get_graphql_content(response, ignore_errors=True)
-    assert len(content["data"]["category"]["products"]["edges"]) == product_count
+    assert (
+        len(content["data"]["category"]["products"]["edges"]) == product_count - 1
+    )  # invisible doesn't count
 
 
 def test_query_category_product_only_visible_in_listings_as_staff_with_perm(
@@ -291,7 +293,9 @@ def test_query_category_product_only_visible_in_listings_as_app_without_manage_p
 
     # then
     content = get_graphql_content(response, ignore_errors=True)
-    assert len(content["data"]["category"]["products"]["edges"]) == product_count
+    assert (
+        len(content["data"]["category"]["products"]["edges"]) == product_count - 1
+    )  # invisible doesn't count
 
 
 def test_query_category_product_only_visible_in_listings_as_app_with_perm(
@@ -1082,3 +1086,36 @@ def test_update_category_mutation_remove_background_image(
     assert not data["backgroundImage"]
     category_with_image.refresh_from_db()
     assert not category_with_image.background_image
+
+
+def test_query_category_for_federation(api_client, non_default_category):
+    category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "Category",
+                "id": category_id,
+            },
+        ],
+    }
+    query = """
+      query GetCategoryInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on Category {
+            id
+            name
+          }
+        }
+      }
+    """
+
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "Category",
+            "id": category_id,
+            "name": non_default_category.name,
+        }
+    ]
