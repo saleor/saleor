@@ -150,6 +150,10 @@ def update_schedule_deactivate_preorder_for_variant_task(
 
 
 def _get_crontab_schedule_settings(preorder_end_date: datetime):
+    # FIXME: Please consider better timezone handling.
+    # Timezone info is dropped for now because API uses `aniso8601.utcoffset.UTCOffset`,
+    # but `CrontabSchedule` stores timezone with `timezone_field.TimeZoneField`.
+    # The same UTC offset can represent many timezones.
     end_time = preorder_end_date.timetz()
     end_date = preorder_end_date.date()
     return {
@@ -158,7 +162,7 @@ def _get_crontab_schedule_settings(preorder_end_date: datetime):
         "day_of_week": "*",
         "day_of_month": str(end_date.day),
         "month_of_year": str(end_date.month),
-        "timezone": preorder_end_date.tzinfo,
+        "timezone": None,
     }
 
 
