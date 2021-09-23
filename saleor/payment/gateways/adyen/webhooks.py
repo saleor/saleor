@@ -5,7 +5,7 @@ import hmac
 import json
 import logging
 from json.decoder import JSONDecodeError
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 from urllib.parse import urlencode, urlparse
 
 import Adyen
@@ -51,9 +51,6 @@ from ...utils import (
 from .utils.common import FAILED_STATUSES, api_call
 
 logger = logging.getLogger(__name__)
-
-if TYPE_CHECKING:
-    from ....plugins.manager import PluginsManager
 
 
 def get_payment(
@@ -273,7 +270,6 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
 def handle_cancellation(
     notification: Dict[str, Any],
     _gateway_config: GatewayConfig,
-    manager: "PluginsManager",
 ):
     # https://docs.adyen.com/checkout/cancel#cancellation-notifciation
     transaction_id = notification.get("pspReference")
@@ -301,6 +297,7 @@ def handle_cancellation(
         payment, success_msg, failed_msg, new_transaction.is_success
     )
     if payment.order and new_transaction.is_success:
+        manager = get_plugins_manager()
         cancel_order(payment.order, None, None, manager)
 
 
@@ -309,14 +306,13 @@ def handle_cancel_or_refund(
 ):
     # https://docs.adyen.com/checkout/cancel-or-refund#cancel-or-refund-notification
     additional_data = notification.get("additionalData")
-    manager = get_plugins_manager()
     if not additional_data:
         return
     action = additional_data.get("modification.action")
     if action == "refund":
         handle_refund(notification, gateway_config)
     elif action == "cancel":
-        handle_cancellation(notification, gateway_config, manager)
+        handle_cancellation(notification, gateway_config)
 
 
 def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
@@ -694,17 +690,32 @@ def handle_additional_actions(
     checkout_pk = request.GET.get("checkout")
 
     if not payment_id or not checkout_pk:
+        logger.warning(
+            "Missing payment_id or checkout id in Adyen's request.",
+            extra={"payment_id": payment_id, "checkout_id": checkout_pk},
+        )
         return HttpResponseNotFound()
 
     payment = get_payment(payment_id, transaction_id=None)
     if not payment:
-        return HttpResponseNotFound(
-            "Cannot perform payment.There is no active adyen payment."
+        logger.warning(
+            "Payment doesn't exist or is not active.", extra={"payment_id": payment_id}
         )
-    if not payment.checkout or str(payment.checkout.token) != checkout_pk:
         return HttpResponseNotFound(
-            "Cannot perform payment.There is no checkout with this payment."
+            "Cannot perform payment. There is no active Adyen payment."
         )
+
+    # Adyen for some payment methods can call success notification before we will
+    # call an additional_action.
+    if not payment.order_id:
+        if not payment.checkout or str(payment.checkout.token) != checkout_pk:
+            logger.warning(
+                "There is no checkout with this payment.",
+                extra={"checkout_pk": checkout_pk, "payment_id": payment_id},
+            )
+            return HttpResponseNotFound(
+                "Cannot perform payment. There is no checkout with this payment."
+            )
 
     extra_data = json.loads(payment.extra_data)
     data = extra_data[-1] if isinstance(extra_data, list) else extra_data
@@ -712,6 +723,10 @@ def handle_additional_actions(
     return_url = payment.return_url
 
     if not return_url:
+        logger.warning(
+            "Missing return_url for payment.",
+            extra={"payment_id": payment_id, "checkout_pk": checkout_pk},
+        )
         return HttpResponseNotFound(
             "Cannot perform payment. Lack of data about returnUrl."
         )

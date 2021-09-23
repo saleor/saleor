@@ -49,7 +49,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             for variant_id, quantity in quantities:
                 quantity_by_variant_and_country[
                     (variant_id, country_code, channel_slug)
-                ] = quantity
+                ] = max(0, quantity)
 
         return [quantity_by_variant_and_country[key] for key in keys]
 
@@ -103,7 +103,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             int, DefaultDict[int, int]
         ] = defaultdict(lambda: defaultdict(int))
         for stock in stocks:
-            quantity = stock.available_quantity
+            quantity = max(0, stock.available_quantity)
             variant_id = stock.product_variant_id
             warehouse_id = stock.warehouse_id
             shipping_zone_ids = warehouse_shipping_zones_map[warehouse_id]

@@ -379,6 +379,18 @@ class DraftOrderDelete(ModelDeleteMutation):
         transaction.on_commit(lambda: info.context.plugins.draft_order_deleted(order))
         return response
 
+    @classmethod
+    def clean_instance(cls, info, instance):
+        if instance.status != OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to non-draft order.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+
 
 class DraftOrderComplete(BaseMutation):
     order = graphene.Field(Order, description="Completed order.")

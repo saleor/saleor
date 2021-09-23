@@ -7,43 +7,55 @@ from ...tests.utils import get_graphql_content
 
 COUNTRY_CODE = "US"
 
-
-def test_variant_quantity_available_without_country_code(
-    api_client, variant_with_many_stocks, channel_USD
-):
-    query = """
+QUERY_QUANTITY_AVAILABLE = """
     query variantAvailability($id: ID!, $channel: String) {
         productVariant(id: $id, channel: $channel) {
             quantityAvailable
         }
     }
     """
+
+
+def test_variant_quantity_available_without_country_code(
+    api_client, variant_with_many_stocks, channel_USD
+):
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
         "channel": channel_USD.slug,
     }
-    response = api_client.post_graphql(query, variables)
+    response = api_client.post_graphql(QUERY_QUANTITY_AVAILABLE, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
     assert variant_data["quantityAvailable"] == 7
 
 
+def test_variant_quantity_available_when_one_stock_is_exceeded(
+    api_client, variant_with_many_stocks, channel_USD
+):
+    # make first stock exceeded
+    stock = variant_with_many_stocks.stocks.first()
+    stock.quantity = -99
+    stock.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
+        "channel": channel_USD.slug,
+    }
+    response = api_client.post_graphql(QUERY_QUANTITY_AVAILABLE, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["quantityAvailable"] == 3
+
+
 def test_variant_quantity_available_without_country_code_and_no_channel_shipping_zones(
     api_client, variant_with_many_stocks, channel_USD
 ):
-    query = """
-    query variantAvailability($id: ID!, $channel: String) {
-        productVariant(id: $id, channel: $channel) {
-            quantityAvailable
-        }
-    }
-    """
     channel_USD.shipping_zones.clear()
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
         "channel": channel_USD.slug,
     }
-    response = api_client.post_graphql(query, variables)
+    response = api_client.post_graphql(QUERY_QUANTITY_AVAILABLE, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
     assert variant_data["quantityAvailable"] == 0
