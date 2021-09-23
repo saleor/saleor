@@ -22,6 +22,8 @@ from ....order.tasks import recalculate_orders_task
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.tasks import (
+    delete_deactivate_preorder_for_variant_task,
+    schedule_deactivate_preorder_for_variant_task,
     update_product_discounted_price_task,
     update_products_discounted_prices_of_catalogues_task,
     update_variants_names,
@@ -959,6 +961,8 @@ class ProductVariantCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
             generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
+        schedule_deactivate_preorder_for_variant_task(instance)
+
         event_to_call = (
             info.context.plugins.product_variant_created
             if new_variant
@@ -1749,6 +1753,7 @@ class ProductVariantPreorderDeactivate(BaseMutation):
                 str(error),
                 code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED,
             )
+        delete_deactivate_preorder_for_variant_task(variant.pk)
 
         variant = ChannelContext(node=variant, channel_slug=None)
         transaction.on_commit(

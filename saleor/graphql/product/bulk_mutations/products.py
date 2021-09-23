@@ -15,7 +15,10 @@ from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import models
 from ....product.error_codes import ProductErrorCode
-from ....product.tasks import update_product_discounted_price_task
+from ....product.tasks import (
+    schedule_deactivate_preorder_for_variant_task,
+    update_product_discounted_price_task,
+)
 from ....product.utils import delete_categories
 from ....product.utils.variants import generate_and_set_variant_name
 from ....warehouse import models as warehouse_models
@@ -492,6 +495,7 @@ class ProductVariantBulkCreate(BaseMutation):
             cls.save(info, instance, cleaned_input)
             cls.create_variant_stocks(instance, cleaned_input)
             cls.create_variant_channel_listings(instance, cleaned_input)
+            schedule_deactivate_preorder_for_variant_task(instance)
 
         if not product.default_variant:
             product.default_variant = instances[0]
