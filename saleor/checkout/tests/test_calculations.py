@@ -1,8 +1,19 @@
+from datetime import timedelta
 from decimal import Decimal
+from unittest.mock import Mock, patch
 
-from saleor.checkout.calculations import _apply_tax_data
+import pytest
+from django.utils import timezone
+from freezegun import freeze_time
+
+from saleor.checkout.calculations import (
+    _apply_tax_data,
+    fetch_checkout_prices_if_expired,
+)
+from saleor.checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from saleor.checkout.models import Checkout
 from saleor.core.taxes import TaxData, TaxLineData
+from saleor.plugins.manager import get_plugins_manager
 
 
 def test_apply_tax_data(checkout: Checkout):
@@ -49,3 +60,112 @@ def test_apply_tax_data(checkout: Checkout):
 
         assert line.total_price.net.amout == tax_line.total_net_amount
         assert line.total_price.gross.amout == tax_line.total_gross_amount
+
+
+@pytest.fixture
+def manager():
+    return get_plugins_manager()
+
+
+@pytest.fixture
+def fetch_kwargs(checkout, manager):
+    lines = fetch_checkout_lines(checkout)
+    discounts = []
+    return {
+        "checkout_info": fetch_checkout_info(checkout, lines, discounts, manager),
+        "manager": manager,
+        "lines": lines,
+        "address": checkout.shipping_address or checkout.billing_address,
+        "discounts": discounts,
+    }
+
+
+PLUGINS_TAX_DATA = Mock(spec=TaxData)
+WEBHOOKS_TAX_DATA = Mock(spec=TaxData)
+
+
+@freeze_time("2020-12-12 12:00:00")
+@patch("saleor.checkout.calculations._get_tax_data_from_plugins")
+@patch("saleor.checkout.calculations._apply_tax_data")
+@pytest.mark.parametrize(
+    ["plugins_tax_data", "webhooks_tax_data", "expected_tax_data"],
+    [
+        (PLUGINS_TAX_DATA, WEBHOOKS_TAX_DATA, WEBHOOKS_TAX_DATA),
+        (None, WEBHOOKS_TAX_DATA, WEBHOOKS_TAX_DATA),
+        (PLUGINS_TAX_DATA, None, PLUGINS_TAX_DATA),
+    ],
+)
+def test_fetch_checkout_prices_if_expired(
+    mocked_apply_tax_data,
+    mocked_get_tax_data_from_plugins,
+    checkout,
+    plugins_tax_data,
+    webhooks_tax_data,
+    expected_tax_data,
+    fetch_kwargs,
+    manager,
+):
+    # given
+    mocked_get_tax_data_from_plugins.return_value = plugins_tax_data
+    mocked_get_taxes_for_checkout = Mock(return_value=webhooks_tax_data)
+    manager.get_taxes_for_checkout = mocked_get_taxes_for_checkout
+
+    # when
+    fetch_checkout_prices_if_expired(**fetch_kwargs)
+
+    # then
+    mocked_get_tax_data_from_plugins.assert_called_once()
+    mocked_get_taxes_for_checkout.assert_called_once()
+    mocked_apply_tax_data.assert_called_once_with(checkout, expected_tax_data)
+
+
+@freeze_time("2020-12-12 12:00:00")
+@patch("saleor.checkout.calculations._get_tax_data_from_plugins")
+@patch("saleor.checkout.calculations._apply_tax_data")
+def test_fetch_checkout_prices_if_expired_no_response(
+    mocked_apply_tax_data,
+    mocked_get_tax_data_from_plugins,
+    checkout,
+    fetch_kwargs,
+    manager,
+):
+    # given
+    mocked_get_tax_data_from_plugins.return_value = None
+    mocked_get_taxes_for_checkout = Mock(return_value=None)
+    manager.get_taxes_for_checkout = mocked_get_taxes_for_checkout
+
+    # when
+    fetch_checkout_prices_if_expired(**fetch_kwargs)
+
+    # then
+    mocked_get_tax_data_from_plugins.assert_called_once()
+    mocked_get_taxes_for_checkout.assert_called_once()
+    mocked_apply_tax_data.assert_not_called()
+
+
+@freeze_time(timezone.now())
+@patch("saleor.checkout.calculations._get_tax_data_from_plugins")
+@patch("saleor.checkout.calculations._apply_tax_data")
+@pytest.mark.parametrize(["force_update", "call_count"], [(True, 1), (False, 0)])
+def test_fetch_checkout_prices_if_expired_valid_prices(
+    _mocked_apply_tax_data,
+    mocked_get_tax_data_from_plugins,
+    checkout,
+    manager,
+    fetch_kwargs,
+    force_update,
+    call_count,
+):
+    # given
+    checkout.price_expiration -= timedelta(minutes=10)
+    checkout.save(update_fields=["price_expiration"])
+
+    mocked_get_taxes_for_checkout = Mock()
+    manager.get_taxes_for_checkout = mocked_get_taxes_for_checkout
+
+    # when
+    fetch_checkout_prices_if_expired(**fetch_kwargs, force_update=force_update)
+
+    # then
+    assert mocked_get_tax_data_from_plugins.call_count == call_count
+    assert mocked_get_taxes_for_checkout.call_count == call_count
