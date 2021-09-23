@@ -29,11 +29,13 @@ def test_variant_quantity_available_without_country_code(
     assert variant_data["quantityAvailable"] == 7
 
 
-def test_variant_quantity_available_when_stocks_are_exceeded(
+def test_variant_quantity_available_when_one_stock_is_exceeded(
     api_client, variant_with_many_stocks, channel_USD
 ):
-    # make stocks exceeded
-    variant_with_many_stocks.stocks.update(quantity=-99)
+    # make first stock exceeded
+    stock = variant_with_many_stocks.stocks.first()
+    stock.quantity = -99
+    stock.save()
 
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
@@ -42,7 +44,7 @@ def test_variant_quantity_available_when_stocks_are_exceeded(
     response = api_client.post_graphql(QUERY_QUANTITY_AVAILABLE, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["quantityAvailable"] == 0
+    assert variant_data["quantityAvailable"] == 3
 
 
 def test_variant_quantity_available_without_country_code_and_no_channel_shipping_zones(
