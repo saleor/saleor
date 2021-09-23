@@ -15,10 +15,6 @@ CREATE_PAYMENT_MUTATION = """
     ) {
         checkoutPaymentCreate(checkoutId: $checkoutId, token: $token, input: $input) {
             payment {
-                transactions {
-                    kind,
-                    token
-                }
                 chargeStatus
             }
             errors {
@@ -56,8 +52,6 @@ def test_checkout_add_payment_by_checkout_id(
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert not data["errors"]
-    transactions = data["payment"]["transactions"]
-    assert not transactions
     payment = Payment.objects.get()
     assert payment.checkout == checkout
     assert payment.is_active
