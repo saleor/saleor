@@ -376,11 +376,17 @@ def clean_mark_order_as_paid(order: "Order"):
 
 
 @traced_atomic_transaction()
-def fulfill_order_lines(order_lines_info: Iterable["OrderLineData"]):
+def fulfill_order_lines(
+    order_lines_info: Iterable["OrderLineData"],
+    allow_stock_to_be_exceeded: bool = False,
+):
     """Fulfill order line with given quantity."""
     lines_to_decrease_stock = get_order_lines_with_track_inventory(order_lines_info)
     if lines_to_decrease_stock:
-        decrease_stock(lines_to_decrease_stock)
+        decrease_stock(
+            lines_to_decrease_stock,
+            allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
+        )
     order_lines = []
     for line_info in order_lines_info:
         line = line_info.line
@@ -442,6 +448,7 @@ def _create_fulfillment_lines(
     warehouse_pk: str,
     lines_data: List[Dict],
     channel_slug: str,
+    allow_stock_to_be_exceeded: bool = False,
 ) -> List[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
 
@@ -458,6 +465,8 @@ def _create_fulfillment_lines(
                     ...
                 ]
         channel_slug (str): Channel for which fulfillment lines should be created.
+        allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
+            Default value is set to `False`.
 
     Return:
         List[FulfillmentLine]: Unsaved fulfillmet lines created for this fulfillment
@@ -519,7 +528,7 @@ def _create_fulfillment_lines(
         raise InsufficientStock(insufficient_stocks)
 
     if lines_info:
-        fulfill_order_lines(lines_info)
+        fulfill_order_lines(lines_info, allow_stock_to_be_exceeded)
 
     return fulfillment_lines
 
@@ -532,6 +541,7 @@ def create_fulfillments(
     fulfillment_lines_for_warehouses: Dict,
     manager: "PluginsManager",
     notify_customer: bool = True,
+    allow_stock_to_be_exceeded: bool = False,
 ) -> List[Fulfillment]:
     """Fulfill order.
 
@@ -556,6 +566,8 @@ def create_fulfillments(
         manager (PluginsManager): Base manager for handling plugins logic.
         notify_customer (bool): If `True` system send email about
             fulfillments to customer.
+        allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
+            Default value is set to `False`.
 
     Return:
         List[Fulfillment]: Fulfillmet with lines created for this order
@@ -577,6 +589,7 @@ def create_fulfillments(
                 warehouse_pk,
                 fulfillment_lines_for_warehouses[warehouse_pk],
                 order.channel.slug,
+                allow_stock_to_be_exceeded,
             )
         )
 
