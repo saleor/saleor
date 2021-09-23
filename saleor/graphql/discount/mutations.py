@@ -508,7 +508,7 @@ class SaleInput(graphene.InputObjectType):
     )
     variants = graphene.List(
         graphene.ID,
-        descriptions="Product variant related to the discount.",
+        descriptions=f"{ADDED_IN_31} Product variant related to the discount.",
         name="variants",
     )
     categories = graphene.List(
