@@ -11,6 +11,7 @@ from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max, Sum
 from django.db.models.expressions import Exists, OuterRef
+from django.utils import timezone
 from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
@@ -233,6 +234,8 @@ class Order(ModelWithMetadata):
         default=0,
     )
     total_paid = MoneyField(amount_field="total_paid_amount", currency_field="currency")
+
+    price_expiration_for_unconfirmed = models.DateTimeField(default=timezone.now)
 
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
