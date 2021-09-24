@@ -353,6 +353,7 @@ def _prepare_order_data(
 def _create_order(
     *,
     checkout_info: "CheckoutInfo",
+    checkout_lines: Iterable["CheckoutLineInfo"],
     order_data: dict,
     user: User,
     app: Optional["App"],
@@ -427,6 +428,7 @@ def _create_order(
         checkout_info.channel.slug,
         manager,
         additional_warehouse_lookup,
+        checkout_lines=[line.line for line in checkout_lines],
     )
     allocate_preorders(order_lines_info, checkout_info.channel.slug)
 
@@ -648,6 +650,7 @@ def complete_checkout(
         try:
             order = _create_order(
                 checkout_info=checkout_info,
+                checkout_lines=lines,
                 order_data=order_data,
                 user=user,  # type: ignore
                 app=app,

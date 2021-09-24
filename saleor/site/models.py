@@ -70,8 +70,12 @@ class SiteSettings(models.Model):
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)
 
-    reserve_stock_duration_minutes_anonymous = models.IntegerField(blank=True, null=True)
-    reserve_stock_duration_minutes_authenticated = models.IntegerField(blank=True, null=True)
+    reserve_stock_duration_minutes_anonymous = models.IntegerField(
+        blank=True, null=True
+    )
+    reserve_stock_duration_minutes_authenticated = models.IntegerField(
+        blank=True, null=True
+    )
 
     # gift card settings
     gift_card_expiry_type = models.CharField(
