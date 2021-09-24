@@ -143,6 +143,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add new permision `IMPERSONATE_USER`
 - Fix missing transaction id in Braintree - #8110 by @fowczarek
 - Fix GraphQL federation support. - #7771 #8107 by @rafalp
+- Remove unnecessary database lock on discount during checkout complete mutation - #8174 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
