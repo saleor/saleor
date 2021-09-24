@@ -116,14 +116,39 @@ def checkout_line_total(
     It takes in account all plugins.
     """
     address = checkout_info.shipping_address or checkout_info.billing_address
-    calculated_line_total = manager.calculate_checkout_line_total(
-        checkout_info,
-        lines,
-        checkout_line_info,
-        address,
-        discounts or [],
+    return (
+        fetch_checkout_prices_if_expired(
+            checkout_info,
+            manager=manager,
+            lines=lines,
+            address=address,
+            discounts=discounts,
+        )
+        .lines.get(pk=checkout_line_info.line.pk)
+        .total_price
     )
-    return quantize_price(calculated_line_total, checkout_info.checkout.currency)
+
+
+def checkout_line_unit_price(
+    *,
+    manager: "PluginsManager",
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    checkout_line_info: "CheckoutLineInfo",
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+) -> "TaxedMoney":
+    address = checkout_info.shipping_address or checkout_info.billing_address
+    return (
+        fetch_checkout_prices_if_expired(
+            checkout_info,
+            manager=manager,
+            lines=lines,
+            address=address,
+            discounts=discounts,
+        )
+        .lines.get(pk=checkout_line_info.line.pk)
+        .unit_price
+    )
 
 
 def fetch_checkout_prices_if_expired(

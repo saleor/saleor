@@ -278,6 +278,7 @@ def checkout_line(checkout, db, channel_USD, product_with_single_variant):
         checkout=checkout,
         variant=product_with_single_variant.variants.first(),
         quantity=1,
+        currency=checkout.currency,
     )
 
 
@@ -4468,13 +4469,22 @@ def checkout_with_items_for_cc(checkout_for_cc, product_variant_list):
     CheckoutLine.objects.bulk_create(
         [
             CheckoutLine(
-                checkout=checkout_for_cc, variant=product_variant_list[0], quantity=1
+                checkout=checkout_for_cc,
+                variant=product_variant_list[0],
+                quantity=1,
+                currency=checkout_for_cc.currency,
             ),
             CheckoutLine(
-                checkout=checkout_for_cc, variant=product_variant_list[1], quantity=1
+                checkout=checkout_for_cc,
+                variant=product_variant_list[1],
+                quantity=1,
+                currency=checkout_for_cc.currency,
             ),
             CheckoutLine(
-                checkout=checkout_for_cc, variant=product_variant_list[2], quantity=1
+                checkout=checkout_for_cc,
+                variant=product_variant_list[2],
+                quantity=1,
+                currency=checkout_for_cc.currency,
             ),
         ]
     )
@@ -4486,7 +4496,10 @@ def checkout_with_items_for_cc(checkout_for_cc, product_variant_list):
 @pytest.fixture
 def checkout_with_item_for_cc(checkout_for_cc, product_variant_list):
     CheckoutLine.objects.create(
-        checkout=checkout_for_cc, variant=product_variant_list[0], quantity=1
+        checkout=checkout_for_cc,
+        variant=product_variant_list[0],
+        quantity=1,
+        currency=checkout_for_cc.currency,
     )
     return checkout_for_cc
 

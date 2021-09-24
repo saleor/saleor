@@ -349,21 +349,12 @@ def get_prices_of_discounted_specific_product(
 
     for line_info in discounted_lines:
         line = line_info.line
-        line_total = calculations.checkout_line_total(
+        line_unit_price = calculations.checkout_line_unit_price(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
-        )
-        line_unit_price = manager.calculate_checkout_line_unit_price(
-            line_total,
-            line.quantity,
-            checkout_info,
-            lines,
-            line_info,
-            address,
-            discounts,
         )
         line_prices.extend(
             [net_or_gross(line_unit_price, taxes_included)] * line.quantity
