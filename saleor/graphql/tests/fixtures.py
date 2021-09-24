@@ -1,5 +1,6 @@
 import json
 import logging
+from unittest import mock
 from unittest.mock import Mock
 
 import graphene
@@ -93,7 +94,8 @@ class ApiClient(Client):
 
         if permissions:
             if check_no_permissions:
-                response = super().post(API_PATH, data, **kwargs)
+                with mock.patch("saleor.graphql.views.handled_errors_logger"):
+                    response = super().post(API_PATH, data, **kwargs)
                 assert_no_permission(response)
             if self.app:
                 self.app.permissions.add(*permissions)
