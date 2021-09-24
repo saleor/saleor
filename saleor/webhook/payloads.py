@@ -2,7 +2,7 @@ import json
 import uuid
 from collections import defaultdict
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 import graphene
 from django.db.models import F, QuerySet, Sum
@@ -40,6 +40,7 @@ if TYPE_CHECKING:
 if TYPE_CHECKING:
     from ..account.models import User
     from ..discount.models import Sale
+    from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData
     from ..translation.models import Translation
@@ -225,16 +226,26 @@ def generate_order_payload(order: "Order"):
     return order_data
 
 
-def calculate_added(previous_catalogue, current_catalogue, key):
+def calculate_added(
+    previous_catalogue: "NodeCatalogueInfo",
+    current_catalogue: "NodeCatalogueInfo",
+    key: str,
+) -> List[str]:
     return list(current_catalogue[key] - previous_catalogue[key])
 
 
-def calculate_removed(previous_catalogue, current_catalogue, key):
+def calculate_removed(
+    previous_catalogue: "NodeCatalogueInfo",
+    current_catalogue: "NodeCatalogueInfo",
+    key: str,
+) -> List[str]:
     return calculate_added(current_catalogue, previous_catalogue, key)
 
 
 def generate_sale_payload(
-    sale: "Sale", previous_catalogue=None, current_catalogue=None
+    sale: "Sale",
+    previous_catalogue: Optional["NodeCatalogueInfo"] = None,
+    current_catalogue: Optional["NodeCatalogueInfo"] = None,
 ):
     if previous_catalogue is None:
         previous_catalogue = defaultdict(set)

@@ -5,14 +5,13 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from saleor.discount.utils import fetch_catalogue_info
-
 from ...core.permissions import DiscountPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils.promo_code import generate_promo_code, is_available_promo_code
 from ...discount import DiscountValueType, models
 from ...discount.error_codes import DiscountErrorCode
 from ...discount.models import SaleChannelListing
+from ...discount.utils import CatalogueInfo, fetch_catalogue_info
 from ...product.tasks import (
     update_products_discounted_prices_of_catalogues_task,
     update_products_discounted_prices_of_discount_task,
@@ -33,14 +32,15 @@ if TYPE_CHECKING:
     from ...discount.models import Sale as SaleModel
 
 ErrorType = DefaultDict[str, List[ValidationError]]
+NodeCatalogueInfo = DefaultDict[str, Set[str]]
 
 
 def convert_catalogue_info_to_global_ids(
-    catalogue_info: Dict[str, Set[int]]
-) -> Dict[str, Set[str]]:
+    catalogue_info: CatalogueInfo,
+) -> NodeCatalogueInfo:
     catalogue_fields = ["categories", "collections", "products"]  # variants
     type_names = ["Category", "Collection", "Product"]
-    converted_catalogue_info: Dict[str, Set[str]] = defaultdict(set)
+    converted_catalogue_info: NodeCatalogueInfo = defaultdict(set)
 
     for type_name, catalogue_field in zip(type_names, catalogue_fields):
         converted_catalogue_info[catalogue_field].update(
@@ -584,14 +584,18 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def save(cls, info, instance, cleaned_input):
-        instance.save()
+    def perform_mutation(cls, _root, info, **data):
+        response = super().perform_mutation(_root, info, **data)
+        instance = getattr(response, cls._meta.return_field_name).node
         current_catalogue = fetch_catalogue_info(instance)
+
         transaction.on_commit(
             lambda: info.context.plugins.sale_created(
-                instance, convert_catalogue_info_to_global_ids(current_catalogue)
+                instance,
+                convert_catalogue_info_to_global_ids(current_catalogue),
             )
         )
+        return response
 
 
 class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):

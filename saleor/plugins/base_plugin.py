@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo
     from ..discount.models import Sale
+    from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
@@ -380,14 +381,18 @@ class BasePlugin:
         """
         return NotImplemented
 
-    def sale_created(self, sale: "Sale", current_catalogue, previous_value: Any):
+    def sale_created(
+        self, sale: "Sale", current_catalogue: "NodeCatalogueInfo", previous_value: Any
+    ):
         """Trigger when sale is created.
 
         Overwrite this method if you need to trigger specific logic after sale is created.
         """
         return NotImplemented
 
-    def sale_deleted(self, sale: "Sale", previous_catalogue, previous_value: Any):
+    def sale_deleted(
+        self, sale: "Sale", previous_catalogue: "NodeCatalogueInfo", previous_value: Any
+    ):
         """Trigger when sale is deleted.
 
         Overwrite this method if you need to trigger specific logic after sale is deleted.
@@ -395,7 +400,11 @@ class BasePlugin:
         return NotImplemented
 
     def sale_updated(
-        self, sale: "Sale", previous_catalogue, current_catalogue, previous_value: Any
+        self,
+        sale: "Sale",
+        previous_catalogue: "NodeCatalogueInfo",
+        current_catalogue: "NodeCatalogueInfo",
+        previous_value: Any,
     ):
         """Trigger when sale is updated.
 

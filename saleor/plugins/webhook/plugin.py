@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from ...account.models import User
     from ...checkout.models import Checkout
     from ...discount.models import Sale
+    from ...graphql.discount.mutations import NodeCatalogueInfo
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
@@ -89,16 +90,23 @@ class WebhookPlugin(BasePlugin):
         order_data = generate_order_payload(order)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_UPDATED, order_data)
 
-    def sale_created(self, sale: "Sale", current_catalogue, previous_value: Any) -> Any:
+    def sale_created(
+        self, sale: "Sale", current_catalogue: "NodeCatalogueInfo", previous_value: Any
+    ) -> Any:
         if not self.active:
             return previous_value
         sale_data = generate_sale_payload(
             sale, previous_catalogue=None, current_catalogue=current_catalogue
         )
+        print(sale_data)
         trigger_webhooks_for_event.delay(WebhookEventType.SALE_CREATED, sale_data)
 
     def sale_updated(
-        self, sale: "Sale", previous_catalogue, current_catalogue, previous_value: Any
+        self,
+        sale: "Sale",
+        previous_catalogue: "NodeCatalogueInfo",
+        current_catalogue: "NodeCatalogueInfo",
+        previous_value: Any,
     ) -> Any:
         if not self.active:
             return previous_value
@@ -106,7 +114,7 @@ class WebhookPlugin(BasePlugin):
         trigger_webhooks_for_event.delay(WebhookEventType.SALE_UPDATED, sale_data)
 
     def sale_deleted(
-        self, sale: "Sale", previous_catalogue, previous_value: Any
+        self, sale: "Sale", previous_catalogue: "NodeCatalogueInfo", previous_value: Any
     ) -> Any:
         if not self.active:
             return previous_value

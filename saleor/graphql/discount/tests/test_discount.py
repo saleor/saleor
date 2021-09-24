@@ -916,15 +916,15 @@ def test_voucher_remove_no_catalogues(
 
 @patch("saleor.plugins.manager.PluginsManager.sale_created")
 def test_create_sale(
-    created_webhook_mock, staff_api_client, permission_manage_discounts
+    created_webhook_mock, staff_api_client, permission_manage_discounts, product_list
 ):
     query = """
     mutation  saleCreate(
             $type: DiscountValueTypeEnum, $name: String, $value: PositiveDecimal,
-            $startDate: DateTime, $endDate: DateTime) {
+            $startDate: DateTime, $endDate: DateTime, $products: [ID]) {
         saleCreate(input: {
                 name: $name, type: $type, value: $value,
-                startDate: $startDate, endDate: $endDate}) {
+                startDate: $startDate, endDate: $endDate, products: $products}) {
             sale {
                 type
                 name
@@ -941,11 +941,15 @@ def test_create_sale(
     """
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.id) for product in product_list
+    ]
     variables = {
         "name": "test sale",
         "type": DiscountValueTypeEnum.FIXED.name,
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
+        "products": product_ids,
     }
 
     response = staff_api_client.post_graphql(
@@ -959,7 +963,7 @@ def test_create_sale(
     assert data["startDate"] == start_date.isoformat()
     assert data["endDate"] == end_date.isoformat()
 
-    sale = Sale.objects.first()
+    sale = Sale.objects.filter(name="test sale").get()
     current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
     created_webhook_mock.assert_called_once_with(sale, current_catalogue)
 
@@ -1011,11 +1015,15 @@ def test_create_sale_with_enddate_before_startdate(
 
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale(
-    updated_webhook_mock, staff_api_client, sale, permission_manage_discounts
+    updated_webhook_mock,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    product_list,
 ):
     query = """
-    mutation  saleUpdate($type: DiscountValueTypeEnum, $id: ID!) {
-            saleUpdate(id: $id, input: {type: $type}) {
+    mutation  saleUpdate($type: DiscountValueTypeEnum, $id: ID!, $products: [ID]) {
+            saleUpdate(id: $id, input: {type: $type, products: $products}) {
                 errors {
                     field
                     code
@@ -1034,9 +1042,13 @@ def test_update_sale(
     previous_catalogue = convert_catalogue_info_to_global_ids(
         fetch_catalogue_info(sale)
     )
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.id) for product in product_list
+    ]
     variables = {
         "id": graphene.Node.to_global_id("Sale", sale.id),
         "type": DiscountValueTypeEnum.PERCENTAGE.name,
+        "products": product_ids,
     }
 
     response = staff_api_client.post_graphql(
