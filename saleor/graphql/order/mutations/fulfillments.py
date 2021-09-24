@@ -20,6 +20,7 @@ from ....order.actions import (
 )
 from ....order.error_codes import OrderErrorCode
 from ....order.notifications import send_fulfillment_update
+from ....payment.models import Payment
 from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
@@ -705,23 +706,36 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         if payments_to_refund:
             cls._check_shipping_costs(payments_to_refund)
             payments = []
-            for item in payments_to_refund:
-                payment = cls.get_node_or_error(info, item["payment_id"])
-                include_shipping_costs = item.get("include_shipping_costs")
-                # If amount_to_refund isn't specified and the shipping costs
-                # are included then the amount should be None.
-                amount = item.get("amount")
-                amount = (
-                    amount
-                    if amount or include_shipping_costs
-                    else payment.captured_amount
+
+            # Fetch all payments at once.
+            payments_global_ids = [item["payment_id"] for item in payments_to_refund]
+            payments_pks = cls.get_global_ids_or_error(payments_global_ids, Payment)
+            payment_objects = Payment.objects.filter(pk__in=payments_pks)
+
+            for payment in payment_objects:
+                global_id = graphene.Node.to_global_id("Payment", payment.id)
+                result = list(
+                    filter(
+                        lambda item: item["payment_id"] == global_id, payments_to_refund
+                    )
                 )
-                data = {
-                    "payment": payment,
-                    "amount": amount,
-                    "include_shipping_costs": include_shipping_costs,
-                }
-                payments.append(data)
+                if len(result) > 0:
+                    item = result[0]
+                    include_shipping_costs = item.get("include_shipping_costs")
+                    # If amount_to_refund isn't specified and the shipping costs
+                    # are included then the amount should be None.
+                    amount = item.get("amount")
+                    amount = (
+                        amount
+                        if amount or include_shipping_costs
+                        else payment.captured_amount
+                    )
+                    data = {
+                        "payment": payment,
+                        "amount": amount,
+                        "include_shipping_costs": include_shipping_costs,
+                    }
+                    payments.append(data)
 
             cls._check_payments_belong_to_order(order, payments)
         else:

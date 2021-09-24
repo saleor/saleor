@@ -5,7 +5,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
-from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ..account.models import User
@@ -13,13 +12,7 @@ from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
-from ..payment import (
-    ChargeStatus,
-    CustomPaymentChoices,
-    PaymentError,
-    TransactionKind,
-    gateway,
-)
+from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError, TransactionKind
 from ..payment.actions import try_refund
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
@@ -39,7 +32,6 @@ from . import (
     events,
     utils,
 )
-from .error_codes import OrderErrorCode
 from .events import (
     draft_order_created_from_replace_event,
     fulfillment_refunded_event,
@@ -1393,25 +1385,16 @@ def _process_refund(
 
     if amount:
         for item in payments:
-            try:
-                gateway.refund(
-                    item["payment"],
-                    manager,
-                    amount=item["amount"],
-                    channel_slug=order.channel.slug,
-                )
-            except PaymentError as error:
-                events.payment_refund_failed_event(
-                    order=order,
-                    user=user,
-                    app=app,
-                    message=str(error),
-                    payment=item["payment"],
-                )
-                raise ValidationError(
-                    "The refund operation is not available yet.",
-                    code=OrderErrorCode.CANNOT_REFUND.value,
-                )
+            transaction = try_refund(
+                order=order,
+                user=user,
+                app=app,
+                payment=item["payment"],
+                manager=manager,
+                channel_slug=order.channel.slug,
+                amount=item["amount"],
+            )
+
             transaction.on_commit(
                 lambda: events.payment_refunded_event(
                     order=order,
