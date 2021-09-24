@@ -52,6 +52,9 @@ def _prepare_filter_by_rank_expression(
     except (InvalidOperation, ValueError, TypeError, KeyError):
         raise ValueError("Invalid cursor for sorting by rank.")
 
+    # Because rank is float number, it gets mangled by PostgreSQL's query parser
+    # making equal comparisons impossible. Instead we compare rank against small
+    # range of values, constructed using epsilon.
     if sorting_direction == "gt":
         return Q(rank__range=(rank - EPSILON, rank + EPSILON), id__lt=cursor[1]) | Q(
             rank__gt=rank + EPSILON
