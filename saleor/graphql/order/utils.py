@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, List
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from ...core.exceptions import InsufficientStock
 from ...order.error_codes import OrderErrorCode
@@ -257,3 +258,8 @@ def prepare_insufficient_stock_order_validation_errors(exc):
             )
         )
     return errors
+
+
+def invalidate_order_prices(order: "Order") -> None:
+    order.price_expiration_for_unconfirmed = timezone.now()
+    order.save(update_fields=["price_expiration_for_unconfirmed"])

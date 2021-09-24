@@ -6,6 +6,7 @@ from unittest import mock
 from unittest.mock import ANY
 
 import graphene
+import pytest
 
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
@@ -32,10 +33,19 @@ from ..payloads import (
 )
 
 
+@pytest.mark.parametrize("taxes_included", [True, False])
 @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
 def test_generate_order_payload(
-    mocked_fulfillment_lines, order_with_lines, fulfilled_order, payment_txn_captured
+    mocked_fulfillment_lines,
+    order_with_lines,
+    fulfilled_order,
+    payment_txn_captured,
+    site_settings,
+    taxes_included,
 ):
+    site_settings.include_taxes_in_prices = taxes_included
+    site_settings.save(update_fields=["include_taxes_in_prices"])
+
     mocked_fulfillment_lines.return_value = "{}"
 
     payment_txn_captured.psp_reference = "123"
@@ -82,6 +92,7 @@ def test_generate_order_payload(
     assert payload.get("fulfillments")
     assert payload.get("discounts")
     assert payload.get("original") == graphene.Node.to_global_id("Order", new_order.pk)
+    assert payload.get("included_taxes_in_price") == taxes_included
     assert payload.get("payments")
     assert len(payload.get("payments")) == 1
     payments_data = payload.get("payments")[0]
@@ -192,6 +203,9 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     global_warehouse_id = graphene.Node.to_global_id(
         "Warehouse", allocation.stock.warehouse_id
     )
+
+    charge_taxes = line.variant.product.charge_taxes
+
     assert line_payload == {
         "id": line_id,
         "type": "OrderLine",
@@ -211,6 +225,7 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "total_price_gross_amount": str(
             total_line.gross.amount.quantize(Decimal("0.001"))
         ),
+        "charge_taxes": charge_taxes,
         "tax_rate": str(line.tax_rate.quantize(Decimal("0.0001"))),
         "allocations": [
             {

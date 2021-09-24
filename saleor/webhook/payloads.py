@@ -8,6 +8,7 @@ from django.db.models import F, QuerySet, Sum
 
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
+from ..core.taxes import include_taxes_in_prices
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,
@@ -119,9 +120,11 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         lines,
         fields=line_fields,
         extra_dict_data={
+            "id": (lambda l: graphene.Node.to_global_id("OrderLine", l.pk)),
             "total_price_net_amount": (lambda l: l.total_price.net.amount),
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
             "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
+            "charge_taxes": (lambda l: l.variant.product.charge_taxes),
         },
     )
 
@@ -210,6 +213,7 @@ def generate_order_payload(order: "Order"):
             "discounts": (lambda o: o.discounts.all(), discount_fields),
         },
         extra_dict_data={
+            "included_taxes_in_price": include_taxes_in_prices(),
             "original": graphene.Node.to_global_id("Order", order.original_id),
             "lines": json.loads(generate_order_lines_payload(lines)),
             "fulfillments": json.loads(fulfillments_data),
