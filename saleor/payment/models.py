@@ -59,14 +59,14 @@ class Payment(models.Model):
     order = models.ForeignKey(
         "order.Order", null=True, related_name="payments", on_delete=models.PROTECT
     )
-    # create_order = models.BooleanField(
-    #     blank=True,
-    #     null=True,
-    #     help_text=(
-    #         "Indicates whether a payment should convert a checkout into an order. "
-    #         "Used for partial payments."
-    #     ),
-    # )
+    create_order = models.BooleanField(
+        blank=True,
+        null=True,
+        help_text=(
+            "Indicates whether a payment should convert a checkout into an order. "
+            "Used for partial payments."
+        ),
+    )
 
     billing_email = models.EmailField(blank=True)
     billing_first_name = models.CharField(max_length=256, blank=True)
@@ -125,6 +125,24 @@ class Payment(models.Model):
 
     def get_total(self):
         return Money(self.total, self.currency)
+
+    @property
+    def can_create_order(self):
+        """Indicate whether an order can be created with this payment.
+
+        If the value is None it still should be possible
+        for supporting the legacy approach.
+        """
+        return True if self.create_order or self.create_order is None else False
+
+    def get_covered_amount(self):
+        """Return an amount that is covered by this payment (but not necessarily captured).
+
+        Partially refunded payments are included in the covered amount.
+        """
+        if self.charge_status == ChargeStatus.AUTHORIZED:
+            return self.total
+        return self.captured_amount
 
     def get_authorized_amount(self):
         money = zero_money(self.currency)

@@ -1,12 +1,11 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Sum
 
 from ...channel.models import Channel
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...checkout.utils import cancel_active_payments
+from ...checkout.utils import cancel_active_payments, get_covered_balance
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
@@ -76,18 +75,18 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 
-    @classmethod
-    def clean_payment_amount(cls, info, checkout_total, amount):
-        if amount != checkout_total.gross.amount:
-            raise ValidationError(
-                {
-                    "amount": ValidationError(
-                        "Partial payments are not allowed, amount should be "
-                        "equal checkout's total.",
-                        code=PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED,
-                    )
-                }
-            )
+    # @classmethod
+    # def clean_payment_amount(cls, info, checkout_total, amount):
+    #     if amount != checkout_total.gross.amount:
+    #         raise ValidationError(
+    #             {
+    #                 "amount": ValidationError(
+    #                     "Partial payments are not allowed, amount should be "
+    #                     "equal checkout's total.",
+    #                     code=PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED,
+    #                 )
+    #             }
+    #         )
 
     @classmethod
     def validate_gateway(cls, manager, gateway_id, currency):
@@ -135,12 +134,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     def check_covered_amount(cls, checkout, checkout_total, amount):
         if amount < checkout_total:
-
-            aggregation = checkout.payments.aggregate(
-                total_captured_amount=Sum("captured_amount")
-            )
-            total_captured_amount = aggregation["total_captured_amount"]
-            if total_captured_amount < checkout_total:
+            covered_amount = get_covered_balance(checkout)
+            if covered_amount < checkout_total:
                 return False
 
         return True

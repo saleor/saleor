@@ -1,4 +1,5 @@
 """Checkout-related utility functions."""
+from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import graphene
@@ -24,6 +25,7 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
+from ..payment.models import Payment
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
 from ..shipping.models import ShippingMethod
@@ -622,6 +624,18 @@ def clear_shipping_method(checkout_info: "CheckoutInfo"):
     checkout.shipping_method = None
     update_checkout_info_shipping_method(checkout_info, None)
     checkout.save(update_fields=["shipping_method", "last_change"])
+
+
+def get_active_payments(checkout: Checkout) -> List[Payment]:
+    return [p for p in checkout.payments.all() if p.is_active]
+
+
+def get_covered_balance(checkout: Checkout):
+    """Return the amount of its payments that are at least authorized."""
+    covered_amount = Decimal("0")
+    for payment in get_active_payments(checkout):
+        covered_amount += payment.get_covered_amount()
+    return Money(covered_amount, checkout.currency)
 
 
 def is_fully_paid(
