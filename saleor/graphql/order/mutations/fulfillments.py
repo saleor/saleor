@@ -30,7 +30,6 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import get_duplicated_values
-from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..utils import prepare_insufficient_stock_order_validation_errors
@@ -225,17 +224,10 @@ class OrderFulfill(BaseMutation):
                     )
 
         data["order_lines"] = order_lines
-        data["gift_card_lines"] = cls.get_gift_card_order_lines(lines_ids)
+        data["gift_card_lines"] = get_gift_card_lines(order_lines)
         data["quantities"] = order_line_id_to_total_quantity
         data["lines_for_warehouses"] = lines_for_warehouses
         return data
-
-    @staticmethod
-    def get_gift_card_order_lines(lines_ids):
-        _, pks = resolve_global_ids_to_primary_keys(
-            lines_ids, OrderLine, raise_error=True
-        )
-        return get_gift_card_lines(pks)
 
     @classmethod
     @traced_atomic_transaction()
