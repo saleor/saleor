@@ -15,6 +15,7 @@ from ....plugins.manager import get_plugins_manager
 from ....product.models import ProductChannelListing
 from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import Reservation, Stock
+from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
 from ..mutations import update_checkout_shipping_method_if_invalid
 
@@ -280,6 +281,42 @@ def test_checkout_lines_add_with_insufficient_stock(
     variables = {
         "token": checkout.token,
         "lines": [{"variantId": variant_id, "quantity": 49}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutLinesAdd"]["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
+
+
+def test_checkout_lines_add_with_reserved_insufficient_stock(
+    site_settings_with_reservations,
+    user_api_client,
+    checkout_with_item,
+    stock,
+    channel_USD,
+):
+    variant = stock.product_variant
+    checkout = checkout_with_item
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    quantity_available = get_available_quantity_for_stock(stock)
+
+    other_checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
+    other_checkout_line = other_checkout.lines.create(
+        variant=variant,
+        quantity=quantity_available - 1,
+    )
+    Reservation.objects.create(
+        checkout_line=other_checkout_line,
+        stock=stock,
+        quantity_reserved=quantity_available - 1,
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
+    )
+
+    variables = {
+        "token": checkout.token,
+        "lines": [{"variantId": variant_id, "quantity": 2}],
         "channelSlug": checkout.channel.slug,
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)

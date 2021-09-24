@@ -45,8 +45,12 @@ from ...warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ...warehouse.reservations import reserve_stocks
 =======
 from ...warehouse.availability import check_stock_quantity_bulk
+<<<<<<< HEAD
 from ...warehouse.reservations import get_reservation_length
 >>>>>>> 490ccb268... Separate reservation length for anonymous and authenticated users
+=======
+from ...warehouse.reservations import get_reservation_length, is_reservation_enabled
+>>>>>>> 7e3a8b2ce... Add reservation checks to checkout completion and stock allocation
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..channel.utils import clean_channel
@@ -321,7 +325,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             quantities,
             country,
             channel.slug,
-            check_reservations=get_reservation_length(request),
+            check_reservations=is_reservation_enabled(request.site.settings),
         )
         return variants, quantities
 
@@ -491,7 +495,7 @@ class CheckoutLinesAdd(BaseMutation):
             country,
             channel_slug,
             existing_lines=lines,
-            check_reservations=get_reservation_length(request),
+            check_reservations=is_reservation_enabled(request.site.settings),
         )
 
     @classmethod
@@ -640,7 +644,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             allow_zero_quantity=True,
             existing_lines=lines,
             replace=True,
-            check_reservations=get_reservation_length(request),
+            check_reservations=is_reservation_enabled(request.site.settings),
         )
 
     @classmethod
@@ -861,7 +865,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             channel_slug,
             replace=True,
             existing_lines=lines,
-            check_reservations=get_reservation_length(request),
+            check_reservations=is_reservation_enabled(request.site.settings),
         )
 
     @classmethod

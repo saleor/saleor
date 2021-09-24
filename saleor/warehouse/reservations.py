@@ -178,6 +178,13 @@ def get_checkout_lines_to_reserve(
     return valid_lines
 
 
+def is_reservation_enabled(settings) -> bool:
+    return bool(
+        settings.reserve_stock_duration_minutes_authenticated
+        or settings.reserve_stock_duration_minutes_anonymous
+    )
+
+
 def get_reservation_length(request) -> Optional[int]:
     if request.user.is_authenticated:
         return request.site.settings.reserve_stock_duration_minutes_authenticated

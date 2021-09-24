@@ -38,6 +38,7 @@ from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_preorders, allocate_stocks
+from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
@@ -428,6 +429,7 @@ def _create_order(
         checkout_info.channel.slug,
         manager,
         additional_warehouse_lookup,
+        check_reservations=is_reservation_enabled(site_settings),
         checkout_lines=[line.line for line in checkout_lines],
     )
     allocate_preorders(order_lines_info, checkout_info.channel.slug)
