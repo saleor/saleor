@@ -709,7 +709,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
 
             # Fetch all payments at once.
             payments_global_ids = [item["payment_id"] for item in payments_to_refund]
-            payments_pks = cls.get_global_ids_or_error(payments_global_ids, Payment)
+            payments_pks = cls.get_global_ids_or_error(payments_global_ids, "Payment")
             payment_objects = Payment.objects.filter(pk__in=payments_pks)
 
             for payment in payment_objects:
@@ -799,6 +799,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
+
         refund_fulfillment = create_refund_fulfillment(
             info.context.user,
             info.context.app,

@@ -1385,7 +1385,7 @@ def _process_refund(
 
     if amount:
         for item in payments:
-            transaction = try_refund(
+            try_refund(
                 order=order,
                 user=user,
                 app=app,
