@@ -200,9 +200,13 @@ def test_trigger_webhooks_with_http(
 
     expected_headers = {
         "Content-Type": "application/json",
+        # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
         "X-Saleor-Event": "order_created",
         "X-Saleor-Domain": "mirumee.com",
         "X-Saleor-Signature": "",
+        "Saleor-Event": "order_created",
+        "Saleor-Domain": "mirumee.com",
+        "Saleor-Signature": "",
     }
 
     mock_request.assert_called_once_with(
@@ -231,9 +235,13 @@ def test_trigger_webhooks_with_http_and_secret_key(
     )
     expected_headers = {
         "Content-Type": "application/json",
+        # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
         "X-Saleor-Event": "order_created",
         "X-Saleor-Domain": "mirumee.com",
         "X-Saleor-Signature": expected_signature,
+        "Saleor-Event": "order_created",
+        "Saleor-Domain": "mirumee.com",
+        "Saleor-Signature": expected_signature,
     }
 
     mock_request.assert_called_once_with(

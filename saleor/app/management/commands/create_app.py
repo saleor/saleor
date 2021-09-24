@@ -40,7 +40,11 @@ class Command(BaseCommand):
 
     def send_app_data(self, target_url, data: Dict[str, Any]):
         domain = Site.objects.get_current().domain
-        headers = {"x-saleor-domain": domain}
+        headers = {
+            # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
+            "x-saleor-domain": domain,
+            "saleor-domain": domain,
+        }
         try:
             response = requests.post(target_url, json=data, headers=headers, timeout=15)
         except RequestException as e:
