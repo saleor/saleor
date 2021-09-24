@@ -98,7 +98,6 @@ class WebhookPlugin(BasePlugin):
         sale_data = generate_sale_payload(
             sale, previous_catalogue=None, current_catalogue=current_catalogue
         )
-        print(sale_data)
         trigger_webhooks_for_event.delay(WebhookEventType.SALE_CREATED, sale_data)
 
     def sale_updated(
