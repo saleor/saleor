@@ -33,6 +33,8 @@ class Payment(models.Model):
     gateway = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     to_confirm = models.BooleanField(default=False)
+    complete_order = models.BooleanField(default=False)
+    partial = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
@@ -117,6 +119,15 @@ class Payment(models.Model):
 
     def get_total(self):
         return Money(self.total, self.currency)
+
+    def get_covered_amount(self):
+        """Return an amount that is covered by this payment (but not necessarily captured).
+
+        Partially refunded payments are included in the covered amount.
+        """
+        if self.charge_status == ChargeStatus.AUTHORIZED:
+            return self.total
+        return self.captured_amount
 
     def get_authorized_amount(self):
         money = zero_money(self.currency)

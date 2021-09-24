@@ -62,6 +62,7 @@ class ReadOnlyMiddleware:
         "checkoutLinesUpdate",
         "checkoutRemovePromoCode",
         "checkoutPaymentCreate",
+        "checkoutPaymentComplete",
         "checkoutShippingAddressUpdate",
         "checkoutShippingMethodUpdate",
         "tokenCreate",
