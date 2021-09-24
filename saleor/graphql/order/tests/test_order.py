@@ -49,6 +49,7 @@ from ...tests.utils import (
     get_graphql_content_from_response,
 )
 from ..utils import validate_draft_order
+from .utils import assert_order_and_payment_ids
 
 
 @pytest.fixture
@@ -7187,23 +7188,43 @@ def test_order_by_token_query_for_payment_details_without_permissions(
     )
     assert_no_permission(response)
 
+
+def test_order_by_token_query_for_payment_details_with_permissions(
+    staff_api_client, payment_txn_captured, permission_manage_orders
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_BY_TOKEN_WITH_PAYMENT,
+        {"token": payment_txn_captured.order.token},
+    )
+
+    content = get_graphql_content(response)
+
+    assert_order_and_payment_ids(content, payment_txn_captured)
+
+
+def test_order_by_token_query_payment_details_available_fields_without_permissions(
+    api_client, payment_txn_captured
+):
     response = api_client.post_graphql(
         QUERY_ORDER_WITH_PAYMENT_AVAILABLE_FIELDS,
         {"token": payment_txn_captured.order.token},
     )
 
     content = get_graphql_content(response)
-    assert "errors" not in content, content
+
+    assert_order_and_payment_ids(content, payment_txn_captured)
 
 
-def test_order_by_token_query_payment_details_with_permissions(
+def test_order_by_token_query_payment_details_available_fields_with_permissions(
     staff_api_client, payment_txn_captured, permission_manage_orders
 ):
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-
     response = staff_api_client.post_graphql(
-        QUERY_ORDER_BY_TOKEN_WITH_PAYMENT, {"token": payment_txn_captured.order.token}
+        QUERY_ORDER_WITH_PAYMENT_AVAILABLE_FIELDS,
+        {"token": payment_txn_captured.order.token},
     )
 
     content = get_graphql_content(response)
-    assert "errors" not in content, content
+
+    assert_order_and_payment_ids(content, payment_txn_captured)
