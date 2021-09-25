@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate `setup_future_usage` from `checkoutComplete.paymentData` input - will be removed in Saleor 4.0 - #7994 by @mateuszgrzyb
 - Possibility to pass metadata in input of `checkoutPaymentCreate` - #8076 by @mateuszgrzyb
 - Fix shipping address issue in `availableCollectionPoints` resolver for checkout - #8143 by @kuchichan
+- extend `accountRegister` mutation to consume first & last name - #8184 by @piotrgrundas
 
 
 # 3.0.0 [Unreleased]
