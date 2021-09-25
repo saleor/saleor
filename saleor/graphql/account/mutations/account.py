@@ -29,9 +29,19 @@ from .base import (
 )
 
 
-class AccountRegisterInput(graphene.InputObjectType):
+class AccountBaseInput(graphene.InputObjectType):
+    first_name = graphene.String(description="Given name.")
+    last_name = graphene.String(description="Family name.")
+    language_code = graphene.Argument(
+        LanguageCodeEnum, required=False, description="User language code."
+    )
+
+
+class AccountRegisterInput(AccountBaseInput):
     email = graphene.String(description="The email address of the user.", required=True)
     password = graphene.String(description="Password.", required=True)
+    first_name = graphene.String(description="Given name.")
+    last_name = graphene.String(description="Family name.")
     redirect_url = graphene.String(
         description=(
             "Base of frontend URL that will be needed to create confirmation URL."
@@ -137,17 +147,12 @@ class AccountRegister(ModelMutation):
         info.context.plugins.customer_created(customer=user)
 
 
-class AccountInput(graphene.InputObjectType):
-    first_name = graphene.String(description="Given name.")
-    last_name = graphene.String(description="Family name.")
+class AccountInput(AccountBaseInput):
     default_billing_address = AddressInput(
         description="Billing address of the customer."
     )
     default_shipping_address = AddressInput(
         description="Shipping address of the customer."
-    )
-    language_code = graphene.Argument(
-        LanguageCodeEnum, required=False, description="User language code."
     )
 
 

@@ -1021,6 +1021,8 @@ ACCOUNT_REGISTER_MUTATION = """
     mutation RegisterAccount(
         $password: String!,
         $email: String!,
+        $firstName: String,
+        $lastName: String,
         $redirectUrl: String,
         $languageCode: LanguageCodeEnum
         $metadata: [MetadataInput!],
@@ -1030,6 +1032,8 @@ ACCOUNT_REGISTER_MUTATION = """
             input: {
                 password: $password,
                 email: $email,
+                firstName: $firstName,
+                lastName: $lastName,
                 redirectUrl: $redirectUrl,
                 languageCode: $languageCode,
                 metadata: $metadata,
@@ -1062,6 +1066,8 @@ def test_customer_register(mocked_notify, mocked_generator, api_client, channel_
         "email": email,
         "password": "Password",
         "redirectUrl": redirect_url,
+        "firstName": "saleor",
+        "lastName": "rocks",
         "languageCode": "PL",
         "metadata": [{"key": "meta", "value": "data"}],
         "channel": channel_PLN.slug,
@@ -1076,6 +1082,7 @@ def test_customer_register(mocked_notify, mocked_generator, api_client, channel_
     data = content["data"][mutation_name]
     params = urlencode({"email": email, "token": "token"})
     confirm_url = prepare_url(params, redirect_url)
+
     expected_payload = {
         "user": get_default_user_payload(new_user),
         "token": "token",
@@ -1087,6 +1094,8 @@ def test_customer_register(mocked_notify, mocked_generator, api_client, channel_
     }
     assert new_user.metadata == {"meta": "data"}
     assert new_user.language_code == "pl"
+    assert new_user.first_name == variables["firstName"]
+    assert new_user.last_name == variables["lastName"]
     assert not data["errors"]
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_CONFIRMATION,
