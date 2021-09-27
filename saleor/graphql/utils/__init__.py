@@ -138,7 +138,11 @@ def query_fingerprint(document: GraphQLDocument) -> str:
     """Generate a fingerprint for a GraphQL query."""
     label = "unknown"
     for definition in document.document_ast.definitions:
-        if definition.operation in {"query", "mutation", "subscription"}:
+        if getattr(definition, "operation", None) in {
+            "query",
+            "mutation",
+            "subscription",
+        }:
             if definition.name:
                 label = f"{definition.operation}:{definition.name.value}"
             else:
