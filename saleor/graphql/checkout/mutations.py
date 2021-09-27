@@ -52,7 +52,7 @@ from ..core.validators import (
 )
 from ..order.types import Order
 from ..product.types import ProductVariant
-from ..shipping.types import ShippingMethod
+from ..shipping.types import ShippingMethodType
 from ..utils import get_user_or_app_from_context
 from .types import Checkout, CheckoutLine
 from .utils import prepare_insufficient_stock_checkout_validation_error
@@ -1049,7 +1049,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         shipping_method = cls.get_node_or_error(
             info,
             shipping_method_id,
-            only_type=ShippingMethod,
+            only_type=ShippingMethodType,
             field="shipping_method_id",
             qs=shipping_models.ShippingMethod.objects.prefetch_related(
                 "postal_code_rules"

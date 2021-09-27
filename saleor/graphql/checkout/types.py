@@ -28,7 +28,7 @@ from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
-from ..shipping.types import ShippingMethod
+from ..shipping.types import ShippingMethodType
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     CheckoutByTokenLoader,
@@ -156,7 +156,7 @@ class CheckoutLine(CountableDjangoObjectType):
 
 class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
-        ShippingMethod,
+        ShippingMethodType,
         required=True,
         description="Shipping methods that can be used with this order.",
     )
@@ -185,7 +185,7 @@ class Checkout(CountableDjangoObjectType):
         description="The price of the shipping, with all the taxes included.",
     )
     shipping_method = graphene.Field(
-        ShippingMethod,
+        ShippingMethodType,
         description="The shipping method related with checkout.",
     )
     subtotal_price = graphene.Field(
