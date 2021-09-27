@@ -6,12 +6,11 @@ import pytest
 from django.utils import timezone
 from django_countries import countries
 
-from saleor.graphql.discount.mutations import convert_catalogue_info_to_global_ids
-
 from ....discount import DiscountValueType, VoucherType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import Sale, SaleChannelListing, Voucher
 from ....discount.utils import fetch_catalogue_info
+from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
