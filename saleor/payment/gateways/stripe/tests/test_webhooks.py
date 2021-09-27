@@ -20,6 +20,7 @@ from ..consts import (
     WEBHOOK_SUCCESS_EVENT,
 )
 from ..webhooks import (
+    _process_payment_with_checkout,
     handle_authorized_payment_intent,
     handle_failed_payment_intent,
     handle_processing_payment_intent,
@@ -554,3 +555,54 @@ def test_handle_webhook_events(
         endpoint_secret,
         api_key=api_key,
     )
+
+
+@pytest.mark.parametrize("return_value", (True, False))
+@patch("saleor.payment.models.Payment.can_create_order")
+@patch("saleor.payment.gateways.stripe.webhooks._finalize_checkout")
+def test_process_payment_with_checkout(
+    mock_finalize_checkout,
+    mock_can_create_order,
+    return_value,
+    payment_stripe_for_checkout,
+    checkout_with_items,
+    channel_USD,
+):
+    mock_can_create_order.return_value = return_value
+    payment = payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = AUTHORIZED_STATUS
+
+    _process_payment_with_checkout(
+        payment,
+        payment_intent,
+        TransactionKind.ACTION_TO_CONFIRM,
+        payment.total,
+        channel_USD.slug,
+    )
+
+    if return_value is True:
+        mock_finalize_checkout.assert_called_once_with(
+            payment.checkout,
+            payment,
+            payment_intent,
+            TransactionKind.ACTION_TO_CONFIRM,
+            payment.total,
+            channel_USD.slug,
+        )
+
+    else:
+        mock_finalize_checkout.assert_not_called()

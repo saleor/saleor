@@ -274,6 +274,45 @@ def test_checkout_add_payment(
     assert payment.billing_email == customer_user.email
 
 
+@pytest.mark.parametrize("is_amount_fully_covered", (True, False))
+def test_checkout_add_payment_checks_if_amount_fully_covered(
+    is_amount_fully_covered,
+    user_api_client,
+    checkout_without_shipping_required,
+    address,
+    customer_user,
+    create_payment_input,
+):
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.email = "old@example"
+    checkout.user = customer_user
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    return_url = "https://www.example.com"
+    amount = (
+        total.gross.amount
+        if is_amount_fully_covered
+        else total.gross.amount - Decimal("10")
+    )
+    variables = create_payment_input(
+        checkout, amount, return_url=return_url, partial=True
+    )
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+
+    assert not data["errors"]
+    payment = Payment.objects.get()
+    assert payment.create_order == is_amount_fully_covered
+
+
 def test_checkout_add_partial_payment(
     user_api_client,
     checkout_without_shipping_required,

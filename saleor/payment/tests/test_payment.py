@@ -531,3 +531,14 @@ def test_update_payment(gateway_response, payment_txn_captured):
     assert payment.cc_exp_year == gateway_response.payment_method_info.exp_year
     assert payment.cc_exp_month == gateway_response.payment_method_info.exp_month
     assert payment.payment_method_type == gateway_response.payment_method_info.type
+
+
+@pytest.mark.parametrize(
+    "value, result",
+    [(None, True), (True, True), (False, False)],
+)
+def test_can_create_order(payment_txn_captured, value, result):
+    payment_txn_captured.create_order = value
+    payment_txn_captured.save()
+
+    assert payment_txn_captured.can_create_order() == result

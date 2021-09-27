@@ -94,16 +94,16 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def clean_payment_amount(cls, info, partial, checkout, checkout_total, amount):
-        # if not partial and amount != checkout_total.gross.amount:
-        #     raise ValidationError(
-        #         {
-        #             "amount": ValidationError(
-        #                 "Amount does not cover checkout amount and "
-        #                 "the payment is not marked as partial.",
-        #                 code=PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED,
-        #             )
-        #         }
-        #     )
+        if not partial and amount != checkout_total.gross.amount:
+            raise ValidationError(
+                {
+                    "amount": ValidationError(
+                        "Amount does not cover checkout amount and "
+                        "the payment is not marked as partial.",
+                        code=PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED,
+                    )
+                }
+            )
 
         remaining = checkout_total.gross - get_covered_balance(checkout)
         if amount > remaining.amount:
