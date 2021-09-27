@@ -14,7 +14,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Possibility to pass metadata in input of `checkoutPaymentCreate` - #8076 by @mateuszgrzyb
 - Fix shipping address issue in `availableCollectionPoints` resolver for checkout - #8143 by @kuchichan
 - Improve draft orders and orders webhooks by @jakubkuc
-- Fix cursor-based pagination in products search - #8011 by @rafalp
 
 
 # 3.0.0 [Unreleased]
@@ -160,6 +159,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix missing transaction id in Braintree - #8110 by @fowczarek
 - Fix GraphQL federation support. - #7771 #8107 by @rafalp
 - Remove unnecessary database lock on discount during checkout complete mutation - #8174 by @fowczarek
+- Fix cursor-based pagination in products search - #8011 by @rafalp
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
