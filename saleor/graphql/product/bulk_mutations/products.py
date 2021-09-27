@@ -741,7 +741,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 product_variant=variant, warehouse=warehouse
             )
 
-            if is_created or (stock.quantity == 0 and stock_data["quantity"] > 0):
+            if is_created or (stock.quantity <= 0 and stock_data["quantity"] > 0):
                 transaction.on_commit(
                     lambda: manager.product_variant_back_in_stock(stock)
                 )
