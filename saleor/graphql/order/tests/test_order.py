@@ -7329,6 +7329,47 @@ def test_order_query_with_filter_search_by_product_sku_order_line(
     assert order_line.product_sku in lines
 
 
+def test_orders_query_with_filter_by_orders_id(
+    orders_query_with_filter,
+    staff_api_client,
+    order,
+    permission_manage_orders,
+    channel_USD,
+):
+
+    # given
+    orders = Order.objects.bulk_create(
+        [
+            Order(
+                token=str(uuid.uuid4()),
+                user_email="test@mirumee.com",
+                status=OrderStatus.UNFULFILLED,
+                channel=channel_USD,
+            ),
+            Order(
+                token=str(uuid.uuid4()),
+                user_email="user_email1@example.com",
+                status=OrderStatus.FULFILLED,
+                channel=channel_USD,
+            ),
+        ]
+    )
+    orders_ids = [graphene.Node.to_global_id("Order", order.pk) for order in orders]
+    variables = {"filter": {"ids": orders_ids}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+    content = get_graphql_content(response)
+    edges = content["data"]["orders"]["edges"]
+    response_ids = [edge["node"]["id"] for edge in edges]
+
+    # then
+    assert content["data"]["orders"]["totalCount"] == 2
+    assert all(ids in response_ids for ids in orders_ids)
+
+
 def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
     orders_query_with_filter,
     staff_api_client,
