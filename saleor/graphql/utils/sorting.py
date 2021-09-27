@@ -37,7 +37,7 @@ def sort_queryset_for_connection(iterable, args):
             or get_default_channel_slug_or_graphql_error(),
         )
     elif query and "-rank" in query.order_by:
-        return iterable, {"field": "rank", "direction": "-"}
+        return iterable, {"field": ["rank", "id"], "direction": "-"}
     else:
         iterable, sort_by = sort_queryset_by_default(
             queryset=iterable, reversed=reversed
@@ -72,7 +72,6 @@ def sort_queryset(
 
     sorting_field = sort_by.field
     sorting_attribute = getattr(sort_by, "attribute_id", None)
-
     if sorting_field is not None and sorting_attribute is not None:
         raise GraphQLError(
             "You must provide either `field` or `attributeId` to sort the products."
@@ -90,8 +89,15 @@ def sort_queryset(
     if custom_sort_by:
         queryset = custom_sort_by(queryset, channel_slug=channel_slug)
 
-    sorting_field_value = sorting_fields.value
-    sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
+    if sorting_field_name == "rank":
+        # In rank sorting ID is sorted in opposite direction to rank
+        if sorting_direction == "-":
+            sorting_list = ["-rank", "id"]
+        else:
+            sorting_list = ["rank", "-id"]
+    else:
+        sorting_field_value = sorting_fields.value
+        sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
 
     return queryset.order_by(*sorting_list)
 
