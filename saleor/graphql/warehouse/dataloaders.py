@@ -7,6 +7,7 @@ from django.db.models import Exists, OuterRef
 
 from ...channel.models import Channel
 from ...warehouse.models import Reservation, ShippingZone, Stock, Warehouse
+from ...warehouse.reservations import is_reservation_enabled
 from ..core.dataloaders import DataLoader
 
 CountryCode = Optional[str]
@@ -96,6 +97,9 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             stocks = stocks.filter(warehouse_id__in=warehouse_shipping_zones_map.keys())
         stocks = stocks.annotate_available_quantity()
 
+        if is_reservation_enabled(self.context.site.settings):
+            stocks = stocks.annotate_reserved_quantity()
+
         # A single country code (or a missing country code) can return results from
         # multiple shipping zones. We want to combine all quantities within a single
         # zone and then find out which zone contains the highest total.
@@ -103,7 +107,8 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             int, DefaultDict[int, int]
         ] = defaultdict(lambda: defaultdict(int))
         for stock in stocks:
-            quantity = max(0, stock.available_quantity)
+            reserved_quantity = getattr(stock, "reserved_quantity", 0)
+            quantity = max(0, stock.available_quantity - reserved_quantity)
             variant_id = stock.product_variant_id
             warehouse_id = stock.warehouse_id
             shipping_zone_ids = warehouse_shipping_zones_map[warehouse_id]

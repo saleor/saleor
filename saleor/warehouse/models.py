@@ -145,6 +145,17 @@ class StockQuerySet(models.QuerySet):
             )
         )
 
+    def annotate_reserved_quantity(self):
+        return self.annotate(
+            reserved_quantity=Coalesce(
+                Sum(
+                    "reservations__quantity_reserved",
+                    filter=Q(reservations__reserved_until__gt=timezone.now()),
+                ),
+                0,
+            )
+        )
+
     def for_channel(self, channel_slug: str):
         ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
         WarehouseShippingZone = ShippingZone.warehouses.through  # type: ignore
