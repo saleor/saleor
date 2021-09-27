@@ -267,6 +267,26 @@
     }
   },
   {
+    "model": "product.category",
+    "pk": 24,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "name": "Gift cards",
+      "slug": "gift-cards",
+      "description": {},
+      "parent": 7,
+      "background_image": "",
+      "background_image_alt": "",
+      "lft": 8,
+      "rght": 9,
+      "tree_id": 1,
+      "level": 1
+    }
+  },
+  {
     "model": "product.producttype",
     "pk": 7,
     "fields": {
@@ -277,6 +297,7 @@
       },
       "name": "Paint",
       "slug": "paint",
+      "kind": "normal",
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
@@ -295,6 +316,7 @@
       },
       "name": "Music",
       "slug": "music",
+      "kind": "normal",
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
@@ -313,6 +335,7 @@
       },
       "name": "Juice",
       "slug": "juice",
+      "kind": "normal",
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
@@ -331,6 +354,7 @@
       },
       "name": "Wine",
       "slug": "wine",
+      "kind": "normal",
       "has_variants": false,
       "is_shipping_required": true,
       "is_digital": false,
@@ -349,6 +373,7 @@
       },
       "name": "Beer",
       "slug": "beer",
+      "kind": "normal",
       "has_variants": false,
       "is_shipping_required": true,
       "is_digital": false,
@@ -367,6 +392,7 @@
       },
       "name": "Cushion",
       "slug": "cushion",
+      "kind": "normal",
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
@@ -385,6 +411,7 @@
       },
       "name": "Shoe",
       "slug": "shoe",
+      "kind": "normal",
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
@@ -403,6 +430,7 @@
       },
       "name": "Top (clothing)",
       "slug": "top-clothing",
+      "kind": "normal",
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
@@ -418,11 +446,27 @@
       "metadata": {},
       "name": "Audiobook",
       "slug": "e-book",
+      "kind": "normal",
       "has_variants": true,
       "is_shipping_required": false,
       "is_digital": true,
       "weight": "0.0:kg",
       "kind": "normal"
+    }
+  },
+  {
+    "model": "product.producttype",
+    "pk": 16,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "name": "Gift card",
+      "slug": "gift-card",
+      "kind": "gift_card",
+      "has_variants": true,
+      "is_shipping_required": false,
+      "is_digital": false,
+      "weight": "0.0:kg"
     }
   },
   {
@@ -1601,6 +1645,32 @@
     }
   },
   {
+    "model": "product.product",
+    "pk": 125,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "product_type": 16,
+      "name": "Gift card",
+      "slug": "gift-card",
+      "description": {
+        "blocks": [{
+          "data": {
+            "text": "Gift card to use in the shop."
+          },
+          "type": "paragraph"
+        }]
+      },
+      "description_plaintext": "",
+      "category": 24,
+      "updated_at": "2021-09-03T07:42:09.262Z",
+      "charge_taxes": false,
+      "weight": "0.0:kg"
+    }
+  },
+  {
     "model": "product.productchannellisting",
     "pk": 1,
     "fields": {
@@ -2522,6 +2592,34 @@
       "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 72,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 125,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN",
+      "discounted_price_amount": "100.000"
+    }
+  },
+  {
+      "model": "product.productchannellisting",
+      "pk": 73,
+      "fields": {
+        "publication_date": "2020-01-01",
+        "is_published": true,
+        "product": 125,
+        "channel": 1,
+        "visible_in_listings": true,
+        "available_for_purchase": "2020-08-31",
+        "currency": "USD",
+        "discounted_price_amount": "100.000"
+      }
   },
   {
     "model": "product.productvariant",
@@ -4269,6 +4367,20 @@
       "is_preorder": true,
       "preorder_end_date": null,
       "preorder_global_threshold": 10
+    }
+  },
+  {
+    "model": "product.productvariant",
+    "pk": 323,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "sku": "324546",
+      "name": "100 PLN",
+      "product": 125,
+      "track_inventory": false,
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -6703,6 +6815,28 @@
       "cost_price_amount": null,
       "preorder_quantity_threshold": 2
     }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 222,
+    "fields": {
+      "variant": 323,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "100.000",
+      "cost_price_amount": null
+    }
+  },
+  {
+      "model": "product.productvariantchannellisting",
+      "pk": 223,
+      "fields": {
+        "variant": 323,
+        "channel": 1,
+        "currency": "USD",
+        "price_amount": "100.000",
+        "cost_price_amount": null
+      }
   },
   {
     "model": "attribute.assignedproductattribute",
