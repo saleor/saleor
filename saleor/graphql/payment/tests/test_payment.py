@@ -420,8 +420,7 @@ def test_checkout_add_payment_bad_amount(
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert (
-        data["errors"][0]["code"]
-        == PaymentErrorCode.PARTIAL_PAYMENT_TOTAL_EXCEEDED.name
+        data["errors"][0]["code"] == PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED.name
     )
 
 
