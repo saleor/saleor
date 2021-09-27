@@ -23,6 +23,7 @@ from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager, get_plugins_manager
+from ....tests.utils import flush_post_commit_hooks
 from ....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
@@ -463,6 +464,7 @@ def test_checkout_complete_gift_card_bought(
     order = Order.objects.first()
     assert order.status == OrderStatus.PARTIALLY_FULFILLED
 
+    flush_post_commit_hooks()
     gift_card = GiftCard.objects.get()
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
     send_notification_mock.assert_called_once_with(

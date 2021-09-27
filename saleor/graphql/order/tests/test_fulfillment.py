@@ -13,6 +13,7 @@ from ....order.events import OrderEvents
 from ....order.models import Fulfillment, FulfillmentLine, FulfillmentStatus
 from ....plugins.manager import get_plugins_manager
 from ....product.models import Product, ProductVariant
+from ....tests.utils import flush_post_commit_hooks
 from ....warehouse.models import Allocation, Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -571,6 +572,7 @@ def test_order_fulfill_with_gift_cards(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
+    flush_post_commit_hooks()
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
     gift_cards = GiftCard.objects.all()

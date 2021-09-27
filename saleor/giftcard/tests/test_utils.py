@@ -263,6 +263,8 @@ def test_gift_cards_create(
     assert non_shippable_event.app is None
     assert non_shippable_event.parameters == {"order_id": order.id, "expiry_date": None}
 
+    flush_post_commit_hooks()
+
     send_notification_mock.assert_called_once_with(
         staff_user,
         None,
@@ -338,6 +340,8 @@ def test_gift_cards_create_expiry_date_set(
         "expiry_date": gift_card.expiry_date.isoformat(),
     }
 
+    flush_post_commit_hooks()
+
     send_notification_mock.assert_called_once_with(
         staff_user,
         None,
@@ -383,6 +387,7 @@ def test_gift_cards_create_multiple_quantity(
     )
 
     # then
+    flush_post_commit_hooks()
     assert len(gift_cards) == quantity
     price = gift_card_non_shippable_order_line.unit_price_gross
     for gift_card in gift_cards:
