@@ -456,11 +456,6 @@ def _create_order(
     order.search_document = prepare_order_search_document_value(order)
     order.save()
 
-    if site_settings.automatically_fulfill_non_shippable_gift_card:
-        fulfill_non_shippable_gift_cards(
-            order, order_lines, site_settings, user, app, manager
-        )
-
     transaction.on_commit(
         lambda: order_created(order=order, user=user, app=app, manager=manager)
     )
@@ -469,6 +464,11 @@ def _create_order(
     transaction.on_commit(
         lambda: send_order_confirmation(order, checkout.redirect_url, manager)
     )
+
+    if site_settings.automatically_fulfill_non_shippable_gift_card:
+        fulfill_non_shippable_gift_cards(
+            order, order_lines, site_settings, user, app, manager
+        )
 
     return order
 
