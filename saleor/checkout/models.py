@@ -135,10 +135,6 @@ class Checkout(ModelWithMetadata):
         matching_lines = (line for line in self if line.variant.pk == variant.pk)
         return next(matching_lines, None)
 
-    def get_last_active_payment(self) -> Optional["Payment"]:
-        payments = [payment for payment in self.payments.all() if payment.is_active]
-        return max(payments, default=None, key=attrgetter("pk"))
-
     def set_country(
         self, country_code: str, commit: bool = False, replace: bool = True
     ):

@@ -37,7 +37,8 @@ from ..attribute.models import (
     AttributeValueTranslation,
 )
 from ..attribute.utils import associate_attribute_values_to_instance
-from ..checkout.fetch import fetch_checkout_info
+from ..checkout import calculations
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus, TimePeriodType
@@ -76,8 +77,14 @@ from ..order.models import (
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.interface import AddressData, GatewayConfig, PaymentData
-from ..payment.models import Payment
+from ..payment.interface import (
+    AddressData,
+    GatewayConfig,
+    GatewayResponse,
+    PaymentData,
+    PaymentMethodInfo,
+)
+from ..payment.models import Payment, Transaction
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
@@ -232,6 +239,62 @@ def sample_gateway(settings):
     ]
 
 
+@pytest.fixture
+def payment_method_details():
+    return PaymentMethodInfo(
+        last_4="1234",
+        exp_year=2020,
+        exp_month=8,
+        brand="visa",
+        name="Joe Doe",
+        type="test",
+    )
+
+
+@pytest.fixture
+def gateway_response(settings, payment_method_details):
+    return GatewayResponse(
+        is_success=True,
+        action_required=False,
+        transaction_id="transaction-token",
+        amount=Decimal(14.50),
+        currency="USD",
+        kind=TransactionKind.CAPTURE,
+        error=None,
+        raw_response={
+            "credit_card_four": "1234",
+            "transaction-id": "transaction-token",
+        },
+        payment_method_info=payment_method_details,
+        psp_reference="test_reference",
+    )
+
+
+@pytest.fixture
+def action_required_gateway_response(settings):
+    return GatewayResponse(
+        is_success=True,
+        action_required=True,
+        action_required_data={
+            "paymentData": "test",
+            "paymentMethodType": "scheme",
+            "url": "https://test.adyen.com/hpp/3d/validate.shtml",
+            "data": {
+                "MD": "md-test-data",
+                "PaReq": "PaReq-test-data",
+                "TermUrl": "http://127.0.0.1:3000/",
+            },
+            "method": "POST",
+            "type": "redirect",
+        },
+        kind=TransactionKind.CAPTURE,
+        amount=Decimal(3.0),
+        currency="usd",
+        transaction_id="1234",
+        error=None,
+    )
+
+
 @pytest.fixture(autouse=True)
 def site_settings(db, settings) -> SiteSettings:
     """Create a site and matching site settings.
@@ -278,6 +341,72 @@ def checkout_with_item(checkout, product):
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
+
+
+@pytest.fixture
+def checkout_with_payments_factory(
+    checkout_with_item, payment_kwargs, address, shipping_method
+):
+    def fun(num_payments=1, charge_status=None, payment_token=""):
+        checkout = checkout_with_item
+        checkout.shipping_address = address
+        checkout.shipping_method = shipping_method
+        checkout.billing_address = address
+        checkout.save()
+
+        manager = get_plugins_manager()
+        lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+        total = calculations.checkout_total(
+            manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        )
+
+        amount = total.gross.amount / num_payments
+        charge_status = charge_status or ChargeStatus.AUTHORIZED
+        captured_amount = (
+            amount if charge_status != ChargeStatus.AUTHORIZED else Decimal("0")
+        )
+        kind = None
+        if charge_status == ChargeStatus.AUTHORIZED:
+            kind = TransactionKind.AUTH
+        elif charge_status == ChargeStatus.FULLY_CHARGED:
+            kind = TransactionKind.CAPTURE
+
+        payments = []
+        transactions = []
+        for i in range(num_payments):
+            payment = Payment(
+                **{
+                    **payment_kwargs,
+                    **{
+                        "order": None,
+                        "checkout": checkout,
+                        "currency": checkout.currency,
+                        "charge_status": charge_status,
+                        "token": payment_token,
+                        "total": amount,
+                        "captured_amount": captured_amount,
+                    },
+                }
+            )
+            payments.append(payment)
+
+            if kind:
+                transactions.append(
+                    Transaction(
+                        payment=payment,
+                        amount=amount,
+                        kind=kind,
+                        is_success=True,
+                        gateway_response={},
+                    )
+                )
+        Payment.objects.bulk_create(payments)
+        Transaction.objects.bulk_create(transactions)
+
+        return checkout
+
+    return fun
 
 
 @pytest.fixture

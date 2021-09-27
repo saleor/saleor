@@ -8,7 +8,6 @@ from saleor.payment.interface import PaymentMethodInfo
 from saleor.payment.utils import price_to_minor_unit
 
 from ..consts import (
-    AUTOMATIC_CAPTURE_METHOD,
     MANUAL_CAPTURE_METHOD,
     METADATA_IDENTIFIER,
     STRIPE_API_VERSION,
@@ -88,15 +87,13 @@ def test_create_payment_intent_returns_intent_object(mocked_payment_intent):
     api_key = "api_key"
     mocked_payment_intent.create.return_value = StripeObject()
 
-    intent, error = create_payment_intent(
-        api_key, Decimal(10), "USD", auto_capture=True
-    )
+    intent, error = create_payment_intent(api_key, Decimal(10), "USD")
 
     mocked_payment_intent.create.assert_called_with(
         api_key=api_key,
         amount="1000",
         currency="USD",
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         stripe_version=STRIPE_API_VERSION,
     )
 
@@ -113,31 +110,7 @@ def test_create_payment_intent_with_customer(mocked_payment_intent):
     mocked_payment_intent.create.return_value = StripeObject()
 
     intent, error = create_payment_intent(
-        api_key, Decimal(10), "USD", auto_capture=True, customer=customer
-    )
-
-    mocked_payment_intent.create.assert_called_with(
-        api_key=api_key,
-        amount="1000",
-        currency="USD",
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
-        customer=customer,
-        stripe_version=STRIPE_API_VERSION,
-    )
-
-    assert isinstance(intent, StripeObject)
-    assert error is None
-
-
-@patch(
-    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent",
-)
-def test_create_payment_intent_manual_auto_capture(mocked_payment_intent):
-    api_key = "api_key"
-    mocked_payment_intent.create.return_value = StripeObject()
-
-    _intent, _error = create_payment_intent(
-        api_key, Decimal(10), "USD", auto_capture=False
+        api_key, Decimal(10), "USD", customer=customer
     )
 
     mocked_payment_intent.create.assert_called_with(
@@ -145,8 +118,12 @@ def test_create_payment_intent_manual_auto_capture(mocked_payment_intent):
         amount="1000",
         currency="USD",
         capture_method=MANUAL_CAPTURE_METHOD,
+        customer=customer,
         stripe_version=STRIPE_API_VERSION,
     )
+
+    assert isinstance(intent, StripeObject)
+    assert error is None
 
 
 @patch(
@@ -164,7 +141,7 @@ def test_create_payment_intent_returns_error(mocked_payment_intent):
         api_key=api_key,
         amount="1000",
         currency="USD",
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         stripe_version=STRIPE_API_VERSION,
     )
     assert intent is None

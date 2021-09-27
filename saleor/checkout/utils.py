@@ -25,6 +25,7 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
+from ..payment import gateway
 from ..payment.models import Payment
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
@@ -638,19 +639,22 @@ def get_covered_balance(checkout: Checkout):
     return Money(covered_amount, checkout.currency)
 
 
-def is_fully_paid(
+def is_fully_covered(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
+    current_payment: "Optional[Payment]" = None,
 ):
     """Check if provided payment methods cover the checkout's total amount.
 
     Note that these payments may not be captured or charged at all.
     """
     checkout = checkout_info.checkout
-    payments = [payment for payment in checkout.payments.all() if payment.is_active]
-    total_paid = sum([p.total for p in payments])
+    total_covered = get_covered_balance(checkout).amount
+    if current_payment and current_payment.not_charged:
+        total_covered += current_payment.total
+
     address = checkout_info.shipping_address or checkout_info.billing_address
     checkout_total = (
         calculations.checkout_total(
@@ -665,11 +669,7 @@ def is_fully_paid(
     checkout_total = max(
         checkout_total, zero_taxed_money(checkout_total.currency)
     ).gross
-    return total_paid >= checkout_total.amount
-
-
-def cancel_active_payments(checkout: Checkout):
-    checkout.payments.filter(is_active=True).update(is_active=False)
+    return total_covered >= checkout_total.amount
 
 
 def is_shipping_required(lines: Iterable["CheckoutLineInfo"]):
@@ -702,3 +702,20 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
                 )
             }
         )
+
+
+def call_payment_refund_or_void(
+    channel_slug: str,
+    payment: Optional[Payment],
+    manager: PluginsManager,
+    cancel_partial=False,
+):
+    if not payment:
+        return
+
+    if payment.partial and not cancel_partial:
+        return
+
+    gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+    payment.is_active = False
+    payment.save(update_fields=["is_active"])
