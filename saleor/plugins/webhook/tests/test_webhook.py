@@ -117,6 +117,42 @@ def test_order_confirmed(mocked_webhook_trigger, settings, order_with_lines):
 
 
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_draft_order_created(mocked_webhook_trigger, settings, order_with_lines):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.draft_order_created(order_with_lines)
+
+    expected_data = generate_order_payload(order_with_lines)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.DRAFT_ORDER_CREATED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_draft_order_deleted(mocked_webhook_trigger, settings, order_with_lines):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.draft_order_deleted(order_with_lines)
+
+    expected_data = generate_order_payload(order_with_lines)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.DRAFT_ORDER_DELETED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_draft_order_updated(mocked_webhook_trigger, settings, order_with_lines):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.draft_order_updated(order_with_lines)
+
+    expected_data = generate_order_payload(order_with_lines)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.DRAFT_ORDER_UPDATED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_customer_created(mocked_webhook_trigger, settings, customer_user):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
