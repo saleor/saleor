@@ -7133,6 +7133,9 @@ QUERY_ORDER_BY_TOKEN_WITH_PAYMENT = """
 
               }
               actions
+              capturedAmount{
+                amount
+              }
               availableCaptureAmount{
                 amount
               }
@@ -7163,6 +7166,9 @@ QUERY_ORDER_WITH_PAYMENT_AVAILABLE_FIELDS = """
               created
               modified
               paymentMethodType
+              capturedAmount{
+                amount
+              }
               chargeStatus
               creditCard{
                 brand
