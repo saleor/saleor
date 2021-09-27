@@ -4,16 +4,10 @@ import requests
 from django.utils import timezone
 from requests.auth import HTTPBasicAuth
 
-from saleor.checkout.calculations import checkout_line_total
-from saleor.checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from saleor.checkout.models import Checkout
-from saleor.discount.utils import fetch_active_discounts
-from saleor.payment import PaymentError
 from saleor.payment.gateways.np_atobarai.api_types import ApiConfig, PaymentResult
 from saleor.payment.gateways.np_atobarai.const import NP_ATOBARAI
 from saleor.payment.interface import AddressData, PaymentData
 from saleor.payment.utils import price_to_minor_unit
-from saleor.plugins.manager import get_plugins_manager
 
 REQUEST_TIMEOUT = 15
 
@@ -58,51 +52,6 @@ def _format_address(ad: AddressData):
     )
 
 
-def _get_items(payment_information: "PaymentData"):
-    checkout = Checkout.objects.filter(
-        payments__id=payment_information.payment_id
-    ).first()
-
-    if not checkout:
-        raise PaymentError("Unable to calculate products for NP.")
-
-    manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
-    discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
-    currency = payment_information.currency
-
-    line_items = []
-    for line_info in lines:
-        total = checkout_line_total(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            checkout_line_info=line_info,
-            discounts=discounts,
-        )
-        address = checkout_info.shipping_address or checkout_info.billing_address
-        unit_price = manager.calculate_checkout_line_unit_price(
-            total,
-            line_info.line.quantity,
-            checkout_info,
-            lines,
-            line_info,
-            address,
-            discounts,
-        )
-        unit_gross = unit_price.gross.amount
-
-        line_data = {
-            "quantity": line_info.line.quantity,
-            "goods_name": f"{line_info.variant.product.name}, {line_info.variant.name}",
-            "goods_price": price_to_minor_unit(unit_gross, currency),
-        }
-        line_items.append(line_data)
-
-    return line_items
-
-
 def register_transaction(
     config: ApiConfig, payment_information: "PaymentData"
 ) -> PaymentResult:
@@ -132,7 +81,16 @@ def register_transaction(
                     "tel": payment_information.shipping.phone,
                     "email": payment_information.customer_email,
                 },
-                "goods": _get_items(payment_information),
+                "goods": [
+                    {
+                        "quantity": line.quantity,
+                        "goods_name": line.description,
+                        "goods_price": price_to_minor_unit(
+                            line.gross, payment_information.currency
+                        ),
+                    }
+                    for line in payment_information.lines
+                ],
             },
         ]
     }
