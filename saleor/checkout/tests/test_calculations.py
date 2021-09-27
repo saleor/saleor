@@ -6,15 +6,15 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from saleor.checkout.calculations import (
+from ...core.taxes import TaxData, TaxError, TaxLineData
+from ...plugins.manager import get_plugins_manager
+from ..calculations import (
     _apply_tax_data,
     _get_tax_data_from_plugins,
     fetch_checkout_prices_if_expired,
 )
-from saleor.checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from saleor.checkout.models import Checkout
-from saleor.core.taxes import TaxData, TaxError, TaxLineData
-from saleor.plugins.manager import get_plugins_manager
+from ..fetch import fetch_checkout_info, fetch_checkout_lines
+from ..models import Checkout
 
 
 def test_apply_tax_data(checkout: Checkout):

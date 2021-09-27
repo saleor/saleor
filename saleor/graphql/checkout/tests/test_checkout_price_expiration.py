@@ -5,8 +5,8 @@ import graphene
 from django.utils import timezone
 from freezegun import freeze_time
 
-from saleor.graphql.checkout.mutations import invalidate_checkout_prices
-from saleor.graphql.tests.utils import get_graphql_content
+from ...tests.utils import get_graphql_content
+from ..mutations import invalidate_checkout_prices
 
 
 @patch("saleor.graphql.checkout.mutations.invalidate_checkout_prices")
