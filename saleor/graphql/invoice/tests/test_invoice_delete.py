@@ -36,7 +36,7 @@ def test_invoice_delete(staff_api_client, permission_manage_orders, order):
     ).exists()
 
 
-@patch("saleor.plugins.base_plugin.BasePlugin.invoice_delete")
+@patch("saleor.plugins.manager.PluginsManager.invoice_delete")
 def test_invoice_delete_invalid_id(
     plugin_mock, staff_api_client, permission_manage_orders
 ):

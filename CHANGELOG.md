@@ -12,11 +12,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate `setup_future_usage` from `checkoutComplete.paymentData` input - will be removed in Saleor 4.0 - #7994 by @mateuszgrzyb
 - Possibility to pass metadata in input of `checkoutPaymentCreate` - #8076 by @mateuszgrzyb
 - Fix shipping address issue in `availableCollectionPoints` resolver for checkout - #8143 by @kuchichan
-- extend `accountRegister` mutation to consume first & last name - #8184 by @piotrgrundas
+- Improve draft orders and orders webhooks by @jakubkuc
+- Fix cursor-based pagination in products search - #8011 by @rafalp
+- Extend `accountRegister` mutation to consume first & last name - #8184 by @piotrgrundas
 
 
 # 3.0.0 [Unreleased]
 
+- Improve draft orders and orders webhooks - #SALEOR-4008 by @jakubkuc
 - Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
