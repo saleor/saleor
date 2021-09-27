@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Possibility to pass metadata in input of `checkoutPaymentCreate` - #8076 by @mateuszgrzyb
 - Fix shipping address issue in `availableCollectionPoints` resolver for checkout - #8143 by @kuchichan
 - Improve draft orders and orders webhooks by @jakubkuc
+- Fix cursor-based pagination in products search - #8011 by @rafalp
 
 
 # 3.0.0 [Unreleased]
