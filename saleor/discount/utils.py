@@ -35,12 +35,11 @@ def decrease_voucher_usage(voucher: "Voucher") -> None:
 
 
 def add_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
-    voucher_customer = VoucherCustomer.objects.filter(
+    _, created = VoucherCustomer.objects.get_or_create(
         voucher=voucher, customer_email=customer_email
     )
-    if voucher_customer:
+    if not created:
         raise NotApplicable("This offer is only valid once per customer.")
-    VoucherCustomer.objects.create(voucher=voucher, customer_email=customer_email)
 
 
 def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
