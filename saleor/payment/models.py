@@ -128,7 +128,6 @@ class Payment(models.Model):
     def get_total(self):
         return Money(self.total, self.currency)
 
-    @property
     def can_create_order(self):
         """Indicate whether an order can be created with this payment.
 

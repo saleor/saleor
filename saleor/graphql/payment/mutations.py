@@ -160,9 +160,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 {"redirect_url": error}, code=PaymentErrorCode.INVALID
             )
 
+    @classmethod
     def check_covered_amount(cls, checkout, checkout_total, amount):
         if amount < checkout_total:
-            covered_amount = get_covered_balance(checkout)
+            covered_amount = get_covered_balance(checkout).amount
             if covered_amount < checkout_total:
                 return False
 
@@ -214,7 +215,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
         clean_billing_address(checkout_info, PaymentErrorCode)
         is_amount_fully_covered = cls.check_covered_amount(
-            checkout, checkout_total, amount
+            checkout, checkout_total.gross.amount, amount
         )
         cls.clean_payment_amount(info, partial, checkout, checkout_total, amount)
         extra_data = {
