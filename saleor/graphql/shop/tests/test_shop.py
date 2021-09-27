@@ -413,6 +413,41 @@ def test_shop_reservation_disable_settings_mutation(
     """
     variables = {
         "input": {
+            "reserveStockDurationMinutesAnonymous": None,
+            "reserveStockDurationMinutesAuthenticated": None,
+        }
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shopSettingsUpdate"]["shop"]
+    assert data["reserveStockDurationMinutesAnonymous"] is None
+    assert data["reserveStockDurationMinutesAuthenticated"] is None
+    site_settings.refresh_from_db()
+    assert site_settings.reserve_stock_duration_minutes_anonymous is None
+    assert site_settings.reserve_stock_duration_minutes_authenticated is None
+
+
+def test_shop_reservation_set_negative_settings_mutation(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                shop {
+                    reserveStockDurationMinutesAnonymous
+                    reserveStockDurationMinutesAuthenticated
+                }
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+    variables = {
+        "input": {
             "reserveStockDurationMinutesAnonymous": -14,
             "reserveStockDurationMinutesAuthenticated": -6,
         }
@@ -422,11 +457,11 @@ def test_shop_reservation_disable_settings_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]["shop"]
-    assert data["reserveStockDurationMinutesAnonymous"] == 0
-    assert data["reserveStockDurationMinutesAuthenticated"] == 0
+    assert data["reserveStockDurationMinutesAnonymous"] is None
+    assert data["reserveStockDurationMinutesAuthenticated"] is None
     site_settings.refresh_from_db()
-    assert site_settings.reserve_stock_duration_minutes_anonymous == 0
-    assert site_settings.reserve_stock_duration_minutes_authenticated == 0
+    assert site_settings.reserve_stock_duration_minutes_anonymous is None
+    assert site_settings.reserve_stock_duration_minutes_authenticated is None
 
 
 MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS = """

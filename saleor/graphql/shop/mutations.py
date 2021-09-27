@@ -103,11 +103,13 @@ class ShopSettingsUpdate(BaseMutation):
                     {"customer_set_password_url": error}, code=ShopErrorCode.INVALID
                 )
         if "reserve_stock_duration_minutes_anonymous" in data:
-            if data["reserve_stock_duration_minutes_anonymous"] < 1:
-                data["reserve_stock_duration_minutes_anonymous"] = 0
+            new_value = data["reserve_stock_duration_minutes_anonymous"]
+            if not new_value or new_value < 1:
+                data["reserve_stock_duration_minutes_anonymous"] = None
         if "reserve_stock_duration_minutes_authenticated" in data:
-            if data["reserve_stock_duration_minutes_authenticated"] < 1:
-                data["reserve_stock_duration_minutes_authenticated"] = 0
+            new_value = data["reserve_stock_duration_minutes_authenticated"]
+            if not new_value or new_value < 1:
+                data["reserve_stock_duration_minutes_authenticated"] = None
         return data
 
     @classmethod
