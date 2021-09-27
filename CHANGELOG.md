@@ -14,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix shipping address issue in `availableCollectionPoints` resolver for checkout - #8143 by @kuchichan
 - Improve draft orders and orders webhooks by @jakubkuc
 - Fix cursor-based pagination in products search - #8011 by @rafalp
+- Extend `accountRegister` mutation to consume first & last name - #8184 by @piotrgrundas
 
 
 # 3.0.0 [Unreleased]
