@@ -48,6 +48,7 @@ from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...discount.utils import fetch_discounts
+from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...order import OrderStatus
@@ -154,10 +155,15 @@ IMAGES_MAPPING = {
     122: ["saleor-digital-03_4.png"],
     123: ["saleor-digital-03_5.png"],
     124: ["saleor-digital-03_6.png"],
+    125: ["saleordemoproduct_giftcard_01.png", "saleordemoproduct_giftcard_02.png"],
 }
 
 
-CATEGORY_IMAGES = {7: "accessories.jpg", 8: "groceries.jpg", 9: "apparel.jpg"}
+CATEGORY_IMAGES = {
+    7: "accessories.jpg",
+    8: "groceries.jpg",
+    9: "apparel.jpg",
+}
 
 COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg", 3: "clothing.jpg"}
 
@@ -253,6 +259,8 @@ def create_products(products_data, placeholder_dir, create_images):
         defaults["weight"] = get_weight(defaults["weight"])
         defaults["category_id"] = defaults.pop("category")
         defaults["product_type_id"] = defaults.pop("product_type")
+        if default_variant := defaults.pop("default_variant", None):
+            defaults["default_variant_id"] = default_variant
 
         product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
 
@@ -1398,22 +1406,41 @@ def create_vouchers():
         yield "Value voucher already exists"
 
 
-def create_gift_card():
-    user = random.choice(
-        [User.objects.filter(is_superuser=False).order_by("?").first()]
-    )
-    gift_card, created = GiftCard.objects.get_or_create(
-        code="Gift_card_10",
-        defaults={
-            "created_by": user,
-            "initial_balance": Money(10, DEFAULT_CURRENCY),
-            "current_balance": Money(10, DEFAULT_CURRENCY),
-        },
-    )
-    if created:
-        yield "Gift card #%d" % gift_card.id
-    else:
-        yield "Gift card already exists"
+def create_gift_cards(how_many=5):
+    product_pk = Product.objects.get(name="Gift card").pk
+    for i in range(how_many):
+        staff_user = User.objects.filter(is_staff=True).order_by("?").first()
+        gift_card, created = GiftCard.objects.get_or_create(
+            code=f"Gift_card_{i+1}",
+            defaults={
+                "created_by": staff_user,
+                "tag": "issued-gift-cards",
+                "initial_balance": Money(50, DEFAULT_CURRENCY),
+                "current_balance": Money(50, DEFAULT_CURRENCY),
+            },
+        )
+        gift_card_events.gift_card_issued_event(gift_card, staff_user, None)
+        if created:
+            yield "Gift card #%d" % gift_card.id
+        else:
+            yield "Gift card already exists"
+
+        user = User.objects.filter(is_superuser=False).order_by("?").first()
+        gift_card, created = GiftCard.objects.get_or_create(
+            code=f"Gift_card_1{i+1}",
+            defaults={
+                "created_by": user,
+                "product_id": product_pk,
+                "initial_balance": Money(20, DEFAULT_CURRENCY),
+                "current_balance": Money(20, DEFAULT_CURRENCY),
+            },
+        )
+        order_id = Order.objects.order_by("?").first().id
+        gift_card_events.gift_cards_bought_event([gift_card], order_id, user, None)
+        if created:
+            yield "Gift card #%d" % gift_card.id
+        else:
+            yield "Gift card already exists"
 
 
 def add_address_to_admin(email):
