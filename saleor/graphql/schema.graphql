@@ -1008,6 +1008,7 @@ type Checkout implements Node & ObjectWithMetadata {
   token: UUID!
   totalPrice: TaxedMoney
   languageCode: LanguageCodeEnum!
+  payments: [Payment!]!
 }
 
 type CheckoutAddPromoCode {
@@ -1085,6 +1086,7 @@ type CheckoutError {
 
 enum CheckoutErrorCode {
   BILLING_ADDRESS_NOT_SET
+  PAYMENT_NOT_SET
   CHECKOUT_NOT_FULLY_PAID
   GRAPHQL_ERROR
   PRODUCT_NOT_PUBLISHED
@@ -1154,6 +1156,14 @@ type CheckoutLinesAdd {
 type CheckoutLinesUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [CheckoutError!]!
+}
+
+type CheckoutPaymentComplete {
+  checkout: Checkout
+  payment: Payment
+  confirmationNeeded: Boolean!
+  confirmationData: JSONString
   errors: [CheckoutError!]!
 }
 
@@ -3719,7 +3729,7 @@ type Mutation {
   orderLineDiscountUpdate(input: OrderDiscountCommonInput!, orderLineId: ID!): OrderLineDiscountUpdate
   orderLineDiscountRemove(orderLineId: ID!): OrderLineDiscountRemove
   orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
-  orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
+  orderRefund(amount: PositiveDecimal, id: ID!, paymentsToRefund: [OrderPaymentToRefundInput]): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput!): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
@@ -3771,7 +3781,7 @@ type Mutation {
   fileUpload(file: Upload!): FileUpload
   checkoutAddPromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID, token: UUID): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutComplete
+  checkoutComplete(checkoutId: ID, paymentData: JSONString, paymentId: ID, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID, token: UUID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID, token: UUID): CheckoutCustomerDetach
@@ -3781,6 +3791,7 @@ type Mutation {
   checkoutLinesUpdate(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesUpdate
   checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
   checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
+  checkoutPaymentComplete(paymentData: JSONString, paymentId: ID!, redirectUrl: String, token: UUID!): CheckoutPaymentComplete
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate
   checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
@@ -3904,7 +3915,7 @@ type Order implements Node & ObjectWithMetadata {
   original: ID
   origin: OrderOriginEnum!
   isPaid: Boolean!
-  paymentStatus: PaymentChargeStatusEnum!
+  paymentStatus: OrderPaymentStatusEnum!
   paymentStatusDisplay: String!
   payments: [Payment]
   total: TaxedMoney!
@@ -4040,6 +4051,7 @@ type OrderError {
   warehouse: ID
   orderLines: [ID!]
   variants: [ID!]
+  payments: [ID!]
   addressType: AddressTypeEnum
 }
 
@@ -4074,6 +4086,8 @@ enum OrderErrorCode {
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
   CHANNEL_INACTIVE
+  TOO_MANY_OR_NONE_FIELDS_SPECIFIED
+  AMOUNT_TO_REFUND_TOO_BIG
 }
 
 type OrderEvent implements Node {
@@ -4100,6 +4114,8 @@ type OrderEvent implements Node {
   shippingCostsIncluded: Boolean
   relatedOrder: Order
   discount: OrderEventDiscountObject
+  pspReference: String
+  grapqhlPaymentId: String
 }
 
 type OrderEventCountableConnection {
@@ -4170,7 +4186,9 @@ enum OrderEventsEnum {
   EXTERNAL_SERVICE_NOTIFICATION
   PAYMENT_REFUNDED
   PAYMENT_VOIDED
-  PAYMENT_FAILED
+  PAYMENT_CAPTURE_FAILED
+  PAYMENT_REFUND_FAILED
+  PAYMENT_VOID_FAILED
   INVOICE_REQUESTED
   INVOICE_GENERATED
   INVOICE_UPDATED
@@ -4188,7 +4206,7 @@ enum OrderEventsEnum {
 }
 
 input OrderFilterInput {
-  paymentStatus: [PaymentChargeStatusEnum]
+  paymentStatus: [OrderPaymentStatusEnum]
   status: [OrderStatusFilter]
   customer: String
   created: DateRangeInput
@@ -4300,6 +4318,20 @@ enum OrderOriginEnum {
   REISSUE
 }
 
+enum OrderPaymentStatusEnum {
+  NOT_CHARGED
+  PARTIALLY_CHARGED
+  FULLY_CHARGED
+  OVERPAID
+  PARTIALLY_REFUNDED
+  FULLY_REFUNDED
+}
+
+input OrderPaymentToRefundInput {
+  paymentId: ID!
+  amount: PositiveDecimal!
+}
+
 type OrderRefund {
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -4399,6 +4431,7 @@ enum OrderStatusFilter {
   PARTIALLY_FULFILLED
   FULFILLED
   CANCELED
+  OVERPAID
 }
 
 type OrderUpdate {
@@ -4703,8 +4736,10 @@ type Payment implements Node {
   order: Order
   paymentMethodType: String!
   customerIpAddress: String
+  pspReference: String
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
+  partial: Boolean
   total: Money
   capturedAmount: Money
   transactions: [Transaction]
@@ -4721,6 +4756,7 @@ type PaymentCapture {
 
 enum PaymentChargeStatusEnum {
   NOT_CHARGED
+  AUTHORIZED
   PENDING
   PARTIALLY_CHARGED
   FULLY_CHARGED
@@ -4755,6 +4791,7 @@ enum PaymentErrorCode {
   REQUIRED
   UNIQUE
   PARTIAL_PAYMENT_NOT_ALLOWED
+  PARTIAL_PAYMENT_TOTAL_EXCEEDED
   SHIPPING_ADDRESS_NOT_SET
   INVALID_SHIPPING_METHOD
   SHIPPING_METHOD_NOT_SET
@@ -4791,6 +4828,7 @@ input PaymentInput {
   token: String
   amount: PositiveDecimal
   returnUrl: String
+  partial: Boolean
 }
 
 type PaymentRefund {

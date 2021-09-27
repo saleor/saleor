@@ -425,13 +425,14 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
         payment, success_msg, failed_msg, new_transaction.is_success
     )
     if payment.order and new_transaction.is_success:
+        payments = [{"payment": payment, "amount": new_transaction.amount}]
         order_refunded(
             payment.order,
             None,
             None,
-            new_transaction.amount,
-            payment,
+            payments,
             get_plugins_manager(),
+            send_notification=False,
         )
 
 

@@ -33,6 +33,8 @@ class Payment(models.Model):
     gateway = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     to_confirm = models.BooleanField(default=False)
+    complete_order = models.BooleanField(default=False)
+    partial = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
@@ -118,6 +120,15 @@ class Payment(models.Model):
     def get_total(self):
         return Money(self.total, self.currency)
 
+    def get_covered_amount(self):
+        """Return an amount that is covered by this payment (but not necessarily captured).
+
+        Partially refunded payments are included in the covered amount.
+        """
+        if self.charge_status == ChargeStatus.AUTHORIZED:
+            return self.total
+        return self.captured_amount
+
     def get_authorized_amount(self):
         money = zero_money(self.currency)
 
@@ -160,30 +171,21 @@ class Payment(models.Model):
         return self.total - self.captured_amount
 
     @property
-    def is_authorized(self):
-        return any(
-            [
-                txn.kind == TransactionKind.AUTH
-                and txn.is_success
-                and not txn.action_required
-                for txn in self.transactions.all()
-            ]
-        )
-
-    @property
     def not_charged(self):
         return self.charge_status == ChargeStatus.NOT_CHARGED
 
+    @property
+    def is_authorized(self):
+        return self.charge_status == ChargeStatus.AUTHORIZED
+
     def can_authorize(self):
-        return self.is_active and self.not_charged
+        return self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED
 
     def can_capture(self):
-        if not (self.is_active and self.not_charged):
-            return False
-        return True
+        return self.is_active and self.is_authorized
 
     def can_void(self):
-        return self.is_active and self.not_charged and self.is_authorized
+        return self.is_active and self.is_authorized
 
     def can_refund(self):
         can_refund_charge_status = (
@@ -192,9 +194,6 @@ class Payment(models.Model):
             ChargeStatus.PARTIALLY_REFUNDED,
         )
         return self.is_active and self.charge_status in can_refund_charge_status
-
-    def can_confirm(self):
-        return self.is_active and self.not_charged
 
     def is_manual(self):
         return self.gateway == CustomPaymentChoices.MANUAL

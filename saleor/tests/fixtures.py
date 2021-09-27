@@ -16,6 +16,8 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
+from django.db.models.signals import pre_migrate
+from django.dispatch import receiver
 from django.forms import ModelForm
 from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
@@ -35,7 +37,8 @@ from ..attribute.models import (
     AttributeValueTranslation,
 )
 from ..attribute.utils import associate_attribute_values_to_instance
-from ..checkout.fetch import fetch_checkout_info
+from ..checkout import calculations
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus, TimePeriodType
@@ -74,8 +77,14 @@ from ..order.models import (
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.interface import AddressData, GatewayConfig, PaymentData
-from ..payment.models import Payment
+from ..payment.interface import (
+    AddressData,
+    GatewayConfig,
+    GatewayResponse,
+    PaymentData,
+    PaymentMethodInfo,
+)
+from ..payment.models import Payment, Transaction
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
@@ -230,6 +239,62 @@ def sample_gateway(settings):
     ]
 
 
+@pytest.fixture
+def payment_method_details():
+    return PaymentMethodInfo(
+        last_4="1234",
+        exp_year=2020,
+        exp_month=8,
+        brand="visa",
+        name="Joe Doe",
+        type="test",
+    )
+
+
+@pytest.fixture
+def gateway_response(settings, payment_method_details):
+    return GatewayResponse(
+        is_success=True,
+        action_required=False,
+        transaction_id="transaction-token",
+        amount=Decimal(14.50),
+        currency="USD",
+        kind=TransactionKind.CAPTURE,
+        error=None,
+        raw_response={
+            "credit_card_four": "1234",
+            "transaction-id": "transaction-token",
+        },
+        payment_method_info=payment_method_details,
+        psp_reference="test_reference",
+    )
+
+
+@pytest.fixture
+def action_required_gateway_response(settings):
+    return GatewayResponse(
+        is_success=True,
+        action_required=True,
+        action_required_data={
+            "paymentData": "test",
+            "paymentMethodType": "scheme",
+            "url": "https://test.adyen.com/hpp/3d/validate.shtml",
+            "data": {
+                "MD": "md-test-data",
+                "PaReq": "PaReq-test-data",
+                "TermUrl": "http://127.0.0.1:3000/",
+            },
+            "method": "POST",
+            "type": "redirect",
+        },
+        kind=TransactionKind.CAPTURE,
+        amount=Decimal(3.0),
+        currency="usd",
+        transaction_id="1234",
+        error=None,
+    )
+
+
 @pytest.fixture(autouse=True)
 def site_settings(db, settings) -> SiteSettings:
     """Create a site and matching site settings.
@@ -276,6 +341,72 @@ def checkout_with_item(checkout, product):
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
+
+
+@pytest.fixture
+def checkout_with_payments_factory(
+    checkout_with_item, payment_kwargs, address, shipping_method
+):
+    def fun(num_payments=1, charge_status=None, payment_token=""):
+        checkout = checkout_with_item
+        checkout.shipping_address = address
+        checkout.shipping_method = shipping_method
+        checkout.billing_address = address
+        checkout.save()
+
+        manager = get_plugins_manager()
+        lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+        total = calculations.checkout_total(
+            manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        )
+
+        amount = total.gross.amount / num_payments
+        charge_status = charge_status or ChargeStatus.AUTHORIZED
+        captured_amount = (
+            amount if charge_status != ChargeStatus.AUTHORIZED else Decimal("0")
+        )
+        kind = None
+        if charge_status == ChargeStatus.AUTHORIZED:
+            kind = TransactionKind.AUTH
+        elif charge_status == ChargeStatus.FULLY_CHARGED:
+            kind = TransactionKind.CAPTURE
+
+        payments = []
+        transactions = []
+        for i in range(num_payments):
+            payment = Payment(
+                **{
+                    **payment_kwargs,
+                    **{
+                        "order": None,
+                        "checkout": checkout,
+                        "currency": checkout.currency,
+                        "charge_status": charge_status,
+                        "token": payment_token,
+                        "total": amount,
+                        "captured_amount": captured_amount,
+                    },
+                }
+            )
+            payments.append(payment)
+
+            if kind:
+                transactions.append(
+                    Transaction(
+                        payment=payment,
+                        amount=amount,
+                        kind=kind,
+                        is_success=True,
+                        gateway_response={},
+                    )
+                )
+        Payment.objects.bulk_create(payments)
+        Transaction.objects.bulk_create(transactions)
+
+        return checkout
+
+    return fun
 
 
 @pytest.fixture
@@ -575,9 +706,9 @@ def user_checkout_with_items(user_checkout, product_list):
 
 
 @pytest.fixture
-def order(customer_user, channel_USD):
+def order_kwargs(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
-    return Order.objects.create(
+    return dict(
         billing_address=address,
         channel=channel_USD,
         currency=channel_USD.currency_code,
@@ -585,6 +716,93 @@ def order(customer_user, channel_USD):
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+    )
+
+
+@pytest.fixture
+def order(order_kwargs):
+    return Order.objects.create(**order_kwargs)
+
+
+@pytest.fixture
+def order_with_payments(order_kwargs):
+    def fun(
+        num_payments=2,
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        payments__captured_amount: Optional[List] = None,
+        payments__total: Optional[List] = None,
+        payments__charge_status: Optional[List] = None,
+    ):
+        payments = []
+
+        if payments__total:
+            assert len(payments__total) == num_payments
+        else:
+            payments__total = [total_gross_amount / num_payments] * num_payments
+
+        if payments__captured_amount:
+            assert len(payments__captured_amount) == num_payments
+        else:
+            payments__captured_amount = payments__total
+
+        if payments__charge_status:
+            assert len(payments__captured_amount) == num_payments
+        else:
+            payments__charge_status = []
+            for i in range(num_payments):
+                if payments__total[i] <= payments__captured_amount[i]:
+                    payments__charge_status.append(ChargeStatus.FULLY_CHARGED)
+                else:
+                    payments__charge_status.append(ChargeStatus.PARTIALLY_CHARGED)
+
+        order = Order.objects.create(
+            total_net_amount=total_net_amount,
+            total_gross_amount=total_gross_amount,
+            total_paid_amount=sum(payments__captured_amount),
+            **order_kwargs,
+        )
+
+        for i in range(num_payments):
+            payments.append(
+                Payment(
+                    gateway="mirumee.payments.dummy",
+                    is_active=True,
+                    order=order,
+                    total=payments__total[i],
+                    captured_amount=payments__captured_amount[i],
+                )
+            )
+        Payment.objects.bulk_create(payments)
+        return order
+
+    return fun
+
+
+@pytest.fixture
+def order_fully_paid(order_with_payments):
+    return order_with_payments()
+
+
+@pytest.fixture
+def order_overpaid(order_with_payments):
+    return order_with_payments(
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        num_payments=2,
+        payments__total=[Decimal("76.00"), Decimal("26.00")],
+        payments__captured_amount=[Decimal("75.00"), Decimal("25.01")],
+    )
+
+
+@pytest.fixture
+def order_underpaid(order_with_payments):
+    return order_with_payments(
+        total_net_amount=Decimal("100.00"),
+        total_gross_amount=Decimal("100.00"),
+        num_payments=2,
+        payments__total=[Decimal("76.00"), Decimal("26.00")],
+        payments__captured_amount=[Decimal("75.00"), Decimal("24.99")],
     )
 
 
@@ -3124,6 +3342,7 @@ def payment_txn_preauth(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy
     payment.order = order
+    payment.charge_status = ChargeStatus.AUTHORIZED
     payment.save()
 
     payment.transactions.create(
@@ -3247,6 +3466,7 @@ def dummy_payment_data(payment_dummy):
         order_id=None,
         customer_ip_address=None,
         customer_email="example@test.com",
+        checkout_token="1-2-3-4",
     )
 
 
@@ -3822,8 +4042,8 @@ def menu_item_translation_fr(menu_item):
 
 
 @pytest.fixture
-def payment_dummy(db, order_with_lines):
-    return Payment.objects.create(
+def payment_kwargs(db, order_with_lines):
+    return dict(
         gateway="mirumee.payments.dummy",
         order=order_with_lines,
         is_active=True,
@@ -3845,6 +4065,19 @@ def payment_dummy(db, order_with_lines):
         billing_country_area=order_with_lines.billing_address.country_area,
         billing_email=order_with_lines.user_email,
     )
+
+
+@pytest.fixture
+def payment_dummy_factory(payment_kwargs):
+    def factory():
+        return Payment.objects.create(**payment_kwargs)
+
+    return factory
+
+
+@pytest.fixture
+def payment_dummy(payment_dummy_factory):
+    return payment_dummy_factory()
 
 
 @pytest.fixture

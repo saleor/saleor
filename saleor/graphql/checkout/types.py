@@ -7,11 +7,13 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
+from ...payment.dataloaders import PaymentsByCheckoutIdLoader
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
@@ -19,6 +21,7 @@ from ..core.utils import str_to_enum
 from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
 from ..meta.types import ObjectWithMetadata
+from ..payment.types import Payment
 from ..product.dataloaders import (
     ProductTypeByProductIdLoader,
     ProductTypeByVariantIdLoader,
@@ -202,6 +205,12 @@ class Checkout(CountableDjangoObjectType):
     )
     language_code = graphene.Field(
         LanguageCodeEnum, required=True, description="Checkout language code."
+    )
+
+    payments = graphene.List(
+        graphene.NonNull(Payment),
+        description=f"{ADDED_IN_31} A list of active payments.",
+        required=True,
     )
 
     class Meta:
@@ -478,3 +487,18 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_language_code(root, _info, **_kwargs):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
+
+    @staticmethod
+    def resolve_payments(root: models.Checkout, info):
+        def resolve_payments(payments):
+            active_payments = []
+            for payment in payments:
+                if payment.is_active:
+                    active_payments.append(payment)
+            return active_payments
+
+        return (
+            PaymentsByCheckoutIdLoader(info.context)
+            .load(root.pk)
+            .then(resolve_payments)
+        )

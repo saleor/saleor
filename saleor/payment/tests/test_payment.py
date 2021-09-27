@@ -13,7 +13,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
-from ..interface import GatewayResponse, PaymentMethodInfo
+from ..interface import GatewayResponse
 from ..models import Payment, Transaction
 from ..tasks import (
     release_dangling_unfinished_payment_task,
@@ -37,37 +37,6 @@ from ..utils import (
 
 NOT_ACTIVE_PAYMENT_ERROR = "This payment is no longer active."
 EXAMPLE_ERROR = "Example dummy error"
-
-
-@pytest.fixture
-def payment_method_details():
-    return PaymentMethodInfo(
-        last_4="1234",
-        exp_year=2020,
-        exp_month=8,
-        brand="visa",
-        name="Joe Doe",
-        type="test",
-    )
-
-
-@pytest.fixture
-def gateway_response(settings, payment_method_details):
-    return GatewayResponse(
-        is_success=True,
-        action_required=False,
-        transaction_id="transaction-token",
-        amount=Decimal(14.50),
-        currency="USD",
-        kind=TransactionKind.CAPTURE,
-        error=None,
-        raw_response={
-            "credit_card_four": "1234",
-            "transaction-id": "transaction-token",
-        },
-        payment_method_info=payment_method_details,
-        psp_reference="test_reference",
-    )
 
 
 @pytest.fixture
@@ -293,7 +262,7 @@ def test_gateway_charge_failed(
         gateway.capture(payment, get_plugins_manager(), amount)
     mock_capture_payment.assert_called_once()
     payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
     assert not payment.captured_amount
     assert not mock_handle_fully_paid_order.called
 
@@ -326,7 +295,7 @@ def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
         )
     assert exc.value.message == "This payment cannot be captured."
 
-    payment.charge_status = ChargeStatus.NOT_CHARGED
+    payment.charge_status = ChargeStatus.AUTHORIZED
     payment.save()
     with pytest.raises(PaymentError) as exc:
         gateway.capture(
@@ -420,6 +389,9 @@ def test_can_authorize(payment_dummy: Payment):
     payment_dummy.is_active = True
     assert payment_dummy.can_authorize()
 
+    payment_dummy.charge_status = ChargeStatus.AUTHORIZED
+    assert not payment_dummy.can_authorize()
+
     payment_dummy.charge_status = ChargeStatus.PARTIALLY_CHARGED
     assert not payment_dummy.can_authorize()
 
@@ -428,13 +400,16 @@ def test_can_authorize(payment_dummy: Payment):
 
 
 def test_can_capture(payment_txn_preauth: Payment):
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_txn_preauth.charge_status == ChargeStatus.AUTHORIZED
 
     payment_txn_preauth.is_active = False
     assert not payment_txn_preauth.can_capture()
 
     payment_txn_preauth.is_active = True
     assert payment_txn_preauth.can_capture()
+
+    payment_txn_preauth.charge_status = ChargeStatus.NOT_CHARGED
+    assert not payment_txn_preauth.can_capture()
 
     payment_txn_preauth.charge_status = ChargeStatus.PARTIALLY_CHARGED
     assert not payment_txn_preauth.can_capture()
@@ -448,13 +423,16 @@ def test_can_capture(payment_txn_preauth: Payment):
 
 
 def test_can_void(payment_txn_preauth: Payment):
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_txn_preauth.charge_status == ChargeStatus.AUTHORIZED
 
     payment_txn_preauth.is_active = False
     assert not payment_txn_preauth.can_void()
 
     payment_txn_preauth.is_active = True
     assert payment_txn_preauth.can_void()
+
+    payment_txn_preauth.charge_status = ChargeStatus.NOT_CHARGED
+    assert not payment_txn_preauth.can_void()
 
     payment_txn_preauth.charge_status = ChargeStatus.PARTIALLY_CHARGED
     assert not payment_txn_preauth.can_void()
@@ -474,6 +452,9 @@ def test_can_refund(payment_dummy: Payment):
     assert not payment_dummy.can_refund()
 
     payment_dummy.is_active = True
+    assert not payment_dummy.can_refund()
+
+    payment_dummy.charge_status = ChargeStatus.AUTHORIZED
     assert not payment_dummy.can_refund()
 
     payment_dummy.charge_status = ChargeStatus.PARTIALLY_CHARGED

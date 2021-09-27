@@ -455,7 +455,7 @@ def test_order_queryset_drafts(draft_order, channel_USD):
     assert all([order not in draft_orders for order in other_orders])
 
 
-def test_order_queryset_to_ship(settings, channel_USD):
+def test_order_queryset_ready_to_fulfill(settings, channel_USD):
     total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
     orders_to_ship = [
         Order.objects.create(
@@ -473,6 +473,8 @@ def test_order_queryset_to_ship(settings, channel_USD):
             captured_amount=order.total.gross.amount,
             currency=order.total.gross.currency,
         )
+        order.total_paid_amount = order.total.gross.amount
+        order.save()
 
     orders_not_to_ship = [
         Order.objects.create(
