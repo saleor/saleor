@@ -45,13 +45,16 @@ def create_payment_information(
         shipping = checkout.shipping_address
         email = checkout.get_customer_email()
         user_id = checkout.user_id
+        checkout_token: Optional[str] = str(checkout.token)
     elif payment.order:
         billing = payment.order.billing_address
         shipping = payment.order.shipping_address
         email = payment.order.user_email
         user_id = payment.order.user_id
+        checkout_token = payment.order.checkout_token or None
     else:
         billing, shipping, email, user_id = None, None, payment.billing_email, None
+        checkout_token = None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
@@ -79,6 +82,7 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
+        checkout_token=checkout_token,
     )
 
 
@@ -88,6 +92,7 @@ def create_payment(
     currency: str,
     email: str,
     customer_ip_address: str = "",
+    partial: Optional[bool] = False,
     payment_token: Optional[str] = "",
     extra_data: Dict = None,
     checkout: Checkout = None,
@@ -101,21 +106,9 @@ def create_payment(
     both Django views and GraphQL mutations.
     """
 
-    if extra_data is None:
-        extra_data = {}
-
-    data = {
-        "is_active": True,
-        "customer_ip_address": customer_ip_address,
-        "extra_data": json.dumps(extra_data),
-        "token": payment_token,
-    }
-
     if checkout:
-        data["checkout"] = checkout
         billing_address = checkout.billing_address
     elif order:
-        data["order"] = order
         billing_address = order.billing_address
     else:
         raise TypeError("Must provide checkout or order to create a payment.")
@@ -126,7 +119,17 @@ def create_payment(
             code=PaymentErrorCode.BILLING_ADDRESS_NOT_SET.value,
         )
 
-    defaults = {
+    data = {
+        "checkout": checkout,
+        "order": order,
+        "customer_ip_address": customer_ip_address,
+        "currency": currency,
+        "gateway": gateway,
+        "total": total,
+        "return_url": return_url,
+        "psp_reference": external_reference or "",
+        "partial": partial,
+        "extra_data": json.dumps(extra_data or {}),
         "billing_email": email,
         "billing_first_name": billing_address.first_name,
         "billing_last_name": billing_address.last_name,
@@ -137,15 +140,11 @@ def create_payment(
         "billing_postal_code": billing_address.postal_code,
         "billing_country_code": billing_address.country.code,
         "billing_country_area": billing_address.country_area,
-        "currency": currency,
-        "gateway": gateway,
-        "total": total,
-        "return_url": return_url,
-        "psp_reference": external_reference or "",
     }
 
-    payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
-    return payment
+    if payment_token:
+        return Payment.objects.get_or_create(token=payment_token, defaults=data)[0]
+    return Payment.objects.create(**data)
 
 
 def get_already_processed_transaction(
@@ -290,7 +289,8 @@ def gateway_postprocess(transaction, payment):
         # Set payment charge status to fully charged
         # only if there is no more amount needs to charge
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
-        if payment.get_charge_amount() <= 0:
+        charge_amount = payment.get_charge_amount()
+        if charge_amount <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
         changed_fields += ["charge_status", "captured_amount", "modified"]
 

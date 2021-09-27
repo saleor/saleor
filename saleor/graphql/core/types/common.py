@@ -188,6 +188,11 @@ class OrderError(Error):
         description="List of product variants that are associated with the error",
         required=False,
     )
+    payments = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of payments that are associated with the error",
+        required=False,
+    )
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )

@@ -8,7 +8,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
-from ..interface import GatewayResponse, PaymentMethodInfo
+from ..interface import GatewayResponse
 from ..models import Payment
 from ..utils import (
     ALLOWED_GATEWAY_KINDS,
@@ -24,37 +24,6 @@ from ..utils import (
 
 NOT_ACTIVE_PAYMENT_ERROR = "This payment is no longer active."
 EXAMPLE_ERROR = "Example dummy error"
-
-
-@pytest.fixture
-def payment_method_details():
-    return PaymentMethodInfo(
-        last_4="1234",
-        exp_year=2020,
-        exp_month=8,
-        brand="visa",
-        name="Joe Doe",
-        type="test",
-    )
-
-
-@pytest.fixture
-def gateway_response(settings, payment_method_details):
-    return GatewayResponse(
-        is_success=True,
-        action_required=False,
-        transaction_id="transaction-token",
-        amount=Decimal(14.50),
-        currency="USD",
-        kind=TransactionKind.CAPTURE,
-        error=None,
-        raw_response={
-            "credit_card_four": "1234",
-            "transaction-id": "transaction-token",
-        },
-        payment_method_info=payment_method_details,
-        psp_reference="test_reference",
-    )
 
 
 @pytest.fixture
