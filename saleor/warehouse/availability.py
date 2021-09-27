@@ -63,7 +63,7 @@ def check_stock_and_preorder_quantity_bulk(
     channel_slug: str,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
     existing_lines: Iterable = None,
-    replace: bool = False
+    replace: bool = False,
 ):
     """Validate if products are available for stocks/preorder.
 
@@ -84,7 +84,7 @@ def check_stock_and_preorder_quantity_bulk(
             channel_slug,
             additional_filter_lookup,
             existing_lines,
-            replace
+            replace,
         )
     if preorder_variants:
         check_preorder_threshold_bulk(
