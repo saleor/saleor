@@ -518,8 +518,9 @@ def test_checkout_lines_delete_with_by_zero_quantity_when_variant_out_of_stock(
     checkout = checkout_with_item
     line = checkout.lines.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
-    line.quantity = 0
-    line.save(update_fields=["quantity"])
+    stock = line.variant.stocks.first()
+    stock.quantity = 0
+    stock.save(update_fields=["quantity"])
 
     variables = {
         "token": checkout.token,
