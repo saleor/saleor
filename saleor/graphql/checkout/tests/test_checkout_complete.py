@@ -552,6 +552,8 @@ def test_checkout_with_voucher_complete(
     shipping_method,
 ):
     voucher_used_count = voucher_percentage.used
+    voucher_percentage.usage_limit = voucher_used_count + 1
+    voucher_percentage.save(update_fields=["usage_limit"])
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
