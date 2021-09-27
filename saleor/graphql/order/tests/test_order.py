@@ -7163,10 +7163,7 @@ QUERY_ORDER_WITH_PAYMENT_AVAILABLE_FIELDS = """
               created
               modified
               paymentMethodType
-              availableCaptureAmount{
-                amount
-              }
-            chargeStatus
+              chargeStatus
               creditCard{
                 brand
                 firstDigits
