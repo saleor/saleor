@@ -924,6 +924,7 @@ def test_order_fulfill_without_sku(
         fulfillment_lines_for_warehouses,
         ANY,
         True,
+        allow_stock_to_be_exceeded=False,
         approved=fulfillment_auto_approve,
     )
 

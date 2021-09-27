@@ -4218,10 +4218,6 @@ def test_order_line_update(
     assert data["errors"][0]["field"] == "quantity"
 
 
-<<<<<<< HEAD
-@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
-@patch("saleor.plugins.manager.PluginsManager.order_updated")
-=======
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_order_line_update_without_sku(
     status,
@@ -4279,7 +4275,8 @@ def test_order_line_update_without_sku(
     assert data["errors"][0]["field"] == "quantity"
 
 
->>>>>>> 8b78aca13... Add tests harness for blank SKU to more features
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_invalid_order_when_updating_lines(
     order_update_webhook_mock,
     draft_order_update_webhook_mock,
