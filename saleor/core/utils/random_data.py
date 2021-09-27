@@ -155,8 +155,7 @@ IMAGES_MAPPING = {
     122: ["saleor-digital-03_4.png"],
     123: ["saleor-digital-03_5.png"],
     124: ["saleor-digital-03_6.png"],
-    # TODO: should be changed to a dedicated photo
-    125: ["placeholder540x540.png"],
+    125: ["saleordemoproduct_giftcard_01.png", "saleordemoproduct_giftcard_02.png"],
 }
 
 
