@@ -1086,6 +1086,7 @@ type CheckoutError {
 
 enum CheckoutErrorCode {
   BILLING_ADDRESS_NOT_SET
+  PAYMENT_NOT_SET
   CHECKOUT_NOT_FULLY_PAID
   GRAPHQL_ERROR
   PRODUCT_NOT_PUBLISHED
@@ -1155,6 +1156,14 @@ type CheckoutLinesAdd {
 type CheckoutLinesUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [CheckoutError!]!
+}
+
+type CheckoutPaymentComplete {
+  checkout: Checkout
+  payment: Payment
+  confirmationNeeded: Boolean!
+  confirmationData: JSONString
   errors: [CheckoutError!]!
 }
 
@@ -3772,7 +3781,7 @@ type Mutation {
   fileUpload(file: Upload!): FileUpload
   checkoutAddPromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID, token: UUID): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutComplete
+  checkoutComplete(checkoutId: ID, paymentData: JSONString, paymentId: ID, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID, token: UUID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID, token: UUID): CheckoutCustomerDetach
@@ -3782,6 +3791,7 @@ type Mutation {
   checkoutLinesUpdate(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesUpdate
   checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
   checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
+  checkoutPaymentComplete(paymentData: JSONString, paymentId: ID!, redirectUrl: String, token: UUID!): CheckoutPaymentComplete
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate
   checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
@@ -4732,6 +4742,7 @@ type Payment implements Node {
   pspReference: String
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
+  partial: Boolean
   total: Money
   capturedAmount: Money
   transactions: [Transaction]
@@ -4783,6 +4794,7 @@ enum PaymentErrorCode {
   REQUIRED
   UNIQUE
   PARTIAL_PAYMENT_NOT_ALLOWED
+  PARTIAL_PAYMENT_TOTAL_EXCEEDED
   SHIPPING_ADDRESS_NOT_SET
   INVALID_SHIPPING_METHOD
   SHIPPING_METHOD_NOT_SET
@@ -4819,6 +4831,7 @@ input PaymentInput {
   token: String
   amount: PositiveDecimal
   returnUrl: String
+  partial: Boolean
 }
 
 type PaymentRefund {

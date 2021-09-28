@@ -169,12 +169,6 @@ class StripeGatewayPlugin(BasePlugin):
 
         api_key = self.config.connection_params["secret_api_key"]
 
-        auto_capture = self.config.auto_capture
-        if self.order_auto_confirmation is False:
-            auto_capture = False
-        if payment_information.partial:
-            auto_capture = False
-
         data = payment_information.data
 
         payment_method_id = data.get("payment_method_id") if data else None
@@ -201,7 +195,6 @@ class StripeGatewayPlugin(BasePlugin):
             api_key=api_key,
             amount=payment_information.amount,
             currency=payment_information.currency,
-            auto_capture=auto_capture,
             customer=customer,
             payment_method_id=payment_method_id,
             metadata={

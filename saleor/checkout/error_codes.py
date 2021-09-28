@@ -3,6 +3,7 @@ from enum import Enum
 
 class CheckoutErrorCode(Enum):
     BILLING_ADDRESS_NOT_SET = "billing_address_not_set"
+    PAYMENT_NOT_SET = "payment_not_set"
     CHECKOUT_NOT_FULLY_PAID = "checkout_not_fully_paid"
     GRAPHQL_ERROR = "graphql_error"
     PRODUCT_NOT_PUBLISHED = "product_not_published"
