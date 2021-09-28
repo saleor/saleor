@@ -133,6 +133,8 @@ def recalculate_order_prices(order: Order, **kwargs):
     voucher_discount = kwargs.get("discount", zero_money(order.currency))
 
     # discount amount can't be greater than order total
+    if type(voucher_discount) == TaxedMoney:
+        voucher_discount = voucher_discount.gross
     voucher_discount = min(voucher_discount, total.gross)
     total -= voucher_discount
 

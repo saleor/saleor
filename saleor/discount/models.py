@@ -119,6 +119,8 @@ class Voucher(ModelWithMetadata):
     def get_discount_amount_for(self, price: Money, channel: Channel):
         discount = self.get_discount(channel)
         after_discount = discount(price)
+        if type(after_discount) is TaxedMoney:
+            after_discount = after_discount.gross
         if after_discount.amount < 0:
             return price
         return price - after_discount
