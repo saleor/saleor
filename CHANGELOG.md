@@ -20,8 +20,6 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.0.0 [Unreleased]
 
 - Improve draft orders and orders webhooks - #SALEOR-4008 by @jakubkuc
-## [Unreleased]
-
 - Mark `X-` headers as deprecated and add headers without prefix. All deprecated headers will be removed in Saleor 4.0 - #8179 by @L3str4nge
     * X-Saleor-Event -> Saleor-Event
     * X-Saleor-Domain -> Saleor-Domain
