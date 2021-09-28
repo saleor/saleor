@@ -10686,7 +10686,6 @@ def test_update_or_create_variant_stocks_when_stock_out_of_quantity(
     assert {stock.quantity for stock in variant.stocks.all()} == {
         data["quantity"] for data in stocks_data
     }
-    assert back_in_stock_webhook_trigger.call_count == 1
     back_in_stock_webhook_trigger.assert_called_once_with(stock)
     assert variant.stocks.all()[0].quantity == 10
 
