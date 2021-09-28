@@ -46,6 +46,7 @@ from ...tests.utils import (
     get_graphql_content_from_response,
 )
 from ..utils import validate_draft_order
+from .utils import assert_order_and_payment_ids
 
 
 @pytest.fixture
@@ -6670,3 +6671,119 @@ def test_get_variant_from_order_line_variant_not_exists_as_staff(
     content = get_graphql_content(response)
     orders = content["data"]["me"]["orders"]["edges"]
     assert orders[0]["node"]["lines"][0]["variant"] is None
+
+
+QUERY_ORDER_BY_TOKEN_WITH_PAYMENT = """
+    query OrderByToken($token: UUID!) {
+        orderByToken(token: $token){
+            id
+            payments{
+              id
+              gateway
+              isActive
+              created
+              modified
+              paymentMethodType
+              transactions{
+                gatewayResponse
+
+              }
+              actions
+              capturedAmount{
+                amount
+              }
+              availableCaptureAmount{
+                amount
+              }
+              availableRefundAmount{
+                amount
+              }
+
+              creditCard{
+                brand
+                firstDigits
+                lastDigits
+                expMonth
+                expYear
+              }
+            }
+        }
+  }
+"""
+
+QUERY_ORDER_WITH_PAYMENT_AVAILABLE_FIELDS = """
+    query OrderByToken($token: UUID!) {
+        orderByToken(token: $token){
+            id
+            payments{
+              id
+              gateway
+              isActive
+              created
+              modified
+              paymentMethodType
+              capturedAmount{
+                amount
+              }
+              chargeStatus
+              creditCard{
+                brand
+                firstDigits
+                lastDigits
+                expMonth
+                expYear
+              }
+            }
+        }
+  }
+"""
+
+
+def test_order_by_token_query_for_payment_details_without_permissions(
+    api_client, payment_txn_captured
+):
+    response = api_client.post_graphql(
+        QUERY_ORDER_BY_TOKEN_WITH_PAYMENT, {"token": payment_txn_captured.order.token}
+    )
+    assert_no_permission(response)
+
+
+def test_order_by_token_query_for_payment_details_with_permissions(
+    staff_api_client, payment_txn_captured, permission_manage_orders
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_BY_TOKEN_WITH_PAYMENT,
+        {"token": payment_txn_captured.order.token},
+    )
+
+    content = get_graphql_content(response)
+
+    assert_order_and_payment_ids(content, payment_txn_captured)
+
+
+def test_order_by_token_query_payment_details_available_fields_without_permissions(
+    api_client, payment_txn_captured
+):
+    response = api_client.post_graphql(
+        QUERY_ORDER_WITH_PAYMENT_AVAILABLE_FIELDS,
+        {"token": payment_txn_captured.order.token},
+    )
+
+    content = get_graphql_content(response)
+
+    assert_order_and_payment_ids(content, payment_txn_captured)
+
+
+def test_order_by_token_query_payment_details_available_fields_with_permissions(
+    staff_api_client, payment_txn_captured, permission_manage_orders
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_WITH_PAYMENT_AVAILABLE_FIELDS,
+        {"token": payment_txn_captured.order.token},
+    )
+
+    content = get_graphql_content(response)
+
+    assert_order_and_payment_ids(content, payment_txn_captured)
