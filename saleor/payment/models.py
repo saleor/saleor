@@ -31,7 +31,14 @@ class Payment(models.Model):
     """
 
     gateway = models.CharField(max_length=255)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(
+        default=True,
+        help_text=(
+            "Inactive payments do not contribute toward checkout / orders, "
+            "but saleor still manages their lifecycle to reflect the real status "
+            "in the payment system provider."
+        ),
+    )
     to_confirm = models.BooleanField(default=False)
     complete_order = models.BooleanField(default=False)
     partial = models.BooleanField(default=False)
