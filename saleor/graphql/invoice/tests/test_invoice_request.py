@@ -41,7 +41,7 @@ def setup_dummy_gateways(settings):
     return settings
 
 
-@patch("saleor.plugins.base_plugin.BasePlugin.invoice_request")
+@patch("saleor.plugins.manager.PluginsManager.invoice_request")
 def test_invoice_request(
     plugin_mock, staff_api_client, permission_manage_orders, order
 ):
@@ -61,7 +61,7 @@ def test_invoice_request(
         number=number, order=order.pk, status=JobStatus.PENDING
     ).first()
     assert invoice
-    plugin_mock.assert_called_once_with(order, invoice, number, previous_value=None)
+    plugin_mock.assert_called_once_with(order=order, invoice=invoice, number=number)
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.REQUESTED,
         user=staff_api_client.user,
