@@ -5828,6 +5828,7 @@ type Query {
   menuItems(channel: String, sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
   giftCards(sortBy: GiftCardSortingInput, filter: GiftCardFilterInput, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
+  giftCardCurrencies: [String!]!
   plugin(id: ID!): Plugin
   plugins(filter: PluginFilterInput, sortBy: PluginSortingInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!, channel: String): Sale
