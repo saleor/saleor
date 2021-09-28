@@ -16,6 +16,7 @@ from ....product.utils.costs import (
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...core.connection import CountableDjangoObjectType
+from ...core.descriptions import ADDED_IN_31
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ..dataloaders import (
@@ -252,7 +253,9 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
     preorder_threshold = graphene.Field(
-        PreorderThreshold, required=False, description="Preorder variant data."
+        PreorderThreshold,
+        required=False,
+        description=f"{ADDED_IN_31} Preorder variant data.",
     )
 
     class Meta:

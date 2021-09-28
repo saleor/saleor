@@ -37,6 +37,7 @@ from ....warehouse.management import deactivate_preorder_for_variant
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
+from ...core.descriptions import ADDED_IN_31
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
@@ -769,7 +770,7 @@ class ProductVariantInput(graphene.InputObjectType):
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     preorder = PreorderSettingsInput(
-        description="Determines if variant is in preorder."
+        description=f"{ADDED_IN_31} Determines if variant is in preorder."
     )
 
 
@@ -1725,7 +1726,7 @@ class ProductVariantPreorderDeactivate(BaseMutation):
 
     class Meta:
         description = (
-            "Deactivates product variant preorder."
+            f"{ADDED_IN_31} Deactivates product variant preorder."
             "It changes all preorder allocation into regular allocation."
         )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
