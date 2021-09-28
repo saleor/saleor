@@ -49,9 +49,15 @@ class CheckoutInfo:
     shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
 
     @property
-    def valid_delivery_methods(self) -> List[Union["ShippingMethod", "ExternalShippingMethod", "Warehouse"]]:
+    def valid_delivery_methods(
+        self,
+    ) -> List[Union["ShippingMethod", "ExternalShippingMethod", "Warehouse"]]:
         return list(
-            itertools.chain(self.valid_shipping_methods, self.valid_external_shipping_methods, self.valid_pick_up_points)
+            itertools.chain(
+                self.valid_shipping_methods,
+                self.valid_external_shipping_methods,
+                self.valid_pick_up_points,
+            )
         )
 
     def get_country(self) -> str:
@@ -254,15 +260,17 @@ def fetch_checkout_info(
     app_shipping_id = get_app_shipping_id(checkout)
     if app_shipping_id:
         external_shipping_method = manager.get_shipping_method(
-                checkout=checkout,
-                channel_slug=channel.slug,
-                shipping_method_id=app_shipping_id,
-            )
+            checkout=checkout,
+            channel_slug=channel.slug,
+            shipping_method_id=app_shipping_id,
+        )
 
     shipping_method = checkout.shipping_method
     shipping_address = checkout.shipping_address
 
-    delivery_method = checkout.collection_point or external_shipping_method or shipping_method
+    delivery_method = (
+        checkout.collection_point or external_shipping_method or shipping_method
+    )
     delivery_method_info = get_delivery_method_info(delivery_method, shipping_address)
     checkout_info = CheckoutInfo(
         checkout=checkout,
@@ -280,8 +288,10 @@ def fetch_checkout_info(
     valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
         checkout_info, shipping_address, lines, discounts, manager
     )
-    valid_external_shipping_methods = get_valid_external_shipping_method_list_for_checkout_info(
-        checkout_info, shipping_address, lines, discounts, manager
+    valid_external_shipping_methods = (
+        get_valid_external_shipping_method_list_for_checkout_info(
+            checkout_info, shipping_address, lines, discounts, manager
+        )
     )
     valid_pick_up_points = get_valid_collection_points_for_checkout_info(
         shipping_address, lines, checkout_info
@@ -305,8 +315,10 @@ def update_checkout_info_shipping_address(
     valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
         checkout_info, address, lines, discounts, manager
     )
-    valid_external_shipping_methods = get_valid_external_shipping_method_list_for_checkout_info(
-        checkout_info, address, lines, discounts, manager
+    valid_external_shipping_methods = (
+        get_valid_external_shipping_method_list_for_checkout_info(
+            checkout_info, address, lines, discounts, manager
+        )
     )
     checkout_info.valid_shipping_methods = valid_shipping_methods
     checkout_info.valid_external_shipping_methods = valid_external_shipping_methods
@@ -352,7 +364,8 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     app_shipping_id = get_app_shipping_id(checkout_info.checkout)
     if app_shipping_id:
         return manager.list_shipping_methods(
-            checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug)
+            checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
+        )
     return []
 
 
@@ -376,7 +389,9 @@ def get_valid_collection_points_for_checkout_info(
 
 def update_checkout_info_delivery_method(
     checkout_info: CheckoutInfo,
-    delivery_method: Optional[Union["ShippingMethod", "ExternalShippingMethod", "Warehouse"]],
+    delivery_method: Optional[
+        Union["ShippingMethod", "ExternalShippingMethod", "Warehouse"]
+    ],
 ):
     checkout_info.delivery_method_info = get_delivery_method_info(
         delivery_method, checkout_info.shipping_address

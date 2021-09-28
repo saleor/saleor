@@ -12,8 +12,7 @@ from prices import TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo
-from .fetch import (CheckoutLineInfo, ExternalShippingMethodInfo,
-                    ShippingMethodInfo)
+from .fetch import CheckoutLineInfo, ExternalShippingMethodInfo, ShippingMethodInfo
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
@@ -26,9 +25,8 @@ def base_checkout_shipping_price(
 ) -> TaxedMoney:
     delivery_method_info = checkout_info.delivery_method_info
 
-    if (
-        isinstance(delivery_method_info, ShippingMethodInfo) 
-        or isinstance(delivery_method_info, ExternalShippingMethodInfo)
+    if isinstance(delivery_method_info, ShippingMethodInfo) or isinstance(
+        delivery_method_info, ExternalShippingMethodInfo
     ):
         return calculate_price_for_shipping_method(
             checkout_info, delivery_method_info, lines
@@ -40,7 +38,7 @@ def base_checkout_shipping_price(
 def calculate_price_for_shipping_method(
     checkout_info: "CheckoutInfo",
     shipping_method_info: Union[ShippingMethodInfo, ExternalShippingMethodInfo],
-    lines=None
+    lines=None,
 ) -> TaxedMoney:
     """Return checkout shipping price."""
     # FIXME: Optimize checkout.is_shipping_required
