@@ -280,7 +280,8 @@
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "kind": "normal"
     }
   },
   {
@@ -297,7 +298,8 @@
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
-      "weight": "0.2:kg"
+      "weight": "0.2:kg",
+      "kind": "normal"
     }
   },
   {
@@ -314,7 +316,8 @@
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "kind": "normal"
     }
   },
   {
@@ -331,7 +334,8 @@
       "has_variants": false,
       "is_shipping_required": true,
       "is_digital": false,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "kind": "normal"
     }
   },
   {
@@ -348,7 +352,8 @@
       "has_variants": false,
       "is_shipping_required": true,
       "is_digital": false,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "kind": "normal"
     }
   },
   {
@@ -365,7 +370,8 @@
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
-      "weight": "0.5:kg"
+      "weight": "0.5:kg",
+      "kind": "normal"
     }
   },
   {
@@ -382,7 +388,8 @@
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "kind": "normal"
     }
   },
   {
@@ -399,7 +406,8 @@
       "has_variants": true,
       "is_shipping_required": true,
       "is_digital": false,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "kind": "normal"
     }
   },
   {
@@ -413,7 +421,8 @@
       "has_variants": true,
       "is_shipping_required": false,
       "is_digital": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "kind": "normal"
     }
   },
   {
