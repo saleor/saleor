@@ -126,7 +126,7 @@ def test_allocate_stock_insufficient_stock_due_to_reservations(
     checkout_line_with_reservation_in_many_stocks,
 ):
     variant = variant_with_many_stocks
-    stocks = variant.stocks.all()
+    variant.stocks.all()
 
     line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=5)
 

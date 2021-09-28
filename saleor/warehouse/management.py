@@ -17,7 +17,6 @@ from ..order import OrderLineData
 from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
 from .models import Allocation, PreorderAllocation, Reservation, Stock, Warehouse
-from .reservations import is_reservation_enabled
 
 if TYPE_CHECKING:
     from ..order.models import Order, OrderLine

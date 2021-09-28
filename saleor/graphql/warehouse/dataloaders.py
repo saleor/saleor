@@ -97,7 +97,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             stocks = stocks.filter(warehouse_id__in=warehouse_shipping_zones_map.keys())
         stocks = stocks.annotate_available_quantity()
 
-        if is_reservation_enabled(self.context.site.settings):
+        if is_reservation_enabled(self.context.site.settings):  # type: ignore
             stocks = stocks.annotate_reserved_quantity()
 
         # A single country code (or a missing country code) can return results from
