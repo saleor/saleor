@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 help_text=(
                     "Inactive payments do not contribute toward checkout / orders, "
                     "but saleor still manages their lifecycle to reflect "
-                    "the real status in the payment system provider."
+                    "the real status in the payment service provider."
                 ),
             ),
         ),

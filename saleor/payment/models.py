@@ -36,7 +36,7 @@ class Payment(models.Model):
         help_text=(
             "Inactive payments do not contribute toward checkout / orders, "
             "but saleor still manages their lifecycle to reflect the real status "
-            "in the payment system provider."
+            "in the payment service provider."
         ),
     )
     to_confirm = models.BooleanField(default=False)

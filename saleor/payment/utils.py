@@ -468,10 +468,5 @@ def get_unfinished_payments():
     return payments
 
 
-def is_payment_unfinished_and_ready_to_release(payment: Payment):
-    """Payments older than specified time and without assigned order object."""
-    return get_unfinished_payments().filter(pk=payment.pk).exists()
-
-
 class ReleasePaymentException(Exception):
     """Exception occured on attempt to release payment."""

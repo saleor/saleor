@@ -5,7 +5,6 @@ from unittest.mock import ANY, Mock, patch
 
 import pytest
 from django.test import override_settings
-from django.utils import timezone
 from freezegun import freeze_time
 
 from ...checkout.calculations import checkout_total
@@ -26,7 +25,6 @@ from ..utils import (
     create_transaction,
     get_unfinished_payments,
     is_currency_supported,
-    is_payment_unfinished_and_ready_to_release,
     update_payment,
     validate_gateway_response,
 )
@@ -545,38 +543,6 @@ def test_update_payment(gateway_response, payment_txn_captured):
 @freeze_time("2021-06-01 12:00:00")
 @override_settings(UNFINISHED_PAYMENT_TTL=timedelta(days=1))
 @pytest.mark.parametrize(
-    "dates",
-    [
-        (["2021-05-01 12:00:00.0+00:00"]),  # release, is to old
-        (
-            ["2021-04-01 12:00:00.0+00:00", "2021-05-01 12:00:00.0+00:00"]
-        ),  # release, both transaction are old
-    ],
-)
-def test_get_unfinished_payments_with_payments_to_release(payment_dummy, dates):
-    payment = payment_dummy
-    payment.order = None
-    payment.save()
-
-    for date in dates:
-        with freeze_time(date):
-            Transaction.objects.create(
-                payment=payment,
-                amount=payment.total,
-                kind=TransactionKind.CAPTURE,
-                gateway_response={},
-                is_success=True,
-                action_required=False,
-            )
-
-    payments = get_unfinished_payments()
-    assert payments.count() == 1
-    assert is_payment_unfinished_and_ready_to_release(payment)
-
-
-@freeze_time("2021-06-01 12:00:00")
-@override_settings(UNFINISHED_PAYMENT_TTL=timedelta(days=1))
-@pytest.mark.parametrize(
     "dates, order_exist, is_active, not_valid_kind, success, action_required",
     [
         (
@@ -681,52 +647,6 @@ def test_get_unfinished_payments_with_payments_not_to_release(
 
     payments = get_unfinished_payments()
     assert payments.count() == 0
-    assert not is_payment_unfinished_and_ready_to_release(payment)
-
-
-@freeze_time("2021-06-01 12:00:00")
-@override_settings(UNFINISHED_PAYMENT_TTL=timedelta(days=1))
-@pytest.mark.parametrize(
-    "original_kind,release_kind",
-    [
-        (TransactionKind.CAPTURE, TransactionKind.REFUND),
-        (TransactionKind.AUTH, TransactionKind.VOID),
-    ],
-)
-def test_get_unfinished_payments_with_a_failed_attempt(
-    payment_dummy,
-    original_kind,
-    release_kind,
-):
-    # given
-    payment = payment_dummy
-    payment.order = None
-    payment.save()
-    with freeze_time(timezone.now() - timedelta(days=2)):
-        Transaction.objects.create(
-            payment=payment,
-            amount=payment.total,
-            kind=original_kind,
-            gateway_response={},
-            is_success=True,
-            action_required=False,
-        )
-
-    Transaction.objects.create(
-        payment=payment,
-        amount=payment.total,
-        kind=release_kind,
-        gateway_response={},
-        is_success=False,
-        action_required=False,
-    )
-
-    # when
-    payments = get_unfinished_payments()
-
-    # then
-    assert payments.count() == 0
-    assert not is_payment_unfinished_and_ready_to_release(payment)
 
 
 @mock.patch("saleor.payment.tasks.get_unfinished_payments")
