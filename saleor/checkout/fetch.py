@@ -301,6 +301,8 @@ def fetch_checkout_info(
     checkout_info.valid_pick_up_points = valid_pick_up_points
     checkout_info.delivery_method_info = delivery_method_info
 
+    delivery_method_info.update_channel_listings(checkout_info)
+
     return checkout_info
 
 
