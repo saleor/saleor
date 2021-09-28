@@ -887,7 +887,7 @@ def create_refund_fulfillment(
     user: Optional["User"],
     app: Optional["App"],
     order,
-    payments,
+    payments: List[dict],
     order_lines_to_refund: List[OrderLineData],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     manager: "PluginsManager",
@@ -899,29 +899,27 @@ def create_refund_fulfillment(
     quantities which is used to create the refund fulfillment. The stock for
     unfulfilled lines will be deallocated.
     """
+    refund_shipping_costs = False
+    # Amount to be eventually specified in the Fulfillment object.
+    counted_shipping_amount = None
+    for item in payments:
+        if item["include_shipping_costs"]:
+            if not item["amount"]:
+                counted_shipping_amount = order.shipping_price_gross_amount
+            refund_shipping_costs = True
+            shipping_refund_amount = __get_shipping_refund_amount(
+                item["include_shipping_costs"],
+                item["amount"],
+                order.shipping_price_gross_amount,
+            )
+            if shipping_refund_amount:
+                item["amount"] = shipping_refund_amount
+
+    refund_amount = (
+        Decimal(sum([item["amount"] for item in payments if item["amount"]])) or None
+    )
 
     with transaction_with_commit_on_errors():
-        refund_shipping_costs = False
-        # Amount to be eventually specified in the Fulfillment object.
-        counted_shipping_amount = None
-        for item in payments:
-            if item["include_shipping_costs"]:
-                if not item["amount"]:
-                    counted_shipping_amount = order.shipping_price_gross_amount
-                refund_shipping_costs = True
-                shipping_refund_amount = __get_shipping_refund_amount(
-                    item["include_shipping_costs"],
-                    item["amount"],
-                    order.shipping_price_gross_amount,
-                )
-                if shipping_refund_amount:
-                    item["amount"] = shipping_refund_amount
-
-        refund_amount = (
-            Decimal(sum([item["amount"] for item in payments if item["amount"]]))
-            or None
-        )
-
         total_refund_amount = _process_refund(
             user=user,
             app=app,

@@ -441,12 +441,12 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
 
 
 class PaymentToRefundInput(graphene.InputObjectType):
-    payment_id = graphene.ID(required=True, description="The graphene ID of a payment.")
+    payment_id = graphene.ID(required=True, description="The graphql ID of a payment.")
     amount = PositiveDecimal(required=False, description="Amount of the refund.")
     include_shipping_costs = graphene.Boolean(
         description=(
             "If true, Saleor will refund shipping costs. "
-            "If amountToRefund is provided includeShippingCosts will be ignored. "
+            "If amount is provided includeShippingCosts will be ignored. "
             "Only one such payment per order is allowed."
         ),
         default_value=False,
@@ -664,14 +664,12 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             )
 
     @classmethod
-    def _check_payments_belong_to_order(cls, order, payments):
-        improper_payments_ids = []
-        order_payments_ids = order.payments.values_list("id", flat=True)
-        for item in payments:
-            if not item["payment"].id in order_payments_ids:
-                improper_payments_ids.append(item["payment"].id)
-
-        if improper_payments_ids:
+    def _check_payments_belong_to_order(cls, order, payments_ids) -> None:
+        order_payments_ids = order.payments.filter(id__in=payments_ids)
+        if set(order_payments_ids) != set(payments_ids):
+            improper_payments_ids = set(payments_ids).difference(
+                set(order_payments_ids)
+            )
             improper_payments_global_ids = [
                 graphene.Node.to_global_id("Payment", payment_id)
                 for payment_id in improper_payments_ids
@@ -680,7 +678,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
                 {
                     "payments_to_refund": ValidationError(
                         "These payments do not belong to the order.",
-                        code=OrderErrorCode.PAYEMENTS_DO_NOT_BELONG_TO_ORDER,
+                        code=OrderErrorCode.PAYMENTS_DO_NOT_BELONG_TO_ORDER.name,
                         params={"payments": improper_payments_global_ids},
                     )
                 }
@@ -706,38 +704,36 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         if payments_to_refund:
             cls._check_shipping_costs(payments_to_refund)
             payments = []
+            payments_data = {}
 
-            # Fetch all payments at once.
-            payments_global_ids = [item["payment_id"] for item in payments_to_refund]
-            payments_pks = cls.get_global_ids_or_error(payments_global_ids, "Payment")
-            payment_objects = Payment.objects.filter(pk__in=payments_pks)
+            for item in payments_to_refund:
+                data = {
+                    "amount": item.get("amount"),
+                    "include_shipping_costs": item.get("include_shipping_costs"),
+                }
+                payment_pk = cls.get_global_id_or_error(item["payment_id"], "Payment")
+
+                payments_data.update({payment_pk: data})
+
+            cls._check_payments_belong_to_order(order, payments_data.keys())
+            payment_objects = Payment.objects.filter(pk__in=payments_data.keys())
 
             for payment in payment_objects:
-                global_id = graphene.Node.to_global_id("Payment", payment.id)
-                result = list(
-                    filter(
-                        lambda item: item["payment_id"] == global_id, payments_to_refund
-                    )
+                payment_data = payments_data.get(payment.id)
+                include_shipping_costs = payment_data.get("include_shipping_costs")
+                amount = payment_data.get("amount")
+                amount = (
+                    amount
+                    if amount or include_shipping_costs
+                    else payment.captured_amount
                 )
-                if len(result) > 0:
-                    item = result[0]
-                    include_shipping_costs = item.get("include_shipping_costs")
-                    # If amount_to_refund isn't specified and the shipping costs
-                    # are included then the amount should be None.
-                    amount = item.get("amount")
-                    amount = (
-                        amount
-                        if amount or include_shipping_costs
-                        else payment.captured_amount
-                    )
-                    data = {
-                        "payment": payment,
-                        "amount": amount,
-                        "include_shipping_costs": include_shipping_costs,
-                    }
-                    payments.append(data)
+                data = {
+                    "payment": payment,
+                    "amount": amount,
+                    "include_shipping_costs": include_shipping_costs,
+                }
+                payments.append(data)
 
-            cls._check_payments_belong_to_order(order, payments)
         else:
             cls._check_order_has_single_payment(order)
             payment = order.payments.first()

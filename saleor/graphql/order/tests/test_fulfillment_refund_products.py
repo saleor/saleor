@@ -830,8 +830,7 @@ def test_fulfillment_refund_products_raises_error_if_payment_doesnt_belong_to_or
     assert data["fulfillment"] is None
     assert data["errors"][0]["field"] == "paymentsToRefund"
     assert (
-        data["errors"][0]["code"]
-        == OrderErrorCode.PAYEMENTS_DO_NOT_BELONG_TO_ORDER.name
+        data["errors"][0]["code"] == OrderErrorCode.PAYMENTS_DO_NOT_BELONG_TO_ORDER.name
     )
     message = "These payments do not belong to the order."
     assert data["errors"][0]["message"] == message
