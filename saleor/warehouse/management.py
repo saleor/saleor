@@ -485,8 +485,8 @@ def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug
     quantity_allocation_for_channel: Dict = defaultdict(int)
     for allocation in quantity_allocation_list:
         quantity_allocation_for_channel[
-            allocation.product_variant_channel_listing
-        ] = allocation.preorder_quantity_allocated
+            allocation["product_variant_channel_listing"]
+        ] = allocation["preorder_quantity_allocated"]
 
     variants_to_channel_listings = {
         channel_listing["variant_id"]: (

@@ -721,6 +721,33 @@ def test_allocate_preorders(
     assert allocation.quantity == 50
 
 
+def test_allocate_preorders_with_allocation(
+    order_line,
+    preorder_variant_global_and_channel_threshold,
+    preorder_allocation,
+    channel_USD,
+):
+    variant = preorder_variant_global_and_channel_threshold
+    channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    channel_listing.preorder_quantity_threshold = 10
+    channel_listing.save(update_fields=["preorder_quantity_threshold"])
+
+    quantity_to_allocate = 2
+    line_data = OrderLineData(
+        line=order_line, variant=variant, quantity=quantity_to_allocate
+    )
+
+    allocate_preorders([line_data], channel_USD.slug)
+
+    channel_listing.refresh_from_db()
+    assert channel_listing.preorder_quantity_threshold == 10
+    allocation = PreorderAllocation.objects.get(
+        order_line=order_line,
+        product_variant_channel_listing=channel_listing,
+    )
+    assert allocation.quantity == quantity_to_allocate
+
+
 def test_allocate_preorders_insufficient_stocks_channel_threshold(
     order_line, preorder_variant_channel_threshold, channel_USD
 ):
