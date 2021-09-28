@@ -1,3 +1,4 @@
+import datetime
 import json
 import shutil
 from tempfile import NamedTemporaryFile
@@ -21,6 +22,7 @@ from ...utils.export import (
     export_products_in_batches,
     get_filename,
     get_product_queryset,
+    parse_input,
     save_csv_file_in_export_file,
 )
 
@@ -592,3 +594,42 @@ def test_export_products_in_batches_for_xlsx(
         assert row in data
 
     shutil.rmtree(tmpdir)
+
+
+def test_parse_input():
+    data = {
+        "collections": None,
+        "categories": None,
+        "attributes": [
+            {
+                "slug": "release-date-time",
+                "date_time": {
+                    "gte": "2019-08-08T00:00:00+02:00",
+                    "lte": "2021-08-08T00:00:00+02:00",
+                },
+            },
+            {
+                "slug": "release-date",
+                "date": {
+                    "gte": "2019-08-08",
+                },
+            },
+        ],
+        "stock_availability": None,
+        "price": None,
+        "product_types": None,
+    }
+    parsed_data = parse_input(data)
+
+    assert isinstance(
+        parsed_data["attributes"][0]["date_time"]["gte"], datetime.datetime
+    )
+    assert isinstance(
+        parsed_data["attributes"][0]["date_time"]["lte"], datetime.datetime
+    )
+    assert isinstance(parsed_data["attributes"][1]["date"]["gte"], datetime.date)
+
+    data.pop("attributes")
+    parsed_data = parse_input(data)
+
+    assert data == parsed_data

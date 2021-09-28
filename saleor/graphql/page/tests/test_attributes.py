@@ -296,7 +296,7 @@ def test_assign_attributes_to_page_type_multiple_error_returned(
     author_page_attribute,
     color_attribute,
 ):
-    """Ensure that when multiple errors ocurred all will br returned."""
+    """Ensure that when multiple errors occurred all will br returned."""
     # given
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_page_types_and_attributes)

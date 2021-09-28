@@ -302,6 +302,7 @@ AttributeData = namedtuple(
         "unit",
         "rich_text",
         "boolean",
+        "date_time",
     ],
 )
 
@@ -324,6 +325,7 @@ def handle_attribute_data(
         unit=data.pop(attribute_fields["unit"], None),
         rich_text=data.pop(attribute_fields["rich_text"], None),
         boolean=data.pop(attribute_fields["boolean"], None),
+        date_time=data.pop(attribute_fields["date_time"], None),
     )
 
     if attribute_ids and attribute_pk in attribute_ids:
@@ -420,6 +422,10 @@ def add_attribute_info_to_data(
             and attribute_data.boolean is not None
         ):
             value = str(attribute_data.boolean)
+        elif input_type == AttributeInputType.DATE:
+            value = str(attribute_data.date_time.date())
+        elif input_type == AttributeInputType.DATE_TIME:
+            value = str(attribute_data.date_time)
         else:
             value = attribute_data.value if attribute_data.value else ""
         if header in result_data[pk]:

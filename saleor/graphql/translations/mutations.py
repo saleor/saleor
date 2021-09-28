@@ -16,12 +16,47 @@ from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
 from ..product.types import Product, ProductVariant
 from ..shop.types import Shop
+from . import types as translation_types
 
 # discount and menu types need to be imported to get
 # Voucher and Menu in the graphene registry
 from ..discount import types  # noqa # pylint: disable=unused-import, isort:skip
-
 from ..menu import types  # type: ignore # noqa # pylint: disable=unused-import, isort:skip
+
+
+TRANSLATABLE_CONTENT_TO_MODEL = {
+    str(
+        translation_types.ProductTranslatableContent
+    ): product_models.Product._meta.object_name,
+    str(
+        translation_types.CollectionTranslatableContent
+    ): product_models.Collection._meta.object_name,
+    str(
+        translation_types.CategoryTranslatableContent
+    ): product_models.Category._meta.object_name,
+    str(
+        translation_types.AttributeTranslatableContent
+    ): attribute_models.Attribute._meta.object_name,
+    str(
+        translation_types.AttributeValueTranslatableContent
+    ): attribute_models.AttributeValue._meta.object_name,
+    str(
+        translation_types.ProductVariantTranslatableContent
+    ): product_models.ProductVariant._meta.object_name,
+    str(translation_types.PageTranslatableContent): page_models.Page._meta.object_name,
+    str(
+        translation_types.ShippingMethodTranslatableContent
+    ): shipping_models.ShippingMethod._meta.object_name,
+    str(
+        translation_types.SaleTranslatableContent
+    ): discount_models.Sale._meta.object_name,
+    str(
+        translation_types.VoucherTranslatableContent
+    ): discount_models.Voucher._meta.object_name,
+    str(
+        translation_types.MenuItemTranslatableContent
+    ): menu_models.MenuItem._meta.object_name,
+}
 
 
 class BaseTranslateMutation(ModelMutation):
@@ -29,17 +64,41 @@ class BaseTranslateMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def clean_node_id(cls, **data):
         if "id" in data and not data["id"]:
             raise ValidationError(
                 {"id": ValidationError("This field is required", code="required")}
             )
 
+        node_id = data["id"]
+        node_type, node_pk = graphene.Node.from_global_id(node_id)
         model_type = registry.get_type_for_model(cls._meta.model)
-        instance = cls.get_node_or_error(info, data["id"], only_type=model_type)
-        instance.translations.update_or_create(
+
+        # This mutation accepts either model IDs or translatable content IDs. Below we
+        # check if provided ID refers to a translatable content which matches with the
+        # expected model_type. If so, we transform the translatable content ID to model
+        # ID.
+        tc_model_type = TRANSLATABLE_CONTENT_TO_MODEL.get(node_type)
+        if tc_model_type and tc_model_type == str(model_type):
+            node_id = graphene.Node.to_global_id(tc_model_type, node_pk)
+
+        return node_id, model_type
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        node_id, model_type = cls.clean_node_id(**data)
+        instance = cls.get_node_or_error(info, node_id, only_type=model_type)
+        translation, created = instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
+
+        def on_commit():
+            if created:
+                info.context.plugins.translation_created(translation)
+            else:
+                info.context.plugins.translation_updated(translation)
+
+        transaction.on_commit(on_commit)
         return cls(**{cls._meta.return_field_name: instance})
 
 
@@ -68,14 +127,17 @@ class ShippingPriceTranslationInput(NameTranslationInput):
 
 class CategoryTranslate(BaseTranslateMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="Category ID.")
+        id = graphene.ID(
+            required=True,
+            description="Category ID or CategoryTranslatableContent ID.",
+        )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = TranslationInput(required=True)
 
     class Meta:
-        description = "Creates/Updates translations for Category."
+        description = "Creates/updates translations for a category."
         model = product_models.Category
         error_type_class = TranslationError
         error_type_field = "translation_errors"
@@ -84,45 +146,57 @@ class CategoryTranslate(BaseTranslateMutation):
 
 class ProductTranslate(BaseTranslateMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="Product ID.")
+        id = graphene.ID(
+            required=True,
+            description="Product ID or ProductTranslatableContent ID.",
+        )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = TranslationInput(required=True)
 
     class Meta:
-        description = "Creates/Updates translations for Product."
+        description = "Creates/updates translations for a product."
         model = product_models.Product
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        if "id" in data and not data["id"]:
-            raise ValidationError(
-                {"id": ValidationError("This field is required", code="required")}
-            )
+        node_id = cls.clean_node_id(**data)[0]
+        product = cls.get_node_or_error(info, node_id, only_type=Product)
 
-        product_pk = cls.get_global_id_or_error(data["id"], only_type=Product)
-        product = product_models.Product.objects.get(pk=product_pk)
-        product.translations.update_or_create(
+        translation, created = product.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
         product = ChannelContext(node=product, channel_slug=None)
+
+        def on_commit():
+            if created:
+                info.context.plugins.translation_created(translation)
+            else:
+                info.context.plugins.translation_updated(translation)
+
+        transaction.on_commit(on_commit)
+
         return cls(**{cls._meta.return_field_name: product})
 
 
 class CollectionTranslate(BaseTranslateMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="Collection ID.")
+        id = graphene.ID(
+            required=True,
+            description="Collection ID or CollectionTranslatableContent ID.",
+        )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = TranslationInput(required=True)
 
     class Meta:
-        description = "Creates/Updates translations for collection."
+        description = "Creates/updates translations for a collection."
         model = product_models.Collection
         error_type_class = TranslationError
         error_type_field = "translation_errors"
@@ -137,14 +211,17 @@ class CollectionTranslate(BaseTranslateMutation):
 
 class ProductVariantTranslate(BaseTranslateMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="Product Variant ID.")
+        id = graphene.ID(
+            required=True,
+            description="ProductVariant ID or ProductVariantTranslatableContent ID.",
+        )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = NameTranslationInput(required=True)
 
     class Meta:
-        description = "Creates/Updates translations for Product Variant."
+        description = "Creates/updates translations for a product variant."
         model = product_models.ProductVariant
         error_type_class = TranslationError
         error_type_field = "translation_errors"
@@ -153,37 +230,42 @@ class ProductVariantTranslate(BaseTranslateMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        if "id" in data and not data["id"]:
-            raise ValidationError(
-                {"id": ValidationError("This field is required", code="required")}
-            )
-
-        variant_pk = cls.get_global_id_or_error(data["id"], only_type=ProductVariant)
+        node_id = cls.clean_node_id(**data)[0]
+        variant_pk = cls.get_global_id_or_error(node_id, only_type=ProductVariant)
         variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
         )
-        variant.translations.update_or_create(
+        translation, created = variant.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
         variant = ChannelContext(node=variant, channel_slug=None)
 
-        transaction.on_commit(
-            lambda: info.context.plugins.product_variant_updated(variant)
-        )
+        def on_commit():
+            info.context.plugins.product_variant_updated(variant.node)
+
+            if created:
+                info.context.plugins.translation_created(translation)
+            else:
+                info.context.plugins.translation_updated(translation)
+
+        transaction.on_commit(on_commit)
 
         return cls(**{cls._meta.return_field_name: variant})
 
 
 class AttributeTranslate(BaseTranslateMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="Attribute ID.")
+        id = graphene.ID(
+            required=True,
+            description="Attribute ID or AttributeTranslatableContent ID.",
+        )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = NameTranslationInput(required=True)
 
     class Meta:
-        description = "Creates/Updates translations for attribute."
+        description = "Creates/updates translations for an attribute."
         model = attribute_models.Attribute
         error_type_class = TranslationError
         error_type_field = "translation_errors"
@@ -192,14 +274,17 @@ class AttributeTranslate(BaseTranslateMutation):
 
 class AttributeValueTranslate(BaseTranslateMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="Attribute Value ID.")
+        id = graphene.ID(
+            required=True,
+            description="AttributeValue ID or AttributeValueTranslatableContent ID.",
+        )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = AttributeValueTranslationInput(required=True)
 
     class Meta:
-        description = "Creates/Updates translations for attribute value."
+        description = "Creates/updates translations for an attribute value."
         model = attribute_models.AttributeValue
         error_type_class = TranslationError
         error_type_field = "translation_errors"
@@ -208,7 +293,9 @@ class AttributeValueTranslate(BaseTranslateMutation):
 
 class SaleTranslate(BaseTranslateMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="Voucher ID.")
+        id = graphene.ID(
+            required=True, description="Sale ID or SaleTranslatableContent ID."
+        )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
@@ -230,14 +317,16 @@ class SaleTranslate(BaseTranslateMutation):
 
 class VoucherTranslate(BaseTranslateMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="Voucher ID.")
+        id = graphene.ID(
+            required=True, description="Voucher ID or VoucherTranslatableContent ID."
+        )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = NameTranslationInput(required=True)
 
     class Meta:
-        description = "Creates/Updates translations for Voucher."
+        description = "Creates/updates translations for a voucher."
         model = discount_models.Voucher
         error_type_class = TranslationError
         error_type_field = "translation_errors"
@@ -252,14 +341,17 @@ class VoucherTranslate(BaseTranslateMutation):
 
 class ShippingPriceTranslate(BaseTranslateMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="Shipping method ID.")
+        id = graphene.ID(
+            required=True,
+            description="ShippingMethod ID or ShippingMethodTranslatableContent ID.",
+        )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = ShippingPriceTranslationInput(required=True)
 
     class Meta:
-        description = "Creates/Updates translations for shipping method."
+        description = "Creates/updates translations for a shipping method."
         model = shipping_models.ShippingMethod
         error_type_class = TranslationError
         error_type_field = "translation_errors"
@@ -274,14 +366,16 @@ class ShippingPriceTranslate(BaseTranslateMutation):
 
 class MenuItemTranslate(BaseTranslateMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="Menu Item ID.")
+        id = graphene.ID(
+            required=True, description="MenuItem ID or MenuItemTranslatableContent ID."
+        )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = NameTranslationInput(required=True)
 
     class Meta:
-        description = "Creates/Updates translations for Menu Item."
+        description = "Creates/updates translations for a menu item."
         model = menu_models.MenuItem
         error_type_class = TranslationError
         error_type_field = "translation_errors"
@@ -301,14 +395,16 @@ class PageTranslationInput(SeoTranslationInput):
 
 class PageTranslate(BaseTranslateMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="Page ID.")
+        id = graphene.ID(
+            required=True, description="Page ID or PageTranslatableContent ID."
+        )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = PageTranslationInput(required=True)
 
     class Meta:
-        description = "Creates/Updates translations for Page."
+        description = "Creates/updates translations for a page."
         model = page_models.Page
         error_type_class = TranslationError
         error_type_field = "translation_errors"
@@ -321,7 +417,7 @@ class ShopSettingsTranslationInput(graphene.InputObjectType):
 
 
 class ShopSettingsTranslate(BaseMutation):
-    shop = graphene.Field(Shop, description="Updated shop.")
+    shop = graphene.Field(Shop, description="Updated shop settings.")
 
     class Arguments:
         language_code = graphene.Argument(
@@ -333,15 +429,25 @@ class ShopSettingsTranslate(BaseMutation):
         )
 
     class Meta:
-        description = "Creates/Updates translations for Shop Settings."
+        description = "Creates/updates translations for shop settings."
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, language_code, **data):
         instance = info.context.site.settings
-        instance.translations.update_or_create(
+        translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=data.get("input")
         )
+
+        def on_commit():
+            if created:
+                info.context.plugins.translation_created(translation)
+            else:
+                info.context.plugins.translation_updated(translation)
+
+        transaction.on_commit(on_commit)
+
         return ShopSettingsTranslate(shop=Shop())

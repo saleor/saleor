@@ -4,15 +4,17 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 import graphene
+from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
 
 from ..account.models import User
 from ..checkout.models import Checkout
+from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..order.models import Order
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
-from .interface import AddressData, GatewayResponse, PaymentData
+from .interface import AddressData, GatewayResponse, PaymentData, PaymentMethodInfo
 from .models import Payment, Transaction
 
 if TYPE_CHECKING:
@@ -42,18 +44,24 @@ def create_payment_information(
         billing = checkout.billing_address
         shipping = checkout.shipping_address
         email = checkout.get_customer_email()
+        user_id = checkout.user_id
     elif payment.order:
         billing = payment.order.billing_address
         shipping = payment.order.shipping_address
         email = payment.order.user_email
+        user_id = payment.order.user_id
     else:
-        billing, shipping, email = None, None, payment.billing_email
+        billing, shipping, email, user_id = None, None, payment.billing_email, None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
 
     order_id = payment.order.pk if payment.order else None
     graphql_payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    graphql_customer_id = None
+    if user_id:
+        graphql_customer_id = graphene.Node.to_global_id("User", user_id)
 
     return PaymentData(
         gateway=payment.gateway,
@@ -70,6 +78,7 @@ def create_payment_information(
         customer_email=email,
         reuse_source=store_source,
         data=additional_data or {},
+        graphql_customer_id=graphql_customer_id,
     )
 
 
@@ -164,7 +173,7 @@ def create_transaction(
 ) -> Transaction:
     """Create a transaction based on transaction kind and gateway response."""
     # Default values for token, amount, currency are only used in cases where
-    # response from gateway was invalid or an exception occured
+    # response from gateway was invalid or an exception occurred
     if not gateway_response:
         gateway_response = GatewayResponse(
             kind=kind,
@@ -294,6 +303,7 @@ def gateway_postprocess(transaction, payment):
         payment.captured_amount -= transaction.amount
         payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
         if payment.captured_amount <= 0:
+            payment.captured_amount = Decimal("0.0")
             payment.charge_status = ChargeStatus.FULLY_REFUNDED
             payment.is_active = False
         changed_fields += ["charge_status", "is_active"]
@@ -302,7 +312,8 @@ def gateway_postprocess(transaction, payment):
         changed_fields += ["charge_status"]
     elif transaction_kind == TransactionKind.CANCEL:
         payment.charge_status = ChargeStatus.CANCELLED
-        changed_fields += ["charge_status"]
+        payment.is_active = False
+        changed_fields += ["charge_status", "is_active"]
     elif transaction_kind == TransactionKind.CAPTURE_FAILED:
         if payment.charge_status in {
             ChargeStatus.PARTIALLY_CHARGED,
@@ -345,31 +356,35 @@ def update_payment(payment: "Payment", gateway_response: "GatewayResponse"):
         changed_fields.append("psp_reference")
 
     if gateway_response.payment_method_info:
-        _update_payment_method_details(payment, gateway_response, changed_fields)
+        update_payment_method_details(
+            payment, gateway_response.payment_method_info, changed_fields
+        )
 
     if changed_fields:
         payment.save(update_fields=changed_fields)
 
 
-def _update_payment_method_details(
-    payment: "Payment", gateway_response: "GatewayResponse", changed_fields: List[str]
+def update_payment_method_details(
+    payment: "Payment",
+    payment_method_info: Optional["PaymentMethodInfo"],
+    changed_fields: List[str],
 ):
-    if not gateway_response.payment_method_info:
+    if not payment_method_info:
         return
-    if gateway_response.payment_method_info.brand:
-        payment.cc_brand = gateway_response.payment_method_info.brand
+    if payment_method_info.brand:
+        payment.cc_brand = payment_method_info.brand
         changed_fields.append("cc_brand")
-    if gateway_response.payment_method_info.last_4:
-        payment.cc_last_digits = gateway_response.payment_method_info.last_4
+    if payment_method_info.last_4:
+        payment.cc_last_digits = payment_method_info.last_4
         changed_fields.append("cc_last_digits")
-    if gateway_response.payment_method_info.exp_year:
-        payment.cc_exp_year = gateway_response.payment_method_info.exp_year
+    if payment_method_info.exp_year:
+        payment.cc_exp_year = payment_method_info.exp_year
         changed_fields.append("cc_exp_year")
-    if gateway_response.payment_method_info.exp_month:
-        payment.cc_exp_month = gateway_response.payment_method_info.exp_month
+    if payment_method_info.exp_month:
+        payment.cc_exp_month = payment_method_info.exp_month
         changed_fields.append("cc_exp_month")
-    if gateway_response.payment_method_info.type:
-        payment.payment_method_type = gateway_response.payment_method_info.type
+    if payment_method_info.type:
+        payment.payment_method_type = payment_method_info.type
         changed_fields.append("payment_method_type")
 
 
@@ -386,3 +401,29 @@ def is_currency_supported(currency: str, gateway_id: str, manager: "PluginsManag
     """Return true if the given gateway supports given currency."""
     available_gateways = manager.list_payment_gateways(currency=currency)
     return any([gateway.id == gateway_id for gateway in available_gateways])
+
+
+def price_from_minor_unit(value: str, currency: str):
+    """Convert minor unit (smallest unit of currency) to decimal value.
+
+    (value: 1000, currency: USD) will be converted to 10.00
+    """
+
+    value = Decimal(value)
+    precision = get_currency_precision(currency)
+    number_places = Decimal(10) ** -precision
+    return value * number_places
+
+
+def price_to_minor_unit(value: Decimal, currency: str):
+    """Convert decimal value to the smallest unit of currency.
+
+    Take the value, discover the precision of currency and multiply value by
+    Decimal('10.0'), then change quantization to remove the comma.
+    Decimal(10.0) -> str(1000)
+    """
+    value = quantize_price(value, currency=currency)
+    precision = get_currency_precision(currency)
+    number_places = Decimal("10.0") ** precision
+    value_without_comma = value * number_places
+    return str(value_without_comma.quantize(Decimal("1")))

@@ -236,7 +236,7 @@ class BaseMutation(graphene.Mutation):
 
     @staticmethod
     def remap_error_fields(validation_error, field_map):
-        """Rename validation_error fields accoring to provided field_map.
+        """Rename validation_error fields according to provided field_map.
 
         Skips renaming fields from field_map that are not on validation_error.
         """

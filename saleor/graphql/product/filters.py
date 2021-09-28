@@ -38,7 +38,7 @@ from ..core.filters import (
     MetadataFilterBase,
     ObjectTypeFilter,
 )
-from ..core.types import FilterInputObjectType
+from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_fields_containing_value, filter_range_field
@@ -55,21 +55,27 @@ T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
 
 
 def _clean_product_attributes_filter_input(filter_value, queries):
-    attributes = Attribute.objects.prefetch_related("values")
-    attributes_map: Dict[str, int] = {
-        attribute.slug: attribute.pk for attribute in attributes
-    }
-    values_map: Dict[str, Dict[str, int]] = {
-        attr.slug: {value.slug: value.pk for value in attr.values.all()}
-        for attr in attributes
-    }
+    attributes_slug_pk_map: Dict[str, int] = {}
+    attributes_pk_slug_map: Dict[int, str] = {}
+    values_map: Dict[str, Dict[str, int]] = defaultdict(dict)
+    for attr_slug, attr_pk in Attribute.objects.values_list("slug", "id"):
+        attributes_slug_pk_map[attr_slug] = attr_pk
+        attributes_pk_slug_map[attr_pk] = attr_slug
+
+    for (
+        attr_pk,
+        value_pk,
+        value_slug,
+    ) in AttributeValue.objects.values_list("attribute_id", "pk", "slug"):
+        attr_slug = attributes_pk_slug_map[attr_pk]
+        values_map[attr_slug][value_slug] = value_pk
 
     # Convert attribute:value pairs into a dictionary where
     # attributes are keys and values are grouped in lists
     for attr_name, val_slugs in filter_value:
-        if attr_name not in attributes_map:
+        if attr_name not in attributes_slug_pk_map:
             raise ValueError("Unknown attribute name: %r" % (attr_name,))
-        attr_pk = attributes_map[attr_name]
+        attr_pk = attributes_slug_pk_map[attr_name]
         attr_val_pk = [
             values_map[attr_name][val_slug]
             for val_slug in val_slugs
@@ -110,9 +116,44 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
         queries[attr_pk] += attr_val_pks
 
 
-def _clean_product_attributes_boolean_filter_input(
-    filter_value, queries: T_PRODUCT_FILTER_QUERIES
+def _clean_product_attributes_date_time_range_filter_input(
+    filter_value, queries, *, is_date=False
 ):
+    attribute_slugs = [slug for slug, _ in filter_value]
+    attributes = Attribute.objects.filter(slug__in=attribute_slugs).prefetch_related(
+        "values"
+    )
+    values_map = {
+        attr.slug: {
+            "pk": attr.pk,
+            "values": {val.date_time: val.pk for val in attr.values.all()},
+        }
+        for attr in attributes
+    }
+    for attr_slug, val_range in filter_value:
+        attr_pk = values_map[attr_slug]["pk"]
+        attr_values = values_map[attr_slug]["values"]
+        gte = val_range.get("gte")
+        lte = val_range.get("lte")
+        matching_values_pk = []
+
+        for value, pk in attr_values.items():
+            if is_date:
+                value = value.date()
+
+            if gte and lte:
+                if gte <= value <= lte:
+                    matching_values_pk.append(pk)
+            elif gte:
+                if gte <= value:
+                    matching_values_pk.append(pk)
+            elif lte >= value:
+                matching_values_pk.append(pk)
+
+        queries[attr_pk] += matching_values_pk
+
+
+def _clean_product_attributes_boolean_filter_input(filter_value, queries):
     attribute_slugs = [slug for slug, _ in filter_value]
     attributes = Attribute.objects.filter(
         input_type=AttributeInputType.BOOLEAN, slug__in=attribute_slugs
@@ -129,7 +170,7 @@ def _clean_product_attributes_boolean_filter_input(
         attr_pk = values_map[attr_slug]["pk"]
         value_pk = values_map[attr_slug]["values"].get(val)
         if value_pk:
-            queries[attr_pk] = [value_pk]
+            queries[attr_pk] += [value_pk]
 
 
 def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
@@ -168,7 +209,12 @@ def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
 
 
 def filter_products_by_attributes(
-    qs, filter_values, filter_range_values, filter_boolean_values
+    qs,
+    filter_values,
+    filter_range_values,
+    filter_boolean_values,
+    date_range_list,
+    date_time_range_list,
 ):
     queries: Dict[int, List[Optional[int]]] = defaultdict(list)
     try:
@@ -176,6 +222,14 @@ def filter_products_by_attributes(
             _clean_product_attributes_filter_input(filter_values, queries)
         if filter_range_values:
             _clean_product_attributes_range_filter_input(filter_range_values, queries)
+        if date_range_list:
+            _clean_product_attributes_date_time_range_filter_input(
+                date_range_list, queries, is_date=True
+            )
+        if date_time_range_list:
+            _clean_product_attributes_date_time_range_filter_input(
+                date_time_range_list, queries
+            )
         if filter_boolean_values:
             _clean_product_attributes_boolean_filter_input(
                 filter_boolean_values, queries
@@ -269,8 +323,10 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
 def _filter_attributes(qs, _, value):
     if value:
         value_list = []
-        value_range_list = []
         boolean_list = []
+        value_range_list = []
+        date_range_list = []
+        date_time_range_list = []
 
         for v in value:
             slug = v["slug"]
@@ -278,10 +334,20 @@ def _filter_attributes(qs, _, value):
                 value_list.append((slug, v["values"]))
             elif "values_range" in v:
                 value_range_list.append((slug, v["values_range"]))
+            elif "date" in v:
+                date_range_list.append((slug, v["date"]))
+            elif "date_time" in v:
+                date_time_range_list.append((slug, v["date_time"]))
             elif "boolean" in v:
                 boolean_list.append((slug, v["boolean"]))
+
         qs = filter_products_by_attributes(
-            qs, value_list, value_range_list, boolean_list
+            qs,
+            value_list,
+            value_range_list,
+            boolean_list,
+            date_range_list,
+            date_time_range_list,
         )
     return qs
 
@@ -329,7 +395,20 @@ def _filter_products_is_published(qs, _, value, channel_slug):
     product_channel_listings = ProductChannelListing.objects.filter(
         Exists(channel.filter(pk=OuterRef("channel_id"))), is_published=value
     ).values("product_id")
-    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
+
+    # Filter out product for which there is no variant with price
+    variant_channel_listings = ProductVariantChannelListing.objects.filter(
+        Exists(channel.filter(pk=OuterRef("channel_id"))),
+        price_amount__isnull=False,
+    ).values("id")
+    variants = ProductVariant.objects.filter(
+        Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
+    ).values("product_id")
+
+    return qs.filter(
+        Exists(product_channel_listings.filter(product_id=OuterRef("pk"))),
+        Exists(variants.filter(product_id=OuterRef("pk"))),
+    )
 
 
 def _filter_variant_price(qs, _, value, channel_slug):
@@ -589,7 +668,7 @@ class ProductTypeFilter(MetadataFilterBase):
         fields = ["search", "configurable", "product_type"]
 
 
-class ProductFilterInput(FilterInputObjectType):
+class ProductFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = ProductFilter
 
@@ -599,7 +678,7 @@ class ProductVariantFilterInput(FilterInputObjectType):
         filterset_class = ProductVariantFilter
 
 
-class CollectionFilterInput(FilterInputObjectType):
+class CollectionFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = CollectionFilter
 

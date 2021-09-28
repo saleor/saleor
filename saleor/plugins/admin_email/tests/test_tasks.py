@@ -30,7 +30,13 @@ def test_send_staff_password_reset_email_task_default_template(
         "site_name": "Saleor",
     }
 
-    send_staff_password_reset_email_task(recipient_email, payload, email_dict_config)
+    send_staff_password_reset_email_task(
+        recipient_email,
+        payload,
+        email_dict_config,
+        "subject",
+        "template",
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -57,7 +63,13 @@ def test_send_staff_password_reset_email_task_custom_template(
         "site_name": "Saleor",
     }
 
-    send_staff_password_reset_email_task(recipient_email, payload, email_dict_config)
+    send_staff_password_reset_email_task(
+        recipient_email,
+        payload,
+        email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
 
     email_config = EmailConfig(**email_dict_config)
     mocked_send_email.assert_called_with(
@@ -84,7 +96,13 @@ def test_send_set_staff_password_email_task_default_template(
         "domain": "localhost:8000",
     }
 
-    send_set_staff_password_email_task(recipient_email, payload, email_dict_config)
+    send_set_staff_password_email_task(
+        recipient_email,
+        payload,
+        email_dict_config,
+        "subject",
+        "template",
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -111,7 +129,13 @@ def test_send_set_staff_password_email_task_custom_template(
         "domain": "localhost:8000",
     }
 
-    send_set_staff_password_email_task(recipient_email, payload, email_dict_config)
+    send_set_staff_password_email_task(
+        recipient_email,
+        payload,
+        email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
 
     email_config = EmailConfig(**email_dict_config)
     mocked_send_email.assert_called_with(
@@ -138,7 +162,11 @@ def test_send_email_with_link_to_download_file_task_default_template(
         "domain": "localhost:8000",
     }
     send_email_with_link_to_download_file_task(
-        recipient_email, payload, email_dict_config
+        recipient_email,
+        payload,
+        email_dict_config,
+        "subject",
+        "template",
     )
 
     # confirm that mail has correct structure and email was sent
@@ -172,7 +200,11 @@ def test_send_email_with_link_to_download_file_task_custom_template(
     }
 
     send_email_with_link_to_download_file_task(
-        recipient_email, payload, email_dict_config
+        recipient_email,
+        payload,
+        email_dict_config,
+        expected_subject,
+        expected_template_str,
     )
 
     email_config = EmailConfig(**email_dict_config)
@@ -202,7 +234,13 @@ def test_send_export_failed_email_task_default_template(
         "domain": "localhost:8000",
     }
 
-    send_export_failed_email_task(recipient_email, payload, email_dict_config)
+    send_export_failed_email_task(
+        recipient_email,
+        payload,
+        email_dict_config,
+        "subject",
+        "template",
+    )
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
@@ -231,7 +269,13 @@ def test_send_export_failed_email_task_custom_template(
         "domain": "localhost:8000",
     }
 
-    send_export_failed_email_task(recipient_email, payload, email_dict_config)
+    send_export_failed_email_task(
+        recipient_email,
+        payload,
+        email_dict_config,
+        expected_subject,
+        expected_template_str,
+    )
 
     email_config = EmailConfig(**email_dict_config)
     mocked_send_email.assert_called_with(
@@ -263,7 +307,11 @@ def test_send_staff_order_confirmation_email_task_default_template(
     }
 
     send_staff_order_confirmation_email_task(
-        [recipient_email], payload, email_dict_config
+        [recipient_email],
+        payload,
+        email_dict_config,
+        "subject",
+        "template",
     )
 
     # confirm that mail has correct structure and email was sent
@@ -291,7 +339,11 @@ def test_send_staff_order_confirmation_email_task_custom_template(
     }
 
     send_staff_order_confirmation_email_task(
-        [recipient_email], payload, email_dict_config
+        [recipient_email],
+        payload,
+        email_dict_config,
+        expected_subject,
+        expected_template_str,
     )
 
     email_config = EmailConfig(**email_dict_config)

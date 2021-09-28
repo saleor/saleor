@@ -241,6 +241,8 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     rich_text_attribute,
     color_attribute,
     boolean_attribute,
+    date_attribute,
+    date_time_attribute,
     variant_with_many_stocks,
 ):
     # given
@@ -252,6 +254,8 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         numeric_attribute,
         rich_text_attribute,
         boolean_attribute,
+        date_attribute,
+        date_time_attribute,
     )
     product.product_type.product_attributes.add(
         file_attribute,
@@ -260,6 +264,8 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         numeric_attribute,
         rich_text_attribute,
         boolean_attribute,
+        date_attribute,
+        date_time_attribute,
     )
 
     # add boolean attribute
@@ -270,6 +276,26 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     )
     associate_attribute_values_to_instance(
         product, boolean_attribute, boolean_attribute.values.first()
+    )
+
+    # add date attribute
+    associate_attribute_values_to_instance(
+        variant_with_many_stocks,
+        date_attribute,
+        date_attribute.values.first(),
+    )
+    associate_attribute_values_to_instance(
+        product, date_attribute, date_attribute.values.first()
+    )
+
+    # add date time attribute
+    associate_attribute_values_to_instance(
+        variant_with_many_stocks,
+        date_time_attribute,
+        date_time_attribute.values.first(),
+    )
+    associate_attribute_values_to_instance(
+        product, date_time_attribute, date_time_attribute.values.first()
     )
 
     # add rich text attribute

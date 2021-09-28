@@ -32,11 +32,7 @@ from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
 from ....warehouse.models import Stock
-from ...tests.utils import (
-    assert_no_permission,
-    get_graphql_content,
-    get_graphql_content_from_response,
-)
+from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
@@ -82,7 +78,7 @@ def test_update_checkout_shipping_method_if_invalid(
     other_shipping_method,
     shipping_zone_without_countries,
 ):
-    """If the shipping method is invalid, it should replace it."""
+    # If the shipping method is invalid, it should be removed.
 
     checkout = checkout_with_single_item
     checkout.shipping_address = address
@@ -96,18 +92,13 @@ def test_update_checkout_shipping_method_if_invalid(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
-    assert checkout.shipping_method == other_shipping_method
-    assert checkout_info.shipping_method == other_shipping_method
-    assert (
-        checkout_info.shipping_method_channel_listings
-        == shipping_models.ShippingMethodChannelListing.objects.filter(
-            shipping_method=other_shipping_method, channel=checkout_info.channel
-        ).first()
-    )
+    assert checkout.shipping_method is None
+    assert checkout_info.shipping_method is None
+    assert checkout_info.shipping_method_channel_listings is None
 
     # Ensure the checkout's shipping method was saved
     checkout.refresh_from_db(fields=["shipping_method"])
-    assert checkout.shipping_method == other_shipping_method
+    assert checkout.shipping_method is None
 
 
 MUTATION_CHECKOUT_CREATE = """
@@ -994,6 +985,62 @@ def test_checkout_create_check_lines_quantity_multiple_warehouse(
     assert data["errors"][0]["field"] == "quantity"
 
 
+def test_checkout_create_when_all_stocks_exceeded(
+    user_api_client, variant_with_many_stocks, graphql_address_data, channel_USD
+):
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 16, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": graphql_address_data,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # make stocks exceeded and assert
+    variant.stocks.update(quantity=-99)
+    for stock in variant.stocks.all():
+        assert stock.quantity == -99
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert data["errors"][0]["message"] == (
+        "Could not add items SKU_A. Only 0 remaining in stock."
+    )
+    assert data["errors"][0]["field"] == "quantity"
+
+
+def test_checkout_create_when_one_stock_exceeded(
+    user_api_client, variant_with_many_stocks, graphql_address_data, channel_USD
+):
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 16, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": graphql_address_data,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # make first stock exceeded
+    stock = variant.stocks.first()
+    stock.quantity = -1
+    stock.save()
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert data["errors"][0]["message"] == (
+        "Could not add items SKU_A. Only 2 remaining in stock."
+    )
+    assert data["errors"][0]["field"] == "quantity"
+
+
 @override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_create_sets_country_from_shipping_address_country(
     user_api_client,
@@ -1022,6 +1069,27 @@ def test_checkout_create_sets_country_from_shipping_address_country(
     content["data"]["checkoutCreate"]
     checkout = Checkout.objects.first()
     assert checkout.country == "US"
+
+
+def test_checkout_create_sets_country_when_no_shipping_address_is_given(
+    api_client, variant_with_many_stocks_different_shipping_zones, channel_USD
+):
+    variant = variant_with_many_stocks_different_shipping_zones
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    # should set channel's default_country
+    api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    checkout = Checkout.objects.first()
+    assert checkout.country == channel_USD.default_country
 
 
 @override_settings(DEFAULT_COUNTRY="DE")
@@ -1510,6 +1578,112 @@ def test_checkout_customer_attach(
     assert checkout.email == customer_user.email
 
 
+def test_checkout_customer_attach_by_app(
+    app_api_client, checkout_with_item, customer_user, permission_impersonate_user
+):
+    checkout = checkout_with_item
+    checkout.email = "old@email.com"
+    checkout.save()
+    assert checkout.user is None
+
+    query = """
+        mutation checkoutCustomerAttach($token: UUID, $customerId: ID) {
+            checkoutCustomerAttach(token: $token, customerId: $customerId) {
+                checkout {
+                    token
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"token": checkout.token, "customerId": customer_id}
+
+    # Mutation should succeed for authenticated customer
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_impersonate_user]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCustomerAttach"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.user == customer_user
+    assert checkout.email == customer_user.email
+
+
+def test_checkout_customer_attach_by_app_without_permission(
+    app_api_client, checkout_with_item, customer_user
+):
+    checkout = checkout_with_item
+    checkout.email = "old@email.com"
+    checkout.save()
+    assert checkout.user is None
+
+    query = """
+        mutation checkoutCustomerAttach($token: UUID, $customerId: ID) {
+            checkoutCustomerAttach(token: $token, customerId: $customerId) {
+                checkout {
+                    token
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"token": checkout.token, "customerId": customer_id}
+
+    # Mutation should succeed for authenticated customer
+    response = app_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    assert_no_permission(response)
+
+
+def test_checkout_customer_attach_user_to_checkout_with_user(
+    user_api_client, customer_user, user_checkout, address
+):
+    checkout = user_checkout
+
+    query = """
+    mutation checkoutCustomerAttach($checkoutId: ID, $token: UUID) {
+        checkoutCustomerAttach(checkoutId: $checkoutId, token: $token) {
+            checkout {
+                token
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+    default_address = address.get_copy()
+    second_user = User.objects.create_user(
+        "test2@example.com",
+        "password",
+        default_billing_address=default_address,
+        default_shipping_address=default_address,
+        first_name="Test2",
+        last_name="Tested",
+    )
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    customer_id = graphene.Node.to_global_id("User", second_user.pk)
+    variables = {"checkoutId": checkout_id, "customerId": customer_id}
+    response = user_api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+
+
 MUTATION_CHECKOUT_CUSTOMER_DETACH = """
     mutation checkoutCustomerDetach($token: UUID) {
         checkoutCustomerDetach(token: $token) {
@@ -1549,6 +1723,43 @@ def test_checkout_customer_detach(user_api_client, checkout_with_item, customer_
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_CUSTOMER_DETACH, variables
     )
+    assert_no_permission(response)
+
+
+def test_checkout_customer_detach_by_app(
+    app_api_client, checkout_with_item, customer_user, permission_impersonate_user
+):
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+
+    variables = {"token": checkout.token}
+
+    # Mutation should succeed if the user owns this checkout.
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_DETACH,
+        variables,
+        permissions=[permission_impersonate_user],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCustomerDetach"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.user is None
+
+
+def test_checkout_customer_detach_by_app_without_permissions(
+    app_api_client, checkout_with_item, customer_user
+):
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+
+    variables = {"token": checkout.token}
+
+    # Mutation should succeed if the user owns this checkout.
+    response = app_api_client.post_graphql(MUTATION_CHECKOUT_CUSTOMER_DETACH, variables)
+
     assert_no_permission(response)
 
 
@@ -2363,44 +2574,6 @@ def test_checkout_shipping_method_update_shipping_zone_with_channel(
     assert data["checkout"]["token"] == str(checkout_with_item.token)
 
     assert checkout.shipping_method == shipping_method
-
-
-QUERY_CHECKOUT_LINE_BY_ID = """
-    query checkoutLine($id: ID) {
-        checkoutLine(id: $id) {
-            id
-        }
-    }
-"""
-
-
-def test_query_checkout_line(checkout_with_item, user_api_client):
-    query = QUERY_CHECKOUT_LINE_BY_ID
-    checkout = checkout_with_item
-    line = checkout.lines.first()
-    line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
-    variables = {"id": line_id}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    received_id = content["data"]["checkoutLine"]["id"]
-    assert received_id == line_id
-
-
-def test_query_checkout_line_by_invalid_id(staff_api_client, page_type):
-    id = "bh/"
-    variables = {"id": id}
-    response = staff_api_client.post_graphql(QUERY_CHECKOUT_LINE_BY_ID, variables)
-    content = get_graphql_content_from_response(response)
-    assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
-    assert content["data"]["checkoutLine"] is None
-
-
-def test_query_checkout_line_with_invalid_object_type(staff_api_client, page_type):
-    variables = {"id": graphene.Node.to_global_id("Order", page_type.pk)}
-    response = staff_api_client.post_graphql(QUERY_CHECKOUT_LINE_BY_ID, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["checkoutLine"] is None
 
 
 def test_query_checkouts(

@@ -1,4 +1,3 @@
-{% load i18n %}
 {% load price from taxed_prices %}
 <!DOCTYPE html>
 <html>
@@ -206,39 +205,27 @@
     </div>
     <div class="section-invoice-info section-right">
         <div class="content-padded">
-            <span class="header-title">
-                {% trans "INVOICE INFORMATION" context "Invoice PDF header" %}
-            </span>
-            <span class="header-category">
-                {% trans "Invoice number:" context "Invoice PDF header: Invoice number" %}
-            </span>
+            <span class="header-title">INVOICE INFORMATION</span>
+            <span class="header-category">Invoice number:</span>
             <div class="padded-font-sm"></div>
             <span class="header-item">{{ invoice.number }}</span>
             <div class="padded-font"></div>
-            <span class="header-category">
-                {% trans "Order:" context "Invoice PDF header: order number" %}
-            </span>
+            <span class="header-category">Order:</span>
             <div class="padded-font-sm"></div>
             <span class="header-item">{{ order.id }}</span>
             <div class="padded-font"></div>
-            <span class="header-category">
-                {% trans "Date:" context "Invoice PDF header" %}
-            </span>
+            <span class="header-category">Date:</span>
             <div class="padded-font-sm"></div>
             <span class="header-item">{{ creation_date }}</span>
             <div class="padded-font"></div>
-            <span class="header-category">
-                {% trans "Amount:" context "Invoice PDF amount (price)" %}
-            </span>
+            <span class="header-category">Amount:</span>
             <div class="padded-font-sm"></div>
             <span class="header-item">{% price order.total_gross %}</span>
         </div>
     </div>
     <div class="section-left">
         <div class="content-tight-padded padded-top">
-            <span class="header-title">
-                {% trans "BILLING ADDRESS" context "Invoice PDF" %}
-            </span>
+            <span class="header-title">BILLING ADDRESS</span>
             <br />
             <span class="normal-text">
                 {{ order.billing_address.first_name }}
@@ -265,9 +252,7 @@
     </div>
     <div class="section-right">
         <div class="content-tight-padded padded-top">
-            <span class="header-title">
-                {% trans "SHIPMENT ADDRESS" context "Invoice PDF" %}
-            </span>
+            <span class="header-title">SHIPMENT ADDRESS</span>
             <br />
             <span class="normal-text">
                 {{ order.shipping_address.first_name }}
@@ -297,21 +282,19 @@
     </div>
     <div class="section-left">
         <div class="content-tight-padded padded-top">
-            <span class="header-title">{% trans "PAYMENT METHOD" context "Invoice PDF" %}</span>
+            <span class="header-title">PAYMENT METHOD</span>
             <br />
             {% if order.get_last_payment %}
                 <span class="normal-text">{{ order.get_last_payment.gateway }}</span>
             {% else %}
-                <span class="normal-text">
-                    {% trans "Unpaid" context "Invoice PDF: Payment method value" %}
-                </span>
+                <span class="normal-text">Unpaid</span>
             {% endif %}
             <br />
         </div>
     </div>
     <div class="section-right">
         <div class="content-tight-padded padded-top">
-            <span class="header-title">{% trans "SHIPMENT METHOD" context "Invoice PDF" %}</span>
+            <span class="header-title">SHIPMENT METHOD</span>
             <br />
             <span class="normal-text">{{ order.shipping_method_name }}</span>
             <br />
@@ -321,7 +304,7 @@
         <div class="content-separator">&nbsp;</div>
     </div>
     <div class="content-padded">
-        <span class="header-title">{% trans "ITEMS ORDERED" context "Invoice PDF table header" %}</span>
+        <span class="header-title">ITEMS ORDERED</span>
         {% include "invoices/invoice_products_table.html" with products=products_first_page %}
         {% if not rest_of_products|length %}
             {% if products_first_page|length == 4 %}

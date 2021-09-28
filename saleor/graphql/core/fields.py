@@ -8,6 +8,7 @@ from graphql.error import GraphQLError
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
 
+from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
 from ..channel import ChannelContext, ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..utils.sorting import sort_queryset_for_connection
@@ -191,8 +192,14 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
     def filter_iterable(cls, iterable, filterset_class, filters_name, info, **args):
         filter_input = args.get(filters_name)
         if filter_input:
+            try:
+                filter_channel = str(filter_input["channel"])
+            except (NoDefaultChannel, ChannelNotDefined, GraphQLError, KeyError):
+                filter_channel = None
             filter_input["channel"] = (
-                args.get("channel") or get_default_channel_slug_or_graphql_error()
+                args.get("channel")
+                or filter_channel
+                or get_default_channel_slug_or_graphql_error()
             )
         if filter_input and filterset_class:
             instance = filterset_class(

@@ -5,6 +5,7 @@ from ..core.permissions import (
     PagePermissions,
     PaymentPermissions,
     ProductPermissions,
+    SitePermissions,
 )
 
 
@@ -16,6 +17,10 @@ class WebhookEventType:
     ORDER_UPDATED = "order_updated"
     ORDER_CANCELLED = "order_cancelled"
     ORDER_FULFILLED = "order_fulfilled"
+
+    DRAFT_ORDER_CREATED = "draft_order_created"
+    DRAFT_ORDER_UPDATED = "draft_order_updated"
+    DRAFT_ORDER_DELETED = "draft_order_deleted"
 
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
@@ -51,6 +56,9 @@ class WebhookEventType:
     PAYMENT_CONFIRM = "payment_confirm"
     PAYMENT_PROCESS = "payment_process"
 
+    TRANSLATION_CREATED = "translation_created"
+    TRANSLATION_UPDATED = "translation_updated"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         ORDER_CREATED: "Order created",
@@ -59,6 +67,9 @@ class WebhookEventType:
         ORDER_UPDATED: "Order updated",
         ORDER_CANCELLED: "Order cancelled",
         ORDER_FULFILLED: "Order fulfilled",
+        DRAFT_ORDER_CREATED: "Draft order created",
+        DRAFT_ORDER_UPDATED: "Draft order updated",
+        DRAFT_ORDER_DELETED: "Draft order deleted",
         INVOICE_REQUESTED: "Invoice requested",
         INVOICE_DELETED: "Invoice deleted",
         INVOICE_SENT: "Invoice sent",
@@ -84,6 +95,8 @@ class WebhookEventType:
         PAYMENT_PROCESS: "Process payment",
         PAYMENT_REFUND: "Refund payment",
         PAYMENT_VOID: "Void payment",
+        TRANSLATION_CREATED: "Create translation",
+        TRANSLATION_UPDATED: "Update translation",
     }
 
     CHOICES = [
@@ -94,6 +107,9 @@ class WebhookEventType:
         (ORDER_UPDATED, DISPLAY_LABELS[ORDER_UPDATED]),
         (ORDER_CANCELLED, DISPLAY_LABELS[ORDER_CANCELLED]),
         (ORDER_FULFILLED, DISPLAY_LABELS[ORDER_FULFILLED]),
+        (DRAFT_ORDER_CREATED, DISPLAY_LABELS[DRAFT_ORDER_CREATED]),
+        (DRAFT_ORDER_UPDATED, DISPLAY_LABELS[DRAFT_ORDER_UPDATED]),
+        (DRAFT_ORDER_DELETED, DISPLAY_LABELS[DRAFT_ORDER_DELETED]),
         (INVOICE_REQUESTED, DISPLAY_LABELS[INVOICE_REQUESTED]),
         (INVOICE_DELETED, DISPLAY_LABELS[INVOICE_DELETED]),
         (INVOICE_SENT, DISPLAY_LABELS[INVOICE_SENT]),
@@ -119,6 +135,8 @@ class WebhookEventType:
         (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
         (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
         (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
+        (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
+        (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
     ]
 
     PAYMENT_EVENTS = [
@@ -138,6 +156,9 @@ class WebhookEventType:
         ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CANCELLED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULFILLED: OrderPermissions.MANAGE_ORDERS,
+        DRAFT_ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
+        DRAFT_ORDER_DELETED: OrderPermissions.MANAGE_ORDERS,
+        DRAFT_ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
         INVOICE_REQUESTED: OrderPermissions.MANAGE_ORDERS,
         INVOICE_DELETED: OrderPermissions.MANAGE_ORDERS,
         INVOICE_SENT: OrderPermissions.MANAGE_ORDERS,
@@ -163,4 +184,6 @@ class WebhookEventType:
         PAYMENT_PROCESS: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_REFUND: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
+        TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
     }

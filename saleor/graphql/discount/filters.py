@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher, VoucherQueryset
-from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
+from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateTimeRangeInput, IntRangeInput
 from ..utils.filters import filter_by_query_param, filter_range_field
 from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
@@ -75,7 +75,7 @@ def filter_voucher_search(qs, _, value):
     return qs
 
 
-class VoucherFilter(django_filters.FilterSet):
+class VoucherFilter(MetadataFilterBase):
     status = ListObjectTypeFilter(input_class=DiscountStatusEnum, method=filter_status)
     times_used = ObjectTypeFilter(input_class=IntRangeInput, method=filter_times_used)
 
@@ -90,7 +90,7 @@ class VoucherFilter(django_filters.FilterSet):
         fields = ["status", "times_used", "discount_type", "started", "search"]
 
 
-class SaleFilter(django_filters.FilterSet):
+class SaleFilter(MetadataFilterBase):
     status = ListObjectTypeFilter(input_class=DiscountStatusEnum, method=filter_status)
     sale_type = ObjectTypeFilter(
         input_class=DiscountValueTypeEnum, method=filter_sale_type

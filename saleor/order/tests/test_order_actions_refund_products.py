@@ -32,7 +32,8 @@ def test_create_refund_fulfillment_only_order_lines(
     lines_count = order_with_lines.lines.count()
 
     returned_fulfillemnt = create_refund_fulfillment(
-        requester=None,
+        user=None,
+        app=None,
         order=order_with_lines,
         payment=payment,
         order_lines_to_refund=[
@@ -90,7 +91,8 @@ def test_create_refund_fulfillment_included_shipping_costs(
     lines_count = order_with_lines.lines.count()
 
     returned_fulfillemnt = create_refund_fulfillment(
-        requester=None,
+        user=None,
+        app=None,
         order=order_with_lines,
         payment=payment,
         order_lines_to_refund=[
@@ -141,7 +143,8 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
     fulfillment_lines_to_refund = fulfillment_lines
 
     returned_fulfillemnt = create_refund_fulfillment(
-        requester=None,
+        user=None,
+        app=None,
         order=fulfilled_order,
         payment=payment,
         order_lines_to_refund=[],
@@ -191,7 +194,8 @@ def test_create_refund_fulfillment_custom_amount(
     amount = Decimal("10.00")
 
     returned_fulfillemnt = create_refund_fulfillment(
-        requester=None,
+        user=None,
+        app=None,
         order=fulfilled_order,
         payment=payment,
         order_lines_to_refund=[],

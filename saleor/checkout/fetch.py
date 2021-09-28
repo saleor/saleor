@@ -147,6 +147,7 @@ def get_valid_shipping_method_list_for_checkout_info(
     subtotal = manager.calculate_checkout_subtotal(
         checkout_info, lines, checkout_info.shipping_address, discounts
     )
+    subtotal -= checkout_info.checkout.discount
     valid_shipping_method = get_valid_shipping_methods_for_checkout(
         checkout_info, lines, subtotal, country_code=country_code
     )

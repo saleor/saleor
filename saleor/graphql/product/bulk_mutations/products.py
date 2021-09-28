@@ -32,7 +32,6 @@ from ...core.types.common import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
-from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.products import (
@@ -122,7 +121,6 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 
         cls.delete_assigned_attribute_values(pks)
 
-        requester = get_user_or_app_from_context(info.context)
         draft_order_lines_data = get_draft_order_lines_data_for_variants(variants_ids)
 
         response = super().perform_mutation(
@@ -141,7 +139,9 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             lines_data = [(line.quantity, line) for line in order_lines]
-            order_events.order_line_product_removed_event(order, requester, lines_data)
+            order_events.order_line_product_removed_event(
+                order, info.context.user, info.context.app, lines_data
+            )
 
         order_pks = draft_order_lines_data.order_pks
         if order_pks:
@@ -165,7 +165,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         products = [product for product in queryset]
         queryset.delete()
         for product in products:
-            variants = product_variant_map.get(product.id)
+            variants = product_variant_map.get(product.id, [])
             info.context.plugins.product_deleted(product, variants)
 
 
@@ -173,9 +173,16 @@ class BulkAttributeValueInput(InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
     values = graphene.List(
         graphene.NonNull(graphene.String),
-        required=True,
+        required=False,
         description=(
             "The value or slug of an attribute to resolve. "
+            "If the passed value is non-existent, it will be created."
+        ),
+    )
+    boolean = graphene.Boolean(
+        required=False,
+        description=(
+            "The boolean value of an attribute to resolve. "
             "If the passed value is non-existent, it will be created."
         ),
     )
@@ -403,7 +410,10 @@ class ProductVariantBulkCreate(BaseMutation):
     ):
         attribute_values = defaultdict(list)
         for attr in attributes_data:
-            attribute_values[attr.id].extend(attr.values)
+            if "boolean" in attr:
+                attribute_values[attr.id] = attr["boolean"]
+            else:
+                attribute_values[attr.id].extend(attr.get("values", []))
         if attribute_values in used_attribute_values:
             raise ValidationError(
                 "Duplicated attribute values for product variant.",
@@ -542,7 +552,6 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         except ValidationError as error:
             return 0, error
 
-        requester = get_user_or_app_from_context(info.context)
         draft_order_lines_data = get_draft_order_lines_data_for_variants(pks)
 
         product_pks = list(
@@ -578,7 +587,9 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             lines_data = [(line.quantity, line) for line in order_lines]
-            order_events.order_line_variant_removed_event(order, requester, lines_data)
+            order_events.order_line_variant_removed_event(
+                order, info.context.user, info.context.app, lines_data
+            )
 
         order_pks = draft_order_lines_data.order_pks
         if order_pks:

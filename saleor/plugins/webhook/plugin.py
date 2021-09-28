@@ -18,6 +18,7 @@ from ...webhook.payloads import (
     generate_product_deleted_payload,
     generate_product_payload,
     generate_product_variant_payload,
+    generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
 from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
@@ -36,6 +37,7 @@ if TYPE_CHECKING:
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
     from ...product.models import Product, ProductVariant
+    from ...translation.models import Translation
 
 
 logger = logging.getLogger(__name__)
@@ -153,6 +155,30 @@ class WebhookPlugin(BasePlugin):
 
         trigger_webhooks_for_event.delay(
             WebhookEventType.ORDER_FULFILLED, event_payload.id
+        )
+
+    def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.DRAFT_ORDER_CREATED, order_data
+        )
+
+    def draft_order_updated(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.DRAFT_ORDER_UPDATED, order_data
+        )
+
+    def draft_order_deleted(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.DRAFT_ORDER_DELETED, order_data
         )
 
     def fulfillment_created(self, fulfillment: "Fulfillment", previous_value):
@@ -315,6 +341,22 @@ class WebhookPlugin(BasePlugin):
 
         trigger_webhooks_for_event.delay(
             WebhookEventType.PAGE_DELETED, event_payload.id
+        )
+
+    def translation_created(self, translation: "Translation", previous_value: Any):
+        if not self.active:
+            return previous_value
+        translation_data = generate_translation_payload(translation)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.TRANSLATION_CREATED, translation_data
+        )
+
+    def translation_updated(self, translation: "Translation", previous_value: Any):
+        if not self.active:
+            return previous_value
+        translation_data = generate_translation_payload(translation)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.TRANSLATION_UPDATED, translation_data
         )
 
     def __run_payment_webhook(

@@ -82,7 +82,9 @@ def test_notify(mocked_get_event_map, event_type, user_email_plugin):
     plugin = user_email_plugin()
     plugin.notify(event_type, payload, previous_value=None)
 
-    mocked_event.assert_called_with(payload, asdict(plugin.config))
+    mocked_event.assert_called_with(
+        payload, asdict(plugin.config), plugin.configuration
+    )
 
 
 @patch("saleor.plugins.user_email.plugin.get_user_event_map")

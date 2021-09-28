@@ -2,10 +2,10 @@ import graphene
 
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, AppPermission
-from ...core.tracing import traced_resolver
 from ...csv import models
 from ..account.types import User
 from ..account.utils import requestor_has_access
+from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Job
@@ -37,7 +37,6 @@ class ExportEvent(CountableDjangoObjectType):
         only_fields = ["id"]
 
     @staticmethod
-    @traced_resolver
     def resolve_user(root: models.ExportEvent, info):
         requestor = get_user_or_app_from_context(info.context)
         if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_STAFF):
@@ -45,7 +44,6 @@ class ExportEvent(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
-    @traced_resolver
     def resolve_app(root: models.ExportEvent, info):
         requestor = get_user_or_app_from_context(info.context)
         if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
@@ -71,7 +69,6 @@ class ExportFile(CountableDjangoObjectType):
         only_fields = ["id", "user", "app", "url"]
 
     @staticmethod
-    @traced_resolver
     def resolve_url(root: models.ExportFile, info):
         content_file = root.content_file
         if not content_file:
@@ -79,7 +76,6 @@ class ExportFile(CountableDjangoObjectType):
         return info.context.build_absolute_uri(content_file.url)
 
     @staticmethod
-    @traced_resolver
     def resolve_user(root: models.ExportFile, info):
         requestor = get_user_or_app_from_context(info.context)
         if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_STAFF):
@@ -87,14 +83,14 @@ class ExportFile(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
-    @traced_resolver
     def resolve_app(root: models.ExportFile, info):
         requestor = get_user_or_app_from_context(info.context)
         if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_STAFF):
-            return root.app
+            return (
+                AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
+            )
         raise PermissionDenied()
 
     @staticmethod
-    @traced_resolver
     def resolve_events(root: models.ExportFile, _info):
         return root.events.all().order_by("pk")

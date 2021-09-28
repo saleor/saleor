@@ -507,6 +507,37 @@ def test_delete_products_trigger_webhook(
     mocked_recalculate_orders_task.assert_not_called()
 
 
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_delete_products_without_variants(
+    mocked_webhook_trigger,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+    settings,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    for product in product_list:
+        product.variants.all().delete()
+
+    query = DELETE_PRODUCTS_MUTATION
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Product", product.id)
+            for product in product_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["productBulkDelete"]["count"] == 3
+    assert mocked_webhook_trigger.called
+
+
 def test_delete_products_removes_checkout_lines(
     staff_api_client,
     product_list,

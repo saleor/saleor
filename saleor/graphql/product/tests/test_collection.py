@@ -1406,3 +1406,37 @@ query Collections($sortBy: CollectionSortingInput) {
   }
 }
 """
+
+
+def test_query_collection_for_federation(api_client, published_collection, channel_USD):
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "Collection",
+                "id": collection_id,
+                "channel": channel_USD.slug,
+            },
+        ],
+    }
+    query = """
+      query GetCollectionInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on Collection {
+            id
+            name
+          }
+        }
+      }
+    """
+
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "Collection",
+            "id": collection_id,
+            "name": published_collection.name,
+        }
+    ]

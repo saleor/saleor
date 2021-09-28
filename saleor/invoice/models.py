@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.utils.timezone import now
 
+from ..app.models import App
 from ..core import JobStatus
 from ..core.models import Job, ModelWithMetadata
 from ..core.utils import build_absolute_uri
@@ -65,6 +66,7 @@ class InvoiceEvent(models.Model):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    app = models.ForeignKey(App, related_name="+", on_delete=models.SET_NULL, null=True)
     parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:

@@ -5,7 +5,10 @@ from ..channel import ChannelQsContext
 
 
 def resolve_shipping_zones(channel_slug):
-    instances = models.ShippingZone.objects.all()
+    if channel_slug:
+        instances = models.ShippingZone.objects.filter(channels__slug=channel_slug)
+    else:
+        instances = models.ShippingZone.objects.all()
     return ChannelQsContext(qs=instances, channel_slug=channel_slug)
 
 

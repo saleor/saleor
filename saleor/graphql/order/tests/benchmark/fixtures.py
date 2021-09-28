@@ -69,7 +69,7 @@ def _prepare_lines_for_order(order, variant_with_image):
 def users_for_order_benchmarks(address):
     users = [
         User(
-            email=f"john.doe.{i}@exmaple.com",
+            email=f"john.doe.{i}@example.com",
             is_active=True,
             default_billing_address=address.get_copy(),
             default_shipping_address=address.get_copy(),

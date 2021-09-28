@@ -1,6 +1,8 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
 
+import opentracing
+import opentracing.tags
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -389,7 +391,7 @@ class VatlayerPlugin(BasePlugin):
         if not taxes or not tax_rate:
             return previous_value
         tax = taxes.get(tax_rate) or taxes.get(DEFAULT_TAX_RATE_NAME)
-        # tax value is given in precentage so it need be be converted into decimal value
+        # tax value is given in percentage so it need be be converted into decimal value
         return Decimal(tax["value"] / 100)
 
     def get_checkout_shipping_tax_rate(
@@ -416,7 +418,7 @@ class VatlayerPlugin(BasePlugin):
         if not taxes:
             return previous_value
         tax = taxes.get(DEFAULT_TAX_RATE_NAME)
-        # tax value is given in precentage so it need be be converted into decimal value
+        # tax value is given in percentage so it need be be converted into decimal value
         return Decimal(tax["value"]) / 100
 
     def get_tax_rate_type_choices(
@@ -533,7 +535,13 @@ class VatlayerPlugin(BasePlugin):
         """Triggered when ShopFetchTaxRates mutation is called."""
         if not self.active:
             return previous_value
-        fetch_rates(self.config.access_key)
+        with opentracing.global_tracer().start_active_span(
+            "vatlayer.fetch_taxes_data"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "tax")
+            span.set_tag("service.name", "vatlayer")
+            fetch_rates(self.config.access_key)
         return True
 
     @classmethod

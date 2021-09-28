@@ -13,9 +13,10 @@ from django_prices.templatetags.prices import amount
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
+from ..core.models import ModelWithMetadata
 from ..core.permissions import DiscountPermissions
 from ..core.taxes import display_gross_prices
-from ..core.utils.translations import TranslationProxy
+from ..core.utils.translations import Translation, TranslationProxy
 from . import DiscountValueType, OrderDiscountType, VoucherType
 
 if TYPE_CHECKING:
@@ -57,7 +58,7 @@ class VoucherQueryset(models.QuerySet):
         )
 
 
-class Voucher(models.Model):
+class Voucher(ModelWithMetadata):
     type = models.CharField(
         max_length=20, choices=VoucherType.CHOICES, default=VoucherType.ENTIRE_ORDER
     )
@@ -222,19 +223,24 @@ class SaleQueryset(models.QuerySet):
         return self.filter(end_date__lt=date, start_date__lt=date)
 
 
-class VoucherTranslation(models.Model):
-    language_code = models.CharField(max_length=10)
-    name = models.CharField(max_length=255, null=True, blank=True)
+class VoucherTranslation(Translation):
     voucher = models.ForeignKey(
         Voucher, related_name="translations", on_delete=models.CASCADE
     )
+    name = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         ordering = ("language_code", "voucher", "pk")
         unique_together = (("language_code", "voucher"),)
 
+    def get_translated_object_id(self):
+        return "Voucher", self.voucher_id
 
-class Sale(models.Model):
+    def get_translated_keys(self):
+        return {"name": self.name}
+
+
+class Sale(ModelWithMetadata):
     name = models.CharField(max_length=255)
     type = models.CharField(
         max_length=10,
@@ -314,8 +320,7 @@ class SaleChannelListing(models.Model):
         ordering = ("pk",)
 
 
-class SaleTranslation(models.Model):
-    language_code = models.CharField(max_length=10)
+class SaleTranslation(Translation):
     name = models.CharField(max_length=255, null=True, blank=True)
     sale = models.ForeignKey(
         Sale, related_name="translations", on_delete=models.CASCADE
@@ -324,6 +329,12 @@ class SaleTranslation(models.Model):
     class Meta:
         ordering = ("language_code", "name", "pk")
         unique_together = (("language_code", "sale"),)
+
+    def get_translated_object_id(self):
+        return "Sale", self.sale_id
+
+    def get_translated_keys(self):
+        return {"name": self.name}
 
 
 class OrderDiscount(models.Model):

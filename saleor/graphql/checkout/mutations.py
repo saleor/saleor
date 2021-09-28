@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import graphene
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 
@@ -15,7 +16,6 @@ from ...checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
     get_valid_shipping_method_list_for_checkout_info,
-    update_checkout_info_shipping_method,
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -23,6 +23,7 @@ from ...checkout.utils import (
     calculate_checkout_quantity,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
+    clear_shipping_method,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
@@ -30,6 +31,7 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
+from ...core.permissions import AccountPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
@@ -51,7 +53,7 @@ from ..core.validators import (
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
-from ..utils import get_user_country_context
+from ..utils import get_user_or_app_from_context
 from .types import Checkout, CheckoutLine
 from .utils import prepare_insufficient_stock_checkout_validation_error
 
@@ -93,14 +95,11 @@ def clean_shipping_method(
 def update_checkout_shipping_method_if_invalid(
     checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
 ):
-    checkout = checkout_info.checkout
     quantity = calculate_checkout_quantity(lines)
+
     # remove shipping method when empty checkout
     if quantity == 0 or not is_shipping_required(lines):
-        checkout.shipping_method = None
-        checkout_info.shipping_method = None
-        checkout_info.shipping_method_channel_listings = None
-        checkout.save(update_fields=["shipping_method", "last_change"])
+        clear_shipping_method(checkout_info)
 
     is_valid = clean_shipping_method(
         checkout_info=checkout_info,
@@ -109,15 +108,18 @@ def update_checkout_shipping_method_if_invalid(
     )
 
     if not is_valid:
-        cheapest_alternative = checkout_info.valid_shipping_methods
-        new_shipping_method = cheapest_alternative[0] if cheapest_alternative else None
-        checkout.shipping_method = new_shipping_method
-        update_checkout_info_shipping_method(checkout_info, new_shipping_method)
-        checkout.save(update_fields=["shipping_method", "last_change"])
+        # remove shipping method when it is no longer valid
+        clear_shipping_method(checkout_info)
 
 
 def check_lines_quantity(
-    variants, quantities, country, channel_slug, allow_zero_quantity=False
+    variants,
+    quantities,
+    country,
+    channel_slug,
+    allow_zero_quantity=False,
+    existing_lines=None,
+    replace=False,
 ):
     """Clean quantities and check if stock is sufficient for each checkout line.
 
@@ -159,12 +161,14 @@ def check_lines_quantity(
                 }
             )
     try:
-        check_stock_quantity_bulk(variants, country, quantities, channel_slug)
+        check_stock_quantity_bulk(
+            variants, country, quantities, channel_slug, existing_lines, replace
+        )
     except InsufficientStock as e:
         errors = [
             ValidationError(
                 f"Could not add items {item.variant}. "
-                f"Only {item.available_quantity} remaining in stock.",
+                f"Only {max(item.available_quantity, 0)} remaining in stock.",
                 code=e.code,
             )
             for item in e.items
@@ -325,10 +329,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         shipping_address = cls.retrieve_shipping_address(user, data)
         billing_address = cls.retrieve_billing_address(user, data)
-        country = get_user_country_context(
-            destination_address=shipping_address,
-            company_address=info.context.site.settings.company_address,
-        )
+
+        if shipping_address:
+            country = shipping_address.country.code
+        else:
+            country = channel.default_country
 
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
@@ -440,16 +445,28 @@ class CheckoutLinesAdd(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def validate_checkout_lines(cls, variants, quantities, country, channel_slug):
-        check_lines_quantity(variants, quantities, country, channel_slug)
+    def validate_checkout_lines(
+        cls, variants, quantities, country, channel_slug, lines=None
+    ):
+        check_lines_quantity(
+            variants, quantities, country, channel_slug, existing_lines=lines
+        )
 
     @classmethod
     def clean_input(
-        cls, checkout, variants, quantities, checkout_info, manager, discounts, replace
+        cls,
+        checkout,
+        variants,
+        quantities,
+        checkout_info,
+        lines,
+        manager,
+        discounts,
+        replace,
     ):
         channel_slug = checkout_info.channel.slug
         cls.validate_checkout_lines(
-            variants, quantities, checkout.get_country(), channel_slug
+            variants, quantities, checkout.get_country(), channel_slug, lines=lines
         )
         variants_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variants_db_ids, checkout.channel_id)
@@ -481,6 +498,7 @@ class CheckoutLinesAdd(BaseMutation):
                 checkout_info, checkout_info.shipping_address, lines, discounts, manager
             )
         )
+        return lines
 
     @classmethod
     def perform_mutation(
@@ -507,11 +525,19 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
-        cls.clean_input(
-            checkout, variants, quantities, checkout_info, manager, discounts, replace
-        )
 
         lines = fetch_checkout_lines(checkout)
+        lines = cls.clean_input(
+            checkout,
+            variants,
+            quantities,
+            checkout_info,
+            lines,
+            manager,
+            discounts,
+            replace,
+        )
+
         checkout_info.valid_shipping_methods = (
             get_valid_shipping_method_list_for_checkout_info(
                 checkout_info, checkout_info.shipping_address, lines, discounts, manager
@@ -535,9 +561,17 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def validate_checkout_lines(cls, variants, quantities, country, channel_slug):
+    def validate_checkout_lines(
+        cls, variants, quantities, country, channel_slug, lines=None
+    ):
         check_lines_quantity(
-            variants, quantities, country, channel_slug, allow_zero_quantity=True
+            variants,
+            quantities,
+            country,
+            channel_slug,
+            allow_zero_quantity=True,
+            existing_lines=lines,
+            replace=True,
         )
 
     @classmethod
@@ -612,6 +646,13 @@ class CheckoutCustomerAttach(BaseMutation):
                 "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
             ),
         )
+        customer_id = graphene.ID(
+            required=False,
+            description=(
+                "ID of customer to attach to checkout. Can be used to attach customer "
+                "to checkout by staff or app. Requires IMPERSONATE_USER permission."
+            ),
+        )
         token = UUID(description="Checkout token.", required=False)
 
     class Meta:
@@ -621,7 +662,7 @@ class CheckoutCustomerAttach(BaseMutation):
 
     @classmethod
     def check_permissions(cls, context):
-        return context.user.is_authenticated
+        return context.user.is_authenticated or context.app
 
     @classmethod
     def perform_mutation(
@@ -640,8 +681,21 @@ class CheckoutCustomerAttach(BaseMutation):
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
 
-        checkout.user = info.context.user
-        checkout.email = info.context.user.email
+        # Raise error when trying to attach a user to a checkout
+        # that is already owned by another user.
+        if checkout.user_id:
+            raise PermissionDenied()
+
+        if customer_id:
+            requestor = get_user_or_app_from_context(info.context)
+            if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+                raise PermissionDenied()
+            customer = cls.get_node_or_error(info, customer_id, only_type="User")
+        else:
+            customer = info.context.user
+
+        checkout.user = customer
+        checkout.email = customer.email
         checkout.save(update_fields=["email", "user", "last_change"])
 
         info.context.plugins.checkout_updated(checkout)
@@ -668,7 +722,7 @@ class CheckoutCustomerDetach(BaseMutation):
 
     @classmethod
     def check_permissions(cls, context):
-        return context.user.is_authenticated
+        return context.user.is_authenticated or context.app
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id=None, token=None):
@@ -685,9 +739,11 @@ class CheckoutCustomerDetach(BaseMutation):
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
 
-        # Raise error if the current user doesn't own the checkout of the given ID.
-        if checkout.user and checkout.user != info.context.user:
-            raise PermissionDenied()
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+            # Raise error if the current user doesn't own the checkout of the given ID.
+            if checkout.user and checkout.user != info.context.user:
+                raise PermissionDenied()
 
         checkout.user = None
         checkout.save(update_fields=["user", "last_change"])
@@ -785,10 +841,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         manager = info.context.plugins
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
-        country = get_user_country_context(
-            destination_address=shipping_address,
-            company_address=info.context.site.settings.company_address,
-        )
+        country = shipping_address.country.code
         checkout.set_country(country, commit=True)
 
         # Resolve and process the lines, validating variants quantities
@@ -1139,6 +1192,15 @@ class CheckoutComplete(BaseMutation):
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )
+
+            requestor = get_user_or_app_from_context(info.context)
+            if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+                # Allow impersonating user and process a checkout by using user details
+                # assigned to checkout.
+                customer = checkout.user or AnonymousUser()
+            else:
+                customer = info.context.user
+
             order, action_required, action_data = complete_checkout(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -1146,7 +1208,8 @@ class CheckoutComplete(BaseMutation):
                 payment_data=data.get("payment_data", {}),
                 store_source=store_source,
                 discounts=info.context.discounts,
-                user=info.context.user,
+                user=customer,
+                app=info.context.app,
                 site_settings=info.context.site.settings,
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
@@ -1199,24 +1262,25 @@ class CheckoutAddPromoCode(BaseMutation):
             )
 
         manager = info.context.plugins
+        discounts = info.context.discounts
         lines = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(
-            checkout, lines, info.context.discounts, manager
-        )
-
-        if info.context.user and checkout.user == info.context.user:
-            # reassign user from request to make sure that we will take into account
-            # that user can have granted staff permissions from external resources.
-            # Which is required to determine if user has access to 'staff discount'
-            checkout_info.user = info.context.user
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
         add_promo_code_to_checkout(
             manager,
             checkout_info,
             lines,
             promo_code,
-            info.context.discounts,
+            discounts,
         )
+
+        checkout_info.valid_shipping_methods = (
+            get_valid_shipping_method_list_for_checkout_info(
+                checkout_info, checkout_info.shipping_address, lines, discounts, manager
+            )
+        )
+
+        update_checkout_shipping_method_if_invalid(checkout_info, lines)
         manager.checkout_updated(checkout)
         return CheckoutAddPromoCode(checkout=checkout)
 

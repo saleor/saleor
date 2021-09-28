@@ -166,7 +166,7 @@ def add_variants_to_checkout(
                 to_update.append(line)
             else:
                 to_delete.append(line)
-        else:
+        elif quantity > 0:
             to_create.append(
                 CheckoutLine(checkout=checkout, variant=variant, quantity=quantity)
             )
@@ -349,7 +349,7 @@ def get_prices_of_discounted_specific_product(
             lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
-        ).gross
+        )
         line_unit_price = manager.calculate_checkout_line_unit_price(
             line_total,
             line.quantity,
@@ -358,7 +358,7 @@ def get_prices_of_discounted_specific_product(
             line_info,
             address,
             discounts,
-        )
+        ).gross
         line_prices.extend([line_unit_price] * line.quantity)
 
     return line_prices
@@ -409,9 +409,10 @@ def get_voucher_for_checkout(
             )
         try:
             qs = vouchers
-            if with_lock:
-                qs = vouchers.select_for_update()
-            return qs.get(code=checkout.voucher_code)
+            voucher = qs.get(code=checkout.voucher_code)
+            if voucher and voucher.usage_limit is not None and with_lock:
+                voucher = vouchers.select_for_update().get(code=checkout.voucher_code)
+            return voucher
         except Voucher.DoesNotExist:
             return None
     return None

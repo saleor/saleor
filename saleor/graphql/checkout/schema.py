@@ -1,10 +1,8 @@
 import graphene
 
 from ...core.permissions import CheckoutPermissions
-from ...core.tracing import traced_resolver
 from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
-from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
 from .mutations import (
@@ -23,12 +21,7 @@ from .mutations import (
     CheckoutShippingAddressUpdate,
     CheckoutShippingMethodUpdate,
 )
-from .resolvers import (
-    resolve_checkout,
-    resolve_checkout_line,
-    resolve_checkout_lines,
-    resolve_checkouts,
-)
+from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
 from .types import Checkout, CheckoutLine
 
 
@@ -46,11 +39,6 @@ class CheckoutQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
     )
-    checkout_line = graphene.Field(
-        CheckoutLine,
-        id=graphene.Argument(graphene.ID, description="ID of the checkout line."),
-        description="Look up a checkout line by ID.",
-    )
     checkout_lines = PrefetchingConnectionField(
         CheckoutLine, description="List of checkout lines."
     )
@@ -59,16 +47,10 @@ class CheckoutQueries(graphene.ObjectType):
         return resolve_checkout(info, token)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
-    @traced_resolver
     def resolve_checkouts(self, *_args, channel=None, **_kwargs):
         return resolve_checkouts(channel)
 
-    def resolve_checkout_line(self, info, id):
-        _, id = from_global_id_or_error(id, CheckoutLine)
-        return resolve_checkout_line(id)
-
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
-    @traced_resolver
     def resolve_checkout_lines(self, *_args, **_kwargs):
         return resolve_checkout_lines()
 

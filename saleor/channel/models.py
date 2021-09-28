@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django_countries.fields import CountryField
 
 from ..core.permissions import ChannelPermissions
 
@@ -9,6 +10,7 @@ class Channel(models.Model):
     is_active = models.BooleanField(default=False)
     slug = models.SlugField(max_length=255, unique=True)
     currency_code = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+    default_country = CountryField()
 
     class Meta:
         ordering = ("slug",)

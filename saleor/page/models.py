@@ -2,11 +2,18 @@ from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import ModelWithMetadata, PublishableModel
+from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
 from ..core.permissions import PagePermissions, PageTypePermissions
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
+
+
+class PageQueryset(PublishedQuerySet):
+    def visible_to_user(self, requestor):
+        if requestor.has_perm(PagePermissions.MANAGE_PAGES):
+            return self.all()
+        return self.published()
 
 
 class Page(ModelWithMetadata, SeoModel, PublishableModel):
@@ -20,6 +27,8 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
 
     translated = TranslationProxy()
 
+    objects = models.Manager.from_queryset(PageQueryset)()
+
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         permissions = ((PagePermissions.MANAGE_PAGES.codename, "Manage pages."),)
@@ -30,7 +39,6 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
 
 
 class PageTranslation(SeoModelTranslation):
-    language_code = models.CharField(max_length=10)
     page = models.ForeignKey(
         Page, related_name="translations", on_delete=models.CASCADE
     )
@@ -52,6 +60,19 @@ class PageTranslation(SeoModelTranslation):
 
     def __str__(self):
         return self.title if self.title else str(self.pk)
+
+    def get_translated_object_id(self):
+        return "Page", self.page_id
+
+    def get_translated_keys(self):
+        translated_keys = super().get_translated_keys()
+        translated_keys.update(
+            {
+                "title": self.title,
+                "content": self.content,
+            }
+        )
+        return translated_keys
 
 
 class PageType(ModelWithMetadata):

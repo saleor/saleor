@@ -44,6 +44,7 @@ from .models import Checkout
 from .utils import get_voucher_for_checkout
 
 if TYPE_CHECKING:
+    from ..app.models import App
     from ..plugins.manager import PluginsManager
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
@@ -65,7 +66,8 @@ def _get_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     if not voucher:
         return {}
 
-    increase_voucher_usage(voucher)
+    if voucher.usage_limit:
+        increase_voucher_usage(voucher)
     if voucher.apply_once_per_customer:
         add_voucher_usage_by_customer(voucher, checkout_info.get_customer_email())
     return {
@@ -335,6 +337,7 @@ def _create_order(
     checkout_info: "CheckoutInfo",
     order_data: dict,
     user: User,
+    app: Optional["App"],
     manager: "PluginsManager",
     site_settings=None
 ) -> Order:
@@ -414,7 +417,7 @@ def _create_order(
     order.save()
 
     transaction.on_commit(
-        lambda: order_created(order=order, user=user, manager=manager)
+        lambda: order_created(order=order, user=user, app=app, manager=manager)
     )
 
     # Send the order confirmation email
@@ -467,7 +470,7 @@ def _prepare_checkout(
         checkout.redirect_url = redirect_url
         to_update.append("redirect_url")
 
-    if tracking_code and tracking_code != checkout.tracking_code:
+    if tracking_code and str(tracking_code) != checkout.tracking_code:
         checkout.tracking_code = tracking_code
         to_update.append("tracking_code")
 
@@ -478,7 +481,7 @@ def _prepare_checkout(
 
 def release_voucher_usage(order_data: dict):
     voucher = order_data.get("voucher")
-    if voucher:
+    if voucher and voucher.usage_limit:
         decrease_voucher_usage(voucher)
         if "user_email" in order_data:
             remove_voucher_usage_by_customer(voucher, order_data["user_email"])
@@ -559,6 +562,7 @@ def complete_checkout(
     store_source,
     discounts,
     user,
+    app,
     site_settings=None,
     tracking_code=None,
     redirect_url=None,
@@ -589,7 +593,7 @@ def complete_checkout(
         raise exc
 
     customer_id = None
-    if store_source and payment:
+    if payment and user.is_authenticated:
         customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
 
     txn = _process_payment(
@@ -615,6 +619,7 @@ def complete_checkout(
                 checkout_info=checkout_info,
                 order_data=order_data,
                 user=user,  # type: ignore
+                app=app,
                 manager=manager,
                 site_settings=site_settings,
             )

@@ -146,6 +146,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
         events.order_discount_added_event(
             order=order,
             user=info.context.user,
+            app=info.context.app,
             order_discount=order_discount,
         )
         return OrderDiscountAdd(order=order)
@@ -209,6 +210,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
             events.order_discount_updated_event(
                 order=order,
                 user=info.context.user,
+                app=info.context.app,
                 order_discount=order_discount,
                 old_order_discount=order_discount_before_update,
             )
@@ -242,6 +244,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
         events.order_discount_deleted_event(
             order=order,
             user=info.context.user,
+            app=info.context.app,
             order_discount=order_discount,
         )
 
@@ -319,6 +322,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
             events.order_line_discount_updated_event(
                 order=order,
                 user=info.context.user,
+                app=info.context.app,
                 line=order_line,
                 line_before_update=order_line_before_update,
             )
@@ -366,6 +370,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
         events.order_line_discount_removed_event(
             order=order,
             user=info.context.user,
+            app=info.context.app,
             line=order_line,
         )
 

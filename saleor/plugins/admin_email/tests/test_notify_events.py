@@ -26,11 +26,10 @@ def test_send_account_password_reset_event(mocked_email_task, customer_user):
         "site_name": "Saleor",
     }
     config = {"host": "localhost", "port": "1025"}
-    send_staff_reset_password(
-        payload=payload,
-        config=config,
+    send_staff_reset_password(payload=payload, config=config, plugin_configuration=[])
+    mocked_email_task.assert_called_with(
+        payload["recipient_email"], payload, config, mock.ANY, mock.ANY
     )
-    mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
 
 @mock.patch(
@@ -44,10 +43,11 @@ def test_send_set_staff_password_email(mocked_email_task):
     }
     config = {"host": "localhost", "port": "1025"}
     send_set_staff_password_email(
-        payload=payload,
-        config=config,
+        payload=payload, config=config, plugin_configuration=[]
     )
-    mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
+    mocked_email_task.assert_called_with(
+        payload["recipient_email"], payload, config, mock.ANY, mock.ANY
+    )
 
 
 @mock.patch(
@@ -61,10 +61,11 @@ def test_send_csv_product_export_success(mocked_email_task):
     }
     config = {"host": "localhost", "port": "1025"}
     send_csv_product_export_success(
-        payload=payload,
-        config=config,
+        payload=payload, config=config, plugin_configuration=[]
     )
-    mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
+    mocked_email_task.assert_called_with(
+        payload["recipient_email"], payload, config, mock.ANY, mock.ANY
+    )
 
 
 @mock.patch(
@@ -79,10 +80,11 @@ def test_send_staff_order_confirmation(mocked_email_task, order):
     }
     config = {"host": "localhost", "port": "1025"}
     send_staff_order_confirmation(
-        payload=payload,
-        config=config,
+        payload=payload, config=config, plugin_configuration=[]
     )
-    mocked_email_task.assert_called_with(payload["recipient_list"], payload, config)
+    mocked_email_task.assert_called_with(
+        payload["recipient_list"], payload, config, mock.ANY, mock.ANY
+    )
 
 
 @mock.patch(
@@ -93,8 +95,7 @@ def test_send_csv_export_failed(mocked_email_task):
         "recipient_email": "admin@example.com",
     }
     config = {"host": "localhost", "port": "1025"}
-    send_csv_export_failed(
-        payload=payload,
-        config=config,
+    send_csv_export_failed(payload=payload, config=config, plugin_configuration=[])
+    mocked_email_task.assert_called_with(
+        payload["recipient_email"], payload, config, mock.ANY, mock.ANY
     )
-    mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)

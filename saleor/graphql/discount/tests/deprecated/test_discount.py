@@ -1,15 +1,12 @@
 import warnings
 
 from .....channel.utils import DEPRECATION_WARNING_MESSAGE
+from .....discount.models import Sale, Voucher
 from ....tests.utils import get_graphql_content
 
 QUERY_SALES_WITH_SORTING_AND_FILTERING = """
-    query (
-        $sortBy: SaleSortingInput
-    ){
-        sales (
-            first: 10, sortBy: $sortBy
-        ) {
+    query($sortBy: SaleSortingInput){
+        sales (first: 10, sortBy: $sortBy) {
             edges {
                 node {
                     name
@@ -84,3 +81,53 @@ def test_query_vouchers_with_sort(
     assert any(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
+
+
+def test_filter_sales_by_query(staff_api_client, permission_manage_discounts):
+    sales = Sale.objects.bulk_create([Sale(name="Spanish"), Sale(name="Inquisition")])
+    sale = sales[1]
+
+    query = """
+        query Sales($query: String) {
+            sales(first:5, query: $query) {
+                edges {
+                    node {
+                        name
+                    }
+                }
+            }
+        }
+    """
+
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
+    response = staff_api_client.post_graphql(query, {"query": sale.name})
+    content = get_graphql_content(response)
+    assert content["data"]["sales"]["edges"][0]["node"]["name"] == sale.name
+
+
+def test_filter_vouchers_by_query(staff_api_client, permission_manage_discounts):
+    vouchers = Voucher.objects.bulk_create(
+        [
+            Voucher(code="code1", name="Spanish"),
+            Voucher(code="code2", name="Inquisition"),
+        ]
+    )
+    voucher = vouchers[1]
+
+    query = """
+        query Vouchers($query: String) {
+            vouchers(first:5, query: $query) {
+                edges {
+                    node {
+                        name
+                        code
+                    }
+                }
+            }
+        }
+    """
+
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
+    response = staff_api_client.post_graphql(query, {"query": voucher.name})
+    content = get_graphql_content(response)
+    assert content["data"]["vouchers"]["edges"][0]["node"]["code"] == voucher.code

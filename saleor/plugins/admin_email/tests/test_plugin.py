@@ -56,7 +56,9 @@ def test_notify(mocked_get_event_map, event_type, admin_email_plugin):
     plugin = admin_email_plugin()
     plugin.notify(event_type, payload, previous_value=None)
 
-    mocked_event.assert_called_with(payload, asdict(plugin.config))
+    mocked_event.assert_called_with(
+        payload, asdict(plugin.config), plugin.configuration
+    )
 
 
 @patch("saleor.plugins.admin_email.plugin.get_admin_event_map")

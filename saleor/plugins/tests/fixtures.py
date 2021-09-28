@@ -5,8 +5,14 @@ from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 
 from ..base_plugin import ConfigurationTypeField
+from ..manager import PluginsManager
 from ..models import PluginConfiguration
-from .sample_plugins import ChannelPluginSample, PluginInactive, PluginSample
+from .sample_plugins import (
+    ALL_PLUGINS,
+    ChannelPluginSample,
+    PluginInactive,
+    PluginSample,
+)
 
 
 @pytest.fixture
@@ -134,3 +140,14 @@ def vatlayer(db, tax_rates, taxes, setup_vatlayer):
     }
     VAT.objects.create(country_code="DE", data=tax_rates_2)
     return taxes
+
+
+@pytest.fixture
+def plugins_manager():
+    return PluginsManager(plugins=[])
+
+
+@pytest.fixture
+def all_plugins_manager():
+    plugins_as_module_paths = [p.__module__ + "." + p.__name__ for p in ALL_PLUGINS]
+    return PluginsManager(plugins=plugins_as_module_paths)

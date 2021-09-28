@@ -12,7 +12,7 @@ from ...order.models import Order
 from .. import forms, i18n
 from ..models import User
 from ..templatetags.i18n_address_tags import format_address
-from ..utils import remove_staff_member, requestor_is_staff_member_or_app
+from ..utils import remove_staff_member
 from ..validators import validate_possible_number
 
 
@@ -306,36 +306,6 @@ def test_remove_staff_member_with_orders(staff_user, permission_manage_products,
 def test_remove_staff_member(staff_user):
     remove_staff_member(staff_user)
     assert not User.objects.filter(pk=staff_user.pk).exists()
-
-
-def test_requestor_is_staff_member_or_app_active_app(app):
-    assert app.is_active is True
-    assert requestor_is_staff_member_or_app(app) is True
-
-
-def test_requestor_is_staff_member_or_app_not_active_app(app):
-    app.is_active = False
-    app.save(update_fields=["is_active"])
-    assert requestor_is_staff_member_or_app(app) is False
-
-
-def test_requestor_is_staff_member_or_app_not_active_staff_user(staff_user):
-    staff_user.is_active = False
-    staff_user.save(update_fields=["is_active"])
-    assert requestor_is_staff_member_or_app(staff_user) is False
-
-
-def test_requestor_is_staff_member_or_app_active_staff_user(staff_user):
-    assert staff_user.is_active is True
-    assert requestor_is_staff_member_or_app(staff_user) is True
-
-
-def test_requestor_is_staff_member_or_app_superuser(superuser):
-    assert requestor_is_staff_member_or_app(superuser) is True
-
-
-def test_requestor_is_staff_member_or_app_customer_user(customer_user):
-    assert requestor_is_staff_member_or_app(customer_user) is False
 
 
 def test_customers_doesnt_return_duplicates(customer_user, channel_USD):

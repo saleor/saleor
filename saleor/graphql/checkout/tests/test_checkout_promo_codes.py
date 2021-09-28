@@ -8,10 +8,11 @@ from prices import Money
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import add_voucher_to_checkout
+from ....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ....core.taxes import TaxedMoney
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
+from ....warehouse.models import Stock
 from ...tests.utils import get_graphql_content
 from .test_checkout import MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE
 from .test_checkout_lines import MUTATION_CHECKOUT_LINES_DELETE
@@ -242,6 +243,12 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                     gross {
                         amount
                     }
+                }
+                availableShippingMethods {
+                    id
+                }
+                shippingMethod {
+                    id
                 }
             }
         }
@@ -668,6 +675,45 @@ def test_checkout_add_promo_code_invalid_promo_code(api_client, checkout_with_it
 
     assert data["errors"]
     assert data["errors"][0]["field"] == "promoCode"
+
+
+def test_checkout_add_promo_code_invalidate_shipping_method(
+    api_client,
+    checkout,
+    variant_with_many_stocks_different_shipping_zones,
+    gift_card_created_by_staff,
+    address_usa,
+    shipping_method,
+    channel_USD,
+    voucher,
+):
+    Stock.objects.update(quantity=5)
+
+    # Free shipping for 50 USD
+    shipping_channel_listing = shipping_method.channel_listings.first()
+    shipping_channel_listing.minimum_order_price = Money(50, "USD")
+    shipping_channel_listing.price = Money(0, "USD")
+    shipping_channel_listing.save()
+
+    # Setup checkout with items worth $50
+    checkout.shipping_address = address_usa
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address_usa
+    checkout.save()
+
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    variant = variant_with_many_stocks_different_shipping_zones
+    add_variant_to_checkout(checkout_info, variant, 5)
+
+    # Apply voucher
+    variables = {"token": checkout.token, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    assert data["checkout"]["shippingMethod"] is None
+    assert shipping_method_id not in data["checkout"]["availableShippingMethods"]
 
 
 MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """

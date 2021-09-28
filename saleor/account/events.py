@@ -1,11 +1,13 @@
 from typing import Optional
 
+from ..app.models import App
 from ..core.utils.validators import user_is_valid
 from ..order.models import Order, OrderLine
 from . import CustomerEvents
 from .models import CustomerEvent, User
 
 UserType = Optional[User]
+AppType = Optional[App]
 
 
 def customer_account_created_event(*, user: User) -> Optional[CustomerEvent]:
@@ -75,39 +77,42 @@ def customer_downloaded_a_digital_link_event(
     )
 
 
-def staff_user_deleted_a_customer_event(
-    *, staff_user: UserType, deleted_count: int = 1
+def customer_deleted_event(
+    *, staff_user: UserType, app: AppType, deleted_count: int = 1
 ) -> CustomerEvent:
     if not user_is_valid(staff_user):
         staff_user = None
     return CustomerEvent.objects.create(
         user=staff_user,
+        app=app,
         order=None,
         type=CustomerEvents.CUSTOMER_DELETED,
         parameters={"count": deleted_count},
     )
 
 
-def staff_user_assigned_email_to_a_customer_event(
-    *, staff_user: UserType, new_email: str
+def assigned_email_to_a_customer_event(
+    *, staff_user: UserType, app: AppType, new_email: str
 ) -> CustomerEvent:
     if not user_is_valid(staff_user):
         staff_user = None
     return CustomerEvent.objects.create(
         user=staff_user,
+        app=app,
         order=None,
         type=CustomerEvents.EMAIL_ASSIGNED,
         parameters={"message": new_email},
     )
 
 
-def staff_user_assigned_name_to_a_customer_event(
-    *, staff_user: UserType, new_name: str
+def assigned_name_to_a_customer_event(
+    *, staff_user: UserType, app: AppType, new_name: str
 ) -> CustomerEvent:
     if not user_is_valid(staff_user):
         staff_user = None
     return CustomerEvent.objects.create(
         user=staff_user,
+        app=app,
         order=None,
         type=CustomerEvents.NAME_ASSIGNED,
         parameters={"message": new_name},

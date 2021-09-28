@@ -15,7 +15,7 @@ from ..core.models import ModelWithMetadata
 from ..core.permissions import ShippingPermissions
 from ..core.units import WeightUnits
 from ..core.utils.editorjs import clean_editor_js
-from ..core.utils.translations import TranslationProxy
+from ..core.utils.translations import Translation, TranslationProxy
 from ..core.weight import convert_weight, get_default_weight_unit, zero_weight
 from . import PostalCodeRuleInclusionType, ShippingMethodType
 from .postal_codes import filter_shipping_methods_by_postal_code_rules
@@ -292,8 +292,7 @@ class ShippingMethodChannelListing(models.Model):
         ordering = ("pk",)
 
 
-class ShippingMethodTranslation(models.Model):
-    language_code = models.CharField(max_length=10)
+class ShippingMethodTranslation(Translation):
     name = models.CharField(max_length=255, null=True, blank=True)
     shipping_method = models.ForeignKey(
         ShippingMethod, related_name="translations", on_delete=models.CASCADE
@@ -302,3 +301,12 @@ class ShippingMethodTranslation(models.Model):
 
     class Meta:
         unique_together = (("language_code", "shipping_method"),)
+
+    def get_translated_object_id(self):
+        return "ShippingMethod", self.shipping_method_id
+
+    def get_translated_keys(self):
+        return {
+            "name": self.name,
+            "description": self.description,
+        }

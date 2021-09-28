@@ -12,6 +12,10 @@ query {
         name
         slug
         currencyCode
+        defaultCountry {
+            code
+            country
+        }
     }
 }
 """
@@ -31,11 +35,19 @@ def test_query_channels_as_staff_user(staff_api_client, channel_USD, channel_PLN
         "slug": channel_PLN.slug,
         "name": channel_PLN.name,
         "currencyCode": channel_PLN.currency_code,
+        "defaultCountry": {
+            "code": channel_PLN.default_country.code,
+            "country": channel_PLN.default_country.name,
+        },
     } in channels
     assert {
         "slug": channel_USD.slug,
         "name": channel_USD.name,
         "currencyCode": channel_USD.currency_code,
+        "defaultCountry": {
+            "code": channel_USD.default_country.code,
+            "country": channel_USD.default_country.name,
+        },
     } in channels
 
 
@@ -53,11 +65,19 @@ def test_query_channels_as_app(app_api_client, channel_USD, channel_PLN):
         "slug": channel_PLN.slug,
         "name": channel_PLN.name,
         "currencyCode": channel_PLN.currency_code,
+        "defaultCountry": {
+            "code": channel_PLN.default_country.code,
+            "country": channel_PLN.default_country.name,
+        },
     } in channels
     assert {
         "slug": channel_USD.slug,
         "name": channel_USD.name,
         "currencyCode": channel_USD.currency_code,
+        "defaultCountry": {
+            "code": channel_USD.default_country.code,
+            "country": channel_USD.default_country.name,
+        },
     } in channels
 
 

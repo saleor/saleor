@@ -19,7 +19,7 @@ MUTATION_EXTERNAL_AUTHENTICATION = """
 def test_external_authentication_url_plugin_not_active(api_client, customer_user):
     variables = {
         "pluginId": "pluginID1",
-        "input": json.dumps({"redirectUrl": "http://locahost:3000/"}),
+        "input": json.dumps({"redirectUrl": "http://localhost:3000/"}),
     }
     response = api_client.post_graphql(MUTATION_EXTERNAL_AUTHENTICATION, variables)
     content = get_graphql_content(response)
@@ -37,7 +37,7 @@ def test_external_authentication_url(api_client, customer_user, monkeypatch, rf)
     )
     variables = {
         "pluginId": "pluginID1",
-        "input": json.dumps({"redirectUrl": "http://locahost:3000/"}),
+        "input": json.dumps({"redirectUrl": "http://localhost:3000/"}),
     }
     response = api_client.post_graphql(MUTATION_EXTERNAL_AUTHENTICATION, variables)
     content = get_graphql_content(response)

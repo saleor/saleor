@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 import Adyen
 import opentracing
 import opentracing.tags
-from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
 
@@ -18,15 +17,15 @@ from .....checkout.calculations import (
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import is_shipping_required
-from .....core.prices import quantize_price
 from .....discount.utils import fetch_active_discounts
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
 from ....interface import PaymentMethodInfo
+from ....utils import price_to_minor_unit
 
 if TYPE_CHECKING:
-    from ....interface import PaymentData
+    from ....interface import AddressData, PaymentData
 
 logger = logging.getLogger(__name__)
 
@@ -35,26 +34,6 @@ logger = logging.getLogger(__name__)
 FAILED_STATUSES = ["refused", "error", "cancelled"]
 PENDING_STATUSES = ["pending", "received"]
 AUTH_STATUS = "authorised"
-
-
-def from_adyen_price(value: str, currency: str):
-    value = Decimal(value)
-    precision = get_currency_precision(currency)
-    number_places = Decimal(10) ** -precision
-    return value * number_places
-
-
-def to_adyen_price(value: Decimal, currency: str):
-    """Adyen doesn't use values with comma.
-
-    Take the value, discover the precision of currency and multiply value by
-    Decimal('10.0'), then change quantization to remove the comma.
-    """
-    value = quantize_price(value, currency=currency)
-    precision = get_currency_precision(currency)
-    number_places = Decimal("10.0") ** precision
-    value_without_comma = value * number_places
-    return str(value_without_comma.quantize(Decimal("1")))
 
 
 def get_tax_percentage_in_adyen_format(total_gross, total_net):
@@ -74,6 +53,49 @@ def api_call(request_data: Optional[Dict[str, Any]], method: Callable) -> Adyen.
     except (Adyen.AdyenError, ValueError, TypeError) as e:
         logger.warning(f"Unable to process the payment: {e}")
         raise PaymentError("Unable to process the payment request.")
+
+
+def prepare_address_request_data(address: Optional["AddressData"]) -> Optional[dict]:
+    """Create address structure for Adyen request.
+
+    The sample recieved from Adyen team:
+
+    Customer enters only address 1: 2500 Valley Creek Way
+    Ideal: houseNumberOrName: "2500", street: "Valley Creek Way"
+    If above not possible: houseNumberOrName: "", street: "2500 Valley Creek Way"
+
+    ***Note the blank string above
+
+    Customer enters address 1 and address 2: 30 Granger Circle, 160 Bath Street
+    Ideal: houseNumberOrName: "30 Granger Circle", street: "160 Bath Street"
+    """
+    house_number_or_name = ""
+    if not address:
+        return None
+
+    city = address.city or address.country_area or "ZZ"
+    country = str(address.country) if address.country else "ZZ"
+    postal_code = address.postal_code or "ZZ"
+
+    if address.company_name:
+        house_number_or_name = address.company_name
+        street = address.street_address_1
+        if address.street_address_2:
+            street += f" {address.street_address_2}"
+    elif address.street_address_2:
+        street = address.street_address_2
+        house_number_or_name = address.street_address_1
+    else:
+        street = address.street_address_1
+
+    return {
+        "city": city,
+        "country": country,
+        "houseNumberOrName": house_number_or_name,
+        "postalCode": postal_code,
+        "stateOrProvince": address.country_area,
+        "street": street,
+    }
 
 
 def request_data_for_payment(
@@ -98,9 +120,13 @@ def request_data_for_payment(
     billing_address = payment_data.get("billingAddress")
     if billing_address:
         extra_request_params["billingAddress"] = billing_address
+    elif billing_address := prepare_address_request_data(payment_information.billing):
+        extra_request_params["billingAddress"] = billing_address
 
     delivery_address = payment_data.get("deliveryAddress")
     if delivery_address:
+        extra_request_params["deliveryAddress"] = delivery_address
+    elif delivery_address := prepare_address_request_data(payment_information.shipping):
         extra_request_params["deliveryAddress"] = delivery_address
 
     shopper_ip = payment_data.get("shopperIP")
@@ -129,9 +155,15 @@ def request_data_for_payment(
         extra_request_params["additionalData"] = {"allow3DS2": "true"}
 
     extra_request_params["shopperEmail"] = payment_information.customer_email
+
+    if payment_information.billing:
+        extra_request_params["shopperName"] = {
+            "firstName": payment_information.billing.first_name,
+            "lastName": payment_information.billing.last_name,
+        }
     request_data = {
         "amount": {
-            "value": to_adyen_price(
+            "value": price_to_minor_unit(
                 payment_information.amount, payment_information.currency
             ),
             "currency": payment_information.currency,
@@ -140,11 +172,16 @@ def request_data_for_payment(
         "paymentMethod": payment_method,
         "returnUrl": return_url,
         "merchantAccount": merchant_account,
+        "shopperEmail": payment_information.customer_email,
+        "shopperReference": payment_information.customer_email,
         **extra_request_params,
     }
 
-    if "klarna" in method:
-        request_data = append_klarna_data(payment_information, request_data)
+    methods_that_require_checkout_details = ["afterpaytouch", "clearpay"]
+    # klarna in method - because there is a lot of variable klarna methods - like pay
+    # later with klarna or pay with klarna etc
+    if "klarna" in method or method in methods_that_require_checkout_details:
+        request_data = append_checkout_details(payment_information, request_data)
     return request_data
 
 
@@ -166,16 +203,16 @@ def get_shipping_data(manager, checkout_info, lines, discounts):
     )
     return {
         "quantity": 1,
-        "amountExcludingTax": to_adyen_price(total_net, currency),
+        "amountExcludingTax": price_to_minor_unit(total_net, currency),
         "taxPercentage": tax_percentage_in_adyen_format,
         "description": f"Shipping - {checkout_info.shipping_method.name}",
         "id": f"Shipping:{checkout_info.shipping_method.id}",
-        "taxAmount": to_adyen_price(tax_amount, currency),
-        "amountIncludingTax": to_adyen_price(total_gross, currency),
+        "taxAmount": price_to_minor_unit(tax_amount, currency),
+        "amountIncludingTax": price_to_minor_unit(total_gross, currency),
     }
 
 
-def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
+def append_checkout_details(payment_information: "PaymentData", payment_data: dict):
     checkout = (
         Checkout.objects.prefetch_related(
             "shipping_method",
@@ -195,8 +232,8 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     country_code = checkout.get_country()
 
     payment_data["shopperLocale"] = get_shopper_locale_value(country_code)
-    payment_data["shopperReference"] = payment_information.customer_email
     payment_data["countryCode"] = country_code
+
     line_items = []
     for line_info in lines:
         total = checkout_line_total(
@@ -225,14 +262,14 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
 
         line_data = {
             "quantity": line_info.line.quantity,
-            "amountExcludingTax": to_adyen_price(unit_net, currency),
+            "amountExcludingTax": price_to_minor_unit(unit_net, currency),
             "taxPercentage": tax_percentage_in_adyen_format,
             "description": (
                 f"{line_info.variant.product.name}, {line_info.variant.name}"
             ),
             "id": line_info.variant.sku,
-            "taxAmount": to_adyen_price(tax_amount, currency),
-            "amountIncludingTax": to_adyen_price(unit_gross, currency),
+            "taxAmount": price_to_minor_unit(tax_amount, currency),
+            "amountIncludingTax": price_to_minor_unit(unit_gross, currency),
         }
         line_items.append(line_data)
 
@@ -295,7 +332,7 @@ def request_data_for_gateway_config(
         "countryCode": country_code,
         "channel": channel,
         "amount": {
-            "value": to_adyen_price(total.gross.amount, checkout.currency),
+            "value": price_to_minor_unit(total.gross.amount, checkout.currency),
             "currency": checkout.currency,
         },
     }
@@ -307,7 +344,7 @@ def request_for_payment_refund(
     return {
         "merchantAccount": merchant_account,
         "modificationAmount": {
-            "value": to_adyen_price(
+            "value": price_to_minor_unit(
                 payment_information.amount, payment_information.currency
             ),
             "currency": payment_information.currency,
@@ -323,7 +360,7 @@ def request_for_payment_capture(
     return {
         "merchantAccount": merchant_account,
         "modificationAmount": {
-            "value": to_adyen_price(
+            "value": price_to_minor_unit(
                 payment_information.amount, payment_information.currency
             ),
             "currency": payment_information.currency,

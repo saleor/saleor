@@ -1,4 +1,6 @@
 import os
+from collections import defaultdict
+from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -8,7 +10,11 @@ from prices import Money
 
 from ...account import events as account_events
 from ...attribute.utils import associate_attribute_values_to_instance
-from ...graphql.product.filters import filter_products_by_attributes_values
+from ...graphql.product.filters import (
+    _clean_product_attributes_boolean_filter_input,
+    _clean_product_attributes_date_time_range_filter_input,
+    filter_products_by_attributes_values,
+)
 from .. import models
 from ..models import DigitalContentUrl
 from ..thumbnails import create_product_thumbnails
@@ -17,7 +23,15 @@ from ..utils.digital_products import increment_download_count
 
 
 def test_filtering_by_attribute(
-    db, color_attribute, size_attribute, category, channel_USD, settings
+    db,
+    color_attribute,
+    size_attribute,
+    category,
+    channel_USD,
+    settings,
+    date_attribute,
+    date_time_attribute,
+    boolean_attribute,
 ):
     product_type_a = models.ProductType.objects.create(
         name="New class", slug="new-class1", has_variants=True
@@ -97,6 +111,109 @@ def test_filtering_by_attribute(
     filters = {color_attribute.pk: [color_2.pk], size_attribute.pk: [size.pk]}
     filtered = filter_products_by_attributes_values(product_qs, filters)
     assert product_a.pk in list(filtered)
+
+    # Filter by date attributes
+    product_type_a.product_attributes.add(date_attribute)
+    product_type_b.product_attributes.add(date_attribute)
+
+    date = date_attribute.values.first()
+    associate_attribute_values_to_instance(product_a, date_attribute, date)
+
+    date_2 = date_attribute.values.last()
+    associate_attribute_values_to_instance(product_b, date_attribute, date_2)
+
+    filters = {date_attribute.pk: [date.pk]}
+    filtered = filter_products_by_attributes_values(product_qs, filters)
+    assert product_a.pk in list(filtered)
+
+    filters = {date_attribute.pk: [date.pk, date_2.pk]}
+    filtered = filter_products_by_attributes_values(product_qs, filters)
+    assert product_a.pk in list(filtered)
+    assert product_b.pk in list(filtered)
+
+
+def test_clean_product_attributes_date_time_range_filter_input(
+    date_attribute, date_time_attribute
+):
+    # filter date attribute
+    filter_value = [
+        (
+            date_attribute.slug,
+            {"gte": datetime(2020, 10, 5).date()},
+        )
+    ]
+    queries = defaultdict(list)
+    _clean_product_attributes_date_time_range_filter_input(
+        filter_value, queries, is_date=True
+    )
+
+    assert dict(queries) == {
+        date_attribute.pk: list(
+            date_attribute.values.all().values_list("pk", flat=True)
+        )
+    }
+
+    filter_value = [
+        (
+            date_attribute.slug,
+            {"gte": datetime(2020, 10, 5).date(), "lte": datetime(2020, 11, 4).date()},
+        )
+    ]
+    queries = defaultdict(list)
+    _clean_product_attributes_date_time_range_filter_input(
+        filter_value, queries, is_date=True
+    )
+
+    assert dict(queries) == {date_attribute.pk: [date_attribute.values.first().pk]}
+
+    # filter date time attribute
+    filter_value = [
+        (
+            date_attribute.slug,
+            {"lte": datetime(2020, 11, 4, tzinfo=timezone.utc)},
+        )
+    ]
+    queries = defaultdict(list)
+    _clean_product_attributes_date_time_range_filter_input(filter_value, queries)
+
+    assert dict(queries) == {date_attribute.pk: [date_attribute.values.first().pk]}
+
+    filter_value = [
+        (
+            date_attribute.slug,
+            {"lte": datetime(2020, 10, 4, tzinfo=timezone.utc)},
+        )
+    ]
+    queries = defaultdict(list)
+    _clean_product_attributes_date_time_range_filter_input(filter_value, queries)
+
+    assert dict(queries) == {date_attribute.pk: []}
+
+
+def test_clean_product_attributes_boolean_filter_input(boolean_attribute):
+    filter_value = [(boolean_attribute.slug, True)]
+    queries = defaultdict(list)
+    _clean_product_attributes_boolean_filter_input(filter_value, queries)
+
+    assert dict(queries) == {
+        boolean_attribute.pk: [boolean_attribute.values.first().pk]
+    }
+
+    filter_value = [(boolean_attribute.slug, False)]
+    queries = defaultdict(list)
+    _clean_product_attributes_boolean_filter_input(filter_value, queries)
+
+    assert dict(queries) == {boolean_attribute.pk: [boolean_attribute.values.last().pk]}
+
+    filter_value = [(boolean_attribute.slug, True), (boolean_attribute.slug, False)]
+    queries = defaultdict(list)
+    _clean_product_attributes_boolean_filter_input(filter_value, queries)
+
+    assert dict(queries) == {
+        boolean_attribute.pk: list(
+            boolean_attribute.values.all().values_list("pk", flat=True)
+        )
+    }
 
 
 @pytest.mark.parametrize(

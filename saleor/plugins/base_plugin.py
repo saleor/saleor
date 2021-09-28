@@ -704,6 +704,14 @@ class BasePlugin:
         return
 
     @classmethod
+    def pre_save_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+        """Trigger before plugin configuration will be saved.
+
+        Overwrite this method if you need to trigger specific logic before saving a
+        plugin configuration.
+        """
+
+    @classmethod
     def save_plugin_configuration(
         cls, plugin_configuration: "PluginConfiguration", cleaned_data
     ):
@@ -714,6 +722,7 @@ class BasePlugin:
         if "active" in cleaned_data:
             plugin_configuration.active = cleaned_data["active"]
         cls.validate_plugin_configuration(plugin_configuration)
+        cls.pre_save_plugin_configuration(plugin_configuration)
         plugin_configuration.save()
         if plugin_configuration.configuration:
             # Let's add a translated descriptions and labels
@@ -729,11 +738,20 @@ class BasePlugin:
         configuration with current values and provide access to it via API.
         """
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
+        fields_without_structure = []
         for configuration_field in configuration:
 
             structure_to_add = config_structure.get(configuration_field.get("name"))
             if structure_to_add:
                 configuration_field.update(structure_to_add)
+            else:
+                fields_without_structure.append(configuration_field)
+
+        if fields_without_structure:
+            [
+                configuration.remove(field)  # type: ignore
+                for field in fields_without_structure
+            ]
 
     @classmethod
     def _update_configuration_structure(cls, configuration: PluginConfigurationType):

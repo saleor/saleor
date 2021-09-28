@@ -9,31 +9,37 @@ from ....product.utils.availability import get_variant_availability
 from ...tests.utils import get_graphql_content
 
 QUERY_GET_VARIANT_PRICING = """
+fragment VariantPricingInfo on VariantPricingInfo {
+  onSale
+  discount {
+    currency
+    net {
+      amount
+    }
+  }
+  priceUndiscounted {
+    currency
+    net {
+      amount
+    }
+  }
+  price {
+    currency
+    net {
+      amount
+    }
+  }
+}
 query ($channel: String, $address: AddressInput) {
   products(first: 1, channel: $channel) {
     edges {
       node {
         variants {
           pricing(address: $address) {
-            onSale
-            discount {
-              currency
-              net {
-                amount
-              }
-            }
-            priceUndiscounted {
-              currency
-              net {
-                amount
-              }
-            }
-            price {
-              currency
-              net {
-                amount
-              }
-            }
+            ...VariantPricingInfo
+          }
+          pricingNoAddress: pricing {
+            ...VariantPricingInfo
           }
         }
       }
@@ -122,6 +128,7 @@ def test_variant_pricing(
         discounts=[],
         channel=channel_USD,
         plugins=manager,
+        country=Country("US"),
     )
     assert pricing.price == taxed_price
     assert pricing.price_local_currency is None
@@ -131,7 +138,6 @@ def test_variant_pricing(
         lambda c: {"PLN": Mock(rate=2)},
     )
 
-    settings.DEFAULT_COUNTRY = "PL"
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
 
     pricing = get_variant_availability(
@@ -157,6 +163,7 @@ def test_variant_pricing(
         discounts=[],
         channel=channel_USD,
         plugins=manager,
+        country=Country("PL"),
     )
     assert pricing.price.tax.amount
     assert pricing.price_undiscounted.tax.amount

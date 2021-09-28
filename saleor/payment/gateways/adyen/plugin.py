@@ -600,6 +600,7 @@ class AdyenGatewayPlugin(BasePlugin):
             external_notification_event(
                 order=transaction.payment.order,  # type: ignore
                 user=None,
+                app=None,
                 message=msg,
                 parameters={
                     "service": transaction.payment.gateway,

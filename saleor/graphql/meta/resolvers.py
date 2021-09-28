@@ -6,6 +6,7 @@ from ...attribute import models as attribute_models
 from ...checkout import models as checkout_models
 from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
+from ...discount import models as discount_models
 from ...order import models as order_models
 from ...page import models as page_models
 from ...product import models as product_models
@@ -23,6 +24,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ..app import types as app_types
     from ..attribute import types as attribute_types
     from ..checkout import types as checkout_types
+    from ..discount import types as discount_types
     from ..invoice import types as invoice_types
     from ..menu import types as menu_types
     from ..order import types as order_types
@@ -52,6 +54,8 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         app_models.App: app_types.App,
         account_models.User: account_types.User,
         warehouse_models.Warehouse: warehouse_types.Warehouse,
+        discount_models.Sale: discount_types.Sale,
+        discount_models.Voucher: discount_types.Voucher,
     }
     return MODEL_TO_TYPE_MAP.get(instance.__class__, None)
 

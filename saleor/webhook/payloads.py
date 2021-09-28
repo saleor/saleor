@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Iterable, Optional
 import graphene
 from django.db.models import F, QuerySet
 
+from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
@@ -39,6 +40,7 @@ if TYPE_CHECKING:
     from ..account.models import User
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData
+    from ..translation.models import Translation
 
 
 ADDRESS_FIELDS = (
@@ -261,11 +263,11 @@ def generate_customer_payload(customer: "User"):
         ],
         additional_fields={
             "default_shipping_address": (
-                lambda c: c.default_billing_address,
+                lambda c: c.default_shipping_address,
                 ADDRESS_FIELDS,
             ),
             "default_billing_address": (
-                lambda c: c.default_shipping_address,
+                lambda c: c.default_billing_address,
                 ADDRESS_FIELDS,
             ),
             "addresses": (
@@ -417,6 +419,7 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
         "order_line__variant__product__product_type", "stock"
     ).filter(fulfillment=fulfillment)
     line_fields = ("quantity",)
+
     return serializer.serialize(
         lines,
         fields=line_fields,
@@ -424,10 +427,16 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
             "product_name": lambda fl: fl.order_line.product_name,
             "variant_name": lambda fl: fl.order_line.variant_name,
             "product_sku": lambda fl: fl.order_line.product_sku,
-            "weight": (lambda fl: fl.order_line.variant.get_weight().g),
+            "weight": (
+                lambda fl: fl.order_line.variant.get_weight().g
+                if fl.order_line.variant
+                else None
+            ),
             "weight_unit": "gram",
             "product_type": (
                 lambda fl: fl.order_line.variant.product.product_type.name
+                if fl.order_line.variant
+                else None
             ),
             "unit_price_net": lambda fl: fl.order_line.unit_price_net_amount,
             "unit_price_gross": lambda fl: fl.order_line.unit_price_gross_amount,
@@ -609,3 +618,44 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
     else:
         payload = _generate_sample_order_payload(event_name)
     return json.loads(payload) if payload else None
+
+
+def process_translation_context(context):
+    additional_id_fields = [
+        ("product_id", "Product"),
+        ("product_variant_id", "ProductVariant"),
+        ("attribute_id", "Attribute"),
+        ("page_id", "Page"),
+        ("page_type_id", "PageType"),
+    ]
+    result = {}
+    for key, type_name in additional_id_fields:
+        if object_id := context.get(key, None):
+            result[key] = graphene.Node.to_global_id(type_name, object_id)
+        else:
+            result[key] = None
+    return result
+
+
+def generate_translation_payload(translation: "Translation"):
+    object_type, object_id = translation.get_translated_object_id()
+    translated_keys = [
+        {"key": key, "value": value}
+        for key, value in translation.get_translated_keys().items()
+    ]
+
+    context = None
+    if isinstance(translation, AttributeValueTranslation):
+        context = process_translation_context(translation.get_translation_context())
+
+    translation_data = {
+        "id": graphene.Node.to_global_id(object_type, object_id),
+        "language_code": translation.language_code,
+        "type": object_type,
+        "keys": translated_keys,
+    }
+
+    if context:
+        translation_data.update(context)
+
+    return json.dumps(translation_data)

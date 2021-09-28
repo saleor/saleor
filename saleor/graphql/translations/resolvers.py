@@ -1,5 +1,4 @@
 from ...attribute import models as attribute_models
-from ...core.tracing import traced_resolver
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
@@ -45,36 +44,29 @@ def resolve_translation(instance, info, language_code):
     raise TypeError(f"No dataloader found to {type(instance)}")
 
 
-@traced_resolver
 def resolve_shipping_methods(info):
     return shipping_models.ShippingMethod.objects.all()
 
 
-@traced_resolver
 def resolve_attribute_values(info):
     return attribute_models.AttributeValue.objects.all()
 
 
-@traced_resolver
 def resolve_products(_info):
     return product_models.Product.objects.all()
 
 
-@traced_resolver
 def resolve_product_variants(_info):
     return product_models.ProductVariant.objects.all()
 
 
-@traced_resolver
 def resolve_sales(_info):
     return discount_models.Sale.objects.all()
 
 
-@traced_resolver
 def resolve_vouchers(_info):
     return discount_models.Voucher.objects.all()
 
 
-@traced_resolver
 def resolve_collections(_info):
     return product_models.Collection.objects.all()

@@ -1,7 +1,11 @@
+from typing import List
+
 import graphene
 from django.conf import settings
 
+from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
+from ...attribute.models import AttributeValue
 from ...core.permissions import DiscountPermissions, ShippingPermissions
 from ...core.tracing import traced_resolver
 from ...discount import models as discount_models
@@ -16,6 +20,11 @@ from ..core.enums import LanguageCodeEnum
 from ..core.types import LanguageDisplay
 from ..core.utils import str_to_enum
 from ..decorators import permission_required
+from ..page.dataloaders import SelectedAttributesByPageIdLoader
+from ..product.dataloaders import (
+    SelectedAttributesByProductIdLoader,
+    SelectedAttributesByProductVariantIdLoader,
+)
 from .fields import TranslationField
 
 BASIC_TRANSLATABLE_FIELDS = ["id", "name"]
@@ -26,6 +35,19 @@ EXTENDED_TRANSLATABLE_FIELDS = [
     "seo_title",
     "seo_description",
 ]
+
+
+def get_translatable_attribute_values(attributes: list) -> List[AttributeValue]:
+    """Filter the list of passed attributes.
+
+    Return those which are translatable attributes.
+    """
+    translatable_values = []
+    for assignment in attributes:
+        attr = assignment["attribute"]
+        if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
+            translatable_values.extend(assignment["values"])
+    return translatable_values
 
 
 class BaseTranslationType(CountableDjangoObjectType):
@@ -74,7 +96,7 @@ class AttributeValueTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = attribute_models.AttributeValue
         interfaces = [graphene.relay.Node]
-        only_fields = BASIC_TRANSLATABLE_FIELDS
+        only_fields = BASIC_TRANSLATABLE_FIELDS + ["rich_text"]
 
     @staticmethod
     def resolve_attribute_value(root: attribute_models.AttributeValue, _info):
@@ -128,6 +150,11 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
             "Will be removed in Saleor 4.0. " "Get model fields from the root level."
         ),
     )
+    attribute_values = graphene.List(
+        graphene.NonNull(AttributeValueTranslatableContent),
+        required=True,
+        description="List of product variant attribute values that can be translated.",
+    )
 
     class Meta:
         model = product_models.ProductVariant
@@ -137,6 +164,14 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
     @staticmethod
     def resolve_product_variant(root: product_models.ProductVariant, info):
         return ChannelContext(node=root, channel_slug=None)
+
+    @staticmethod
+    def resolve_attribute_values(root: product_models.ProductVariant, info):
+        return (
+            SelectedAttributesByProductVariantIdLoader(info.context)
+            .load(root.id)
+            .then(get_translatable_attribute_values)
+        )
 
 
 class ProductTranslation(BaseTranslationType):
@@ -173,6 +208,11 @@ class ProductTranslatableContent(CountableDjangoObjectType):
             "Will be removed in Saleor 4.0. " "Get model fields from the root level."
         ),
     )
+    attribute_values = graphene.List(
+        graphene.NonNull(AttributeValueTranslatableContent),
+        required=True,
+        description="List of product attribute values that can be translated.",
+    )
 
     class Meta:
         model = product_models.Product
@@ -187,6 +227,14 @@ class ProductTranslatableContent(CountableDjangoObjectType):
     def resolve_description_json(root: product_models.Product, _info):
         description = root.description
         return description if description is not None else {}
+
+    @staticmethod
+    def resolve_attribute_values(root: product_models.Product, info):
+        return (
+            SelectedAttributesByProductIdLoader(info.context)
+            .load(root.id)
+            .then(get_translatable_attribute_values)
+        )
 
 
 class CollectionTranslation(BaseTranslationType):
@@ -230,7 +278,6 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
         only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
     @staticmethod
-    @traced_resolver
     def resolve_collection(root: product_models.Collection, info):
         collection = product_models.Collection.objects.all().filter(pk=root.id).first()
         return (
@@ -336,6 +383,11 @@ class PageTranslatableContent(CountableDjangoObjectType):
             "Will be removed in Saleor 4.0. " "Get model fields from the root level."
         ),
     )
+    attribute_values = graphene.List(
+        graphene.NonNull(AttributeValueTranslatableContent),
+        required=True,
+        description="List of page content attribute values that can be translated.",
+    )
 
     class Meta:
         model = page_models.Page
@@ -349,7 +401,6 @@ class PageTranslatableContent(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    @traced_resolver
     def resolve_page(root: page_models.Page, info):
         return (
             page_models.Page.objects.visible_to_user(info.context.user)
@@ -361,6 +412,14 @@ class PageTranslatableContent(CountableDjangoObjectType):
     def resolve_content_json(root: page_models.Page, _info):
         content = root.content
         return content if content is not None else {}
+
+    @staticmethod
+    def resolve_attribute_values(root: page_models.Page, info):
+        return (
+            SelectedAttributesByPageIdLoader(info.context)
+            .load(root.id)
+            .then(get_translatable_attribute_values)
+        )
 
 
 class VoucherTranslation(BaseTranslationType):

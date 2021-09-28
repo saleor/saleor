@@ -527,7 +527,7 @@ def test_get_checkout_line_tax_rate_use_cache(
     )
 
     # when
-    assert result == Decimal("0.23")
+    assert result == Decimal("0.36")
 
     avalara_cache_key = CACHE_KEY + str(checkout.token)
     mocked_cache.assert_called_with(avalara_cache_key)
@@ -581,7 +581,7 @@ def test_get_checkout_line_tax_rate_save_avatax_response_in_cache(
     # Second Avatax call to make sure that we use cached response
 
     # when
-    assert result == Decimal("0.23")
+    assert result == Decimal("0.36")
 
     avalara_request_data = generate_request_data_from_checkout(
         checkout_info, lines, plugin.config, []
@@ -629,7 +629,7 @@ def test_get_checkout_shipping_tax_rate_use_cache(
     )
 
     # when
-    assert result == Decimal("0.23")
+    assert result == Decimal("0.46")
 
     avalara_cache_key = CACHE_KEY + str(checkout.token)
     mocked_cache.assert_called_with(avalara_cache_key)
@@ -672,7 +672,7 @@ def test_get_checkout_shipping_tax_rate_save_avatax_response_in_cache(
     # Second Avatax call to make sure that we use cached response
 
     # when
-    assert result == Decimal("0.23")
+    assert result == Decimal("0.46")
 
     avalara_request_data = generate_request_data_from_checkout(
         checkout_info, lines, plugin.config, []

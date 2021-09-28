@@ -49,9 +49,11 @@ def test_change_quantity_generates_proper_event(
     stock = line.allocations.first().stock
     stock.quantity = 5
     stock.save(update_fields=["quantity"])
+    app = None
 
     change_order_line_quantity(
         staff_user,
+        app,
         line_info,
         previous_quantity,
         new_quantity,
@@ -92,10 +94,12 @@ def test_change_quantity_update_line_fields(
         warehouse_pk=line.allocations.first().stock.warehouse.pk,
     )
     new_quantity = 5
+    app = None
 
     # when
     change_order_line_quantity(
         staff_user,
+        app,
         line_info,
         line.quantity,
         new_quantity,
@@ -257,9 +261,10 @@ def test_add_variant_to_order(order, customer_user, variant):
         calculate_order_line_total=Mock(return_value=total_price),
         get_order_line_tax_rate=Mock(return_value=tax_rate),
     )
+    app = None
 
     # when
-    line = add_variant_to_order(order, variant, 4, customer_user, manager)
+    line = add_variant_to_order(order, variant, 4, customer_user, app, manager)
 
     # then
     assert line.unit_price == unit_price

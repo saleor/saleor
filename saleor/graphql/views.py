@@ -113,7 +113,11 @@ class GraphQLView(View):
         return response
 
     def render_playground(self, request):
-        return render(request, "graphql/playground.html", {})
+        return render(
+            request,
+            "graphql/playground.html",
+            {"api_url": request.build_absolute_uri(str(API_PATH))},
+        )
 
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
         try:
@@ -154,6 +158,7 @@ class GraphQLView(View):
                 opentracing.tags.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
             )
+            span.set_tag("http.useragent", request.META.get("HTTP_USER_AGENT", ""))
             span.set_tag("span.type", "web")
 
             request_ips = request.META.get(settings.REAL_IP_ENVIRON, "")
@@ -238,7 +243,7 @@ class GraphQLView(View):
                 if selection_name == "__schema":
                     query_with_schema = True
                     if selection_count > 1:
-                        msg = "`__schema` must be fetched in separete query"
+                        msg = "`__schema` must be fetched in separate query"
                         raise GraphQLError(msg)
         return query_with_schema
 

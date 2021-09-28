@@ -123,7 +123,10 @@ class Shop(graphene.ObjectType):
         graphene.NonNull(CountryDisplay),
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="A language code to return the translation for.",
+            description=(
+                "DEPRECATED: This argument will be removed in Saleor 4.0. "
+                "A language code to return the translation for."
+            ),
         ),
         description="List of countries available in the shop.",
         required=True,
@@ -215,14 +218,14 @@ class Shop(graphene.ObjectType):
         return info.context.plugins.list_external_authentications(active_only=True)
 
     @staticmethod
-    @traced_resolver
     def resolve_available_shipping_methods(_, info, channel, address=None):
         return resolve_available_shipping_methods(info, channel, address)
 
     @staticmethod
-    @traced_resolver
     def resolve_countries(_, _info, language_code=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
+
+        # DEPRECATED: translation.override will be dropped in Saleor 4.0
         with translation.override(language_code):
             return [
                 CountryDisplay(
@@ -232,7 +235,6 @@ class Shop(graphene.ObjectType):
             ]
 
     @staticmethod
-    @traced_resolver
     def resolve_domain(_, info):
         site = info.context.site
         return Domain(
@@ -246,7 +248,6 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.description
 
     @staticmethod
-    @traced_resolver
     def resolve_languages(_, _info):
         return [
             LanguageDisplay(
@@ -347,7 +348,6 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)
-    @traced_resolver
     def resolve_staff_notification_recipients(_, info):
         return account_models.StaffNotificationRecipient.objects.all()
 

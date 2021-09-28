@@ -50,7 +50,7 @@ def _create_permission_groups(user):
 def users_for_customers_benchmarks(channel_USD, address, shipping_method):
     users = [
         User(
-            email=f"jane.doe.{i}@exmaple.com",
+            email=f"jane.doe.{i}@example.com",
             is_active=True,
             default_billing_address=address.get_copy(),
             default_shipping_address=address.get_copy(),

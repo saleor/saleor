@@ -77,8 +77,126 @@ def test_order_fulfill(
         ]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
+        staff_user, None, order, fulfillment_lines_for_warehouses, ANY, True, False
     )
+
+
+def test_order_fulfill_with_stock_exceeded_with_flag_disabled(
+    staff_api_client,
+    staff_user,
+    order_with_lines,
+    permission_manage_orders,
+    warehouse,
+):
+    order = order_with_lines
+    query = ORDER_FULFILL_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_line, order_line2 = order.lines.all()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    # set stocks to out of quantity and assert
+    Stock.objects.filter(warehouse=warehouse).update(quantity=0)
+
+    # make first stock quantity < 0
+    stock = Stock.objects.filter(warehouse=warehouse).first()
+    stock.quantity = -99
+    stock.save()
+
+    for stock in Stock.objects.filter(warehouse=warehouse):
+        assert stock.quantity <= 0
+
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": False,
+            "allowStockToBeExceeded": False,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
+                },
+                {
+                    "orderLineId": order_line2_id,
+                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                },
+            ],
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfill"]
+    assert data["errors"]
+
+    errors = data["errors"]
+    assert errors[0]["code"] == "INSUFFICIENT_STOCK"
+    assert errors[0]["message"] == "Insufficient product stock: SKU_AA"
+
+    assert errors[1]["code"] == "INSUFFICIENT_STOCK"
+    assert errors[1]["message"] == "Insufficient product stock: SKU_B"
+
+
+def test_order_fulfill_with_stock_exceeded_with_flag_enabled(
+    staff_api_client,
+    staff_user,
+    order_with_lines,
+    permission_manage_orders,
+    warehouse,
+):
+    order = order_with_lines
+    query = ORDER_FULFILL_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_line, order_line2 = order.lines.all()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    # set stocks to out of quantity and assert
+    Stock.objects.filter(warehouse=warehouse).update(quantity=0)
+    for stock in Stock.objects.filter(warehouse=warehouse):
+        assert stock.quantity == 0
+
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": False,
+            "allowStockToBeExceeded": True,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
+                },
+                {
+                    "orderLineId": order_line2_id,
+                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                },
+            ],
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfill"]
+    assert not data["errors"]
+
+    order.refresh_from_db()
+
+    assert order.status == OrderStatus.FULFILLED
+
+    order_lines = order.lines.all()
+    assert order_lines[0].quantity_fulfilled == 3
+    assert order_lines[0].quantity_unfulfilled == 0
+
+    assert order_lines[1].quantity_fulfilled == 2
+    assert order_lines[1].quantity_unfulfilled == 0
+
+    # check if stocks quantity are < 0 after fulfillments
+    for stock in Stock.objects.filter(warehouse=warehouse):
+        assert stock.quantity < 0
 
 
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
@@ -127,7 +245,13 @@ def test_order_fulfill_as_app(
         ]
     }
     mock_create_fulfillments.assert_called_once_with(
-        AnonymousUser(), order, fulfillment_lines_for_warehouses, ANY, True
+        AnonymousUser(),
+        app_api_client.app,
+        order,
+        fulfillment_lines_for_warehouses,
+        ANY,
+        True,
+        False,
     )
 
 
@@ -186,7 +310,7 @@ def test_order_fulfill_many_warehouses(
     }
 
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
+        staff_user, None, order, fulfillment_lines_for_warehouses, ANY, True, False
     )
 
 
@@ -228,7 +352,7 @@ def test_order_fulfill_without_notification(
         str(warehouse.pk): [{"order_line": order_line, "quantity": 1}]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, False
+        staff_user, None, order, fulfillment_lines_for_warehouses, ANY, False, False
     )
 
 
@@ -286,7 +410,7 @@ def test_order_fulfill_lines_with_empty_quantity(
         str(warehouse.pk): [{"order_line": order_line2, "quantity": 2}]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
+        staff_user, None, order, fulfillment_lines_for_warehouses, ANY, True, False
     )
 
 

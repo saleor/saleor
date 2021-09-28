@@ -13,6 +13,10 @@ CHANNEL_CREATE_MUTATION = """
                 name
                 slug
                 currencyCode
+                defaultCountry {
+                    code
+                    country
+                }
             }
             errors{
                 field
@@ -32,7 +36,15 @@ def test_channel_create_mutation_as_staff_user(
     name = "testName"
     slug = "test_slug"
     currency_code = "USD"
-    variables = {"input": {"name": name, "slug": slug, "currencyCode": currency_code}}
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+        }
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -50,6 +62,11 @@ def test_channel_create_mutation_as_staff_user(
     assert channel_data["name"] == channel.name == name
     assert channel_data["slug"] == channel.slug == slug
     assert channel_data["currencyCode"] == channel.currency_code == currency_code
+    assert (
+        channel_data["defaultCountry"]["code"]
+        == channel.default_country.code
+        == default_country
+    )
 
 
 def test_channel_create_mutation_as_app(
@@ -60,7 +77,15 @@ def test_channel_create_mutation_as_app(
     name = "testName"
     slug = "test_slug"
     currency_code = "USD"
-    variables = {"input": {"name": name, "slug": slug, "currencyCode": currency_code}}
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+        }
+    }
 
     # when
     response = app_api_client.post_graphql(
@@ -78,6 +103,11 @@ def test_channel_create_mutation_as_app(
     assert channel_data["name"] == channel.name == name
     assert channel_data["slug"] == channel.slug == slug
     assert channel_data["currencyCode"] == channel.currency_code == currency_code
+    assert (
+        channel_data["defaultCountry"]["code"]
+        == channel.default_country.code
+        == default_country
+    )
 
 
 def test_channel_create_mutation_as_customer(user_api_client):
@@ -85,7 +115,15 @@ def test_channel_create_mutation_as_customer(user_api_client):
     name = "testName"
     slug = "test_slug"
     currency_code = "USD"
-    variables = {"input": {"name": name, "slug": slug, "currencyCode": currency_code}}
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+        }
+    }
 
     # when
     response = user_api_client.post_graphql(
@@ -103,7 +141,15 @@ def test_channel_create_mutation_as_anonymous(api_client):
     name = "testName"
     slug = "test_slug"
     currency_code = "USD"
-    variables = {"input": {"name": name, "slug": slug, "currencyCode": currency_code}}
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+        }
+    }
 
     # when
     response = api_client.post_graphql(
@@ -124,7 +170,15 @@ def test_channel_create_mutation_slugify_slug_field(
     name = "testName"
     slug = "Invalid slug"
     currency_code = "USD"
-    variables = {"input": {"name": name, "slug": slug, "currencyCode": currency_code}}
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+        }
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -146,7 +200,15 @@ def test_channel_create_mutation_with_duplicated_slug(
     name = "New Channel"
     slug = channel_USD.slug
     currency_code = "USD"
-    variables = {"input": {"name": name, "slug": slug, "currencyCode": currency_code}}
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+        }
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -171,6 +233,7 @@ def test_channel_create_mutation_with_shipping_zones(
     name = "testName"
     slug = "test_slug"
     currency_code = "USD"
+    default_country = "US"
     shipping_zones_ids = [
         graphene.Node.to_global_id("ShippingZone", zone.pk) for zone in shipping_zones
     ]
@@ -180,6 +243,7 @@ def test_channel_create_mutation_with_shipping_zones(
             "slug": slug,
             "currencyCode": currency_code,
             "addShippingZones": shipping_zones_ids,
+            "defaultCountry": default_country,
         }
     }
 

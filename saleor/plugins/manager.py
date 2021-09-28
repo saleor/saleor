@@ -46,6 +46,7 @@ if TYPE_CHECKING:
         TokenConfig,
     )
     from ..product.models import Product, ProductType, ProductVariant
+    from ..translation.models import Translation
     from .base_plugin import BasePlugin
 
 
@@ -115,18 +116,14 @@ class PluginsManager(PaymentInterface):
         channel_slug: Optional[str] = None,
         **kwargs
     ):
-        """Try to run a method with the given name on each declared plugin."""
-        with opentracing.global_tracer().start_active_span(
-            f"PluginsManager.{method_name}"
-        ):
-            value = default_value
-            plugins = self.get_plugins(channel_slug=channel_slug)
-
-            for plugin in plugins:
-                value = self.__run_method_on_single_plugin(
-                    plugin, method_name, value, *args, **kwargs
-                )
-            return value
+        """Try to run a method with the given name on each declared active plugin."""
+        value = default_value
+        plugins = self.get_plugins(channel_slug=channel_slug, active_only=True)
+        for plugin in plugins:
+            value = self.__run_method_on_single_plugin(
+                plugin, method_name, value, *args, **kwargs
+            )
+        return value
 
     def __run_method_on_single_plugin(
         self,
@@ -327,6 +324,7 @@ class PluginsManager(PaymentInterface):
                 order_line,
                 variant,
                 product,
+                channel_slug=order.channel.slug,
             ),
             order.currency,
         )
@@ -531,6 +529,24 @@ class PluginsManager(PaymentInterface):
             "order_confirmed", default_value, order, channel_slug=order.channel.slug
         )
 
+    def draft_order_created(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_created", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def draft_order_updated(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_updated", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def draft_order_deleted(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_deleted", default_value, order, channel_slug=order.channel.slug
+        )
+
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]
     ):
@@ -726,6 +742,18 @@ class PluginsManager(PaymentInterface):
                 gtw, "list_payment_sources", default_value, customer_id=customer_id
             )
         raise Exception(f"Payment plugin {gateway} is inaccessible!")
+
+    def translation_created(self, translation: "Translation"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "translation_created", default_value, translation
+        )
+
+    def translation_updated(self, translation: "Translation"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "translation_updated", default_value, translation
+        )
 
     def get_plugins(
         self, channel_slug: Optional[str] = None, active_only=False

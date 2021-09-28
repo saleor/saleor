@@ -20,12 +20,16 @@ def test_serialize_product_attributes(
         "input_type": "dropdown",
         "name": "Size",
         "slug": "size",
+        "unit": None,
         "values": [
             {
                 "file": None,
                 "name": "Small",
                 "reference": None,
                 "rich_text": None,
+                "date_time": None,
+                "date": None,
+                "boolean": None,
                 "slug": "small",
                 "value": "",
             }
@@ -41,6 +45,9 @@ def test_serialize_product_attributes(
             "file": None,
             "reference": None,
             "rich_text": None,
+            "date_time": None,
+            "date": None,
+            "boolean": None,
             "value": "",
         },
         {
@@ -49,6 +56,9 @@ def test_serialize_product_attributes(
             "file": None,
             "reference": None,
             "rich_text": None,
+            "date_time": None,
+            "date": None,
+            "boolean": None,
             "value": "",
         },
     ]

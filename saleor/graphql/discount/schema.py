@@ -1,7 +1,6 @@
 import graphene
 
 from ...core.permissions import DiscountPermissions
-from ...core.tracing import traced_resolver
 from ..core.fields import ChannelContextFilterConnectionField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
@@ -51,7 +50,12 @@ class DiscountQueries(graphene.ObjectType):
         Sale,
         filter=SaleFilterInput(description="Filtering options for sales."),
         sort_by=SaleSortingInput(description="Sort sales."),
-        query=graphene.String(description="Search sales by name, value or type."),
+        query=graphene.String(
+            description=(
+                "Search sales by name, value or type. DEPRECATED: Will be removed in "
+                "Saleor 4.0. Use `filter.search` input instead."
+            )
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -71,7 +75,12 @@ class DiscountQueries(graphene.ObjectType):
         Voucher,
         filter=VoucherFilterInput(description="Filtering options for vouchers."),
         sort_by=VoucherSortingInput(description="Sort voucher."),
-        query=graphene.String(description="Search vouchers by name or code."),
+        query=graphene.String(
+            description=(
+                "Search vouchers by name or code. DEPRECATED: Will be removed in "
+                "Saleor 4.0. Use `filter.search` input instead."
+            )
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -79,7 +88,6 @@ class DiscountQueries(graphene.ObjectType):
     )
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    @traced_resolver
     def resolve_sale(self, info, id, channel=None):
         _, id = from_global_id_or_error(id, Sale)
         return resolve_sale(id, channel)

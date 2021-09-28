@@ -1,6 +1,5 @@
 import graphene
 
-from ...core.tracing import traced_resolver
 from ...webhook import models
 from ...webhook.event_types import WebhookEventType
 from ..core.connection import CountableDjangoObjectType
@@ -44,6 +43,5 @@ class Webhook(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    @traced_resolver
     def resolve_events(root: models.Webhook, *_args, **_kwargs):
         return root.events.all()
