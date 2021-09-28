@@ -35,7 +35,11 @@ from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import (
+    ADDED_IN_31,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
+)
 from ...core.enums import ReportingPeriod
 from ...core.fields import (
     ChannelContextFilterConnectionField,
@@ -290,7 +294,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ),
     )
     preorder = graphene.Field(
-        PreorderData, required=True, description="Preorder data for product variant."
+        PreorderData,
+        required=True,
+        description=f"{ADDED_IN_31} Preorder data for product variant.",
     )
 
     class Meta:
