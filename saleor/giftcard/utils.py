@@ -13,8 +13,6 @@ from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
 from ..core.utils.validators import user_is_valid
 from ..order.actions import create_fulfillments
 from ..order.models import OrderLine
-from ..product import ProductTypeKind
-from ..product.models import Product, ProductType, ProductVariant
 from ..site import GiftCardSettingsExpiryType
 from . import GiftCardEvents, events
 from .models import GiftCard, GiftCardEvent
@@ -86,8 +84,7 @@ def fulfill_non_shippable_gift_cards(
 ):
     if not user_is_valid(requestor_user):
         requestor_user = None
-    line_pks = [line.pk for line in order_lines]
-    gift_card_lines = get_non_shippable_gift_card_lines(line_pks)
+    gift_card_lines = get_non_shippable_gift_card_lines(order_lines)
     if not gift_card_lines:
         return
     fulfill_gift_card_lines(gift_card_lines, requestor_user, app, order, manager)
@@ -97,26 +94,16 @@ def fulfill_non_shippable_gift_cards(
     )
 
 
-def get_non_shippable_gift_card_lines(line_ids: Iterable[int]):
-    gift_card_lines = get_gift_card_lines(line_ids)
-    gift_card_lines = gift_card_lines.filter(
-        is_shipping_required=False,
+def get_non_shippable_gift_card_lines(lines: Iterable[OrderLine]) -> "QuerySet":
+    gift_card_lines = get_gift_card_lines(lines)
+    non_shippable_lines = OrderLine.objects.filter(
+        id__in=[line.pk for line in gift_card_lines], is_shipping_required=False
     )
-    return gift_card_lines
+    return non_shippable_lines
 
 
-def get_gift_card_lines(line_pks: Iterable[int]):
-    product_types = ProductType.objects.filter(kind=ProductTypeKind.GIFT_CARD)
-    products = Product.objects.filter(
-        Exists(product_types.filter(pk=OuterRef("product_type_id")))
-    )
-    variants = ProductVariant.objects.filter(
-        Exists(products.filter(pk=OuterRef("product_id")))
-    )
-    gift_card_lines = OrderLine.objects.filter(id__in=line_pks).filter(
-        Exists(variants.filter(pk=OuterRef("variant_id")))
-    )
-
+def get_gift_card_lines(lines: Iterable[OrderLine]):
+    gift_card_lines = [line for line in lines if line.is_gift_card]
     return gift_card_lines
 
 

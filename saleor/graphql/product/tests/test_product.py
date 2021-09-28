@@ -3749,14 +3749,24 @@ def test_create_product_with_boolean_attribute(
 
 SEARCH_PRODUCTS_QUERY = """
     query Products(
-        $filters: ProductFilterInput, $sortBy: ProductOrder, $channel: String
+        $filters: ProductFilterInput,
+        $sortBy: ProductOrder,
+        $channel: String,
+        $after: String,
     ) {
-        products(first: 5, filter: $filters, sortBy: $sortBy, channel: $channel) {
+        products(
+            first: 5,
+            filter: $filters,
+            sortBy: $sortBy,
+            channel: $channel,
+            after: $after,
+        ) {
             edges {
                 node {
                     id
                     name
                 }
+                cursor
             }
         }
     }
@@ -3898,6 +3908,44 @@ def test_search_product_by_description_and_name_without_sort_by(
     assert data[0]["node"]["name"] == product_2.name
     assert data[1]["node"]["name"] == product.name
     assert data[2]["node"]["name"] == product_1.name
+
+
+def test_search_product_by_description_and_name_and_use_cursor(
+    user_api_client, product_list, product, channel_USD, category, product_type
+):
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "filters": {
+            "search": "red",
+        },
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
+    content = get_graphql_content(response)
+    cursor = content["data"]["products"]["edges"][0]["cursor"]
+
+    variables = {
+        "filters": {
+            "search": "red",
+        },
+        "after": cursor,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+
+    assert data[0]["node"]["name"] == product.name
+    assert data[1]["node"]["name"] == product_1.name
 
 
 @freeze_time("2020-03-18 12:00:00")

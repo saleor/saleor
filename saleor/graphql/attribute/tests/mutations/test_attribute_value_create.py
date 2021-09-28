@@ -198,7 +198,6 @@ def test_create_swatch_attribute_value_with_value_and_file(
 @pytest.mark.parametrize(
     "field, value",
     [
-        ("value", "#ffffff"),
         ("fileUrl", "http://mirumee.com/test_media/test_file.jpeg"),
         ("contentType", "jpeg"),
     ],

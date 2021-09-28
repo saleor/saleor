@@ -636,7 +636,7 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         input_type = instance.attribute.input_type
 
         is_swatch_attr = input_type == AttributeInputType.SWATCH
-        only_swatch_fields = ["file_url", "content_type", "value"]
+        only_swatch_fields = ["file_url", "content_type"]
         errors = {}
         if not is_swatch_attr:
             for field in only_swatch_fields:

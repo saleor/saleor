@@ -75,9 +75,9 @@ enum AccountErrorCode {
 input AccountInput {
   firstName: String
   lastName: String
+  languageCode: LanguageCodeEnum
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
-  languageCode: LanguageCodeEnum
 }
 
 type AccountRegister {
@@ -88,10 +88,12 @@ type AccountRegister {
 }
 
 input AccountRegisterInput {
+  firstName: String
+  lastName: String
+  languageCode: LanguageCodeEnum
   email: String!
   password: String!
   redirectUrl: String
-  languageCode: LanguageCodeEnum
   metadata: [MetadataInput!]
   channel: String
 }
@@ -7182,6 +7184,9 @@ enum WebhookEventTypeEnum {
   ORDER_UPDATED
   ORDER_CANCELLED
   ORDER_FULFILLED
+  DRAFT_ORDER_CREATED
+  DRAFT_ORDER_UPDATED
+  DRAFT_ORDER_DELETED
   INVOICE_REQUESTED
   INVOICE_DELETED
   INVOICE_SENT
@@ -7221,6 +7226,9 @@ enum WebhookSampleEventTypeEnum {
   ORDER_UPDATED
   ORDER_CANCELLED
   ORDER_FULFILLED
+  DRAFT_ORDER_CREATED
+  DRAFT_ORDER_UPDATED
+  DRAFT_ORDER_DELETED
   INVOICE_REQUESTED
   INVOICE_DELETED
   INVOICE_SENT

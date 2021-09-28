@@ -125,6 +125,30 @@ class WebhookPlugin(BasePlugin):
         order_data = generate_order_payload(order)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_FULFILLED, order_data)
 
+    def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.DRAFT_ORDER_CREATED, order_data
+        )
+
+    def draft_order_updated(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.DRAFT_ORDER_UPDATED, order_data
+        )
+
+    def draft_order_deleted(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.DRAFT_ORDER_DELETED, order_data
+        )
+
     def fulfillment_created(self, fulfillment: "Fulfillment", previous_value):
         if not self.active:
             return previous_value
