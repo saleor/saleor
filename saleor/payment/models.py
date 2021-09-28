@@ -185,7 +185,7 @@ class Payment(models.Model):
         return self.is_active and self.is_authorized
 
     def can_void(self):
-        return self.is_active and self.is_authorized
+        return self.is_authorized
 
     def can_refund(self):
         can_refund_charge_status = (
@@ -193,7 +193,7 @@ class Payment(models.Model):
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.PARTIALLY_REFUNDED,
         )
-        return self.is_active and self.charge_status in can_refund_charge_status
+        return self.charge_status in can_refund_charge_status
 
     def is_manual(self):
         return self.gateway == CustomPaymentChoices.MANUAL

@@ -454,7 +454,7 @@ def get_unfinished_payments():
     )
     payments = (
         Payment.objects.get_queryset()
-        .filter(order=None)
+        .filter(order=None, is_active=True)
         .annotate(newest_trx_date=Subquery(newest.values("created")[:1]))
         .filter(newest_trx_date__lte=day_before)
         .exclude(
@@ -475,19 +475,3 @@ def is_payment_unfinished_and_ready_to_release(payment: Payment):
 
 class ReleasePaymentException(Exception):
     """Exception occured on attempt to release payment."""
-
-
-def release_checkout_payment(payment: Payment, manager: "PluginsManager"):
-    """Try release payment calling refund or void."""
-    if not is_payment_unfinished_and_ready_to_release(payment):
-        raise ReleasePaymentException(f"Payment '{payment}' is not ready to release")
-
-    from saleor.payment.gateway import payment_refund_or_void
-
-    if payment.checkout is None:
-        raise ReleasePaymentException(
-            f"Couldn't get channel_slug for Payment '{payment}'"
-        )
-
-    slug = payment.checkout.channel.slug
-    payment_refund_or_void(payment, manager, slug)
