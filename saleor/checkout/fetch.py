@@ -43,8 +43,7 @@ class CheckoutInfo:
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
-    valid_shipping_methods: List["ShippingMethod"]
-    valid_external_shipping_methods: List["ExternalShippingMethod"]
+    valid_shipping_methods: List[Union["ShippingMethod", "ExternalShippingMethod"]]
     valid_pick_up_points: List["Warehouse"]
     shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
 
@@ -55,7 +54,6 @@ class CheckoutInfo:
         return list(
             itertools.chain(
                 self.valid_shipping_methods,
-                self.valid_external_shipping_methods,
                 self.valid_pick_up_points,
             )
         )
@@ -281,14 +279,13 @@ def fetch_checkout_info(
         delivery_method_info=delivery_method_info,
         shipping_method_channel_listings=None,
         valid_shipping_methods=[],
-        valid_external_shipping_methods=[],
         valid_pick_up_points=[],
     )
 
     valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
         checkout_info, shipping_address, lines, discounts, manager
     )
-    valid_external_shipping_methods = (
+    valid_shipping_methods += (
         get_valid_external_shipping_method_list_for_checkout_info(
             checkout_info, shipping_address, lines, discounts, manager
         )
@@ -297,7 +294,6 @@ def fetch_checkout_info(
         shipping_address, lines, checkout_info
     )
     checkout_info.valid_shipping_methods = valid_shipping_methods
-    checkout_info.valid_external_shipping_methods = valid_external_shipping_methods
     checkout_info.valid_pick_up_points = valid_pick_up_points
     checkout_info.delivery_method_info = delivery_method_info
 
@@ -317,13 +313,12 @@ def update_checkout_info_shipping_address(
     valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
         checkout_info, address, lines, discounts, manager
     )
-    valid_external_shipping_methods = (
+    valid_shipping_methods += (
         get_valid_external_shipping_method_list_for_checkout_info(
             checkout_info, address, lines, discounts, manager
         )
     )
     checkout_info.valid_shipping_methods = valid_shipping_methods
-    checkout_info.valid_external_shipping_methods = valid_external_shipping_methods
 
     delivery_method = checkout_info.delivery_method_info.delivery_method
     checkout_info.delivery_method_info = get_delivery_method_info(
