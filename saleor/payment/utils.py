@@ -15,6 +15,7 @@ from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
 from ..order.models import Order
+from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
 from .interface import (
@@ -27,7 +28,7 @@ from .interface import (
 from .models import Payment, Transaction
 
 if TYPE_CHECKING:
-    from ..plugins.manager import PluginsManager, get_plugins_manager
+    pass
 
 logger = logging.getLogger(__name__)
 

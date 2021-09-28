@@ -1,5 +1,3 @@
-import functools
-
 import opentracing
 
 from saleor.payment import TransactionKind
@@ -14,7 +12,6 @@ from ...interface import GatewayConfig, GatewayResponse, PaymentData
 
 
 def inject_api_config(fun):
-    @functools.wraps
     def inner(payment_information: PaymentData, config: GatewayConfig):
         return fun(payment_information, get_api_config(config.connection_params))
 

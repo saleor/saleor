@@ -46,10 +46,7 @@ def _format_name(ad: AddressData):
 
 def _format_address(ad: AddressData):
     """Follow the japanese address guidelines."""
-    return (
-        f"{ad.country} {ad.country_area} {ad.city} {ad.city_area} "
-        f"{ad.street_address_1} {ad.street_address_2}"
-    )
+    return "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
 
 
 def register_transaction(
@@ -61,16 +58,20 @@ def register_transaction(
     data = {
         "transactions": [
             {
-                "shop_transaction_id": payment_information.token,
+                "shop_transaction_id": payment_information.payment_id,
                 "shop_order_date": order_date,
                 "settlement_type": NP_ATOBARAI,
-                "billed_amount": payment_information.amount,
+                "billed_amount": int(
+                    price_to_minor_unit(
+                        payment_information.amount, payment_information.currency
+                    )
+                ),
                 "customer": {
                     "customer_name": payment_information.billing.first_name,
                     "company_name": payment_information.billing.company_name,
                     "zip_code": payment_information.billing.postal_code,
                     "address": _format_address(payment_information.billing),
-                    "tel": payment_information.billing.phone,
+                    "tel": payment_information.billing.phone.replace("+81", "0"),
                     "email": payment_information.customer_email,
                 },
                 "dest_customer": {
@@ -78,15 +79,16 @@ def register_transaction(
                     "company_name": payment_information.shipping.company_name,
                     "zip_code": payment_information.shipping.postal_code,
                     "address": _format_address(payment_information.shipping),
-                    "tel": payment_information.shipping.phone,
-                    "email": payment_information.customer_email,
+                    "tel": payment_information.shipping.phone.replace("+81", "0"),
                 },
                 "goods": [
                     {
                         "quantity": line.quantity,
                         "goods_name": line.description,
-                        "goods_price": price_to_minor_unit(
-                            line.gross, payment_information.currency
+                        "goods_price": int(
+                            price_to_minor_unit(
+                                line.gross, payment_information.currency
+                            )
                         ),
                     }
                     for line in payment_information.lines
@@ -95,8 +97,10 @@ def register_transaction(
         ]
     }
 
-    response_data = _request(config, "post", "/transactions", json=data).json()
+    response = _request(config, "post", "/transactions", json=data)
+    print(response.content)
+    transaction = response.json()["results"][0]
     return PaymentResult(
-        status=response_data["authori_result"],
-        psp_reference=response_data["np_transaction_id"],
+        status=transaction["authori_result"],
+        psp_reference=transaction["np_transaction_id"],
     )

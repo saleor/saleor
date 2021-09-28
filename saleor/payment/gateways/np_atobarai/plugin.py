@@ -31,7 +31,8 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.np-atobarai"
     PLUGIN_NAME = GATEWAY_NAME
     CONFIGURATION_PER_CHANNEL = True
-    SUPPORTED_CURRENCIES = "JPY"
+    # TODO: restore just JPY
+    SUPPORTED_CURRENCIES = "JPY,PLN,USD"
 
     DEFAULT_CONFIGURATION = [
         {"name": MERCHANT_CODE, "value": None},
@@ -104,6 +105,9 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     def get_supported_currencies(self, previous_value):
         return self.SUPPORTED_CURRENCIES
 
+    def token_is_required_as_payment_input(self, previous_value):
+        return False
+
     @classmethod
     def validate_authentication(cls, plugin_configuration: "PluginConfiguration"):
         conf = {
@@ -125,6 +129,9 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
+        if not plugin_configuration.active:
+            return
+
         missing_fields = []
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
@@ -135,15 +142,14 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         if not configuration[TERMINAL_ID]:
             missing_fields.append(TERMINAL_ID)
 
-        if plugin_configuration.active:
-            if missing_fields:
-                error_msg = (
-                    "To enable a plugin, you need to provide values for the "
-                    "following fields: "
-                )
-                raise ValidationError(
-                    error_msg + ", ".join(missing_fields),
-                    code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
-                )
+        if missing_fields:
+            error_msg = (
+                "To enable a plugin, you need to provide values for the "
+                "following fields: "
+            )
+            raise ValidationError(
+                error_msg + ", ".join(missing_fields),
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+            )
 
-            cls.validate_authentication(plugin_configuration)
+        cls.validate_authentication(plugin_configuration)
