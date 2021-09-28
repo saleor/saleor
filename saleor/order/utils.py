@@ -133,8 +133,6 @@ def recalculate_order_prices(order: Order, **kwargs):
     voucher_discount = kwargs.get("discount", zero_money(order.currency))
 
     # discount amount can't be greater than order total
-    if type(voucher_discount) == TaxedMoney:
-        voucher_discount = voucher_discount.gross
     voucher_discount = min(voucher_discount, total.gross)
     total -= voucher_discount
 
@@ -640,7 +638,7 @@ def get_voucher_discount_for_order(order: Order) -> Money:
         return order.voucher.get_discount_amount_for(subtotal.gross, order.channel)
     if order.voucher.type == VoucherType.SHIPPING:
         return order.voucher.get_discount_amount_for(
-            order.shipping_price, order.channel
+            order.shipping_price.gross, order.channel
         )
     if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
         return get_products_voucher_discount_for_order(order)
