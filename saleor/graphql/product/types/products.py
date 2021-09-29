@@ -295,7 +295,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     preorder = graphene.Field(
         PreorderData,
-        required=True,
+        required=False,
         description=f"{ADDED_IN_31} Preorder data for product variant.",
     )
 
@@ -604,11 +604,15 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 channel_listing.preorder_quantity_allocated
                 for channel_listing in variant_channel_listings
             )
-            return PreorderData(
-                is_preorder=variant.is_preorder,
-                global_threshold=variant.preorder_global_threshold,
-                global_sold_units=global_sold_units,
-                end_date=variant.preorder_end_date,
+            return (
+                PreorderData(
+                    is_preorder=variant.is_preorder,
+                    global_threshold=variant.preorder_global_threshold,
+                    global_sold_units=global_sold_units,
+                    end_date=variant.preorder_end_date,
+                )
+                if variant.is_preorder
+                else None
             )
 
         return variant_channel_listings.then(calculate_global_sold_units)
