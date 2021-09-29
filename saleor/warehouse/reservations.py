@@ -48,8 +48,7 @@ def reserve_stocks(
     stocks_id = [stock.pop("id") for stock in stocks]
 
     quantity_allocation_list = list(
-        Allocation.objects
-        .filter(
+        Allocation.objects.filter(
             stock_id__in=stocks_id,
             quantity_allocated__gt=0,
         )
