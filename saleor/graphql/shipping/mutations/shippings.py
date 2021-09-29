@@ -9,15 +9,17 @@ from ....core.tracing import traced_atomic_transaction
 from ....product import models as product_models
 from ....shipping import models
 from ....shipping.error_codes import ShippingErrorCode
-from ....shipping.tasks import \
-    drop_invalid_shipping_methods_relations_for_given_channels
-from ....shipping.utils import (default_shipping_zone_exists,
-                                get_countries_without_shipping_zone)
+from ....shipping.tasks import (
+    drop_invalid_shipping_methods_relations_for_given_channels,
+)
+from ....shipping.utils import (
+    default_shipping_zone_exists,
+    get_countries_without_shipping_zone,
+)
 from ...channel.types import ChannelContext
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types.common import ShippingError
-from ...core.utils import from_global_id_or_error
 from ...product import types as product_types
 from ...shipping.utils import get_shipping_model_by_object_id
 from ...utils import resolve_global_ids_to_primary_keys

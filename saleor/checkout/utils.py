@@ -42,8 +42,8 @@ if TYPE_CHECKING:
     from prices import TaxedMoney
 
     from ..account.models import Address
-    from .fetch import CheckoutInfo, CheckoutLineInfo
     from ..order.models import Order
+    from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
 PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"

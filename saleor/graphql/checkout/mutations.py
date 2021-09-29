@@ -40,8 +40,8 @@ from ...order import models as order_models
 from ...plugins.webhook.utils import from_shipping_app_id
 from ...product import models as product_models
 from ...product.models import ProductChannelListing
-from ...shipping import models as shipping_models
 from ...shipping import interface as shipping_interface
+from ...shipping import models as shipping_models
 from ...warehouse import models as warehouse_models
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin

@@ -12,8 +12,12 @@ from ....core.utils.url import validate_storefront_url
 from ....order import OrderLineData, OrderOrigin, OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
-from ....order.utils import (add_variant_to_order, get_order_country,
-                             recalculate_order, update_order_prices)
+from ....order.utils import (
+    add_variant_to_order,
+    get_order_country,
+    recalculate_order,
+    update_order_prices,
+)
 from ....warehouse.management import allocate_stocks
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -21,14 +25,15 @@ from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
-from ...core.utils import from_global_id_or_error
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import Order
-from ..utils import (prepare_insufficient_stock_order_validation_errors,
-                     validate_draft_order,
-                     validate_product_is_published_in_channel,
-                     validate_variant_channel_listings)
+from ..utils import (
+    prepare_insufficient_stock_order_validation_errors,
+    validate_draft_order,
+    validate_product_is_published_in_channel,
+    validate_variant_channel_listings,
+)
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -100,7 +105,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         channel_id = data.pop("channel_id", None)
 
         shipping_method = get_shipping_model_by_object_id(
-            data.pop('shipping_method', None)
+            data.pop("shipping_method", None)
         )
 
         cleaned_input = super().clean_input(info, instance, data)

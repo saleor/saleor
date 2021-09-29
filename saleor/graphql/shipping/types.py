@@ -16,8 +16,7 @@ from ..channel.types import (
 )
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import ChannelContextFilterConnectionField
-from ..core.scalars import WeightScalar
-from ..core.types import CountryDisplay, Money, MoneyRange
+from ..core.types import CountryDisplay, Money, MoneyRange, Weight
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range
@@ -104,11 +103,11 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     id = graphene.ID(required=True, description="Shipping method ID.")
     name = graphene.String(required=True, description="Shipping method name.")
     description = graphene.JSONString(description="Shipping method description (JSON).")
-    minimum_order_weight = WeightScalar(
-        description="Minimum order weight to use this shipping method."
+    minimum_order_weight = graphene.Field(
+        Weight, description="Minimum order weight to use this shipping method."
     )
-    maximum_order_weight = WeightScalar(
-        description="Maximum order weight to use this shipping method."
+    maximum_order_weight = graphene.Field(
+        Weight, description="Maximum order weight to use this shipping method."
     )
     maximum_delivery_days = graphene.Int(
         description="Maximum number of days for delivery."
