@@ -227,7 +227,8 @@ class OrderFulfill(BaseMutation):
 
         cls.clean_lines(order_lines, order_line_id_to_total_quantity)
 
-        cls.check_lines_for_preorder(order_lines)
+        if site_settings.fulfillment_auto_approve:
+            cls.check_lines_for_preorder(order_lines)
 
         cls.check_total_quantity_of_items(quantities_for_lines)
 
@@ -470,6 +471,9 @@ class FulfillmentApprove(BaseMutation):
                 "fulfillments can be accepted.",
                 code=OrderErrorCode.INVALID.value,
             )
+
+        OrderFulfill.check_lines_for_preorder([line.order_line for line in fulfillment])
+
         if (
             not info.context.site.settings.fulfillment_allow_unpaid
             and not fulfillment.order.is_fully_paid()
