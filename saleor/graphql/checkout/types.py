@@ -205,8 +205,8 @@ class Checkout(CountableDjangoObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     stock_reservation_expires = graphene.DateTime(
         description=(
-            "Date when oldest stock reservation for this checkout expires or null "
-            "if no stock is reserved."
+           f"{ADDED_IN_31} Date when oldest stock reservation for this checkout "
+            " expires or null if no stock is reserved."
         ),
     )
     lines = graphene.List(

@@ -150,7 +150,7 @@ def _create_reservations(
             if quantity_reserved == quantity:
                 return insufficient_stocks, reservations
 
-    if not quantity_reserved == quantity:
+    if quantity_reserved != quantity:
         insufficient_stocks.append(
             InsufficientStockData(
                 variant=variant,
@@ -166,7 +166,7 @@ def get_checkout_lines_to_reserve(
     lines: Iterable["CheckoutLine"],
     variants_map: Dict[int, "ProductVariant"],
 ) -> Iterable["CheckoutLine"]:
-    """Return order lines which can be reserved."""
+    """Return checkout lines which can be reserved."""
     valid_lines = []
     for line in lines:
         if (
@@ -180,12 +180,12 @@ def get_checkout_lines_to_reserve(
 
 def is_reservation_enabled(settings) -> bool:
     return bool(
-        settings.reserve_stock_duration_minutes_authenticated
-        or settings.reserve_stock_duration_minutes_anonymous
+        settings.reserve_stock_duration_authenticated_user
+        or settings.reserve_stock_duration_anonymous_user
     )
 
 
 def get_reservation_length(request) -> Optional[int]:
     if request.user.is_authenticated:
-        return request.site.settings.reserve_stock_duration_minutes_authenticated
-    return request.site.settings.reserve_stock_duration_minutes_anonymous
+        return request.site.settings.reserve_stock_duration_authenticated_user
+    return request.site.settings.reserve_stock_duration_anonymous_user

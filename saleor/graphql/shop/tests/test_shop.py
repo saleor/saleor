@@ -366,8 +366,8 @@ def test_shop_reservation_settings_mutation(
         mutation updateSettings($input: ShopSettingsInput!) {
             shopSettingsUpdate(input: $input) {
                 shop {
-                    reserveStockDurationMinutesAnonymous
-                    reserveStockDurationMinutesAuthenticated
+                    reserveStockDurationAnonymousUser
+                    reserveStockDurationAuthenticatedUser
                 }
                 errors {
                     field,
@@ -378,8 +378,8 @@ def test_shop_reservation_settings_mutation(
     """
     variables = {
         "input": {
-            "reserveStockDurationMinutesAnonymous": 42,
-            "reserveStockDurationMinutesAuthenticated": 24,
+            "reserveStockDurationAnonymousUser": 42,
+            "reserveStockDurationAuthenticatedUser": 24,
         }
     }
     response = staff_api_client.post_graphql(
@@ -387,11 +387,11 @@ def test_shop_reservation_settings_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]["shop"]
-    assert data["reserveStockDurationMinutesAnonymous"] == 42
-    assert data["reserveStockDurationMinutesAuthenticated"] == 24
+    assert data["reserveStockDurationAnonymousUser"] == 42
+    assert data["reserveStockDurationAuthenticatedUser"] == 24
     site_settings.refresh_from_db()
-    assert site_settings.reserve_stock_duration_minutes_anonymous == 42
-    assert site_settings.reserve_stock_duration_minutes_authenticated == 24
+    assert site_settings.reserve_stock_duration_anonymous_user == 42
+    assert site_settings.reserve_stock_duration_authenticated_user == 24
 
 
 def test_shop_reservation_disable_settings_mutation(
@@ -401,8 +401,8 @@ def test_shop_reservation_disable_settings_mutation(
         mutation updateSettings($input: ShopSettingsInput!) {
             shopSettingsUpdate(input: $input) {
                 shop {
-                    reserveStockDurationMinutesAnonymous
-                    reserveStockDurationMinutesAuthenticated
+                    reserveStockDurationAnonymousUser
+                    reserveStockDurationAuthenticatedUser
                 }
                 errors {
                     field,
@@ -413,8 +413,8 @@ def test_shop_reservation_disable_settings_mutation(
     """
     variables = {
         "input": {
-            "reserveStockDurationMinutesAnonymous": None,
-            "reserveStockDurationMinutesAuthenticated": None,
+            "reserveStockDurationAnonymousUser": None,
+            "reserveStockDurationAuthenticatedUser": None,
         }
     }
     response = staff_api_client.post_graphql(
@@ -422,11 +422,11 @@ def test_shop_reservation_disable_settings_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]["shop"]
-    assert data["reserveStockDurationMinutesAnonymous"] is None
-    assert data["reserveStockDurationMinutesAuthenticated"] is None
+    assert data["reserveStockDurationAnonymousUser"] is None
+    assert data["reserveStockDurationAuthenticatedUser"] is None
     site_settings.refresh_from_db()
-    assert site_settings.reserve_stock_duration_minutes_anonymous is None
-    assert site_settings.reserve_stock_duration_minutes_authenticated is None
+    assert site_settings.reserve_stock_duration_anonymous_user is None
+    assert site_settings.reserve_stock_duration_authenticated_user is None
 
 
 def test_shop_reservation_set_negative_settings_mutation(
@@ -436,8 +436,8 @@ def test_shop_reservation_set_negative_settings_mutation(
         mutation updateSettings($input: ShopSettingsInput!) {
             shopSettingsUpdate(input: $input) {
                 shop {
-                    reserveStockDurationMinutesAnonymous
-                    reserveStockDurationMinutesAuthenticated
+                    reserveStockDurationAnonymousUser
+                    reserveStockDurationAuthenticatedUser
                 }
                 errors {
                     field,
@@ -448,8 +448,8 @@ def test_shop_reservation_set_negative_settings_mutation(
     """
     variables = {
         "input": {
-            "reserveStockDurationMinutesAnonymous": -14,
-            "reserveStockDurationMinutesAuthenticated": -6,
+            "reserveStockDurationAnonymousUser": -14,
+            "reserveStockDurationAuthenticatedUser": -6,
         }
     }
     response = staff_api_client.post_graphql(
@@ -457,11 +457,11 @@ def test_shop_reservation_set_negative_settings_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]["shop"]
-    assert data["reserveStockDurationMinutesAnonymous"] is None
-    assert data["reserveStockDurationMinutesAuthenticated"] is None
+    assert data["reserveStockDurationAnonymousUser"] is None
+    assert data["reserveStockDurationAuthenticatedUser"] is None
     site_settings.refresh_from_db()
-    assert site_settings.reserve_stock_duration_minutes_anonymous is None
-    assert site_settings.reserve_stock_duration_minutes_authenticated is None
+    assert site_settings.reserve_stock_duration_anonymous_user is None
+    assert site_settings.reserve_stock_duration_authenticated_user is None
 
 
 MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS = """

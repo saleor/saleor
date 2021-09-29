@@ -293,7 +293,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_checkout_lines(
-        cls, request, lines, country, channel
+        cls, info, lines, country, channel
     ) -> Tuple[List[product_models.ProductVariant], List[int]]:
         variant_ids = [line["variant_id"] for line in lines]
         variants = cls.get_nodes_or_error(
@@ -316,7 +316,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             quantities,
             country,
             channel.slug,
-            check_reservations=is_reservation_enabled(request.site.settings),
+            check_reservations=is_reservation_enabled(info.context.site.settings),
         )
         return variants, quantities
 
@@ -364,7 +364,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 cleaned_input["variants"],
                 cleaned_input["quantities"],
             ) = cls.clean_checkout_lines(
-                info.context,
+                info,
                 lines,
                 country,
                 cleaned_input["channel"],
@@ -478,7 +478,7 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def validate_checkout_lines(
-        cls, request, variants, quantities, country, channel_slug, lines=None
+        cls, info, variants, quantities, country, channel_slug, lines=None
     ):
         check_lines_quantity(
             variants,
@@ -486,13 +486,13 @@ class CheckoutLinesAdd(BaseMutation):
             country,
             channel_slug,
             existing_lines=lines,
-            check_reservations=is_reservation_enabled(request.site.settings),
+            check_reservations=is_reservation_enabled(info.context.site.settings),
         )
 
     @classmethod
     def clean_input(
         cls,
-        request,
+        info,
         checkout,
         variants,
         quantities,
@@ -505,7 +505,7 @@ class CheckoutLinesAdd(BaseMutation):
         channel_slug = checkout_info.channel.slug
 
         cls.validate_checkout_lines(
-            request,
+            info,
             variants,
             quantities,
             checkout.get_country(),
@@ -530,7 +530,7 @@ class CheckoutLinesAdd(BaseMutation):
                     skip_stock_check=True,  # already checked by validate_checkout_lines
                     replace=replace,
                     replace_reservations=True,
-                    reservation_length=get_reservation_length(request),
+                    reservation_length=get_reservation_length(info.context),
                 )
             except ProductNotPublished as exc:
                 raise ValidationError(
@@ -579,7 +579,7 @@ class CheckoutLinesAdd(BaseMutation):
 
         lines = fetch_checkout_lines(checkout)
         lines = cls.clean_input(
-            info.context,
+            info,
             checkout,
             variants,
             quantities,
@@ -620,7 +620,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
     @classmethod
     def validate_checkout_lines(
         cls,
-        request,
+        info,
         variants,
         quantities,
         country,
@@ -635,7 +635,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             allow_zero_quantity=True,
             existing_lines=lines,
             replace=True,
-            check_reservations=is_reservation_enabled(request.site.settings),
+            check_reservations=is_reservation_enabled(info.context.site.settings),
         )
 
     @classmethod
@@ -837,7 +837,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
     @classmethod
     def process_checkout_lines(
         cls,
-        request,
+        info,
         lines: Iterable["CheckoutLineInfo"],
         country: str,
         channel_slug: str,
@@ -854,9 +854,11 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             quantities,
             country,
             channel_slug,
+            # Set replace=True to avoid existing_lines and quantities from
+            # being counted twice by the check_stock_quantity_bulk
             replace=True,
             existing_lines=lines,
-            check_reservations=is_reservation_enabled(request.site.settings),
+            check_reservations=is_reservation_enabled(info.context.site.settings),
         )
 
     @classmethod
@@ -919,7 +921,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         # Resolve and process the lines, validating variants quantities
         if lines:
             cls.process_checkout_lines(
-                info.context, lines, country, checkout_info.channel.slug
+                info, lines, country, checkout_info.channel.slug
             )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)

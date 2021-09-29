@@ -60,16 +60,16 @@ class ShopSettingsInput(graphene.InputObjectType):
     customer_set_password_url = graphene.String(
         description="URL of a view where customers can set their password."
     )
-    reserve_stock_duration_minutes_anonymous = graphene.Int(
+    reserve_stock_duration_anonymous_user = graphene.Int(
         description=(
-            "Default number of minutes stock will be reserved for checkout or 0 to "
-            "disable stock reservations."
+            f"{ADDED_IN_31} Default number of minutes stock will be reserved for "
+            "anonymous checkout or 0 to disable stock reservations."
         )
     )
-    reserve_stock_duration_minutes_authenticated = graphene.Int(
+    reserve_stock_duration_authenticated_user = graphene.Int(
         description=(
-            "Default number of minutes stock will be reserved for checkout or 0 to "
-            "disable stock reservations."
+            f"{ADDED_IN_31} Default number of minutes stock will be reserved for "
+            "authenticated checkout or 0 to disable stock reservations."
         )
     )
 
@@ -102,14 +102,16 @@ class ShopSettingsUpdate(BaseMutation):
                 raise ValidationError(
                     {"customer_set_password_url": error}, code=ShopErrorCode.INVALID
                 )
-        if "reserve_stock_duration_minutes_anonymous" in data:
-            new_value = data["reserve_stock_duration_minutes_anonymous"]
+
+        if "reserve_stock_duration_anonymous_user" in data:
+            new_value = data["reserve_stock_duration_anonymous_user"]
             if not new_value or new_value < 1:
-                data["reserve_stock_duration_minutes_anonymous"] = None
-        if "reserve_stock_duration_minutes_authenticated" in data:
-            new_value = data["reserve_stock_duration_minutes_authenticated"]
+                data["reserve_stock_duration_anonymous_user"] = None
+        if "reserve_stock_duration_authenticated_user" in data:
+            new_value = data["reserve_stock_duration_authenticated_user"]
             if not new_value or new_value < 1:
-                data["reserve_stock_duration_minutes_authenticated"] = None
+                data["reserve_stock_duration_authenticated_user"] = None
+
         return data
 
     @classmethod

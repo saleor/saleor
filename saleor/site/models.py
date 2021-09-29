@@ -70,10 +70,11 @@ class SiteSettings(models.Model):
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)
 
-    reserve_stock_duration_minutes_anonymous = models.IntegerField(
+    # Duration in minutes
+    reserve_stock_duration_anonymous_user = models.IntegerField(
         blank=True, null=True
     )
-    reserve_stock_duration_minutes_authenticated = models.IntegerField(
+    reserve_stock_duration_authenticated_user = models.IntegerField(
         blank=True, null=True
     )
 
