@@ -486,6 +486,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.warehouse.tasks.delete_empty_allocations_task",
         "schedule": timedelta(days=1),
     },
+    "deactivate-preorder-for-variants": {
+        "task": "saleor.product.tasks.deactivate_preorder_for_variants_task",
+        "schedule": timedelta(hours=1),
+    },
 }
 
 # Change this value if your application is running behind a proxy,
