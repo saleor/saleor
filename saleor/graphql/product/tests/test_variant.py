@@ -5172,7 +5172,7 @@ def test_product_variant_deactivate_preorder(
     flush_post_commit_hooks()
     data = content["data"]["productVariantPreorderDeactivate"]["productVariant"]
 
-    assert data["preorder"]["isPreorder"] is False
+    assert not data["preorder"]
     assert data["stocks"][0]["quantityAllocated"] > allocations_before
 
     updated_webhook_mock.assert_called_once_with(variant)
@@ -5271,7 +5271,7 @@ def test_product_variant_deactivate_preorder_as_app_with_permission(
 
     content = get_graphql_content(response)
     data = content["data"]["productVariantPreorderDeactivate"]["productVariant"]
-    assert data["preorder"]["isPreorder"] is False
+    assert not data["preorder"]
 
 
 def test_product_variant_deactivate_preorder_as_app(
