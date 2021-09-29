@@ -920,9 +920,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         # Resolve and process the lines, validating variants quantities
         if lines:
-            cls.process_checkout_lines(
-                info, lines, country, checkout_info.channel.slug
-            )
+            cls.process_checkout_lines(info, lines, country, checkout_info.channel.slug)
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
 

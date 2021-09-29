@@ -71,9 +71,7 @@ class SiteSettings(models.Model):
     fulfillment_allow_unpaid = models.BooleanField(default=True)
 
     # Duration in minutes
-    reserve_stock_duration_anonymous_user = models.IntegerField(
-        blank=True, null=True
-    )
+    reserve_stock_duration_anonymous_user = models.IntegerField(blank=True, null=True)
     reserve_stock_duration_authenticated_user = models.IntegerField(
         blank=True, null=True
     )
