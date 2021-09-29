@@ -1,9 +1,11 @@
 from typing import Optional
 
 import requests
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from requests.auth import HTTPBasicAuth
 
+from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.payment.gateways.np_atobarai.api_types import ApiConfig, PaymentResult
 from saleor.payment.gateways.np_atobarai.const import NP_ATOBARAI
 from saleor.payment.interface import AddressData, PaymentData
@@ -98,9 +100,32 @@ def register_transaction(
     }
 
     response = _request(config, "post", "/transactions", json=data)
-    print(response.content)
-    transaction = response.json()["results"][0]
-    return PaymentResult(
-        status=transaction["authori_result"],
-        psp_reference=transaction["np_transaction_id"],
+    response_data = response.json()
+
+    if "result" in response_data:
+        transaction = response_data["results"][0]
+        return PaymentResult(
+            status=transaction["authori_result"],
+            psp_reference=transaction["np_transaction_id"],
+        )
+
+    elif "errors" in response_data:
+        error_codes = set(response_data["errors"][0]["codes"])
+
+        # TODO handle returning a list o errors
+        if "E0100059" in error_codes:
+            raise ValidationError(
+                "Invalid billing postal code.",
+                code=CheckoutErrorCode.INVALID.value,
+            )
+
+        if "E0100083" in error_codes:
+            raise ValidationError(
+                "Invalid billing postal code.",
+                code=CheckoutErrorCode.INVALID.value,
+            )
+
+    raise ValidationError(
+        "Unknown error while processing the payment.",
+        code=CheckoutErrorCode.INVALID.value,
     )

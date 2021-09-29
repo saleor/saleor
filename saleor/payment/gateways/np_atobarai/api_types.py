@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from enum import Enum
 
 from saleor.payment.gateways.np_atobarai.const import (
     MERCHANT_CODE,
@@ -17,7 +16,7 @@ class ApiConfig:
     sp_code: str
 
 
-class PaymentStatus(Enum):
+class PaymentStatus:
     SUCCESS = "00"
     PENDING = "10"
     FAILED = "20"
@@ -25,7 +24,7 @@ class PaymentStatus(Enum):
 
 @dataclass
 class PaymentResult:
-    status: PaymentStatus
+    status: str  # use PaymentStatus
     psp_reference: str = ""
 
 
