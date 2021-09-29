@@ -1,8 +1,10 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
+from freezegun import freeze_time
 
 from ...core.exceptions import InsufficientStock
 from ..availability import (
@@ -41,20 +43,35 @@ def test_check_stock_and_preorder_quantity_bulk(
     mock_check_preorder_threshold_bulk,
     variant,
     preorder_variant_channel_threshold,
+    preorder_variant_with_end_date,
     channel_USD,
 ):
     stock_variant_quantity = 2
     preorder_quantity = 1
-    check_stock_and_preorder_quantity_bulk(
-        [variant, preorder_variant_channel_threshold],
-        "US",
-        [stock_variant_quantity, preorder_quantity],
-        channel_USD.slug,
-    )
+
+    with freeze_time(
+        preorder_variant_with_end_date.preorder_end_date + timedelta(days=3)
+    ):
+        check_stock_and_preorder_quantity_bulk(
+            [
+                variant,
+                preorder_variant_channel_threshold,
+                preorder_variant_with_end_date,
+            ],
+            "US",
+            [stock_variant_quantity, preorder_quantity, stock_variant_quantity],
+            channel_USD.slug,
+        )
 
     mock_check_stock_quantity_bulk.assert_called_once()
-    assert mock_check_stock_quantity_bulk.call_args[0][0] == [variant]
-    assert mock_check_stock_quantity_bulk.call_args[0][2] == [stock_variant_quantity]
+    assert mock_check_stock_quantity_bulk.call_args[0][0] == [
+        variant,
+        preorder_variant_with_end_date,
+    ]
+    assert mock_check_stock_quantity_bulk.call_args[0][2] == [
+        stock_variant_quantity,
+        stock_variant_quantity,
+    ]
 
     mock_check_preorder_threshold_bulk.assert_called_once()
     assert mock_check_preorder_threshold_bulk.call_args[0][0] == [

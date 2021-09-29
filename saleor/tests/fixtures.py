@@ -2167,6 +2167,25 @@ def preorder_variant_global_and_channel_threshold(product, channel_USD, channel_
 
 
 @pytest.fixture
+def preorder_variant_with_end_date(product, channel_USD):
+    product_variant = ProductVariant.objects.create(
+        product=product,
+        sku="SKU_D_P",
+        is_preorder=True,
+        preorder_global_threshold=10,
+        preorder_end_date=timezone.now() + datetime.timedelta(days=10),
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=product_variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    return product_variant
+
+
+@pytest.fixture
 def variant_with_many_stocks_different_shipping_zones(
     variant, warehouses_with_different_shipping_zone
 ):

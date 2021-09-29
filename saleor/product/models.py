@@ -27,6 +27,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import smart_text
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
@@ -609,6 +610,11 @@ class ProductVariant(SortableModel, ModelWithMetadata):
 
     def get_ordering_queryset(self):
         return self.product.variants.all()
+
+    def is_preorder_active(self):
+        return self.is_preorder and (
+            self.preorder_end_date is None or timezone.now() <= self.preorder_end_date
+        )
 
 
 class ProductVariantTranslation(Translation):
