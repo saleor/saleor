@@ -9,6 +9,8 @@ from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
 
+from saleor.checkout.utils import get_app_shipping_id
+
 from ...account.models import Address
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
@@ -73,7 +75,7 @@ from ..product.dataloaders import (
 )
 from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
-from ..shipping.types import ShippingMethod, ShippingMethodInfo
+from ..shipping.types import ShippingMethodInfo
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
@@ -86,7 +88,6 @@ from .dataloaders import (
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
 from .utils import validate_draft_order
-from saleor.checkout.utils import get_app_shipping_id
 
 
 def get_order_discount_event(discount_obj: dict):

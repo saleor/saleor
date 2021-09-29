@@ -42,9 +42,7 @@ def resolve_available_shipping_methods(info, channel_slug: str, address):
             for shipping in available
         ]
 
-    plugin_shipping_methods = manager.list_shipping_methods(
-        channel_slug=channel_slug
-    )
+    plugin_shipping_methods = manager.list_shipping_methods(channel_slug=channel_slug)
 
     if plugin_shipping_methods:
         instances += [

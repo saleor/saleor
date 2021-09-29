@@ -120,8 +120,8 @@ class ShippingMethodInfo(ChannelContextTypeWithMetadataForObjectType):
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
         description = (
-            "External shipping method are the methods you'll use to get customer's orders to "
-            "them. They are directly exposed to the customers."
+            "External shipping method are the methods you'll use to get customer's "
+            " orders to them. They are directly exposed to the customers."
         )
         interfaces = [relay.Node, ObjectWithMetadata]
 
