@@ -19,6 +19,7 @@ from ...core.scalars import WeightScalar
 from ...core.types.common import ShippingError
 from ...core.utils import from_global_id_or_error
 from ...product import types as product_types
+from ...shipping.utils import get_shipping_model_by_object_id
 from ...utils import resolve_global_ids_to_primary_keys
 from ...utils.validators import check_for_duplicates
 from ..enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
@@ -532,9 +533,7 @@ class ShippingPriceExcludeProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        shipping_method = cls.get_node_or_error(
-            info, data.get("id"), only_type=ShippingMethod
-        )
+        shipping_method = get_shipping_model_by_object_id(data.get("id"))
         input = data.get("input")
         product_ids = input.get("products", [])
 
@@ -577,9 +576,8 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        shipping_method = cls.get_node_or_error(
-            info, data.get("id"), only_type=ShippingMethod
-        )
+        shipping_method = get_shipping_model_by_object_id(data.get("id"))
+
         product_ids = data.get("products")
         if product_ids:
             product_db_ids = cls.get_global_ids_or_error(
