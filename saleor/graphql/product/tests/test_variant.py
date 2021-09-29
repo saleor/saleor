@@ -2526,6 +2526,9 @@ def test_update_product_variant_clear_attributes(
     attribute = variant_attr.assignment.attribute
     attribute.input_type = AttributeInputType.MULTISELECT
     attribute.value_required = False
+    attribute_variant = attribute.attributevariant.get()
+    attribute_variant.variant_selection = False
+    attribute_variant.save(update_fields=["variant_selection"])
     attribute.save(update_fields=["value_required", "input_type"])
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
