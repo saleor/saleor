@@ -8,6 +8,7 @@ from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
 from django.db.models.fields import IntegerField
 from django.db.models.functions import Cast, Coalesce
+from django.utils import timezone
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...attribute import AttributeInputType
@@ -384,7 +385,13 @@ def filter_has_category(qs, _, value):
 
 
 def filter_has_preordered_variants(qs, _, value):
-    variants = ProductVariant.objects.filter(is_preorder=True).values("product_id")
+    variants = (
+        ProductVariant.objects.filter(is_preorder=True)
+        .filter(
+            Q(preorder_end_date__isnull=True) | Q(preorder_end_date__gt=timezone.now())
+        )
+        .values("product_id")
+    )
     if value:
         return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
     else:
@@ -536,7 +543,14 @@ def filter_sku_list(qs, _, value):
 
 
 def filter_is_preorder(qs, _, value):
-    return qs.filter(is_preorder=value)
+    if value:
+        return qs.filter(is_preorder=True).filter(
+            Q(preorder_end_date__isnull=True) | Q(preorder_end_date__gte=timezone.now())
+        )
+    return qs.filter(
+        Q(is_preorder=False)
+        | (Q(is_preorder=True)) & Q(preorder_end_date__lt=timezone.now())
+    )
 
 
 def filter_quantity(qs, quantity_value, warehouses=None):

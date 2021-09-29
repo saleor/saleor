@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 import pytest
+from django.utils import timezone
 
 from ....product.models import Product, ProductVariant
 from ...tests.utils import get_graphql_content
@@ -84,6 +87,18 @@ def products_for_variant_filtering(product_type, category):
                 sku="Preorder-V1",
                 is_preorder=True,
             ),
+            ProductVariant(
+                product=products[5],
+                sku="Preorder-V2",
+                is_preorder=True,
+                preorder_end_date=timezone.now() + timedelta(days=1),
+            ),
+            ProductVariant(
+                product=products[5],
+                sku="Preorder-V3",
+                is_preorder=True,
+                preorder_end_date=timezone.now() - timedelta(days=1),
+            ),
         ]
     )
     return products
@@ -103,10 +118,10 @@ def products_for_variant_filtering(product_type, category):
         ({"sku": ["P1-V1", "P1-V2", "PP1-V1"]}, ["P1-V1", "P1-V2", "PP1-V1"]),
         ({"sku": ["PP1-V1", "PP2-V1"]}, ["PP1-V1", "PP2-V1"]),
         ({"sku": ["invalid"]}, []),
-        ({"isPreorder": True}, ["Preorder-V1"]),
+        ({"isPreorder": True}, ["Preorder-V1", "Preorder-V2"]),
         (
             {"isPreorder": False},
-            ["P1-V1", "P1-V2", "P2-V1", "P3-V1", "PP1-V1", "PP2-V1"],
+            ["P1-V1", "P1-V2", "P2-V1", "P3-V1", "PP1-V1", "PP2-V1", "Preorder-V3"],
         ),
     ],
 )
