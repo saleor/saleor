@@ -5,7 +5,10 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 
 import graphene
 from babel.numbers import get_currency_precision
+from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import OuterRef, Subquery
+from django.utils import timezone
 
 from ..account.models import User
 from ..checkout.models import Checkout
@@ -432,3 +435,34 @@ def price_to_minor_unit(value: Decimal, currency: str):
     number_places = Decimal("10.0") ** precision
     value_without_comma = value * number_places
     return str(value_without_comma.quantize(Decimal("1")))
+
+
+def get_unfinished_payments():
+    """Return payments older than specified time and without assigned order object."""
+    ttl = settings.UNFINISHED_PAYMENT_TTL
+    now = timezone.now()
+    day_before = now - ttl
+
+    newest = (
+        Transaction.objects.filter(payment=OuterRef("pk"))
+        .filter(
+            kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE],
+            is_success=True,
+            action_required=False,
+        )
+        .order_by("-created")
+    )
+    payments = (
+        Payment.objects.get_queryset()
+        .filter(order=None, is_active=True)
+        .annotate(newest_trx_date=Subquery(newest.values("created")[:1]))
+        .filter(newest_trx_date__lte=day_before)
+        .exclude(
+            transactions__kind__in=[
+                TransactionKind.VOID,
+                TransactionKind.REFUND,
+            ]
+        )
+    )
+
+    return payments

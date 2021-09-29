@@ -142,7 +142,6 @@ def authorize(
     )
 
 
-@payment_postprocess
 @raise_payment_error
 @require_active_payment
 @with_locked_payment
@@ -184,7 +183,6 @@ def capture(
 
 
 @raise_payment_error
-@require_active_payment
 @with_locked_payment
 @payment_postprocess
 def refund(
@@ -227,7 +225,6 @@ def refund(
 
 
 @raise_payment_error
-@require_active_payment
 @with_locked_payment
 @payment_postprocess
 def void(

@@ -31,7 +31,14 @@ class Payment(models.Model):
     """
 
     gateway = models.CharField(max_length=255)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(
+        default=True,
+        help_text=(
+            "Inactive payments do not contribute toward checkout / orders, "
+            "but saleor still manages their lifecycle to reflect the real status "
+            "in the payment service provider."
+        ),
+    )
     to_confirm = models.BooleanField(default=False)
     complete_order = models.BooleanField(default=False)
     partial = models.BooleanField(default=False)
@@ -185,7 +192,7 @@ class Payment(models.Model):
         return self.is_active and self.is_authorized
 
     def can_void(self):
-        return self.is_active and self.is_authorized
+        return self.is_authorized
 
     def can_refund(self):
         can_refund_charge_status = (
@@ -193,7 +200,7 @@ class Payment(models.Model):
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.PARTIALLY_REFUNDED,
         )
-        return self.is_active and self.charge_status in can_refund_charge_status
+        return self.charge_status in can_refund_charge_status
 
     def is_manual(self):
         return self.gateway == CustomPaymentChoices.MANUAL

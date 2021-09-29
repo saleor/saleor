@@ -1,7 +1,11 @@
+from datetime import timedelta
 from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest import mock
+from unittest.mock import ANY, Mock, patch
 
 import pytest
+from django.test import override_settings
+from freezegun import freeze_time
 
 from ...checkout.calculations import checkout_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -9,7 +13,8 @@ from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
 from ..interface import GatewayResponse
-from ..models import Payment
+from ..models import Payment, Transaction
+from ..tasks import refund_or_void_inactive_payment, release_unfinished_payments_task
 from ..utils import (
     ALLOWED_GATEWAY_KINDS,
     clean_authorize,
@@ -17,6 +22,7 @@ from ..utils import (
     create_payment,
     create_payment_information,
     create_transaction,
+    get_unfinished_payments,
     is_currency_supported,
     update_payment,
     validate_gateway_response,
@@ -219,9 +225,9 @@ def test_create_transaction_no_gateway_response(transaction_data):
 
 @pytest.mark.parametrize(
     "func",
-    [gateway.authorize, gateway.capture, gateway.confirm, gateway.refund, gateway.void],
+    [gateway.authorize, gateway.capture, gateway.confirm],
 )
-def test_payment_needs_to_be_active_for_any_action(func, payment_dummy):
+def test_payment_needs_to_be_active_for_any_charging_action(func, payment_dummy):
     payment_dummy.is_active = False
     with pytest.raises(PaymentError) as exc:
         func(payment_dummy, "token")
@@ -413,7 +419,7 @@ def test_can_void(payment_txn_preauth: Payment):
     assert payment_txn_preauth.charge_status == ChargeStatus.AUTHORIZED
 
     payment_txn_preauth.is_active = False
-    assert not payment_txn_preauth.can_void()
+    assert payment_txn_preauth.can_void()
 
     payment_txn_preauth.is_active = True
     assert payment_txn_preauth.can_void()
@@ -531,3 +537,160 @@ def test_update_payment(gateway_response, payment_txn_captured):
     assert payment.cc_exp_year == gateway_response.payment_method_info.exp_year
     assert payment.cc_exp_month == gateway_response.payment_method_info.exp_month
     assert payment.payment_method_type == gateway_response.payment_method_info.type
+
+
+@freeze_time("2021-06-01 12:00:00")
+@override_settings(UNFINISHED_PAYMENT_TTL=timedelta(days=1))
+@pytest.mark.parametrize(
+    "dates, order_exist, is_active, not_valid_kind, success, action_required",
+    [
+        (
+            ["2021-06-01 12:00:00.0+00:00"],
+            False,
+            True,
+            False,
+            True,
+            False,
+        ),  # not release, date is to young
+        (
+            ["2021-05-01 12:00:00.0+00:00"],
+            False,
+            False,
+            False,
+            True,
+            False,
+        ),  # not release, inactive
+        (
+            ["2021-05-01 12:00:00.0+00:00", "2021-06-01 12:00:00.0+00:00"],
+            False,
+            True,
+            False,
+            True,
+            False,
+        ),  # not release, the second transaction is to young
+        (
+            ["2021-06-01 12:00:00.0+00:00", "2021-05-01 12:00:00.0+00:00"],
+            False,
+            True,
+            False,
+            True,
+            False,
+        ),  # not release, the first transaction is to young
+        (
+            ["2021-05-01 12:00:00.0+00:00"],
+            True,
+            True,
+            False,
+            True,
+            False,
+        ),  # not release, order exists
+        (
+            ["2021-05-01 12:00:00.0+00:00"],
+            False,
+            True,
+            True,
+            True,
+            False,
+        ),  # not release, not valid kind
+        (
+            ["2021-05-01 12:00:00.0+00:00"],
+            False,
+            True,
+            False,
+            False,
+            False,
+        ),  # not release, not success
+        (
+            ["2021-05-01 12:00:00.0+00:00"],
+            False,
+            True,
+            False,
+            True,
+            True,
+        ),  # not release, action required
+    ],
+)
+def test_get_unfinished_payments_with_payments_not_to_release(
+    payment_dummy,
+    dates,
+    order_exist,
+    is_active,
+    not_valid_kind,
+    success,
+    action_required,
+):
+    payment = payment_dummy
+    if not order_exist:
+        payment.order = None
+        payment.save()
+
+    if not is_active:
+        payment.is_active = False
+        payment.save()
+
+    for date in dates:
+        with freeze_time(date):
+            kind = (
+                TransactionKind.CAPTURE
+                if not not_valid_kind
+                else TransactionKind.CANCEL
+            )
+            Transaction.objects.create(
+                payment=payment,
+                amount=payment.total,
+                kind=kind,
+                gateway_response={},
+                is_success=success,
+                action_required=action_required,
+            )
+
+    payments = get_unfinished_payments()
+    assert payments.count() == 0
+
+
+@mock.patch("saleor.payment.tasks.get_unfinished_payments")
+@mock.patch("saleor.payment.tasks.refund_or_void_inactive_payment")
+def test_release_unfinished_payments_task(
+    release, get_unfinished_payments, payment_dummy
+):
+    # given
+    qs = Mock()
+    get_unfinished_payments.return_value = qs
+    qs.iterator.return_value = iter([payment_dummy])
+    # when
+    release_unfinished_payments_task()
+    # then
+    release.delay.assert_called_once_with(payment_dummy.pk)
+
+
+@mock.patch("saleor.payment.gateway.payment_refund_or_void")
+@mock.patch("saleor.payment.tasks.task_logger")
+def test_refund_or_void_inactive_payment(
+    task_logger, payment_refund_or_void, checkout_with_payments_factory
+):
+    # given
+    payment = checkout_with_payments_factory().payments.get()
+    # when
+    refund_or_void_inactive_payment(payment.pk)
+    # then
+    payment_refund_or_void.assert_called_once_with(payment, ANY, ANY)
+    task_logger.info.assert_called_once_with("Released payment %d.", payment.pk)
+
+
+@mock.patch("saleor.payment.gateway.payment_refund_or_void")
+@mock.patch("saleor.payment.tasks.task_logger")
+def test_failed_refund_or_void_inactive_payment(
+    task_logger, release_checkout_payment, checkout_with_payments_factory
+):
+    # given
+    payment = checkout_with_payments_factory().payments.get()
+    e = PaymentError("An error")
+    release_checkout_payment.side_effect = e
+    # when
+    with pytest.raises(PaymentError):
+        refund_or_void_inactive_payment(payment.pk)
+    # then
+    release_checkout_payment.assert_called_once_with(payment, ANY, ANY)
+    task_logger.error.assert_called_once_with(
+        "Release payment %d failed.", payment.pk, e
+    )
