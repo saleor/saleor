@@ -215,7 +215,7 @@ def deallocate_stock(
             allocation_before_update.stock
         )
         if (
-            allocation_before_update.stock_available_quantity == 0
+            allocation_before_update.stock_available_quantity <= 0
             and available_stock_now > 0
         ):
             transaction.on_commit(

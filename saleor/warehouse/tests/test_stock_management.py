@@ -225,6 +225,28 @@ def test_deallocate_stock(allocation):
     assert allocation.quantity_allocated == 0
 
 
+def test_deallocate_stock_when_quantity_less_than_zero(allocation):
+    stock = allocation.stock
+    stock.quantity = -10
+    stock.save(update_fields=["quantity"])
+    allocation.quantity_allocated = 80
+    allocation.save(update_fields=["quantity_allocated"])
+
+    deallocate_stock(
+        [
+            OrderLineData(
+                line=allocation.order_line, quantity=80, variant=stock.product_variant
+            )
+        ],
+        manager=get_plugins_manager(),
+    )
+
+    stock.refresh_from_db()
+    assert stock.quantity == -10
+    allocation.refresh_from_db()
+    assert allocation.quantity_allocated == 0
+
+
 def test_deallocate_stock_partially(allocation):
     stock = allocation.stock
     stock.quantity = 100
