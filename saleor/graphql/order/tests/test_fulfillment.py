@@ -1933,7 +1933,7 @@ def test_fulfillment_approve_order_unpaid(
 def test_fulfillment_approve_preorder(
     staff_api_client, fulfillment, permission_manage_orders, site_settings
 ):
-    """Fulfillment with WAITING_FOR_APPROVAL status can not fulfilled
+    """Fulfillment with WAITING_FOR_APPROVAL status can not be fulfilled
     if it contains variant in preorder."""
     site_settings.fulfillment_auto_approve = False
     site_settings.save(update_fields=["fulfillment_auto_approve"])
