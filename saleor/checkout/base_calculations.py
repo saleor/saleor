@@ -55,9 +55,9 @@ def calculate_price_for_shipping_method(
         return zero_taxed_money(checkout_info.checkout.currency)
 
     if hasattr(shipping_method, "price"):
-        shipping_price = shipping_method.price
+        shipping_price = shipping_method.price  # type: ignore
     else:
-        shipping_price = shipping_method.channel_listings.get(
+        shipping_price = shipping_method.channel_listings.get(  # type: ignore
             channel_id=checkout_info.checkout.channel_id,
         ).get_total()
 

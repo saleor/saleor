@@ -41,6 +41,7 @@ from ...plugins.webhook.utils import from_shipping_app_id
 from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import models as shipping_models
+from ...shipping import interface as shipping_interface
 from ...warehouse import models as warehouse_models
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
@@ -79,7 +80,13 @@ if TYPE_CHECKING:
 def clean_delivery_method(
     checkout_info: "CheckoutInfo",
     lines: Iterable[CheckoutLineInfo],
-    method: Optional[Union[models.ShippingMethod, warehouse_models.Warehouse]],
+    method: Optional[
+        Union[
+            models.ShippingMethod,
+            shipping_interface.ExternalShippingMethod,
+            warehouse_models.Warehouse,
+        ]
+    ],
 ) -> bool:
     """Check if current shipping method is valid."""
 

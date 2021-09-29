@@ -285,7 +285,7 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Checkout, info):
-        external_app_shipping_id = get_app_shipping_id(checkout=root)
+        external_app_shipping_id = get_app_shipping_id(root)
 
         if external_app_shipping_id:
             shipping_method = info.context.plugins.get_shipping_method(

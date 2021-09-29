@@ -592,7 +592,7 @@ def generate_shipping_methods_payload(checkout: Optional["Checkout"]):
 
         # todo use the most appropriate warehouse
         warehouse = Warehouse.objects.for_country(
-            checkout.shipping_address.country.code
+            checkout.shipping_address.country.code  # type: ignore
         ).first()
 
         checkout_data = serializer.serialize(

@@ -1,5 +1,5 @@
 """Checkout-related utility functions."""
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -43,6 +43,7 @@ if TYPE_CHECKING:
 
     from ..account.models import Address
     from .fetch import CheckoutInfo, CheckoutLineInfo
+    from ..order.models import Order
 
 
 PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
@@ -720,5 +721,5 @@ def set_app_shipping_id(checkout: Checkout, app_shipping_id: str):
     )
 
 
-def get_app_shipping_id(checkout: Checkout):
-    return checkout.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+def get_app_shipping_id(container: Union["Checkout", "Order"]):
+    return container.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)

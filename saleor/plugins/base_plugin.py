@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
     from ..product.models import Product, ProductType, ProductVariant
+    from ..shipping.interface import ExternalShippingMethod
 
 PluginConfigurationType = List[dict]
 
@@ -664,6 +665,11 @@ class BasePlugin:
             currencies=currencies,
         )
         return [gateway]
+
+    def get_shipping_methods(
+        self, checkout: Optional["Checkout"], previous_value, **kwargs
+    ) -> List["ExternalShippingMethod"]:
+        return NotImplemented
 
     @classmethod
     def _update_config_items(
