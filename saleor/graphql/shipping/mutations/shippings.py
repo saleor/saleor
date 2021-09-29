@@ -9,17 +9,15 @@ from ....core.tracing import traced_atomic_transaction
 from ....product import models as product_models
 from ....shipping import models
 from ....shipping.error_codes import ShippingErrorCode
-from ....shipping.tasks import (
-    drop_invalid_shipping_methods_relations_for_given_channels,
-)
-from ....shipping.utils import (
-    default_shipping_zone_exists,
-    get_countries_without_shipping_zone,
-)
+from ....shipping.tasks import \
+    drop_invalid_shipping_methods_relations_for_given_channels
+from ....shipping.utils import (default_shipping_zone_exists,
+                                get_countries_without_shipping_zone)
 from ...channel.types import ChannelContext
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types.common import ShippingError
+from ...core.utils import from_global_id_or_error
 from ...product import types as product_types
 from ...utils import resolve_global_ids_to_primary_keys
 from ...utils.validators import check_for_duplicates
@@ -493,9 +491,8 @@ class ShippingPriceDelete(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        shipping_method = cls.get_node_or_error(
-            info, data.get("id"), only_type=ShippingMethod
-        )
+        _, object_pk = from_global_id_or_error(data.get("id"))
+        shipping_method = models.ShippingMethod.objects.filter(pk=object_pk).first()
         shipping_method_id = shipping_method.id
         shipping_zone = shipping_method.shipping_zone
         shipping_method.delete()

@@ -52,6 +52,9 @@ class BaseMetadataMutation(BaseMutation):
     def get_instance(cls, info, **data):
         object_id = data.get("id")
         qs = data.get("qs", None)
+        type_name, object_pk = from_global_id_or_error(object_id)
+        if type_name == "ShippingMethod":
+            return shipping_models.ShippingMethod.objects.filter(pk=object_pk).first()
         return cls.get_node_or_error(info, object_id, qs=qs)
 
     @classmethod
@@ -80,6 +83,8 @@ class BaseMetadataMutation(BaseMutation):
 
     @classmethod
     def get_model_for_type_name(cls, info, type_name):
+        if type_name == "ShippingMethod":
+            return shipping_models.ShippingMethod
         graphene_type = info.schema.get_type(type_name).graphene_type
         return graphene_type._meta.model
 

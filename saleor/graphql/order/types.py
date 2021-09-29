@@ -75,7 +75,7 @@ from ..product.dataloaders import (
 )
 from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
-from ..shipping.types import ShippingMethodInfo
+from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
@@ -612,7 +612,7 @@ class Order(CountableDjangoObjectType):
         required=True,
     )
     available_shipping_methods = graphene.List(
-        ShippingMethodInfo,
+        ShippingMethod,
         required=False,
         description="Shipping methods that can be used with this order.",
     )
@@ -647,7 +647,7 @@ class Order(CountableDjangoObjectType):
     )
 
     shipping_method = graphene.Field(
-        ShippingMethodInfo,
+        ShippingMethod,
         description="The shipping method related with order.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
