@@ -14,7 +14,6 @@ from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (add_variant_to_order, get_order_country,
                              recalculate_order, update_order_prices)
-from ....shipping.models import ShippingMethod
 from ....warehouse.management import allocate_stocks
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -24,6 +23,7 @@ from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import from_global_id_or_error
 from ...product.types import ProductVariant
+from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import Order
 from ..utils import (prepare_insufficient_stock_order_validation_errors,
                      validate_draft_order,
@@ -98,12 +98,10 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         billing_address = data.pop("billing_address", None)
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
-        
-        shipping_method_id = data.pop('shipping_method', None)
-        shipping_method = None
-        if shipping_method_id:
-            _, object_pk = from_global_id_or_error(shipping_method_id)
-            shipping_method = ShippingMethod.objects.filter(pk=object_pk).first()
+
+        shipping_method = get_shipping_model_by_object_id(
+            data.pop('shipping_method', None)
+        )
 
         cleaned_input = super().clean_input(info, instance, data)
 
