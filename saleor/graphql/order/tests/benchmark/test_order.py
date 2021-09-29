@@ -19,7 +19,7 @@ FRAGMENT_DISCOUNTS = """
 """
 
 FRAGMENT_AVAILABLE_SHIPPING_METHODS = """
-    fragment AvailableShippingMethods on ShippingMethod {
+    fragment AvailableShippingMethods on ShippingMethodInfo {
         id
         price {
             amount

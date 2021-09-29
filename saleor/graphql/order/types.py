@@ -1086,10 +1086,11 @@ class Order(CountableDjangoObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, info):
-        available_shipping_methods = []
+        instances = []
         manager = info.context.plugins
         available = get_valid_shipping_methods_for_order(root)
         if available is not None:
+            available_shipping_methods = []
             display_gross = display_gross_prices()
             channel_slug = root.channel.slug
             for shipping_method in available:

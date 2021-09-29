@@ -46,6 +46,7 @@ if TYPE_CHECKING:
         TokenConfig,
     )
     from ..product.models import Product, ProductType, ProductVariant
+    from ..shipping.interface import ExternalShippingMethod
     from ..translation.models import Translation
     from ..warehouse.models import Stock
     from .base_plugin import BasePlugin
@@ -802,7 +803,7 @@ class PluginsManager(PaymentInterface):
         checkout: Optional["Checkout"] = None,
         channel_slug: Optional[str] = None,
         active_only: bool = True,
-    ) -> List["ShippingMethod"]:
+    ) -> List["ExternalShippingMethod"]:
         channel_slug = checkout.channel.slug if checkout else channel_slug
         plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
         shipping_plugins = [
