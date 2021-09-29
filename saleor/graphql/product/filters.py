@@ -697,9 +697,7 @@ class CategoryFilter(MetadataFilterBase):
 
 
 class ProductTypeFilter(MetadataFilterBase):
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("name", "slug")
-    )
+    search = django_filters.CharFilter(method="filter_product_type_searchable")
 
     configurable = EnumFilter(
         input_class=ProductTypeConfigurable, method=filter_product_type_configurable
@@ -712,6 +710,13 @@ class ProductTypeFilter(MetadataFilterBase):
     class Meta:
         model = ProductType
         fields = ["search", "configurable", "product_type"]
+
+    @classmethod
+    def filter_product_type_searchable(cls, queryset, _name, value):
+        if not value:
+            return queryset
+        name_slug_qs = Q(name__ilike=value) | Q(slug__ilike=value)
+        return queryset.filter(name_slug_qs)
 
 
 class ProductFilterInput(ChannelFilterInputObjectType):
