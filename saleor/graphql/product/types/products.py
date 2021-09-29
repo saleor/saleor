@@ -394,7 +394,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
                 return selected_attributes
             attributes = [
-                selected_att["attribute"] for selected_att in selected_attributes
+                (selected_att["attribute"], selected_att["variant_selection"])
+                for selected_att in selected_attributes
             ]
             variant_selection_attrs = get_variant_selection_attributes(attributes)
 
@@ -1159,7 +1160,14 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product_attributes(root: models.ProductType, info):
-        return ProductAttributesByProductTypeIdLoader(info.context).load(root.pk)
+        def unpack_attributes(attributes):
+            return [attr for attr, *_ in attributes]
+
+        return (
+            ProductAttributesByProductTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(unpack_attributes)
+        )
 
     @staticmethod
     @traced_resolver
@@ -1170,11 +1178,13 @@ class ProductType(CountableDjangoObjectType):
     ):
         def apply_variant_selection_filter(attributes):
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
-                return attributes
+                return [attr for attr, *_ in attributes]
             variant_selection_attrs = get_variant_selection_attributes(attributes)
             if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
                 return variant_selection_attrs
-            return [attr for attr in attributes if attr not in variant_selection_attrs]
+            return [
+                attr for attr, *_ in attributes if attr not in variant_selection_attrs
+            ]
 
         return (
             VariantAttributesByProductTypeIdLoader(info.context)

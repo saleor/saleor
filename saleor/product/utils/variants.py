@@ -39,7 +39,6 @@ def get_variant_selection_attributes(attributes):
     """
     return [
         attribute
-        for attribute in attributes
-        if attribute.input_type in AttributeInputType.ALLOWED_IN_VARIANT_SELECTION
-        and attribute.type == AttributeType.PRODUCT_TYPE
+        for attribute, variant_selection in attributes
+        if variant_selection and attribute.type == AttributeType.PRODUCT_TYPE
     ]

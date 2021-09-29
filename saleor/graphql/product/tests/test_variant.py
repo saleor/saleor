@@ -1384,7 +1384,9 @@ def test_create_product_variant_not_all_attributes(
         "Attribute", product_type.variant_attributes.first().pk
     )
     variant_value = "test-value"
-    product_type.variant_attributes.add(color_attribute)
+    product_type.variant_attributes.add(
+        color_attribute, through_defaults={"variant_selection": True}
+    )
 
     variables = {
         "productId": product_id,
@@ -2142,7 +2144,9 @@ def test_update_product_variant_not_all_attributes(
         "Attribute", product_type.variant_attributes.first().id
     )
     variant_value = "test-value"
-    product_type.variant_attributes.add(color_attribute)
+    product_type.variant_attributes.add(
+        color_attribute, through_defaults={"variant_selection": True}
+    )
 
     variables = {
         "id": variant_id,

@@ -23,6 +23,9 @@ def test_get_variant_selection_attributes(
         product_type_product_reference_attribute,
     ]
 
+    # for now, instead of skipping test
+    attrs = zip(attrs, (False, True, True, False, True, False, False, False))
+
     # when
     result = get_variant_selection_attributes(attrs)
 

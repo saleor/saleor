@@ -513,8 +513,8 @@ class AttributeAssignmentMixin:
 
 
 def get_variant_selection_attributes(qs: "QuerySet"):
-    return qs.filter(
-        input_type__in=AttributeInputType.ALLOWED_IN_VARIANT_SELECTION,
+    return qs.select_related("attributevariant").filter(
+        attributevariant__variant_selection=True,
         type=AttributeType.PRODUCT_TYPE,
     )
 
