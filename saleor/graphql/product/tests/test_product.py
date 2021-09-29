@@ -10665,6 +10665,31 @@ def test_update_or_create_variant_stocks(variant, warehouses):
     }
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+def test_update_or_create_variant_stocks_when_stock_out_of_quantity(
+    back_in_stock_webhook_trigger, variant, warehouses
+):
+    stock = Stock.objects.create(
+        product_variant=variant,
+        warehouse=warehouses[0],
+        quantity=-5,
+    )
+    stocks_data = [{"quantity": 10, "warehouse": "321"}]
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses, get_plugins_manager()
+    )
+
+    variant.refresh_from_db()
+    flush_post_commit_hooks()
+    assert variant.stocks.count() == 1
+    assert {stock.quantity for stock in variant.stocks.all()} == {
+        data["quantity"] for data in stocks_data
+    }
+    back_in_stock_webhook_trigger.assert_called_once_with(stock)
+    assert variant.stocks.all()[0].quantity == 10
+
+
 def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
     Stock.objects.create(
         product_variant=variant,
