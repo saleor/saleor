@@ -134,7 +134,7 @@ class Payment(models.Model):
         If the value is None it still should be possible
         for supporting the legacy approach.
         """
-        return True if self.create_order or self.create_order is None else False
+        return True if not self.partial or self.create_order else False
 
     def get_covered_amount(self):
         """Return an amount that is covered by this payment (but not necessarily captured).

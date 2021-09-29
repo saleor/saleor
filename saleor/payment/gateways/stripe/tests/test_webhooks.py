@@ -557,18 +557,16 @@ def test_handle_webhook_events(
     )
 
 
-@pytest.mark.parametrize("return_value", (True, False))
 @patch("saleor.payment.models.Payment.can_create_order")
 @patch("saleor.payment.gateways.stripe.webhooks._finalize_checkout")
-def test_process_payment_with_checkout(
+def test_process_payment_with_checkout_creates_order(
     mock_finalize_checkout,
     mock_can_create_order,
-    return_value,
     payment_stripe_for_checkout,
     checkout_with_items,
     channel_USD,
 ):
-    mock_can_create_order.return_value = return_value
+    mock_can_create_order.return_value = True
     payment = payment_stripe_for_checkout
     payment.to_confirm = True
     payment.save()
@@ -594,15 +592,49 @@ def test_process_payment_with_checkout(
         channel_USD.slug,
     )
 
-    if return_value is True:
-        mock_finalize_checkout.assert_called_once_with(
-            payment.checkout,
-            payment,
-            payment_intent,
-            TransactionKind.ACTION_TO_CONFIRM,
-            payment.total,
-            channel_USD.slug,
-        )
+    mock_finalize_checkout.assert_called_once_with(
+        payment.checkout,
+        payment,
+        payment_intent,
+        TransactionKind.ACTION_TO_CONFIRM,
+        payment.total,
+        channel_USD.slug,
+    )
 
-    else:
-        mock_finalize_checkout.assert_not_called()
+
+@patch("saleor.payment.models.Payment.can_create_order")
+@patch("saleor.payment.gateways.stripe.webhooks._finalize_checkout")
+def test_process_payment_with_checkout_does_not_create_order(
+    mock_finalize_checkout,
+    mock_can_create_order,
+    payment_stripe_for_checkout,
+    checkout_with_items,
+    channel_USD,
+):
+    mock_can_create_order.return_value = False
+    payment = payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = AUTHORIZED_STATUS
+
+    _process_payment_with_checkout(
+        payment,
+        payment_intent,
+        TransactionKind.ACTION_TO_CONFIRM,
+        payment.total,
+        channel_USD.slug,
+    )
+
+    mock_finalize_checkout.assert_not_called()

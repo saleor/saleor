@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -30,6 +32,9 @@ from ..core.types import common as common_types
 from ..core.types.common import CheckoutError
 from ..core.validators import validate_one_of_args_is_in_mutation
 from .types import Payment, PaymentInitialized
+
+if TYPE_CHECKING:
+    from prices import TaxedMoney
 
 
 class PaymentInput(graphene.InputObjectType):
@@ -161,7 +166,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def check_covered_amount(cls, checkout, checkout_total, amount):
+    def check_covered_amount(cls, checkout, checkout_total: "TaxedMoney", amount):
         if amount < checkout_total:
             covered_amount = get_covered_balance(checkout).amount
             if covered_amount < checkout_total:

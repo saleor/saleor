@@ -205,9 +205,7 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
         transaction = create_new_transaction(
             notification, payment, TransactionKind.ACTION_TO_CONFIRM
         )
-    # import pdb
 
-    # pdb.set_trace()
     # Only when we confirm that notification is success we will create the order
     if (
         transaction.is_success and checkout and payment.can_create_order()

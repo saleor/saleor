@@ -1013,17 +1013,15 @@ def test_handle_cancel_or_refund_action_cancel_invalid_payment_id(
     assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text
 
 
-@pytest.mark.parametrize("return_value", (True, False))
 @mock.patch("saleor.payment.models.Payment.can_create_order")
 @mock.patch("saleor.payment.gateways.adyen.webhooks.create_order")
-def test_handle_not_created_order(
+def test_handle_not_created_order_creates_order(
     mock_create_order,
     mock_can_create_order,
-    return_value,
     notification,
     payment_adyen_for_checkout,
 ):
-    mock_can_create_order.return_value = return_value
+    mock_can_create_order.return_value = True
     payment = payment_adyen_for_checkout
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
@@ -1041,7 +1039,33 @@ def test_handle_not_created_order(
         manager,
     )
 
-    if return_value is True:
-        mock_create_order.assert_called_once_with(payment, payment.checkout, manager)
-    else:
-        mock_create_order.assert_not_called()
+    mock_create_order.assert_called_once_with(payment, payment.checkout, manager)
+
+
+@mock.patch("saleor.payment.models.Payment.can_create_order")
+@mock.patch("saleor.payment.gateways.adyen.webhooks.create_order")
+def test_handle_not_created_order_does_not_create_order(
+    mock_create_order,
+    mock_can_create_order,
+    notification,
+    payment_adyen_for_checkout,
+):
+    mock_can_create_order.return_value = False
+    payment = payment_adyen_for_checkout
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    notification = notification(
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    manager = get_plugins_manager()
+
+    handle_not_created_order(
+        notification,
+        payment,
+        payment.checkout,
+        TransactionKind.ACTION_TO_CONFIRM,
+        manager,
+    )
+
+    mock_create_order.assert_not_called()
