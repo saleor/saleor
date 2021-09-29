@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 from django.utils.encoding import smart_text
 
-from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.interface import ExternalShippingMethod
+from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
 
@@ -70,7 +70,9 @@ class CheckoutInfo:
 
 @dataclass(frozen=True)
 class DeliveryMethodBase:
-    delivery_method: Optional[Union["ShippingMethod", "Warehouse"]] = None
+    delivery_method: Optional[
+        Union["ShippingMethod", "ExternalShippingMethod", "Warehouse"]
+    ] = None
     shipping_address: Optional["Address"] = None
     order_key: str = "shipping_method"
 
@@ -285,10 +287,8 @@ def fetch_checkout_info(
     valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
         checkout_info, shipping_address, lines, discounts, manager
     )
-    valid_shipping_methods += (
-        get_valid_external_shipping_method_list_for_checkout_info(
-            checkout_info, shipping_address, lines, discounts, manager
-        )
+    valid_shipping_methods += get_valid_external_shipping_method_list_for_checkout_info(
+        checkout_info, shipping_address, lines, discounts, manager
     )
     valid_pick_up_points = get_valid_collection_points_for_checkout_info(
         shipping_address, lines, checkout_info
@@ -313,10 +313,8 @@ def update_checkout_info_shipping_address(
     valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
         checkout_info, address, lines, discounts, manager
     )
-    valid_shipping_methods += (
-        get_valid_external_shipping_method_list_for_checkout_info(
-            checkout_info, address, lines, discounts, manager
-        )
+    valid_shipping_methods += get_valid_external_shipping_method_list_for_checkout_info(
+        checkout_info, address, lines, discounts, manager
     )
     checkout_info.valid_shipping_methods = valid_shipping_methods
 

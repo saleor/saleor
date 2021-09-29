@@ -20,7 +20,7 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
-from ..plugins.webhook.utils import from_payment_app_id, from_shipping_app_id
+from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
 from ..warehouse.models import Stock, Warehouse

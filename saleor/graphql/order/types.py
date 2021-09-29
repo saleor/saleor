@@ -73,7 +73,7 @@ from ..product.dataloaders import (
 )
 from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
-from ..shipping.types import ShippingMethod
+from ..shipping.types import ShippingMethod, ShippingMethodInfo
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
@@ -86,6 +86,7 @@ from .dataloaders import (
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
 from .utils import validate_draft_order
+from saleor.checkout.utils import get_app_shipping_id
 
 
 def get_order_discount_event(discount_obj: dict):
@@ -610,7 +611,7 @@ class Order(CountableDjangoObjectType):
         required=True,
     )
     available_shipping_methods = graphene.List(
-        ShippingMethod,
+        ShippingMethodInfo,
         required=False,
         description="Shipping methods that can be used with this order.",
     )
@@ -645,7 +646,7 @@ class Order(CountableDjangoObjectType):
     )
 
     shipping_method = graphene.Field(
-        ShippingMethod,
+        ShippingMethodInfo,
         description="The shipping method related with order.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
@@ -1041,6 +1042,19 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Order, info):
+        external_app_shipping_id = get_app_shipping_id(checkout=root)
+
+        if external_app_shipping_id:
+            shipping_method = info.context.plugins.get_shipping_method(
+                checkout=root,
+                channel_slug=root.channel.slug,
+                shipping_method_id=external_app_shipping_id,
+            )
+            if shipping_method:
+                return ChannelContext(
+                    node=shipping_method, channel_slug=root.channel.slug
+                )
+
         if not root.shipping_method_id:
             return None
 
@@ -1072,34 +1086,42 @@ class Order(CountableDjangoObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, info):
-        available = get_valid_shipping_methods_for_order(root)
-        if available is None:
-            return []
         available_shipping_methods = []
         manager = info.context.plugins
-        display_gross = display_gross_prices()
-        channel_slug = root.channel.slug
-        for shipping_method in available:
-            # Ignore typing check because it is checked in
-            # get_valid_shipping_methods_for_order
-            shipping_channel_listing = shipping_method.channel_listings.filter(
-                channel=root.channel
-            ).first()
-            if shipping_channel_listing:
-                taxed_price = manager.apply_taxes_to_shipping(
-                    shipping_channel_listing.price,
-                    root.shipping_address,  # type: ignore
-                    channel_slug,
-                )
-                if display_gross:
-                    shipping_method.price = taxed_price.gross
-                else:
-                    shipping_method.price = taxed_price.net
-                available_shipping_methods.append(shipping_method)
-        instances = [
-            ChannelContext(node=shipping, channel_slug=channel_slug)
-            for shipping in available_shipping_methods
-        ]
+        available = get_valid_shipping_methods_for_order(root)
+        if available is not None:
+            display_gross = display_gross_prices()
+            channel_slug = root.channel.slug
+            for shipping_method in available:
+                # Ignore typing check because it is checked in
+                # get_valid_shipping_methods_for_order
+                shipping_channel_listing = shipping_method.channel_listings.filter(
+                    channel=root.channel
+                ).first()
+                if shipping_channel_listing:
+                    taxed_price = manager.apply_taxes_to_shipping(
+                        shipping_channel_listing.price,
+                        root.shipping_address,  # type: ignore
+                        channel_slug,
+                    )
+                    if display_gross:
+                        shipping_method.price = taxed_price.gross
+                    else:
+                        shipping_method.price = taxed_price.net
+                    available_shipping_methods.append(shipping_method)
+            instances = [
+                ChannelContext(node=shipping, channel_slug=channel_slug)
+                for shipping in available_shipping_methods
+            ]
+        plugin_shipping_methods = manager.list_shipping_methods(
+            checkout=root, channel_slug=root.channel.slug
+        )
+
+        if plugin_shipping_methods:
+            instances += [
+                ChannelContext(node=shipping, channel_slug=root.channel.slug)
+                for shipping in plugin_shipping_methods
+            ]
 
         return instances
 

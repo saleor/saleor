@@ -7,7 +7,6 @@ from prices import Money
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ...shipping.interface import ExternalShippingMethod
 
-
 if TYPE_CHECKING:
     from ...app.models import App
     from ...payment.interface import PaymentData

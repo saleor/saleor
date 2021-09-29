@@ -33,7 +33,7 @@ from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
-from ..shipping.types import ShippingMethod
+from ..shipping.types import ShippingMethod, ShippingMethodInfo
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import WarehouseByIdLoader
 from ..warehouse.types import Warehouse
@@ -179,7 +179,7 @@ class DeliveryMethod(graphene.Union):
 
 class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
-        ShippingMethod,
+        ShippingMethodInfo,
         required=True,
         description="Shipping methods that can be used with this order.",
     )
@@ -213,7 +213,7 @@ class Checkout(CountableDjangoObjectType):
         description="The price of the shipping, with all the taxes included.",
     )
     shipping_method = graphene.Field(
-        ShippingMethod,
+        ShippingMethodInfo,
         description="The shipping method related with checkout.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )

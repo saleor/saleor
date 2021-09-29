@@ -40,6 +40,7 @@ if TYPE_CHECKING:
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
     from ...product.models import Product, ProductVariant
+    from ...shipping.interface import ExternalShippingMethod
     from ...translation.models import Translation
     from ...warehouse.models import Stock
 
@@ -434,7 +435,7 @@ class WebhookPlugin(BasePlugin):
 
     def get_shipping_methods(
         self, checkout: Optional["Checkout"], previous_value, **kwargs
-    ) -> List["ShippingMethod"]:
+    ) -> List["ExternalShippingMethod"]:
         methods = []
         apps = App.objects.for_event_type(
             WebhookEventType.SHIPPING_LIST_METHODS

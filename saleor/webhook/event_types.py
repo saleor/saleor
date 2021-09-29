@@ -5,8 +5,8 @@ from ..core.permissions import (
     PagePermissions,
     PaymentPermissions,
     ProductPermissions,
-    SitePermissions,
     ShippingPermissions,
+    SitePermissions,
 )
 
 

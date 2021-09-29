@@ -102,6 +102,16 @@ FRAGMENT_SHIPPING_METHOD = """
     }
 """
 
+FRAGMENT_SHIPPING_METHOD_INFO = """
+    fragment ShippingMethodInfo on ShippingMethodInfo {
+        id
+        name
+        price {
+            amount
+        }
+    }
+"""
+
 FRAGMENT_COLLECTION_POINT = """
    fragment CollectionPoint on Warehouse {
         id
@@ -118,7 +128,7 @@ FRAGMENT_COLLECTION_POINT = """
 FRAGMENT_CHECKOUT = (
     FRAGMENT_CHECKOUT_LINE
     + FRAGMENT_ADDRESS
-    + FRAGMENT_SHIPPING_METHOD
+    + FRAGMENT_SHIPPING_METHOD_INFO
     + """
         fragment Checkout on Checkout {
           availablePaymentGateways {
@@ -145,10 +155,10 @@ FRAGMENT_CHECKOUT = (
           }
           email
           availableShippingMethods {
-            ...ShippingMethod
+            ...ShippingMethodInfo
           }
           shippingMethod {
-            ...ShippingMethod
+            ...ShippingMethodInfo
           }
           shippingPrice {
             ...Price
@@ -172,6 +182,7 @@ FRAGMENT_CHECKOUT_FOR_CC = (
     FRAGMENT_CHECKOUT_LINE
     + FRAGMENT_ADDRESS
     + FRAGMENT_SHIPPING_METHOD
+    + FRAGMENT_SHIPPING_METHOD_INFO
     + FRAGMENT_COLLECTION_POINT
     + """
         fragment Checkout on Checkout {
@@ -199,7 +210,7 @@ FRAGMENT_CHECKOUT_FOR_CC = (
           }
           email
           availableShippingMethods {
-            ...ShippingMethod
+            ...ShippingMethodInfo
           }
           availableCollectionPoints {
             ...CollectionPoint
