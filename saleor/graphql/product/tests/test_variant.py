@@ -730,7 +730,9 @@ def test_create_variant_with_boolean_attribute(
     size_attribute,
     warehouse,
 ):
-    product_type.variant_attributes.add(boolean_attribute)
+    product_type.variant_attributes.add(
+        boolean_attribute, through_defaults={"variant_selection": True}
+    )
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     boolean_attr_id = graphene.Node.to_global_id("Attribute", boolean_attribute.id)
@@ -3958,7 +3960,9 @@ def test_product_variant_bulk_create_with_swatch_attribute(
     staff_api_client, product, swatch_attribute, permission_manage_products
 ):
     product_variant_count = ProductVariant.objects.count()
-    product.product_type.variant_attributes.set([swatch_attribute])
+    product.product_type.variant_attributes.set(
+        [swatch_attribute], through_defaults={"variant_selection": True}
+    )
     attribute_value_count = swatch_attribute.values.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     attribute_id = graphene.Node.to_global_id("Attribute", swatch_attribute.pk)
@@ -4010,6 +4014,10 @@ def test_product_variant_bulk_create_only_not_variant_selection_attributes(
     attribute_value_count = size_attribute.values.count()
 
     size_attribute.input_type = AttributeInputType.MULTISELECT
+    variant_attribute = size_attribute.attributevariant.get()
+    variant_attribute.variant_selection = False
+    variant_attribute.save(update_fields=["variant_selection"])
+
     size_attribute.save(update_fields=["input_type"])
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
