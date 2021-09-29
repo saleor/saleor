@@ -17,7 +17,6 @@ from ..models import Payment, Transaction
 from ..tasks import refund_or_void_inactive_payment, release_unfinished_payments_task
 from ..utils import (
     ALLOWED_GATEWAY_KINDS,
-    ReleasePaymentException,
     clean_authorize,
     clean_capture,
     create_payment,
@@ -685,10 +684,10 @@ def test_failed_refund_or_void_inactive_payment(
 ):
     # given
     payment = checkout_with_payments_factory().payments.get()
-    e = ReleasePaymentException("An error")
+    e = PaymentError("An error")
     release_checkout_payment.side_effect = e
     # when
-    with pytest.raises(ReleasePaymentException):
+    with pytest.raises(PaymentError):
         refund_or_void_inactive_payment(payment.pk)
     # then
     release_checkout_payment.assert_called_once_with(payment, ANY, ANY)

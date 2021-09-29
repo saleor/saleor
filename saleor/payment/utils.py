@@ -466,7 +466,3 @@ def get_unfinished_payments():
     )
 
     return payments
-
-
-class ReleasePaymentException(Exception):
-    """Exception occured on attempt to release payment."""

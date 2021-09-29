@@ -1,11 +1,11 @@
 from celery.utils.log import get_task_logger
 
-from saleor.payment import gateway
+from saleor.payment import PaymentError, gateway
 
 from ..celeryconf import app
 from ..plugins.manager import get_plugins_manager
 from .models import Payment
-from .utils import ReleasePaymentException, get_unfinished_payments
+from .utils import get_unfinished_payments
 
 task_logger = get_task_logger(__name__)
 
@@ -21,7 +21,7 @@ def release_unfinished_payments_task():
 
 
 @app.task(
-    autoretry_for=[ReleasePaymentException],
+    autoretry_for=[PaymentError],
     default_retry_delay=4 * 3600,  # 4 hours
     retry_kwargs={"max_retries": 6},
 )
@@ -44,7 +44,7 @@ def refund_or_void_inactive_payment(payment_pk):
         manager = get_plugins_manager()
         gateway.payment_refund_or_void(payment, manager, channel_slug)
 
-    except ReleasePaymentException as e:
+    except PaymentError as e:
         task_logger.error("Release payment %d failed.", payment.pk, e)
         raise
 
