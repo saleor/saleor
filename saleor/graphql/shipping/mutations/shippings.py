@@ -492,8 +492,7 @@ class ShippingPriceDelete(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        _, object_pk = from_global_id_or_error(data.get("id"))
-        shipping_method = models.ShippingMethod.objects.filter(pk=object_pk).first()
+        shipping_method = get_shipping_model_by_object_id(data.get("id"))
         shipping_method_id = shipping_method.id
         shipping_zone = shipping_method.shipping_zone
         shipping_method.delete()
