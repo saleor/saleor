@@ -136,7 +136,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
         if not configuration[MERCHANT_CODE]:
-            missing_fields.append(TERMINAL_ID)
+            missing_fields.append(MERCHANT_CODE)
         if not configuration[SP_CODE]:
             missing_fields.append(SP_CODE)
         if not configuration[TERMINAL_ID]:

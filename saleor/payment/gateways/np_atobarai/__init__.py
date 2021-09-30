@@ -1,3 +1,6 @@
+import os
+from typing import List
+
 import opentracing
 
 from saleor.payment import TransactionKind
@@ -18,6 +21,10 @@ def inject_api_config(fun):
     return inner
 
 
+def parse_errors(errors: List[str]) -> str:
+    return os.linesep.join(errors)
+
+
 @inject_api_config
 def process_payment(
     payment_information: PaymentData, config: ApiConfig
@@ -32,7 +39,7 @@ def process_payment(
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=result.psp_reference,
-        error="",
+        error=parse_errors(result.errors),
         psp_reference=result.psp_reference,
     )
 

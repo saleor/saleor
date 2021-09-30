@@ -1,20 +1,19 @@
 from typing import Optional
 
 import requests
-from django.core.exceptions import ValidationError
 from django.utils import timezone
 from requests.auth import HTTPBasicAuth
 
-from saleor.checkout.error_codes import CheckoutErrorCode
-from saleor.payment.gateways.np_atobarai.api_types import ApiConfig, PaymentResult
-from saleor.payment.gateways.np_atobarai.const import NP_ATOBARAI
-from saleor.payment.interface import AddressData, PaymentData
-from saleor.payment.utils import price_to_minor_unit
+from ...interface import AddressData, PaymentData
+from ...utils import price_to_minor_unit
+from .api_types import ApiConfig, PaymentResult, PaymentStatus
+from .const import NP_ATOBARAI
+from .errors import UNKNOWN_ERROR, TransactionRegistrationResultError
 
 REQUEST_TIMEOUT = 15
 
 
-def get_url(config: ApiConfig, path="") -> str:
+def get_url(config: ApiConfig, path: str = "") -> str:
     """Resolve test/production URLs based on the api config."""
     if config.test_mode:
         return f"https://ctcp.np-payment-gateway.com/v1{path}"
@@ -22,15 +21,13 @@ def get_url(config: ApiConfig, path="") -> str:
 
 
 def _request(
-    config: ApiConfig, method: str, path="", json: Optional[dict] = None
+    config: ApiConfig, method: str, path: str = "", json: Optional[dict] = None
 ) -> requests.Response:
-    if json is None:
-        json = {}
     return requests.request(
         method=method,
         url=get_url(config, path),
         timeout=REQUEST_TIMEOUT,
-        json=json,
+        json=json or {},
         auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
         headers={"X-NP-Terminal-Id": config.terminal_id},
     )
@@ -46,9 +43,11 @@ def _format_name(ad: AddressData):
     return f"{ad.first_name} {ad.last_name}".lstrip().rstrip()
 
 
+# TODO: theoretically it should work, but city info is blank
 def _format_address(ad: AddressData):
     """Follow the japanese address guidelines."""
-    return "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
+    # return "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
+    return f"{ad.country_area}{ad.city}{ad.city_area}{ad.street_address_1}"
 
 
 def register_transaction(
@@ -101,31 +100,28 @@ def register_transaction(
 
     response = _request(config, "post", "/transactions", json=data)
     response_data = response.json()
+    print(response_data)
 
-    if "result" in response_data:
+    if "results" in response_data:
         transaction = response_data["results"][0]
         return PaymentResult(
             status=transaction["authori_result"],
             psp_reference=transaction["np_transaction_id"],
         )
 
-    elif "errors" in response_data:
+    if "errors" in response_data:
         error_codes = set(response_data["errors"][0]["codes"])
 
-        # TODO handle returning a list o errors
-        if "E0100059" in error_codes:
-            raise ValidationError(
-                "Invalid billing postal code.",
-                code=CheckoutErrorCode.INVALID.value,
-            )
+        # TODO: processing unknown errors !!!
+        error_messages = []
+        for error_code in error_codes:
+            try:
+                message = TransactionRegistrationResultError[error_code].value
+            except KeyError:
+                message = f"#{error_code}: {UNKNOWN_ERROR}"
 
-        if "E0100083" in error_codes:
-            raise ValidationError(
-                "Invalid billing postal code.",
-                code=CheckoutErrorCode.INVALID.value,
-            )
+            error_messages.append(message)
+    else:
+        error_messages = [UNKNOWN_ERROR]
 
-    raise ValidationError(
-        "Unknown error while processing the payment.",
-        code=CheckoutErrorCode.INVALID.value,
-    )
+    return PaymentResult(status=PaymentStatus.FAILED, errors=error_messages)

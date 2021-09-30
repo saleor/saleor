@@ -1,4 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import List
 
 from saleor.payment.gateways.np_atobarai.const import (
     MERCHANT_CODE,
@@ -16,7 +18,7 @@ class ApiConfig:
     sp_code: str
 
 
-class PaymentStatus:
+class PaymentStatus(str, Enum):
     SUCCESS = "00"
     PENDING = "10"
     FAILED = "20"
@@ -24,8 +26,9 @@ class PaymentStatus:
 
 @dataclass
 class PaymentResult:
-    status: str  # use PaymentStatus
+    status: PaymentStatus
     psp_reference: str = ""
+    errors: List[str] = field(default_factory=list)
 
 
 def get_api_config(connection_params: dict) -> ApiConfig:
