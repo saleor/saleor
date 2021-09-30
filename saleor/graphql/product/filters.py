@@ -686,14 +686,24 @@ class CollectionFilter(MetadataFilterBase):
 
 
 class CategoryFilter(MetadataFilterBase):
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("slug", "name", "description")
-    )
+    search = django_filters.CharFilter(method="category_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = Category
         fields = ["search"]
+
+    @classmethod
+    def category_filter_search(cls, queryset, _name, value):
+        if not value:
+            return queryset
+        name_slug_desc_qs = (
+            Q(name__ilike=value)
+            | Q(slug__ilike=value)
+            | Q(description_plaintext__ilike=value)
+        )
+
+        return queryset.filter(name_slug_desc_qs)
 
 
 class ProductTypeFilter(MetadataFilterBase):
