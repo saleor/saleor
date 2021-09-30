@@ -140,6 +140,7 @@ def test_get_order_line_payload(order_line):
         "product_name": order_line.product_name,
         "variant_name": order_line.variant_name,
         "product_sku": order_line.product_sku,
+        "product_variant_id": order_line.product_variant_id,
         "is_shipping_required": order_line.is_shipping_required,
         "quantity": order_line.quantity,
         "quantity_fulfilled": order_line.quantity_fulfilled,

@@ -42,6 +42,7 @@ from ..mutations.products import (
 )
 from ..types import Product, ProductType, ProductVariant
 from ..utils import (
+    clean_variant_sku,
     create_stocks,
     get_draft_order_lines_data_for_variants,
     get_used_variants_attribute_values,
@@ -204,7 +205,7 @@ class ProductVariantBulkCreateInput(ProductVariantInput):
         description="List of prices assigned to channels.",
         required=False,
     )
-    sku = graphene.String(required=True, description="Stock keeping unit.")
+    sku = graphene.String(description="Stock keeping unit.")
 
 
 class ProductVariantBulkCreate(BaseMutation):
@@ -270,6 +271,8 @@ class ProductVariantBulkCreate(BaseMutation):
         stocks = cleaned_input.get("stocks")
         if stocks:
             cls.clean_stocks(stocks, errors, variant_index)
+
+        cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
 
         return cleaned_input
 
@@ -444,9 +447,10 @@ class ProductVariantBulkCreate(BaseMutation):
 
             cleaned_inputs.append(cleaned_input if cleaned_input else None)
 
-            if not variant_data.sku:
-                continue
-            cls.validate_duplicated_sku(variant_data.sku, index, sku_list, errors)
+            if cleaned_input["sku"]:
+                cls.validate_duplicated_sku(
+                    cleaned_input["sku"], index, sku_list, errors
+                )
         return cleaned_inputs
 
     @classmethod

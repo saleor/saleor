@@ -34,6 +34,10 @@ def test_get_products_data(product, product_with_image, collection, image, chann
     variant = product.variants.first()
     VariantMedia.objects.create(variant=variant, media=product.media.first())
 
+    variant_without_sku = product.variants.last()
+    variant_without_sku.sku = None
+    variant_without_sku.save()
+
     products = Product.objects.all()
     export_fields = set(
         value
@@ -99,6 +103,9 @@ def test_get_products_data(product, product_with_image, collection, image, chann
 
         for variant in product.variants.all():
             data = {
+                "variants__id": graphene.Node.to_global_id(
+                    "ProductVariant", variant.pk
+                ),
                 "variants__sku": variant.sku,
                 "variants__media__image": (
                     ""
@@ -270,6 +277,10 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         date_attribute,
         date_time_attribute,
     )
+
+    variant_without_sku = product.variants.last()
+    variant_without_sku.sku = None
+    variant_without_sku.save()
 
     # add boolean attribute
     associate_attribute_values_to_instance(

@@ -251,6 +251,7 @@ def get_checkout_lines_data(
         product = line_info.product
         name = product.name
         product_type = line_info.product_type
+        item_code = line_info.variant.sku or line_info.variant.get_global_id()
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
         append_line_to_data(
@@ -262,7 +263,7 @@ def get_checkout_lines_data(
                 discounts,
             ).gross.amount,
             tax_code=tax_code,
-            item_code=line_info.variant.sku,
+            item_code=item_code,
             name=name,
         )
 
@@ -298,13 +299,12 @@ def get_order_lines_data(
             line.unit_price_gross_amount != line.unit_price_net_amount
         )
         tax_included = line_has_included_taxes or system_tax_included
-
         append_line_to_data(
             data=data,
             quantity=line.quantity,
             amount=line.unit_price_gross_amount * line.quantity,
             tax_code=tax_code,
-            item_code=line.variant.sku,
+            item_code=line.variant.sku or line.variant.get_global_id(),
             name=line.variant.product.name,
             tax_included=tax_included,
         )
@@ -336,7 +336,6 @@ def generate_request_data(
     config: AvataxConfiguration,
     currency: str,
 ):
-
     data = {
         "companyCode": config.company_name,
         "type": transaction_type,

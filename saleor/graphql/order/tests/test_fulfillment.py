@@ -12,6 +12,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.events import OrderEvents
 from ....order.models import Fulfillment, FulfillmentLine, FulfillmentStatus
 from ....plugins.manager import get_plugins_manager
+from ....product.models import ProductVariant
 from ....warehouse.models import Allocation, Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -861,6 +862,70 @@ def test_order_fulfill_lines_with_empty_quantity(
         True,
         allow_stock_to_be_exceeded=False,
         approved=True,
+    )
+
+
+@pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
+@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
+def test_order_fulfill_without_sku(
+    mock_create_fulfillments,
+    fulfillment_auto_approve,
+    staff_api_client,
+    staff_user,
+    order_with_lines,
+    permission_manage_orders,
+    warehouse,
+    site_settings,
+):
+    ProductVariant.objects.update(sku=None)
+    site_settings.fulfillment_auto_approve = fulfillment_auto_approve
+    site_settings.save(update_fields=["fulfillment_auto_approve"])
+    order = order_with_lines
+    query = ORDER_FULFILL_QUERY
+    order.lines.update(product_sku=None)
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_line, order_line2 = order.lines.all()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": True,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
+                },
+                {
+                    "orderLineId": order_line2_id,
+                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                },
+            ],
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfill"]
+    assert not data["errors"]
+
+    fulfillment_lines_for_warehouses = {
+        str(warehouse.pk): [
+            {"order_line": order_line, "quantity": 3},
+            {"order_line": order_line2, "quantity": 2},
+        ]
+    }
+    mock_create_fulfillments.assert_called_once_with(
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        ANY,
+        True,
+        allow_stock_to_be_exceeded=False,
+        approved=fulfillment_auto_approve,
     )
 
 

@@ -60,6 +60,7 @@ from ..types import (
     ProductVariant,
 )
 from ..utils import (
+    clean_variant_sku,
     create_stocks,
     get_draft_order_lines_data_for_variants,
     get_used_attribute_values_for_variant,
@@ -883,6 +884,9 @@ class ProductVariantCreate(ModelMutation):
                     )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
+
+        if "sku" in cleaned_input:
+            cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
 
         return cleaned_input
 

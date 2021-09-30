@@ -46,7 +46,11 @@ def test_export_products(
 ):
     # given
     export_info = {
-        "fields": [ProductFieldEnum.NAME.value],
+        "fields": [
+            ProductFieldEnum.NAME.value,
+            ProductFieldEnum.VARIANT_ID.value,
+            ProductFieldEnum.VARIANT_SKU.value,
+        ],
         "warehouses": [],
         "attributes": [],
         "channels": [],
@@ -55,12 +59,14 @@ def test_export_products(
     mock_file = MagicMock(spec=File)
     create_file_with_headers_mock.return_value = mock_file
 
+    product_list[0].variants.update(sku=None)
+
     # when
     export_products(user_export_file, {"all": ""}, export_info, file_type)
 
     # then
     create_file_with_headers_mock.assert_called_once_with(
-        ["id", "name"], ";", file_type
+        ["id", "name", "variant id", "variant sku"], ";", file_type
     )
     assert export_products_in_batches_mock.call_count == 1
     args, kwargs = export_products_in_batches_mock.call_args
@@ -69,8 +75,8 @@ def test_export_products(
     )
     assert args[1:] == (
         export_info,
-        {"id", "name"},
-        ["id", "name"],
+        {"id", "name", "variants__id", "variants__sku"},
+        ["id", "name", "variants__id", "variants__sku"],
         ";",
         mock_file,
         file_type,

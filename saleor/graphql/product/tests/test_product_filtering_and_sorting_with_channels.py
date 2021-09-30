@@ -554,3 +554,27 @@ def test_products_with_filtering_and_not_existing_channel(
     content = get_graphql_content(response)
     products_nodes = content["data"]["products"]["edges"]
     assert len(products_nodes) == 0
+
+
+def test_published_products_without_sku_as_staff(
+    staff_api_client,
+    permission_manage_products,
+    products_for_sorting_with_channels,
+    channel_USD,
+):
+    # given
+    ProductVariant.objects.update(sku=None)
+    variables = {"filter": {"isPublished": True}, "channel": channel_USD.slug}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert len(products_nodes) == 3
