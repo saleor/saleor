@@ -230,7 +230,7 @@ class StocksReservationsByCheckoutTokenLoader(DataLoader):
                         checkout_key = checkouts_keys_map[reservation.checkout_line_id]
                         reservations_map[checkout_key].append(reservation)
 
-                return [reservations_map[key] for key in keys]
+                return [reservations_map.get(key) for key in keys]
 
             return (
                 ActiveReservationsByCheckoutLineIdLoader(self.context)
