@@ -17,11 +17,12 @@ from ...product.tasks import (
 from ...product.utils import get_products_ids_without_variants
 from ..channel import ChannelContext
 from ..channel.mutations import BaseChannelListingMutation
+from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import DiscountError
 from ..core.validators import validate_end_is_after_start, validate_price_precision
-from ..product.types import Category, Collection, Product
+from ..product.types import Category, Collection, Product, ProductVariant
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 from .types import Sale, Voucher
 
@@ -45,6 +46,11 @@ class CatalogueInput(graphene.InputObjectType):
         description="Collections related to the discount.",
         name="collections",
     )
+    variants = graphene.List(
+        graphene.ID,
+        description=f"{ADDED_IN_31} Product variant related to the discount.",
+        name="variants",
+    )
 
 
 class BaseDiscountCatalogueMutation(BaseMutation):
@@ -52,11 +58,12 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def recalculate_discounted_prices(cls, products, categories, collections):
+    def recalculate_discounted_prices(cls, products, categories, collections, variants):
         update_products_discounted_prices_of_catalogues_task.delay(
             product_ids=[p.pk for p in products],
             category_ids=[c.pk for c in categories],
             collection_ids=[c.pk for c in collections],
+            variant_ids=[v.pk for v in variants],
         )
 
     @classmethod
@@ -74,8 +81,12 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         if collections:
             collections = cls.get_nodes_or_error(collections, "collections", Collection)
             node.collections.add(*collections)
+        variants = input.get("variants", [])
+        if variants:
+            variants = cls.get_nodes_or_error(variants, "variants", ProductVariant)
+            node.variants.add(*variants)
         # Updated the db entries, recalculating discounts of affected products
-        cls.recalculate_discounted_prices(products, categories, collections)
+        cls.recalculate_discounted_prices(products, categories, collections, variants)
 
     @classmethod
     def clean_product(cls, products):
@@ -105,8 +116,12 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         if collections:
             collections = cls.get_nodes_or_error(collections, "collections", Collection)
             node.collections.remove(*collections)
+        variants = input.get("variants", [])
+        if variants:
+            variants = cls.get_nodes_or_error(variants, "variants", ProductVariant)
+            node.variants.remove(*variants)
         # Updated the db entries, recalculating discounts of affected products
-        cls.recalculate_discounted_prices(products, categories, collections)
+        cls.recalculate_discounted_prices(products, categories, collections, variants)
 
 
 class VoucherInput(graphene.InputObjectType):
@@ -126,6 +141,11 @@ class VoucherInput(graphene.InputObjectType):
     )
     products = graphene.List(
         graphene.ID, description="Products discounted by the voucher.", name="products"
+    )
+    variants = graphene.List(
+        graphene.ID,
+        description=f"{ADDED_IN_31} Variants discounted by the voucher.",
+        name="variants",
     )
     collections = graphene.List(
         graphene.ID,
@@ -485,6 +505,11 @@ class SaleInput(graphene.InputObjectType):
     value = PositiveDecimal(description="Value of the voucher.")
     products = graphene.List(
         graphene.ID, description="Products related to the discount.", name="products"
+    )
+    variants = graphene.List(
+        graphene.ID,
+        descriptions=f"{ADDED_IN_31} Product variant related to the discount.",
+        name="variants",
     )
     categories = graphene.List(
         graphene.ID,

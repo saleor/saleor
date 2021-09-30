@@ -802,6 +802,7 @@ input CatalogueInput {
   products: [ID]
   categories: [ID]
   collections: [ID]
+  variants: [ID]
 }
 
 type Category implements Node & ObjectWithMetadata {
@@ -5906,6 +5907,7 @@ type Sale implements Node & ObjectWithMetadata {
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   translation(languageCode: LanguageCodeEnum!): SaleTranslation
   channelListings: [SaleChannelListing!]
   discountValue: Float
@@ -5983,6 +5985,7 @@ input SaleInput {
   type: DiscountValueTypeEnum
   value: PositiveDecimal
   products: [ID]
+  variants: [ID]
   categories: [ID]
   collections: [ID]
   startDate: DateTime
@@ -6864,6 +6867,7 @@ type Voucher implements Node & ObjectWithMetadata {
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
   discountValue: Float
@@ -6955,6 +6959,7 @@ input VoucherInput {
   endDate: DateTime
   discountValueType: DiscountValueTypeEnum
   products: [ID]
+  variants: [ID]
   collections: [ID]
   categories: [ID]
   minCheckoutItemsQuantity: Int
