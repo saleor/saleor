@@ -5,7 +5,7 @@ import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 
-from ....attribute import AttributeType
+from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tracing import traced_atomic_transaction
@@ -29,6 +29,9 @@ class ProductAttributeAssignInput(graphene.InputObjectType):
     id = graphene.ID(required=True, description="The ID of the attribute to assign.")
     type = ProductAttributeType(
         required=True, description="The attribute type to be assigned as."
+    )
+    variant_selection = graphene.Boolean(
+        required=False, description="Whether attribute is allowed in variant selection."
     )
 
 
@@ -62,16 +65,21 @@ class ProductAttributeAssign(BaseMutation):
         """Resolve all passed global ids into integer PKs of the Attribute type."""
         product_attrs_pks = []
         variant_attrs_pks = []
-
         for operation in operations:
             pk = cls.get_global_id_or_error(
                 operation.id, only_type=Attribute, field="operations"
             )
-            if operation.type == ProductAttributeType.PRODUCT:
-                product_attrs_pks.append(pk)
-            else:
-                variant_attrs_pks.append(pk)
 
+            variant_selection = (
+                operation.variant_selection
+                if operation.variant_selection is not None
+                else False
+            )
+
+            if operation.type == ProductAttributeType.PRODUCT:
+                product_attrs_pks.append((pk, operation.type, variant_selection))
+            else:
+                variant_attrs_pks.append((pk, operation.type, variant_selection))
         return product_attrs_pks, variant_attrs_pks
 
     @classmethod
@@ -123,6 +131,51 @@ class ProductAttributeAssign(BaseMutation):
             errors["operations"].append(error)
 
     @classmethod
+    def check_type_and_variant_coherence(cls, errors, product_attrs_data):
+        for attr_pk, type_, variant_selection in product_attrs_data:
+            if variant_selection:
+                msg = (
+                    f"Attribute {attr_pk} with type different than 'Variant'"
+                    "({type_}) cannot be assigned with variant_selection"
+                )
+                error = ValidationError(
+                    msg,
+                    code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
+                    params={"attributes": attr_pk},
+                )
+                errors["operations"].append(error)
+
+    @classmethod
+    def check_allowed_types(cls, errors, variant_attrs_data):
+        variant_attrs_pks = [
+            pk for pk, _, variant_selection in variant_attrs_data if variant_selection
+        ]
+        qs = (
+            attribute_models.Attribute.objects.filter(
+                pk__in=variant_attrs_pks,
+            )
+            .exclude(input_type__in=AttributeInputType.ALLOWED_IN_VARIANT_SELECTION)
+            .values_list("pk", "name", "input_type")
+        )
+
+        invalid_attributes = list(qs)
+
+        if invalid_attributes:
+            msg = ", ".join(
+                [f"{name} ({input_type})" for _, name, input_type in invalid_attributes]
+            )
+            invalid_attr_ids = [
+                graphene.Node.to_global_id("Attribute", attr)
+                for attr in invalid_attributes
+            ]
+            error = ValidationError(
+                (f"{msg} Invalid type."),
+                code=ProductErrorCode.INVALID,
+                params={"attributes": invalid_attr_ids},
+            )
+            errors["operations"].append(error)
+
+    @classmethod
     def check_product_operations_are_assignable(cls, errors, product_attrs_pks):
         restricted_attributes = attribute_models.Attribute.objects.filter(
             pk__in=product_attrs_pks, is_variant_only=True
@@ -141,9 +194,11 @@ class ProductAttributeAssign(BaseMutation):
             errors["operations"].append(error)
 
     @classmethod
-    def clean_operations(cls, product_type, product_attrs_pks, variant_attrs_pks):
+    def clean_operations(cls, product_type, product_attrs_data, variant_attrs_data):
         """Ensure the attributes are not already assigned to the product type."""
         errors = defaultdict(list)
+        product_attrs_pks = [pk for pk, _, __ in product_attrs_data]
+        variant_attrs_pks = [pk for pk, _, __ in variant_attrs_data]
 
         attrs_pk = product_attrs_pks + variant_attrs_pks
         attributes = attribute_models.Attribute.objects.filter(
@@ -163,6 +218,8 @@ class ProductAttributeAssign(BaseMutation):
 
         cls.check_attributes_types(errors, product_attrs_pks, variant_attrs_pks)
         cls.check_product_operations_are_assignable(errors, product_attrs_pks)
+        cls.check_type_and_variant_coherence(errors, product_attrs_data)
+        cls.check_allowed_types(errors, variant_attrs_data)
         cls.check_operations_not_assigned_already(
             errors, product_type, product_attrs_pks, variant_attrs_pks
         )
@@ -174,8 +231,20 @@ class ProductAttributeAssign(BaseMutation):
     def save_field_values(cls, product_type, model_name, pks):
         """Add in bulk the PKs to assign to a given product type."""
         model = getattr(attribute_models, model_name)
-        for pk in pks:
-            model.objects.create(product_type=product_type, attribute_id=pk)
+
+        if model_name == "AttributeVariant":
+            for pk, _, variant_selection in pks:
+                model.objects.create(
+                    product_type=product_type,
+                    attribute_id=pk,
+                    variant_selection=variant_selection,
+                )
+        else:
+            for pk, _, variant_selection in pks:
+                model.objects.create(
+                    product_type=product_type,
+                    attribute_id=pk,
+                )
 
     @classmethod
     @traced_atomic_transaction()
@@ -188,7 +257,8 @@ class ProductAttributeAssign(BaseMutation):
         )
 
         # Resolve all the passed IDs to ints
-        product_attrs_pks, variant_attrs_pks = cls.get_operations(info, operations)
+        product_attrs_data, variant_attrs_data = cls.get_operations(info, operations)
+        variant_attrs_pks = [pk for pk, _, __ in variant_attrs_data]
 
         if variant_attrs_pks and not product_type.has_variants:
             raise ValidationError(
@@ -201,11 +271,11 @@ class ProductAttributeAssign(BaseMutation):
             )
 
         # Ensure the attribute are assignable
-        cls.clean_operations(product_type, product_attrs_pks, variant_attrs_pks)
+        cls.clean_operations(product_type, product_attrs_data, variant_attrs_data)
 
         # Commit
-        cls.save_field_values(product_type, "AttributeProduct", product_attrs_pks)
-        cls.save_field_values(product_type, "AttributeVariant", variant_attrs_pks)
+        cls.save_field_values(product_type, "AttributeProduct", product_attrs_data)
+        cls.save_field_values(product_type, "AttributeVariant", variant_attrs_data)
 
         return cls(product_type=product_type)
 

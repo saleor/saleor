@@ -5201,6 +5201,7 @@ type ProductAttributeAssign {
 input ProductAttributeAssignInput {
   id: ID!
   type: ProductAttributeType!
+  variantSelection: Boolean
 }
 
 enum ProductAttributeType {
