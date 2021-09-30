@@ -7291,4 +7291,3 @@ union _Entity = App | Address | User | Group | ProductVariant | Product | Produc
 type _Service {
   sdl: String
 }
-[0m
