@@ -31,7 +31,7 @@ def check_stock_and_preorder_quantity(
     :raises InsufficientStock: when there is not enough items in stock for a variant
     or there is not enough available preorder items for a variant.
     """
-    if variant.is_preorder:
+    if variant.is_preorder_active():
         check_preorder_threshold_bulk([variant], [quantity], channel_slug)
     else:
         check_stock_quantity(variant, country_code, channel_slug, quantity)
@@ -97,12 +97,12 @@ def _split_lines_for_trackable_and_preorder(
 ) -> Tuple[
     Iterable["ProductVariant"], Iterable[int], Iterable["ProductVariant"], Iterable[int]
 ]:
-    """Return variants and quantities splitted by "is_preorder" flag."""
+    """Return variants and quantities splitted by "is_preorder_active"."""
     stock_variants, stock_quantities = [], []
     preorder_variants, preorder_quantities = [], []
 
     for variant, quantity in zip(variants, quantities):
-        if variant.is_preorder:
+        if variant.is_preorder_active():
             preorder_variants.append(variant)
             preorder_quantities.append(quantity)
         else:

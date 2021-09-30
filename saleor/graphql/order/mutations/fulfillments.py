@@ -161,7 +161,7 @@ class OrderFulfill(BaseMutation):
     @classmethod
     def check_lines_for_preorder(cls, order_lines):
         for order_line in order_lines:
-            if order_line.variant_id and order_line.variant.is_preorder:
+            if order_line.variant_id and order_line.variant.is_preorder_active():
                 order_line_global_id = graphene.Node.to_global_id(
                     "OrderLine", order_line.pk
                 )

@@ -338,7 +338,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if address is not None:
             country_code = address.country
 
-        if root.node.is_preorder:
+        if root.node.is_preorder_active():
             variant = root.node
             channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
                 info.context
@@ -611,7 +611,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                     global_sold_units=global_sold_units,
                     end_date=variant.preorder_end_date,
                 )
-                if variant.is_preorder
+                if variant.is_preorder_active()
                 else None
             )
 

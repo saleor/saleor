@@ -435,7 +435,7 @@ def get_order_lines_with_track_inventory(
         for line_info in order_lines_info
         if line_info.variant
         and line_info.variant.track_inventory
-        and not line_info.variant.is_preorder
+        and not line_info.variant.is_preorder_active()
     ]
 
 
@@ -532,7 +532,7 @@ def get_order_lines_with_preorder(
     return [
         line_info
         for line_info in order_lines_info
-        if line_info.variant and line_info.variant.is_preorder
+        if line_info.variant and line_info.variant.is_preorder_active()
     ]
 
 

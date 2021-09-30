@@ -440,7 +440,7 @@ class DraftOrderComplete(BaseMutation):
         order.save()
 
         for line in order.lines.all():
-            if line.variant.track_inventory or line.variant.is_preorder:
+            if line.variant.track_inventory or line.variant.is_preorder_active():
                 line_data = OrderLineData(
                     line=line, quantity=line.quantity, variant=line.variant
                 )
