@@ -3599,7 +3599,7 @@ def new_sale(category, channel_USD):
 
 
 @pytest.fixture
-def sale(product, category, collection, channel_USD):
+def sale(product, category, collection, variant, channel_USD):
     sale = Sale.objects.create(name="Sale")
     SaleChannelListing.objects.create(
         sale=sale,
@@ -3610,6 +3610,7 @@ def sale(product, category, collection, channel_USD):
     sale.products.add(product)
     sale.categories.add(category)
     sale.collections.add(collection)
+    sale.variants.add(variant)
     return sale
 
 
