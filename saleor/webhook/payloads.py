@@ -226,7 +226,7 @@ def generate_order_payload(order: "Order"):
     return order_data
 
 
-def calculate_added(
+def _calculate_added(
     previous_catalogue: "NodeCatalogueInfo",
     current_catalogue: "NodeCatalogueInfo",
     key: str,
@@ -234,12 +234,12 @@ def calculate_added(
     return list(current_catalogue[key] - previous_catalogue[key])
 
 
-def calculate_removed(
+def _calculate_removed(
     previous_catalogue: "NodeCatalogueInfo",
     current_catalogue: "NodeCatalogueInfo",
     key: str,
 ) -> List[str]:
-    return calculate_added(current_catalogue, previous_catalogue, key)
+    return _calculate_added(current_catalogue, previous_catalogue, key)
 
 
 def generate_sale_payload(
@@ -259,23 +259,29 @@ def generate_sale_payload(
         [sale],
         fields=sale_fields,
         extra_dict_data={
-            "categories_added": calculate_added(
+            "categories_added": _calculate_added(
                 previous_catalogue, current_catalogue, "categories"
             ),
-            "categories_removed": calculate_removed(
+            "categories_removed": _calculate_removed(
                 previous_catalogue, current_catalogue, "categories"
             ),
-            "collections_added": calculate_added(
+            "collections_added": _calculate_added(
                 previous_catalogue, current_catalogue, "collections"
             ),
-            "collections_removed": calculate_removed(
+            "collections_removed": _calculate_removed(
                 previous_catalogue, current_catalogue, "collections"
             ),
-            "products_added": calculate_added(
+            "products_added": _calculate_added(
                 previous_catalogue, current_catalogue, "products"
             ),
-            "products_removed": calculate_removed(
+            "products_removed": _calculate_removed(
                 previous_catalogue, current_catalogue, "products"
+            ),
+            "variants_added": _calculate_added(
+                previous_catalogue, current_catalogue, "variants"
+            ),
+            "variants_removed": _calculate_removed(
+                previous_catalogue, current_catalogue, "variants"
             ),
         },
     )

@@ -38,8 +38,8 @@ NodeCatalogueInfo = DefaultDict[str, Set[str]]
 def convert_catalogue_info_to_global_ids(
     catalogue_info: CatalogueInfo,
 ) -> NodeCatalogueInfo:
-    catalogue_fields = ["categories", "collections", "products"]  # variants
-    type_names = ["Category", "Collection", "Product"]
+    catalogue_fields = ["categories", "collections", "products", "variants"]
+    type_names = ["Category", "Collection", "Product", "ProductVariant"]
     converted_catalogue_info: NodeCatalogueInfo = defaultdict(set)
 
     for type_name, catalogue_field in zip(type_names, catalogue_fields):

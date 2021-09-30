@@ -281,7 +281,7 @@ def fetch_active_discounts() -> List[DiscountInfo]:
 
 
 def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
-    catalogue_fields = ["categories", "collections", "products"]  # variants
+    catalogue_fields = ["categories", "collections", "products", "variants"]
     catalogue_info: CatalogueInfo = defaultdict(set)
 
     for field in catalogue_fields:

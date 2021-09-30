@@ -790,13 +790,16 @@ def test_fetch_catalogue_info_for_sale_has_one_element_sets(sale):
     category_ids = set(sale.categories.all().values_list("id", flat=True))
     collection_ids = set(sale.collections.all().values_list("id", flat=True))
     product_ids = set(sale.products.all().values_list("id", flat=True))
+    variant_ids = set(sale.variants.all().values_list("id", flat=True))
 
     catalogue_info = fetch_catalogue_info(sale)
 
     assert catalogue_info["categories"]
     assert catalogue_info["collections"]
     assert catalogue_info["products"]
+    assert catalogue_info["variants"]
 
     assert catalogue_info["categories"] == category_ids
     assert catalogue_info["collections"] == collection_ids
     assert catalogue_info["products"] == product_ids
+    assert catalogue_info["variants"] == variant_ids

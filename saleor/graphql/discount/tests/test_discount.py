@@ -1106,6 +1106,7 @@ def test_sale_add_catalogues(
     category,
     product,
     collection,
+    variant,
     product_variant_list,
     permission_manage_discounts,
 ):
@@ -1154,7 +1155,7 @@ def test_sale_add_catalogues(
     assert product in sale.products.all()
     assert category in sale.categories.all()
     assert collection in sale.collections.all()
-    assert set(product_variant_list) == set(sale.variants.all())
+    assert set(product_variant_list + [variant]) == set(sale.variants.all())
 
     updated_webhook_mock.assert_called_once_with(
         sale, previous_catalogue=previous_catalogue, current_catalogue=current_catalogue
