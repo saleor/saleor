@@ -1,3 +1,5 @@
+from typing import List
+
 import graphene
 from graphene_federation import key
 
@@ -8,6 +10,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
 from ..core.types import Permission
 from ..core.types.common import Job
+from ..core.utils import from_global_id_or_error
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
@@ -191,8 +194,13 @@ class App(CountableDjangoObjectType):
         return root.tokens.all()  # type: ignore
 
     @staticmethod
-    def __resolve_reference(root: "App", _info, **_kwargs):
-        return graphene.Node.get_node_from_global_id(_info, root.id)
+    def __resolve_references(roots: List["App"], info, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor.has_perm(AppPermission.MANAGE_APPS):
+            return []
+
+        ids = [from_global_id_or_error(root.id, App)[1] for root in roots]
+        return models.App.objects.filter(id__in=ids)
 
     @staticmethod
     def resolve_webhooks(root: models.App, _info):

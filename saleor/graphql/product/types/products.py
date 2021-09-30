@@ -1193,8 +1193,8 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["ProductType"], _info, **_kwargs):
-        types_ids = [from_global_id_or_error(root.id, ProductType)[1] for root in roots]
-        return models.ProductType.objects.filter(id__in=types_ids)
+        ids = [from_global_id_or_error(root.id, ProductType)[1] for root in roots]
+        return models.ProductType.objects.filter(id__in=ids)
 
     @staticmethod
     def resolve_weight(root: models.ProductType, _info, **_kwargs):
@@ -1409,8 +1409,8 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["Category"], _info, **_kwargs):
-        types_ids = [from_global_id_or_error(root.id, Category)[1] for root in roots]
-        return models.Category.objects.filter(id__in=types_ids)
+        ids = [from_global_id_or_error(root.id, Category)[1] for root in roots]
+        return models.Category.objects.filter(id__in=ids)
 
 
 @key(fields="id")
@@ -1440,10 +1440,8 @@ class ProductMedia(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["ProductMedia"], _info, **_kwargs):
-        types_ids = [
-            from_global_id_or_error(root.id, ProductMedia)[1] for root in roots
-        ]
-        return models.ProductMedia.objects.filter(id__in=types_ids)
+        ids = [from_global_id_or_error(root.id, ProductMedia)[1] for root in roots]
+        return models.ProductMedia.objects.filter(id__in=ids)
 
 
 @key(fields="id")
