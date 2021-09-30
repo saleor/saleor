@@ -269,7 +269,7 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
             "description": (
                 f"{line_info.variant.product.name}, {line_info.variant.name}"
             ),
-            "id": line_info.variant.sku,
+            "id": line_info.variant.sku or line_info.variant.get_global_id(),
             "taxAmount": price_to_minor_unit(tax_amount, currency),
             "amountIncludingTax": price_to_minor_unit(unit_gross, currency),
         }

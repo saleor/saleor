@@ -548,6 +548,27 @@ def test_checkout_lines_update_variant_quantity_over_avability_stock(
     assert data["checkout"]["lines"][0]["quantity"] == variables["lines"][0]["quantity"]
 
 
+def test_checkout_lines_delete_with_by_zero_quantity_when_variant_out_of_stock(
+    user_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    stock = line.variant.stocks.first()
+    stock.quantity = 0
+    stock.save(update_fields=["quantity"])
+
+    variables = {
+        "token": checkout.token,
+        "lines": [{"variantId": variant_id, "quantity": 0}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["checkout"]["lines"]
+
+
 @mock.patch(
     "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,

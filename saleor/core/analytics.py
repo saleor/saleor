@@ -52,7 +52,7 @@ def get_order_payloads(order):
             str(order_line),
             order_line.unit_price.gross,
             quantity=order_line.quantity,
-            item_id=order_line.product_sku,
+            item_id=order_line.product_sku or order_line.product_variant_id,
         )
         for order_line in order.lines.all()
     ]

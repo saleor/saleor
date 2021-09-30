@@ -2703,6 +2703,7 @@ def order_line(order, variant):
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
@@ -2796,6 +2797,7 @@ def order_line_with_allocation_in_many_stocks(
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
@@ -2844,6 +2846,7 @@ def order_line_with_one_allocation(
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
@@ -2978,6 +2981,7 @@ def order_with_lines(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
@@ -3027,6 +3031,7 @@ def order_with_lines(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
@@ -3179,6 +3184,7 @@ def order_with_lines_channel_PLN(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
@@ -3227,6 +3233,7 @@ def order_with_lines_channel_PLN(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
@@ -3278,6 +3285,7 @@ def order_with_line_without_inventory_tracking(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
@@ -3599,7 +3607,7 @@ def new_sale(category, channel_USD):
 
 
 @pytest.fixture
-def sale(product, category, collection, channel_USD):
+def sale(product, category, collection, variant, channel_USD):
     sale = Sale.objects.create(name="Sale")
     SaleChannelListing.objects.create(
         sale=sale,
@@ -3610,6 +3618,7 @@ def sale(product, category, collection, channel_USD):
     sale.products.add(product)
     sale.categories.add(category)
     sale.collections.add(collection)
+    sale.variants.add(variant)
     return sale
 
 
@@ -3644,6 +3653,7 @@ def discount_info(category, collection, sale, channel_USD):
         product_ids=set(),
         category_ids={category.id},  # assumes this category does not have children
         collection_ids={collection.id},
+        variants_ids=set(),
     )
 
 
@@ -4170,6 +4180,13 @@ def payment(payment_dummy, payment_app):
     gateway_id = "credit-card"
     gateway = to_payment_app_id(payment_app, gateway_id)
     payment_dummy.gateway = gateway
+    payment_dummy.save()
+    return payment_dummy
+
+
+@pytest.fixture
+def payment_cancelled(payment_dummy):
+    payment_dummy.charge_status = ChargeStatus.CANCELLED
     payment_dummy.save()
     return payment_dummy
 
@@ -4780,6 +4797,7 @@ def allocations(order_list, stock, channel_USD):
                 product_name=str(variant.product),
                 variant_name=str(variant),
                 product_sku=variant.sku,
+                product_variant_id=variant.get_global_id(),
                 is_shipping_required=variant.is_shipping_required(),
                 is_gift_card=variant.is_gift_card(),
                 unit_price=price,
@@ -4793,6 +4811,7 @@ def allocations(order_list, stock, channel_USD):
                 product_name=str(variant.product),
                 variant_name=str(variant),
                 product_sku=variant.sku,
+                product_variant_id=variant.get_global_id(),
                 is_shipping_required=variant.is_shipping_required(),
                 is_gift_card=variant.is_gift_card(),
                 unit_price=price,
@@ -4806,6 +4825,7 @@ def allocations(order_list, stock, channel_USD):
                 product_name=str(variant.product),
                 variant_name=str(variant),
                 product_sku=variant.sku,
+                product_variant_id=variant.get_global_id(),
                 is_shipping_required=variant.is_shipping_required(),
                 is_gift_card=variant.is_gift_card(),
                 unit_price=price,

@@ -30,7 +30,6 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import get_duplicated_values
-from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..utils import prepare_insufficient_stock_order_validation_errors
@@ -66,6 +65,11 @@ class OrderFulfillInput(graphene.InputObjectType):
     )
     notify_customer = graphene.Boolean(
         description="If true, send an email notification to the customer."
+    )
+
+    allow_stock_to_be_exceeded = graphene.Boolean(
+        description="If true, then allow proceed fulfillment when stock is exceeded.",
+        default_value=False,
     )
 
 
@@ -220,17 +224,10 @@ class OrderFulfill(BaseMutation):
                     )
 
         data["order_lines"] = order_lines
-        data["gift_card_lines"] = cls.get_gift_card_lines(lines_ids)
+        data["gift_card_lines"] = get_gift_card_lines(order_lines)
         data["quantities"] = order_line_id_to_total_quantity
         data["lines_for_warehouses"] = lines_for_warehouses
         return data
-
-    @staticmethod
-    def get_gift_card_lines(lines_ids):
-        _, pks = resolve_global_ids_to_primary_keys(
-            lines_ids, OrderLine, raise_error=True
-        )
-        return get_gift_card_lines(pks)
 
     @classmethod
     @traced_atomic_transaction()
@@ -246,18 +243,24 @@ class OrderFulfill(BaseMutation):
         manager = context.plugins
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
         notify_customer = cleaned_input.get("notify_customer", True)
+        allow_stock_to_be_exceeded = cleaned_input.get(
+            "allow_stock_to_be_exceeded", False
+        )
         gift_card_lines = cleaned_input["gift_card_lines"]
         quantities = cleaned_input["quantities"]
 
-        gift_cards_create(
-            order,
-            gift_card_lines,
-            quantities,
-            context.site.settings,
-            user,
-            app,
-            manager,
-        )
+        approved = info.context.site.settings.fulfillment_auto_approve
+
+        if approved:
+            gift_cards_create(
+                order,
+                gift_card_lines,
+                quantities,
+                context.site.settings,
+                user,
+                app,
+                manager,
+            )
 
         try:
             fulfillments = create_fulfillments(
@@ -267,7 +270,8 @@ class OrderFulfill(BaseMutation):
                 dict(lines_for_warehouses),
                 manager,
                 notify_customer,
-                approved=info.context.site.settings.fulfillment_auto_approve,
+                allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
+                approved=approved,
             )
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)
@@ -423,6 +427,9 @@ class FulfillmentApprove(BaseMutation):
         notify_customer = graphene.Boolean(
             required=True, description="True if confirmation email should be send."
         )
+        allow_stock_to_be_exceeded = graphene.Boolean(
+            default_value=False, description="True if stock could be exceeded."
+        )
 
     class Meta:
         description = f"{ADDED_IN_31} Approve existing fulfillment."
@@ -458,7 +465,9 @@ class FulfillmentApprove(BaseMutation):
             info.context.user,
             info.context.app,
             info.context.plugins,
+            info.context.site.settings,
             notify_customer=data["notify_customer"],
+            allow_stock_to_be_exceeded=data.get("allow_stock_to_be_exceeded"),
         )
         order.refresh_from_db(fields=["status"])
         return FulfillmentApprove(fulfillment=fulfillment, order=order)

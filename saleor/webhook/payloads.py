@@ -1,7 +1,8 @@
 import json
 import uuid
+from collections import defaultdict
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 import graphene
 from django.db.models import F, QuerySet, Sum
@@ -38,6 +39,8 @@ if TYPE_CHECKING:
 
 if TYPE_CHECKING:
     from ..account.models import User
+    from ..discount.models import Sale
+    from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData
     from ..translation.models import Translation
@@ -119,6 +122,7 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         lines,
         fields=line_fields,
         extra_dict_data={
+            "product_variant_id": (lambda l: l.product_variant_id),
             "total_price_net_amount": (lambda l: l.total_price.net.amount),
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
             "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
@@ -221,6 +225,67 @@ def generate_order_payload(order: "Order"):
         },
     )
     return order_data
+
+
+def _calculate_added(
+    previous_catalogue: "NodeCatalogueInfo",
+    current_catalogue: "NodeCatalogueInfo",
+    key: str,
+) -> List[str]:
+    return list(current_catalogue[key] - previous_catalogue[key])
+
+
+def _calculate_removed(
+    previous_catalogue: "NodeCatalogueInfo",
+    current_catalogue: "NodeCatalogueInfo",
+    key: str,
+) -> List[str]:
+    return _calculate_added(current_catalogue, previous_catalogue, key)
+
+
+def generate_sale_payload(
+    sale: "Sale",
+    previous_catalogue: Optional["NodeCatalogueInfo"] = None,
+    current_catalogue: Optional["NodeCatalogueInfo"] = None,
+):
+    if previous_catalogue is None:
+        previous_catalogue = defaultdict(set)
+    if current_catalogue is None:
+        current_catalogue = defaultdict(set)
+
+    serializer = PayloadSerializer()
+    sale_fields = ("id",)
+
+    return serializer.serialize(
+        [sale],
+        fields=sale_fields,
+        extra_dict_data={
+            "categories_added": _calculate_added(
+                previous_catalogue, current_catalogue, "categories"
+            ),
+            "categories_removed": _calculate_removed(
+                previous_catalogue, current_catalogue, "categories"
+            ),
+            "collections_added": _calculate_added(
+                previous_catalogue, current_catalogue, "collections"
+            ),
+            "collections_removed": _calculate_removed(
+                previous_catalogue, current_catalogue, "collections"
+            ),
+            "products_added": _calculate_added(
+                previous_catalogue, current_catalogue, "products"
+            ),
+            "products_removed": _calculate_removed(
+                previous_catalogue, current_catalogue, "products"
+            ),
+            "variants_added": _calculate_added(
+                previous_catalogue, current_catalogue, "variants"
+            ),
+            "variants_removed": _calculate_removed(
+                previous_catalogue, current_catalogue, "variants"
+            ),
+        },
+    )
 
 
 def generate_invoice_payload(invoice: "Invoice"):
@@ -373,13 +438,13 @@ def generate_product_payload(product: "Product"):
 def generate_product_deleted_payload(product: "Product", variants_id):
     serializer = PayloadSerializer()
     product_fields = PRODUCT_FIELDS
-    variant_global_ids = [
+    product_variant_ids = [
         graphene.Node.to_global_id("ProductVariant", pk) for pk in variants_id
     ]
     product_payload = serializer.serialize(
         [product],
         fields=product_fields,
-        extra_dict_data={"variants": list(variant_global_ids)},
+        extra_dict_data={"variants": list(product_variant_ids)},
     )
     return product_payload
 
@@ -445,6 +510,7 @@ def generate_product_variant_payload(product_variants: Iterable["ProductVariant"
         product_variants,
         fields=PRODUCT_VARIANT_FIELDS,
         extra_dict_data={
+            "id": lambda v: v.get_global_id(),
             "attributes": lambda v: serialize_product_or_variant_attributes(v),
             "product_id": lambda v: graphene.Node.to_global_id("Product", v.product_id),
             "media": lambda v: generate_product_variant_media_payload(v),
@@ -473,6 +539,7 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
             "product_name": lambda fl: fl.order_line.product_name,
             "variant_name": lambda fl: fl.order_line.variant_name,
             "product_sku": lambda fl: fl.order_line.product_sku,
+            "product_variant_id": lambda fl: fl.order_line.product_variant_id,
             "weight": (
                 lambda fl: fl.order_line.variant.get_weight().g
                 if fl.order_line.variant

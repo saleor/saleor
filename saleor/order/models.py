@@ -418,7 +418,9 @@ class OrderLine(models.Model):
     variant_name = models.CharField(max_length=255, default="", blank=True)
     translated_product_name = models.CharField(max_length=386, default="", blank=True)
     translated_variant_name = models.CharField(max_length=255, default="", blank=True)
-    product_sku = models.CharField(max_length=255)
+    product_sku = models.CharField(max_length=255, null=True, blank=True)
+    # str with GraphQL ID used as fallback when product SKU is not available
+    product_variant_id = models.CharField(max_length=255, null=True, blank=True)
     is_shipping_required = models.BooleanField()
     is_gift_card = models.BooleanField()
     quantity = models.IntegerField(validators=[MinValueValidator(1)])

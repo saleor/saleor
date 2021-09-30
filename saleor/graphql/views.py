@@ -27,6 +27,7 @@ from jwt.exceptions import PyJWTError
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
+from .utils import query_fingerprint
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
@@ -250,7 +251,7 @@ class GraphQLView(View):
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with opentracing.global_tracer().start_active_span("graphql_query") as scope:
             span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "GraphQL")
+            span.set_tag(opentracing.tags.COMPONENT, "graphql")
 
             query, variables, operation_name = self.get_graphql_params(request, data)
 
@@ -261,6 +262,7 @@ class GraphQLView(View):
             if document is not None:
                 raw_query_string = document.document_string
                 span.set_tag("graphql.query", raw_query_string)
+                span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
                 try:
                     query_contains_schema = self.check_if_query_contains_only_schema(
                         document

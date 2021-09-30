@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ...attribute import AttributeInputType, AttributeType
 
@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from ..models import ProductVariant
 
 
-def generate_and_set_variant_name(variant: "ProductVariant", sku: str):
+def generate_and_set_variant_name(variant: "ProductVariant", sku: Optional[str]):
     """Generate ProductVariant's name based on its attributes."""
     attributes_display = []
 
@@ -25,7 +25,7 @@ def generate_and_set_variant_name(variant: "ProductVariant", sku: str):
 
     name = " / ".join(sorted(attributes_display))
     if not name:
-        name = sku
+        name = sku or variant.get_global_id()
 
     variant.name = name
     variant.save(update_fields=["name"])
