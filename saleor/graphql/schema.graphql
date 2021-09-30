@@ -70,6 +70,7 @@ enum AccountErrorCode {
   JWT_INVALID_CSRF_TOKEN
   CHANNEL_INACTIVE
   MISSING_CHANNEL_SLUG
+  ACCOUNT_NOT_CONFIRMED
 }
 
 input AccountInput {
