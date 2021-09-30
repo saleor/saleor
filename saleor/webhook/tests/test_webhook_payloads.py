@@ -28,6 +28,7 @@ from ..payloads import (
     generate_payment_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
+    generate_sale_payload,
     generate_translation_payload,
 )
 
@@ -652,3 +653,88 @@ def test_generate_collection_point_payload(order_with_lines_for_cc):
         payload_collection_point.get("click_and_collect_option")
         == WarehouseClickAndCollectOption.LOCAL_STOCK
     )
+
+
+def test_generate_sale_payload_no_previous_and_current_has_empty_catalogue_lists(sale):
+    payload = json.loads(generate_sale_payload(sale))[0]
+
+    assert not payload["categories_added"]
+    assert not payload["categories_removed"]
+    assert not payload["collections_added"]
+    assert not payload["collections_removed"]
+    assert not payload["products_added"]
+    assert not payload["products_removed"]
+
+    assert graphene.Node.to_global_id("Sale", sale.id) == payload["id"]
+
+
+def test_generate_sale_payload_with_current_only_has_empty_removed_fields(sale):
+    catalogue_info = {
+        "categories": {1, 2, 3},
+        "collections": {45, 70, 90},
+        "products": {4, 5, 6},
+        "variants": {"aa", "bb", "cc"},
+    }
+    payload = json.loads(generate_sale_payload(sale, current_catalogue=catalogue_info))[
+        0
+    ]
+
+    assert set(payload["categories_added"]) == catalogue_info["categories"]
+    assert set(payload["collections_added"]) == catalogue_info["collections"]
+    assert set(payload["products_added"]) == catalogue_info["products"]
+    assert set(payload["variants_added"]) == catalogue_info["variants"]
+    assert not payload["categories_removed"]
+    assert not payload["collections_removed"]
+    assert not payload["products_removed"]
+    assert not payload["variants_removed"]
+
+
+def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
+    catalogue_info = {
+        "categories": {1, 2, 3},
+        "collections": {45, 70, 90},
+        "products": {4, 5, 6},
+        "variants": {"aa", "bb", "cc"},
+    }
+    payload = json.loads(
+        generate_sale_payload(sale, previous_catalogue=catalogue_info)
+    )[0]
+
+    assert set(payload["categories_removed"]) == catalogue_info["categories"]
+    assert set(payload["collections_removed"]) == catalogue_info["collections"]
+    assert set(payload["products_removed"]) == catalogue_info["products"]
+    assert set(payload["variants_removed"]) == catalogue_info["variants"]
+    assert not payload["categories_added"]
+    assert not payload["collections_added"]
+    assert not payload["products_added"]
+    assert not payload["variants_added"]
+
+
+def test_genereate_sale_payload_calculates_set_differences(sale):
+    previous_info = {
+        "categories": {1, 2, 3},
+        "collections": {45, 70, 90},
+        "products": {4, 5, 6},
+        "variants": {"aaa", "bbb", "ccc"},
+    }
+    current_info = {
+        "categories": {4, 2, 3},
+        "collections": set(),
+        "products": {4, 5, 6, 10, 20},
+        "variants": {"aaa", "bbb", "ddd"},
+    }
+
+    payload = json.loads(
+        generate_sale_payload(
+            sale, previous_catalogue=previous_info, current_catalogue=current_info
+        )
+    )[0]
+
+    assert set(payload["categories_removed"]) == {1}
+    assert set(payload["categories_added"]) == {4}
+    assert set(payload["collections_removed"]) == {45, 70, 90}
+    assert not payload["collections_added"]
+    assert not payload["products_removed"]
+    assert set(payload["products_added"]) == {10, 20}
+    assert set(payload["variants_added"]) == {"ddd"}
+    assert set(payload["variants_removed"]) == {"ccc"}

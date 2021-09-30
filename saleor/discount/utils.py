@@ -1,6 +1,6 @@
 import datetime
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set
+from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, List, Optional, Set
 
 from django.db.models import F
 from django.utils import timezone
@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
     from ..product.models import Collection, Product
     from .models import Voucher
+
+CatalogueInfo = DefaultDict[str, Set[int]]
 
 
 def increase_voucher_usage(voucher: "Voucher") -> None:
@@ -276,3 +278,15 @@ def fetch_discounts(date: datetime.date) -> List[DiscountInfo]:
 
 def fetch_active_discounts() -> List[DiscountInfo]:
     return fetch_discounts(timezone.now())
+
+
+def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
+    catalogue_fields = ["categories", "collections", "products", "variants"]
+    catalogue_info: CatalogueInfo = defaultdict(set)
+
+    for field in catalogue_fields:
+        catalogue_info[field].update(
+            id_ for id_ in getattr(instance, field).all().values_list("id", flat=True)
+        )
+
+    return catalogue_info
