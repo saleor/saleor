@@ -268,6 +268,12 @@ def fetch_checkout_info(
     shipping_method = checkout.shipping_method
     shipping_address = checkout.shipping_address
 
+    shipping_channel_listings = None
+    if shipping_method:
+        shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
+            shipping_method=shipping_method, channel=channel
+        ).first()
+
     delivery_method = (
         checkout.collection_point or external_shipping_method or shipping_method
     )
@@ -279,7 +285,7 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -287,17 +293,16 @@ def fetch_checkout_info(
     valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
         checkout_info, shipping_address, lines, discounts, manager
     )
-    valid_shipping_methods += get_valid_external_shipping_method_list_for_checkout_info(
-        checkout_info, shipping_address, lines, discounts, manager
-    )
+    if app_shipping_id:
+        valid_shipping_methods += get_valid_external_shipping_method_list_for_checkout_info(
+            checkout_info, shipping_address, lines, discounts, manager
+        )
     valid_pick_up_points = get_valid_collection_points_for_checkout_info(
         shipping_address, lines, checkout_info
     )
     checkout_info.valid_shipping_methods = valid_shipping_methods
     checkout_info.valid_pick_up_points = valid_pick_up_points
     checkout_info.delivery_method_info = delivery_method_info
-
-    delivery_method_info.update_channel_listings(checkout_info)
 
     return checkout_info
 
