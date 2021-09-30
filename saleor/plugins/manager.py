@@ -544,6 +544,24 @@ class PluginsManager(PaymentInterface):
             "order_confirmed", default_value, order, channel_slug=order.channel.slug
         )
 
+    def draft_order_created(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_created", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def draft_order_updated(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_updated", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def draft_order_deleted(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_deleted", default_value, order, channel_slug=order.channel.slug
+        )
+
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]
     ):

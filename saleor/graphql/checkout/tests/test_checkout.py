@@ -990,6 +990,62 @@ def test_checkout_create_check_lines_quantity_multiple_warehouse(
     assert data["errors"][0]["field"] == "quantity"
 
 
+def test_checkout_create_when_all_stocks_exceeded(
+    user_api_client, variant_with_many_stocks, graphql_address_data, channel_USD
+):
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 16, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": graphql_address_data,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # make stocks exceeded and assert
+    variant.stocks.update(quantity=-99)
+    for stock in variant.stocks.all():
+        assert stock.quantity == -99
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert data["errors"][0]["message"] == (
+        "Could not add items SKU_A. Only 0 remaining in stock."
+    )
+    assert data["errors"][0]["field"] == "quantity"
+
+
+def test_checkout_create_when_one_stock_exceeded(
+    user_api_client, variant_with_many_stocks, graphql_address_data, channel_USD
+):
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 16, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": graphql_address_data,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # make first stock exceeded
+    stock = variant.stocks.first()
+    stock.quantity = -1
+    stock.save()
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert data["errors"][0]["message"] == (
+        "Could not add items SKU_A. Only 2 remaining in stock."
+    )
+    assert data["errors"][0]["field"] == "quantity"
+
+
 @override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_create_sets_country_from_shipping_address_country(
     user_api_client,

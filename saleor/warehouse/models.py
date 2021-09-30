@@ -199,7 +199,7 @@ class Stock(models.Model):
     product_variant = models.ForeignKey(
         ProductVariant, null=False, on_delete=models.CASCADE, related_name="stocks"
     )
-    quantity = models.PositiveIntegerField(default=0)
+    quantity = models.IntegerField(default=0)
 
     objects = models.Manager.from_queryset(StockQuerySet)()
 

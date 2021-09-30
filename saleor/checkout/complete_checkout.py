@@ -66,7 +66,8 @@ def _get_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     if not voucher:
         return {}
 
-    increase_voucher_usage(voucher)
+    if voucher.usage_limit:
+        increase_voucher_usage(voucher)
     if voucher.apply_once_per_customer:
         add_voucher_usage_by_customer(voucher, checkout_info.get_customer_email())
     return {
@@ -509,7 +510,7 @@ def _prepare_checkout(
 
 def release_voucher_usage(order_data: dict):
     voucher = order_data.get("voucher")
-    if voucher:
+    if voucher and voucher.usage_limit:
         decrease_voucher_usage(voucher)
         if "user_email" in order_data:
             remove_voucher_usage_by_customer(voucher, order_data["user_email"])

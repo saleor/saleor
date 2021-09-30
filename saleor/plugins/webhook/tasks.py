@@ -12,6 +12,7 @@ from requests.exceptions import RequestException
 
 from ...celeryconf import app
 from ...payment import PaymentError
+from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook.event_types import WebhookEventType
 from ...webhook.models import Webhook
@@ -22,8 +23,6 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
-
-WEBHOOK_TIMEOUT = 10
 
 
 class WebhookSchemes(str, Enum):
@@ -80,17 +79,21 @@ def trigger_webhook_sync(event_type: str, data: str, app: "App"):
     )
 
 
-def send_webhook_using_http(target_url, message, domain, signature, event_type):
+def send_webhook_using_http(
+    target_url, message, domain, signature, event_type, timeout=WEBHOOK_TIMEOUT
+):
     headers = {
         "Content-Type": "application/json",
+        # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
         "X-Saleor-Event": event_type,
         "X-Saleor-Domain": domain,
         "X-Saleor-Signature": signature,
+        "Saleor-Event": event_type,
+        "Saleor-Domain": domain,
+        "Saleor-Signature": signature,
     }
 
-    response = requests.post(
-        target_url, data=message, headers=headers, timeout=WEBHOOK_TIMEOUT
-    )
+    response = requests.post(target_url, data=message, headers=headers, timeout=timeout)
     response.raise_for_status()
     return response
 
@@ -186,7 +189,12 @@ def send_webhook_request_sync(target_url, secret, event_type, data: str):
         )
         try:
             response = send_webhook_using_http(
-                target_url, message, domain, signature, event_type
+                target_url,
+                message,
+                domain,
+                signature,
+                event_type,
+                timeout=WEBHOOK_SYNC_TIMEOUT,
             )
             response_data = response.json()
         except RequestException as e:

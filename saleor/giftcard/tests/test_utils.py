@@ -353,17 +353,14 @@ def test_get_gift_card_lines(
     gift_card_non_shippable_order_line, gift_card_shippable_order_line, order_line
 ):
     # given
-    ids = [
-        line.pk
-        for line in [
-            gift_card_non_shippable_order_line,
-            gift_card_shippable_order_line,
-            order_line,
-        ]
+    lines = [
+        gift_card_non_shippable_order_line,
+        gift_card_shippable_order_line,
+        order_line,
     ]
 
     # when
-    gift_card_lines = get_gift_card_lines(ids)
+    gift_card_lines = get_gift_card_lines(lines)
 
     # then
     assert set(gift_card_lines) == {
@@ -376,10 +373,10 @@ def test_get_gift_card_lines_no_gift_card_lines(
     order_line_with_one_allocation, order_line
 ):
     # given
-    ids = [line.pk for line in [order_line_with_one_allocation, order_line]]
+    lines = [order_line_with_one_allocation, order_line]
 
     # when
-    gift_card_lines = get_gift_card_lines(ids)
+    gift_card_lines = get_gift_card_lines(lines)
 
     # then
     assert not gift_card_lines
@@ -389,17 +386,14 @@ def test_get_non_shippable_gift_card_lines(
     gift_card_non_shippable_order_line, gift_card_shippable_order_line, order_line
 ):
     # given
-    ids = [
-        line.pk
-        for line in [
-            gift_card_non_shippable_order_line,
-            gift_card_shippable_order_line,
-            order_line,
-        ]
+    lines = [
+        gift_card_non_shippable_order_line,
+        gift_card_shippable_order_line,
+        order_line,
     ]
 
     # when
-    gift_card_lines = get_non_shippable_gift_card_lines(ids)
+    gift_card_lines = get_non_shippable_gift_card_lines(lines)
 
     # then
     assert set(gift_card_lines) == {gift_card_non_shippable_order_line}
@@ -409,10 +403,10 @@ def test_get_non_shippable_gift_card_lines_no_gift_card_lines(
     order_line_with_one_allocation, order_line
 ):
     # given
-    ids = [line.pk for line in [order_line_with_one_allocation, order_line]]
+    lines = [order_line_with_one_allocation, order_line]
 
     # when
-    gift_card_lines = get_gift_card_lines(ids)
+    gift_card_lines = get_gift_card_lines(lines)
 
     # then
     assert not gift_card_lines
