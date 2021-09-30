@@ -122,6 +122,7 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         lines,
         fields=line_fields,
         extra_dict_data={
+            "product_variant_id": (lambda l: l.product_variant_id),
             "total_price_net_amount": (lambda l: l.total_price.net.amount),
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
             "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
@@ -437,13 +438,13 @@ def generate_product_payload(product: "Product"):
 def generate_product_deleted_payload(product: "Product", variants_id):
     serializer = PayloadSerializer()
     product_fields = PRODUCT_FIELDS
-    variant_global_ids = [
+    product_variant_ids = [
         graphene.Node.to_global_id("ProductVariant", pk) for pk in variants_id
     ]
     product_payload = serializer.serialize(
         [product],
         fields=product_fields,
-        extra_dict_data={"variants": list(variant_global_ids)},
+        extra_dict_data={"variants": list(product_variant_ids)},
     )
     return product_payload
 
@@ -509,6 +510,7 @@ def generate_product_variant_payload(product_variants: Iterable["ProductVariant"
         product_variants,
         fields=PRODUCT_VARIANT_FIELDS,
         extra_dict_data={
+            "id": lambda v: v.get_global_id(),
             "attributes": lambda v: serialize_product_or_variant_attributes(v),
             "product_id": lambda v: graphene.Node.to_global_id("Product", v.product_id),
             "media": lambda v: generate_product_variant_media_payload(v),
@@ -537,6 +539,7 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
             "product_name": lambda fl: fl.order_line.product_name,
             "variant_name": lambda fl: fl.order_line.variant_name,
             "product_sku": lambda fl: fl.order_line.product_sku,
+            "product_variant_id": lambda fl: fl.order_line.product_variant_id,
             "weight": (
                 lambda fl: fl.order_line.variant.get_weight().g
                 if fl.order_line.variant

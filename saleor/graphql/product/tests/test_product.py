@@ -509,6 +509,84 @@ def test_product_query_by_id_as_app_without_channel_slug(
     assert product_data["name"] == product.name
 
 
+def test_product_variants_without_sku_query_by_staff(
+    staff_api_client, product, channel_USD
+):
+    product.variants.update(sku=None)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_BY_ID,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    assert product_data is not None
+    assert product_data["id"] == product_id
+
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    assert product_data["variants"] == [{"id": variant_id}]
+
+
+def test_product_only_with_variants_without_sku_query_by_customer(
+    user_api_client, product, channel_USD
+):
+    product.variants.update(sku=None)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(
+        QUERY_PRODUCT_BY_ID,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    assert product_data is not None
+    assert product_data["id"] == product_id
+
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    assert product_data["variants"] == [{"id": variant_id}]
+
+
+def test_product_only_with_variants_without_sku_query_by_anonymous(
+    api_client, product, channel_USD
+):
+    product.variants.update(sku=None)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+    }
+
+    response = api_client.post_graphql(
+        QUERY_PRODUCT_BY_ID,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    assert product_data is not None
+    assert product_data["id"] == product_id
+
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    assert product_data["variants"] == [{"id": variant_id}]
+
+
 QUERY_COLLECTION_FROM_PRODUCT = """
     query ($id: ID, $channel:String){
         product(
@@ -7174,6 +7252,7 @@ def test_delete_product_variant_in_draft_order(
             product_name=str(variant.product),
             variant_name=str(variant),
             product_sku=variant.sku,
+            product_variant_id=variant.get_global_id(),
             is_shipping_required=variant.is_shipping_required(),
             is_gift_card=variant.is_gift_card(),
             unit_price=TaxedMoney(net=net, gross=gross),
@@ -7188,6 +7267,7 @@ def test_delete_product_variant_in_draft_order(
             product_name=str(variant.product),
             variant_name=str(variant),
             product_sku=variant.sku,
+            product_variant_id=variant.get_global_id(),
             is_shipping_required=variant.is_shipping_required(),
             is_gift_card=variant.is_gift_card(),
             unit_price=TaxedMoney(net=net, gross=gross),
@@ -8426,6 +8506,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         unit_price=TaxedMoney(net=net, gross=gross),
@@ -8439,6 +8520,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         unit_price=TaxedMoney(net=net, gross=gross),

@@ -32,12 +32,14 @@ def get_products_data(
     """
 
     products_with_variants_data = []
+    export_variant_id = "variants__id" in export_fields
 
     product_fields = set(
         ProductExportFields.HEADERS_TO_FIELDS_MAPPING["fields"].values()
     )
     product_export_fields = export_fields & product_fields
-    product_export_fields.add("variants__id")
+    if not export_variant_id:
+        product_export_fields.add("variants__id")
 
     products_data = (
         queryset.annotate(
@@ -71,7 +73,10 @@ def get_products_data(
 
     for product_data in products_data:
         pk = product_data["id"]
-        variant_pk = product_data.pop("variants__id")
+        if export_variant_id:
+            variant_pk = product_data.get("variants__id")
+        else:
+            variant_pk = product_data.pop("variants__id")
 
         product_relations_data: Dict[str, str] = products_relations_data.get(pk, {})
         variant_relations_data: Dict[str, str] = variants_relations_data.get(
@@ -79,6 +84,11 @@ def get_products_data(
         )
 
         product_data["id"] = graphene.Node.to_global_id("Product", pk)
+        if export_variant_id:
+            product_data["variants__id"] = graphene.Node.to_global_id(
+                "ProductVariant", variant_pk
+            )
+
         data = {**product_data, **product_relations_data, **variant_relations_data}
 
         products_with_variants_data.append(data)

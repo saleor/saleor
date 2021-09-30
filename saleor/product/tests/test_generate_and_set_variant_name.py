@@ -208,3 +208,17 @@ def test_update_variants_changed_does_nothing_with_no_attributes():
     saved_attributes = []
     # FIXME: This method no longer returns any value
     assert _update_variants_names(product_type, saved_attributes) is None
+
+
+def test_only_not_variant_selection_attr_left_variant_name_change_to_global_id(product):
+    new_name = "test_name"
+    product_variant = product.variants.first()
+    assert not product_variant.name == new_name
+    product_variant.sku = None
+    product_variant.save()
+    attribute = product.product_type.variant_attributes.first()
+    attribute.input_type = AttributeInputType.MULTISELECT
+    attribute.save(update_fields=["input_type"])
+    _update_variants_names(product.product_type, [attribute])
+    product_variant.refresh_from_db()
+    assert product_variant.name == product_variant.get_global_id()

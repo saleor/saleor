@@ -370,8 +370,11 @@ class AvataxPlugin(BasePlugin):
             return base_total
 
         taxes_data = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
+        variant = checkout_line_info.variant
         return self._calculate_line_total_price(
-            taxes_data, checkout_line_info.variant.sku, previous_value
+            taxes_data,
+            variant.sku or variant.get_global_id(),
+            previous_value,
         )
 
     def calculate_order_line_total(
@@ -392,7 +395,11 @@ class AvataxPlugin(BasePlugin):
             return zero_taxed_money(order.total.currency)
 
         taxes_data = self._get_order_tax_data(order, previous_value)
-        return self._calculate_line_total_price(taxes_data, variant.sku, previous_value)
+        return self._calculate_line_total_price(
+            taxes_data,
+            variant.sku or variant.get_global_id(),
+            previous_value,
+        )
 
     @staticmethod
     def _calculate_line_total_price(
@@ -435,10 +442,11 @@ class AvataxPlugin(BasePlugin):
         taxes_data = self._get_checkout_tax_data(
             checkout_info, lines, discounts, previous_value
         )
+        variant = checkout_line_info.variant
         return self._calculate_unit_price(
             taxes_data,
             checkout_line_info.line,
-            checkout_line_info.variant.sku,
+            variant.sku or variant.get_global_id(),
             previous_value,
         )
 
@@ -454,7 +462,10 @@ class AvataxPlugin(BasePlugin):
             return previous_value
         taxes_data = self._get_order_tax_data(order, previous_value)
         return self._calculate_unit_price(
-            taxes_data, order_line, variant.sku, previous_value
+            taxes_data,
+            order_line,
+            variant.sku or variant.get_global_id(),
+            previous_value,
         )
 
     @staticmethod
@@ -542,8 +553,11 @@ class AvataxPlugin(BasePlugin):
         response = self._get_checkout_tax_data(
             checkout_info, lines, discounts, previous_value
         )
+        variant = checkout_line_info.variant
         return self._get_unit_tax_rate(
-            response, checkout_line_info.variant.sku, previous_value
+            response,
+            variant.sku or variant.get_global_id(),
+            previous_value,
         )
 
     def get_order_line_tax_rate(
@@ -557,7 +571,11 @@ class AvataxPlugin(BasePlugin):
         if not product.charge_taxes:
             return previous_value
         response = self._get_order_tax_data(order, previous_value)
-        return self._get_unit_tax_rate(response, variant.sku, previous_value)
+        return self._get_unit_tax_rate(
+            response,
+            variant.sku or variant.get_global_id(),
+            previous_value,
+        )
 
     def get_checkout_shipping_tax_rate(
         self,
