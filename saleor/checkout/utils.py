@@ -723,3 +723,7 @@ def set_app_shipping_id(checkout: Checkout, app_shipping_id: str):
 
 def get_app_shipping_id(container: Union["Checkout", "Order"]):
     return container.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+
+
+def delete_app_shipping_id(checkout: Checkout):
+    checkout.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)

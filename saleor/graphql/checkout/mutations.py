@@ -25,6 +25,7 @@ from ...checkout.utils import (
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_delivery_method,
+    delete_app_shipping_id,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
@@ -1073,7 +1074,10 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         app_shipping_id = from_shipping_app_id(shipping_method_id)
         if app_shipping_id:
             set_app_shipping_id(checkout=checkout, app_shipping_id=shipping_method_id)
-            checkout.save(update_fields=["private_metadata", "last_change"])
+            checkout.shipping_method = None
+            checkout.save(
+                update_fields=["private_metadata", "shipping_method", "last_change"]
+            )
         else:
             shipping_method = cls.get_node_or_error(
                 info,
@@ -1099,9 +1103,11 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                         )
                     }
                 )
-
+            delete_app_shipping_id(checkout=checkout)
             checkout.shipping_method = shipping_method
-            checkout.save(update_fields=["shipping_method", "last_change"])
+            checkout.save(
+                update_fields=["shipping_method", "private_metadata", "last_change"]
+            )
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
         )

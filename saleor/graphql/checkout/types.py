@@ -486,16 +486,6 @@ class Checkout(CountableDjangoObjectType):
                 .then(map_shipping_method_with_channel)
             )
 
-        plugin_shipping_methods = info.context.plugins.list_shipping_methods(
-            checkout=root, channel_slug=root.channel.slug
-        )
-
-        if plugin_shipping_methods:
-            return [
-                ChannelContext(node=shipping, channel_slug=root.channel.slug)
-                for shipping in plugin_shipping_methods
-            ]
-
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
         address = (
             AddressByIdLoader(info.context).load(root.shipping_address_id)
@@ -508,9 +498,24 @@ class Checkout(CountableDjangoObjectType):
             info.context.request_time
         )
 
-        return Promise.all([address, lines, checkout_info, discounts, channel]).then(
-            calculate_available_shipping_methods
-        )
+        shipping_methods = Promise.all(
+            [address, lines, checkout_info, discounts, channel]
+        ).then(calculate_available_shipping_methods)
+
+        def with_external_shipping_methods(shipping_methods):
+            external_shipping_methods = info.context.plugins.list_shipping_methods(
+                checkout=root, channel_slug=root.channel.slug
+            )
+
+            if external_shipping_methods:
+                shipping_methods += [
+                    ChannelContext(node=shipping, channel_slug=root.channel.slug)
+                    for shipping in external_shipping_methods
+                ]
+
+            return shipping_methods
+
+        return shipping_methods.then(with_external_shipping_methods)
 
     @staticmethod
     @traced_resolver
