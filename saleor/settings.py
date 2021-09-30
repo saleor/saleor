@@ -502,15 +502,16 @@ DEFAULT_CHANNEL_SLUG = os.environ.get("DEFAULT_CHANNEL_SLUG", "default-channel")
 #  Sentry
 sentry_sdk.utils.MAX_STRING_LENGTH = 4096
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
+SENTRY_OPTS = {"integrations": [CeleryIntegration(), DjangoIntegration()]}
 
 
-def SENTRY_INIT(dsn: str):
+def SENTRY_INIT(dsn: str, sentry_opts: dict):
     """Init function for sentry.
 
     Will only be called if SENTRY_DSN is not None, during core start, can be
     overriden in separate settings file.
     """
-    sentry_sdk.init(dsn, integrations=[CeleryIntegration(), DjangoIntegration()])
+    sentry_sdk.init(dsn, **sentry_opts)
     ignore_logger("graphql.execution.utils")
 
 

@@ -12,4 +12,4 @@ class CoreAppConfig(AppConfig):
         Field.register_lookup(PostgresILike)
 
         if settings.SENTRY_DSN:
-            settings.SENTRY_INIT(settings.SENTRY_DSN)
+            settings.SENTRY_INIT(settings.SENTRY_DSN, settings.SENTRY_OPTS)
