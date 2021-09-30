@@ -294,8 +294,10 @@ def fetch_checkout_info(
         checkout_info, shipping_address, lines, discounts, manager
     )
     if app_shipping_id:
-        valid_shipping_methods += get_valid_external_shipping_method_list_for_checkout_info(
-            checkout_info, shipping_address, lines, discounts, manager
+        valid_shipping_methods += (
+            get_valid_external_shipping_method_list_for_checkout_info(
+                checkout_info, shipping_address, lines, discounts, manager
+            )
         )
     valid_pick_up_points = get_valid_collection_points_for_checkout_info(
         shipping_address, lines, checkout_info
