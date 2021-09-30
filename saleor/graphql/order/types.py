@@ -18,14 +18,13 @@ from ...core.permissions import (
     ProductPermissions,
     has_one_of_permissions,
 )
-from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
-from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
+from ...order.utils import get_order_country
 from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import (
@@ -66,7 +65,7 @@ from ..product.dataloaders import (
 )
 from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
-from ..shipping.types import ShippingMethodType
+from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
@@ -79,6 +78,7 @@ from .dataloaders import (
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
 from .utils import validate_draft_order
+from .resolvers import resolve_order_shipping_methods
 
 
 def get_order_discount_event(discount_obj: dict):
@@ -595,9 +595,15 @@ class Order(CountableDjangoObjectType):
         required=True,
     )
     available_shipping_methods = graphene.List(
-        ShippingMethodType,
+        ShippingMethod,
         required=False,
-        description="Shipping methods that can be used with this order.",
+        description=
+            "Shipping methods that can be used with this order."
+        ,
+    )
+    shipping_methods = graphene.List(
+        ShippingMethod,
+        description="Shipping methods related to this order."
     )
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
@@ -1034,38 +1040,13 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, info):
-        available = get_valid_shipping_methods_for_order(root)
-        if available is None:
-            return []
-        available_shipping_methods = []
-        manager = info.context.plugins
-        display_gross = display_gross_prices()
-        channel_slug = root.channel.slug
-        for shipping_method in available:
-            # Ignore typing check because it is checked in
-            # get_valid_shipping_methods_for_order
-            shipping_channel_listing = shipping_method.channel_listings.filter(
-                channel=root.channel
-            ).first()
-            if shipping_channel_listing:
-                taxed_price = manager.apply_taxes_to_shipping(
-                    shipping_channel_listing.price,
-                    root.shipping_address,  # type: ignore
-                    channel_slug,
-                )
-                if display_gross:
-                    shipping_method.price = taxed_price.gross
-                else:
-                    shipping_method.price = taxed_price.net
-                available_shipping_methods.append(shipping_method)
-        instances = [
-            ChannelContext(node=shipping, channel_slug=channel_slug)
-            for shipping in available_shipping_methods
-        ]
+        return resolve_order_shipping_methods(root, info)
 
-        return instances
+    @staticmethod
+    @traced_resolver
+    def resolve_shipping_methods(root: models.Order, info):
+        return resolve_order_shipping_methods(root, info)
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):

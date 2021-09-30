@@ -355,6 +355,10 @@ class ShippingPriceTranslate(BaseTranslateMutation):
         instance = ChannelContext(node=response.shippingMethod, channel_slug=None)
         return cls(**{cls._meta.return_field_name: instance})
 
+    @classmethod
+    def get_type_for_model(cls):
+        return shipping_types.ShippingMethodType
+
 
 class MenuItemTranslate(BaseTranslateMutation):
     class Arguments:

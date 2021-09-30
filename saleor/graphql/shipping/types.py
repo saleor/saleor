@@ -1,5 +1,5 @@
 import graphene
-from graphene import relay
+from graphene import relay, ObjectType
 
 from ...core.permissions import ShippingPermissions
 from ...core.tracing import traced_resolver
@@ -282,3 +282,43 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_channels(root: ChannelContext[models.ShippingZone], info, **_kwargs):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
+
+
+class ShippingMethod(ChannelContextType):
+    id = graphene.ID(required=True, description="Unique ID of ShippingMethod available for Order.")
+    name = graphene.String(required=True, description="Shipping method name.")
+    description = graphene.JSONString(description="Shipping method description (JSON).")
+    maximum_delivery_days = graphene.Int(description="Maximum delivery days for this shipping method.")
+    minimum_delivery_days = graphene.Int(description="Minimum delivery days for this shipping method.")
+    translation = TranslationField(
+            ShippingMethodTranslation,
+            type_name="shipping method",
+            resolver=ChannelContextType.resolve_translation,
+        )
+    price = graphene.Field(
+        Money, required=True, description="The price of selected shipping method."
+    )
+    minimum_order_price = graphene.Field(
+        Money, description="Minimal order price for this shipping method."
+    )
+    active = graphene.Boolean(required=True, description="Describes if this shipping method is active and can be selected.")
+    message = graphene.String(description="Message connected to this shipping method.")
+
+    class Meta:
+        model = models.ShippingMethod
+        interfaces = [relay.Node, ObjectWithMetadata]
+        only_fields = [
+            "id",
+            "maximum_order_weight",
+            "minimum_order_weight",
+            "maximum_delivery_days",
+            "minimum_delivery_days",
+            "name",
+            "description",
+            "price",
+            "minimum_order_price",
+            "message"
+        ]
+        description = (
+            "Shipping methods that can be used as means of shipping for orders and checkouts."
+        )

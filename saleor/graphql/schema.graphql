@@ -943,14 +943,14 @@ type Checkout implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  availableShippingMethods: [ShippingMethodType]!
+  availableShippingMethods: [ShippingMethod]!
   availablePaymentGateways: [PaymentGateway!]!
   email: String!
   isShippingRequired: Boolean!
   quantity: Int!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
-  shippingMethod: ShippingMethodType
+  shippingMethod: ShippingMethod
   subtotalPrice: TaxedMoney
   token: UUID!
   totalPrice: TaxedMoney
@@ -3752,7 +3752,8 @@ type Order implements Node & ObjectWithMetadata {
   fulfillments: [Fulfillment]!
   lines: [OrderLine]!
   actions: [OrderAction]!
-  availableShippingMethods: [ShippingMethodType]
+  availableShippingMethods: [ShippingMethod]
+  shippingMethods: [ShippingMethod]
   invoices: [Invoice]
   number: String
   original: ID
@@ -5769,6 +5770,21 @@ enum ShippingErrorCode {
   REQUIRED
   UNIQUE
   DUPLICATED_INPUT_ITEM
+}
+
+type ShippingMethod implements Node & ObjectWithMetadata {
+  id: ID!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  name: String!
+  description: JSONString
+  maximumDeliveryDays: Int
+  minimumDeliveryDays: Int
+  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
+  price: Money!
+  minimumOrderPrice: Money
+  active: Boolean!
+  message: String
 }
 
 type ShippingMethodChannelListing implements Node {
