@@ -468,6 +468,7 @@ class OrderLine(CountableDjangoObjectType):
             "product_name",
             "variant_name",
             "product_sku",
+            "product_variant_id",
             "quantity",
             "quantity_fulfilled",
             "tax_rate",

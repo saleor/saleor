@@ -1,6 +1,7 @@
 from ..core.permissions import (
     AccountPermissions,
     CheckoutPermissions,
+    DiscountPermissions,
     OrderPermissions,
     PagePermissions,
     PaymentPermissions,
@@ -18,6 +19,14 @@ class WebhookEventType:
     ORDER_CANCELLED = "order_cancelled"
     FULFILLMENT_CANCELED = "fulfillment_canceled"
     ORDER_FULFILLED = "order_fulfilled"
+
+    DRAFT_ORDER_CREATED = "draft_order_created"
+    DRAFT_ORDER_UPDATED = "draft_order_updated"
+    DRAFT_ORDER_DELETED = "draft_order_deleted"
+
+    SALE_CREATED = "sale_created"
+    SALE_UPDATED = "sale_updated"
+    SALE_DELETED = "sale_deleted"
 
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
@@ -67,6 +76,12 @@ class WebhookEventType:
         ORDER_UPDATED: "Order updated",
         ORDER_CANCELLED: "Order cancelled",
         ORDER_FULFILLED: "Order fulfilled",
+        DRAFT_ORDER_CREATED: "Draft order created",
+        DRAFT_ORDER_UPDATED: "Draft order updated",
+        DRAFT_ORDER_DELETED: "Draft order deleted",
+        SALE_CREATED: "Sale created",
+        SALE_UPDATED: "Sale updated",
+        SALE_DELETED: "Sale deleted",
         INVOICE_REQUESTED: "Invoice requested",
         INVOICE_DELETED: "Invoice deleted",
         INVOICE_SENT: "Invoice sent",
@@ -107,6 +122,12 @@ class WebhookEventType:
         (ORDER_UPDATED, DISPLAY_LABELS[ORDER_UPDATED]),
         (ORDER_CANCELLED, DISPLAY_LABELS[ORDER_CANCELLED]),
         (ORDER_FULFILLED, DISPLAY_LABELS[ORDER_FULFILLED]),
+        (DRAFT_ORDER_CREATED, DISPLAY_LABELS[DRAFT_ORDER_CREATED]),
+        (DRAFT_ORDER_UPDATED, DISPLAY_LABELS[DRAFT_ORDER_UPDATED]),
+        (DRAFT_ORDER_DELETED, DISPLAY_LABELS[DRAFT_ORDER_DELETED]),
+        (SALE_CREATED, DISPLAY_LABELS[SALE_CREATED]),
+        (SALE_UPDATED, DISPLAY_LABELS[SALE_UPDATED]),
+        (SALE_DELETED, DISPLAY_LABELS[SALE_DELETED]),
         (INVOICE_REQUESTED, DISPLAY_LABELS[INVOICE_REQUESTED]),
         (INVOICE_DELETED, DISPLAY_LABELS[INVOICE_DELETED]),
         (INVOICE_SENT, DISPLAY_LABELS[INVOICE_SENT]),
@@ -156,6 +177,12 @@ class WebhookEventType:
         ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CANCELLED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULFILLED: OrderPermissions.MANAGE_ORDERS,
+        DRAFT_ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
+        DRAFT_ORDER_DELETED: OrderPermissions.MANAGE_ORDERS,
+        DRAFT_ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
+        SALE_CREATED: DiscountPermissions.MANAGE_DISCOUNTS,
+        SALE_UPDATED: DiscountPermissions.MANAGE_DISCOUNTS,
+        SALE_DELETED: DiscountPermissions.MANAGE_DISCOUNTS,
         INVOICE_REQUESTED: OrderPermissions.MANAGE_ORDERS,
         INVOICE_DELETED: OrderPermissions.MANAGE_ORDERS,
         INVOICE_SENT: OrderPermissions.MANAGE_ORDERS,

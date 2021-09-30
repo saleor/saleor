@@ -51,6 +51,12 @@ def products_for_variant_filtering(product_type, category):
                 category=category,
                 product_type=product_type,
             ),
+            Product(
+                name="ProductNoSku",
+                slug="prod4",
+                category=category,
+                product_type=product_type,
+            ),
         ]
     )
     ProductVariant.objects.bulk_create(
@@ -73,6 +79,13 @@ def products_for_variant_filtering(product_type, category):
                 product=products[4],
                 sku="P3-V1",
             ),
+            ProductVariant(
+                product=products[5],
+                sku="P-NO-SKU",
+            ),
+            ProductVariant(
+                product=products[5],
+            ),
         ]
     )
     return products
@@ -87,7 +100,8 @@ def products_for_variant_filtering(product_type, category):
         ({"search": "XXL"}, ["PP2-V1"]),
         ({"search": "PP2-V1"}, ["PP2-V1"]),
         ({"search": "P1"}, ["P1-V1", "P1-V2", "PP1-V1"]),
-        ({"search": ["invalid"]}, []),
+        ({"search": "invalid"}, []),
+        ({"search": "ProductNoSku"}, ["P-NO-SKU", None]),
         ({"sku": ["P1"]}, []),
         ({"sku": ["P1-V1", "P1-V2", "PP1-V1"]}, ["P1-V1", "P1-V2", "PP1-V1"]),
         ({"sku": ["PP1-V1", "PP2-V1"]}, ["PP1-V1", "PP2-V1"]),

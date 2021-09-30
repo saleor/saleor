@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
+    from ..discount.models import Sale
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
@@ -542,6 +543,42 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "order_confirmed", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def draft_order_created(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_created", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def draft_order_updated(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_updated", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def draft_order_deleted(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_deleted", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def sale_created(self, sale: "Sale", current_catalogue):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "sale_created", default_value, sale, current_catalogue
+        )
+
+    def sale_deleted(self, sale: "Sale", previous_catalogue):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "sale_deleted", default_value, sale, previous_catalogue
+        )
+
+    def sale_updated(self, sale: "Sale", previous_catalogue, current_catalogue):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "sale_updated", default_value, sale, previous_catalogue, current_catalogue
         )
 
     def invoice_request(

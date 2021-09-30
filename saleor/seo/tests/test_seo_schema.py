@@ -27,6 +27,17 @@ def test_get_product_data_without_image(order_with_lines):
     assert "image" not in result["itemOffered"]
 
 
+def test_get_product_data_without_sku(order_with_lines):
+    """Tested OrderLine Product has no image assigned."""
+    line = order_with_lines.lines.first()
+    line.product_sku = None
+    line.save()
+
+    organization = get_organization()
+    result = get_product_data(line, organization)
+    assert "image" not in result["itemOffered"]
+
+
 def test_get_product_data_with_image(order_with_lines, product_with_image):
     line = order_with_lines.lines.first()
     variant = product_with_image.variants.first()

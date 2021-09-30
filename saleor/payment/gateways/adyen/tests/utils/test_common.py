@@ -80,6 +80,56 @@ def test_append_checkout_details(
     }
 
 
+def test_append_checkout_details_without_sku(
+    dummy_payment_data, payment_dummy, checkout_ready_to_complete
+):
+    # given
+    checkout_ready_to_complete.payments.add(payment_dummy)
+    channel_id = checkout_ready_to_complete.channel_id
+    line = checkout_ready_to_complete.lines.first()
+    line.variant.sku = None
+    line.variant.save()
+    payment_data = {
+        "reference": "test",
+    }
+    country_code = checkout_ready_to_complete.get_country()
+
+    # when
+    result = append_checkout_details(dummy_payment_data, payment_data)
+
+    # then
+    variant_channel_listing = line.variant.channel_listings.get(channel_id=channel_id)
+    variant_price = variant_channel_listing.price_amount
+    variant_currency = variant_channel_listing.currency
+    price = price_to_minor_unit(variant_price, variant_currency)
+
+    assert result == {
+        "reference": "test",
+        "shopperLocale": get_shopper_locale_value(country_code),
+        "countryCode": country_code,
+        "lineItems": [
+            {
+                "description": f"{line.variant.product.name}, {line.variant.name}",
+                "quantity": line.quantity,
+                "id": line.variant.get_global_id(),
+                "taxAmount": "0",
+                "taxPercentage": 0,
+                "amountExcludingTax": price,
+                "amountIncludingTax": price,
+            },
+            {
+                "amountExcludingTax": "1000",
+                "amountIncludingTax": "1000",
+                "description": "Shipping - DHL",
+                "id": f"Shipping:{checkout_ready_to_complete.shipping_method.id}",
+                "quantity": 1,
+                "taxAmount": "0",
+                "taxPercentage": 0,
+            },
+        ],
+    }
+
+
 @mock.patch("saleor.payment.gateways.adyen.utils.common.get_plugins_manager")
 @mock.patch("saleor.payment.gateways.adyen.utils.common.checkout_line_total")
 def test_append_checkout_details_tax_included(

@@ -410,9 +410,10 @@ def get_voucher_for_checkout(
             )
         try:
             qs = vouchers
-            if with_lock:
-                qs = vouchers.select_for_update()
-            return qs.get(code=checkout.voucher_code)
+            voucher = qs.get(code=checkout.voucher_code)
+            if voucher and voucher.usage_limit is not None and with_lock:
+                voucher = vouchers.select_for_update().get(code=checkout.voucher_code)
+            return voucher
         except Voucher.DoesNotExist:
             return None
     return None

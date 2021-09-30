@@ -2,6 +2,7 @@ import graphene
 from graphql.error import GraphQLError
 
 from ...core.permissions import GiftcardPermissions
+from ...giftcard import models
 from ..core.descriptions import ADDED_IN_31
 from ..core.fields import FilterInputConnectionField
 from ..core.utils import from_global_id_or_error
@@ -42,6 +43,11 @@ class GiftCardQueries(graphene.ObjectType):
         ),
         description="List of gift cards.",
     )
+    gift_card_currencies = graphene.Field(
+        graphene.List(graphene.NonNull(graphene.String)),
+        description=f"{ADDED_IN_31} List of gift card currencies.",
+        required=True,
+    )
 
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
     def resolve_gift_card(self, info, **data):
@@ -57,6 +63,10 @@ class GiftCardQueries(graphene.ObjectType):
         if sorting_by_balance and not filtering_by_currency:
             raise GraphQLError("Sorting by balance requires filtering by currency.")
         return resolve_gift_cards()
+
+    @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
+    def resolve_gift_card_currencies(self, info, **data):
+        return set(models.GiftCard.objects.values_list("currency", flat=True))
 
 
 class GiftCardMutations(graphene.ObjectType):

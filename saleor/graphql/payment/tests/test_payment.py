@@ -101,10 +101,6 @@ CREATE_PAYMENT_MUTATION = """
             input: $input,
         ) {
             payment {
-                transactions {
-                    kind,
-                    token
-                }
                 chargeStatus
             }
             errors {
@@ -141,8 +137,6 @@ def test_checkout_add_payment_without_shipping_method_and_not_shipping_required(
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert not data["errors"]
-    transactions = data["payment"]["transactions"]
-    assert not transactions
     payment = Payment.objects.get()
     assert payment.checkout == checkout
     assert payment.is_active
@@ -213,8 +207,6 @@ def test_checkout_add_payment_with_shipping_method_and_shipping_required(
     data = content["data"]["checkoutPaymentCreate"]
 
     assert not data["errors"]
-    transactions = data["payment"]["transactions"]
-    assert not transactions
     payment = Payment.objects.get()
     assert payment.checkout == checkout
     assert payment.is_active
@@ -257,8 +249,6 @@ def test_checkout_add_payment(
     data = content["data"]["checkoutPaymentCreate"]
 
     assert not data["errors"]
-    transactions = data["payment"]["transactions"]
-    assert not transactions
     payment = Payment.objects.get()
     assert payment.checkout == checkout
     assert payment.is_active
@@ -295,8 +285,6 @@ def test_checkout_add_payment_default_amount(
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert not data["errors"]
-    transactions = data["payment"]["transactions"]
-    assert not transactions
     payment = Payment.objects.get()
     assert payment.checkout == checkout
     assert payment.is_active
@@ -1165,3 +1153,81 @@ def test_payment_initialize_plugin_raises_error(
     assert len(errors) == 1
     assert errors[0]["field"] == "paymentData"
     assert errors[0]["message"] == error_msg
+
+
+QUERY_PAYMENT_REFUND_AMOUNT = """
+     query payment($id: ID!) {
+        payment(id: $id) {
+            id,
+            availableRefundAmount{
+                amount
+            }
+            availableCaptureAmount{
+                amount
+            }
+        }
+    }
+"""
+
+QUERY_PAYMENT_CAPTURE_AMOUNT = """
+     query payment($id: ID!) {
+        payment(id: $id) {
+            id,
+            availableCaptureAmount{
+                amount
+            }
+        }
+    }
+"""
+
+
+def test_resolve_available_refund_amount_cannot_refund(
+    staff_api_client, payment_cancelled, permission_manage_orders
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        QUERY_PAYMENT_REFUND_AMOUNT,
+        {"id": graphene.Node.to_global_id("Payment", payment_cancelled.pk)},
+    )
+    content = get_graphql_content(response)
+
+    assert not content["data"]["payment"]["availableRefundAmount"]
+
+
+def test_resolve_available_refund_amount(
+    staff_api_client, payment_dummy_fully_charged, permission_manage_orders
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        QUERY_PAYMENT_REFUND_AMOUNT,
+        {"id": graphene.Node.to_global_id("Payment", payment_dummy_fully_charged.pk)},
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["payment"]["availableRefundAmount"]["amount"] == 98.4
+
+
+def test_resolve_available_capture_amount_cannot_capture(
+    staff_api_client, payment_cancelled, permission_manage_orders
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        QUERY_PAYMENT_CAPTURE_AMOUNT,
+        {"id": graphene.Node.to_global_id("Payment", payment_cancelled.pk)},
+    )
+    content = get_graphql_content(response)
+
+    assert not content["data"]["payment"]["availableCaptureAmount"]
+
+
+def test_resolve_available_capture_amount(
+    staff_api_client, payment_dummy, permission_manage_orders
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        QUERY_PAYMENT_CAPTURE_AMOUNT,
+        {"id": graphene.Node.to_global_id("Payment", payment_dummy.pk)},
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["payment"]["availableCaptureAmount"]["amount"] == 98.4
