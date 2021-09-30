@@ -6075,12 +6075,6 @@ enum ShippingErrorCode {
 
 type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
-  name: String!
-  description: JSONString
-  minimumOrderWeight: Weight
-  maximumOrderWeight: Weight
-  maximumDeliveryDays: Int
-  minimumDeliveryDays: Int
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   type: ShippingMethodTypeEnum
@@ -6091,6 +6085,12 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   minimumOrderPrice: Money
   postalCodeRules: [ShippingMethodPostalCodeRule]
   excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  name: String!
+  description: JSONString
+  minimumOrderWeight: Weight
+  maximumOrderWeight: Weight
+  maximumDeliveryDays: Int
+  minimumDeliveryDays: Int
 }
 
 type ShippingMethodChannelListing implements Node {
@@ -7291,3 +7291,4 @@ union _Entity = App | Address | User | Group | ProductVariant | Product | Produc
 type _Service {
   sdl: String
 }
+[0m
