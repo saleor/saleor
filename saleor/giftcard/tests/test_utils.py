@@ -11,7 +11,6 @@ from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
 from ...site import GiftCardSettingsExpiryType
-from ...warehouse.models import Allocation
 from .. import GiftCardEvents, events
 from ..models import GiftCardEvent
 from ..utils import (
@@ -190,12 +189,24 @@ def test_gift_cards_create(
 ):
     # given
     manager = get_plugins_manager()
-    order_lines = [gift_card_shippable_order_line, gift_card_non_shippable_order_line]
+    line_1, line_2 = gift_card_shippable_order_line, gift_card_non_shippable_order_line
+    order_lines = [line_1, line_2]
     quantities = {
-        gift_card_shippable_order_line.pk: 1,
-        gift_card_non_shippable_order_line.pk: 1,
+        line_1.pk: 1,
+        line_2.pk: 1,
     }
     user_email = order.user_email
+    fulfillment = order.fulfillments.create(tracking_number="123")
+    fulfillment_line_1 = fulfillment.lines.create(
+        order_line=line_1,
+        quantity=line_1.quantity,
+        stock=line_1.allocations.get().stock,
+    )
+    fulfillment_line_2 = fulfillment.lines.create(
+        order_line=line_2,
+        quantity=line_2.quantity,
+        stock=line_2.allocations.get().stock,
+    )
 
     # when
     gift_cards = gift_cards_create(
@@ -212,6 +223,7 @@ def test_gift_cards_create(
     assert shippable_gift_card.created_by == order.user
     assert shippable_gift_card.created_by_email == user_email
     assert shippable_gift_card.expiry_date is None
+    assert shippable_gift_card.fulfillment_line == fulfillment_line_1
 
     bought_event_for_shippable_card = GiftCardEvent.objects.get(
         gift_card=shippable_gift_card
@@ -231,6 +243,7 @@ def test_gift_cards_create(
     assert non_shippable_gift_card.created_by == order.user
     assert non_shippable_gift_card.created_by_email == user_email
     assert non_shippable_gift_card.expiry_date is None
+    assert non_shippable_gift_card.fulfillment_line == fulfillment_line_2
 
     shippable_event = GiftCardEvent.objects.get(
         gift_card=non_shippable_gift_card, type=GiftCardEvents.BOUGHT
@@ -272,6 +285,13 @@ def test_gift_cards_create_expiry_date_set(
             "gift_card_expiry_period",
         ]
     )
+    fulfillment = order.fulfillments.create(tracking_number="123")
+    fulfillment_line = fulfillment.lines.create(
+        order_line=gift_card_non_shippable_order_line,
+        quantity=gift_card_non_shippable_order_line.quantity,
+        stock=gift_card_non_shippable_order_line.allocations.get().stock,
+    )
+
     order_lines = [gift_card_non_shippable_order_line]
     quantities = {
         gift_card_shippable_order_line.pk: 1,
@@ -294,6 +314,7 @@ def test_gift_cards_create_expiry_date_set(
     assert non_shippable_gift_card.created_by == order.user
     assert non_shippable_gift_card.created_by_email == user_email
     assert non_shippable_gift_card.expiry_date
+    assert non_shippable_gift_card.fulfillment_line == fulfillment_line
 
     shippable_event = GiftCardEvent.objects.get(
         gift_card=non_shippable_gift_card, type=GiftCardEvents.BOUGHT
@@ -491,11 +512,6 @@ def test_fulfill_non_shippable_gift_cards_line_with_allocation(
     non_shippable_variant.save(update_fields=["track_inventory"])
 
     stock = non_shippable_variant.stocks.first()
-    Allocation.objects.create(
-        order_line=gift_card_non_shippable_order_line,
-        stock=stock,
-        quantity_allocated=gift_card_non_shippable_order_line.quantity,
-    )
 
     # when
     fulfill_non_shippable_gift_cards(
@@ -541,12 +557,6 @@ def test_fulfill_gift_card_lines(
     non_shippable_variant = gift_card_non_shippable_order_line.variant
     non_shippable_variant.track_inventory = True
     non_shippable_variant.save(update_fields=["track_inventory"])
-
-    Allocation.objects.create(
-        order_line=gift_card_non_shippable_order_line,
-        stock=non_shippable_variant.stocks.first(),
-        quantity_allocated=gift_card_non_shippable_order_line.quantity,
-    )
 
     lines = OrderLine.objects.filter(
         pk__in=[

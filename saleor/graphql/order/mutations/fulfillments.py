@@ -277,17 +277,6 @@ class OrderFulfill(BaseMutation):
 
         approved = info.context.site.settings.fulfillment_auto_approve
 
-        if approved:
-            gift_cards_create(
-                order,
-                gift_card_lines,
-                quantities,
-                context.site.settings,
-                user,
-                app,
-                manager,
-            )
-
         try:
             fulfillments = create_fulfillments(
                 user,
@@ -302,6 +291,17 @@ class OrderFulfill(BaseMutation):
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)
             raise ValidationError({"stocks": errors})
+
+        if approved:
+            gift_cards_create(
+                order,
+                gift_card_lines,
+                quantities,
+                context.site.settings,
+                user,
+                app,
+                manager,
+            )
 
         return OrderFulfill(fulfillments=fulfillments, order=order)
 

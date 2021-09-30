@@ -2806,7 +2806,9 @@ def order_line(order, variant):
 
 
 @pytest.fixture
-def gift_card_non_shippable_order_line(order, gift_card_non_shippable_variant):
+def gift_card_non_shippable_order_line(
+    order, gift_card_non_shippable_variant, warehouse
+):
     variant = gift_card_non_shippable_variant
     product = variant.product
     channel = order.channel
@@ -2816,7 +2818,7 @@ def gift_card_non_shippable_order_line(order, gift_card_non_shippable_variant):
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 1
     unit_price = TaxedMoney(net=net, gross=gross)
-    return order.lines.create(
+    line = order.lines.create(
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
@@ -2830,10 +2832,14 @@ def gift_card_non_shippable_order_line(order, gift_card_non_shippable_variant):
         undiscounted_total_price=unit_price * quantity,
         tax_rate=Decimal("0.23"),
     )
+    Allocation.objects.create(
+        order_line=line, stock=variant.stocks.first(), quantity_allocated=line.quantity
+    )
+    return line
 
 
 @pytest.fixture
-def gift_card_shippable_order_line(order, gift_card_shippable_variant):
+def gift_card_shippable_order_line(order, gift_card_shippable_variant, warehouse):
     variant = gift_card_shippable_variant
     product = variant.product
     channel = order.channel
@@ -2843,7 +2849,7 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant):
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3
     unit_price = TaxedMoney(net=net, gross=gross)
-    return order.lines.create(
+    line = order.lines.create(
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
@@ -2857,6 +2863,10 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant):
         undiscounted_total_price=unit_price * quantity,
         tax_rate=Decimal("0.23"),
     )
+    Allocation.objects.create(
+        order_line=line, stock=variant.stocks.first(), quantity_allocated=line.quantity
+    )
+    return line
 
 
 @pytest.fixture

@@ -165,6 +165,7 @@ def gift_cards_create(
     non_shippable_gift_cards = []
     expiry_date = calculate_expiry_date(settings)
     for order_line in gift_card_lines:
+        fulfillment_line = order_line.fulfillment_lines.last()
         price = order_line.unit_price_gross
         line_gift_cards = [
             GiftCard(  # type: ignore
@@ -174,6 +175,7 @@ def gift_cards_create(
                 created_by=customer_user,
                 created_by_email=user_email,
                 product=order_line.variant.product if order_line.variant else None,
+                fulfillment_line=fulfillment_line,
                 expiry_date=expiry_date,
             )
             for _ in range(quantities[order_line.pk])

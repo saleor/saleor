@@ -427,9 +427,7 @@ def test_order_fulfill_many_warehouses(
 
 
 @patch("saleor.giftcard.utils.send_gift_card_notification")
-@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
 def test_order_fulfill_with_gift_cards(
-    mock_create_fulfillments,
     mock_send_notification,
     staff_api_client,
     staff_user,
@@ -484,35 +482,20 @@ def test_order_fulfill_with_gift_cards(
     assert non_shippable_gift_card.current_balance.amount == round(
         gift_card_non_shippable_order_line.unit_price_gross.amount, 2
     )
+    assert non_shippable_gift_card.fulfillment_line
     assert shippable_gift_card.initial_balance.amount == round(
         gift_card_shippable_order_line.unit_price_gross.amount, 2
     )
     assert shippable_gift_card.current_balance.amount == round(
         gift_card_shippable_order_line.unit_price_gross.amount, 2
     )
+    assert shippable_gift_card.fulfillment_line
 
     assert GiftCardEvent.objects.filter(
         gift_card=shippable_gift_card, type=GiftCardEvents.BOUGHT
     )
     assert GiftCardEvent.objects.filter(
         gift_card=non_shippable_gift_card, type=GiftCardEvents.BOUGHT
-    )
-
-    fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
-            {"order_line": order_line, "quantity": 1},
-            {"order_line": order_line2, "quantity": 1},
-        ]
-    }
-    mock_create_fulfillments.assert_called_once_with(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        ANY,
-        True,
-        allow_stock_to_be_exceeded=False,
-        approved=True,
     )
 
     mock_send_notification.assert_called_once_with(
@@ -1741,10 +1724,10 @@ def test_fulfillment_approve_gift_cards_created(
     gift_card_line_2 = gift_card_non_shippable_order_line
     stock_1 = gift_card_line_1.variant.stocks.first()
     stock_2 = gift_card_line_2.variant.stocks.first()
-    fulfillment.lines.create(
+    fulfillment_line_1 = fulfillment.lines.create(
         order_line=gift_card_line_1, quantity=gift_card_line_1.quantity, stock=stock_1
     )
-    fulfillment.lines.create(
+    fulfillment_line_2 = fulfillment.lines.create(
         order_line=gift_card_line_2, quantity=gift_card_line_2.quantity, stock=stock_2
     )
 
@@ -1786,10 +1769,13 @@ def test_fulfillment_approve_gift_cards_created(
     event = events[0]
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.user == staff_api_client.user
-    assert (
-        GiftCard.objects.count()
-        == gift_card_line_1.quantity + gift_card_line_2.quantity
-    )
+    gift_cards = GiftCard.objects.all()
+    assert gift_cards.count() == gift_card_line_1.quantity + gift_card_line_2.quantity
+    for gift_card in gift_cards:
+        if gift_card.product == gift_card_line_1.variant.product:
+            assert gift_card.fulfillment_line == fulfillment_line_1
+        else:
+            assert gift_card.fulfillment_line == fulfillment_line_2
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
