@@ -10,7 +10,7 @@ def _get_graphql_span(spans):
 
 
 def _get_graphql_spans(spans):
-    return filter(lambda item: item.tags["component"] == "GraphQL", spans)
+    return filter(lambda item: item.tags.get("graphql.query_fingerprint"), spans)
 
 
 @patch("saleor.graphql.views.opentracing.global_tracer")

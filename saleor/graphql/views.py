@@ -251,7 +251,7 @@ class GraphQLView(View):
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with opentracing.global_tracer().start_active_span("graphql_query") as scope:
             span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "GraphQL")
+            span.set_tag(opentracing.tags.COMPONENT, "graphql")
 
             query, variables, operation_name = self.get_graphql_params(request, data)
 
