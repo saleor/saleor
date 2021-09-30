@@ -498,6 +498,7 @@ DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
 # Slug for channel precreated in Django migrations
 DEFAULT_CHANNEL_SLUG = os.environ.get("DEFAULT_CHANNEL_SLUG", "default-channel")
 
+
 #  Sentry
 sentry_sdk.utils.MAX_STRING_LENGTH = 4096
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
