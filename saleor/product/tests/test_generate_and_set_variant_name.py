@@ -223,6 +223,10 @@ def test_only_not_variant_selection_attr_left_variant_name_change_to_global_id(p
     product_variant.save()
     attribute = product.product_type.variant_attributes.first()
     attribute.input_type = AttributeInputType.MULTISELECT
+    variant_attribute = attribute.attributevariant.get()
+    variant_attribute.variant_selection = False
+    variant_attribute.save(update_fields=["variant_selection"])
+
     attribute.save(update_fields=["input_type"])
     _update_variants_names(product.product_type, [attribute])
     product_variant.refresh_from_db()
