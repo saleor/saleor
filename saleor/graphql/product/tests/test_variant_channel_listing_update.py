@@ -40,6 +40,9 @@ mutation UpdateProductVariantChannelListing(
                     currency
                 }
                 margin
+                preorderThreshold {
+                    quantity
+                }
             }
         }
     }
@@ -218,14 +221,24 @@ def test_variant_channel_listing_update_as_staff_user(
     variant_data = data["variant"]
     assert not data["errors"]
     assert variant_data["id"] == variant_id
-    assert variant_data["channelListings"][0]["price"]["currency"] == "USD"
-    assert variant_data["channelListings"][0]["price"]["amount"] == price
-    assert variant_data["channelListings"][0]["costPrice"]["amount"] == price
-    assert variant_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
-    assert variant_data["channelListings"][1]["price"]["currency"] == "PLN"
-    assert variant_data["channelListings"][1]["price"]["amount"] == second_price
-    assert variant_data["channelListings"][1]["costPrice"]["amount"] == second_price
-    assert variant_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
+    channel_usd_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_usd_id
+    )
+    channel_pln_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_pln_id
+    )
+    assert channel_usd_data["price"]["currency"] == "USD"
+    assert channel_usd_data["price"]["amount"] == price
+    assert channel_usd_data["costPrice"]["amount"] == price
+    assert channel_usd_data["channel"]["slug"] == channel_USD.slug
+    assert channel_pln_data["price"]["currency"] == "PLN"
+    assert channel_pln_data["price"]["amount"] == second_price
+    assert channel_pln_data["costPrice"]["amount"] == second_price
+    assert channel_pln_data["channel"]["slug"] == channel_PLN.slug
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
@@ -308,12 +321,22 @@ def test_variant_channel_listing_update_as_app(
     variant_data = data["variant"]
     assert not data["errors"]
     assert variant_data["id"] == variant_id
-    assert variant_data["channelListings"][0]["price"]["currency"] == "USD"
-    assert variant_data["channelListings"][0]["price"]["amount"] == 1
-    assert variant_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
-    assert variant_data["channelListings"][1]["price"]["currency"] == "PLN"
-    assert variant_data["channelListings"][1]["price"]["amount"] == 20
-    assert variant_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
+    channel_usd_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_usd_id
+    )
+    channel_pln_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_pln_id
+    )
+    assert channel_usd_data["price"]["currency"] == "USD"
+    assert channel_usd_data["price"]["amount"] == 1
+    assert channel_usd_data["channel"]["slug"] == channel_USD.slug
+    assert channel_pln_data["price"]["currency"] == "PLN"
+    assert channel_pln_data["price"]["amount"] == 20
+    assert channel_pln_data["channel"]["slug"] == channel_PLN.slug
 
 
 def test_variant_channel_listing_update_as_customer(
@@ -486,3 +509,71 @@ def test_product_channel_listing_update_invalid_cost_price(
 
     # then
     assert_negative_positive_decimal_value(response)
+
+
+def test_variant_channel_listing_update_preorder(
+    staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
+):
+    # given
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
+    )
+    variant = product.variants.get()
+    variant.is_preorder = True
+    variant.save(update_fields=["is_preorder"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    preorder_threshold_channel_usd = 10
+    preorder_threshold_channel_pln = 20
+    variables = {
+        "id": variant_id,
+        "input": [
+            {
+                "channelId": channel_usd_id,
+                "price": 1,
+                "preorderThreshold": preorder_threshold_channel_usd,
+            },
+            {
+                "channelId": channel_pln_id,
+                "price": 20,
+                "preorderThreshold": preorder_threshold_channel_pln,
+            },
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariantChannelListingUpdate"]
+    variant_data = data["variant"]
+    assert not data["errors"]
+    assert variant_data["id"] == variant_id
+    channel_usd_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_usd_id
+    )
+    channel_pln_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_pln_id
+    )
+    assert channel_usd_data["channel"]["slug"] == channel_USD.slug
+    assert (
+        channel_usd_data["preorderThreshold"]["quantity"]
+        == preorder_threshold_channel_usd
+    )
+    assert channel_pln_data["channel"]["slug"] == channel_PLN.slug
+    assert (
+        channel_pln_data["preorderThreshold"]["quantity"]
+        == preorder_threshold_channel_pln
+    )

@@ -10,6 +10,7 @@ import pytest
 import pytz
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
+from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.utils.html import strip_tags
 from django.utils.text import slugify
@@ -2736,6 +2737,88 @@ def test_query_products_with_filter_ids(
 
     assert len(products_data) == 2
     assert [node["node"]["id"] for node in products_data] == product_ids
+
+
+def test_products_query_with_filter_has_preordered_variants_false(
+    query_products_with_filter,
+    staff_api_client,
+    preorder_variant_global_threshold,
+    product_without_shipping,
+    permission_manage_products,
+):
+    product = product_without_shipping
+    variables = {"filter": {"hasPreorderedVariants": False}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product.name
+
+
+def test_products_query_with_filter_has_preordered_variants_true(
+    query_products_with_filter,
+    staff_api_client,
+    preorder_variant_global_threshold,
+    product_without_shipping,
+    permission_manage_products,
+):
+    product = preorder_variant_global_threshold.product
+    variables = {"filter": {"hasPreorderedVariants": True}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product.name
+
+
+def test_products_query_with_filter_has_preordered_variants_before_end_date(
+    query_products_with_filter,
+    staff_api_client,
+    preorder_variant_global_threshold,
+    permission_manage_products,
+):
+    variant = preorder_variant_global_threshold
+    variant.preorder_end_date = timezone.now() + timedelta(days=3)
+    variant.save(update_fields=["preorder_end_date"])
+
+    product = preorder_variant_global_threshold.product
+    variables = {"filter": {"hasPreorderedVariants": True}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product.name
+
+
+def test_products_query_with_filter_has_preordered_variants_after_end_date(
+    query_products_with_filter,
+    staff_api_client,
+    preorder_variant_global_threshold,
+    permission_manage_products,
+):
+    variant = preorder_variant_global_threshold
+    variant.preorder_end_date = timezone.now() - timedelta(days=3)
+    variant.save(update_fields=["preorder_end_date"])
+
+    variables = {"filter": {"hasPreorderedVariants": True}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 0
 
 
 QUERY_PRODUCT_MEDIA_BY_ID = """

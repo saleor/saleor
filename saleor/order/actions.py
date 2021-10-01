@@ -739,6 +739,7 @@ def create_fulfillments(
         )
 
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
+    order.refresh_from_db()
     post_creation_func = (
         order_fulfilled if approved else order_awaits_fulfillment_approval
     )

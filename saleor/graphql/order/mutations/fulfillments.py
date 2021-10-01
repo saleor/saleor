@@ -159,6 +159,23 @@ class OrderFulfill(BaseMutation):
             )
 
     @classmethod
+    def check_lines_for_preorder(cls, order_lines):
+        for order_line in order_lines:
+            if order_line.variant_id and order_line.variant.is_preorder_active():
+                order_line_global_id = graphene.Node.to_global_id(
+                    "OrderLine", order_line.pk
+                )
+                raise ValidationError(
+                    {
+                        "order_line_id": ValidationError(
+                            "Can not fulfill preorder variant.",
+                            code=OrderErrorCode.FULFILL_ORDER_LINE,
+                            params={"order_lines": [order_line_global_id]},
+                        )
+                    }
+                )
+
+    @classmethod
     def check_total_quantity_of_items(cls, quantities_for_lines):
         flat_quantities = sum(quantities_for_lines, [])
         if sum(flat_quantities) <= 0:
@@ -210,6 +227,9 @@ class OrderFulfill(BaseMutation):
 
         cls.clean_lines(order_lines, order_line_id_to_total_quantity)
 
+        if site_settings.fulfillment_auto_approve:
+            cls.check_lines_for_preorder(order_lines)
+
         cls.check_total_quantity_of_items(quantities_for_lines)
 
         lines_for_warehouses = defaultdict(list)
@@ -232,7 +252,13 @@ class OrderFulfill(BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, order, **data):
-        order = cls.get_node_or_error(info, order, field="order", only_type=Order)
+        order = cls.get_node_or_error(
+            info,
+            order,
+            field="order",
+            only_type=Order,
+            qs=order_models.Order.objects.prefetch_related("lines__variant"),
+        )
         data = data.get("input")
 
         cleaned_input = cls.clean_input(info, order, data)
@@ -445,6 +471,9 @@ class FulfillmentApprove(BaseMutation):
                 "fulfillments can be accepted.",
                 code=OrderErrorCode.INVALID.value,
             )
+
+        OrderFulfill.check_lines_for_preorder([line.order_line for line in fulfillment])
+
         if (
             not info.context.site.settings.fulfillment_allow_unpaid
             and not fulfillment.order.is_fully_paid()

@@ -1624,6 +1624,7 @@ def test_checkout_complete_raises_InsufficientStock_when_quantity_above_stock_su
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
+
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1690,3 +1691,79 @@ def test_checkout_complete_raises_InvalidShippingMethod_when_warehouse_disabled(
         content["errors"][0]["code"] == CheckoutErrorCode.INVALID_SHIPPING_METHOD.name
     )
     assert Order.objects.count() == initial_order_count
+
+
+@pytest.mark.integration
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_with_preorder_variant(
+    order_confirmed_mock,
+    site_settings,
+    user_api_client,
+    checkout_with_item_and_preorder_item,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    checkout = checkout_with_item_and_preorder_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    variants_and_quantities = {line.variant_id: line.quantity for line in checkout}
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
+    assert order.token == order_token
+    assert order.total.gross == total.gross
+
+    assert order.lines.count() == len(variants_and_quantities)
+    for variant_id, quantity in variants_and_quantities.items():
+        order.lines.get(variant_id=variant_id).quantity == quantity
+    assert order.shipping_address == address
+    assert order.shipping_method == checkout.shipping_method
+    assert order.payments.exists()
+    assert payment.transactions.count() == 1
+
+    preorder_line = order.lines.filter(variant__is_preorder=True).first()
+    assert not preorder_line.allocations.exists()
+    preorder_allocation = preorder_line.preorder_allocations.get()
+    assert preorder_allocation.quantity == quantity
+
+    stock_line = order.lines.filter(variant__is_preorder=False).first()
+    assert stock_line.allocations.exists()
+    assert not stock_line.preorder_allocations.exists()
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+    order_confirmed_mock.assert_called_once_with(order)
