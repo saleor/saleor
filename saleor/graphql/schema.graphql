@@ -4432,7 +4432,7 @@ type PageTranslatableContent implements Node {
 type PageTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [TranslationError!]!
-  page: Page
+  page: PageTranslatableContent
 }
 
 type PageTranslation implements Node {
