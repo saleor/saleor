@@ -101,13 +101,13 @@ def products_for_variant_filtering(product_type, category):
                 is_preorder=True,
             ),
             ProductVariant(
-                product=products[5],
+                product=products[6],
                 sku="Preorder-V2",
                 is_preorder=True,
                 preorder_end_date=timezone.now() + timedelta(days=1),
             ),
             ProductVariant(
-                product=products[5],
+                product=products[6],
                 sku="Preorder-V3",
                 is_preorder=True,
                 preorder_end_date=timezone.now() - timedelta(days=1),
@@ -135,7 +135,17 @@ def products_for_variant_filtering(product_type, category):
         ({"isPreorder": True}, ["Preorder-V1", "Preorder-V2"]),
         (
             {"isPreorder": False},
-            ["P1-V1", "P1-V2", "P2-V1", "P3-V1", "PP1-V1", "PP2-V1", "Preorder-V3"],
+            [
+                "P-NO-SKU",
+                "P1-V1",
+                "P1-V2",
+                "P2-V1",
+                "P3-V1",
+                "PP1-V1",
+                "PP2-V1",
+                "Preorder-V3",
+                None,
+            ],
         ),
     ],
 )
