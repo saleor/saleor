@@ -32,7 +32,7 @@ from ...attribute.resolvers import resolve_attributes
 from ...attribute.types import Attribute, SelectedAttribute
 from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
-from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
+from ...channel.types import ChannelContextObjectType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod
@@ -228,7 +228,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     translation = TranslationField(
         ProductVariantTranslation,
         type_name="product variant",
-        resolver=ChannelContextType.resolve_translation,
+        resolver=ChannelContextObjectType.resolve_translation,
     )
     digital_content = graphene.Field(
         DigitalContent, description="Digital content for the product variant."
@@ -263,7 +263,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
 
     class Meta:
-        default_resolver = ChannelContextType.resolver_with_context
+        default_resolver = ChannelContextObjectType.resolver_with_context
         description = (
             "Represents a version of a product such as different size or color."
         )
@@ -596,7 +596,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     translation = TranslationField(
         ProductTranslation,
         type_name="product",
-        resolver=ChannelContextType.resolve_translation,
+        resolver=ChannelContextObjectType.resolve_translation,
     )
     available_for_purchase = graphene.Date(
         description="Date when product is available for purchase. "
@@ -606,7 +606,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
 
     class Meta:
-        default_resolver = ChannelContextType.resolver_with_context
+        default_resolver = ChannelContextObjectType.resolver_with_context
         description = "Represents an individual item for sale in the storefront."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Product
@@ -1113,7 +1113,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     translation = TranslationField(
         CollectionTranslation,
         type_name="collection",
-        resolver=ChannelContextType.resolve_translation,
+        resolver=ChannelContextObjectType.resolve_translation,
     )
     channel_listings = graphene.List(
         graphene.NonNull(CollectionChannelListing),
@@ -1121,7 +1121,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
 
     class Meta:
-        default_resolver = ChannelContextType.resolver_with_context
+        default_resolver = ChannelContextObjectType.resolver_with_context
         description = "Represents a collection of products."
         only_fields = [
             "description",

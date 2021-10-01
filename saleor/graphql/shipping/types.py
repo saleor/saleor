@@ -10,7 +10,7 @@ from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
     Channel,
     ChannelContext,
-    ChannelContextType,
+    ChannelContextObjectType,
     ChannelContextTypeWithMetadata,
 )
 from ..core.connection import CountableDjangoObjectType
@@ -31,6 +31,7 @@ from .dataloaders import (
     ShippingMethodsByShippingZoneIdLoader,
 )
 from .enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
+from .resolvers import resolve_shipping_minimum_order_price, resolve_shipping_price
 
 
 class ShippingMethodChannelListing(CountableDjangoObjectType):
@@ -74,7 +75,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadata, CountableDjangoObjectTy
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
-        resolver=ChannelContextType.resolve_translation,
+        resolver=ChannelContextObjectType.resolve_translation,
     )
     channel_listings = graphene.List(
         graphene.NonNull(ShippingMethodChannelListing),
@@ -101,7 +102,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadata, CountableDjangoObjectTy
     )
 
     class Meta:
-        default_resolver = ChannelContextType.resolver_with_context
+        default_resolver = ChannelContextObjectType.resolver_with_context
         description = (
             "Shipping method are the methods you'll use to get customer's orders to "
             "them. They are directly exposed to the customers."
@@ -121,35 +122,13 @@ class ShippingMethodType(ChannelContextTypeWithMetadata, CountableDjangoObjectTy
     @staticmethod
     def resolve_price(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
         # Price field are dynamically generated in available_shipping_methods resolver
-        price = getattr(root.node, "price", None)
-        if price:
-            return price
-
-        if not root.channel_slug:
-            return None
-
-        return (
-            ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
-                info.context
-            )
-            .load((root.node.id, root.channel_slug))
-            .then(lambda channel_listing: channel_listing.price)
-        )
+        return resolve_shipping_price(root, info, **_kwargs)
 
     @staticmethod
     def resolve_maximum_order_price(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
-        if not root.channel_slug:
-            return None
-
-        return (
-            ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
-                info.context
-            )
-            .load((root.node.id, root.channel_slug))
-            .then(lambda channel_listing: channel_listing.maximum_order_price)
-        )
+        return resolve_shipping_minimum_order_price(root, info, **_kwargs)
 
     @staticmethod
     def resolve_minimum_order_price(
@@ -228,7 +207,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     description = graphene.String(description="Description of a shipping zone.")
 
     class Meta:
-        default_resolver = ChannelContextType.resolver_with_context
+        default_resolver = ChannelContextObjectType.resolver_with_context
         description = (
             "Represents a shipping zone in the shop. Zones are the concept used only "
             "for grouping shipping methods in the dashboard, and are never exposed to "
@@ -284,7 +263,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
-class ShippingMethod(ChannelContextType):
+class ShippingMethod(ChannelContextObjectType):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
@@ -299,7 +278,7 @@ class ShippingMethod(ChannelContextType):
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
-        resolver=ChannelContextType.resolve_translation,
+        resolver=ChannelContextObjectType.resolve_translation,
     )
     price = graphene.Field(
         Money, required=True, description="The price of selected shipping method."
@@ -339,34 +318,12 @@ class ShippingMethod(ChannelContextType):
     def resolve_minimum_order_price(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
-        if not root.channel_slug:
-            return None
-
-        return (
-            ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
-                info.context
-            )
-            .load((root.node.id, root.channel_slug))
-            .then(lambda channel_listing: channel_listing.minimum_order_price)
-        )
+        return resolve_shipping_minimum_order_price(root, info, **_kwargs)
 
     @staticmethod
     def resolve_price(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
         # Price field are dynamically generated in available_shipping_methods resolver
-        price = getattr(root.node, "price", None)
-        if price:
-            return price
-
-        if not root.channel_slug:
-            return None
-
-        return (
-            ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
-                info.context
-            )
-            .load((root.node.id, root.channel_slug))
-            .then(lambda channel_listing: channel_listing.price)
-        )
+        return resolve_shipping_price(root, info, **_kwargs)
 
     @staticmethod
     def resolve_name(root: ChannelContext[models.ShippingMethod], info, **kwargs):

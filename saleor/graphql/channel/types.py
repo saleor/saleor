@@ -17,7 +17,33 @@ from . import ChannelContext
 from .dataloaders import ChannelWithHasOrdersByIdLoader
 
 
-class DjangoChannelContextType(DjangoObjectType):
+class ChannelContextObjectType(ObjectType):
+    """A Graphene type that supports resolvers' root as ChannelContext objects."""
+
+    @staticmethod
+    def resolver_with_context(
+        attname, default_value, root: ChannelContext, info, **args
+    ):
+        resolver = get_default_resolver()
+        return resolver(attname, default_value, root.node, info, **args)
+
+    @classmethod
+    def is_type_of(cls, root: Union[ChannelContext, Model], info):
+        # Unwrap node from ChannelContext if it didn't happen already
+        if isinstance(root, ChannelContext):
+            return True
+
+    @staticmethod
+    def resolve_id(root: ChannelContext, _info):
+        return root.node.id
+
+    @staticmethod
+    def resolve_translation(root: ChannelContext, info, language_code):
+        # Resolver for TranslationField; needs to be manually specified.
+        return resolve_translation(root.node, info, language_code)
+
+
+class ChannelContextDjangoObjectType(DjangoObjectType):
     """A Graphene type that supports resolvers' root as ChannelContext objects."""
 
     class Meta:
@@ -49,33 +75,7 @@ class DjangoChannelContextType(DjangoObjectType):
         return resolve_translation(root.node, info, language_code)
 
 
-class ChannelContextType(ObjectType):
-    """A Graphene type that supports resolvers' root as ChannelContext objects."""
-
-    @staticmethod
-    def resolver_with_context(
-        attname, default_value, root: ChannelContext, info, **args
-    ):
-        resolver = get_default_resolver()
-        return resolver(attname, default_value, root.node, info, **args)
-
-    @classmethod
-    def is_type_of(cls, root: Union[ChannelContext, Model], info):
-        # Unwrap node from ChannelContext if it didn't happen already
-        if isinstance(root, ChannelContext):
-            return True
-
-    @staticmethod
-    def resolve_id(root: ChannelContext, _info):
-        return root.node.id
-
-    @staticmethod
-    def resolve_translation(root: ChannelContext, info, language_code):
-        # Resolver for TranslationField; needs to be manually specified.
-        return resolve_translation(root.node, info, language_code)
-
-
-class ChannelContextTypeWithMetadata(DjangoChannelContextType):
+class ChannelContextTypeWithMetadata(ChannelContextDjangoObjectType):
     """A Graphene type for that uses ChannelContext as root in resolvers.
 
     Same as ChannelContextType, but for types that implement ObjectWithMetadata

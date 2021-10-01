@@ -156,13 +156,13 @@ class Checkout(CountableDjangoObjectType):
         ShippingMethod,
         required=True,
         description=(
-            "Shipping methods that can be used with this order." "Deprecated in 4.0."
+            "Shipping methods that can be used with this order. Deprecated in 4.0."
         ),
     )
     shipping_methods = graphene.List(
         ShippingMethod,
         required=True,
-        description="Shipping methods related to this order.",
+        description="Shipping methods that can be used with this order.",
     )
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),

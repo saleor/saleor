@@ -1876,7 +1876,6 @@ def test_shipping_method_create_translation(
     )
     data = get_graphql_content(response)["data"]["shippingPriceTranslate"]
 
-    print(data)
     assert data["shippingMethod"]["translation"]["name"] == "DHL PL"
     assert data["shippingMethod"]["translation"]["description"] == description
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"

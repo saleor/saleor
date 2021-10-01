@@ -63,14 +63,14 @@ def resolve_checkout(info, token):
 def resolve_checkout_available_shipping_methods(root: models.Checkout, info):
     def calculate_available_shipping_methods(data):
         address, lines, checkout_info, discounts, channel = data
+        if not address:
+            return []
         channel_slug = channel.slug
         display_gross = info.context.site.settings.display_gross_prices
         manager = info.context.plugins
         subtotal = manager.calculate_checkout_subtotal(
             checkout_info, lines, address, discounts
         )
-        if not address:
-            return []
         available = get_valid_shipping_methods_for_checkout(
             checkout_info,
             lines,

@@ -104,12 +104,3 @@ def resolve_order_shipping_methods(root: models.Order, info):
         for shipping in available_shipping_methods
     ]
     return instances
-    # return [ShippingMethod(
-    #         id=shipping.id,
-    #         price=shipping.price,
-    #         description=shipping.description,
-    #         maximum_delivery_days=shipping.maximum_delivery_days,
-    #         minimum_delivery_days=shipping.minimum_delivery_days,
-    #         minimum_order_price=getattr(shipping, "minimum_order_price", None),
-    #         name=shipping.name
-    #     ) for shipping in available_shipping_methods]
