@@ -13,9 +13,7 @@ def update_variant_selection(apps, schema_editor):
         attribute__input_type__in=ALLOWED_IN_VARIANT_SELECTION
     )
 
-    for variant in attribute_variants.iterator():
-        variant.variant_selection = True
-        variant.save(update_fields=["variant_selection"])
+    attribute_variants.update(variant_selection=True)
 
 
 class Migration(migrations.Migration):

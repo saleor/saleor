@@ -417,11 +417,6 @@ def test_assign_variant_attribute_having_multiselect_input_type(
     product_type,
     size_attribute,
 ):
-    """The assignAttribute mutation should raise an error when trying
-    to use an attribute as a variant attribute when
-    the attribute's input type doesn't support variants
-    TODO: except is not"""
-
     attribute = size_attribute
     attribute.input_type = AttributeInputType.MULTISELECT
     attribute.save(update_fields=["input_type"])
@@ -479,8 +474,8 @@ def test_assign_variant_attribute_having_multiselect_input_type_with_variant_sel
 
     assert content["errors"][0]["field"] == "operations"
     assert content["errors"][0]["message"] == (
-        "<Attribute name: 'Size', input_type: 'multiselect'> - following "
-        "attributes are not supported for variant selection types."
+        "Some of the attributes types are not supported for variant selection. "
+        f"Supported types are: {AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
     )
     assert (
         content["errors"][0]["code"]

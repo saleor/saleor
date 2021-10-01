@@ -19,6 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce sales webhooks - #8157 @kuchichan
 - Batch loads in queries for Apollo Federation - #8273 by @rafalp
 - Reserve stocks for checkouts - #7589 by @rafalp
+- Add `variant_selection` to `ProductAttributeAssign` operations - #8235 by @kuchichan
 
 # 3.0.0 [Unreleased]
 

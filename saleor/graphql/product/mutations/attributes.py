@@ -17,6 +17,7 @@ from ...attribute.mutations import (
 )
 from ...attribute.types import Attribute
 from ...channel import ChannelContext
+from ...core.descriptions import ADDED_IN_31
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types.common import ProductError
@@ -31,7 +32,11 @@ class ProductAttributeAssignInput(graphene.InputObjectType):
         required=True, description="The attribute type to be assigned as."
     )
     variant_selection = graphene.Boolean(
-        required=False, description="Whether attribute is allowed in variant selection."
+        required=False,
+        description=(
+            f"{ADDED_IN_31} Whether attribute is allowed in variant selection. "
+            f"Allowed types are: {AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
+        ),
     )
 
 
@@ -162,20 +167,15 @@ class ProductAttributeAssign(BaseMutation):
         invalid_attributes = list(qs)
 
         if invalid_attributes:
-            msg = ", ".join(
-                [
-                    f"<Attribute name: '{name}', input_type: '{input_type}'>"
-                    for _, name, input_type in invalid_attributes
-                ]
-            )
             invalid_attr_ids = [
                 graphene.Node.to_global_id("Attribute", attr)
                 for attr in invalid_attributes
             ]
             error = ValidationError(
                 (
-                    f"{msg} - following attributes are not supported for "
-                    "variant selection types."
+                    f"Some of the attributes types are not supported for "
+                    "variant selection. Supported types are: "
+                    f"{AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
                 ),
                 code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
                 params={"attributes": invalid_attr_ids},
