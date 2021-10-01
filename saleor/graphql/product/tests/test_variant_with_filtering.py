@@ -170,6 +170,18 @@ def test_products_pagination_with_filtering(
     # then
     content = get_graphql_content(response)
     products_nodes = content["data"]["productVariants"]["edges"]
-    for index, variant_sku in enumerate(variants):
-        assert variant_sku == products_nodes[index]["node"]["sku"]
-    assert len(variants) == len(products_nodes)
+    assert sorted([variant for variant in variants if variant is not None]) == sorted(
+        [
+            product_node["node"]["sku"]
+            for product_node in products_nodes
+            if product_node["node"]["sku"] is not None
+        ]
+    )
+    if None in variants:
+        assert variants.count(None) == len(
+            [
+                product_node["node"]["sku"]
+                for product_node in products_nodes
+                if product_node["node"]["sku"] is None
+            ]
+        )
