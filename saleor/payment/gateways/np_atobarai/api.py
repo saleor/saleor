@@ -4,10 +4,12 @@ import requests
 from django.utils import timezone
 from requests.auth import HTTPBasicAuth
 
+from saleor.payment import PaymentError
+
 from ...interface import AddressData, PaymentData
 from ...utils import price_to_minor_unit
 from .api_types import ApiConfig, PaymentResult, PaymentStatus
-from .const import NP_ATOBARAI
+from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL
 from .errors import UNKNOWN_ERROR, TransactionRegistrationResultError
 
 REQUEST_TIMEOUT = 15
@@ -15,27 +17,31 @@ REQUEST_TIMEOUT = 15
 
 def get_url(config: ApiConfig, path: str = "") -> str:
     """Resolve test/production URLs based on the api config."""
-    if config.test_mode:
-        return f"https://ctcp.np-payment-gateway.com/v1{path}"
-    return f"https://cp.np-payment-gateway.com/v1{path}"
+    return f"{(NP_TEST_URL if config.test_mode else NP_URL)}{path}"
 
 
-def _request(
+def np_request(
     config: ApiConfig, method: str, path: str = "", json: Optional[dict] = None
 ) -> requests.Response:
-    return requests.request(
-        method=method,
-        url=get_url(config, path),
-        timeout=REQUEST_TIMEOUT,
-        json=json or {},
-        auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
-        headers={"X-NP-Terminal-Id": config.terminal_id},
-    )
+    try:
+        return requests.request(
+            method=method,
+            url=get_url(config, path),
+            timeout=REQUEST_TIMEOUT,
+            json=json or {},
+            auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
+            headers={"X-NP-Terminal-Id": config.terminal_id},
+        )
+    except requests.RequestException:
+        raise PaymentError("Cannot connect to NP Atobarai.")
 
 
 def health_check(config: ApiConfig) -> bool:
-    response = _request(config, "post", "/authorizations/find")
-    return response.status_code not in [401, 403]
+    try:
+        response = np_request(config, "post", "/authorizations/find")
+        return response.status_code not in [401, 403]
+    except PaymentError:
+        return False
 
 
 def _format_name(ad: AddressData):
@@ -54,8 +60,19 @@ def register_transaction(
     config: ApiConfig, payment_information: "PaymentData"
 ) -> PaymentResult:
     order_date = timezone.now().strftime("%Y-%m-%d")
-    assert payment_information.billing
-    assert payment_information.shipping
+
+    billing = payment_information.billing
+    shipping = payment_information.shipping
+
+    if not billing:
+        raise PaymentError(
+            "Billing address is required for transaction in NP Atobarai."
+        )
+    if not shipping:
+        raise PaymentError(
+            "Shipping address is required for transaction in NP Atobarai."
+        )
+
     data = {
         "transactions": [
             {
@@ -68,19 +85,19 @@ def register_transaction(
                     )
                 ),
                 "customer": {
-                    "customer_name": payment_information.billing.first_name,
-                    "company_name": payment_information.billing.company_name,
-                    "zip_code": payment_information.billing.postal_code,
-                    "address": _format_address(payment_information.billing),
-                    "tel": payment_information.billing.phone.replace("+81", "0"),
+                    "customer_name": billing.first_name,
+                    "company_name": billing.company_name,
+                    "zip_code": billing.postal_code,
+                    "address": _format_address(billing),
+                    "tel": billing.phone.replace("+81", "0"),
                     "email": payment_information.customer_email,
                 },
                 "dest_customer": {
-                    "customer_name": _format_name(payment_information.shipping),
-                    "company_name": payment_information.shipping.company_name,
-                    "zip_code": payment_information.shipping.postal_code,
-                    "address": _format_address(payment_information.shipping),
-                    "tel": payment_information.shipping.phone.replace("+81", "0"),
+                    "customer_name": _format_name(shipping),
+                    "company_name": shipping.company_name,
+                    "zip_code": shipping.postal_code,
+                    "address": _format_address(shipping),
+                    "tel": shipping.phone.replace("+81", "0"),
                 },
                 "goods": [
                     {
@@ -98,9 +115,8 @@ def register_transaction(
         ]
     }
 
-    response = _request(config, "post", "/transactions", json=data)
+    response = np_request(config, "post", "/transactions", json=data)
     response_data = response.json()
-    print(response_data)
 
     if "results" in response_data:
         transaction = response_data["results"][0]

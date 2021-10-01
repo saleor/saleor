@@ -1,7 +1,7 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -26,9 +26,6 @@ from .interface import (
     PaymentMethodInfo,
 )
 from .models import Payment, Transaction
-
-if TYPE_CHECKING:
-    pass
 
 logger = logging.getLogger(__name__)
 

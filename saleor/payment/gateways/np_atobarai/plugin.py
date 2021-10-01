@@ -3,17 +3,10 @@ from typing import TYPE_CHECKING
 import opentracing
 from django.core.exceptions import ValidationError
 
-from saleor.payment.gateways.np_atobarai import api, get_api_config
-from saleor.payment.gateways.np_atobarai.const import (
-    MERCHANT_CODE,
-    SP_CODE,
-    TERMINAL_ID,
-    USE_SANDBOX,
-)
-from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
-from saleor.plugins.error_codes import PluginErrorCode
-
-from . import GatewayConfig, capture, process_payment, refund, void
+from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from ....plugins.error_codes import PluginErrorCode
+from . import GatewayConfig, api, capture, get_api_config, process_payment, refund, void
+from .const import MERCHANT_CODE, SP_CODE, TERMINAL_ID, USE_SANDBOX
 
 GATEWAY_NAME = "NP後払い"
 
@@ -142,14 +135,16 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         if not configuration[TERMINAL_ID]:
             missing_fields.append(TERMINAL_ID)
 
-        if missing_fields:
-            error_msg = (
-                "To enable a plugin, you need to provide values for the "
-                "following fields: "
-            )
-            raise ValidationError(
-                error_msg + ", ".join(missing_fields),
-                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
-            )
+        if plugin_configuration.active:
+            if missing_fields:
+                raise ValidationError(
+                    {
+                        field: ValidationError(
+                            f"The parameter is required.",
+                            code=PluginErrorCode.REQUIRED.value,
+                        )
+                        for field in missing_fields
+                    }
+                )
 
-        cls.validate_authentication(plugin_configuration)
+            cls.validate_authentication(plugin_configuration)

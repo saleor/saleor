@@ -5,7 +5,6 @@ class NPAtobaraiError(Exception):
     pass
 
 
-# TODO: finish
 class TransactionRegistrationResultError(Enum):
     # Customer name (Kanji)
     E0100048 = "Please make sure that the your (Kanji) has been entered."
