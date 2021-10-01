@@ -536,6 +536,8 @@ class ConfirmEmailChange(BaseMutation):
             data.get("channel"), error_class=AccountErrorCode
         ).slug
 
+        assign_user_gift_cards(user)
+
         notifications.send_user_change_email_notification(
             old_email, user, info.context.plugins, channel_slug=channel_slug
         )

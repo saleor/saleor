@@ -5062,7 +5062,10 @@ mutation emailUpdate($token: String!, $channel: String) {
 """
 
 
-def test_email_update(user_api_client, customer_user, channel_PLN):
+@patch("saleor.graphql.account.mutations.account.assign_user_gift_cards")
+def test_email_update(
+    assign_gift_cards_mock, user_api_client, customer_user, channel_PLN
+):
     new_email = "new_email@example.com"
     payload = {
         "old_email": customer_user.email,
@@ -5077,6 +5080,7 @@ def test_email_update(user_api_client, customer_user, channel_PLN):
     content = get_graphql_content(response)
     data = content["data"]["confirmEmailChange"]
     assert data["user"]["email"] == new_email
+    assign_gift_cards_mock.assert_called_once_with(customer_user)
 
 
 def test_email_update_to_existing_email(user_api_client, customer_user, staff_user):
