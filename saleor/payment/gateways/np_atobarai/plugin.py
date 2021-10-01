@@ -139,7 +139,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
         if not configuration[MERCHANT_CODE]:
-            missing_fields.append(TERMINAL_ID)
+            missing_fields.append(MERCHANT_CODE)
         if not configuration[SP_CODE]:
             missing_fields.append(SP_CODE)
         if not configuration[TERMINAL_ID]:
@@ -147,13 +147,14 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
 
         if plugin_configuration.active:
             if missing_fields:
-                error_msg = (
-                    "To enable a plugin, you need to provide values for the "
-                    "following fields: "
-                )
                 raise ValidationError(
-                    error_msg + ", ".join(missing_fields),
-                    code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                    {
+                        field: ValidationError(
+                            f"The parameter is required.",
+                            code=PluginErrorCode.REQUIRED.value,
+                        )
+                        for field in missing_fields
+                    }
                 )
 
             cls.validate_authentication(plugin_configuration)
