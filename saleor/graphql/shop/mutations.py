@@ -63,13 +63,13 @@ class ShopSettingsInput(graphene.InputObjectType):
     reserve_stock_duration_anonymous_user = graphene.Int(
         description=(
             f"{ADDED_IN_31} Default number of minutes stock will be reserved for "
-            "anonymous checkout or 0 to disable stock reservations."
+            "anonymous checkout. Enter 0 or null to disable."
         )
     )
     reserve_stock_duration_authenticated_user = graphene.Int(
         description=(
             f"{ADDED_IN_31} Default number of minutes stock will be reserved for "
-            "authenticated checkout or 0 to disable stock reservations."
+            "authenticated checkout. Enter 0 or null to disable."
         )
     )
 
