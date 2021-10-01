@@ -4373,6 +4373,7 @@ input OrderReturnLineInput {
 input OrderReturnProductsInput {
   orderLines: [OrderReturnLineInput!]
   fulfillmentLines: [OrderReturnFulfillmentLineInput!]
+  paymentsToRefund: [PaymentToReturnInput]
   amountToRefund: PositiveDecimal
   includeShippingCosts: Boolean = false
   refund: Boolean = false
@@ -4847,6 +4848,12 @@ type PaymentSource {
 }
 
 input PaymentToRefundInput {
+  paymentId: ID!
+  amount: PositiveDecimal
+  includeShippingCosts: Boolean = false
+}
+
+input PaymentToReturnInput {
   paymentId: ID!
   amount: PositiveDecimal
   includeShippingCosts: Boolean = false
