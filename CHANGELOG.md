@@ -20,7 +20,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Batch loads in queries for Apollo Federation - #8273 by @rafalp
 - Reserve stocks for checkouts - #7589 by @rafalp
 
-
 # 3.0.0 [Unreleased]
 
 - Improve draft orders and orders webhooks - #SALEOR-4008 by @jakubkuc
