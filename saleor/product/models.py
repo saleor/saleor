@@ -28,6 +28,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import smart_text
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
@@ -546,6 +547,9 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     )
     media = models.ManyToManyField("ProductMedia", through="VariantMedia")
     track_inventory = models.BooleanField(default=True)
+    is_preorder = models.BooleanField(default=False)
+    preorder_end_date = models.DateTimeField(null=True, blank=True)
+    preorder_global_threshold = models.IntegerField(blank=True, null=True)
 
     weight = MeasurementField(
         measurement=Weight,
@@ -613,6 +617,11 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     def get_ordering_queryset(self):
         return self.product.variants.all()
 
+    def is_preorder_active(self):
+        return self.is_preorder and (
+            self.preorder_end_date is None or timezone.now() <= self.preorder_end_date
+        )
+
 
 class ProductVariantTranslation(Translation):
     product_variant = models.ForeignKey(
@@ -642,6 +651,15 @@ class ProductVariantTranslation(Translation):
 
     def get_translated_keys(self):
         return {"name": self.name}
+
+
+class ProductVariantChannelListingQuerySet(models.QuerySet):
+    def annotate_preorder_quantity_allocated(self):
+        return self.annotate(
+            preorder_quantity_allocated=Coalesce(
+                Sum("preorder_allocations__quantity"), 0
+            ),
+        )
 
 
 class ProductVariantChannelListing(models.Model):
@@ -675,6 +693,10 @@ class ProductVariantChannelListing(models.Model):
         null=True,
     )
     cost_price = MoneyField(amount_field="cost_price_amount", currency_field="currency")
+
+    preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
+
+    objects = models.Manager.from_queryset(ProductVariantChannelListingQuerySet)()
 
     class Meta:
         unique_together = [["variant", "channel"]]

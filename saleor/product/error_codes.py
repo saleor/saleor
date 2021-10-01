@@ -19,6 +19,7 @@ class ProductErrorCode(Enum):
     CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT = "cannot_manage_product_without_variant"
     PRODUCT_NOT_ASSIGNED_TO_CHANNEL = "product_not_assigned_to_channel"
     UNSUPPORTED_MEDIA_PROVIDER = "unsupported_media_provider"
+    PREORDER_VARIANT_CANNOT_BE_DEACTIVATED = "preorder_variant_cannot_be_deactivated"
 
 
 class CollectionErrorCode(Enum):
