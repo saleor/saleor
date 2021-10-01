@@ -1,20 +1,22 @@
-from dataclasses import dataclass
 from typing import Optional
 
 import requests
 from requests.auth import HTTPBasicAuth
 
 from saleor.payment import PaymentError
+from saleor.payment.gateways.np_atobarai.api_types import (
+    ApiConfig,
+    PaymentResult,
+    PaymentStatus,
+)
+from saleor.payment.gateways.np_atobarai.errors import (
+    UNKNOWN_ERROR,
+    TransactionCancellationResultError,
+)
+from saleor.payment.interface import PaymentData
+from saleor.payment.models import Payment
 
 REQUEST_TIMEOUT = 15
-
-
-@dataclass
-class ApiConfig:
-    test_mode: bool
-    merchant_code: str
-    terminal_id: str
-    sp_code: str
 
 
 def get_url(config: ApiConfig, path: str = "") -> str:
@@ -46,3 +48,41 @@ def health_check(config: ApiConfig) -> bool:
         return response.status_code not in [401, 403]
     except PaymentError:
         return False
+
+
+def cancel_transaction(
+    config: ApiConfig, payment_information: PaymentData
+) -> PaymentResult:
+    # todo: optimize
+    psp_reference = Payment.objects.get(id=payment_information.payment_id).psp_reference
+
+    if not psp_reference:
+        raise PaymentError("Payment cannot be voided.")
+
+    data = {"transactions": [{"np_transaction_id": psp_reference}]}
+
+    response = np_request(config, "post", "/transactions", json=data)
+    response_data = response.json()
+
+    if "errors" in response_data:
+        error_codes = set(response_data["errors"][0]["codes"])
+
+        error_messages = []
+        for error_code in error_codes:
+            try:
+                message = TransactionCancellationResultError[error_code].value
+            except KeyError:
+                message = f"#{error_code}: {UNKNOWN_ERROR}"
+
+            error_messages.append(message)
+
+        return PaymentResult(
+            status=PaymentStatus.FAILED,
+            psp_reference=psp_reference,
+            errors=error_messages,
+        )
+    else:
+        return PaymentResult(
+            status=PaymentStatus.SUCCESS,
+            psp_reference=psp_reference,
+        )

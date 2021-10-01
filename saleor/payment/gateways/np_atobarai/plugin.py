@@ -3,12 +3,10 @@ from typing import TYPE_CHECKING
 import opentracing
 from django.core.exceptions import ValidationError
 
-from saleor.payment.gateways.np_atobarai import api
-from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
-from saleor.plugins.error_codes import PluginErrorCode
-
-from ..utils import require_active_plugin
-from . import GatewayConfig, capture, process_payment, refund, void
+from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from ....plugins.error_codes import PluginErrorCode
+from . import GatewayConfig, api, capture, process_payment, refund, void
+from .const import MERCHANT_CODE, SP_CODE, TERMINAL_ID, USE_SANDBOX
 
 GATEWAY_NAME = "NP後払い"
 
@@ -20,12 +18,6 @@ if TYPE_CHECKING:
 
 
 __all__ = ["NPAtobaraiGatewayPlugin"]
-
-
-MERCHANT_CODE = "merchant_code"
-SP_CODE = "sp_code"
-TERMINAL_ID = "terminal_id"
-USE_SANDBOX = "use_sandbox"
 
 
 def get_api_config(conf) -> api.ApiConfig:
