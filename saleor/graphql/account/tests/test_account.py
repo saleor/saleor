@@ -1061,9 +1061,24 @@ ACCOUNT_REGISTER_MUTATION = """
 )
 @patch("saleor.account.notifications.default_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def test_customer_register(mocked_notify, mocked_generator, api_client, channel_PLN):
+def test_customer_register(
+    mocked_notify,
+    mocked_generator,
+    api_client,
+    channel_PLN,
+    gift_card,
+    gift_card_expiry_date,
+):
     mocked_generator.return_value = "token"
     email = "customer@example.com"
+
+    gift_card.created_by = None
+    gift_card.created_by_email = email
+    gift_card.save(update_fields=["created_by_email", "created_by"])
+
+    gift_card_expiry_date.used_by_email = email
+    gift_card_expiry_date.save(update_fields=["used_by_email"])
+
     redirect_url = "http://localhost:3000"
     variables = {
         "email": email,
@@ -1116,6 +1131,12 @@ def test_customer_register(mocked_notify, mocked_generator, api_client, channel_
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_user
+
+    gift_card.refresh_from_db()
+    assert gift_card.created_by == new_user
+
+    gift_card_expiry_date.refresh_from_db()
+    assert gift_card_expiry_date.used_by == new_user
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
