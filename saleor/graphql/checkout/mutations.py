@@ -83,7 +83,7 @@ def clean_delivery_method(
     method: Optional[
         Union[
             models.ShippingMethod,
-            shipping_interface.ExternalShippingMethod,
+            shipping_interface.ShippingMethodData,
             warehouse_models.Warehouse,
         ]
     ],
@@ -117,7 +117,7 @@ def update_checkout_delivery_method(
     checkout_info: "CheckoutInfo",
     method: Union[
         models.ShippingMethod,
-        shipping_interface.ExternalShippingMethod,
+        shipping_interface.ShippingMethodData,
     ],
 ):
     checkout = checkout_info.checkout

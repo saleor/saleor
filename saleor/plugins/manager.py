@@ -840,7 +840,7 @@ class PluginsManager(PaymentInterface):
         checkout: Optional["Checkout"] = None,
         channel_slug: Optional[str] = None,
         active_only: bool = True,
-    ) -> List["ExternalShippingMethod"]:
+    ) -> List["ShippingMethodData"]:
         channel_slug = checkout.channel.slug if checkout else channel_slug
         plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
         shipping_plugins = [

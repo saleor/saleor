@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 from django.utils.encoding import smart_text
 
-from ..shipping.interface import ExternalShippingMethod
+from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
@@ -43,14 +43,14 @@ class CheckoutInfo:
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
-    valid_shipping_methods: List[Union["ShippingMethod", "ExternalShippingMethod"]]
+    valid_shipping_methods: List[Union["ShippingMethod", "ShippingMethodData"]]
     valid_pick_up_points: List["Warehouse"]
     shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
 
     @property
     def valid_delivery_methods(
         self,
-    ) -> List[Union["ShippingMethod", "ExternalShippingMethod", "Warehouse"]]:
+    ) -> List[Union["ShippingMethod", "ShippingMethodData", "Warehouse"]]:
         return list(
             itertools.chain(
                 self.valid_shipping_methods,
@@ -71,7 +71,7 @@ class CheckoutInfo:
 @dataclass(frozen=True)
 class DeliveryMethodBase:
     delivery_method: Optional[
-        Union["ShippingMethod", "ExternalShippingMethod", "Warehouse"]
+        Union["ShippingMethod", "ShippingMethodData", "Warehouse"]
     ] = None
     shipping_address: Optional["Address"] = None
     order_key: str = "shipping_method"
@@ -130,7 +130,7 @@ class ShippingMethodInfo(DeliveryMethodBase):
 
 @dataclass(frozen=True)
 class ExternalShippingMethodInfo(DeliveryMethodBase):
-    delivery_method: "ExternalShippingMethod"
+    delivery_method: "ShippingMethodData"
     shipping_address: Optional["Address"]
     order_key: str = ""
 
@@ -196,7 +196,7 @@ def get_delivery_method_info(
 ) -> DeliveryMethodBase:
     if delivery_method is None:
         return DeliveryMethodBase()
-    if isinstance(delivery_method, ExternalShippingMethod):
+    if isinstance(delivery_method, ShippingMethodData):
         return ExternalShippingMethodInfo(delivery_method, address)
     if isinstance(delivery_method, ShippingMethod):
         return ShippingMethodInfo(delivery_method, address)
@@ -291,7 +291,7 @@ def fetch_checkout_info(
     )
 
     valid_shipping_methods: List[
-        Union["ShippingMethod", "ExternalShippingMethod"]
+        Union["ShippingMethod", "ShippingMethodData"]
     ] = list(
         itertools.chain(
             get_valid_shipping_method_list_for_checkout_info(
@@ -322,7 +322,7 @@ def update_checkout_info_shipping_address(
     checkout_info.shipping_address = address
 
     valid_shipping_methods: List[
-        Union["ShippingMethod", "ExternalShippingMethod"]
+        Union["ShippingMethod", "ShippingMethodData"]
     ] = list(
         itertools.chain(
             get_valid_shipping_method_list_for_checkout_info(
@@ -371,7 +371,7 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
-) -> List["ExternalShippingMethod"]:
+) -> List["ShippingMethodData"]:
 
     return manager.list_shipping_methods_for_checkout(
         checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
@@ -399,7 +399,7 @@ def get_valid_collection_points_for_checkout_info(
 def update_checkout_info_delivery_method(
     checkout_info: CheckoutInfo,
     delivery_method: Optional[
-        Union["ShippingMethod", "ExternalShippingMethod", "Warehouse"]
+        Union["ShippingMethod", "ShippingMethodData", "Warehouse"]
     ],
 ):
     checkout_info.delivery_method_info = get_delivery_method_info(

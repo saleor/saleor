@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, List, Optional
 from prices import Money
 
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
-from ...shipping.interface import ExternalShippingMethod
+from ...shipping.interface import ShippingMethodData
 
 if TYPE_CHECKING:
     from ...app.models import App
@@ -132,7 +132,7 @@ def parse_payment_action_response(
 
 def parse_list_shipping_methods_response(
     response_data: Any, app: "App"
-) -> List["ExternalShippingMethod"]:
+) -> List["ShippingMethodData"]:
     shipping_methods = []
     shipment_id = response_data.get("shipment_id")
     for shipping_method_data in response_data.get("rates"):
@@ -143,7 +143,7 @@ def parse_list_shipping_methods_response(
         method_currency = shipping_method_data.get("currency")
 
         shipping_methods.append(
-            ExternalShippingMethod(
+            ShippingMethodData(
                 id=to_shipping_app_id(app, shipment_id, method_id),
                 name=f"{method_name} - {method_service}",
                 price=Money(method_rate, method_currency),

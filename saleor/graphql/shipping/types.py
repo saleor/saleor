@@ -1,10 +1,12 @@
 import graphene
 from graphene import relay
+from typing import Union
 
 from ...core.permissions import ShippingPermissions
 from ...core.tracing import traced_resolver
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
+from ...shipping.interface import ShippingMethodData
 from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
@@ -71,6 +73,9 @@ class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
 
 
 class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
+    id = graphene.ID(required=True, description="Shipping method ID.")
+    name = graphene.String(required=True, description="Shipping method name.")
+    description = graphene.JSONString(description="Shipping method description.")
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
         ShippingMethodTranslation,
@@ -100,9 +105,6 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
         "saleor.graphql.product.types.products.Product",
         description="List of excluded products for the shipping method.",
     )
-    id = graphene.ID(required=True, description="Shipping method ID.")
-    name = graphene.String(required=True, description="Shipping method name.")
-    description = graphene.JSONString(description="Shipping method description.")
     minimum_order_weight = graphene.Field(
         Weight, description="Minimum order weight to use this shipping method."
     )
@@ -126,19 +128,22 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_id(root: ChannelContext, _info):
-        method_id = getattr(root.node, "pk", None)
-        if method_id:
-            return graphene.Node.to_global_id("ShippingMethod", root.node.pk)
-        return root.node.id
+        if getattr(root.node, "is_external", False):
+            # todo external shipping to base64
+            return root.node.id
+        return graphene.Node.to_global_id("ShippingMethod", root.node.pk)
 
     @staticmethod
-    def resolve_price(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
+    def resolve_price(root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], info, **_kwargs):
         # Price field are dynamically generated in available_shipping_methods resolver
         price = getattr(root.node, "price", None)
         if price is not None:
             return price
 
         if not root.channel_slug:
+            return None
+
+        if getattr(root.node, "is_external", False):
             return None
 
         return (
@@ -151,9 +156,16 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_maximum_order_price(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], info, **_kwargs
     ):
+        maximum_order_price = getattr(root.node, "maximum_order_price", None)
+        if maximum_order_price is not None:
+            return maximum_order_price
+
         if not root.channel_slug:
+            return None
+
+        if getattr(root.node, "is_external", False):
             return None
 
         return (
@@ -166,9 +178,16 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_minimum_order_price(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], info, **_kwargs
     ):
+        minimum_order_price = getattr(root.node, "minimum_order_price", None)
+        if minimum_order_price is not None:
+            return minimum_order_price
+
         if not root.channel_slug:
+            return None
+
+        if getattr(root.node, "is_external", False):
             return None
 
         return (
@@ -181,27 +200,33 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_maximum_order_weight(
-        root: ChannelContext[models.ShippingMethod], *_args
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], *_args
     ):
         return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
 
     @staticmethod
     def resolve_postal_code_rules(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], info, **_kwargs
     ):
+        if getattr(root.node, "is_external", False):
+            return None
+
         return PostalCodeRulesByShippingMethodIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_minimum_order_weight(
-        root: ChannelContext[models.ShippingMethod], *_args
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], *_args
     ):
         return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
 
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_channel_listings(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], info, **_kwargs
     ):
+        if getattr(root.node, "is_external", False):
+            return None
+
         return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
             root.node.id
         )
@@ -209,8 +234,11 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_excluded_products(
-        root: ChannelContext[models.ShippingMethod], _info, **_kwargs
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], _info, **_kwargs
     ):
+        if getattr(root.node, "is_external", False):
+            return None
+
         return ChannelQsContext(qs=root.node.excluded_products.all(), channel_slug=None)
 
 
