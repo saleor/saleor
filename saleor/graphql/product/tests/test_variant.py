@@ -394,7 +394,6 @@ QUERY_PRODUCT_VARIANT_PREORDER = """
     query ProductVariantDetails($id: ID!, $channel: String) {
         productVariant(id: $id, channel: $channel) {
             preorder {
-                isPreorder
                 globalThreshold
                 globalSoldUnits
                 endDate
@@ -427,7 +426,6 @@ def test_get_product_variant_preorder_as_staff(
 
     # then
     data = content["data"]["productVariant"]["preorder"]
-    assert data["isPreorder"] == variant.is_preorder
     assert data["globalThreshold"] == variant.preorder_global_threshold
     assert data["globalSoldUnits"] == preorder_allocation.quantity
     assert data["endDate"] == variant.preorder_end_date
@@ -465,7 +463,6 @@ def test_get_product_variant_preorder_as_customer_allowed_fields(
         query ProductVariantDetails($id: ID!, $channel: String) {
             productVariant(id: $id, channel: $channel) {
                 preorder {
-                    isPreorder
                     endDate
                 }
             }
@@ -482,7 +479,6 @@ def test_get_product_variant_preorder_as_customer_allowed_fields(
 
     # then
     data = content["data"]["productVariant"]["preorder"]
-    assert data["isPreorder"] == variant.is_preorder
     assert data["endDate"] == variant.preorder_end_date
 
 
@@ -544,7 +540,6 @@ CREATE_VARIANT_MUTATION = """
                             }
                         }
                         preorder {
-                            isPreorder
                             globalThreshold
                             endDate
                         }
@@ -656,7 +651,6 @@ def test_create_variant_preorder(
     data = content["productVariant"]
     assert data["name"] == variant_value
 
-    assert data["preorder"]["isPreorder"] is True
     assert data["preorder"]["globalThreshold"] == global_threshold
     assert data["preorder"]["endDate"] == end_date
     created_webhook_mock.assert_called_once_with(product.variants.last())
@@ -3061,7 +3055,6 @@ QUERY_UPDATE_VARIANT_PREORDER = """
                 productVariant {
                     sku
                     preorder {
-                        isPreorder
                         globalThreshold
                         endDate
                     }
@@ -3108,7 +3101,6 @@ def test_update_product_variant_change_preorder_data(
     data = content["data"]["productVariantUpdate"]["productVariant"]
 
     assert data["sku"] == sku
-    assert data["preorder"]["isPreorder"] is True
     assert data["preorder"]["globalThreshold"] == new_global_threshold
     assert data["preorder"]["endDate"] == new_preorder_end_date
 
@@ -3137,7 +3129,6 @@ def test_update_product_variant_can_not_turn_off_preorder(
     data = content["data"]["productVariantUpdate"]["productVariant"]
 
     assert data["sku"] == sku
-    assert data["preorder"]["isPreorder"] is True
     assert data["preorder"]["globalThreshold"] == variant.preorder_global_threshold
     assert data["preorder"]["endDate"] is None
 
@@ -3903,7 +3894,6 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
                     }
                 }
                 preorder {
-                    isPreorder
                     globalThreshold
                     endDate
                 }
@@ -4494,7 +4484,6 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
             "sku": variants[0]["sku"],
             "channelListings": [{"preorderThreshold": {"quantity": 5}}],
             "preorder": {
-                "isPreorder": True,
                 "globalThreshold": global_threshold,
                 "endDate": end_date,
             },
@@ -4506,7 +4495,6 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
                 {"preorderThreshold": {"quantity": 4}},
             ],
             "preorder": {
-                "isPreorder": True,
                 "globalThreshold": global_threshold,
                 "endDate": end_date,
             },
@@ -4528,7 +4516,6 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
             ]
         )
         preorder_data = variant_data["preorder"]
-        assert preorder_data["isPreorder"] is True
         assert preorder_data["globalThreshold"] == global_threshold
         assert preorder_data["endDate"] == end_date
 
@@ -5478,7 +5465,6 @@ QUERY_VARIANT_DEACTIVATE_PREORDER = """
                 productVariant {
                     sku
                     preorder {
-                        isPreorder
                         globalThreshold
                         endDate
                     }

@@ -182,10 +182,6 @@ class ProductPricingInfo(BasePricingInfo):
 
 
 class PreorderData(graphene.ObjectType):
-    is_preorder = graphene.Boolean(
-        required=True,
-        description="Indicates whether the product variant is in preorder.",
-    )
     global_threshold = graphene.Int(
         required=False, description="The global preorder threshold for product variant."
     )
@@ -606,7 +602,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             )
             return (
                 PreorderData(
-                    is_preorder=variant.is_preorder,
                     global_threshold=variant.preorder_global_threshold,
                     global_sold_units=global_sold_units,
                     end_date=variant.preorder_end_date,
