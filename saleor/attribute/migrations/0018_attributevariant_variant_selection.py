@@ -3,6 +3,21 @@
 from django.db import migrations, models
 
 
+def update_variant_selection(apps, schema_editor):
+    # Copied in order to avoid imports
+    # (does not contain NUMERIC by purpose - backward compatibility)
+
+    ALLOWED_IN_VARIANT_SELECTION = ["dropdown", "boolean", "swatch"]
+    AttributeVariant = apps.get_model("attribute", "AttributeVariant")
+    attribute_variants = AttributeVariant.objects.select_related("attribute").filter(
+        attribute__input_type__in=ALLOWED_IN_VARIANT_SELECTION
+    )
+
+    for variant in attribute_variants.iterator():
+        variant.variant_selection = True
+        variant.save(update_fields=["variant_selection"])
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,5 +29,8 @@ class Migration(migrations.Migration):
             model_name="attributevariant",
             name="variant_selection",
             field=models.BooleanField(default=False),
+        ),
+        migrations.RunPython(
+            update_variant_selection, reverse_code=migrations.RunPython.noop
         ),
     ]
