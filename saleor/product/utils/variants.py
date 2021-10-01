@@ -1,9 +1,9 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
 
 from ...attribute import AttributeType
 
 if TYPE_CHECKING:
-    from ...attribute.models import AssignedVariantAttribute
+    from ...attribute.models import AssignedVariantAttribute, Attribute
     from ..models import ProductVariant
 
 
@@ -30,7 +30,9 @@ def generate_and_set_variant_name(variant: "ProductVariant", sku: Optional[str])
     variant.save(update_fields=["name"])
 
 
-def get_variant_selection_attributes(attributes):
+def get_variant_selection_attributes(
+    attributes: Sequence[Tuple["Attribute", bool]]
+) -> List["Attribute"]:
     """Return attributes that can be used in variant selection.
 
     Attribute must be product attribute and attribute input type must be

@@ -419,7 +419,8 @@ def test_assign_variant_attribute_having_multiselect_input_type(
 ):
     """The assignAttribute mutation should raise an error when trying
     to use an attribute as a variant attribute when
-    the attribute's input type doesn't support variants"""
+    the attribute's input type doesn't support variants
+    TODO: except is not"""
 
     attribute = size_attribute
     attribute.input_type = AttributeInputType.MULTISELECT
@@ -444,6 +445,85 @@ def test_assign_variant_attribute_having_multiselect_input_type(
     assert content["productType"]["id"] == product_type_global_id
     assert len(content["productType"]["variantAttributes"]) == 1
     assert content["productType"]["variantAttributes"][0]["id"] == attr_id
+
+
+def test_assign_variant_attribute_having_multiselect_input_type_with_variant_selection(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    product_type,
+    size_attribute,
+):
+    """The assignAttribute mutation should raise an error when trying
+    to use an attribute as a variant attribute when
+    the attribute's input type doesn't support variants"""
+
+    attribute = size_attribute
+    attribute.input_type = AttributeInputType.MULTISELECT
+    attribute.save(update_fields=["input_type"])
+    product_type.variant_attributes.clear()
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    attr_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    query = PRODUCT_ASSIGN_ATTR_QUERY
+    operations = [{"type": "VARIANT", "id": attr_id, "variantSelection": True}]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["productAttributeAssign"]
+
+    assert content["errors"][0]["field"] == "operations"
+    assert content["errors"][0]["message"] == (
+        "<Attribute name: 'Size', input_type: 'multiselect'> - following "
+        "attributes are not supported for variant selection types."
+    )
+    assert (
+        content["errors"][0]["code"]
+        == ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name
+    )
+    assert len(content["errors"]) == 1
+
+
+def test_assign_product_attribute_having_variant_selection(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    product_type,
+    size_attribute,
+):
+    attribute = size_attribute
+    attribute.input_type = AttributeInputType.MULTISELECT
+    attribute.save(update_fields=["input_type"])
+    product_type.variant_attributes.clear()
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    attr_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    query = PRODUCT_ASSIGN_ATTR_QUERY
+    operations = [{"type": "PRODUCT", "id": attr_id, "variantSelection": True}]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["productAttributeAssign"]
+
+    assert content["errors"][0]["field"] == "operations"
+    assert (
+        f"Attribute with pk: '{attribute.pk}' with different type than "
+        f"'VARIANT' (found: 'PRODUCT') cannot be assigned with variant_selection: true."
+    ) == content["errors"][0]["message"]
+    assert (
+        content["errors"][0]["code"]
+        == ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name
+    )
 
 
 @pytest.mark.parametrize(

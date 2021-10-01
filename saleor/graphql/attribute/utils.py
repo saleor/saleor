@@ -514,7 +514,7 @@ class AttributeAssignmentMixin:
             ).delete()
 
 
-def get_variant_selection_attributes(qs: "QuerySet"):
+def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
     return qs.select_related("attributevariant").filter(
         attributevariant__variant_selection=True,
         type=AttributeType.PRODUCT_TYPE,

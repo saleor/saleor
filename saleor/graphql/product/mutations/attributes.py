@@ -135,8 +135,9 @@ class ProductAttributeAssign(BaseMutation):
         for attr_pk, type_, variant_selection in product_attrs_data:
             if variant_selection:
                 msg = (
-                    f"Attribute {attr_pk} with type different than 'Variant'"
-                    "({type_}) cannot be assigned with variant_selection"
+                    f"Attribute with pk: '{attr_pk}' with different type "
+                    f"than 'VARIANT' (found: '{type_}') cannot be assigned with "
+                    "variant_selection: true."
                 )
                 error = ValidationError(
                     msg,
@@ -162,15 +163,21 @@ class ProductAttributeAssign(BaseMutation):
 
         if invalid_attributes:
             msg = ", ".join(
-                [f"{name} ({input_type})" for _, name, input_type in invalid_attributes]
+                [
+                    f"<Attribute name: '{name}', input_type: '{input_type}'>"
+                    for _, name, input_type in invalid_attributes
+                ]
             )
             invalid_attr_ids = [
                 graphene.Node.to_global_id("Attribute", attr)
                 for attr in invalid_attributes
             ]
             error = ValidationError(
-                (f"{msg} Invalid type."),
-                code=ProductErrorCode.INVALID,
+                (
+                    f"{msg} - following attributes are not supported for "
+                    "variant selection types."
+                ),
+                code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
                 params={"attributes": invalid_attr_ids},
             )
             errors["operations"].append(error)
