@@ -1,8 +1,11 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 from measurement.measures import Weight
 from prices import Money
+
+if TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
 
 
 @dataclass
@@ -11,12 +14,12 @@ class ShippingMethodData:
 
     id: str
     name: str
-    price: Optional[Money] = None
+    price: Money
     description: Optional[str] = None
     type: Optional[str] = None
     maximum_order_price: Optional[Money] = None
     minimum_order_price: Optional[Money] = None
-    excluded_products: Optional[List] = field(default_factory=list)
+    excluded_products: Optional["RelatedManager"] = None
     minimum_order_weight: Optional[Weight] = None
     maximum_order_weight: Optional[Weight] = None
     maximum_delivery_days: Optional[int] = None

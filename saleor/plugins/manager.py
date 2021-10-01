@@ -47,7 +47,7 @@ if TYPE_CHECKING:
         TokenConfig,
     )
     from ..product.models import Product, ProductType, ProductVariant
-    from ..shipping.interface import ExternalShippingMethod
+    from ..shipping.interface import ShippingMethodData
     from ..translation.models import Translation
     from ..warehouse.models import Stock
     from .base_plugin import BasePlugin

@@ -101,7 +101,7 @@ def clean_delivery_method(
 
     if not checkout_info.shipping_address and (
         isinstance(method, models.ShippingMethod)
-        or isinstance(method, shipping_interface.ExternalShippingMethod)
+        or isinstance(method, shipping_interface.ShippingMethodData)
     ):
         raise ValidationError(
             "Cannot choose a shipping method for a checkout without the "

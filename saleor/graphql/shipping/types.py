@@ -132,7 +132,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
         if getattr(root.node, "is_external", False):
             # todo external shipping to base64
             return root.node.id
-        return graphene.Node.to_global_id("ShippingMethod", root.node.pk)
+        return graphene.Node.to_global_id("ShippingMethod", root.node.id)
 
     @staticmethod
     def resolve_price(
@@ -251,10 +251,10 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
         _info,
         **_kwargs
     ):
-        if getattr(root.node, "is_external", False):
+        if root.node.excluded_products is None:
             return None
 
-        return ChannelQsContext(qs=root.node.excluded_products.all(), channel_slug=None)
+        return ChannelQsContext(qs=root.node.excluded_products.all(), channel_slug=None)  # type: ignore
 
 
 class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
