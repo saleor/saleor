@@ -2,24 +2,26 @@ import pytest
 
 from ....tests.utils import get_graphql_content
 
+FRAGMENT_SHIPPING_METHOD_TYPES = """
+    fragment AvailableShippingMethods on ShippingMethodType {
+        id
+        price {
+            amount
+        }
+        minimumOrderPrice {
+            amount
+            currency
+        }
+        name
+    }
+"""
+
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_retrieve_shop(api_client, channel_USD, count_queries):
     query = (
-        """
-            fragment AvailableShippingMethods on ShippingMethodType {
-                id
-                price {
-                    amount
-                }
-                minimumOrderPrice {
-                    amount
-                    currency
-                }
-                name
-            }
-        """
+        FRAGMENT_SHIPPING_METHOD_TYPES
         + """
         query getShop($channel: String!) {
           shop {
