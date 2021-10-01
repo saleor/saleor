@@ -8683,70 +8683,70 @@
     "model": "attribute.attributevariant",
     "pk": 1,
     "fields": {
-        "sort_order": null,
-        "attribute": 13,
-        "product_type": 14,
-        "variant_selection": false
+      "sort_order": null,
+      "attribute": 13,
+      "product_type": 14,
+      "variant_selection": false
     }
   },
   {
     "model": "attribute.attributevariant",
     "pk": 2,
     "fields": {
-        "sort_order": null,
-        "attribute": 15,
-        "product_type": 9,
-        "variant_selection": false
+      "sort_order": null,
+      "attribute": 15,
+      "product_type": 9,
+      "variant_selection": false
     }
   },
   {
     "model": "attribute.attributevariant",
     "pk": 3,
     "fields": {
-        "sort_order": null,
-        "attribute": 18,
-        "product_type": 7,
-        "variant_selection": false
+      "sort_order": null,
+      "attribute": 18,
+      "product_type": 7,
+      "variant_selection": false
     }
   },
   {
     "model": "attribute.attributevariant",
     "pk": 4,
     "fields": {
-        "sort_order": null,
-        "attribute": 19,
-        "product_type": 8,
-        "variant_selection": true
+      "sort_order": null,
+      "attribute": 19,
+      "product_type": 8,
+      "variant_selection": true
     }
   },
   {
     "model": "attribute.attributevariant",
     "pk": 5,
     "fields": {
-        "sort_order": null,
-        "attribute": 22,
-        "product_type": 12,
-        "variant_selection": true
+      "sort_order": null,
+      "attribute": 22,
+      "product_type": 12,
+      "variant_selection": true
     }
   },
   {
     "model": "attribute.attributevariant",
     "pk": 6,
     "fields": {
-        "sort_order": null,
-        "attribute": 24,
-        "product_type": 13,
-        "variant_selection": true
+      "sort_order": null,
+      "attribute": 24,
+      "product_type": 13,
+      "variant_selection": true
     }
   },
   {
     "model": "attribute.attributevariant",
     "pk": 8,
     "fields": {
-        "sort_order": 0,
-        "attribute": 19,
-        "product_type": 15,
-        "variant_selection": false
+      "sort_order": 0,
+      "attribute": 19,
+      "product_type": 15,
+      "variant_selection": false
     }
   },
   {
