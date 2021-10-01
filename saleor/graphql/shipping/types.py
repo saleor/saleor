@@ -254,7 +254,9 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
         if root.node.excluded_products is None:
             return None
 
-        return ChannelQsContext(qs=root.node.excluded_products.all(), channel_slug=None)  # type: ignore
+        return ChannelQsContext(
+            qs=root.node.excluded_products.all(), channel_slug=None  # type: ignore
+        )
 
 
 class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
