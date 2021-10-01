@@ -676,12 +676,12 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
                 graphene.Node.to_global_id("Payment", payment_id)
                 for payment_id in improper_payments_ids
             ]
-            code = OrderErrorCode.PAYMENTS_DO_NOT_BELONG_TO_ORDER
+
             raise ValidationError(
                 {
                     "payments_to_refund": ValidationError(
                         "These payments do not belong to the order.",
-                        code=code,  # type: ignore
+                        code=OrderErrorCode.PAYMENTS_DO_NOT_BELONG_TO_ORDER.value,
                         params={"payments": improper_payments_global_ids},
                     )
                 }
