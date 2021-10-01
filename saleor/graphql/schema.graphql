@@ -6086,6 +6086,8 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  name: String!
+  description: JSONString
   type: ShippingMethodTypeEnum
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
   channelListings: [ShippingMethodChannelListing!]
@@ -6094,8 +6096,6 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   minimumOrderPrice: Money
   postalCodeRules: [ShippingMethodPostalCodeRule]
   excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  name: String!
-  description: JSONString
   minimumOrderWeight: Weight
   maximumOrderWeight: Weight
   maximumDeliveryDays: Int

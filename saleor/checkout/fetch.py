@@ -290,9 +290,7 @@ def fetch_checkout_info(
         valid_pick_up_points=[],
     )
 
-    valid_shipping_methods: List[
-        Union["ShippingMethod", "ShippingMethodData"]
-    ] = list(
+    valid_shipping_methods: List[Union["ShippingMethod", "ShippingMethodData"]] = list(
         itertools.chain(
             get_valid_shipping_method_list_for_checkout_info(
                 checkout_info, shipping_address, lines, discounts, manager
@@ -321,9 +319,7 @@ def update_checkout_info_shipping_address(
 ):
     checkout_info.shipping_address = address
 
-    valid_shipping_methods: List[
-        Union["ShippingMethod", "ShippingMethodData"]
-    ] = list(
+    valid_shipping_methods: List[Union["ShippingMethod", "ShippingMethodData"]] = list(
         itertools.chain(
             get_valid_shipping_method_list_for_checkout_info(
                 checkout_info, address, lines, discounts, manager

@@ -1,6 +1,7 @@
+from typing import Union
+
 import graphene
 from graphene import relay
-from typing import Union
 
 from ...core.permissions import ShippingPermissions
 from ...core.tracing import traced_resolver
@@ -134,7 +135,11 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
         return graphene.Node.to_global_id("ShippingMethod", root.node.pk)
 
     @staticmethod
-    def resolve_price(root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], info, **_kwargs):
+    def resolve_price(
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
+        info,
+        **_kwargs
+    ):
         # Price field are dynamically generated in available_shipping_methods resolver
         price = getattr(root.node, "price", None)
         if price is not None:
@@ -156,7 +161,9 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_maximum_order_price(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], info, **_kwargs
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
+        info,
+        **_kwargs
     ):
         maximum_order_price = getattr(root.node, "maximum_order_price", None)
         if maximum_order_price is not None:
@@ -178,7 +185,9 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_minimum_order_price(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], info, **_kwargs
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
+        info,
+        **_kwargs
     ):
         minimum_order_price = getattr(root.node, "minimum_order_price", None)
         if minimum_order_price is not None:
@@ -206,7 +215,9 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_postal_code_rules(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], info, **_kwargs
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
+        info,
+        **_kwargs
     ):
         if getattr(root.node, "is_external", False):
             return None
@@ -222,7 +233,9 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_channel_listings(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], info, **_kwargs
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
+        info,
+        **_kwargs
     ):
         if getattr(root.node, "is_external", False):
             return None
@@ -234,7 +247,9 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_excluded_products(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], _info, **_kwargs
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
+        _info,
+        **_kwargs
     ):
         if getattr(root.node, "is_external", False):
             return None
