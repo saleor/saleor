@@ -286,6 +286,7 @@ def test_add_gift_cards_to_order(
 ):
     # given
     checkout = checkout_with_item
+    checkout.user = staff_user
     checkout.gift_cards.add(gift_card, gift_card_expiry_date)
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
@@ -301,6 +302,65 @@ def test_add_gift_cards_to_order(
     gift_card_expiry_date.refresh_from_db()
     assert gift_card.current_balance_amount == 0
     assert gift_card_expiry_date.current_balance_amount == 0
+    assert gift_card.used_by == staff_user
+    assert gift_card.used_by_email == staff_user.email
+
+    gift_card_events = GiftCardEvent.objects.filter(gift_card_id=gift_card.id)
+    assert gift_card_events.count() == 1
+    gift_card_event = gift_card_events[0]
+    assert gift_card_event.type == GiftCardEvents.USED_IN_ORDER
+    assert gift_card_event.user == staff_user
+    assert gift_card_event.app is None
+    assert gift_card_event.parameters == {
+        "balance": {
+            "currency": "USD",
+            "current_balance": "0",
+            "old_current_balance": "10.000",
+        },
+        "order_id": order.id,
+    }
+
+    order_created_event = GiftCardEvent.objects.get(
+        gift_card_id=gift_card_expiry_date.id
+    )
+    assert order_created_event.user == staff_user
+    assert order_created_event.app is None
+    assert order_created_event.parameters == {
+        "balance": {
+            "currency": "USD",
+            "current_balance": "0",
+            "old_current_balance": "20.000",
+        },
+        "order_id": order.id,
+    }
+
+
+def test_add_gift_cards_to_order_no_checkout_user(
+    checkout_with_item, gift_card, gift_card_expiry_date, order, staff_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = None
+    checkout.email = staff_user.email
+    checkout.save(update_fields=["user", "email"])
+
+    checkout.gift_cards.add(gift_card, gift_card_expiry_date)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    add_gift_cards_to_order(
+        checkout_info, order, Money(20, gift_card.currency), staff_user, None
+    )
+
+    # then
+    gift_card.refresh_from_db()
+    gift_card_expiry_date.refresh_from_db()
+    assert gift_card.current_balance_amount == 0
+    assert gift_card_expiry_date.current_balance_amount == 0
+    assert gift_card.used_by == staff_user
+    assert gift_card.used_by_email == staff_user.email
 
     gift_card_events = GiftCardEvent.objects.filter(gift_card_id=gift_card.id)
     assert gift_card_events.count() == 1
