@@ -496,16 +496,17 @@ class WebhookPlugin(BasePlugin):
         apps = App.objects.for_event_type(
             WebhookEventType.SHIPPING_LIST_METHODS
         ).prefetch_related("webhooks")
-        payload = generate_checkout_payload(checkout)
-        for app in apps:
-            response_data = trigger_webhook_sync(
-                event_type=WebhookEventType.SHIPPING_LIST_METHODS,
-                data=payload,
-                app=app,
-            )
-            if response_data:
-                shipping_methods = parse_list_shipping_methods_response(
-                    response_data, app
+        if checkout:
+            payload = generate_checkout_payload(checkout)
+            for app in apps:
+                response_data = trigger_webhook_sync(
+                    event_type=WebhookEventType.SHIPPING_LIST_METHODS,
+                    data=payload,
+                    app=app,
                 )
-                methods.extend(shipping_methods)
+                if response_data:
+                    shipping_methods = parse_list_shipping_methods_response(
+                        response_data, app
+                    )
+                    methods.extend(shipping_methods)
         return methods
