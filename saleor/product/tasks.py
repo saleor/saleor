@@ -1,11 +1,15 @@
 import logging
 from typing import Iterable, List, Optional
 
+from celery.utils.log import get_task_logger
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 from ..attribute.models import Attribute
 from ..celeryconf import app
+from ..core.exceptions import PreorderAllocationError
 from ..discount.models import Sale
+from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
 from .utils.variant_prices import (
     update_product_discounted_price,
@@ -16,6 +20,7 @@ from .utils.variant_prices import (
 from .utils.variants import generate_and_set_variant_name
 
 logger = logging.getLogger(__name__)
+task_logger = get_task_logger(__name__)
 
 
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
@@ -86,3 +91,20 @@ def update_products_discounted_prices_of_discount_task(discount_pk: int):
 def update_products_discounted_prices_task(product_ids: List[int]):
     products = Product.objects.filter(pk__in=product_ids)
     update_products_discounted_prices(products)
+
+
+@app.task
+def deactivate_preorder_for_variants_task():
+    variants_to_clean = _get_preorder_variants_to_clean()
+
+    for variant in variants_to_clean:
+        try:
+            deactivate_preorder_for_variant(variant)
+        except PreorderAllocationError as e:
+            task_logger.warning(str(e))
+
+
+def _get_preorder_variants_to_clean():
+    return ProductVariant.objects.filter(
+        is_preorder=True, preorder_end_date__lt=timezone.now()
+    )
