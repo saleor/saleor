@@ -30,7 +30,7 @@ from ..discount import types  # noqa # pylint: disable=unused-import, isort:skip
 from ..menu import types  # type: ignore # noqa # pylint: disable=unused-import, isort:skip
 
 
-TRANSLATABLE_CONTENT_TO_MODEL = {
+TRANSLATABLE_CONTENT_TO_TYPE = {
     str(translation_types.ProductTranslatableContent): str(product_types.Product),
     str(translation_types.CollectionTranslatableContent): str(product_types.Collection),
     str(translation_types.CategoryTranslatableContent): str(product_types.Category),
@@ -70,7 +70,7 @@ class BaseTranslateMutation(ModelMutation):
         # check if provided ID refers to a translatable content which matches with the
         # expected model_type. If so, we transform the translatable content ID to model
         # ID.
-        tc_model_type = TRANSLATABLE_CONTENT_TO_MODEL.get(node_type)
+        tc_model_type = TRANSLATABLE_CONTENT_TO_TYPE.get(node_type)
         if tc_model_type and tc_model_type == str(model_type):
             node_id = graphene.Node.to_global_id(tc_model_type, node_pk)
 
@@ -405,6 +405,13 @@ class PageTranslate(BaseTranslateMutation):
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
+
+    @classmethod
+    def get_type_for_model(cls):
+        # This method prevents type PageTranslate page field in GraphQL schema
+        # to be automatically changed to Page model, since we want to address that
+        # problem in a separate PR.
+        return translation_types.PageTranslatableContent
 
 
 class ShopSettingsTranslationInput(graphene.InputObjectType):
