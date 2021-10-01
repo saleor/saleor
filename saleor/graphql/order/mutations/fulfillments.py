@@ -590,13 +590,12 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         else:
             cls._check_order_has_single_payment(order)
             payment = order.payments.first()
-            if not amount_to_refund and include_shipping_costs:
-                amount_to_refund = order.shipping_price_gross_amount
             payments = [
                 {
                     "payment": payment,
                     "amount": amount_to_refund or Decimal("0"),
                     "include_shipping_costs": include_shipping_costs,
+                    "is_deprecated_way": True,
                 }
             ]
 

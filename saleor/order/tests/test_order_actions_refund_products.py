@@ -23,7 +23,7 @@ def test_create_refund_fulfillment_only_order_lines(
     payments = [
         {
             "payment": payment,
-            "amount": None,
+            "amount": Decimal("0"),
             "include_shipping_costs": False,
         }
     ]
@@ -100,6 +100,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
             "payment": payment,
             "amount": Decimal("0"),
             "include_shipping_costs": True,
+            "is_deprecated_way": True,
         }
     ]
     original_quantity = {
@@ -163,7 +164,7 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
     payments = [
         {
             "payment": payment,
-            "amount": None,
+            "amount": Decimal("0"),
             "include_shipping_costs": False,
         }
     ]

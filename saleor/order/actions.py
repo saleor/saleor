@@ -1215,14 +1215,11 @@ def create_fulfillments_for_returned_products(
     user: Optional["User"],
     app: Optional["App"],
     order: "Order",
-    # payment: Optional[Payment],
     payments: List[dict],
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
     manager: "PluginsManager",
     refund: bool = False,
-    # amount: Optional[Decimal] = None,
-    # refund_shipping_costs=False,
 ) -> Tuple[Fulfillment, Optional[Fulfillment], Optional[Order]]:
     """Process the request for replacing or returning the products.
 
@@ -1349,19 +1346,23 @@ def _process_refund(
     for item in payments:
         if item["amount"] == 0:
             if item["include_shipping_costs"]:
-
-                item["amount"] = __get_shipping_refund_amount(
+                shipping_refund_amount = __get_shipping_refund_amount(
                     item["include_shipping_costs"],
                     item["amount"],
                     order.shipping_price_gross_amount,
                 )
-                shipping_refund_amount = item["amount"]
+                if item.get("is_deprecated_way", False):
+                    item["amount"] += min(
+                        refund_amount + (shipping_refund_amount or Decimal("0")),
+                        item["payment"].captured_amount,
+                    )
+                else:
+                    item["amount"] += shipping_refund_amount
             else:
                 item["amount"] = min(refund_amount, item["payment"].captured_amount)
                 refund_amount -= item["amount"]
 
     amount = Decimal(sum([item["amount"] for item in payments]))
-
     for item in payments:
         try_refund(
             order=order,

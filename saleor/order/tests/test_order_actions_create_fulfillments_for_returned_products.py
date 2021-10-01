@@ -28,6 +28,13 @@ def test_create_return_fulfillment_only_order_lines(
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
+    payments = [
+        {
+            "payment": payment,
+            "amount": Decimal("0"),
+            "include_shipping_costs": False,
+        }
+    ]
 
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
@@ -43,7 +50,7 @@ def test_create_return_fulfillment_only_order_lines(
         user=staff_user,
         app=None,
         order=order_with_lines,
-        payment=payment,
+        payments=payments,
         order_lines=[
             OrderLineData(line=line, quantity=2, replace=False)
             for line in order_lines_to_return
@@ -102,7 +109,13 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
-
+    payments = [
+        {
+            "payment": payment,
+            "amount": Decimal("0"),
+            "include_shipping_costs": False,
+        }
+    ]
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
         line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
@@ -117,7 +130,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
         user=staff_user,
         app=None,
         order=order_with_lines,
-        payment=payment,
+        payments=payments,
         order_lines=[
             OrderLineData(line=line, quantity=2, replace=False)
             for line in order_lines_to_return
@@ -178,7 +191,14 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
-
+    payments = [
+        {
+            "payment": payment,
+            "amount": Decimal("0"),
+            "include_shipping_costs": True,
+            "is_deprecated_way": True,
+        }
+    ]
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
         line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
@@ -193,7 +213,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
         user=staff_user,
         app=None,
         order=order_with_lines,
-        payment=payment,
+        payments=payments,
         order_lines=[
             OrderLineData(line=line, quantity=2, replace=False)
             for line in order_lines_to_return
@@ -201,7 +221,6 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
         fulfillment_lines=[],
         manager=get_plugins_manager(),
         refund=True,
-        refund_shipping_costs=True,
     )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 
@@ -259,6 +278,13 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
+    payments = [
+        {
+            "payment": payment,
+            "amount": Decimal("0"),
+            "include_shipping_costs": False,
+        }
+    ]
 
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
@@ -288,7 +314,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
         user=staff_user,
         app=None,
         order=order_with_lines,
-        payment=payment,
+        payments=payments,
         order_lines=order_lines_data,
         fulfillment_lines=[],
         manager=get_plugins_manager(),
@@ -389,6 +415,13 @@ def test_create_return_fulfillment_only_fulfillment_lines(
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
+    payments = [
+        {
+            "payment": payment,
+            "amount": Decimal("0"),
+            "include_shipping_costs": False,
+        }
+    ]
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
     original_quantity = {line.id: line.quantity for line in fulfillment_lines}
@@ -397,7 +430,7 @@ def test_create_return_fulfillment_only_fulfillment_lines(
         user=staff_user,
         app=None,
         order=fulfilled_order,
-        payment=payment,
+        payments=payments,
         order_lines=[],
         fulfillment_lines=[
             FulfillmentLineData(line=line, quantity=2, replace=False)
@@ -437,6 +470,13 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
+    payments = [
+        {
+            "payment": payment,
+            "amount": Decimal("0"),
+            "include_shipping_costs": False,
+        }
+    ]
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
     original_quantity = {line.id: line.quantity for line in fulfillment_lines}
@@ -455,7 +495,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
         user=staff_user,
         app=None,
         order=fulfilled_order,
-        payment=payment,
+        payments=payments,
         order_lines=[],
         fulfillment_lines=fulfillment_lines_to_return,
         manager=get_plugins_manager(),
@@ -546,6 +586,13 @@ def test_create_return_fulfillment_with_lines_already_refunded(
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
+    payments = [
+        {
+            "payment": payment,
+            "amount": Decimal("0"),
+            "include_shipping_costs": False,
+        }
+    ]
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
     original_quantity = {line.id: line.quantity for line in fulfillment_lines}
@@ -593,7 +640,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
         user=staff_user,
         app=None,
         order=fulfilled_order,
-        payment=payment,
+        payments=payments,
         order_lines=[],
         fulfillment_lines=fulfillment_lines_to_process,
         manager=get_plugins_manager(),
