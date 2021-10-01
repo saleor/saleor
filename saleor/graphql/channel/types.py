@@ -17,8 +17,11 @@ from . import ChannelContext
 from .dataloaders import ChannelWithHasOrdersByIdLoader
 
 
-class ChannelContextType(ObjectType):
+class DjangoChannelContextType(DjangoObjectType):
     """A Graphene type that supports resolvers' root as ChannelContext objects."""
+
+    class Meta:
+        abstract = True
 
     @staticmethod
     def resolver_with_context(
@@ -29,8 +32,16 @@ class ChannelContextType(ObjectType):
 
     @staticmethod
     def resolve_id(root: ChannelContext, _info):
-        return root.node.id
+        return root.node.pk
 
+    @classmethod
+    def is_type_of(cls, root: Union[ChannelContext, Model], info):
+        # Unwrap node from ChannelContext if it didn't happen already
+        if isinstance(root, ChannelContext):
+            return super().is_type_of(root.node, info)
+
+        # Check type that was already unwrapped by the Entity union check
+        return super().is_type_of(root, info)
 
     @staticmethod
     def resolve_translation(root: ChannelContext, info, language_code):
@@ -38,7 +49,33 @@ class ChannelContextType(ObjectType):
         return resolve_translation(root.node, info, language_code)
 
 
-class ChannelContextTypeWithMetadata(ChannelContextType):
+class ChannelContextType(ObjectType):
+    """A Graphene type that supports resolvers' root as ChannelContext objects."""
+
+    @staticmethod
+    def resolver_with_context(
+        attname, default_value, root: ChannelContext, info, **args
+    ):
+        resolver = get_default_resolver()
+        return resolver(attname, default_value, root.node, info, **args)
+
+    @classmethod
+    def is_type_of(cls, root: Union[ChannelContext, Model], info):
+        # Unwrap node from ChannelContext if it didn't happen already
+        if isinstance(root, ChannelContext):
+            return True
+
+    @staticmethod
+    def resolve_id(root: ChannelContext, _info):
+        return root.node.id
+
+    @staticmethod
+    def resolve_translation(root: ChannelContext, info, language_code):
+        # Resolver for TranslationField; needs to be manually specified.
+        return resolve_translation(root.node, info, language_code)
+
+
+class ChannelContextTypeWithMetadata(DjangoChannelContextType):
     """A Graphene type for that uses ChannelContext as root in resolvers.
 
     Same as ChannelContextType, but for types that implement ObjectWithMetadata

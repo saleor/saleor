@@ -404,7 +404,6 @@ def test_order_query(
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
-    assert expected_method.type.upper() == method["type"]
 
 
 def test_order_query_shipping_method_channel_listing_does_not_exist(
@@ -575,7 +574,6 @@ def test_order_query_in_pln_channel(
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
-    assert expected_method.type.upper() == method["type"]
 
 
 ORDERS_QUERY_SHIPPING_METHODS = """

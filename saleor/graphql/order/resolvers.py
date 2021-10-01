@@ -1,16 +1,14 @@
 from ...channel.models import Channel
+from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
-from ...order.utils import sum_order_totals, get_valid_shipping_methods_for_order
-
-from ..channel.utils import get_default_channel_slug_or_graphql_error
-from ..utils.filters import filter_by_period
+from ...order.utils import get_valid_shipping_methods_for_order, sum_order_totals
 from ..channel import ChannelContext
-from ...core.taxes import display_gross_prices
-
+from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..shipping.types import ShippingMethod
+from ..utils.filters import filter_by_period
 
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
 
@@ -64,6 +62,7 @@ def resolve_order_by_token(token):
         .first()
     )
 
+
 def resolve_order_shipping_methods(root: models.Order, info):
     # TODO: We should optimize it in/after PR#5819
     available = get_valid_shipping_methods_for_order(root)
@@ -91,16 +90,19 @@ def resolve_order_shipping_methods(root: models.Order, info):
                 shipping_method.price = taxed_price.net
             available_shipping_methods.append(shipping_method)
     instances = [
-        ChannelContext(node=ShippingMethod(
-            id=shipping.id,
-            price=shipping.price,
-            description=shipping.description,
-            maximum_delivery_days=shipping.maximum_delivery_days,
-            minimum_delivery_days=shipping.minimum_delivery_days,
-        ), channel_slug=channel_slug)
+        ChannelContext(
+            node=ShippingMethod(
+                id=shipping.id,
+                price=shipping.price,
+                name=shipping.name,
+                description=shipping.description,
+                maximum_delivery_days=shipping.maximum_delivery_days,
+                minimum_delivery_days=shipping.minimum_delivery_days,
+            ),
+            channel_slug=channel_slug,
+        )
         for shipping in available_shipping_methods
     ]
-    print(instances[0].node.__dict__)
     return instances
     # return [ShippingMethod(
     #         id=shipping.id,

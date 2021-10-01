@@ -32,7 +32,6 @@ from .dataloaders import (
     CheckoutLinesByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
-
 from .resolvers import resolve_checkout_available_shipping_methods
 
 
@@ -156,12 +155,14 @@ class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod,
         required=True,
-        description="Shipping methods that can be used with this order.",
+        description=(
+            "Shipping methods that can be used with this order." "Deprecated in 4.0."
+        ),
     )
     shipping_methods = graphene.List(
         ShippingMethod,
         required=True,
-        description="Shipping methods related to this order."
+        description="Shipping methods related to this order.",
     )
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),
@@ -254,12 +255,12 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_available_shipping_methods(root: models.Checkout, info):
-        resolve_checkout_available_shipping_methods(root, info)
+        return resolve_checkout_available_shipping_methods(root, info)
 
     @staticmethod
     @traced_resolver
     def resolve_shipping_methods(root: models.Checkout, info):
-        resolve_checkout_available_shipping_methods(root, info)
+        return resolve_checkout_available_shipping_methods(root, info)
 
     @staticmethod
     def resolve_shipping_method(root: models.Checkout, info):
@@ -379,11 +380,6 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_lines(root: models.Checkout, info):
         return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
-
-    @staticmethod
-    @traced_resolver
-    # TODO: We should optimize it in/after PR#5819
-    
 
     @staticmethod
     def resolve_available_payment_gateways(root: models.Checkout, info):

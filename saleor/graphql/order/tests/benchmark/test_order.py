@@ -28,7 +28,6 @@ FRAGMENT_AVAILABLE_SHIPPING_METHODS = """
             amount
             currency
         }
-        name
     }
 """
 

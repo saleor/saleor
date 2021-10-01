@@ -77,8 +77,8 @@ from .dataloaders import (
     OrderLinesByOrderIdLoader,
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
-from .utils import validate_draft_order
 from .resolvers import resolve_order_shipping_methods
+from .utils import validate_draft_order
 
 
 def get_order_discount_event(discount_obj: dict):
@@ -597,13 +597,12 @@ class Order(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod,
         required=False,
-        description=
-            "Shipping methods that can be used with this order."
-        ,
+        description=(
+            "Shipping methods that can be used with this order." "Deprecated in 4.0."
+        ),
     )
     shipping_methods = graphene.List(
-        ShippingMethod,
-        description="Shipping methods related to this order."
+        ShippingMethod, description="Shipping methods related to this order."
     )
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."

@@ -1,19 +1,23 @@
+from promise import Promise
+
 from ...checkout import models
+from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.tracing import traced_resolver
-from ..utils import get_user_or_app_from_context
-from ...checkout.utils import get_valid_shipping_methods_for_checkout
-from ..shipping.dataloaders import ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader, ShippingMethodByIdLoader
+from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
-from ..account.dataloaders import AddressByIdLoader
 from ..discount.dataloaders import DiscountsByDateTimeLoader
+from ..shipping.dataloaders import (
+    ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+)
+from ..shipping.types import ShippingMethod
+from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     CheckoutInfoByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
-from promise import Promise
-from ..shipping.types import ShippingMethod
 
 
 def resolve_checkout_lines():
@@ -55,6 +59,7 @@ def resolve_checkout(info, token):
 
     return None
 
+
 def resolve_checkout_available_shipping_methods(root: models.Checkout, info):
     def calculate_available_shipping_methods(data):
         address, lines, checkout_info, discounts, channel = data
@@ -93,7 +98,17 @@ def resolve_checkout_available_shipping_methods(root: models.Checkout, info):
                     else:
                         shipping.price = taxed_price.net
                     available_with_channel_context.append(
-                        ChannelContext(node=shipping, channel_slug=channel_slug)
+                        ChannelContext(
+                            node=ShippingMethod(
+                                id=shipping.id,
+                                price=shipping.price,
+                                name=shipping.name,
+                                description=shipping.description,
+                                maximum_delivery_days=shipping.maximum_delivery_days,
+                                minimum_delivery_days=shipping.minimum_delivery_days,
+                            ),
+                            channel_slug=channel_slug,
+                        )
                     )
                 return available_with_channel_context
 
@@ -123,9 +138,7 @@ def resolve_checkout_available_shipping_methods(root: models.Checkout, info):
     )
     lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
     checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-    discounts = DiscountsByDateTimeLoader(info.context).load(
-        info.context.request_time
-    )
+    discounts = DiscountsByDateTimeLoader(info.context).load(info.context.request_time)
     return Promise.all([address, lines, checkout_info, discounts, channel]).then(
         calculate_available_shipping_methods
     )

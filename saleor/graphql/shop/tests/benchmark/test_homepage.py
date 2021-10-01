@@ -1,6 +1,5 @@
 import pytest
 
-from ....order.tests.benchmark.test_order import FRAGMENT_AVAILABLE_SHIPPING_METHODS
 from ....tests.utils import get_graphql_content
 
 
@@ -8,7 +7,19 @@ from ....tests.utils import get_graphql_content
 @pytest.mark.count_queries(autouse=False)
 def test_retrieve_shop(api_client, channel_USD, count_queries):
     query = (
-        FRAGMENT_AVAILABLE_SHIPPING_METHODS
+        """
+            fragment AvailableShippingMethods on ShippingMethodType {
+                id
+                price {
+                    amount
+                }
+                minimumOrderPrice {
+                    amount
+                    currency
+                }
+                name
+            }
+        """
         + """
         query getShop($channel: String!) {
           shop {
