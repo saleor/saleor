@@ -1,8 +1,10 @@
 from collections import defaultdict
 
+from django.conf import settings
 from graphene.utils.str_converters import to_snake_case
 from graphene_federation import build_schema
 from graphene_federation.entity import custom_entities
+from graphql import GraphQLError
 
 from ..channel import ChannelContext
 
@@ -21,6 +23,14 @@ def set_entity_resolver(schema):
 
 
 def resolve_entities(parent, info, representations):
+    max_representations = settings.FEDERATED_QUERY_MAX_ENTITIES
+    if max_representations and len(representations) > max_representations:
+        representations_count = len(representations)
+        raise GraphQLError(
+            f"Federated query exceeded entity limit: {representations_count} "
+            "items requested over {max_representations}."
+        )
+
     resolvers = {}
     for representation in representations:
         if representation["__typename"] not in resolvers:

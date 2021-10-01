@@ -1,13 +1,21 @@
+from typing import List
+
 import graphene
 from django.contrib.auth import get_user_model
 from django.contrib.auth import models as auth_models
+from django.db.models import Q
 from graphene import relay
 from graphene_federation import key
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, AppPermission, OrderPermissions
+from ...core.permissions import (
+    AccountPermissions,
+    AppPermission,
+    OrderPermissions,
+    has_one_of_permissions,
+)
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ..account.utils import requestor_has_access
@@ -121,13 +129,16 @@ class Address(CountableDjangoObjectType):
         return False
 
     @staticmethod
-    def __resolve_reference(root: "Address", info, **_kwargs):
-        try:
-            from .resolvers import resolve_address
+    def __resolve_references(roots: List["Address"], info, **_kwargs):
+        user = info.context.user
+        app = info.context.app
 
-            return resolve_address(info, root.id)
-        except PermissionDenied:
-            return None
+        ids = [from_global_id_or_error(root.id, Address)[1] for root in roots]
+        if app and app.has_perm(AccountPermissions.MANAGE_USERS):
+            return models.Address.objects.filter(id__in=ids)
+        if user and not user.is_anonymous:
+            return user.addresses.filter(id__in=ids)
+        return []
 
 
 class CustomerEvent(CountableDjangoObjectType):
@@ -378,28 +389,40 @@ class User(CountableDjangoObjectType):
         return resolve_wishlist_items_from_user(root)
 
     @staticmethod
-    def __resolve_reference(root: "User", info, **_kwargs):
-        User = get_user_model()
+    def __resolve_references(roots: List["User"], info, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = has_one_of_permissions(
+            requestor,
+            [
+                AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS
+            ],
+        )
 
-        try:
+        ids = []
+        emails = []
+        for root in roots:
             if root.id is not None:
-                user = graphene.Node.get_node_from_global_id(info, root.id)
+                _, user_id = from_global_id_or_error(root.id, User)
+                ids.append(int(user_id))
             else:
-                user = get_user_model().objects.get(email=root.email)
-        except User.DoesNotExist:
-            user = None
+                emails.append(root.email)
 
-        if not user:
-            return None
+        # If user has no access to all users, we can only return themselves, but
+        # only if they are authenticated and one of requested users
+        if not requestor_has_access_to_all:
+            user = info.context.user
+            if user.is_authenticated and (user.id in ids or user.email in emails):
+                return [user]
 
-        auth_user = info.context.user
-        manage_staff = auth_user.has_perm(AccountPermissions.MANAGE_STAFF)
-        manage_users = auth_user.has_perm(AccountPermissions.MANAGE_USERS)
+            return []
 
-        if user == auth_user or manage_staff or manage_users:
-            return user
-
-        return None
+        # If we can access all users, just fetch them from DB and return them
+        qs = get_user_model().objects
+        if ids and emails:
+            return qs.filter(Q(id__in=ids) | Q(email__in=emails))
+        if ids:
+            return qs.filter(id__in=ids)
+        return qs.filter(email__in=emails)
 
     @staticmethod
     def resolve_language_code(root, _info, **_kwargs):

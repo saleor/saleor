@@ -528,6 +528,10 @@ GRAPHENE = {
     ],
 }
 
+FEDERATED_QUERY_MAX_ENTITIES = int(
+    os.environ.get("FEDERATED_QUERY_MAX_ENTITIES", 300)
+)
+
 BUILTIN_PLUGINS = [
     "saleor.plugins.avatax.plugin.AvataxPlugin",
     "saleor.plugins.vatlayer.plugin.VatlayerPlugin",

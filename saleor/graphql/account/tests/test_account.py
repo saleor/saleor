@@ -5127,7 +5127,7 @@ def test_staff_query_user_by_id_without_permission_for_federation(
 
     response = staff_api_client.post_graphql(USER_FEDERATION_QUERY, variables)
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [None]
+    assert content["data"]["_entities"] == []
 
 
 def test_staff_query_user_by_email_without_permission_for_federation(
@@ -5144,7 +5144,7 @@ def test_staff_query_user_by_email_without_permission_for_federation(
 
     response = staff_api_client.post_graphql(USER_FEDERATION_QUERY, variables)
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [None]
+    assert content["data"]["_entities"] == []
 
 
 def test_customer_query_self_by_id_for_federation(user_api_client, customer_user):
@@ -5215,7 +5215,7 @@ def test_customer_query_user_by_id_for_federation(
         variables,
     )
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [None]
+    assert content["data"]["_entities"] == []
 
 
 def test_customer_query_user_by_email_for_federation(
@@ -5235,7 +5235,7 @@ def test_customer_query_user_by_email_for_federation(
         variables,
     )
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [None]
+    assert content["data"]["_entities"] == []
 
 
 def test_unauthenticated_query_user_by_id_for_federation(api_client, customer_user):
@@ -5254,7 +5254,7 @@ def test_unauthenticated_query_user_by_id_for_federation(api_client, customer_us
         variables,
     )
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [None]
+    assert content["data"]["_entities"] == []
 
 
 def test_unauthenticated_query_user_by_email_for_federation(api_client, customer_user):
@@ -5272,7 +5272,7 @@ def test_unauthenticated_query_user_by_email_for_federation(api_client, customer
         variables,
     )
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [None]
+    assert content["data"]["_entities"] == []
 
 
 ADDRESS_FEDERATION_QUERY = """
@@ -5329,7 +5329,7 @@ def test_customer_query_other_user_address_federation(
 
     response = user_api_client.post_graphql(ADDRESS_FEDERATION_QUERY, variables)
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [None]
+    assert content["data"]["_entities"] == []
 
 
 def test_staff_query_other_user_address_federation(
@@ -5349,7 +5349,7 @@ def test_staff_query_other_user_address_federation(
 
     response = staff_api_client.post_graphql(ADDRESS_FEDERATION_QUERY, variables)
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [None]
+    assert content["data"]["_entities"] == []
 
 
 def test_staff_query_other_user_address_with_permission_federation(
@@ -5374,7 +5374,7 @@ def test_staff_query_other_user_address_with_permission_federation(
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [None]
+    assert content["data"]["_entities"] == []
 
 
 def test_app_query_address_federation(app_api_client, address, permission_manage_users):
@@ -5417,7 +5417,7 @@ def test_app_no_permission_query_address_federation(app_api_client, address):
 
     response = app_api_client.post_graphql(ADDRESS_FEDERATION_QUERY, variables)
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [None]
+    assert content["data"]["_entities"] == []
 
 
 def test_unauthenticated_query_address_federation(api_client, address):
@@ -5433,4 +5433,4 @@ def test_unauthenticated_query_address_federation(api_client, address):
 
     response = api_client.post_graphql(ADDRESS_FEDERATION_QUERY, variables)
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [None]
+    assert content["data"]["_entities"] == []
