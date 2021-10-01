@@ -835,7 +835,7 @@ class PluginsManager(PaymentInterface):
             )
         return gateways
 
-    def list_shipping_methods(
+    def list_shipping_methods_for_checkout(
         self,
         checkout: Optional["Checkout"] = None,
         channel_slug: Optional[str] = None,
@@ -864,7 +864,7 @@ class PluginsManager(PaymentInterface):
     ):
         methods = {
             method.id: method
-            for method in self.list_shipping_methods(
+            for method in self.list_shipping_methods_for_checkout(
                 checkout=checkout, channel_slug=channel_slug
             )
         }

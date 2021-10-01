@@ -87,6 +87,7 @@ class BaseTranslateMutation(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
+        # ShippingMethod type isn't model-based class
         if cls._meta.model._meta.object_name == "ShippingMethod":
             instance = get_shipping_model_by_object_id(data.get("id"))
         else:

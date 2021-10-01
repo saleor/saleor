@@ -290,15 +290,18 @@ def fetch_checkout_info(
         valid_pick_up_points=[],
     )
 
-    valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
-        checkout_info, shipping_address, lines, discounts, manager
-    )
-    if app_shipping_id:
-        valid_shipping_methods += (
+    valid_shipping_methods: List[
+        Union["ShippingMethod", "ExternalShippingMethod"]
+    ] = list(
+        itertools.chain(
+            get_valid_shipping_method_list_for_checkout_info(
+                checkout_info, shipping_address, lines, discounts, manager
+            ),
             get_valid_external_shipping_method_list_for_checkout_info(
                 checkout_info, shipping_address, lines, discounts, manager
-            )
+            ),
         )
+    )
     valid_pick_up_points = get_valid_collection_points_for_checkout_info(
         shipping_address, lines, checkout_info
     )
@@ -317,12 +320,20 @@ def update_checkout_info_shipping_address(
     manager: "PluginsManager",
 ):
     checkout_info.shipping_address = address
-    valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
-        checkout_info, address, lines, discounts, manager
+
+    valid_shipping_methods: List[
+        Union["ShippingMethod", "ExternalShippingMethod"]
+    ] = list(
+        itertools.chain(
+            get_valid_shipping_method_list_for_checkout_info(
+                checkout_info, address, lines, discounts, manager
+            ),
+            get_valid_external_shipping_method_list_for_checkout_info(
+                checkout_info, address, lines, discounts, manager
+            ),
+        )
     )
-    valid_shipping_methods += get_valid_external_shipping_method_list_for_checkout_info(
-        checkout_info, address, lines, discounts, manager
-    )
+
     checkout_info.valid_shipping_methods = valid_shipping_methods
 
     delivery_method = checkout_info.delivery_method_info.delivery_method
@@ -337,7 +348,7 @@ def get_valid_shipping_method_list_for_checkout_info(
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
-):
+) -> List["ShippingMethod"]:
     from .utils import get_valid_shipping_methods_for_checkout
 
     country_code = shipping_address.country.code if shipping_address else None
@@ -360,15 +371,11 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
-):
-    from .utils import get_app_shipping_id
+) -> List["ExternalShippingMethod"]:
 
-    app_shipping_id = get_app_shipping_id(checkout_info.checkout)
-    if app_shipping_id:
-        return manager.list_shipping_methods(
-            checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
-        )
-    return []
+    return manager.list_shipping_methods_for_checkout(
+        checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
+    )
 
 
 def get_valid_collection_points_for_checkout_info(

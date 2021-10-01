@@ -37,7 +37,7 @@ class ShippingPostalCodeRulesCreateInputRange(graphene.InputObjectType):
 
 class ShippingPriceInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the shipping method.")
-    description = graphene.JSONString(description="Shipping method description (JSON).")
+    description = graphene.JSONString(description="Shipping method description.")
     minimum_order_weight = WeightScalar(
         description="Minimum order weight to use this shipping method."
     )

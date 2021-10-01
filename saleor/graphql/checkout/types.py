@@ -503,8 +503,10 @@ class Checkout(CountableDjangoObjectType):
         ).then(calculate_available_shipping_methods)
 
         def with_external_shipping_methods(shipping_methods):
-            external_shipping_methods = info.context.plugins.list_shipping_methods(
-                checkout=root, channel_slug=root.channel.slug
+            external_shipping_methods = (
+                info.context.plugins.list_shipping_methods_for_checkout(
+                    checkout=root, channel_slug=root.channel.slug
+                )
             )
 
             if external_shipping_methods:

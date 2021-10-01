@@ -106,7 +106,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         channel_id = data.pop("channel_id", None)
 
         shipping_method = get_shipping_model_by_object_id(
-            data.pop("shipping_method", None)
+            object_id=data.pop("shipping_method", None), raise_error=False
         )
 
         cleaned_input = super().clean_input(info, instance, data)

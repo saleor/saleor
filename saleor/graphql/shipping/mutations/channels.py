@@ -234,6 +234,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
         shipping_method = get_shipping_model_by_object_id(id)
+
         errors = defaultdict(list)
         clean_channels = cls.clean_channels(
             info, input, errors, ShippingErrorCode.DUPLICATED_INPUT_ITEM.value

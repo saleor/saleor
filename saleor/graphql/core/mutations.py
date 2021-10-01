@@ -489,6 +489,7 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def get_type_for_model(cls):
+        # ShippingMethod type isn't model-based class
         if cls._meta.model._meta.object_name == "ShippingMethod":
             return shipping_types.ShippingMethod
         return registry.get_type_for_model(cls._meta.model)
@@ -502,6 +503,7 @@ class ModelMutation(BaseMutation):
         object_id = data.get("id")
         qs = data.get("qs")
         if object_id:
+            # ShippingMethod type isn't model-based class
             if cls._meta.model._meta.object_name == "ShippingMethod":
                 instance = get_shipping_model_by_object_id(object_id)
             else:
@@ -613,6 +615,7 @@ class BaseBulkMutation(BaseMutation):
         instance_model = cls._meta.model
         model_type = registry.get_type_for_model(instance_model)
         try:
+            # ShippingMethod type isn't model-based class
             if instance_model._meta.object_name == "ShippingMethod":
                 instances = get_instances_by_object_ids(ids)
             else:

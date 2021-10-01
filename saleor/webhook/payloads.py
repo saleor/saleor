@@ -311,10 +311,18 @@ def generate_checkout_payload(checkout: "Checkout"):
         "discount_name",
         "private_metadata",
         "metadata",
+        "channel",
     )
     user_fields = ("email", "first_name", "last_name")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
     lines_dict_data = serialize_checkout_lines(checkout)
+
+    # todo use the most appropriate warehouse
+    warehouse = None
+    if checkout.shipping_address:
+        warehouse = Warehouse.objects.for_country(
+            checkout.shipping_address.country.code
+        ).first()
 
     checkout_data = serializer.serialize(
         [checkout],
@@ -325,6 +333,10 @@ def generate_checkout_payload(checkout: "Checkout"):
             "billing_address": (lambda c: c.billing_address, ADDRESS_FIELDS),
             "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
             "shipping_method": (lambda c: c.shipping_method, shipping_method_fields),
+            "warehouse_address": (
+                lambda c: warehouse.address if warehouse else None,
+                ADDRESS_FIELDS,
+            ),
         },
         extra_dict_data={
             # Casting to list to make it json-serializable
@@ -645,39 +657,6 @@ def generate_list_gateways_payload(
     else:
         checkout_data = None
     payload = {"checkout": checkout_data, "currency": currency}
-    return json.dumps(payload)
-
-
-def generate_shipping_methods_payload(checkout: Optional["Checkout"]):
-    if checkout:
-        serializer = PayloadSerializer()
-        checkout_fields = (
-            "private_metadata",
-            "metadata",
-            "channel",
-        )
-
-        # todo use the most appropriate warehouse
-        warehouse = Warehouse.objects.for_country(
-            checkout.shipping_address.country.code  # type: ignore
-        ).first()
-
-        checkout_data = serializer.serialize(
-            [checkout],
-            fields=checkout_fields,
-            obj_id_name="token",
-            additional_fields={
-                "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
-                "warehouse_address": (lambda c: warehouse.address, ADDRESS_FIELDS),
-            },
-            extra_dict_data={
-                "lines": list(serialize_checkout_lines(checkout)),
-            },
-        )
-        checkout_data = json.loads(checkout_data)[0]
-    else:
-        checkout_data = None
-    payload = {"checkout": checkout_data}
     return json.dumps(payload)
 
 

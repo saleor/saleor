@@ -21,7 +21,6 @@ from ...webhook.payloads import (
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
     generate_sale_payload,
-    generate_shipping_methods_payload,
     generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
@@ -497,10 +496,11 @@ class WebhookPlugin(BasePlugin):
         apps = App.objects.for_event_type(
             WebhookEventType.SHIPPING_LIST_METHODS
         ).prefetch_related("webhooks")
+        payload = generate_checkout_payload(checkout)
         for app in apps:
             response_data = trigger_webhook_sync(
                 event_type=WebhookEventType.SHIPPING_LIST_METHODS,
-                data=generate_shipping_methods_payload(checkout),
+                data=payload,
                 app=app,
             )
             if response_data:

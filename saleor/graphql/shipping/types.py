@@ -102,7 +102,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     )
     id = graphene.ID(required=True, description="Shipping method ID.")
     name = graphene.String(required=True, description="Shipping method name.")
-    description = graphene.JSONString(description="Shipping method description (JSON).")
+    description = graphene.JSONString(description="Shipping method description.")
     minimum_order_weight = graphene.Field(
         Weight, description="Minimum order weight to use this shipping method."
     )
@@ -119,8 +119,8 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
         description = (
-            "External shipping method are the methods you'll use to get customer's "
-            " orders to them. They are directly exposed to the customers."
+            "Shipping method are the methods you'll use to get customer's orders to "
+            "them. They are directly exposed to the customers."
         )
         interfaces = [relay.Node, ObjectWithMetadata]
 

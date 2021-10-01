@@ -42,14 +42,6 @@ def resolve_available_shipping_methods(info, channel_slug: str, address):
             for shipping in available
         ]
 
-    plugin_shipping_methods = manager.list_shipping_methods(channel_slug=channel_slug)
-
-    if plugin_shipping_methods:
-        instances += [
-            ChannelContext(node=shipping, channel_slug=channel_slug)
-            for shipping in plugin_shipping_methods
-        ]
-
     return instances
 
 

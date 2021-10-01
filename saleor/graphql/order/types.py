@@ -9,9 +9,8 @@ from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
 
-from saleor.checkout.utils import get_app_shipping_id
-
 from ...account.models import Address
+from ...checkout.utils import get_app_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
@@ -1115,15 +1114,6 @@ class Order(CountableDjangoObjectType):
             instances = [
                 ChannelContext(node=shipping, channel_slug=channel_slug)
                 for shipping in available_shipping_methods
-            ]
-        plugin_shipping_methods = manager.list_shipping_methods(
-            checkout=root, channel_slug=root.channel.slug
-        )
-
-        if plugin_shipping_methods:
-            instances += [
-                ChannelContext(node=shipping, channel_slug=root.channel.slug)
-                for shipping in plugin_shipping_methods
             ]
 
         return instances

@@ -647,7 +647,15 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
     checkout.collection_point = None
     checkout.shipping_method = None
     update_checkout_info_delivery_method(checkout_info, None)
-    checkout.save(update_fields=["shipping_method", "collection_point", "last_change"])
+    delete_app_shipping_id(checkout=checkout)
+    checkout.save(
+        update_fields=[
+            "shipping_method",
+            "collection_point",
+            "private_metadata",
+            "last_change",
+        ]
+    )
 
 
 def is_fully_paid(
