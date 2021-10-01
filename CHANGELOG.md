@@ -168,9 +168,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add new permision `IMPERSONATE_USER`
   - Handle `SameSite` cookie attribute in jwt refresh token middleware - #8209 by @jakubkuc
 
-- Reserve stocks for checkouts in progress - #7589 by @rafalp
-- Reserve stocks for checkouts - #7589 by @rafalp
-
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
