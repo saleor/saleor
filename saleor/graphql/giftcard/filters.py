@@ -68,6 +68,12 @@ def _filter_by_price(qs, field, value):
     return qs.filter(**lookup)
 
 
+def filter_code(qs, _, value):
+    if not value:
+        return qs
+    return qs.filter(code=value)
+
+
 class GiftCardFilter(django_filters.FilterSet):
     tag = django_filters.CharFilter(method=filter_gift_card_tag)
     tags = ListObjectTypeFilter(input_class=graphene.String, method=filter_tags_list)
@@ -81,6 +87,7 @@ class GiftCardFilter(django_filters.FilterSet):
         input_class=PriceRangeInput, method="filter_initial_balance"
     )
     is_active = django_filters.BooleanFilter()
+    code = django_filters.CharFilter(method=filter_code)
 
     class Meta:
         model = models.GiftCard

@@ -424,3 +424,50 @@ def test_query_filter_gift_cards_by_initial_balance(
         graphene.Node.to_global_id("GiftCard", gift_cards[i].pk)
         for i in expected_gift_card_indexes
     }
+
+
+def test_query_filter_gift_cards_by_code(
+    staff_api_client,
+    gift_card,
+    gift_card_expiry_date,
+    gift_card_used,
+    permission_manage_gift_card,
+):
+    # given
+    query = QUERY_GIFT_CARDS
+
+    variables = {"filter": {"code": gift_card.code}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCards"]["edges"]
+    assert len(data) == 1
+    assert data[0]["node"]["id"] == graphene.Node.to_global_id("GiftCard", gift_card.pk)
+
+
+def test_query_filter_gift_cards_by_code_no_gift_card(
+    staff_api_client,
+    gift_card,
+    gift_card_expiry_date,
+    gift_card_used,
+    permission_manage_gift_card,
+):
+    # given
+    query = QUERY_GIFT_CARDS
+
+    variables = {"filter": {"code": "code-does-not-exist"}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCards"]["edges"]
+    assert len(data) == 0

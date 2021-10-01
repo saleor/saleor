@@ -2427,6 +2427,7 @@ input GiftCardFilterInput {
   currency: String
   currentBalance: PriceRangeInput
   initialBalance: PriceRangeInput
+  code: String
 }
 
 type GiftCardResend {
