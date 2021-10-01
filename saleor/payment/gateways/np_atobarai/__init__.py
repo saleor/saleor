@@ -3,15 +3,10 @@ from typing import List
 
 import opentracing
 
-from saleor.payment import TransactionKind
-from saleor.payment.gateways.np_atobarai import api
-from saleor.payment.gateways.np_atobarai.api_types import (
-    ApiConfig,
-    PaymentStatus,
-    get_api_config,
-)
-
+from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
+from . import api
+from .api_types import ApiConfig, PaymentStatus, get_api_config
 
 
 def inject_api_config(fun):
