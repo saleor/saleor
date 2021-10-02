@@ -27,7 +27,7 @@ from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.model_helpers import get_subtotal, get_total_authorized
+from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderOrigin, OrderStatus
@@ -378,10 +378,6 @@ class Order(ModelWithMetadata):
         if not payments:
             payments = self.payments.all()
         return len(payments) == 0
-
-    @property
-    def total_authorized(self):
-        return get_total_authorized(self.payments.all(), self.currency)
 
     @property
     def total_captured(self):
