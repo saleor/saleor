@@ -11,7 +11,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
-from ...shipping.interface import ShippingMethodData
+from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
@@ -461,23 +461,11 @@ class Checkout(CountableDjangoObjectType):
                             shipping_channel_listing.price, address, channel_slug
                         )
                         if display_gross:
-                            price = taxed_price.gross
+                            shipping.price = taxed_price.gross
                         else:
-                            price = taxed_price.net
-                        node = ShippingMethodData(
-                            id=shipping.id,
-                            name=shipping.name,
-                            price=price,
-                            description=shipping.description,
-                            type=shipping.type,
-                            excluded_products=shipping.excluded_products,
-                            minimum_order_weight=shipping.minimum_order_weight,
-                            maximum_order_weight=shipping.maximum_order_weight,
-                            maximum_delivery_days=shipping.maximum_delivery_days,
-                            minimum_delivery_days=shipping.minimum_delivery_days,
-                            metadata=shipping.metadata,
-                            private_metadata=shipping.private_metadata,
-                        )
+                            shipping.price = taxed_price.net
+
+                        node = convert_to_shipping_method_data(shipping)
                         available_with_channel_context.append(
                             ChannelContext(node=node, channel_slug=channel_slug)
                         )

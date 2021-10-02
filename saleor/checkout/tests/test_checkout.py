@@ -16,6 +16,7 @@ from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingMethod, ShippingZone
+from ...shipping.utils import convert_to_shipping_method_data
 from .. import AddressType, calculations
 from ..fetch import (
     CheckoutInfo,
@@ -429,7 +430,7 @@ def test_get_discount_for_checkout_shipping_voucher(
         checkout=checkout,
         shipping_address=shipping_address,
         delivery_method_info=get_delivery_method_info(
-            shipping_method, shipping_address
+            convert_to_shipping_method_data(shipping_method), shipping_address
         ),
         billing_address=None,
         channel=channel_USD,
@@ -489,7 +490,9 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     manager = get_plugins_manager()
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        delivery_method_info=get_delivery_method_info(shipping_method, None),
+        delivery_method_info=get_delivery_method_info(
+            convert_to_shipping_method_data(shipping_method), None
+        ),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
@@ -682,7 +685,9 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        delivery_method_info=get_delivery_method_info(shipping_method),
+        delivery_method_info=get_delivery_method_info(
+            convert_to_shipping_method_data(shipping_method)
+        ),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,

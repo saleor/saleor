@@ -5,14 +5,14 @@ manager.
 """
 
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Iterable, Optional
 
 from prices import TaxedMoney
 
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo
-from .fetch import CheckoutLineInfo, ExternalShippingMethodInfo, ShippingMethodInfo
+from .fetch import CheckoutLineInfo, ShippingMethodInfo
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
@@ -25,9 +25,7 @@ def base_checkout_shipping_price(
 ) -> TaxedMoney:
     delivery_method_info = checkout_info.delivery_method_info
 
-    if isinstance(delivery_method_info, ShippingMethodInfo) or isinstance(
-        delivery_method_info, ExternalShippingMethodInfo
-    ):
+    if isinstance(delivery_method_info, ShippingMethodInfo):
         return calculate_price_for_shipping_method(
             checkout_info, delivery_method_info, lines
         )
@@ -37,7 +35,7 @@ def base_checkout_shipping_price(
 
 def calculate_price_for_shipping_method(
     checkout_info: "CheckoutInfo",
-    shipping_method_info: Union[ShippingMethodInfo, ExternalShippingMethodInfo],
+    shipping_method_info: ShippingMethodInfo,
     lines=None,
 ) -> TaxedMoney:
     """Return checkout shipping price."""
@@ -54,9 +52,8 @@ def calculate_price_for_shipping_method(
     if not shipping_method or not shipping_required:
         return zero_taxed_money(checkout_info.checkout.currency)
 
-    if hasattr(shipping_method, "price"):
-        shipping_price = shipping_method.price  # type: ignore
-    else:
+    shipping_price = shipping_method.price
+    if shipping_price is None:
         shipping_price = shipping_method.channel_listings.get(  # type: ignore
             channel_id=checkout_info.checkout.channel_id,
         ).get_total()

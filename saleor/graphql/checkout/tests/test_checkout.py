@@ -36,6 +36,7 @@ from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
+from ....shipping.utils import convert_to_shipping_method_data
 from ....warehouse.models import Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
@@ -58,7 +59,8 @@ def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    is_valid_method = clean_delivery_method(checkout_info, lines, shipping_method)
+    delivery_method = convert_to_shipping_method_data(shipping_method)
+    is_valid_method = clean_delivery_method(checkout_info, lines, delivery_method)
     assert is_valid_method is True
 
 
@@ -2644,11 +2646,13 @@ def test_checkout_shipping_method_update(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     checkout_info.delivery_method_info = get_delivery_method_info(
-        old_shipping_method, None
+        convert_to_shipping_method_data(old_shipping_method), None
     )
     checkout_info.shipping_method_channel_listings = None
     mock_clean_shipping.assert_called_once_with(
-        checkout_info=checkout_info, lines=lines, method=shipping_method
+        checkout_info=checkout_info,
+        lines=lines,
+        method=convert_to_shipping_method_data(shipping_method),
     )
     errors = data["errors"]
     if is_valid_shipping_method:
@@ -2685,6 +2689,10 @@ def test_checkout_delivery_method_update(
 ):
     checkout = checkout_with_item_for_cc
     old_delivery_method = getattr(checkout, attribute_name)
+    shipping_method_data = delivery_method
+    if attribute_name == "shipping_method":
+        old_delivery_method = convert_to_shipping_method_data(old_delivery_method)
+        shipping_method_data = convert_to_shipping_method_data(delivery_method)
     query = MUTATION_UPDATE_DELIVERY_METHOD
     mock_clean_delivery.return_value = is_valid_delivery_method
 
@@ -2704,7 +2712,7 @@ def test_checkout_delivery_method_update(
     )
     checkout_info.shipping_method_channel_listings = None
     mock_clean_delivery.assert_called_once_with(
-        checkout_info=checkout_info, lines=lines, method=delivery_method
+        checkout_info=checkout_info, lines=lines, method=shipping_method_data
     )
     errors = data["errors"]
     if is_valid_delivery_method:

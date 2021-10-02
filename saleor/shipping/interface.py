@@ -14,12 +14,13 @@ class ShippingMethodData:
 
     id: str
     name: str
-    price: Money
+    price: Optional[Money]
     description: Optional[str] = None
     type: Optional[str] = None
     maximum_order_price: Optional[Money] = None
     minimum_order_price: Optional[Money] = None
     excluded_products: Optional["RelatedManager"] = None
+    channel_listings: Optional["RelatedManager"] = None
     minimum_order_weight: Optional[Weight] = None
     maximum_order_weight: Optional[Weight] = None
     maximum_delivery_days: Optional[int] = None

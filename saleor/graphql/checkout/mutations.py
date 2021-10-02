@@ -42,6 +42,7 @@ from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import interface as shipping_interface
 from ...shipping import models as shipping_models
+from ...shipping.utils import convert_to_shipping_method_data
 from ...warehouse import models as warehouse_models
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
@@ -82,7 +83,6 @@ def clean_delivery_method(
     lines: Iterable[CheckoutLineInfo],
     method: Optional[
         Union[
-            models.ShippingMethod,
             shipping_interface.ShippingMethodData,
             warehouse_models.Warehouse,
         ]
@@ -99,9 +99,8 @@ def clean_delivery_method(
             ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
         )
 
-    if not checkout_info.shipping_address and (
-        isinstance(method, models.ShippingMethod)
-        or isinstance(method, shipping_interface.ShippingMethodData)
+    if not checkout_info.shipping_address and isinstance(
+        method, shipping_interface.ShippingMethodData
     ):
         raise ValidationError(
             "Cannot choose a shipping method for a checkout without the "
@@ -115,16 +114,13 @@ def clean_delivery_method(
 
 def update_checkout_delivery_method(
     checkout_info: "CheckoutInfo",
-    method: Union[
-        models.ShippingMethod,
-        shipping_interface.ShippingMethodData,
-    ],
+    method: shipping_interface.ShippingMethodData,
 ):
     checkout = checkout_info.checkout
 
-    if isinstance(method, models.ShippingMethod):
+    if not method.is_external:
         delete_app_shipping_id(checkout=checkout)
-        checkout.shipping_method = method
+        checkout.shipping_method_id = method.id
     else:
         set_app_shipping_id(checkout=checkout, app_shipping_id=method.id)
         checkout.shipping_method = None
@@ -1101,6 +1097,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                     "postal_code_rules"
                 ),
             )
+            shipping_method = convert_to_shipping_method_data(shipping_method)
         except (AttributeError, ValidationError):
             # external shipping method
             shipping_method = manager.get_shipping_method(
@@ -1207,7 +1204,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         shipping_method: Optional[ShippingMethod],
         collection_point: Optional[Warehouse]
     ) -> None:
-        delivery_method = shipping_method
+        delivery_method = convert_to_shipping_method_data(shipping_method)
         error_msg = "This shipping method is not applicable."
 
         if collection_point is not None:

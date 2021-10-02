@@ -3,6 +3,7 @@ import pytest
 from ....account.models import Address
 from ....checkout.fetch import CheckoutInfo, get_delivery_method_info
 from ....shipping.models import ShippingMethodChannelListing
+from ....shipping.utils import convert_to_shipping_method_data
 from ...models import PluginConfiguration
 from ..plugin import AvataxPlugin
 
@@ -92,7 +93,7 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=get_delivery_method_info(
-            shipping_method, shipping_address
+            convert_to_shipping_method_data(shipping_method), shipping_address
         ),
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=[],
