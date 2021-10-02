@@ -8,7 +8,6 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from saleor.order.capture_payment import capture_payments
 from saleor.order.interface import OrderPaymentAction
 
 from ..account.models import User
@@ -50,7 +49,7 @@ from .events import (
     order_replacement_created,
     order_returned_event,
 )
-from .models import Fulfillment, FulfillmentLine, Order, OrderLine
+from .models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from .notifications import (
     send_fulfillment_confirmation_to_customer,
     send_order_canceled_confirmation,
@@ -58,6 +57,7 @@ from .notifications import (
     send_order_refunded_confirmation,
     send_payment_confirmation,
 )
+from .payment_actions import capture_payments, void_payments
 from .utils import (
     get_active_payments,
     order_line_needs_automatic_fulfillment,
@@ -97,8 +97,13 @@ def order_created(
                 order=order,
                 user=user,
                 app=app,
-                amount=authorized_payments[0].total,
-                payment=authorized_payments[0],
+                payment_actions=[
+                    OrderPaymentAction(
+                        amount=payment.captured_amount,
+                        payment=payment,
+                    )
+                    for payment in authorized_payments
+                ],
                 manager=manager,
             )
 
@@ -116,7 +121,7 @@ def order_created(
                 order=order,
                 user=user,
                 app=app,
-                amounts_and_payments=[
+                payment_actions=[
                     OrderPaymentAction(
                         amount=payment.captured_amount,
                         payment=payment,
@@ -136,8 +141,8 @@ def _capture_payments(
     user: "User",
     app: Optional["App"],
     manager: "PluginsManager",
-):
-    payments_to_notify = capture_payments(order, manager, user, app)
+) -> List[OrderEvent]:
+    payments_to_notify, failed_events = capture_payments(order, manager, user, app)
     order.refresh_from_db()
     if payments_to_notify:
         order_captured(
@@ -147,6 +152,28 @@ def _capture_payments(
             payments_to_notify,
             manager,
         )
+
+    return failed_events
+
+
+def _void_payments(
+    order: "Order",
+    user: "User",
+    app: Optional["App"],
+    manager: "PluginsManager",
+) -> List[OrderEvent]:
+    payments_to_notify, failed_events = void_payments(order, manager, user, app)
+    order.refresh_from_db()
+    if payments_to_notify:
+        order_voided(
+            order,
+            user,
+            app,
+            payments_to_notify,
+            manager,
+        )
+
+    return failed_events
 
 
 def order_confirmed(
@@ -280,10 +307,13 @@ def order_voided(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    payment: "Payment",
+    payment_actions: List["OrderPaymentAction"],
     manager: "PluginsManager",
 ):
-    events.payment_voided_event(order=order, user=user, app=app, payment=payment)
+    for action in payment_actions:
+        events.payment_voided_event(
+            order=order, user=user, app=app, payment=action.payment
+        )
     manager.order_updated(order)
 
 
@@ -352,13 +382,17 @@ def order_authorized(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    amount: "Decimal",
-    payment: "Payment",
+    payment_actions: List[OrderPaymentAction],
     manager: "PluginsManager",
 ):
-    events.payment_authorized_event(
-        order=order, user=user, app=app, amount=amount, payment=payment
-    )
+    for action in payment_actions:
+        events.payment_authorized_event(
+            order=order,
+            user=user,
+            app=app,
+            amount=action.amount,
+            payment=action.payment,
+        )
     manager.order_updated(order)
 
 
@@ -366,16 +400,16 @@ def order_captured(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    amounts_and_payments: List[OrderPaymentAction],
+    payment_actions: List[OrderPaymentAction],
     manager: "PluginsManager",
 ):
-    for amount_and_payment in amounts_and_payments:
+    for action in payment_actions:
         events.payment_captured_event(
             order=order,
             user=user,
             app=app,
-            amount=amount_and_payment.amount,
-            payment=amount_and_payment.payment,
+            amount=action.amount,
+            payment=action.payment,
         )
     manager.order_updated(order)
     if order.is_fully_paid():
