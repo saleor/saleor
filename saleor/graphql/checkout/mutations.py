@@ -112,21 +112,6 @@ def clean_delivery_method(
     return method in valid_methods
 
 
-def update_checkout_delivery_method(
-    checkout_info: "CheckoutInfo",
-    method: shipping_interface.ShippingMethodData,
-):
-    checkout = checkout_info.checkout
-
-    if not method.is_external:
-        delete_app_shipping_id(checkout=checkout)
-        checkout.shipping_method_id = method.id
-    else:
-        set_app_shipping_id(checkout=checkout, app_shipping_id=method.id)
-        checkout.shipping_method = None
-    checkout.save(update_fields=["private_metadata", "shipping_method", "last_change"])
-
-
 def update_checkout_shipping_method_if_invalid(
     checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
 ):
@@ -1097,21 +1082,21 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                     "postal_code_rules"
                 ),
             )
-            shipping_method = convert_to_shipping_method_data(shipping_method)
+            delivery_method = convert_to_shipping_method_data(shipping_method)
         except (AttributeError, ValidationError):
             # external shipping method
-            shipping_method = manager.get_shipping_method(
+            delivery_method = manager.get_shipping_method(
                 checkout=checkout,
                 channel_slug=checkout.channel.slug,
                 shipping_method_id=shipping_method_id,
             )
 
-        shipping_method_is_valid = clean_delivery_method(
+        delivery_method_is_valid = clean_delivery_method(
             checkout_info=checkout_info,
             lines=lines,
-            method=shipping_method,
+            method=delivery_method,
         )
-        if not shipping_method_is_valid or not shipping_method:
+        if not delivery_method_is_valid or not delivery_method:
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
@@ -1120,7 +1105,15 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                     )
                 }
             )
-        update_checkout_delivery_method(checkout_info, shipping_method)
+
+        if not delivery_method.is_external:
+            delete_app_shipping_id(checkout=checkout)
+            checkout.shipping_method = shipping_method
+        else:
+            set_app_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
+            checkout.shipping_method = None
+        checkout.save(update_fields=["private_metadata", "shipping_method", "last_change"])
+
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
         )
