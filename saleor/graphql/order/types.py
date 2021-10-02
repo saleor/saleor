@@ -26,11 +26,7 @@ from ...order import OrderPaymentStatus, OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...payment.dataloaders import PaymentsByOrderIdLoader
-from ...payment.model_helpers import (
-    get_last_payment,
-    get_subtotal,
-    get_total_authorized,
-)
+from ...payment.model_helpers import get_subtotal, get_total_authorized
 from ...product import ProductMediaTypes
 from ...product.product_images import get_product_image_thumbnail
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
@@ -874,15 +870,15 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_actions(root: models.Order, info):
         def _resolve_actions(payments):
+            payments = [p for p in payments if p.is_active]
             actions = []
-            payment = get_last_payment(payments)
-            if root.can_capture(payment):
+            if root.can_capture(payments):
                 actions.append(OrderAction.CAPTURE)
             if root.can_mark_as_paid(payments):
                 actions.append(OrderAction.MARK_AS_PAID)
-            if root.can_refund(payment):
+            if root.can_refund(payments):
                 actions.append(OrderAction.REFUND)
-            if root.can_void(payment):
+            if root.can_void(payments):
                 actions.append(OrderAction.VOID)
             return actions
 

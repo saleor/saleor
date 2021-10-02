@@ -344,31 +344,17 @@ class Order(ModelWithMetadata):
             ).exists()
         ) and self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
 
-    def can_capture(self, payment=None):
-        if not payment:
-            payment = self.get_last_payment()
-        if not payment:
-            return False
+    def can_capture(self, payments):
         order_status_ok = self.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED}
-        return payment.can_capture() and order_status_ok
+        return order_status_ok and any([p.can_capture() for p in payments])
 
-    def can_void(self, payment=None):
-        if not payment:
-            payment = self.get_last_payment()
-        if not payment:
-            return False
-        return payment.can_void()
+    def can_void(self, payments):
+        return all([p.can_void() for p in payments])
 
-    def can_refund(self, payment=None):
-        if not payment:
-            payment = self.get_last_payment()
-        if not payment:
-            return False
-        return payment.can_refund()
+    def can_refund(self, payments):
+        return any([p.can_refund() for p in payments])
 
-    def can_mark_as_paid(self, payments=None):
-        if not payments:
-            payments = self.payments.all()
+    def can_mark_as_paid(self, payments):
         return len(payments) == 0
 
     @property
