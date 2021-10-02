@@ -769,6 +769,12 @@ def test_checkout_complete_with_payment_id(
     completed_payment.charge_status = ChargeStatus.AUTHORIZED
     completed_payment.total = total.gross.amount / 2
     completed_payment.currency = total.gross.currency
+    completed_payment.transactions.create(
+        amount=completed_payment.total,
+        kind=TransactionKind.AUTH,
+        gateway_response={},
+        is_success=True,
+    )
     completed_payment.save()
 
     incomplete_payment = Payment.objects.create(**payment_kwargs)

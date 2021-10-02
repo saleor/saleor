@@ -972,16 +972,55 @@ ORDER_CONFIRM_MUTATION = """
 
 @pytest.mark.parametrize(
     (
-        "payment_totals, event_count, "
-        "payment_to_test_idx, expected_exists, expected_amount"
+        "payment_totals,"
+        "triggered_events,"
+        "payment_to_test_idx,"
+        "expected_exists,"
+        "expected_amount"
     ),
     [
-        ([Decimal("98.400")], 2, 0, True, Money("98.400", "USD")),
-        ([Decimal("98.400"), Decimal("88.400")], 2, 0, True, Money("98.400", "USD")),
-        ([Decimal("98.400"), Decimal("88.400")], 2, 1, False, None),
-        ([Decimal("88.400"), Decimal("20.000")], 3, 0, True, Money("88.400", "USD")),
-        ([Decimal("88.400"), Decimal("20.000")], 3, 1, True, Money("10.000", "USD")),
-        ([Decimal("88.400"), Decimal("5.000")], 3, 1, True, Money("5.00", "USD")),
+        (
+            [Decimal("98.400")],
+            ["payment_captured", "order_fully_paid", "confirmed"],
+            0,
+            True,
+            Decimal("98.400"),
+        ),
+        (
+            [Decimal("98.400"), Decimal("88.400")],
+            ["payment_captured", "order_fully_paid", "confirmed"],
+            0,
+            True,
+            Decimal("98.400"),
+        ),
+        (
+            [Decimal("98.400"), Decimal("88.400")],
+            ["payment_captured", "order_fully_paid", "confirmed"],
+            1,
+            False,
+            None,
+        ),
+        (
+            [Decimal("88.400"), Decimal("20.000")],
+            ["payment_captured", "payment_captured", "order_fully_paid", "confirmed"],
+            0,
+            True,
+            Decimal("88.400"),
+        ),
+        (
+            [Decimal("88.400"), Decimal("20.000")],
+            ["payment_captured", "payment_captured", "order_fully_paid", "confirmed"],
+            1,
+            True,
+            Decimal("10.000"),
+        ),
+        (
+            [Decimal("88.400"), Decimal("5.000")],
+            ["payment_captured", "payment_captured", "confirmed"],
+            1,
+            True,
+            Decimal("5.00"),
+        ),
     ],
 )
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -994,31 +1033,50 @@ def test_order_confirm(
     permission_manage_orders,
     payment_txn_preauth_factory,
     payment_totals,
-    event_count,
+    triggered_events,
     payment_to_test_idx,
     expected_exists,
     expected_amount,
 ):
+    # given
+    def _simulate_capture(
+        payment: Payment,
+        manager: "PluginsManager",
+        channel_slug: str,
+        amount: Decimal = None,
+        customer_id: str = None,
+        store_source: bool = False,
+    ):
+        payment.captured_amount = amount
+        payment.save()
+        payment.order.total_paid_amount += amount
+        payment.order.save()
+
+    capture_mock.side_effect = _simulate_capture
+
     payments = []
-    for payment_totals in payment_totals:
+    for payment_total in payment_totals:
         payment_txn_preauth = payment_txn_preauth_factory()
         payment_txn_preauth.order = order_unconfirmed
-        payment_txn_preauth.total = payment_totals
+        payment_txn_preauth.total = payment_total
         payment_txn_preauth.currency = "USD"
         payment_txn_preauth.save()
         payments.append(payment_txn_preauth)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     assert not OrderEvent.objects.exists()
+
+    # when
     response = staff_api_client.post_graphql(
         ORDER_CONFIRM_MUTATION,
         {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
     )
     order_data = get_graphql_content(response)["data"]["orderConfirm"]["order"]
 
+    # then
     assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
     order_unconfirmed.refresh_from_db()
     assert order_unconfirmed.status == OrderStatus.UNFULFILLED
-    assert OrderEvent.objects.count() == event_count
+    assert list(OrderEvent.objects.values_list("type", flat=True)) == triggered_events
     assert OrderEvent.objects.filter(
         order=order_unconfirmed,
         user=staff_api_client.user,
@@ -1060,7 +1118,7 @@ def test_order_confirm(
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
-    mocked_notify.assert_called_once_with(
+    mocked_notify.assert_any_call(
         NotifyEventType.ORDER_CONFIRMED,
         expected_payload,
         channel_slug=order_unconfirmed.channel.slug,
@@ -7497,7 +7555,7 @@ def test_order_active_payments(order, payment_dummy, is_active, excpected_in):
     payment_dummy.save()
 
     # when
-    payments = order.get_active_payments()
+    payments = order.payments.filter(is_active=True)
 
     # then
     assert (payment_dummy in payments) == excpected_in

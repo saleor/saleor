@@ -300,9 +300,6 @@ class Order(ModelWithMetadata):
     def get_last_payment(self):
         return max(self.payments.all(), default=None, key=attrgetter("pk"))
 
-    def get_active_payments(self):
-        return self.payments.filter(is_active=True).order_by("pk")
-
     def is_pre_authorized(self):
         return (
             self.payments.filter(
@@ -315,15 +312,7 @@ class Order(ModelWithMetadata):
         )
 
     def is_captured(self):
-        return (
-            self.payments.filter(
-                is_active=True,
-                transactions__kind=TransactionKind.CAPTURE,
-                transactions__action_required=False,
-            )
-            .filter(transactions__is_success=True)
-            .exists()
-        )
+        return self.total_paid_amount >= self.total_gross_amount
 
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self.lines.all())

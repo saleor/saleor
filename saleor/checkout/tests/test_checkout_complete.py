@@ -359,6 +359,7 @@ def test_create_order_preauth_payment_creates_expected_events(
     (
         order_placed_event,
         payment_authorized_event,
+        payment_captured_event,
         order_confirmed_event,
     ) = order.events.all()  # type: OrderEvent
 
@@ -387,6 +388,20 @@ def test_create_order_preauth_payment_creates_expected_events(
     assert "amount" in payment_authorized_event.parameters.keys()
     assert "payment_id" in payment_authorized_event.parameters.keys()
     assert "payment_gateway" in payment_authorized_event.parameters.keys()
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert payment_captured_event.type == OrderEvents.PAYMENT_CAPTURED
+    # is the user anonymous/ the customer
+    assert payment_captured_event.user == checkout_user
+    # is the associated backref order valid
+    assert payment_captured_event.order is order
+    # ensure a date was set
+    assert payment_captured_event.date
+    # should not have any additional parameters
+    assert "amount" in payment_captured_event.parameters.keys()
+    assert "payment_id" in payment_captured_event.parameters.keys()
+    assert "payment_gateway" in payment_captured_event.parameters.keys()
 
     expected_payload = {
         "order": get_default_order_payload(order, checkout.redirect_url),
@@ -469,6 +484,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
 
     (
         order_placed_event,
+        payment_authorized_event,
         payment_captured_event,
         order_confirmed_event,
     ) = order.events.all()  # type: OrderEvent
@@ -487,7 +503,21 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
 
     # Ensure the correct order event was created
     # is the event the expected type
-    assert payment_captured_event.type == OrderEvents.PAYMENT_AUTHORIZED
+    assert payment_authorized_event.type == OrderEvents.PAYMENT_AUTHORIZED
+    # is the user anonymous/ the customer
+    assert payment_authorized_event.user == checkout_user
+    # is the associated backref order valid
+    assert payment_authorized_event.order is order
+    # ensure a date was set
+    assert payment_authorized_event.date
+    # should not have any additional parameters
+    assert "amount" in payment_authorized_event.parameters.keys()
+    assert "payment_id" in payment_authorized_event.parameters.keys()
+    assert "payment_gateway" in payment_authorized_event.parameters.keys()
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert payment_captured_event.type == OrderEvents.PAYMENT_CAPTURED
     # is the user anonymous/ the customer
     assert payment_captured_event.user == checkout_user
     # is the associated backref order valid

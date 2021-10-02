@@ -8,6 +8,8 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from saleor.order.capture_payment import capture_payments
+
 from ..account.models import User
 from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
@@ -56,6 +58,7 @@ from .notifications import (
     send_payment_confirmation,
 )
 from .utils import (
+    get_active_payments,
     order_line_needs_automatic_fulfillment,
     recalculate_order,
     restock_fulfillment_lines,
@@ -83,25 +86,42 @@ def order_created(
 ):
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
     manager.order_created(order)
-    payment = order.get_last_payment()
-    if payment:
-        if order.is_captured():
-            order_captured(
-                order=order,
-                user=user,
-                app=app,
-                amounts_and_payments=[{"amount": payment.total, "payment": payment}],
-                manager=manager,
-            )
-        elif order.is_pre_authorized():
+    payments = get_active_payments(order)
+    if payments:
+        authorized_payments = [
+            p for p in payments if p.charge_status == ChargeStatus.AUTHORIZED
+        ]
+        if authorized_payments:
             order_authorized(
                 order=order,
                 user=user,
                 app=app,
-                amount=payment.total,
-                payment=payment,
+                amount=authorized_payments[0].total,
+                payment=authorized_payments[0],
                 manager=manager,
             )
+
+        captured_payments = [
+            p
+            for p in payments
+            if p.charge_status
+            in [
+                ChargeStatus.FULLY_CHARGED,
+                ChargeStatus.PARTIALLY_CHARGED,
+            ]
+        ]
+        if captured_payments:
+            order_captured(
+                order=order,
+                user=user,
+                app=app,
+                amounts_and_payments=[
+                    {"amount": payment.total, "payment": payment}
+                    for payment in captured_payments
+                ],
+                manager=manager,
+            )
+
     site_settings = Site.objects.get_current().settings
     if site_settings.automatically_confirm_all_new_orders:
         order_confirmed(order, user, app, manager)
@@ -118,6 +138,16 @@ def order_confirmed(
 
     Trigger event, plugin hooks and optionally confirmation email.
     """
+    payments_to_notify = capture_payments(order, manager)
+    if payments_to_notify:
+        order_captured(
+            order,
+            user,
+            app,
+            payments_to_notify,
+            manager,
+        )
+
     events.order_confirmed_event(order=order, user=user, app=app)
     manager.order_confirmed(order)
     if send_confirmation_email:

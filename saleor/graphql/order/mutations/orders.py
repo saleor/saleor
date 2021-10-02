@@ -1,9 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
-from prices import Money
 
 from ....account.models import User
-from ....checkout.capture_payment import capture_payments
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
@@ -767,41 +765,12 @@ class OrderConfirm(ModelMutation):
         return instance
 
     @classmethod
-    def process_payment(cls, order, payment, info, manager, to_pay):
-        if payment and payment.is_authorized and payment.can_capture():
-            amount = min(to_pay, Money(payment.get_charge_amount(), payment.currency))
-            gateway.capture(
-                payment,
-                info.context.plugins,
-                channel_slug=order.channel.slug,
-                amount=amount,
-            )
-            order_captured(
-                order,
-                info.context.user,
-                info.context.app,
-                payment.total,
-                payment,
-                manager,
-            )
-            return amount
-
-    @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED
         order.save(update_fields=["status"])
         manager = info.context.plugins
-        payments_to_notify = capture_payments(order, manager)
-
-        order_captured(
-            order,
-            info.context.user,
-            info.context.app,
-            payments_to_notify,
-            manager,
-        )
 
         order_confirmed(
             order,
