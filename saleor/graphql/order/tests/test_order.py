@@ -21,7 +21,13 @@ from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
-from ....order import FulfillmentStatus, OrderOrigin, OrderPaymentStatus, OrderStatus
+from ....order import (
+    FulfillmentStatus,
+    OrderEvents,
+    OrderOrigin,
+    OrderPaymentStatus,
+    OrderStatus,
+)
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
@@ -4682,6 +4688,16 @@ def test_order_capture_with_failed_payment(
     assert data["paymentStatusDisplay"] == payment_status_display
     assert not data["isPaid"]
     assert data["totalCaptured"]["amount"] == float(0)
+
+    assert (
+        OrderEvent.objects.filter(
+            type=OrderEvents.PAYMENT_CAPTURE_FAILED,
+            order=order,
+            user=staff_api_client.user,
+            parameters__message__contains="mock",
+        ).count()
+        == 1
+    )
 
 
 MUTATION_MARK_ORDER_AS_PAID = """

@@ -137,7 +137,7 @@ def _capture_payments(
     app: Optional["App"],
     manager: "PluginsManager",
 ):
-    payments_to_notify = capture_payments(order, manager)
+    payments_to_notify = capture_payments(order, manager, user, app)
     order.refresh_from_db()
     if payments_to_notify:
         order_captured(
