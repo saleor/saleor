@@ -536,14 +536,6 @@ def mark_order_as_paid(
     order.update_total_paid()
 
 
-def clean_mark_order_as_paid(order: "Order"):
-    """Check if an order can be marked as paid."""
-    if order.payments.exists():
-        raise PaymentError(
-            "Orders with payments can not be manually marked as paid.",
-        )
-
-
 @traced_atomic_transaction()
 def fulfill_order_lines(
     order_lines_info: Iterable["OrderLineData"], manager: "PluginsManager"

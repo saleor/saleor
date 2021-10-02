@@ -8,7 +8,7 @@ from prices import Money, TaxedMoney
 from saleor.order.interface import OrderPaymentAction
 
 from ...order import OrderLineData
-from ...payment import ChargeStatus, PaymentError, TransactionKind
+from ...payment import ChargeStatus, TransactionKind
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContent
@@ -19,7 +19,6 @@ from ..actions import (
     automatically_fulfill_digital_lines,
     cancel_fulfillment,
     cancel_order,
-    clean_mark_order_as_paid,
     fulfill_order_lines,
     handle_fully_paid_order,
     make_refund,
@@ -167,12 +166,6 @@ def test_mark_as_paid_no_billing_address(admin_user, draft_order):
     manager = get_plugins_manager()
     with pytest.raises(Exception):
         mark_order_as_paid(draft_order, admin_user, None, manager)
-
-
-def test_clean_mark_order_as_paid(payment_txn_preauth):
-    order = payment_txn_preauth.order
-    with pytest.raises(PaymentError):
-        clean_mark_order_as_paid(order)
 
 
 def test_cancel_fulfillment(fulfilled_order, warehouse):

@@ -12,7 +12,6 @@ from ....order import OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     _capture_payments,
     cancel_order,
-    clean_mark_order_as_paid,
     make_refund,
     mark_order_as_paid,
     order_confirmed,
@@ -152,10 +151,6 @@ def try_payment_action_factory(payment_failed_event_func):
 
     return try_payment_action
 
-
-try_payment_capture_action = try_payment_action_factory(
-    events.payment_capture_failed_event
-)
 
 try_payment_void_action = try_payment_action_factory(events.payment_void_failed_event)
 
@@ -479,9 +474,15 @@ class OrderMarkAsPaid(BaseMutation):
         cls.clean_billing_address(order)
         user = info.context.user
         app = info.context.app
-        try_payment_capture_action(
-            order, user, app, None, clean_mark_order_as_paid, order
-        )
+
+        if order.payments.exists():
+            message = "Orders with payments can not be manually marked as paid."
+            events.payment_capture_failed_event(
+                order=order, user=user, app=app, message=message, payment=None
+            )
+            raise ValidationError(
+                {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
+            )
 
         mark_order_as_paid(
             order, user, app, info.context.plugins, transaction_reference

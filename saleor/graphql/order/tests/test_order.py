@@ -44,7 +44,6 @@ from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
     clean_refund_payment,
-    try_payment_capture_action,
     try_payment_void_action,
 )
 from ...payment.types import PaymentChargeStatusEnum
@@ -4742,6 +4741,15 @@ def test_paid_order_mark_as_paid(
     order_errors = content["data"]["orderMarkAsPaid"]["errors"]
     assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
 
+    assert (
+        OrderEvent.objects.filter(
+            order=order,
+            type=OrderEvents.PAYMENT_CAPTURE_FAILED,
+            parameters__message__icontains=msg,
+        ).count()
+        == 1
+    )
+
 
 def test_order_mark_as_paid_with_external_reference(
     staff_api_client, permission_manage_orders, order_with_lines, staff_user
@@ -5333,10 +5341,7 @@ def test_clean_payment_without_payment_associated_to_order(
 
 @pytest.mark.parametrize(
     "try_payment_action, exp_type",
-    (
-        (try_payment_capture_action, order_events.OrderEvents.PAYMENT_CAPTURE_FAILED),
-        (try_payment_void_action, order_events.OrderEvents.PAYMENT_VOID_FAILED),
-    ),
+    ((try_payment_void_action, order_events.OrderEvents.PAYMENT_VOID_FAILED),),
 )
 def test_try_payment_action_generates_event(
     order, try_payment_action, exp_type, staff_user, payment_dummy
@@ -5377,14 +5382,14 @@ def test_try_payment_action_generates_app_event(order, app, payment_dummy):
         raise PaymentError(message)
 
     with pytest.raises(ValidationError) as exc:
-        try_payment_capture_action(
+        try_payment_void_action(
             order=order, user=None, app=app, payment=payment_dummy, func=_test_operation
         )
 
     assert exc.value.args[0]["payment"].message == message
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == order_events.OrderEvents.PAYMENT_CAPTURE_FAILED
+    assert error_event.type == order_events.OrderEvents.PAYMENT_VOID_FAILED
     assert not error_event.user
     assert error_event.app == app
     assert error_event.parameters == {
