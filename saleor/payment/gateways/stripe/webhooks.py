@@ -93,6 +93,7 @@ def _get_payment(payment_intent_id: str) -> Optional[Payment]:
             "checkout",
         )
         .select_for_update(of=("self",))
+        # TODO: inactive payments should be processed to reflect their state in PSP
         .filter(transactions__token=payment_intent_id, is_active=True)
         .first()
     )

@@ -44,8 +44,7 @@ def test_order_fulfill_with_out_of_stock_webhook(
 
     query = ORDER_FULFILL_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
-    order_line, order_line2 = order.lines.all()
-    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    _, order_line2 = order.lines.all()
     order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
@@ -53,10 +52,6 @@ def test_order_fulfill_with_out_of_stock_webhook(
         "input": {
             "notifyCustomer": True,
             "lines": [
-                {
-                    "orderLineId": order_line_id,
-                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
-                },
                 {
                     "orderLineId": order_line2_id,
                     "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
@@ -68,7 +63,8 @@ def test_order_fulfill_with_out_of_stock_webhook(
         query, variables, permissions=[permission_manage_orders]
     )
 
-    product_variant_out_of_stock_webhooks.assert_called_once_with(Stock.objects.last())
+    stock = order_line2.variant.stocks.filter(warehouse=warehouse).first()
+    product_variant_out_of_stock_webhooks.assert_called_once_with(stock)
 
 
 @pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
