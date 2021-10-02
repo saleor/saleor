@@ -4559,6 +4559,26 @@ def test_order_cancel_as_app(
     )
 
 
+MUTATION_ORDER_CAPTURE = """
+mutation captureOrder($id: ID!, $amount: PositiveDecimal!) {
+    orderCapture(id: $id, amount: $amount) {
+        order {
+            paymentStatus
+            paymentStatusDisplay
+            isPaid
+            totalCaptured {
+                amount
+            }
+        }
+        errors {
+            code
+            message
+        }
+    }
+}
+"""
+
+
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_order_capture(
     mocked_notify,
@@ -4572,25 +4592,11 @@ def test_order_capture(
     payment_txn_preauth.transactions.update(amount=order.total.gross.amount)
     payment_txn_preauth.total = order.total.gross.amount
     payment_txn_preauth.save(update_fields=["total"])
-    query = """
-        mutation captureOrder($id: ID!, $amount: PositiveDecimal!) {
-            orderCapture(id: $id, amount: $amount) {
-                order {
-                    paymentStatus
-                    paymentStatusDisplay
-                    isPaid
-                    totalCaptured {
-                        amount
-                    }
-                }
-            }
-        }
-    """
     order_id = graphene.Node.to_global_id("Order", order.id)
     amount = payment_txn_preauth.total
     variables = {"id": order_id, "amount": float(amount)}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCapture"]["order"]
@@ -4641,6 +4647,41 @@ def test_order_capture(
         expected_payment_payload,
         channel_slug=order.channel.slug,
     )
+
+
+@patch("saleor.payment.gateway.capture")
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_order_capture_with_failed_payment(
+    mocked_notify,
+    mocked_capture,
+    channel_USD,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+    staff_user,
+):
+    # given
+    mocked_capture.side_effect = PaymentError("mock")
+    order = payment_txn_preauth.order
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = payment_txn_preauth.total
+    variables = {"id": order_id, "amount": float(amount)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderCapture"]["order"]
+    assert data["paymentStatus"] == OrderPaymentStatusEnum.NOT_CHARGED.name
+    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
+        OrderPaymentStatus.NOT_CHARGED
+    )
+    assert data["paymentStatusDisplay"] == payment_status_display
+    assert not data["isPaid"]
+    assert data["totalCaptured"]["amount"] == float(0)
 
 
 MUTATION_MARK_ORDER_AS_PAID = """

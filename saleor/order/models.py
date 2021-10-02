@@ -311,9 +311,6 @@ class Order(ModelWithMetadata):
             .exists()
         )
 
-    def is_captured(self):
-        return self.total_paid_amount >= self.total_gross_amount
-
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self.lines.all())
 
