@@ -5,6 +5,8 @@ import graphql
 import pytest
 from prices import Money, TaxedMoney
 
+from saleor.order.interface import OrderPaymentAction
+
 from ...order import OrderLineData
 from ...payment import ChargeStatus, PaymentError, TransactionKind
 from ...payment.models import Payment
@@ -250,7 +252,7 @@ def test_order_refunded_by_user(
         currency=order.currency,
     )
     amount = order.total.gross.amount
-    payments = [{"payment": payment, "amount": amount}]
+    payments = [OrderPaymentAction(payment, amount)]
     app = None
 
     # when
@@ -281,7 +283,7 @@ def test_order_refunded_by_app(
         currency=order.currency,
     )
     amount = order.total.gross.amount
-    payments = [{"payment": payment, "amount": amount}]
+    payments = [OrderPaymentAction(payment, amount)]
 
     # when
     manager = get_plugins_manager()
@@ -313,7 +315,7 @@ def test_order_refunded_does_not_send_notification(
         captured_amount=amount,
         charge_status=ChargeStatus.FULLY_CHARGED,
     )
-    payments = [{"payment": payment, "amount": amount}]
+    payments = [OrderPaymentAction(payment, amount)]
 
     # when
     manager = get_plugins_manager()
@@ -344,7 +346,7 @@ def test_order_refunded_creates_an_event_for_each_payment(
         )
 
     payments = Payment.objects.all()
-    payments = [{"payment": payment, "amount": amount} for payment in payments]
+    payments = [OrderPaymentAction(payment, amount) for payment in payments]
 
     # when
     manager = get_plugins_manager()
@@ -437,7 +439,7 @@ def test_make_refund_creates_only_one_order_fullfilment_for_multiple_payments(
         )
 
     payments = Payment.objects.all()
-    payments = [{"payment": payment, "amount": amount} for payment in payments]
+    payments = [OrderPaymentAction(payment, amount) for payment in payments]
 
     # when
     info = create_autospec(graphql.execution.base.ResolveInfo)
@@ -482,7 +484,7 @@ def test_make_refund_calls_try_refund_for_each_payment(
         )
 
     payments = Payment.objects.all()
-    payments = [{"payment": payment, "amount": amount} for payment in payments]
+    payments = [OrderPaymentAction(payment, amount) for payment in payments]
 
     # when
     info = create_autospec(graphql.execution.base.ResolveInfo)

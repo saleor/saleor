@@ -5,6 +5,8 @@ from unittest import mock
 import graphene
 import pytest
 
+from saleor.order.interface import OrderPaymentAction
+
 from ......checkout import calculations
 from ......checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
@@ -690,7 +692,7 @@ def test_handle_refund(
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
     assert payment.captured_amount == Decimal("0.00")
 
-    payments = [{"payment": payment, "amount": transaction.amount}]
+    payments = [OrderPaymentAction(payment, transaction.amount)]
 
     mock_order_refunded.assert_called_once_with(
         payment.order, None, None, payments, mock.ANY, send_notification=False

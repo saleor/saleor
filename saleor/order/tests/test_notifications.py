@@ -6,6 +6,8 @@ from graphql_relay import to_global_id
 from measurement.measures import Weight
 from prices import Money, fixed_discount
 
+from saleor.order.interface import OrderPaymentAction
+
 from ...core.notify_events import NotifyEventType
 from ...discount import DiscountValueType
 from ...order import notifications
@@ -485,7 +487,7 @@ def test_send_email_order_refunded_by_user(
     payment = Payment.objects.create(
         gateway="mirumee.payments.dummy", is_active=True, checkout=checkout_with_item
     )
-    payments = [{"payment": payment, "amount": amount}]
+    payments = [OrderPaymentAction(payment, amount)]
 
     # when
     notifications.send_order_refunded_confirmation(
@@ -501,9 +503,9 @@ def test_send_email_order_refunded_by_user(
         "currency": order.currency,
         "refunds": [
             {
-                "payment_id": to_global_id("Payment", item["payment"].id),
-                "amount": item["amount"],
-                "gateway": item["payment"].gateway,
+                "payment_id": to_global_id("Payment", item.payment.id),
+                "amount": item.amount,
+                "gateway": item.payment.gateway,
             }
             for item in payments
         ],
@@ -529,7 +531,7 @@ def test_send_email_order_refunded_by_app(
     payment = Payment.objects.create(
         gateway="mirumee.payments.dummy", is_active=True, checkout=checkout_with_item
     )
-    payments = [{"payment": payment, "amount": amount}]
+    payments = [OrderPaymentAction(payment, amount)]
 
     # when
     notifications.send_order_refunded_confirmation(
@@ -545,9 +547,9 @@ def test_send_email_order_refunded_by_app(
         "currency": order.currency,
         "refunds": [
             {
-                "payment_id": to_global_id("Payment", item["payment"].id),
-                "amount": item["amount"],
-                "gateway": item["payment"].gateway,
+                "payment_id": to_global_id("Payment", item.payment.id),
+                "amount": item.amount,
+                "gateway": item.payment.gateway,
             }
             for item in payments
         ],

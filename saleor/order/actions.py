@@ -2,13 +2,14 @@ import logging
 from collections import defaultdict
 from copy import deepcopy
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, TypedDict
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from saleor.order.capture_payment import capture_payments
+from saleor.order.interface import OrderPaymentAction
 
 from ..account.models import User
 from ..core import analytics
@@ -116,7 +117,10 @@ def order_created(
                 user=user,
                 app=app,
                 amounts_and_payments=[
-                    {"amount": payment.total, "payment": payment}
+                    OrderPaymentAction(
+                        amount=payment.captured_amount,
+                        payment=payment,
+                    )
                     for payment in captured_payments
                 ],
                 manager=manager,
@@ -125,6 +129,24 @@ def order_created(
     site_settings = Site.objects.get_current().settings
     if site_settings.automatically_confirm_all_new_orders:
         order_confirmed(order, user, app, manager)
+
+
+def _capture_payments(
+    order: "Order",
+    user: "User",
+    app: Optional["App"],
+    manager: "PluginsManager",
+):
+    payments_to_notify = capture_payments(order, manager)
+    order.refresh_from_db()
+    if payments_to_notify:
+        order_captured(
+            order,
+            user,
+            app,
+            payments_to_notify,
+            manager,
+        )
 
 
 def order_confirmed(
@@ -136,18 +158,9 @@ def order_confirmed(
 ):
     """Order confirmed.
 
-    Trigger event, plugin hooks and optionally confirmation email.
+    Trigger event, capture, plugin hooks and optionally confirmation email.
     """
-    payments_to_notify = capture_payments(order, manager)
-    if payments_to_notify:
-        order_captured(
-            order,
-            user,
-            app,
-            payments_to_notify,
-            manager,
-        )
-
+    _capture_payments(order, user, app, manager)
     events.order_confirmed_event(order=order, user=user, app=app)
     manager.order_confirmed(order)
     if send_confirmation_email:
@@ -198,12 +211,12 @@ def cancel_order(
     send_order_canceled_confirmation(order, user, app, manager)
 
 
-def make_refund(order, payments, info):
+def make_refund(order: Order, payments: List[OrderPaymentAction], info):
     not_refunded_payments = []
 
     for item in payments:
-        payment = item["payment"]
-        amount = item["amount"]
+        payment = item.payment
+        amount = item.amount
 
         transaction = try_refund(
             order=order,
@@ -219,13 +232,13 @@ def make_refund(order, payments, info):
         if transaction.kind != TransactionKind.REFUND:
             not_refunded_payments.append(payment.id)
 
-    total_amount = sum([item["amount"] for item in payments])
+    total_amount = sum([item.amount for item in payments])
     order.fulfillments.create(
         status=FulfillmentStatus.REFUNDED, total_refund_amount=total_amount
     )
 
     refunded_payments = [
-        item for item in payments if item["payment"].id not in not_refunded_payments
+        item for item in payments if item.payment.id not in not_refunded_payments
     ]
 
     order_refunded(
@@ -241,7 +254,7 @@ def order_refunded(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    payments: List[dict],
+    payments: List[OrderPaymentAction],
     manager: "PluginsManager",
     *,
     send_notification: bool = True,
@@ -251,8 +264,8 @@ def order_refunded(
             order=order,
             user=user,
             app=app,
-            amount=item["amount"],
-            payment=item["payment"],
+            amount=item.amount,
+            payment=item.payment,
         )
     manager.order_updated(order)
 
@@ -349,16 +362,11 @@ def order_authorized(
     manager.order_updated(order)
 
 
-class AmountPayment(TypedDict):
-    amount: "Decimal"
-    payment: "Payment"
-
-
 def order_captured(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    amounts_and_payments: List[AmountPayment],
+    amounts_and_payments: List[OrderPaymentAction],
     manager: "PluginsManager",
 ):
     for amount_and_payment in amounts_and_payments:
@@ -366,8 +374,8 @@ def order_captured(
             order=order,
             user=user,
             app=app,
-            amount=amount_and_payment["amount"],
-            payment=amount_and_payment["payment"],
+            amount=amount_and_payment.amount,
+            payment=amount_and_payment.payment,
         )
     manager.order_updated(order)
     if order.is_fully_paid():
@@ -1426,7 +1434,7 @@ def _process_refund(
             )
         )
 
-        payments = [{"payment": payment, "amount": amount}]
+        payments = [OrderPaymentAction(payment, amount)]
         transaction.on_commit(
             lambda: send_order_refunded_confirmation(
                 order, user, app, payments, payment.currency, manager  # type: ignore

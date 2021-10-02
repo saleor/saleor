@@ -1019,7 +1019,7 @@ ORDER_CONFIRM_MUTATION = """
             ["payment_captured", "payment_captured", "confirmed"],
             1,
             True,
-            Decimal("5.00"),
+            Decimal("5.000"),
         ),
     ],
 )
@@ -1049,8 +1049,14 @@ def test_order_confirm(
     ):
         payment.captured_amount = amount
         payment.save()
-        payment.order.total_paid_amount += amount
-        payment.order.save()
+        payment.order.update_total_paid()
+        return payment.transactions.create(
+            amount=amount,
+            currency=payment.currency,
+            kind=TransactionKind.CAPTURE,
+            gateway_response={},
+            is_success=True,
+        )
 
     capture_mock.side_effect = _simulate_capture
 
@@ -1089,7 +1095,7 @@ def test_order_confirm(
             order=order_unconfirmed,
             user=staff_api_client.user,
             type=order_events.OrderEvents.PAYMENT_CAPTURED,
-            parameters__amount=payment_txn_preauth_to_test.get_total().amount,
+            parameters__amount=expected_amount,
         ).exists()
         == expected_exists
     )
@@ -4563,6 +4569,9 @@ def test_order_capture(
     staff_user,
 ):
     order = payment_txn_preauth.order
+    payment_txn_preauth.transactions.update(amount=order.total.gross.amount)
+    payment_txn_preauth.total = order.total.gross.amount
+    payment_txn_preauth.save(update_fields=["total"])
     query = """
         mutation captureOrder($id: ID!, $amount: PositiveDecimal!) {
             orderCapture(id: $id, amount: $amount) {
@@ -4578,8 +4587,8 @@ def test_order_capture(
         }
     """
     order_id = graphene.Node.to_global_id("Order", order.id)
-    amount = float(payment_txn_preauth.total)
-    variables = {"id": order_id, "amount": amount}
+    amount = payment_txn_preauth.total
+    variables = {"id": order_id, "amount": float(amount)}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
@@ -5258,7 +5267,7 @@ def test_clean_payment_without_payment_associated_to_order(
     )
     errors = get_graphql_content(response)["data"][mutation_name].get("errors")
 
-    message = "There's no payment associated with the order."
+    message = "There are no active payments associated with the order."
 
     assert errors, "expected an error"
     assert errors == [{"field": "payment", "message": message}]
@@ -5339,7 +5348,7 @@ def test_clean_order_refund_payment():
 def test_clean_order_capture():
     with pytest.raises(ValidationError) as e:
         clean_order_capture(None)
-    msg = "There's no payment associated with the order."
+    msg = "There are no active payments associated with the order."
     assert e.value.error_dict["payment"][0].message == msg
 
 

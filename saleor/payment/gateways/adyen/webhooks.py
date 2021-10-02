@@ -24,6 +24,8 @@ from django.http.request import HttpHeaders
 from django.http.response import HttpResponseRedirect
 from graphql_relay import from_global_id
 
+from saleor.order.interface import OrderPaymentAction
+
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
@@ -248,7 +250,12 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                         payment.order,
                         None,
                         None,
-                        [{"amount": new_transaction.amount, "payment": payment}],
+                        [
+                            OrderPaymentAction(
+                                amount=new_transaction.amount,
+                                payment=payment,
+                            )
+                        ],
                         manager,
                     )
                 else:
@@ -346,7 +353,7 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
                 payment.order,
                 None,
                 None,
-                [{"amount": new_transaction.amount, "payment": payment}],
+                [OrderPaymentAction(payment, new_transaction.amount)],
                 manager,
             )
 
@@ -428,7 +435,7 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
         payment, success_msg, failed_msg, new_transaction.is_success
     )
     if payment.order and new_transaction.is_success:
-        payments = [{"payment": payment, "amount": new_transaction.amount}]
+        payments = [OrderPaymentAction(payment, new_transaction.amount)]
         order_refunded(
             payment.order,
             None,

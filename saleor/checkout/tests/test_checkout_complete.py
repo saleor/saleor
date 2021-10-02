@@ -360,6 +360,7 @@ def test_create_order_preauth_payment_creates_expected_events(
         order_placed_event,
         payment_authorized_event,
         payment_captured_event,
+        order_fully_paid_event,
         order_confirmed_event,
     ) = order.events.all()  # type: OrderEvent
 
@@ -410,6 +411,18 @@ def test_create_order_preauth_payment_creates_expected_events(
         "domain": "mirumee.com",
     }
 
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert order_fully_paid_event.type == OrderEvents.ORDER_FULLY_PAID
+    # is the user anonymous/ the customer
+    assert order_fully_paid_event.user == checkout_user
+    # is the associated backref order valid
+    assert order_fully_paid_event.order is order
+    # ensure a date was set
+    assert order_fully_paid_event.date
+    # should not have any additional parameters
+    assert not order_fully_paid_event.parameters
+
     # Ensure the correct order confirmed event was created
     # should be order confirmed event
     assert order_confirmed_event.type == OrderEvents.CONFIRMED
@@ -422,7 +435,7 @@ def test_create_order_preauth_payment_creates_expected_events(
     # ensure the event parameters are empty
     assert order_confirmed_event.parameters == {}
 
-    mock_notify.assert_called_once_with(
+    mock_notify.assert_any_call(
         NotifyEventType.ORDER_CONFIRMATION,
         expected_payload,
         channel_slug=channel_USD.slug,
@@ -486,6 +499,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
         order_placed_event,
         payment_authorized_event,
         payment_captured_event,
+        order_fully_paid_event,
         order_confirmed_event,
     ) = order.events.all()  # type: OrderEvent
 
@@ -529,6 +543,18 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     assert "payment_id" in payment_captured_event.parameters.keys()
     assert "payment_gateway" in payment_captured_event.parameters.keys()
 
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert order_fully_paid_event.type == OrderEvents.ORDER_FULLY_PAID
+    # is the user anonymous/ the customer
+    assert order_fully_paid_event.user == checkout_user
+    # is the associated backref order valid
+    assert order_fully_paid_event.order is order
+    # ensure a date was set
+    assert order_fully_paid_event.date
+    # should not have any additional parameters
+    assert not order_fully_paid_event.parameters
+
     expected_payload = {
         "order": get_default_order_payload(order, checkout.redirect_url),
         "recipient_email": order.get_customer_email(),
@@ -547,7 +573,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     # ensure the event parameters are empty
     assert order_confirmed_event.parameters == {}
 
-    mock_notify.assert_called_once_with(
+    mock_notify.assert_any_call(
         NotifyEventType.ORDER_CONFIRMATION,
         expected_payload,
         channel_slug=channel_USD.slug,
