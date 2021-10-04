@@ -34,11 +34,15 @@ from ..utils import (
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_delivery_method,
+    delete_app_shipping_id,
+    get_app_shipping_id,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
     is_fully_paid,
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
+    set_app_shipping_id,
+    PRIVATE_META_APP_SHIPPING_ID,
 )
 
 
@@ -1243,3 +1247,18 @@ def test_chckout_without_delivery_method_creates_empty_delivery_method(
     assert not delivery_method_info.is_valid_delivery_method()
     assert not delivery_method_info.is_local_collection_point
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
+
+
+def test_manage_app_shipping_id(checkout):
+    app_shipping_id = "abcd"
+    initial_private_metadata = {"test": 123}
+    checkout.private_metadata = initial_private_metadata
+
+    set_app_shipping_id(checkout, app_shipping_id)
+    assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
+
+    shipping_id = get_app_shipping_id(checkout)
+    assert shipping_id == app_shipping_id
+
+    delete_app_shipping_id(checkout)
+    checkout.private_metadata == initial_private_metadata
