@@ -66,7 +66,7 @@ class WebhookEventType:
     PAYMENT_CONFIRM = "payment_confirm"
     PAYMENT_PROCESS = "payment_process"
 
-    SHIPPING_LIST_METHODS = "shipping_list_methods"
+    SHIPPING_LIST_METHODS_FOR_CHECKOUT = "shipping_list_methods_for_checkout"
 
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
@@ -113,7 +113,7 @@ class WebhookEventType:
         PAYMENT_PROCESS: "Process payment",
         PAYMENT_REFUND: "Refund payment",
         PAYMENT_VOID: "Void payment",
-        SHIPPING_LIST_METHODS: "Shipping list methods",
+        SHIPPING_LIST_METHODS_FOR_CHECKOUT: "Shipping list methods for checkout",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
     }
@@ -160,7 +160,10 @@ class WebhookEventType:
         (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
         (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
         (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
-        (SHIPPING_LIST_METHODS, DISPLAY_LABELS[SHIPPING_LIST_METHODS]),
+        (
+            SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            DISPLAY_LABELS[SHIPPING_LIST_METHODS_FOR_CHECKOUT],
+        ),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
     ]
@@ -216,7 +219,7 @@ class WebhookEventType:
         PAYMENT_PROCESS: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_REFUND: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
-        SHIPPING_LIST_METHODS: ShippingPermissions.MANAGE_SHIPPING,
+        SHIPPING_LIST_METHODS_FOR_CHECKOUT: ShippingPermissions.MANAGE_SHIPPING,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
     }

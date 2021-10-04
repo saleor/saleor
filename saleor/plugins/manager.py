@@ -837,7 +837,7 @@ class PluginsManager(PaymentInterface):
 
     def list_shipping_methods_for_checkout(
         self,
-        checkout: Optional["Checkout"] = None,
+        checkout: "Checkout",
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> List["ShippingMethodData"]:
@@ -846,13 +846,15 @@ class PluginsManager(PaymentInterface):
         shipping_plugins = [
             plugin
             for plugin in plugins
-            if "get_shipping_methods" in type(plugin).__dict__
+            if "get_shipping_methods_for_checkout" in type(plugin).__dict__
         ]
 
         shipping_methods = []
         for plugin in shipping_plugins:
             shipping_methods.extend(
-                plugin.get_shipping_methods(checkout=checkout, previous_value=None)
+                plugin.get_shipping_methods_for_checkout(
+                    checkout=checkout, previous_value=None
+                )
             )
         return shipping_methods
 
@@ -862,13 +864,15 @@ class PluginsManager(PaymentInterface):
         checkout: Optional["Checkout"] = None,
         channel_slug: Optional[str] = None,
     ):
-        methods = {
-            method.id: method
-            for method in self.list_shipping_methods_for_checkout(
-                checkout=checkout, channel_slug=channel_slug
-            )
-        }
-        return methods.get(shipping_method_id)
+        if checkout:
+            methods = {
+                method.id: method
+                for method in self.list_shipping_methods_for_checkout(
+                    checkout=checkout, channel_slug=channel_slug
+                )
+            }
+            return methods.get(shipping_method_id)
+        return []
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
         auth_basic_method = "external_obtain_access_tokens"

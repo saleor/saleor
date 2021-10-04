@@ -1112,7 +1112,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         else:
             set_app_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
             checkout.shipping_method = None
-        checkout.save(update_fields=["private_metadata", "shipping_method", "last_change"])
+        checkout.save(
+            update_fields=["private_metadata", "shipping_method", "last_change"]
+        )
 
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts

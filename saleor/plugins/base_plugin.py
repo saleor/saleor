@@ -699,8 +699,8 @@ class BasePlugin:
         )
         return [gateway]
 
-    def get_shipping_methods(
-        self, checkout: Optional["Checkout"], previous_value, **kwargs
+    def get_shipping_methods_for_checkout(
+        self, checkout: "Checkout", previous_value, **kwargs
     ) -> List["ShippingMethodData"]:
         return NotImplemented
 

@@ -489,24 +489,23 @@ class WebhookPlugin(BasePlugin):
             **kwargs,
         )
 
-    def get_shipping_methods(
-        self, checkout: Optional["Checkout"], previous_value, **kwargs
+    def get_shipping_methods_for_checkout(
+        self, checkout: "Checkout", previous_value, **kwargs
     ) -> List["ShippingMethodData"]:
         methods = []
         apps = App.objects.for_event_type(
-            WebhookEventType.SHIPPING_LIST_METHODS
+            WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
         ).prefetch_related("webhooks")
-        if checkout:
-            payload = generate_checkout_payload(checkout)
-            for app in apps:
-                response_data = trigger_webhook_sync(
-                    event_type=WebhookEventType.SHIPPING_LIST_METHODS,
-                    data=payload,
-                    app=app,
+        payload = generate_checkout_payload(checkout)
+        for app in apps:
+            response_data = trigger_webhook_sync(
+                event_type=WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                data=payload,
+                app=app,
+            )
+            if response_data:
+                shipping_methods = parse_list_shipping_methods_response(
+                    response_data, app
                 )
-                if response_data:
-                    shipping_methods = parse_list_shipping_methods_response(
-                        response_data, app
-                    )
-                    methods.extend(shipping_methods)
+                methods.extend(shipping_methods)
         return methods
