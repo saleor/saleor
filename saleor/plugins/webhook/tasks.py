@@ -6,6 +6,7 @@ from urllib.parse import urlparse, urlunparse
 
 import boto3
 import requests
+from celery.exceptions import MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
@@ -164,7 +165,14 @@ def send_webhook_request(self, webhook_id, target_url, secret, event_type, data)
             send_webhook_using_http(target_url, message, domain, signature, event_type)
         except RequestException as e:
             logger.debug("[Webhook] Failed request to %r: %r.", target_url, e)
-            self.retry(countdown=10)
+            try:
+                self.retry(countdown=10)
+            except MaxRetriesExceededError:
+                logger.warning(
+                    "[Webhook] Failed request to %r: exceeded retry limit %r.",
+                    target_url,
+                    self.max_retries,
+                )
     elif parts.scheme.lower() == WebhookSchemes.AWS_SQS:
         send_webhook_using_aws_sqs(target_url, message, domain, signature, event_type)
         task_logger.debug(
