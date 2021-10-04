@@ -153,6 +153,15 @@ class ProductType(ModelWithMetadata):
                 "Manage product types and attributes.",
             ),
         )
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(
+                name="product_type_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["name", "slug"],
+                opclasses=["gin_trgm_ops"] * 2,
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.name
