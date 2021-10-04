@@ -577,6 +577,228 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
     )
 
 
+PRODUCT_ASSIGN_ATTR_UPDATE_QUERY = """
+    mutation assign(
+      $productTypeId: ID!, $operations: [ProductAttributeAssignmentUpdateInput]!
+    ) {
+      productAttributeAssignmentUpdate(
+        productTypeId: $productTypeId, operations: $operations
+      ) {
+        errors {
+          field
+          code
+          message
+          attributes
+        }
+        productType {
+          id
+          productAttributes {
+            id
+          }
+          variantAttributes {
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+def test_assignment_attribute_update_not_assigned_attribute_should_raise_an_errors(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    color_attribute_without_values,
+):
+    """The productAttributeAssignmentUpdate mutation should raise an error when trying
+    to modify unassigned variant attribute."""
+
+    product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
+    attribute = color_attribute_without_values
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = PRODUCT_ASSIGN_ATTR_UPDATE_QUERY
+    operations = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+            "variantSelection": True,
+        }
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["productAttributeAssignmentUpdate"]
+
+    expected_errors = [
+        {
+            "field": "operations",
+            "message": "Attribute is not assigned to product type.",
+            "code": ProductErrorCode.NOT_FOUND.name,
+            "attributes": [graphene.Node.to_global_id("Attribute", attribute.pk)],
+        },
+        {
+            "field": "operations",
+            "message": "Attribute is not assigned to product variant.",
+            "code": ProductErrorCode.NOT_FOUND.name,
+            "attributes": [graphene.Node.to_global_id("Attribute", attribute.pk)],
+        },
+    ]
+    assert len(content["errors"]) == 2
+
+    for error in content["errors"]:
+        assert error in expected_errors
+
+
+def test_assignment_attribute_update_assigned_to_product_should_raise_an_error(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    color_attribute_without_values,
+):
+    """The productAttributeAssignmentUpdate mutation should raise an error when trying
+    to modify assigned to product attribute."""
+
+    product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
+    attribute = color_attribute_without_values
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    product_type.product_attributes.add(attribute)
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = PRODUCT_ASSIGN_ATTR_UPDATE_QUERY
+    operations = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+            "variantSelection": True,
+        }
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["productAttributeAssignmentUpdate"]
+
+    expected_errors = [
+        {
+            "field": "operations",
+            "message": "Attribute is not assigned to product variant.",
+            "code": ProductErrorCode.NOT_FOUND.name,
+            "attributes": [graphene.Node.to_global_id("Attribute", attribute.pk)],
+        },
+    ]
+    assert len(content["errors"]) == 1
+
+    for error in content["errors"]:
+        assert error in expected_errors
+
+
+def test_assignment_attribute_update_assigned_unsupported_type_should_raise_an_error(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    color_attribute_without_values,
+):
+    """The productAttributeAssignmentUpdate mutation should raise an error when trying
+    to modify unsupported variant attribute."""
+
+    product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
+    attribute = color_attribute_without_values
+    attribute.input_type = AttributeInputType.MULTISELECT
+    attribute.save(update_fields=["input_type"])
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    product_type.variant_attributes.add(attribute)
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = PRODUCT_ASSIGN_ATTR_UPDATE_QUERY
+    operations = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+            "variantSelection": True,
+        }
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["productAttributeAssignmentUpdate"]
+
+    expected_error_msg = (
+        f"Some of the attributes types are not supported for "
+        "variant selection. Supported types are: "
+        f"{AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
+    )
+
+    expected_errors = [
+        {
+            "field": "operations",
+            "message": expected_error_msg,
+            "code": ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name,
+            "attributes": [graphene.Node.to_global_id("Attribute", attribute.pk)],
+        },
+    ]
+    assert len(content["errors"]) == 1
+
+    for error in content["errors"]:
+        assert error in expected_errors
+
+
+def test_assignment_attribute_update_assigned_should_modify_variant_selection(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    size_attribute,
+    color_attribute_without_values,
+):
+    """The productAttributeAssignmentUpdate mutation should modify
+    variant selection when validation successful."""
+
+    product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
+    attribute_1 = color_attribute_without_values
+    attribute_2 = size_attribute
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    product_type.variant_attributes.add(
+        attribute_1, through_defaults={"variant_selection": False}
+    )
+    product_type.variant_attributes.add(
+        attribute_2, through_defaults={"variant_selection": True}
+    )
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = PRODUCT_ASSIGN_ATTR_UPDATE_QUERY
+    operations = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute_1.pk),
+            "variantSelection": True,
+        },
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute_2.pk),
+            "variantSelection": False,
+        },
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["productAttributeAssignmentUpdate"]
+
+    assert len(content["errors"]) == 0
+    assert AttributeVariant.objects.get(attribute_id=attribute_1.pk).variant_selection
+    assert not AttributeVariant.objects.get(
+        attribute_id=attribute_2.pk
+    ).variant_selection
+
+
 def test_assign_page_attribute_to_product_type(
     staff_api_client,
     permission_manage_product_types_and_attributes,

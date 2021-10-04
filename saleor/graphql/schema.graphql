@@ -3749,7 +3749,7 @@ type Mutation {
   shippingZoneBulkDelete(ids: [ID]!): ShippingZoneBulkDelete
   shippingZoneUpdate(id: ID!, input: ShippingZoneUpdateInput!): ShippingZoneUpdate
   productAttributeAssign(operations: [ProductAttributeAssignInput]!, productTypeId: ID!): ProductAttributeAssign
-  productAttributeAssigmentUpdate(operations: [ProductAttributeAssignmentUpdateInput]!, productTypeId: ID!): ProductAttributeAssignmentUpdate
+  productAttributeAssignmentUpdate(operations: [ProductAttributeAssignmentUpdateInput]!, productTypeId: ID!): ProductAttributeAssignmentUpdate
   productAttributeUnassign(attributeIds: [ID]!, productTypeId: ID!): ProductAttributeUnassign
   categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete

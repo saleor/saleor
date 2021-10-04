@@ -69,8 +69,8 @@ class VariantAssignmentValidationMixin:
 
         if invalid_attributes:
             invalid_attr_ids = [
-                graphene.Node.to_global_id("Attribute", attr)
-                for attr in invalid_attributes
+                graphene.Node.to_global_id("Attribute", pk)
+                for pk, _, __ in invalid_attributes
             ]
             error = ValidationError(
                 (
@@ -421,8 +421,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
                 "Attribute is not assigned to product type.",
                 code=ProductErrorCode.NOT_FOUND,
                 params={
-                    "unassigned_attributes": list(invalid_attrs),
-                    "product_type": product_type,
+                    "attributes": list(invalid_attrs),
                 },
             )
             errors["operations"].append(error)
@@ -441,7 +440,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
                 graphene.Node.to_global_id("Attribute", pk) for pk in invalid_attrs
             ]
             error = ValidationError(
-                "Attribute is not assigned to product_variant.",
+                "Attribute is not assigned to product variant.",
                 code=ProductErrorCode.NOT_FOUND,
                 params={
                     "attributes": list(invalid_attrs),
@@ -513,8 +512,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
 
         # Resolve all passed IDs to ints
         variant_attrs_data = cls.get_operations(info, operations)
-        variant_attrs_pks = [int(pk) for pk, _ in variant_attrs_data]
-        print(variant_attrs_pks)
+        variant_attrs_pks = [pk for pk, _ in variant_attrs_data]
 
         if variant_attrs_pks and not product_type.has_variants:
             raise ValidationError(

@@ -397,7 +397,7 @@ class ProductQueries(graphene.ObjectType):
 
 class ProductMutations(graphene.ObjectType):
     product_attribute_assign = ProductAttributeAssign.Field()
-    product_attribute_assigment_update = ProductAttributeAssignmentUpdate.Field()
+    product_attribute_assignment_update = ProductAttributeAssignmentUpdate.Field()
     product_attribute_unassign = ProductAttributeUnassign.Field()
 
     category_create = CategoryCreate.Field()
