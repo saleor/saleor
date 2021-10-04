@@ -810,10 +810,18 @@ class BasePlugin:
             self._append_config_structure(configuration)
         return configuration
 
-    def excluded_shipping_methods_for_order(self, order: Order, avialableShippingMethods: List[ShippingMethod])
-        -> List[ExcludedMethod]:
-        pass
+    def excluded_shipping_methods_for_order(
+        self,
+        order: "Order",
+        available_shipping_methods: List[ShippingMethod],
+        previous_value,
+    ) -> List[ExcludedShippingMethod]:
+        return NotImplemented
 
-    def excluded_shipping_methods_for_checkout(self, checkout: Checkout, avialableShippingMethods: List[ShippingMethod])
-        -> List[ExcludedMethod]:
-        pass
+    def excluded_shipping_methods_for_checkout(
+        self,
+        checkout: "Checkout",
+        available_shipping_methods: List[ShippingMethod],
+        previous_value,
+    ) -> List[ExcludedShippingMethod]:
+        return NotImplemented
