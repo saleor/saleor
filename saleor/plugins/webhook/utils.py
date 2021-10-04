@@ -24,7 +24,6 @@ class PaymentAppData:
 @dataclass
 class ShippingAppData:
     app_pk: int
-    shipment_id: str
     shipping_method_id: str
 
 
@@ -32,8 +31,8 @@ def to_payment_app_id(app: "App", gateway_id: str) -> "str":
     return f"{APP_ID_PREFIX}:{app.pk}:{gateway_id}"
 
 
-def to_shipping_app_id(app: "App", shipment_id: str, shipping_method_id: str) -> "str":
-    return f"{APP_ID_PREFIX}:{app.pk}:{shipment_id}:{shipping_method_id}"
+def to_shipping_app_id(app: "App", shipping_method_id: str) -> "str":
+    return f"{APP_ID_PREFIX}:{app.pk}:{shipping_method_id}"
 
 
 def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
@@ -50,14 +49,14 @@ def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
 
 def from_shipping_app_id(app_shipping_method_id: str) -> Optional["ShippingAppData"]:
     splitted_id = app_shipping_method_id.split(":")
-    if len(splitted_id) == 4 and splitted_id[0] == APP_ID_PREFIX and all(splitted_id):
+    if len(splitted_id) == 3 and splitted_id[0] == APP_ID_PREFIX and all(splitted_id):
         try:
             app_pk = int(splitted_id[1])
         except (TypeError, ValueError):
             return None
         else:
             return ShippingAppData(
-                app_pk, shipment_id=splitted_id[2], shipping_method_id=splitted_id[3]
+                app_pk, shipping_method_id=splitted_id[2]
             )
     return None
 
@@ -134,19 +133,20 @@ def parse_list_shipping_methods_response(
     response_data: Any, app: "App"
 ) -> List["ShippingMethodData"]:
     shipping_methods = []
-    shipment_id = response_data.get("shipment_id")
-    for shipping_method_data in response_data.get("rates"):
+    for shipping_method_data in response_data:
         method_id = shipping_method_data.get("id")
-        method_name = shipping_method_data.get("carrier")
-        method_service = shipping_method_data.get("service")
-        method_rate = shipping_method_data.get("rate")
+        method_name = shipping_method_data.get("name")
+        method_amount = shipping_method_data.get("amount")
         method_currency = shipping_method_data.get("currency")
+        method_maximum_delivery_days = shipping_method_data.get("maximum_delivery_days")
 
         shipping_methods.append(
             ShippingMethodData(
-                id=to_shipping_app_id(app, shipment_id, method_id),
-                name=f"{method_name} - {method_service}",
-                price=Money(method_rate, method_currency),
+                id=to_shipping_app_id(app, method_id),
+                name=method_name,
+                price=Money(method_amount, method_currency),
+                maximum_delivery_days=method_maximum_delivery_days,
+                is_external=True
             )
         )
     return shipping_methods

@@ -1083,7 +1083,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 ),
             )
             delivery_method = convert_to_shipping_method_data(shipping_method)
-        except (AttributeError, ValidationError):
+        except (ValueError, ValidationError):
             # external shipping method
             delivery_method = manager.get_shipping_method(
                 checkout=checkout,
