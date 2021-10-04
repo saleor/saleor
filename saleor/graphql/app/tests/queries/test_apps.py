@@ -215,6 +215,7 @@ QUERY_APPS_FOR_FEDERATION = """
     }
 """
 
+
 def test_query_app_for_federation(staff_api_client, app, permission_manage_apps):
     app_id = graphene.Node.to_global_id("App", app.pk)
     variables = {

@@ -528,9 +528,11 @@ GRAPHENE = {
     ],
 }
 
-FEDERATED_QUERY_MAX_ENTITIES = int(
-    os.environ.get("FEDERATED_QUERY_MAX_ENTITIES", 300)
-)
+# Max number entities that can be requested in single query by Apollo Federation
+# Federation protocol implements no securities on its own part - malicious actor
+# may build a query that requests for potentially few thousands of entities.
+# Set FEDERATED_QUERY_MAX_ENTITIES=0 in env to disable (not recommended)
+FEDERATED_QUERY_MAX_ENTITIES = int(os.environ.get("FEDERATED_QUERY_MAX_ENTITIES", 300))
 
 BUILTIN_PLUGINS = [
     "saleor.plugins.avatax.plugin.AvataxPlugin",

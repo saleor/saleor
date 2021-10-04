@@ -393,9 +393,7 @@ class User(CountableDjangoObjectType):
         requestor = get_user_or_app_from_context(info.context)
         requestor_has_access_to_all = has_one_of_permissions(
             requestor,
-            [
-                AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS
-            ],
+            [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS],
         )
 
         ids = []
