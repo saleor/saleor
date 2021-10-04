@@ -1,5 +1,6 @@
 from typing import Optional
 
+import posuto
 import requests
 from django.utils import timezone
 from requests.auth import HTTPBasicAuth
@@ -49,11 +50,17 @@ def _format_name(ad: AddressData):
     return f"{ad.first_name} {ad.last_name}".lstrip().rstrip()
 
 
-# TODO: theoretically it should work, but city info is blank
 def _format_address(ad: AddressData):
     """Follow the japanese address guidelines."""
-    # return "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
-    return f"{ad.country_area}{ad.city}{ad.city_area}{ad.street_address_1}"
+    # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
+    jap_ad = posuto.get(ad.postal_code)
+    return (
+        f"{ad.country_area}"
+        f"{jap_ad.city}"
+        f"{jap_ad.neighborhood}"
+        f"{ad.street_address_2}"
+        f"{ad.street_address_1}"
+    )
 
 
 def register_transaction(
