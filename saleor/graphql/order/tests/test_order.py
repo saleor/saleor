@@ -2762,6 +2762,51 @@ def test_draft_order_update_doing_nothing_generates_no_events(
     assert not OrderEvent.objects.exists()
 
 
+def test_draft_order_update_free_shipping_voucher(
+    staff_api_client, permission_manage_orders, draft_order, voucher_free_shipping
+):
+    order = draft_order
+    assert not order.voucher
+    query = """
+        mutation draftUpdate(
+            $id: ID!
+            $voucher: ID!
+        ) {
+            draftOrderUpdate(
+                id: $id
+                input: {
+                    voucher: $voucher
+                }
+            ) {
+                errors {
+                    field
+                    message
+                    code
+                }
+                order {
+                    id
+                }
+            }
+        }
+        """
+    voucher = voucher_free_shipping
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    variables = {
+        "id": order_id,
+        "voucher": voucher_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["id"] == variables["id"]
+    order.refresh_from_db()
+    assert order.voucher
+
+
 def test_draft_order_delete(staff_api_client, permission_manage_orders, draft_order):
     order = draft_order
     query = """

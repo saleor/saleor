@@ -711,7 +711,7 @@ def get_voucher_discount_for_order(order: Order) -> Money:
         return order.voucher.get_discount_amount_for(subtotal.gross, order.channel)
     if order.voucher.type == VoucherType.SHIPPING:
         return order.voucher.get_discount_amount_for(
-            order.shipping_price, order.channel
+            order.shipping_price.gross, order.channel
         )
     if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
         return get_products_voucher_discount_for_order(order)
