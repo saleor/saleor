@@ -14,6 +14,7 @@ from ..models import Order, OrderEvent
 from ..utils import (
     add_gift_cards_to_order,
     add_variant_to_order,
+    assign_user_orders,
     change_order_line_quantity,
     get_valid_shipping_methods_for_order,
     match_orders_with_new_user,
@@ -390,3 +391,21 @@ def test_add_gift_cards_to_order_no_checkout_user(
         },
         "order_id": order.id,
     }
+
+
+def test_assign_user_orders(order_list, staff_user):
+    # given
+    for order in order_list[:2]:
+        order.user = None
+        order.user_email = staff_user.email
+        order.save(update_fields=["user", "user_email"])
+
+    # when
+    assign_user_orders(staff_user)
+
+    # then
+    for order in order_list[:2]:
+        order.refresh_from_db()
+        assert order.user == staff_user
+
+    assert order_list[-1].user != staff_user

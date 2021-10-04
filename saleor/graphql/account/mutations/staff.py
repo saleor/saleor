@@ -16,6 +16,7 @@ from ....core.permissions import AccountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
+from ....order.utils import assign_user_orders
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -113,6 +114,7 @@ class CustomerUpdate(CustomerCreate):
                 staff_user=staff_user, app=app, new_email=new_email
             )
             assign_user_gift_cards(new_instance)
+            assign_user_orders(new_instance)
         if has_new_name:
             account_events.assigned_name_to_a_customer_event(
                 staff_user=staff_user, app=app, new_name=new_fullname
@@ -395,6 +397,7 @@ class StaffUpdate(StaffCreate):
         user = response.user
         if user.email != old_email:
             assign_user_gift_cards(user)
+            assign_user_orders(user)
         return response
 
 

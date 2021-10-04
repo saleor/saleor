@@ -938,3 +938,7 @@ def remove_discount_from_order_line(
             "tax_rate",
         ]
     )
+
+
+def assign_user_orders(user):
+    Order.objects.filter(user_email=user.email).update(user=user)
