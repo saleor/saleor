@@ -3749,6 +3749,7 @@ type Mutation {
   shippingZoneBulkDelete(ids: [ID]!): ShippingZoneBulkDelete
   shippingZoneUpdate(id: ID!, input: ShippingZoneUpdateInput!): ShippingZoneUpdate
   productAttributeAssign(operations: [ProductAttributeAssignInput]!, productTypeId: ID!): ProductAttributeAssign
+  productAttributeAssigmentUpdate(operations: [ProductAttributeAssignmentUpdateInput]!, productTypeId: ID!): ProductAttributeAssignmentUpdate
   productAttributeUnassign(attributeIds: [ID]!, productTypeId: ID!): ProductAttributeUnassign
   categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
@@ -5202,6 +5203,17 @@ input ProductAttributeAssignInput {
   id: ID!
   type: ProductAttributeType!
   variantSelection: Boolean
+}
+
+type ProductAttributeAssignmentUpdate {
+  productType: ProductType
+  productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [ProductError!]!
+}
+
+input ProductAttributeAssignmentUpdateInput {
+  id: ID!
+  variantSelection: Boolean!
 }
 
 enum ProductAttributeType {

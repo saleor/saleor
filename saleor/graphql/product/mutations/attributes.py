@@ -40,7 +40,51 @@ class ProductAttributeAssignInput(graphene.InputObjectType):
     )
 
 
-class ProductAttributeAssign(BaseMutation):
+class ProductAttributeAssignmentUpdateInput(graphene.InputObjectType):
+    id = graphene.ID(required=True, description="The ID of the attribute to assign.")
+    variant_selection = graphene.Boolean(
+        required=True,
+        description=(
+            f"{ADDED_IN_31} Whether attribute is allowed in variant selection. "
+            f"Allowed types are: {AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
+        ),
+    )
+
+
+class VariantAssignmentValidationMixin:
+    @classmethod
+    def check_allowed_types(cls, errors, variant_attrs_data):
+        variant_attrs_pks = [
+            pk for pk, variant_selection, *_ in variant_attrs_data if variant_selection
+        ]
+        qs = (
+            attribute_models.Attribute.objects.filter(
+                pk__in=variant_attrs_pks,
+            )
+            .exclude(input_type__in=AttributeInputType.ALLOWED_IN_VARIANT_SELECTION)
+            .values_list("pk", "name", "input_type")
+        )
+
+        invalid_attributes = list(qs)
+
+        if invalid_attributes:
+            invalid_attr_ids = [
+                graphene.Node.to_global_id("Attribute", attr)
+                for attr in invalid_attributes
+            ]
+            error = ValidationError(
+                (
+                    f"Some of the attributes types are not supported for "
+                    "variant selection. Supported types are: "
+                    f"{AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
+                ),
+                code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
+                params={"attributes": invalid_attr_ids},
+            )
+            errors["operations"].append(error)
+
+
+class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
     product_type = graphene.Field(ProductType, description="The updated product type.")
 
     class Arguments:
@@ -82,9 +126,9 @@ class ProductAttributeAssign(BaseMutation):
             )
 
             if operation.type == ProductAttributeType.PRODUCT:
-                product_attrs_pks.append((pk, operation.type, variant_selection))
+                product_attrs_pks.append((pk, variant_selection, operation.type))
             else:
-                variant_attrs_pks.append((pk, operation.type, variant_selection))
+                variant_attrs_pks.append((pk, variant_selection, operation.type))
         return product_attrs_pks, variant_attrs_pks
 
     @classmethod
@@ -137,7 +181,7 @@ class ProductAttributeAssign(BaseMutation):
 
     @classmethod
     def check_type_and_variant_coherence(cls, errors, product_attrs_data):
-        for attr_pk, type_, variant_selection in product_attrs_data:
+        for attr_pk, variant_selection, type_ in product_attrs_data:
             if variant_selection:
                 msg = (
                     f"Attribute with pk: '{attr_pk}' with different type "
@@ -150,37 +194,6 @@ class ProductAttributeAssign(BaseMutation):
                     params={"attributes": attr_pk},
                 )
                 errors["operations"].append(error)
-
-    @classmethod
-    def check_allowed_types(cls, errors, variant_attrs_data):
-        variant_attrs_pks = [
-            pk for pk, _, variant_selection in variant_attrs_data if variant_selection
-        ]
-        qs = (
-            attribute_models.Attribute.objects.filter(
-                pk__in=variant_attrs_pks,
-            )
-            .exclude(input_type__in=AttributeInputType.ALLOWED_IN_VARIANT_SELECTION)
-            .values_list("pk", "name", "input_type")
-        )
-
-        invalid_attributes = list(qs)
-
-        if invalid_attributes:
-            invalid_attr_ids = [
-                graphene.Node.to_global_id("Attribute", attr)
-                for attr in invalid_attributes
-            ]
-            error = ValidationError(
-                (
-                    f"Some of the attributes types are not supported for "
-                    "variant selection. Supported types are: "
-                    f"{AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
-                ),
-                code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
-                params={"attributes": invalid_attr_ids},
-            )
-            errors["operations"].append(error)
 
     @classmethod
     def check_product_operations_are_assignable(cls, errors, product_attrs_pks):
@@ -240,14 +253,14 @@ class ProductAttributeAssign(BaseMutation):
         model = getattr(attribute_models, model_name)
 
         if model_name == "AttributeVariant":
-            for pk, _, variant_selection in pks:
+            for pk, variant_selection, _ in pks:
                 model.objects.create(
                     product_type=product_type,
                     attribute_id=pk,
                     variant_selection=variant_selection,
                 )
         else:
-            for pk, _, variant_selection in pks:
+            for pk, variant_selection, _ in pks:
                 model.objects.create(
                     product_type=product_type,
                     attribute_id=pk,
@@ -339,6 +352,183 @@ class ProductAttributeUnassign(BaseMutation):
         # Commit
         cls.save_field_values(product_type, "product_attributes", attribute_pks)
         cls.save_field_values(product_type, "variant_attributes", attribute_pks)
+
+        return cls(product_type=product_type)
+
+
+class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidationMixin):
+    product_type = graphene.Field(ProductType, description="The updated product type.")
+
+    class Arguments:
+        product_type_id = graphene.ID(
+            required=True,
+            description="ID of the product type to assign the attributes into.",
+        )
+        operations = graphene.List(
+            ProductAttributeAssignmentUpdateInput,
+            required=True,
+            description="The operations to perform.",
+        )
+
+    class Meta:
+        description = (
+            f"{ADDED_IN_31} Update attributes assigned to product "
+            "variant for given product type."
+        )
+
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    def check_permissions(cls, context):
+        return context.user.has_perm(
+            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
+        )
+
+    @classmethod
+    def get_operations(
+        cls, info, operations: List[ProductAttributeAssignmentUpdateInput]
+    ):
+        variant_attrs_pks = []
+        for operation in operations:
+            pk = cls.get_global_id_or_error(
+                operation.id, only_type=Attribute, field="operations"
+            )
+            variant_attrs_pks.append((pk, operation.variant_selection))
+
+        return variant_attrs_pks
+
+    @classmethod
+    def check_attribute_assigment_exsistence(
+        cls, errors, product_type, variant_attrs_pks
+    ):
+        """Ensure the attributes are assigned to VariantAttributes."""
+
+        assigned_attributes = (
+            attribute_models.Attribute.objects.get_assigned_product_type_attributes(
+                product_type.pk
+            )
+            .values_list("pk", flat=True)
+            .filter(pk__in=variant_attrs_pks)
+        )
+
+        if len(variant_attrs_pks) != len(assigned_attributes):
+            invalid_attrs = set(variant_attrs_pks) - set(assigned_attributes)
+            invalid_attrs = [
+                graphene.Node.to_global_id("Attribute", pk) for pk in invalid_attrs
+            ]
+            error = ValidationError(
+                "Attribute is not assigned to product type.",
+                code=ProductErrorCode.NOT_FOUND,
+                params={
+                    "unassigned_attributes": list(invalid_attrs),
+                    "product_type": product_type,
+                },
+            )
+            errors["operations"].append(error)
+
+    @classmethod
+    def check_attribute_assigment_to_product_variant(
+        cls, errors, variant_attrs_pks, product_type
+    ):
+        assigned_attributes = attribute_models.AttributeVariant.objects.filter(
+            product_type_id=product_type.pk, attribute_id__in=variant_attrs_pks
+        ).values_list("attribute_id", flat=True)
+
+        if len(variant_attrs_pks) != len(assigned_attributes):
+            invalid_attrs = set(variant_attrs_pks) - set(assigned_attributes)
+            invalid_attrs = [
+                graphene.Node.to_global_id("Attribute", pk) for pk in invalid_attrs
+            ]
+            error = ValidationError(
+                "Attribute is not assigned to product_variant.",
+                code=ProductErrorCode.NOT_FOUND,
+                params={
+                    "attributes": list(invalid_attrs),
+                },
+            )
+            errors["operations"].append(error)
+
+    @classmethod
+    def clean_operations(cls, product_type, variant_attrs_data):
+        errors = defaultdict(list)
+        variant_attrs_pks = [pk for pk, _, in variant_attrs_data]
+
+        attributes = attribute_models.Attribute.objects.filter(
+            id__in=variant_attrs_pks
+        ).values_list("pk", flat=True)
+        if len(variant_attrs_pks) != len(attributes):
+            invalid_attrs = set(variant_attrs_pks) - set(attributes)
+            invalid_attrs = [
+                graphene.Node.to_global_id("Attribute", pk) for pk in invalid_attrs
+            ]
+            error = ValidationError(
+                "Attribute doesn't exist.",
+                code=ProductErrorCode.NOT_FOUND,
+                params={"attributes": list(invalid_attrs)},
+            )
+            errors["operations"].append(error)
+
+        cls.check_attribute_assigment_exsistence(
+            errors, product_type, variant_attrs_pks
+        )
+        cls.check_attribute_assigment_to_product_variant(
+            errors, variant_attrs_pks, product_type
+        )
+        cls.check_allowed_types(errors, variant_attrs_data)
+
+        if errors:
+            raise ValidationError(errors)
+
+    @classmethod
+    def update_field_values(cls, product_type, variant_attrs_data):
+        ids_with_variant_selection_true = [
+            id_ for id_, variant_selection in variant_attrs_data if variant_selection
+        ]
+        ids_with_variant_selection_false = [
+            id_
+            for id_, variant_selection in variant_attrs_data
+            if not variant_selection
+        ]
+        attribute_models.AttributeVariant.objects.filter(
+            product_type_id=product_type.pk,
+            attribute_id__in=ids_with_variant_selection_true,
+        ).update(variant_selection=True)
+
+        attribute_models.AttributeVariant.objects.filter(
+            product_type_id=product_type.pk,
+            attribute_id__in=ids_with_variant_selection_false,
+        ).update(variant_selection=False)
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, root, info, **data):
+        product_type_id: str = data["product_type_id"]
+        operations: List[ProductAttributeAssignmentUpdateInput] = data["operations"]
+        # Retrieve the requested product type
+
+        product_type: models.ProductType = graphene.Node.get_node_from_global_id(
+            info, product_type_id, only_type=ProductType
+        )
+
+        # Resolve all passed IDs to ints
+        variant_attrs_data = cls.get_operations(info, operations)
+        variant_attrs_pks = [int(pk) for pk, _ in variant_attrs_data]
+        print(variant_attrs_pks)
+
+        if variant_attrs_pks and not product_type.has_variants:
+            raise ValidationError(
+                {
+                    "operations": ValidationError(
+                        "Variants are disabled in this product type.",
+                        code=ProductErrorCode.ATTRIBUTE_VARIANTS_DISABLED.value,
+                    )
+                }
+            )
+
+        cls.clean_operations(product_type, variant_attrs_data)
+
+        cls.update_field_values(product_type, variant_attrs_data)
 
         return cls(product_type=product_type)
 
