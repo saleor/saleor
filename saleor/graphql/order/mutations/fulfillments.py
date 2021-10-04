@@ -441,12 +441,12 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
 
 
 class PaymentToRefundInput(graphene.InputObjectType):
-    payment_id = graphene.ID(required=True, description="The graphql ID of a payment.")
+    payment_id = graphene.ID(required=True, description="The GraphQL ID of a payment.")
     amount = PositiveDecimal(required=False, description="Amount of the refund.")
     include_shipping_costs = graphene.Boolean(
         description=(
             "If true, Saleor will refund shipping costs. "
-            "If amount is provided includeShippingCosts will be ignored. "
+            "If amount is provided `includeShippingCosts` will be ignored. "
             "Only one such payment per order is allowed."
         ),
         default_value=False,
@@ -471,14 +471,14 @@ class OrderRefundProductsInput(graphene.InputObjectType):
         required=False,
         description=(
             "The total amount of refund when the value is provided manually. "
-            f"{DEPRECATED_IN_3X_INPUT} Use paymentsToRefund instead."
+            f"{DEPRECATED_IN_3X_INPUT} Use `paymentsToRefund` instead."
         ),
     )
     include_shipping_costs = graphene.Boolean(
         description=(
-            "If true, Saleor will refund shipping costs. If amountToRefund is provided "
-            "includeShippingCosts will be ignored. "
-            f"{DEPRECATED_IN_3X_INPUT} Use paymentsToRefund instead."
+            "If true, Saleor will refund shipping costs. If `amountToRefund` is provided "
+            "`includeShippingCosts` will be ignored. "
+            f"{DEPRECATED_IN_3X_INPUT} Use `paymentsToRefund` instead."
         ),
         default_value=False,
     )
