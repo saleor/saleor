@@ -1325,6 +1325,45 @@ def _calculate_refund_amount(
     return refund_amount
 
 
+def _update_missing_amounts_on_payments(refund_amount, payments, order):
+    """Add amounts to refund to payments that were sent without specified ones.
+
+    Include shipping costs if needs be.
+    """
+    payments_total_amount = Decimal(sum([item["amount"] for item in payments]))
+
+    # Deduct the already specified amounts.
+    refund_amount -= payments_total_amount
+
+    shipping_refund_amount = None
+    for item in payments:
+        if item["amount"] == 0 and refund_amount > 0:
+            if item["include_shipping_costs"]:
+                shipping_refund_amount = __get_shipping_refund_amount(
+                    item["include_shipping_costs"],
+                    item["amount"],
+                    order.shipping_price_gross_amount,
+                )
+                if item.get("is_deprecated_way", False):
+                    # If we still work with payments in a deprecated way,
+                    # then we expect only one payment to be in the list.
+                    # TODO: this part can be refactored once we fully switch
+                    # to the list of payments and will remove the separated
+                    # amount_to_refund input.
+                    item["amount"] += min(
+                        refund_amount + (shipping_refund_amount or Decimal("0")),
+                        item["payment"].captured_amount,
+                    )
+                else:
+                    item["amount"] += shipping_refund_amount
+            else:
+                item["amount"] = min(refund_amount, item["payment"].captured_amount)
+                refund_amount -= item["amount"]
+
+    total_refund_amount = Decimal(sum([item["amount"] for item in payments]))
+    return total_refund_amount, shipping_refund_amount
+
+
 @transaction_with_commit_on_errors()
 def _process_refund(
     user: Optional["User"],
@@ -1340,29 +1379,10 @@ def _process_refund(
         order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
     )
 
-    refund_amount -= Decimal(sum([item["amount"] for item in payments]))
+    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+        refund_amount, payments, order
+    )
 
-    shipping_refund_amount = None
-    for item in payments:
-        if item["amount"] == 0:
-            if item["include_shipping_costs"]:
-                shipping_refund_amount = __get_shipping_refund_amount(
-                    item["include_shipping_costs"],
-                    item["amount"],
-                    order.shipping_price_gross_amount,
-                )
-                if item.get("is_deprecated_way", False):
-                    item["amount"] += min(
-                        refund_amount + (shipping_refund_amount or Decimal("0")),
-                        item["payment"].captured_amount,
-                    )
-                else:
-                    item["amount"] += shipping_refund_amount
-            else:
-                item["amount"] = min(refund_amount, item["payment"].captured_amount)
-                refund_amount -= item["amount"]
-
-    amount = Decimal(sum([item["amount"] for item in payments]))
     for item in payments:
         try_refund(
             order=order,
@@ -1396,8 +1416,8 @@ def _process_refund(
             user=user,
             app=app,
             refunded_lines=list(lines_to_refund.values()),
-            amount=amount,  # type: ignore
+            amount=total_refund_amount,  # type: ignore
             shipping_costs_included=bool(shipping_refund_amount),
         )
     )
-    return amount, shipping_refund_amount
+    return total_refund_amount, shipping_refund_amount
