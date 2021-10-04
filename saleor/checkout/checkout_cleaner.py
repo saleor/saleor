@@ -86,9 +86,7 @@ def clean_checkout_payment(
         )
 
     if not is_fully_covered(manager, checkout_info, lines, discounts, current_payment):
-        call_payment_refund_or_void(
-            checkout_info.channel.slug, current_payment, manager
-        )
+        call_payment_refund_or_void(current_payment)
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",
             code=error_code.CHECKOUT_NOT_FULLY_PAID.value,

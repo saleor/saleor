@@ -19,7 +19,7 @@ def test_create_refund_fulfillment_only_order_lines(
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     payment_dummy.save()
     order_with_lines.payments.add(payment_dummy)
-    payment = order_with_lines.get_last_payment()
+    payment = order_with_lines.payments.latest("pk")
     payments = [
         {
             "payment": payment,
@@ -93,7 +93,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     payment_dummy.save()
     order_with_lines.payments.add(payment_dummy)
-    payment = order_with_lines.get_last_payment()
+    payment = order_with_lines.payments.latest("pk")
     order_lines_to_refund = order_with_lines.lines.all()
     payments = [
         {
@@ -159,7 +159,7 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     payment_dummy.save()
     fulfilled_order.payments.add(payment_dummy)
-    payment = fulfilled_order.get_last_payment()
+    payment = fulfilled_order.payments.latest("pk")
     payments = [
         {
             "payment": payment,
@@ -223,7 +223,7 @@ def test_create_refund_fulfillment_custom_amount(
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     payment_dummy.save()
     fulfilled_order.payments.add(payment_dummy)
-    payment = fulfilled_order.get_last_payment()
+    payment = fulfilled_order.payments.latest("pk")
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
     original_quantity = {line.id: line.quantity for line in fulfillment_lines}

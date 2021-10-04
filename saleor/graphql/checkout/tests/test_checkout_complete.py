@@ -4,6 +4,7 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+from django.test import override_settings
 
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
@@ -951,6 +952,7 @@ def test_checkout_complete_insufficient_stock(
     assert orders_count == Order.objects.count()
 
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 @patch("saleor.checkout.complete_checkout.gateway.refund")
 def test_checkout_complete_insufficient_stock_payment_refunded(
     gateway_refund_mock,
@@ -985,6 +987,7 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     )
 
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 @patch("saleor.checkout.complete_checkout.gateway.void")
 def test_checkout_complete_insufficient_stock_payment_voided(
     gateway_void_mock,
@@ -1127,8 +1130,9 @@ def test_checkout_complete_without_redirect_url(
     ).exists(), "Checkout should have been deleted"
 
 
-@patch("saleor.checkout.utils.gateway.payment_refund_or_void")
-def test_checkout_complete_ayment_total_different_than_checkout(
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+@patch("saleor.payment.tasks.gateway.payment_refund_or_void")
+def test_checkout_complete_payment_total_different_than_checkout(
     gateway_refund_or_void_mock,
     checkout_with_items,
     payment_dummy,
@@ -1173,7 +1177,7 @@ def test_checkout_complete_ayment_total_different_than_checkout(
     assert orders_count == Order.objects.count()
 
     gateway_refund_or_void_mock.assert_called_with(
-        payment, ANY, channel_slug=checkout_info.channel.slug
+        payment, ANY, checkout_info.channel.slug
     )
 
 
@@ -1202,6 +1206,7 @@ def test_order_already_exists(
     assert Checkout.objects.count() == 0
 
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 @patch("saleor.checkout.complete_checkout._create_order")
 def test_create_order_raises_insufficient_stock(
     mocked_create_order, user_api_client, checkout_ready_to_complete, payment_dummy
