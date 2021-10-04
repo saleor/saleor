@@ -58,6 +58,7 @@ def resolve_entities(parent, info, representations):
 
         resolver = resolvers[typename]
         entities.extend(resolver(batch, info))
+
     return entities
 
 

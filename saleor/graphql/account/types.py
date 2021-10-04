@@ -133,12 +133,16 @@ class Address(CountableDjangoObjectType):
         user = info.context.user
         app = info.context.app
 
-        ids = [from_global_id_or_error(root.id, Address)[1] for root in roots]
+        ids = [int(from_global_id_or_error(root.id, Address)[1]) for root in roots]
         if app and app.has_perm(AccountPermissions.MANAGE_USERS):
-            return models.Address.objects.filter(id__in=ids)
-        if user and not user.is_anonymous:
-            return user.addresses.filter(id__in=ids)
-        return []
+            qs = models.Address.objects.filter(id__in=ids)
+        elif user and not user.is_anonymous:
+            qs = user.addresses.filter(id__in=ids)
+        else:
+            return [None] * len(roots)
+
+        addresses = {address.id: address for address in qs}
+        return [addresses.get(root_id) for root_id in ids]
 
 
 class CustomerEvent(CountableDjangoObjectType):
@@ -396,31 +400,44 @@ class User(CountableDjangoObjectType):
             [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS],
         )
 
-        ids = []
-        emails = []
+        ids = set()
+        emails = set()
         for root in roots:
             if root.id is not None:
                 _, user_id = from_global_id_or_error(root.id, User)
-                ids.append(int(user_id))
+                ids.add(int(user_id))
             else:
-                emails.append(root.email)
+                emails.add(root.email)
 
         # If user has no access to all users, we can only return themselves, but
         # only if they are authenticated and one of requested users
+        users = []
         if not requestor_has_access_to_all:
             user = info.context.user
             if user.is_authenticated and (user.id in ids or user.email in emails):
-                return [user]
+                users.append(user)
+        else:
+            # If we can access all users, just fetch them from DB and return them
+            qs = get_user_model().objects
+            if ids and emails:
+                qs = qs.filter(Q(id__in=ids) | Q(email__in=emails))
+            elif ids:
+                qs = qs.filter(id__in=ids)
+            else:
+                qs = qs.filter(email__in=emails)
+            users = list(qs)
 
-            return []
+        users_by_id = {user.id: user for user in users}
+        users_by_email = {user.email: user for user in users}
 
-        # If we can access all users, just fetch them from DB and return them
-        qs = get_user_model().objects
-        if ids and emails:
-            return qs.filter(Q(id__in=ids) | Q(email__in=emails))
-        if ids:
-            return qs.filter(id__in=ids)
-        return qs.filter(email__in=emails)
+        results = []
+        for root in roots:
+            if root.id is not None:
+                _, user_id = from_global_id_or_error(root.id, User)
+                results.append(users_by_id.get(int(user_id)))
+            else:
+                results.append(users_by_email.get(root.email))
+        return results
 
     @staticmethod
     def resolve_language_code(root, _info, **_kwargs):

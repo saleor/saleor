@@ -256,4 +256,4 @@ def test_query_app_for_federation_without_permission(api_client, app):
 
     response = api_client.post_graphql(QUERY_APPS_FOR_FEDERATION, variables)
     content = get_graphql_content(response)
-    assert content["data"]["_entities"] == []
+    assert content["data"]["_entities"] == [None]

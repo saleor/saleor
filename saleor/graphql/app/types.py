@@ -197,10 +197,12 @@ class App(CountableDjangoObjectType):
     def __resolve_references(roots: List["App"], info, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
         if not requestor.has_perm(AppPermission.MANAGE_APPS):
-            return []
+            return [None] * len(roots)
 
-        ids = [from_global_id_or_error(root.id, App)[1] for root in roots]
-        return models.App.objects.filter(id__in=ids)
+        ids = [int(from_global_id_or_error(root.id, App)[1]) for root in roots]
+        qs = models.App.objects.filter(id__in=ids)
+        apps = {app.id: app for app in qs}
+        return [apps.get(root_id) for root_id in ids]
 
     @staticmethod
     def resolve_webhooks(root: models.App, _info):
