@@ -55,9 +55,7 @@ def from_shipping_app_id(app_shipping_method_id: str) -> Optional["ShippingAppDa
         except (TypeError, ValueError):
             return None
         else:
-            return ShippingAppData(
-                app_pk, shipping_method_id=splitted_id[2]
-            )
+            return ShippingAppData(app_pk, shipping_method_id=splitted_id[2])
     return None
 
 
@@ -146,7 +144,7 @@ def parse_list_shipping_methods_response(
                 name=method_name,
                 price=Money(method_amount, method_currency),
                 maximum_delivery_days=method_maximum_delivery_days,
-                is_external=True
+                is_external=True,
             )
         )
     return shipping_methods
