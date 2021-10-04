@@ -1,8 +1,8 @@
 from typing import Optional
 
-import posuto
 import requests
 from django.utils import timezone
+from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
 from saleor.payment import PaymentError
@@ -53,14 +53,15 @@ def _format_name(ad: AddressData):
 def _format_address(ad: AddressData):
     """Follow the japanese address guidelines."""
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
-    jap_ad = posuto.get(ad.postal_code)
-    return (
-        f"{ad.country_area}"
-        f"{jap_ad.city}"
-        f"{jap_ad.neighborhood}"
-        f"{ad.street_address_2}"
-        f"{ad.street_address_1}"
-    )
+    with Posuto() as pp:
+        jap_ad = pp.get(ad.postal_code)
+        return (
+            f"{ad.country_area}"
+            f"{jap_ad.city}"
+            f"{jap_ad.neighborhood}"
+            f"{ad.street_address_2}"
+            f"{ad.street_address_1}"
+        )
 
 
 def register_transaction(
