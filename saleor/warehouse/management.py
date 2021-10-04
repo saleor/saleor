@@ -1,15 +1,20 @@
 from collections import defaultdict, namedtuple
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, cast
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, cast
 
 from django.db import transaction
 from django.db.models import F, Sum
 
-from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
+from ..core.exceptions import (
+    AllocationError,
+    InsufficientStock,
+    InsufficientStockData,
+    PreorderAllocationError,
+)
 from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
 from ..plugins.manager import PluginsManager
-from ..product.models import ProductVariant
-from .models import Allocation, Stock, Warehouse
+from ..product.models import ProductVariant, ProductVariantChannelListing
+from .models import Allocation, PreorderAllocation, Stock, Warehouse
 
 if TYPE_CHECKING:
     from ..order.models import Order, OrderLine
@@ -428,7 +433,9 @@ def get_order_lines_with_track_inventory(
     return [
         line_info
         for line_info in order_lines_info
-        if line_info.variant and line_info.variant.track_inventory
+        if line_info.variant
+        and line_info.variant.track_inventory
+        and not line_info.variant.is_preorder_active()
     ]
 
 
@@ -446,3 +453,217 @@ def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
             )
 
     allocations.update(quantity_allocated=0)
+
+
+@traced_atomic_transaction()
+def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug: str):
+    """Allocate preorder variant for given `order_lines` in given channel."""
+    order_lines_info = get_order_lines_with_preorder(order_lines_info)
+    if not order_lines_info:
+        return
+
+    variants = [line_info.variant for line_info in order_lines_info]
+
+    all_variants_channel_listings = (
+        ProductVariantChannelListing.objects.filter(variant__in=variants)
+        .select_for_update(of=("self",))
+        .select_related("channel")
+        .values("id", "channel__slug", "preorder_quantity_threshold", "variant_id")
+    )
+    all_variants_channel_listings_id = (
+        channel_listing["id"] for channel_listing in all_variants_channel_listings
+    )
+
+    quantity_allocation_list = list(
+        PreorderAllocation.objects.filter(
+            product_variant_channel_listing_id__in=all_variants_channel_listings_id,  # noqa: E501
+            quantity__gt=0,
+        )
+        .values("product_variant_channel_listing")
+        .annotate(preorder_quantity_allocated=Sum("quantity"))
+    )
+    quantity_allocation_for_channel: Dict = defaultdict(int)
+    for allocation in quantity_allocation_list:
+        quantity_allocation_for_channel[
+            allocation["product_variant_channel_listing"]
+        ] = allocation["preorder_quantity_allocated"]
+
+    variants_to_channel_listings = {
+        channel_listing["variant_id"]: (
+            channel_listing["id"],
+            channel_listing["preorder_quantity_threshold"],
+        )
+        for channel_listing in all_variants_channel_listings
+        if channel_listing["channel__slug"] == channel_slug
+    }
+
+    variants_global_allocations: Dict[int, int] = defaultdict(int)
+    for channel_listing in all_variants_channel_listings:
+        variants_global_allocations[
+            channel_listing["variant_id"]
+        ] += quantity_allocation_for_channel[channel_listing["id"]]
+
+    insufficient_stocks: List[InsufficientStockData] = []
+    allocations: List[PreorderAllocation] = []
+    for line_info in order_lines_info:
+        variant = cast(ProductVariant, line_info.variant)
+        allocation_item, insufficient_stock = _create_preorder_allocation(
+            line_info,
+            variants_to_channel_listings[variant.id],
+            variants_global_allocations[variant.id],
+            quantity_allocation_for_channel,
+        )
+        if allocation_item:
+            allocations.append(allocation_item)
+        if insufficient_stock:
+            insufficient_stocks.append(insufficient_stock)
+
+    if insufficient_stocks:
+        raise InsufficientStock(insufficient_stocks)
+
+    if allocations:
+        PreorderAllocation.objects.bulk_create(allocations)
+
+
+def get_order_lines_with_preorder(
+    order_lines_info: Iterable["OrderLineData"],
+) -> Iterable["OrderLineData"]:
+    """Return order lines with variants with preorder flag set to True."""
+    return [
+        line_info
+        for line_info in order_lines_info
+        if line_info.variant and line_info.variant.is_preorder_active()
+    ]
+
+
+def _create_preorder_allocation(
+    line_info: "OrderLineData",
+    variant_channel_data: Tuple[int, Optional[int]],
+    variant_global_allocation: int,
+    quantity_allocation_for_channel: Dict[int, int],
+) -> Tuple[Optional[PreorderAllocation], Optional[InsufficientStockData]]:
+    variant = cast(ProductVariant, line_info.variant)
+    quantity = line_info.quantity
+    channel_listing_id, channel_quantity_threshold = variant_channel_data
+
+    if channel_quantity_threshold is not None:
+        channel_availability = (
+            channel_quantity_threshold
+            - quantity_allocation_for_channel[channel_listing_id]
+        )
+        if quantity > channel_availability:
+            return None, InsufficientStockData(
+                variant=variant,
+                available_quantity=channel_availability,
+            )
+
+    if variant.preorder_global_threshold is not None:
+        global_availability = (
+            variant.preorder_global_threshold - variant_global_allocation
+        )
+        if quantity > global_availability:
+            return None, InsufficientStockData(
+                variant=variant, available_quantity=global_availability
+            )
+
+    return (
+        PreorderAllocation(
+            order_line=line_info.line,
+            product_variant_channel_listing_id=channel_listing_id,
+            quantity=quantity,
+        ),
+        None,
+    )
+
+
+@traced_atomic_transaction()
+def deactivate_preorder_for_variant(product_variant: ProductVariant):
+    """Complete preorder for product variant.
+
+    All preorder settings should be cleared and all preorder allocations
+    should be replaced by regular allocations.
+    """
+    if not product_variant.is_preorder:
+        return
+    channel_listings = ProductVariantChannelListing.objects.filter(
+        variant_id=product_variant.pk
+    )
+    channel_listings_pk = (channel_listing.id for channel_listing in channel_listings)
+    preorder_allocations = PreorderAllocation.objects.filter(
+        product_variant_channel_listing_id__in=channel_listings_pk
+    ).select_related("order_line", "order_line__order")
+
+    allocations_to_create = []
+    stocks_to_create = []
+    for preorder_allocation in preorder_allocations:
+        stock = _get_stock_for_preorder_allocation(preorder_allocation, product_variant)
+        if stock._state.adding:
+            stocks_to_create.append(stock)
+        allocations_to_create.append(
+            Allocation(
+                order_line=preorder_allocation.order_line,
+                stock=stock,
+                quantity_allocated=preorder_allocation.quantity,
+            )
+        )
+
+    if stocks_to_create:
+        Stock.objects.bulk_create(stocks_to_create)
+
+    if allocations_to_create:
+        Allocation.objects.bulk_create(allocations_to_create)
+
+    if preorder_allocations:
+        preorder_allocations.delete()
+
+    product_variant.preorder_global_threshold = None
+    product_variant.preorder_end_date = None
+    product_variant.is_preorder = False
+    product_variant.save(
+        update_fields=["preorder_global_threshold", "preorder_end_date", "is_preorder"]
+    )
+
+    ProductVariantChannelListing.objects.filter(variant_id=product_variant.pk).update(
+        preorder_quantity_threshold=None
+    )
+
+
+def _get_stock_for_preorder_allocation(
+    preorder_allocation: PreorderAllocation, product_variant: ProductVariant
+) -> Stock:
+    """Return stock where preordered variant should be allocated.
+
+    By default this function uses any warehouse from the shipping zone that matches
+    order's shipping method. If order has no shipping method set, it uses any warehouse
+    that matches order's country. Function returns existing stock for selected warehouse
+    or creates a new one unsaved `Stock` instance. Function raises an error if there is
+    no warehouse assigned to any shipping zone handles order's country.
+    """
+    order = preorder_allocation.order_line.order
+    shipping_method_id = order.shipping_method_id
+    if shipping_method_id is not None:
+        warehouse = Warehouse.objects.filter(
+            shipping_zones__id=order.shipping_method.shipping_zone_id  # type: ignore
+        ).first()
+    else:
+        from ..order.utils import get_order_country
+
+        country = get_order_country(order)
+        warehouse = Warehouse.objects.filter(
+            shipping_zones__countries__contains=country
+        ).first()
+
+    if not warehouse:
+        raise PreorderAllocationError(preorder_allocation.order_line)
+
+    stock = list(
+        (
+            Stock.objects.select_for_update(of=("self",)).filter(
+                warehouse=warehouse, product_variant=product_variant
+            )
+        )
+    )
+
+    return (stock[0] if stock else None) or Stock(
+        warehouse=warehouse, product_variant=product_variant, quantity=0
+    )

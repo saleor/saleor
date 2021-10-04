@@ -124,6 +124,9 @@ def test_get_order_line_payload(order_line):
             "first_image": None,
             "images": None,
             "weight": "",
+            "is_preorder": False,
+            "preorder_global_threshold": None,
+            "preorder_end_date": None,
         },
         "product": {
             "attributes": expected_attributes_payload,

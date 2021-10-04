@@ -19,7 +19,7 @@ from ....order.utils import (
     recalculate_order,
     update_order_prices,
 )
-from ....warehouse.management import allocate_stocks
+from ....warehouse.management import allocate_preorders, allocate_stocks
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.types import Channel
@@ -419,7 +419,12 @@ class DraftOrderComplete(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, id):
         manager = info.context.plugins
-        order = cls.get_node_or_error(info, id, only_type=Order)
+        order = cls.get_node_or_error(
+            info,
+            id,
+            only_type=Order,
+            qs=models.Order.objects.prefetch_related("lines__variant"),
+        )
         country = get_order_country(order)
         validate_draft_order(order, country)
         cls.update_user_fields(order)
@@ -435,12 +440,15 @@ class DraftOrderComplete(BaseMutation):
         order.save()
 
         for line in order.lines.all():
-            if line.variant.track_inventory:
+            if line.variant.track_inventory or line.variant.is_preorder_active():
                 line_data = OrderLineData(
                     line=line, quantity=line.quantity, variant=line.variant
                 )
+                channel_slug = order.channel.slug
                 try:
-                    allocate_stocks([line_data], country, order.channel.slug, manager)
+                    with traced_atomic_transaction():
+                        allocate_stocks([line_data], country, channel_slug, manager)
+                        allocate_preorders([line_data], channel_slug)
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})

@@ -16,7 +16,7 @@ from ...account.utils import create_superuser
 from ...channel.models import Channel
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...giftcard.models import GiftCard
-from ...order.models import Order
+from ...order.models import Order, OrderLine
 from ...product import ProductTypeKind
 from ...product.models import ProductMedia, ProductType
 from ...shipping.models import ShippingZone
@@ -151,10 +151,16 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     for msg in random_data.create_pages():
         pass
     random_data.create_products_by_schema("/", False)
-    how_many = 2
-    for _ in random_data.create_orders(how_many):
+    how_many_orders = 2
+    for _ in random_data.create_orders(how_many_orders):
         pass
     assert Order.objects.all().count() == 2
+
+    how_many_preorder_orders = 1
+    for _ in random_data.create_preorder_orders(how_many_preorder_orders):
+        pass
+    assert Order.objects.count() == how_many_orders + how_many_preorder_orders
+    assert OrderLine.objects.filter(variant__is_preorder=True).exists()
 
 
 def test_create_product_sales(db):
