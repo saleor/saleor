@@ -60,7 +60,7 @@ def cancel_transaction(
 
     data = {"transactions": [{"np_transaction_id": psp_reference}]}
 
-    response = np_request(config, "post", "/transactions", json=data)
+    response = np_request(config, "post", "/transactions/cancel", json=data)
     response_data = response.json()
 
     if "errors" in response_data:
