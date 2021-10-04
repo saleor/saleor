@@ -168,7 +168,7 @@ def send_webhook_request(self, webhook_id, target_url, secret, event_type, data)
             try:
                 self.retry(countdown=10)
             except MaxRetriesExceededError:
-                logger.warning(
+                logger.info(
                     "[Webhook] Failed request to %r: exceeded retry limit %r.",
                     target_url,
                     self.max_retries,
