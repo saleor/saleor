@@ -82,7 +82,7 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
-        user = models.User.objects.filter(email=email, is_active=True).first()
+        user = models.User.objects.filter(email=email).first()
         if user and user.check_password(password):
             return user
         return None
@@ -96,6 +96,25 @@ class CreateToken(BaseMutation):
                     "email": ValidationError(
                         "Please, enter valid credentials",
                         code=AccountErrorCode.INVALID_CREDENTIALS.value,
+                    )
+                }
+            )
+        if not user.is_active and not user.last_login:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "Account needs to be confirmed via email.",
+                        code=AccountErrorCode.ACCOUNT_NOT_CONFIRMED.value,
+                    )
+                }
+            )
+
+        if not user.is_active and user.last_login:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "Account inactive.",
+                        code=AccountErrorCode.INACTIVE.value,
                     )
                 }
             )
