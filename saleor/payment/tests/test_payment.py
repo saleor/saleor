@@ -13,6 +13,7 @@ from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
 from ..interface import GatewayResponse
+from ..model_helpers import get_total_authorized
 from ..models import Payment, Transaction
 from ..tasks import refund_or_void_inactive_payment, release_unfinished_payments_task
 from ..utils import (
@@ -457,23 +458,30 @@ def test_can_refund(payment_dummy: Payment):
     assert payment_dummy.can_refund()
 
 
-def test_payment_get_authorized_amount(payment_txn_preauth):
-    payment = payment_txn_preauth
+def test_payment_get_total_authorized_empty_list():
+    currency = "EUR"
+    total = get_total_authorized([], currency)
+    assert total.amount == Decimal("0.000")
+    assert total.currency == currency
 
-    authorized_amount = payment.transactions.first().amount
-    assert payment.get_authorized_amount().amount == authorized_amount
-    assert payment.order.total_authorized.amount == authorized_amount
 
-    payment.transactions.create(
-        amount=payment.total,
-        kind=TransactionKind.CAPTURE,
-        gateway_response={},
-        is_success=True,
-    )
-    assert payment.get_authorized_amount().amount == Decimal(0)
+def test_payment_get_total_authorized(payment_kwargs):
+    # given
+    a = Decimal("101.01")
+    b = Decimal("99.99")
+    payment_kwargs["total"] = a
+    p0 = Payment.objects.create(**payment_kwargs)
+    payment_kwargs["charge_status"] = ChargeStatus.AUTHORIZED
+    p1 = Payment.objects.create(**payment_kwargs)
+    payment_kwargs["total"] = b
+    p2 = Payment.objects.create(**payment_kwargs)
+    payment_kwargs["is_active"] = False
+    p3 = Payment.objects.create(**payment_kwargs)
 
-    payment.transactions.all().delete()
-    assert payment.get_authorized_amount().amount == Decimal(0)
+    currency = "EUR"
+    total = get_total_authorized([p0, p1, p2, p3], currency)
+    assert total.amount == a + b
+    assert total.currency == currency
 
 
 def test_validate_gateway_response(gateway_response):
