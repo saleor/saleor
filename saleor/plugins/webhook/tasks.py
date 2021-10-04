@@ -149,11 +149,12 @@ def send_webhook_using_google_cloud_pubsub(
 
 @app.task(
     autoretry_for=(RequestException,),
+    bind=True,
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
     compression="zlib",
 )
-def send_webhook_request(webhook_id, target_url, secret, event_type, data):
+def send_webhook_request(self, webhook_id, target_url, secret, event_type, data):
     parts = urlparse(target_url)
     domain = Site.objects.get_current().domain
     message = data.encode("utf-8")
@@ -163,6 +164,7 @@ def send_webhook_request(webhook_id, target_url, secret, event_type, data):
             send_webhook_using_http(target_url, message, domain, signature, event_type)
         except RequestException as e:
             logger.debug("[Webhook] Failed request to %r: %r.", target_url, e)
+            self.retry(countdown=10)
     elif parts.scheme.lower() == WebhookSchemes.AWS_SQS:
         send_webhook_using_aws_sqs(target_url, message, domain, signature, event_type)
         task_logger.debug(
