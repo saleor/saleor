@@ -373,8 +373,9 @@ def test_category_create_mutation(
     )
 
     category_name = "Test category"
+    description = "description"
     category_slug = slugify(category_name)
-    category_description = dummy_editorjs("description", True)
+    category_description = dummy_editorjs(description, True)
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
 
@@ -397,6 +398,7 @@ def test_category_create_mutation(
     assert data["category"]["description"] == category_description
     assert not data["category"]["parent"]
     category = Category.objects.get(name=category_name)
+    assert category.description_plaintext == description
     assert category.background_image.file
     img_name, format = os.path.splitext(image_file._name)
     file_name = category.background_image.name
@@ -544,8 +546,9 @@ def test_category_update_mutation(
     child_category = category.children.create(name="child")
 
     category_name = "Updated name"
+    description = "description"
     category_slug = slugify(category_name)
-    category_description = dummy_editorjs("description", True)
+    category_description = dummy_editorjs(description, True)
 
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
@@ -575,6 +578,7 @@ def test_category_update_mutation(
     parent_id = graphene.Node.to_global_id("Category", category.pk)
     assert data["category"]["parent"]["id"] == parent_id
     category = Category.objects.get(name=category_name)
+    assert category.description_plaintext == description
     assert category.background_image.file
     mock_create_thumbnails.assert_called_once_with(category.pk)
     assert data["category"]["backgroundImage"]["alt"] == image_alt
