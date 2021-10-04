@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 import posuto
@@ -18,6 +19,9 @@ from .errors import (
 )
 
 REQUEST_TIMEOUT = 15
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_url(config: ApiConfig, path: str = "") -> str:
@@ -162,7 +166,11 @@ def register_transaction(
 def cancel_transaction(config: ApiConfig, transaction_id: str) -> None:
     data = {"transactions": [{"np_transaction_id": transaction_id}]}
 
-    # TODO: how to do error handling here?
-    #   * passing errors to GatewayResponse
-    #   * logging
-    np_request(config, "post", "/transactions/cancel", json=data)
+    response = np_request(config, "post", "/transactions/cancel", json=data)
+    errors = response.json().get("error")
+    if errors:
+        logger.error(
+            "Payment with id %s could not be cancelled: %s",
+            transaction_id,
+            ", ".join(errors[0]["codes"]),
+        )
