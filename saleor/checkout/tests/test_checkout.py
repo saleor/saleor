@@ -28,6 +28,7 @@ from ..fetch import (
 )
 from ..models import Checkout
 from ..utils import (
+    PRIVATE_META_APP_SHIPPING_ID,
     add_voucher_to_checkout,
     calculate_checkout_quantity,
     cancel_active_payments,
@@ -42,7 +43,6 @@ from ..utils import (
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
     set_app_shipping_id,
-    PRIVATE_META_APP_SHIPPING_ID,
 )
 
 

@@ -28,7 +28,11 @@ from ....checkout.fetch import (
     get_delivery_method_info,
 )
 from ....checkout.models import Checkout
-from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
+from ....checkout.utils import (
+    PRIVATE_META_APP_SHIPPING_ID,
+    add_variant_to_checkout,
+    calculate_checkout_quantity,
+)
 from ....core.payments import PaymentInterface
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
@@ -2666,6 +2670,47 @@ def test_checkout_shipping_method_update(
             errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
         )
         assert checkout.shipping_method is None
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_checkout_shipping_method_update_external_shipping_method(
+    mock_send_request,
+    staff_api_client,
+    address,
+    checkout_with_item,
+    shipping_app,
+    channel_USD,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+
+    method_id = f"app:{shipping_app.id}:{response_method_id}"
+
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"token": checkout_with_item.token, "shippingMethodId": method_id},
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    checkout.refresh_from_db()
+
+    errors = data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
+    assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
 
 
 @pytest.mark.parametrize("is_valid_delivery_method", (True, False))
