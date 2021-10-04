@@ -73,10 +73,10 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             auto_capture=False,
             supported_currencies=self.SUPPORTED_CURRENCIES,
             connection_params={
-                "merchant_code": configuration[MERCHANT_CODE],
-                "sp_code": configuration[SP_CODE],
-                "terminal_id": configuration[TERMINAL_ID],
-                "sandbox_mode": configuration[USE_SANDBOX],
+                MERCHANT_CODE: configuration[MERCHANT_CODE],
+                SP_CODE: configuration[SP_CODE],
+                TERMINAL_ID: configuration[TERMINAL_ID],
+                USE_SANDBOX: configuration[USE_SANDBOX],
             },
         )
 

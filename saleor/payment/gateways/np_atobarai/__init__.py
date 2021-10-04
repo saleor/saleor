@@ -12,6 +12,8 @@ def inject_api_config(fun):
     def inner(payment_information: PaymentData, config: GatewayConfig):
         return fun(payment_information, get_api_config(config.connection_params))
 
+    return inner
+
 
 @inject_api_config
 def process_payment(
