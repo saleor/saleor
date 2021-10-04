@@ -159,21 +159,30 @@ def send_webhook_request(webhook_id, target_url, secret, event_type, data):
     message = data.encode("utf-8")
     signature = signature_for_payload(message, secret)
     if parts.scheme.lower() in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
-        send_webhook_using_http(target_url, message, domain, signature, event_type)
+        try:
+            send_webhook_using_http(target_url, message, domain, signature, event_type)
+        except RequestException as e:
+            logger.debug("[Webhook] Failed request to %r: %r.", target_url, e)
     elif parts.scheme.lower() == WebhookSchemes.AWS_SQS:
         send_webhook_using_aws_sqs(target_url, message, domain, signature, event_type)
+        task_logger.debug(
+            "[Webhook ID:%r] Payload sent to %r for event %r",
+            webhook_id,
+            target_url,
+            event_type,
+        )
     elif parts.scheme.lower() == WebhookSchemes.GOOGLE_CLOUD_PUBSUB:
         send_webhook_using_google_cloud_pubsub(
             target_url, message, domain, signature, event_type
         )
+        task_logger.debug(
+            "[Webhook ID:%r] Payload sent to %r for event %r",
+            webhook_id,
+            target_url,
+            event_type,
+        )
     else:
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
-    task_logger.debug(
-        "[Webhook ID:%r] Payload sent to %r for event %r",
-        webhook_id,
-        target_url,
-        event_type,
-    )
 
 
 def send_webhook_request_sync(target_url, secret, event_type, data: str):
