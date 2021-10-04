@@ -2709,6 +2709,7 @@ def test_checkout_shipping_method_update_external_shipping_method(
     checkout.refresh_from_db()
 
     errors = data["errors"]
+    assert not errors
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
 
