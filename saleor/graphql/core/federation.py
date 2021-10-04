@@ -39,7 +39,7 @@ def resolve_entities(parent, info, representations):
                 resolvers[representation["__typename"]] = getattr(
                     model, "_%s__resolve_references" % representation["__typename"]
                 )
-            except AttributeError as e:
+            except AttributeError:
                 pass
 
     batches = defaultdict(list)

@@ -104,7 +104,7 @@ from ..dataloaders import (
 )
 from ..enums import ProductTypeKindEnum, VariantAttributeScope
 from ..filters import ProductFilterInput
-from ..resolvers import resolve_collection_by_id, resolve_products
+from ..resolvers import resolve_products
 from ..sorters import ProductOrder
 from .channels import (
     CollectionChannelListing,
