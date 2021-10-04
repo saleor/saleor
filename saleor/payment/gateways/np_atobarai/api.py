@@ -10,8 +10,8 @@ from saleor.payment.gateways.np_atobarai.api_types import (
     PaymentStatus,
 )
 from saleor.payment.gateways.np_atobarai.errors import (
-    UNKNOWN_ERROR,
     TransactionCancellationResultError,
+    get_error_messages_from_codes,
 )
 from saleor.payment.interface import PaymentData
 from saleor.payment.models import Payment
@@ -53,7 +53,6 @@ def health_check(config: ApiConfig) -> bool:
 def cancel_transaction(
     config: ApiConfig, payment_information: PaymentData
 ) -> PaymentResult:
-    # todo: optimize
     psp_reference = Payment.objects.get(id=payment_information.payment_id).psp_reference
 
     if not psp_reference:
@@ -67,14 +66,9 @@ def cancel_transaction(
     if "errors" in response_data:
         error_codes = set(response_data["errors"][0]["codes"])
 
-        error_messages = []
-        for error_code in error_codes:
-            try:
-                message = TransactionCancellationResultError[error_code].value
-            except KeyError:
-                message = f"#{error_code}: {UNKNOWN_ERROR}"
-
-            error_messages.append(message)
+        error_messages = get_error_messages_from_codes(
+            error_codes, TransactionCancellationResultError
+        )
 
         return PaymentResult(
             status=PaymentStatus.FAILED,
