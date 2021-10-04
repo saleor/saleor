@@ -11,7 +11,11 @@ from ...interface import AddressData, PaymentData
 from ...utils import price_to_minor_unit
 from .api_types import ApiConfig, PaymentResult, PaymentStatus
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL
-from .errors import UNKNOWN_ERROR, TransactionRegistrationResultError
+from .errors import (
+    UNKNOWN_ERROR,
+    TransactionRegistrationResultError,
+    get_reason_messages_from_codes,
+)
 
 REQUEST_TIMEOUT = 15
 
@@ -127,10 +131,15 @@ def register_transaction(
 
     if "results" in response_data:
         transaction = response_data["results"][0]
-        return PaymentResult(
-            status=transaction["authori_result"],
-            psp_reference=transaction["np_transaction_id"],
-        )
+        status = transaction["authori_result"]
+        transaction_id = transaction["np_transaction_id"]
+        errors = []
+
+        if status == PaymentStatus.PENDING:
+            cancel_transaction(config, transaction_id)
+            errors = get_reason_messages_from_codes(set(response_data["authori_hold"]))
+
+        return PaymentResult(status=status, psp_reference=transaction_id, errors=errors)
 
     if "errors" in response_data:
         error_codes = set(response_data["errors"][0]["codes"])
@@ -148,3 +157,12 @@ def register_transaction(
         error_messages = [UNKNOWN_ERROR]
 
     return PaymentResult(status=PaymentStatus.FAILED, errors=error_messages)
+
+
+def cancel_transaction(config: ApiConfig, transaction_id: str) -> None:
+    data = {"transactions": [{"np_transaction_id": transaction_id}]}
+
+    # TODO: how to do error handling here?
+    #   * passing errors to GatewayResponse
+    #   * logging
+    np_request(config, "post", "/transactions/cancel", json=data)

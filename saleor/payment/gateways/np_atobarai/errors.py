@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Iterable, List
 
 
 class NPAtobaraiError(Exception):
@@ -172,4 +173,75 @@ class TransactionRegistrationResultError(Enum):
     E0100091 = "Please check if the delivery phone number is entered."
 
 
+class PendingReason(Enum):
+    RE009 = (
+        "Please check your registered address, "
+        "as there may be insufficient address information."
+        "(1. Please enter the name of the building or room number. "
+        "2. Please enter the name of the company or store in the “Company Name” box.)"
+    )
+
+    RE014 = (
+        "NP atobarai cannot be used for deliveries to temporary destinations "
+        "(hotels, etc.) or for picking up items at post offices, convenience stores, "
+        "or shipping company offices.Please check your registered address "
+        "and the enrollment status of the purchaser in provided address. "
+        "Please contact the NP Support Desk if you are eligible to use NP atobarai, "
+        "for example, if you are a staff member."
+    )
+
+    RE015 = (
+        "Please check your registered shipping address, "
+        "as the address information may be insufficient. "
+        "(1. Please enter the name of the building or room number. "
+        "2. Please enter the name of the company or store in the “Company Name” field.)"
+    )
+
+    RE020 = (
+        "NP atobarai is not available for deliveries to temporary destinations "
+        "(hotels, etc.) or for picking up items at post offices, convenience stores, "
+        "or shipping company offices. Please check your registered address "
+        "and the enrollment status of the purchaser in provided address. "
+        "Please contact the NP Support Desk if it is available to use NP atobarai "
+        "such as order by stuff member."
+    )
+
+    RE021 = (
+        "Provided phone number has something wrong and it caused an error. "
+        "Please update your phone number."
+    )
+
+    RE023 = (
+        "Provided phone number for the shipping address has something wrong "
+        "and it caused an error. Please update your phone number."
+    )
+
+    RE026 = (
+        "If the registered address is to P.O. Box, if you are an employee of the "
+        "merchant (in-house transactions), if the website is not examined yet, "
+        "if you only charge shipping and handling fee, if you sell prohibited products "
+        "(including digital content, animals, tickets, course fees, etc., which you "
+        "have started selling after we have completed our review of the merchant), "
+        "please cancel the transaction if it apply to any of the above."
+    )
+
+
+def get_reason_messages_from_codes(
+    reason_codes: Iterable[str],
+) -> List[str]:
+    reason_messages = []
+    for code in reason_codes:
+        try:
+            message = PendingReason[code].value
+        except KeyError:
+            # The number of pending codes may increase in the future.
+            message = f"#{code}: {UNKNOWN_REASON}"
+
+        reason_messages.append(message)
+
+    return reason_messages
+
+
 UNKNOWN_ERROR = "Unknown error while processing the payment."
+
+UNKNOWN_REASON = "Unknown pending reason while processing the payment."

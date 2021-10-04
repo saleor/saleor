@@ -29,7 +29,7 @@ def process_payment(
 
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,
-        action_required=result.status == PaymentStatus.PENDING,
+        action_required=False,
         kind=TransactionKind.AUTH,
         amount=payment_information.amount,
         currency=payment_information.currency,
