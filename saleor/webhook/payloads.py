@@ -1,7 +1,7 @@
 import json
 import uuid
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 import graphene
 from django.db.models import F, QuerySet
@@ -20,6 +20,7 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
+from ..plugins.base_plugin import ShippingMethod
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
@@ -533,6 +534,34 @@ def generate_list_gateways_payload(
         checkout_data = None
     payload = {"checkout": checkout_data, "currency": currency}
     return json.dumps(payload)
+
+
+def generate_excluded_shipping_methods_for_order_payload(
+    order: "Order",
+    available_shipping_methods: List[ShippingMethod],
+):
+    order_data = json.loads(generate_order_payload(order))[0]
+    payload = {
+        "order": order_data,
+        "shipping_methods": [
+            asdict(shipping_method) for shipping_method in available_shipping_methods
+        ],
+    }
+    return json.dumps(payload, cls=CustomJsonEncoder)
+
+
+def generate_excluded_shipping_methods_for_checkout_payload(
+    checkout: "Checkout",
+    available_shipping_methods: List[ShippingMethod],
+):
+    checkout_data = json.loads(generate_checkout_payload(checkout))[0]
+    payload = {
+        "checkout": checkout_data,
+        "shipping_methods": [
+            asdict(shipping_method) for shipping_method in available_shipping_methods
+        ],
+    }
+    return json.dumps(payload, cls=CustomJsonEncoder)
 
 
 def _get_sample_object(qs: QuerySet):
