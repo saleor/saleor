@@ -4255,6 +4255,23 @@
     }
   },
   {
+    "model": "product.productvariant",
+    "pk": 322,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "sku": "waterfall-ballads-extended-mp3",
+      "name": "MP3 Extended",
+      "product": 124,
+      "track_inventory": true,
+      "weight": null,
+      "default": true,
+      "is_preorder": true,
+      "preorder_end_date": null,
+      "preorder_global_threshold": 10
+    }
+  },
+  {
     "model": "product.productvariantchannellisting",
     "pk": 1,
     "fields": {
@@ -6664,6 +6681,30 @@
     }
   },
   {
+    "model": "product.productvariantchannellisting",
+    "pk": 220,
+    "fields": {
+      "variant": 322,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "9.990",
+      "cost_price_amount": null,
+      "preorder_quantity_threshold": 8
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 221,
+    "fields": {
+      "variant": 322,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": null,
+      "preorder_quantity_threshold": 2
+    }
+  },
+  {
     "model": "attribute.assignedproductattribute",
     "pk": 1,
     "fields": {
@@ -8531,6 +8572,17 @@
         "values": [
           104
         ]
+    }
+  },
+  {
+    "model": "attribute.assignedvariantattribute",
+    "pk": 135,
+    "fields": {
+      "variant": 322,
+      "assignment": 8,
+      "values": [
+        85
+      ]
     }
   },
   {

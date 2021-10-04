@@ -1010,3 +1010,18 @@ def test_customer_complete_checkout_for_cc(
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutComplete"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_complete_checkout_preorder(
+    api_client, checkout_preorder_with_charged_payment, count_queries
+):
+    query = COMPLETE_CHECKOUT_MUTATION
+
+    variables = {
+        "token": checkout_preorder_with_charged_payment.token,
+    }
+
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+    assert not response["data"]["checkoutComplete"]["errors"]

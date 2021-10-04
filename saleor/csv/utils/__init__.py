@@ -13,6 +13,9 @@ class ProductExportFields:
             "variant id": "variants__id",
             "variant sku": "variants__sku",
             "variant weight": "variant_weight",
+            "variant is preorder": "variants__is_preorder",
+            "variant preorder global threshold": "variants__preorder_global_threshold",
+            "variant preorder end date": "variants__preorder_end_date",
         },
         "product_many_to_many": {
             "collections": "collections__slug",
@@ -73,4 +76,7 @@ class ProductExportFields:
         "price_amount": "variants__channel_listings__price_amount",
         "variant_currency_code": "variants__channel_listings__currency",
         "variant_cost_price": "variants__channel_listings__cost_price_amount",
+        "variant_preorder_quantity_threshold": (
+            "variants__channel_listings__preorder_quantity_threshold"
+        ),
     }

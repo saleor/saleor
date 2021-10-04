@@ -44,7 +44,7 @@ from ...shipping import interface as shipping_interface
 from ...shipping import models as shipping_models
 from ...shipping.utils import convert_to_shipping_method_data
 from ...warehouse import models as warehouse_models
-from ...warehouse.availability import check_stock_quantity_bulk
+from ...warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..channel.utils import clean_channel
@@ -180,7 +180,7 @@ def check_lines_quantity(
                 }
             )
     try:
-        check_stock_quantity_bulk(
+        check_stock_and_preorder_quantity_bulk(
             variants,
             country,
             quantities,

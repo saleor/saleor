@@ -1009,7 +1009,7 @@ def test_create_order_with_variant_tracking_false(
 
 
 @override_settings(LANGUAGE_CODE="fr")
-def test_create_order_use_tanslations(
+def test_create_order_use_translations(
     checkout_with_item, customer_user, shipping_method
 ):
     translated_product_name = "French name"

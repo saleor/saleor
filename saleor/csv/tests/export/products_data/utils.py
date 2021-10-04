@@ -105,12 +105,21 @@ def add_channel_to_expected_variant_data(data, variant, channel_ids, pk=None):
             price_header = f"{channel_slug} (channel price amount)"
             currency_header = f"{channel_slug} (channel variant currency code)"
             cost_price = f"{channel_slug} (channel variant cost price)"
+            preorder_quantity_threshold = (
+                f"{channel_slug} (channel variant preorder quantity threshold)"
+            )
             if pk:
                 data[pk][price_header] = channel_listing.price_amount
                 data[pk][currency_header] = channel_listing.currency
                 data[pk][cost_price] = channel_listing.cost_price_amount
+                data[pk][
+                    preorder_quantity_threshold
+                ] = channel_listing.preorder_quantity_threshold
             else:
                 data[price_header] = channel_listing.price_amount
                 data[currency_header] = channel_listing.currency
                 data[cost_price] = channel_listing.cost_price_amount
+                data[
+                    preorder_quantity_threshold
+                ] = channel_listing.preorder_quantity_threshold
     return data
