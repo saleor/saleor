@@ -872,7 +872,7 @@ class PluginsManager(PaymentInterface):
                 )
             }
             return methods.get(shipping_method_id)
-        return []
+        return None
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
         auth_basic_method = "external_obtain_access_tokens"
