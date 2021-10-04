@@ -83,7 +83,7 @@ INVOICE_READY_DEFAULT_SUBJECT = "Invoice"
 ORDER_CONFIRMATION_DEFAULT_SUBJECT = "Order #{{ order.number }} details"
 ORDER_CONFIRMED_DEFAULT_SUBJECT = "Order #{{ order.number }} confirmed"
 ORDER_FULFILLMENT_CONFIRMATION_DEFAULT_SUBJECT = (
-    "Your order {{ number }} has been fulfilled"
+    "Your order {{ order.number }} has been fulfilled"
 )
 ORDER_FULFILLMENT_UPDATE_DEFAULT_SUBJECT = (
     "Shipping update for order {{ order.number }}"
