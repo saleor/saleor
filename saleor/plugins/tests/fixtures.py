@@ -31,6 +31,20 @@ def plugin_configuration(db):
 
 
 @pytest.fixture
+def email_configuration():
+    return {
+        "use_tls": False,
+        "use_ssl": False,
+        "host": "localhost",
+        "port": 1025,
+        "username": "test",
+        "password": "test",
+        "sender_name": "test_name",
+        "sender_address": "test_address",
+    }
+
+
+@pytest.fixture
 def channel_plugin_configurations(db, channel_USD, channel_PLN):
     usd_configuration = copy.deepcopy(ChannelPluginSample.DEFAULT_CONFIGURATION)
     usd_configuration[0]["value"] = channel_USD.slug
