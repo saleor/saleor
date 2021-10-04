@@ -112,7 +112,7 @@ class BasePlugin:
 
     #  Assign tax code dedicated to plugin.
     assign_tax_code_to_object_meta: Callable[
-        [Union["Product", "ProductType"], Union[str, NoneType]], Any
+        [Union["Product", "ProductType"], Union[str, NoneType], Any], Any
     ]
 
     #  Authenticate user which should be assigned to the request.
@@ -120,7 +120,7 @@ class BasePlugin:
     #  Overwrite this method if the plugin handles authentication flow.
     authenticate_user: Callable[[WSGIRequest], Union["User", NoneType]]
 
-    authorize_payment: Callable[["PaymentData"], GatewayResponse]
+    authorize_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     #  Calculate checkout line total.
     #
@@ -146,6 +146,7 @@ class BasePlugin:
             "CheckoutLineInfo",
             Union["Address", NoneType],
             Iterable["DiscountInfo"],
+            Any,
         ],
         Any,
     ]
@@ -204,7 +205,7 @@ class BasePlugin:
     #  changes in draft order. Return TaxedMoney.
     calculate_order_shipping: Callable[["Order", TaxedMoney], TaxedMoney]
 
-    capture_payment: Callable[["PaymentData"], GatewayResponse]
+    capture_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     change_user_address: Callable[
         ["Address", Union[str, NoneType], Union["User", NoneType], "Address"], "Address"
@@ -222,7 +223,7 @@ class BasePlugin:
     #  updated.
     checkout_updated: Callable[["Checkout", Any], Any]
 
-    confirm_payment: Callable[["PaymentData"], GatewayResponse]
+    confirm_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     #  Trigger when user is created.
     #
@@ -289,6 +290,7 @@ class BasePlugin:
             Iterable["CheckoutLineInfo"],
             Union["Address", NoneType],
             Iterable["DiscountInfo"],
+            Any,
         ],
         Any,
     ]
@@ -298,7 +300,7 @@ class BasePlugin:
         Decimal,
     ]
 
-    get_order_shipping_tax_rate: Callable[["Order"], Any]
+    get_order_shipping_tax_rate: Callable[["Order", Any], Any]
     get_payment_config: Callable[[Any], Any]
 
     get_supported_currencies: Callable[[Any], Any]
@@ -312,7 +314,7 @@ class BasePlugin:
     #
     #  It is used only by the old storefront.
     get_tax_rate_percentage_value: Callable[
-        [Union["Product", "ProductType"], Country], Decimal
+        [Union["Product", "ProductType"], Country, Any], Decimal
     ]
 
     #  Return list of all tax categories.
@@ -329,7 +331,7 @@ class BasePlugin:
     #
     #  Perform any extra logic before the invoice gets deleted.
     #  Note there is no need to run invoice.delete() as it will happen in mutation.
-    invoice_delete: Callable[["Invoice"], Any]
+    invoice_delete: Callable[["Invoice", Any], Any]
 
     #  Trigger when invoice creation starts.
     #
@@ -337,12 +339,12 @@ class BasePlugin:
     invoice_request: Callable[["Order", "Invoice", Union[str, NoneType], Any], Any]
 
     #  Trigger after invoice is sent.
-    invoice_sent: Callable[["Invoice", str], Any]
+    invoice_sent: Callable[["Invoice", str, Any], Any]
 
     #  Handle notification request.
     #
     #  Overwrite this method if the plugin is responsible for sending notifications.
-    notify: Callable[["NotifyEventType"], Any]
+    notify: Callable[["NotifyEventType", dict, Any], Any]
 
     #  Trigger when order is cancelled.
     #
@@ -354,13 +356,13 @@ class BasePlugin:
     #
     #  Overwrite this method if you need to trigger specific logic after an order is
     #  confirmed.
-    order_confirmed: Callable[["Order"], Any]
+    order_confirmed: Callable[["Order", Any], Any]
 
     #  Trigger when order is created.
     #
     #  Overwrite this method if you need to trigger specific logic after an order is
     #  created.
-    order_created: Callable[["Order"], Any]
+    order_created: Callable[["Order", Any], Any]
 
     #  Trigger when order is fulfilled.
     #
@@ -407,6 +409,7 @@ class BasePlugin:
             "CheckoutInfo",
             List["DiscountInfo"],
             Union[Iterable["CheckoutLineInfo"], NoneType],
+            Any,
         ],
         Any,
     ]
@@ -447,7 +450,7 @@ class BasePlugin:
     #  variant is updated.
     product_variant_updated: Callable[["ProductVariant", Any], Any]
 
-    refund_payment: Callable[["PaymentData"], GatewayResponse]
+    refund_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     #  Define if storefront should add info about taxes to the price.
     #
@@ -455,12 +458,12 @@ class BasePlugin:
     #  storefront should append info to the price about "including/excluding X% VAT".
     show_taxes_on_storefront: Callable[[bool], bool]
 
-    void_payment: Callable[["PaymentData"], GatewayResponse]
+    void_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     #  Handle received http request.
     #
     #  Overwrite this method if the plugin expects the incoming requests.
-    webhook: Callable[[WSGIRequest, str], HttpResponse]
+    webhook: Callable[[WSGIRequest, str, Any], HttpResponse]
 
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value
