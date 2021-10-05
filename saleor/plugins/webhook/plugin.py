@@ -433,6 +433,8 @@ class WebhookPlugin(BasePlugin):
             if reasons:
                 reason = " ".join(reasons)
             excluded_methods.append(ExcludedShippingMethod(id=method_id, reason=reason))
+        print("DUPA")
+        return NotImplementedError
         return excluded_methods
 
     def excluded_shipping_methods_for_order(
