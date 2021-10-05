@@ -102,6 +102,10 @@ class CategoryCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+        description = cleaned_input.get("description")
+        cleaned_input["description_plaintext"] = (
+            clean_editor_js(description, to_string=True) if description else ""
+        )
         try:
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
