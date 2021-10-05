@@ -1,7 +1,7 @@
 import copy
 from decimal import Decimal
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 from django.conf import settings
 from django.utils import timezone
@@ -417,7 +417,7 @@ def add_gift_cards_to_order(
     gift_cards_to_update = []
     balance_data: List[Tuple[GiftCard, float]] = []
     used_by_user = checkout_info.user
-    used_by_email = checkout_info.get_customer_email()
+    used_by_email = cast(str, checkout_info.get_customer_email())
     for gift_card in checkout_info.checkout.gift_cards.select_for_update():
         if total_price_left > zero_money(total_price_left.currency):
             order_gift_cards.append(gift_card)

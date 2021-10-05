@@ -989,12 +989,26 @@ class CheckoutEmailUpdate(BaseMutation):
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
+    @staticmethod
+    def clean_email(email):
+        if not email:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "This field cannot be blank.",
+                        code=CheckoutErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
     @classmethod
     def perform_mutation(cls, _root, info, email, checkout_id=None, token=None):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
             CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        cls.clean_email(email)
 
         if token:
             checkout = get_checkout_by_token(token)
