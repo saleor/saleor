@@ -13,11 +13,11 @@ def get_last_payment(payments: List[Payment]):
 
 
 def get_total_authorized(payments: List[Payment], fallback_currency: str):
-    # FIXME adjust to multiple payments in the future
-    if last_payment := get_last_payment(payments):
-        if last_payment.is_active:
-            return last_payment.get_authorized_amount()
-    return zero_money(fallback_currency)
+    authorized_payments = [p for p in payments if p.is_authorized and p.is_active]
+    total = zero_money(fallback_currency)
+    for payment in authorized_payments:
+        total.amount += payment.total
+    return total
 
 
 def get_subtotal(order_lines: List["OrderLine"], fallback_currency: str):

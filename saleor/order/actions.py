@@ -899,6 +899,19 @@ def create_refund_fulfillment(
     quantities which is used to create the refund fulfillment. The stock for
     unfulfilled lines will be deallocated.
     """
+    # Amount to be eventually specified in the Fulfillment object.
+    counted_shipping_amount = None
+    for item in payments:
+        if item["include_shipping_costs"]:
+            if not item["amount"]:
+                counted_shipping_amount = order.shipping_price_gross_amount
+            shipping_refund_amount = __get_shipping_refund_amount(
+                item["include_shipping_costs"],
+                item["amount"],
+                order.shipping_price_gross_amount,
+            )
+            if shipping_refund_amount:
+                item["amount"] = shipping_refund_amount
 
     with transaction_with_commit_on_errors():
         total_refund_amount, shipping_refund_amount = _process_refund(
@@ -915,7 +928,7 @@ def create_refund_fulfillment(
             status=FulfillmentStatus.REFUNDED,
             order=order,
             total_refund_amount=total_refund_amount,
-            shipping_refund_amount=shipping_refund_amount,
+            shipping_refund_amount=counted_shipping_amount,
         )
         created_fulfillment_lines = _move_order_lines_to_target_fulfillment(
             order_lines_to_move=order_lines_to_refund,
@@ -1250,7 +1263,6 @@ def create_fulfillments_for_returned_products(
 
     with traced_atomic_transaction():
         if refund and payments:
-
             total_refund_amount, shipping_refund_amount = _process_refund(
                 user=user,
                 app=app,

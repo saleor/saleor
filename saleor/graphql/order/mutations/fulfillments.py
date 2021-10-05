@@ -441,12 +441,13 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
 
 
 class PaymentToRefundInput(graphene.InputObjectType):
-    payment_id = graphene.ID(required=True, description="The graphql ID of a payment.")
+
+    payment_id = graphene.ID(required=True, description="The GraphQL ID of a payment.")
     amount = PositiveDecimal(required=False, description="Amount of the refund.")
     include_shipping_costs = graphene.Boolean(
         description=(
             "If true, Saleor will refund shipping costs. "
-            "If amount is provided includeShippingCosts will be ignored. "
+            "If amount is provided `includeShippingCosts` will be ignored. "
             "Only one such payment per order is allowed."
         ),
         default_value=False,
@@ -471,14 +472,14 @@ class OrderRefundProductsInput(graphene.InputObjectType):
         required=False,
         description=(
             "The total amount of refund when the value is provided manually. "
-            f"{DEPRECATED_IN_3X_INPUT} Use paymentsToRefund instead."
+            f"{DEPRECATED_IN_3X_INPUT} Use `paymentsToRefund` instead."
         ),
     )
     include_shipping_costs = graphene.Boolean(
         description=(
-            "If true, Saleor will refund shipping costs. If amountToRefund is provided "
-            "includeShippingCosts will be ignored. "
-            f"{DEPRECATED_IN_3X_INPUT} Use paymentsToRefund instead."
+            "If true, Saleor will refund shipping costs. "
+            "If `amountToRefund` is provided `includeShippingCosts` will be ignored."
+            f"{DEPRECATED_IN_3X_INPUT} Use `paymentsToRefund` instead."
         ),
         default_value=False,
     )
@@ -746,6 +747,114 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+
+    @classmethod
+    def _check_shipping_costs(cls, payments_to_refund):
+        num_of_occurances = 0
+        for payment in payments_to_refund:
+            if payment.get("include_shipping_costs"):
+                num_of_occurances += 1
+
+        if num_of_occurances > 1:
+            raise ValidationError(
+                {
+                    "include_shipping_costs": ValidationError(
+                        "Shipping costs cannot be included in more than one payment.",
+                        code=OrderErrorCode.DUPLICATED_INPUT_ITEM,
+                    )
+                }
+            )
+
+    @classmethod
+    def _check_payments_belong_to_order(cls, order, payments_ids) -> None:
+        order_payments_ids = order.payments.filter(id__in=payments_ids).values_list(
+            "id", flat=True
+        )
+        if set(order_payments_ids) != set(payments_ids):
+            improper_payments_ids = set(payments_ids).difference(
+                set(order_payments_ids)
+            )
+            improper_payments_global_ids = [
+                graphene.Node.to_global_id("Payment", payment_id)
+                for payment_id in improper_payments_ids
+            ]
+
+            raise ValidationError(
+                {
+                    "payments_to_refund": ValidationError(
+                        "These payments do not belong to the order.",
+                        code=OrderErrorCode.PAYMENTS_DO_NOT_BELONG_TO_ORDER.value,
+                        params={"payments": improper_payments_global_ids},
+                    )
+                }
+            )
+
+    @classmethod
+    def _check_order_has_single_payment(cls, order):
+        if order.payments.count() > 1:
+            raise ValidationError(
+                {
+                    "amount_to_refund": ValidationError(
+                        "It is not possible to use the amount field "
+                        "for orders with multiple payments.",
+                        code=OrderErrorCode.ORDER_HAS_MULTIPLE_PAYMENTS,
+                    )
+                }
+            )
+
+    @classmethod
+    def _get_payments_to_refund(
+        cls, info, order, payments_to_refund, amount_to_refund, include_shipping_costs
+    ):
+        if payments_to_refund:
+            cls._check_shipping_costs(payments_to_refund)
+            payments = []
+            payments_data = {}
+
+            for item in payments_to_refund:
+                data = {
+                    "amount": item.get("amount"),
+                    "include_shipping_costs": item.get("include_shipping_costs"),
+                }
+                payment_pk = int(
+                    cls.get_global_id_or_error(item["payment_id"], "Payment")
+                )
+
+                payments_data.update({payment_pk: data})
+
+            cls._check_payments_belong_to_order(order, payments_data.keys())
+            payment_objects = Payment.objects.filter(pk__in=payments_data.keys())
+
+            for payment in payment_objects:
+                payment_data = payments_data.get(payment.id)
+                include_shipping_costs = payment_data.get("include_shipping_costs")
+                amount = payment_data.get("amount")
+                amount = (
+                    amount
+                    if amount or include_shipping_costs
+                    else payment.captured_amount
+                )
+                data = {
+                    "payment": payment,
+                    "amount": amount,
+                    "include_shipping_costs": include_shipping_costs,
+                }
+                payments.append(data)
+
+        else:
+            cls._check_order_has_single_payment(order)
+            payment = order.payments.first()
+            payments = [
+                {
+                    "payment": payment,
+                    # For future calculations we need to distinguish
+                    # whether amount_to_refund was specified.
+                    "amount": amount_to_refund or Decimal("0"),
+                    "include_shipping_costs": include_shipping_costs,
+                }
+            ]
+
+        return payments
 
     @classmethod
     def clean_input(cls, info, order_id, input):

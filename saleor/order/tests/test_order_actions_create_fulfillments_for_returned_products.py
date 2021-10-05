@@ -27,7 +27,7 @@ def test_create_return_fulfillment_only_order_lines(
     staff_user,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
-    payment = order_with_lines.get_last_payment()
+    payment = order_with_lines.payments.latest("pk")
     payments = [
         {
             "payment": payment,
@@ -108,7 +108,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
     staff_user,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
-    payment = order_with_lines.get_last_payment()
+    payment = order_with_lines.payments.latest("pk")
     payments = [
         {
             "payment": payment,
@@ -190,7 +190,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
     staff_user,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
-    payment = order_with_lines.get_last_payment()
+    payment = order_with_lines.payments.latest("pk")
     payments = [
         {
             "payment": payment,
@@ -277,7 +277,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     staff_user,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
-    payment = order_with_lines.get_last_payment()
+    payment = order_with_lines.payments.latest("pk")
     payments = [
         {
             "payment": payment,
@@ -414,7 +414,7 @@ def test_create_return_fulfillment_only_fulfillment_lines(
     staff_user,
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
-    payment = fulfilled_order.get_last_payment()
+    payment = fulfilled_order.payments.latest("pk")
     payments = [
         {
             "payment": payment,
@@ -469,7 +469,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
     staff_user,
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
-    payment = fulfilled_order.get_last_payment()
+    payment = fulfilled_order.payments.latest("pk")
     payments = [
         {
             "payment": payment,
@@ -585,7 +585,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
     warehouse,
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
-    payment = fulfilled_order.get_last_payment()
+    payment = fulfilled_order.payments.latest("pk")
     payments = [
         {
             "payment": payment,

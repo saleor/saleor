@@ -557,7 +557,7 @@ def _process_payment(
     except PaymentError as e:
         if order_data:
             release_voucher_usage(order_data)
-        call_payment_refund_or_void(channel_slug, payment, manager)
+        call_payment_refund_or_void(payment)
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
     return txn
 
@@ -687,7 +687,7 @@ def complete_checkout(
     try:
         order_data = _get_order_data(manager, checkout_info, lines, discounts)
     except ValidationError as exc:
-        call_payment_refund_or_void(checkout_info.channel.slug, payment, manager)
+        call_payment_refund_or_void(payment)
         raise exc
 
     action_data, action_required = _complete_checkout_payment(
@@ -716,7 +716,7 @@ def complete_checkout(
             checkout.delete()
         except InsufficientStock as e:
             release_voucher_usage(order_data)
-            call_payment_refund_or_void(checkout_info.channel.slug, payment, manager)
+            call_payment_refund_or_void(payment)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
     return order, action_required, action_data
