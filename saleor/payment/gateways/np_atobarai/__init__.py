@@ -17,7 +17,9 @@ def inject_api_config(fun):
 
 
 def parse_errors(errors: List[str]) -> str:
-    return os.linesep.join(errors)
+    # FIXME: better solution?
+    #  Transaction.error in database has max_length of 256
+    return os.linesep.join(errors)[:257]
 
 
 @inject_api_config
