@@ -32,14 +32,14 @@ def generate_and_set_variant_name(variant: "ProductVariant", sku: Optional[str])
 
 def get_variant_selection_attributes(
     attributes: Sequence[Tuple["Attribute", bool]]
-) -> List["Attribute"]:
+) -> List[Tuple["Attribute", bool]]:
     """Return attributes that can be used in variant selection.
 
     Attribute must be product attribute and attribute input type must be
     in ALLOWED_IN_VARIANT_SELECTION list.
     """
     return [
-        attribute
+        (attribute, variant_selection)
         for attribute, variant_selection in attributes
         if variant_selection and attribute.type == AttributeType.PRODUCT_TYPE
     ]

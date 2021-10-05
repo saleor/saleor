@@ -2,6 +2,8 @@ import re
 
 import graphene
 
+from saleor.graphql.core.descriptions import ADDED_IN_31
+
 from ...attribute import AttributeInputType, AttributeType, models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import PagePermissions, ProductPermissions
@@ -202,6 +204,25 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     def resolve_with_choices(root: models.Attribute, *_args):
         return root.input_type in AttributeInputType.TYPES_WITH_CHOICES
+
+
+class AssignedVariantAttribute(graphene.ObjectType):
+    attribute = graphene.Field(
+        Attribute, description=AttributeDescriptions.NAME, required=True
+    )
+    variant_selection = graphene.Boolean(
+        required=True,
+        description=(
+            "Determines, whether assigned attribute is "
+            "allowed for variant selection."
+        ),
+    )
+
+    class Meta:
+        description = (
+            f"{ADDED_IN_31} Represents assigned attribute to variant with "
+            "variant selection attached."
+        )
 
 
 class SelectedAttribute(graphene.ObjectType):
