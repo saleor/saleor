@@ -411,7 +411,7 @@ class WebhookPlugin(BasePlugin):
     ) -> List[ExcludedShippingMethod]:
         excluded_methods_map = defaultdict(list)
 
-        # Gather responses for from webhooks
+        # Gather responses from webhooks
         webhooks = _get_webhooks_for_event(event_type)
         for webhook in webhooks:
             response_data = send_webhook_request_sync(
