@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from saleor.payment.interface import PaymentLineData
+from ....interface import PaymentLineData
 
 
 @pytest.fixture

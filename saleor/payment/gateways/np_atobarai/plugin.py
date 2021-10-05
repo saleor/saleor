@@ -12,8 +12,7 @@ GATEWAY_NAME = "NP後払い"
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from saleor.plugins.models import PluginConfiguration
-
+    from ....plugins.models import PluginConfiguration
     from . import GatewayResponse, PaymentData
 
 

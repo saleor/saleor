@@ -1,20 +1,22 @@
 import logging
-from typing import Optional
+from typing import Iterable, Optional
 
-import posuto
 import requests
 from django.utils import timezone
+from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
-from saleor.payment import PaymentError
-
+from ... import PaymentError
 from ...interface import AddressData, PaymentData
+from ...models import Payment
 from ...utils import price_to_minor_unit
 from .api_types import ApiConfig, PaymentResult, PaymentStatus
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL
 from .errors import (
     UNKNOWN_ERROR,
+    TransactionCancellationResultError,
     TransactionRegistrationResultError,
+    get_error_messages_from_codes,
     get_reason_messages_from_codes,
 )
 
@@ -61,14 +63,15 @@ def _format_name(ad: AddressData):
 def _format_address(ad: AddressData):
     """Follow the japanese address guidelines."""
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
-    jap_ad = posuto.get(ad.postal_code)
-    return (
-        f"{ad.country_area}"
-        f"{jap_ad.city}"
-        f"{jap_ad.neighborhood}"
-        f"{ad.street_address_2}"
-        f"{ad.street_address_1}"
-    )
+    with Posuto() as pp:
+        jap_ad = pp.get(ad.postal_code)
+        return (
+            f"{ad.country_area}"
+            f"{jap_ad.city}"
+            f"{jap_ad.neighborhood}"
+            f"{ad.street_address_2}"
+            f"{ad.street_address_1}"
+        )
 
 
 def register_transaction(
@@ -140,37 +143,59 @@ def register_transaction(
         errors = []
 
         if status == PaymentStatus.PENDING:
-            cancel_transaction(config, transaction_id)
+            cancel_error_codes = _cancel(config, transaction_id)
+            if cancel_error_codes:
+                logger.error(
+                    "Payment #%s could not be cancelled: %s",
+                    transaction_id,
+                    ", ".join(cancel_error_codes),
+                )
             errors = get_reason_messages_from_codes(set(response_data["authori_hold"]))
 
         return PaymentResult(status=status, psp_reference=transaction_id, errors=errors)
 
     if "errors" in response_data:
-        error_codes = set(response_data["errors"][0]["codes"])
-
-        # TODO: processing unknown errors !!!
-        error_messages = []
-        for error_code in error_codes:
-            try:
-                message = TransactionRegistrationResultError[error_code].value
-            except KeyError:
-                message = f"#{error_code}: {UNKNOWN_ERROR}"
-
-            error_messages.append(message)
+        error_messages = get_error_messages_from_codes(
+            error_codes=set(response_data["errors"][0]["codes"]),
+            error_enum_cls=TransactionRegistrationResultError,
+        )
     else:
         error_messages = [UNKNOWN_ERROR]
 
     return PaymentResult(status=PaymentStatus.FAILED, errors=error_messages)
 
 
-def cancel_transaction(config: ApiConfig, transaction_id: str) -> None:
+def _cancel(config: ApiConfig, transaction_id: str) -> Iterable[str]:
     data = {"transactions": [{"np_transaction_id": transaction_id}]}
-
     response = np_request(config, "post", "/transactions/cancel", json=data)
-    errors = response.json().get("error")
-    if errors:
-        logger.error(
-            "Payment with id %s could not be cancelled: %s",
-            transaction_id,
-            ", ".join(errors[0]["codes"]),
+    errors = response.json().get("errors")
+    if not errors:
+        return []
+    return set(errors[0]["codes"])
+
+
+def cancel_transaction(
+    config: ApiConfig, payment_information: PaymentData
+) -> PaymentResult:
+    psp_reference = Payment.objects.get(id=payment_information.payment_id).psp_reference
+
+    if not psp_reference:
+        raise PaymentError("Payment cannot be voided.")
+
+    error_codes = _cancel(config, psp_reference)
+
+    if error_codes:
+        error_messages = get_error_messages_from_codes(
+            error_codes, TransactionCancellationResultError
+        )
+
+        return PaymentResult(
+            status=PaymentStatus.FAILED,
+            psp_reference=psp_reference,
+            errors=error_messages,
+        )
+    else:
+        return PaymentResult(
+            status=PaymentStatus.SUCCESS,
+            psp_reference=psp_reference,
         )
