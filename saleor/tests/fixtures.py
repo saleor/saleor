@@ -3172,6 +3172,7 @@ def order_with_lines_for_cc(
     )
 
     order.collection_point = warehouse_for_cc
+    order.collection_point_name = warehouse_for_cc.name
     order.save()
 
     recalculate_order(order)

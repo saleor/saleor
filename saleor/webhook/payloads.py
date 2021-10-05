@@ -66,6 +66,7 @@ ORDER_FIELDS = (
     "origin",
     "user_email",
     "shipping_method_name",
+    "collection_point_name",
     "shipping_price_net_amount",
     "shipping_price_gross_amount",
     "shipping_tax_rate",
