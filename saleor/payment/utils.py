@@ -66,21 +66,22 @@ def create_payment_lines_information(
             unit_gross = unit_price.gross.amount
 
             quantity = line_info.line.quantity
-            description = f"{line_info.variant.product.name}, {line_info.variant.name}"
+            product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"
             line_items.append(
                 PaymentLineData(
                     quantity=quantity,
-                    description=description,
+                    product_name=product_name,
                     gross=unit_gross,
                 )
             )
 
     elif order:
         for order_line in order.lines.all():
+            product_name = f"{order_line.product_name}, {order_line.variant_name}"
             line_items.append(
                 PaymentLineData(
                     quantity=order_line.quantity,
-                    description=order_line.translated_product_name,
+                    product_name=product_name,
                     gross=order_line.total_price_gross_amount,
                 )
             )

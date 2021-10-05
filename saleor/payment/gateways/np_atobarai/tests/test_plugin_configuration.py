@@ -49,14 +49,11 @@ def test_validate_plugin_configuration_invalid_credentials(
 @mock.patch("saleor.payment.gateways.np_atobarai.api.requests.request")
 def test_validate_plugin_configuration_missing_data(mocked_request, np_atobarai_plugin):
     # given
-    plugin = np_atobarai_plugin()
+    plugin = np_atobarai_plugin(merchant_code=None, sp_code=None, terminal_id=None)
     response = Mock()
     response.status_code = 200
     mocked_request.return_value = response
     plugin_configuration = PluginConfiguration.objects.get()
-    for d in plugin_configuration.configuration:
-        d["value"] = None
-    plugin_configuration.save()
 
     # when
     with pytest.raises(ValidationError) as excinfo:

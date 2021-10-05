@@ -2,13 +2,14 @@ import pytest
 
 from .....plugins.manager import get_plugins_manager
 from .....plugins.models import PluginConfiguration
-from ..plugin import (
+from ..const import (
+    FILL_MISSING_ADDRESS,
     MERCHANT_CODE,
     SP_CODE,
     TERMINAL_ID,
     USE_SANDBOX,
-    NPAtobaraiGatewayPlugin,
 )
+from ..plugin import NPAtobaraiGatewayPlugin
 
 
 @pytest.fixture
@@ -18,6 +19,7 @@ def np_atobarai_plugin(settings, monkeypatch, channel_USD):
         sp_code="sp-code",
         terminal_id="terminal-id",
         use_sandbox=True,
+        fill_missing_address=True,
         active=True,
     ):
         settings.PLUGINS = [
@@ -29,6 +31,7 @@ def np_atobarai_plugin(settings, monkeypatch, channel_USD):
             {"name": SP_CODE, "value": sp_code},
             {"name": TERMINAL_ID, "value": terminal_id},
             {"name": USE_SANDBOX, "value": use_sandbox},
+            {"name": FILL_MISSING_ADDRESS, "value": fill_missing_address},
         ]
         PluginConfiguration.objects.create(
             identifier=NPAtobaraiGatewayPlugin.PLUGIN_ID,

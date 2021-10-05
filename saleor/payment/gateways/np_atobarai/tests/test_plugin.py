@@ -9,7 +9,9 @@ from ....interface import AddressData, PaymentLineData
 @pytest.fixture
 def dummy_payment_line_data():
     return [
-        PaymentLineData(gross=Decimal("100.00"), description="Description", quantity=5)
+        PaymentLineData(
+            gross=Decimal("100.00"), product_name="Product Name", quantity=5
+        )
     ] * 3
 
 

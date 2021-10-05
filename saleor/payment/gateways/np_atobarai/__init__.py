@@ -37,6 +37,7 @@ def process_payment(
         currency=payment_information.currency,
         transaction_id=result.psp_reference,
         error=parse_errors(result.errors),
+        raw_response=result.raw_response,
         psp_reference=result.psp_reference,
     )
 
@@ -59,6 +60,7 @@ def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse
         currency=payment_information.currency,
         transaction_id=result.psp_reference,
         error=os.linesep.join(result.errors),
+        raw_response=result.raw_response,
         psp_reference=result.psp_reference,
     )
 

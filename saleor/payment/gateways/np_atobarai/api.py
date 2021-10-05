@@ -13,9 +13,9 @@ from ...utils import price_to_minor_unit
 from .api_types import ApiConfig, PaymentResult, PaymentStatus
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL
 from .errors import (
+    TRANSACTION_CANCELLATION_RESULT_ERROR,
+    TRANSACTION_REGISTRATION_RESULT_ERRORS,
     UNKNOWN_ERROR,
-    TransactionCancellationResultError,
-    TransactionRegistrationResultError,
     get_error_messages_from_codes,
     get_reason_messages_from_codes,
 )
@@ -31,25 +31,36 @@ def get_url(config: ApiConfig, path: str = "") -> str:
     return f"{(NP_TEST_URL if config.test_mode else NP_URL)}{path}"
 
 
+def _request(
+    config: ApiConfig,
+    method: str,
+    path: str = "",
+    json: Optional[dict] = None,
+) -> requests.Response:
+    return requests.request(
+        method=method,
+        url=get_url(config, path),
+        timeout=REQUEST_TIMEOUT,
+        json=json or {},
+        auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
+        headers={"X-NP-Terminal-Id": config.terminal_id},
+    )
+
+
 def np_request(
     config: ApiConfig, method: str, path: str = "", json: Optional[dict] = None
 ) -> requests.Response:
     try:
-        return requests.request(
-            method=method,
-            url=get_url(config, path),
-            timeout=REQUEST_TIMEOUT,
-            json=json or {},
-            auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
-            headers={"X-NP-Terminal-Id": config.terminal_id},
-        )
+        response = _request(config, method, path, json)
+        response.raise_for_status()
+        return response
     except requests.RequestException:
         raise PaymentError("Cannot connect to NP Atobarai.")
 
 
 def health_check(config: ApiConfig) -> bool:
     try:
-        response = np_request(config, "post", "/authorizations/find")
+        response = _request(config, "post", "/authorizations/find")
         return response.status_code not in [401, 403]
     except PaymentError:
         return False
@@ -60,9 +71,11 @@ def _format_name(ad: AddressData):
     return f"{ad.first_name} {ad.last_name}".lstrip().rstrip()
 
 
-def _format_address(ad: AddressData):
+def _format_address(config: ApiConfig, ad: AddressData):
     """Follow the japanese address guidelines."""
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
+    if not config.fill_missing_address:
+        return f"{ad.country_area}" f"{ad.street_address_2}" f"{ad.street_address_1}"
     with Posuto() as pp:
         try:
             jap_ad = pp.get(ad.postal_code)
@@ -112,7 +125,7 @@ def register_transaction(
                     "customer_name": billing.first_name,
                     "company_name": billing.company_name,
                     "zip_code": billing.postal_code,
-                    "address": _format_address(billing),
+                    "address": _format_address(config, billing),
                     "tel": billing.phone.replace("+81", "0"),
                     "email": payment_information.customer_email,
                 },
@@ -120,13 +133,13 @@ def register_transaction(
                     "customer_name": _format_name(shipping),
                     "company_name": shipping.company_name,
                     "zip_code": shipping.postal_code,
-                    "address": _format_address(shipping),
+                    "address": _format_address(config, shipping),
                     "tel": shipping.phone.replace("+81", "0"),
                 },
                 "goods": [
                     {
                         "quantity": line.quantity,
-                        "goods_name": line.description,
+                        "goods_name": line.product_name,
                         "goods_price": int(
                             price_to_minor_unit(
                                 line.gross, payment_information.currency
@@ -149,7 +162,7 @@ def register_transaction(
         errors = []
 
         if status == PaymentStatus.PENDING:
-            cancel_error_codes = _cancel(config, transaction_id)
+            cancel_error_codes = _get_errors(_cancel(config, transaction_id))
             if cancel_error_codes:
                 logger.error(
                     "Payment #%s could not be cancelled: %s",
@@ -160,26 +173,38 @@ def register_transaction(
                 set(response_data["results"][0]["authori_hold"])
             )
 
-        return PaymentResult(status=status, psp_reference=transaction_id, errors=errors)
+        return PaymentResult(
+            status=status,
+            psp_reference=transaction_id,
+            raw_response=response_data,
+            errors=errors,
+        )
 
     if "errors" in response_data:
         error_messages = get_error_messages_from_codes(
             error_codes=set(response_data["errors"][0]["codes"]),
-            error_enum_cls=TransactionRegistrationResultError,
+            error_map=TRANSACTION_REGISTRATION_RESULT_ERRORS,
         )
     else:
         error_messages = [UNKNOWN_ERROR]
 
-    return PaymentResult(status=PaymentStatus.FAILED, errors=error_messages)
+    return PaymentResult(
+        status=PaymentStatus.FAILED,
+        raw_response=response_data,
+        errors=error_messages,
+    )
 
 
-def _cancel(config: ApiConfig, transaction_id: str) -> Iterable[str]:
+def _cancel(config: ApiConfig, transaction_id: str) -> dict:
     data = {"transactions": [{"np_transaction_id": transaction_id}]}
     response = np_request(config, "patch", "/transactions/cancel", json=data)
-    errors = response.json().get("errors")
-    if not errors:
+    return response.json()
+
+
+def _get_errors(response_data: dict) -> Iterable[str]:
+    if "errors" not in response_data:
         return []
-    return set(errors[0]["codes"])
+    return set(response_data["errors"][0]["codes"])
 
 
 def cancel_transaction(
@@ -190,20 +215,23 @@ def cancel_transaction(
     if not psp_reference:
         raise PaymentError("Payment cannot be voided.")
 
-    error_codes = _cancel(config, psp_reference)
+    response_data = _cancel(config, psp_reference)
+    error_codes = _get_errors(response_data)
 
     if error_codes:
         error_messages = get_error_messages_from_codes(
-            error_codes, TransactionCancellationResultError
+            error_codes, TRANSACTION_CANCELLATION_RESULT_ERROR
         )
 
         return PaymentResult(
             status=PaymentStatus.FAILED,
             psp_reference=psp_reference,
+            raw_response=response_data,
             errors=error_messages,
         )
-    else:
-        return PaymentResult(
-            status=PaymentStatus.SUCCESS,
-            psp_reference=psp_reference,
-        )
+
+    return PaymentResult(
+        status=PaymentStatus.SUCCESS,
+        raw_response=response_data,
+        psp_reference=psp_reference,
+    )

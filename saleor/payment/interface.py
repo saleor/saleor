@@ -63,7 +63,7 @@ class AddressData:
 @dataclass
 class PaymentLineData:
     gross: Decimal
-    description: str
+    product_name: str
     quantity: int
 
 
@@ -96,6 +96,8 @@ class PaymentData:
     def __post_init__(self, _resolve_lines: Callable):
         self.__resolve_lines = _resolve_lines
 
+    # Note: this field does not appear in webhook payloads,
+    # because it's not visible to dataclasses.asdict
     @cached_property
     def lines(self) -> List[PaymentLineData]:
         return self.__resolve_lines()

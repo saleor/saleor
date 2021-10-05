@@ -6,7 +6,13 @@ from django.core.exceptions import ValidationError
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ....plugins.error_codes import PluginErrorCode
 from . import GatewayConfig, api, capture, get_api_config, process_payment, refund, void
-from .const import MERCHANT_CODE, SP_CODE, TERMINAL_ID, USE_SANDBOX
+from .const import (
+    FILL_MISSING_ADDRESS,
+    MERCHANT_CODE,
+    SP_CODE,
+    TERMINAL_ID,
+    USE_SANDBOX,
+)
 
 GATEWAY_NAME = "NP後払い"
 
@@ -16,21 +22,18 @@ if TYPE_CHECKING:
     from . import GatewayResponse, PaymentData
 
 
-__all__ = ["NPAtobaraiGatewayPlugin"]
-
-
 class NPAtobaraiGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.np-atobarai"
     PLUGIN_NAME = GATEWAY_NAME
     CONFIGURATION_PER_CHANNEL = True
-    # TODO: restore just JPY
-    SUPPORTED_CURRENCIES = "JPY,PLN,USD"
+    SUPPORTED_CURRENCIES = "JPY"
 
     DEFAULT_CONFIGURATION = [
         {"name": MERCHANT_CODE, "value": None},
         {"name": SP_CODE, "value": None},
         {"name": TERMINAL_ID, "value": None},
         {"name": USE_SANDBOX, "value": True},
+        {"name": FILL_MISSING_ADDRESS, "value": True},
     ]
 
     CONFIG_STRUCTURE = {
@@ -54,6 +57,14 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             "help_text": "Determines if Saleor should use NP後払い sandbox API.",
             "label": "Use sandbox",
         },
+        FILL_MISSING_ADDRESS: {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": (
+                "Determines if Saleor should generate missing "
+                "AddressData.city and AddressData.city_area"
+            ),
+            "label": "Fill missing address",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -68,6 +79,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
                 SP_CODE: configuration[SP_CODE],
                 TERMINAL_ID: configuration[TERMINAL_ID],
                 USE_SANDBOX: configuration[USE_SANDBOX],
+                FILL_MISSING_ADDRESS: configuration[FILL_MISSING_ADDRESS],
             },
         )
 
