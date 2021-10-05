@@ -133,7 +133,10 @@ class Address(CountableDjangoObjectType):
         user = info.context.user
         app = info.context.app
 
-        ids = [int(from_global_id_or_error(root.id, Address)[1]) for root in roots]
+        ids = [
+            int(from_global_id_or_error(root.id, Address, raise_error=True)[1])
+            for root in roots
+        ]
         if app and app.has_perm(AccountPermissions.MANAGE_USERS):
             qs = models.Address.objects.filter(id__in=ids)
         elif user and not user.is_anonymous:
@@ -408,7 +411,7 @@ class User(CountableDjangoObjectType):
         emails = set()
         for root in roots:
             if root.id is not None:
-                _, user_id = from_global_id_or_error(root.id, User)
+                _, user_id = from_global_id_or_error(root.id, User, raise_error=True)
                 ids.add(int(user_id))
             else:
                 emails.add(root.email)
@@ -538,3 +541,19 @@ class Group(CountableDjangoObjectType):
     def resolve_user_can_manage(root: auth_models.Group, info):
         user = info.context.user
         return can_user_manage_group(user, root)
+
+    @staticmethod
+    def __resolve_references(roots: List["Group"], info, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor.has_perm(AccountPermissions.MANAGE_STAFF):
+            return [None] * len(roots)
+
+        ids = [
+            int(from_global_id_or_error(root.id, Group, raise_error=True)[1])
+            for root in roots
+        ]
+        qs = auth_models.Group.objects.filter(id__in=ids)
+        groups = {group.id: group for group in qs}
+        print(groups)
+        print(ids)
+        return [groups.get(root_id) for root_id in ids]

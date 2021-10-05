@@ -211,7 +211,10 @@ class App(CountableDjangoObjectType):
         if not requestor.has_perm(AppPermission.MANAGE_APPS):
             return [None] * len(roots)
 
-        ids = [int(from_global_id_or_error(root.id, App)[1]) for root in roots]
+        ids = [
+            int(from_global_id_or_error(root.id, App, raise_error=True)[1])
+            for root in roots
+        ]
         qs = models.App.objects.filter(id__in=ids)
         apps = {app.id: app for app in qs}
         return [apps.get(root_id) for root_id in ids]

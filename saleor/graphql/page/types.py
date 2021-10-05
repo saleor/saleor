@@ -1,3 +1,5 @@
+from typing import List
+
 import graphene
 from graphene_federation import key
 
@@ -9,6 +11,7 @@ from ..attribute.types import Attribute, SelectedAttribute
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import FilterInputConnectionField
+from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
@@ -108,3 +111,13 @@ class PageType(CountableDjangoObjectType):
             .load(root.pk)
             .then(lambda pages: bool(pages))
         )
+
+    @staticmethod
+    def __resolve_references(roots: List["PageType"], info, **_kwargs):
+        ids = [
+            int(from_global_id_or_error(root.id, PageType, raise_error=True)[1])
+            for root in roots
+        ]
+        qs = models.PageType.objects.filter(id__in=ids)
+        page_types = {page_type.id: page_type for page_type in qs}
+        return [page_types.get(root_id) for root_id in ids]

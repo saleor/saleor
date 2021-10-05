@@ -600,9 +600,12 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         channels = defaultdict(set)
         roots_ids = []
         for root in roots:
-            _, root_id = from_global_id_or_error(root.id, ProductVariant)
-            roots_ids.append(f"{root.channel}_{root_id}")
-            channels[root.channel].add(root_id)
+            _, root_id = from_global_id_or_error(
+                root.id, ProductVariant, raise_error=True
+            )
+            if root_id:
+                roots_ids.append(f"{root.channel}_{root_id}")
+                channels[root.channel].add(root_id)
 
         variants = {}
         for channel, ids in channels.items():
@@ -1077,9 +1080,10 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         channels = defaultdict(set)
         roots_ids = []
         for root in roots:
-            _, root_id = from_global_id_or_error(root.id, Product)
-            roots_ids.append(f"{root.channel}_{root_id}")
-            channels[root.channel].add(root_id)
+            _, root_id = from_global_id_or_error(root.id, Product, raise_error=True)
+            if root_id:
+                roots_ids.append(f"{root.channel}_{root_id}")
+                channels[root.channel].add(root_id)
 
         products = {}
         for channel, ids in channels.items():
@@ -1197,7 +1201,10 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["ProductType"], _info, **_kwargs):
-        ids = [int(from_global_id_or_error(root.id, ProductType)[1]) for root in roots]
+        ids = [
+            int(from_global_id_or_error(root.id, ProductType, raise_error=True)[1])
+            for root in roots
+        ]
         qs = models.ProductType.objects.filter(id__in=ids)
         product_types = {product_type.id: product_type for product_type in qs}
         return [product_types.get(root_id) for root_id in ids]
@@ -1294,7 +1301,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         channels = defaultdict(set)
         roots_ids = []
         for root in roots:
-            _, root_id = from_global_id_or_error(root.id, Collection)
+            _, root_id = from_global_id_or_error(root.id, Collection, raise_error=True)
             roots_ids.append(f"{root.channel}_{root_id}")
             channels[root.channel].add(root_id)
 
@@ -1411,7 +1418,10 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["Category"], _info, **_kwargs):
-        ids = [int(from_global_id_or_error(root.id, Category)[1]) for root in roots]
+        ids = [
+            int(from_global_id_or_error(root.id, Category, raise_error=True)[1])
+            for root in roots
+        ]
         qs = models.Category.objects.filter(id__in=ids)
         categories = {category.id: category for category in qs}
         return [categories.get(root_id) for root_id in ids]
@@ -1444,7 +1454,10 @@ class ProductMedia(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["ProductMedia"], _info, **_kwargs):
-        ids = [int(from_global_id_or_error(root.id, ProductMedia)[1]) for root in roots]
+        ids = [
+            int(from_global_id_or_error(root.id, ProductMedia, raise_error=True)[1])
+            for root in roots
+        ]
         qs = models.ProductMedia.objects.filter(id__in=ids)
         medias = {media.id: media for media in qs}
         return [medias.get(root_id) for root_id in ids]
