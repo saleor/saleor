@@ -5,13 +5,18 @@ from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
-from saleor.payment import PaymentError
-
+from ... import PaymentError
 from ...interface import AddressData, PaymentData
+from ...models import Payment
 from ...utils import price_to_minor_unit
 from .api_types import ApiConfig, PaymentResult, PaymentStatus
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL
-from .errors import UNKNOWN_ERROR, TransactionRegistrationResultError
+from .errors import (
+    UNKNOWN_ERROR,
+    TransactionCancellationResultError,
+    TransactionRegistrationResultError,
+    get_error_messages_from_codes,
+)
 
 REQUEST_TIMEOUT = 15
 
@@ -149,3 +154,35 @@ def register_transaction(
         error_messages = [UNKNOWN_ERROR]
 
     return PaymentResult(status=PaymentStatus.FAILED, errors=error_messages)
+
+
+def cancel_transaction(
+    config: ApiConfig, payment_information: PaymentData
+) -> PaymentResult:
+    psp_reference = Payment.objects.get(id=payment_information.payment_id).psp_reference
+
+    if not psp_reference:
+        raise PaymentError("Payment cannot be voided.")
+
+    data = {"transactions": [{"np_transaction_id": psp_reference}]}
+
+    response = np_request(config, "post", "/transactions/cancel", json=data)
+    response_data = response.json()
+
+    if "errors" in response_data:
+        error_codes = set(response_data["errors"][0]["codes"])
+
+        error_messages = get_error_messages_from_codes(
+            error_codes, TransactionCancellationResultError
+        )
+
+        return PaymentResult(
+            status=PaymentStatus.FAILED,
+            psp_reference=psp_reference,
+            errors=error_messages,
+        )
+    else:
+        return PaymentResult(
+            status=PaymentStatus.SUCCESS,
+            psp_reference=psp_reference,
+        )
