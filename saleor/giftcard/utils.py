@@ -87,10 +87,9 @@ def fulfill_non_shippable_gift_cards(
     gift_card_lines = get_non_shippable_gift_card_lines(order_lines)
     if not gift_card_lines:
         return
-    fulfill_gift_card_lines(gift_card_lines, requestor_user, app, order, manager)
     quantities = {line.pk: line.quantity for line in gift_card_lines}
-    return gift_cards_create(
-        order, gift_card_lines, quantities, settings, requestor_user, app, manager
+    fulfill_gift_card_lines(
+        gift_card_lines, requestor_user, app, order, quantities, settings, manager
     )
 
 
@@ -112,6 +111,8 @@ def fulfill_gift_card_lines(
     requestor_user: Optional["User"],
     app: Optional["App"],
     order: "Order",
+    quantities: Dict[int, int],
+    settings: "SiteSettings",
     manager: "PluginsManager",
 ):
     lines_for_warehouses = defaultdict(list)
@@ -145,6 +146,9 @@ def fulfill_gift_card_lines(
         order,
         dict(lines_for_warehouses),
         manager,
+        gift_card_lines,
+        quantities,
+        settings,
         notify_customer=True,
     )
 

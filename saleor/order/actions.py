@@ -215,10 +215,24 @@ def order_fulfilled(
     app: Optional["App"],
     fulfillment_lines: List["FulfillmentLine"],
     manager: "PluginsManager",
+    gift_card_lines: Iterable["OrderLine"],
+    order_line_quantities: Dict[int, int],
+    site_settings: "SiteSettings",
     notify_customer=True,
 ):
+    from ..giftcard.utils import gift_cards_create
+
     order = fulfillments[0].order
     update_order_status(order)
+    gift_cards_create(
+        order,
+        gift_card_lines,
+        order_line_quantities,
+        site_settings,
+        user,
+        app,
+        manager,
+    )
     events.fulfillment_fulfilled_items_event(
         order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
     )
@@ -244,6 +258,9 @@ def order_awaits_fulfillment_approval(
     app: Optional["App"],
     fulfillment_lines: List["FulfillmentLine"],
     manager: "PluginsManager",
+    _gift_card_lines: Iterable["OrderLine"],
+    _order_line_quantities: Dict[int, int],
+    _site_settings: "SiteSettings",
     _notify_customer=True,
 ):
     order = fulfillments[0].order
@@ -675,6 +692,9 @@ def create_fulfillments(
     order: "Order",
     fulfillment_lines_for_warehouses: Dict,
     manager: "PluginsManager",
+    gift_card_lines: Iterable["OrderLine"],
+    order_line_quantities: Dict[int, int],
+    site_settings: "SiteSettings",
     notify_customer: bool = True,
     approved: bool = True,
     allow_stock_to_be_exceeded: bool = False,
@@ -702,6 +722,12 @@ def create_fulfillments(
         manager (PluginsManager): Base manager for handling plugins logic.
         notify_customer (bool): If `True` system send email about
             fulfillments to customer.
+        gift_card_lines (OrderLine): Order lines with gift card products.
+        order_line_quantities (dict): Dict with information about total quantities
+            for order line. Required only when fulfillment is approved and gift
+            card lines provided.
+        site_settings (SiteSettings): Site settings. Required only when fulfillment
+            is approved and gift card lines provided.
         approved (Boolean): fulfillments will have status fulfilled if it's True,
             otherwise waiting_for_approval.
         allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
@@ -750,9 +776,13 @@ def create_fulfillments(
             app,
             fulfillment_lines,
             manager,
+            gift_card_lines,
+            order_line_quantities,
+            site_settings,
             notify_customer,
         )
     )
+
     return fulfillments
 
 

@@ -127,6 +127,9 @@ def test_order_fulfill(
         order,
         fulfillment_lines_for_warehouses,
         ANY,
+        [],
+        ANY,
+        ANY,
         True,
         allow_stock_to_be_exceeded=False,
         approved=fulfillment_auto_approve,
@@ -354,6 +357,9 @@ def test_order_fulfill_as_app(
         order,
         fulfillment_lines_for_warehouses,
         ANY,
+        [],
+        ANY,
+        ANY,
         True,
         allow_stock_to_be_exceeded=False,
         approved=True,
@@ -419,6 +425,9 @@ def test_order_fulfill_many_warehouses(
         None,
         order,
         fulfillment_lines_for_warehouses,
+        ANY,
+        [],
+        ANY,
         ANY,
         True,
         allow_stock_to_be_exceeded=False,
@@ -537,6 +546,7 @@ def test_order_fulfill_with_gift_card_lines_waiting_for_approval(
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
     order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    quantity = 1
     variables = {
         "order": order_id,
         "input": {
@@ -544,11 +554,11 @@ def test_order_fulfill_with_gift_card_lines_waiting_for_approval(
             "lines": [
                 {
                     "orderLineId": order_line_id,
-                    "stocks": [{"quantity": 1, "warehouse": warehouse_id}],
+                    "stocks": [{"quantity": quantity, "warehouse": warehouse_id}],
                 },
                 {
                     "orderLineId": order_line2_id,
-                    "stocks": [{"quantity": 1, "warehouse": warehouse_id}],
+                    "stocks": [{"quantity": quantity, "warehouse": warehouse_id}],
                 },
             ],
         },
@@ -559,7 +569,6 @@ def test_order_fulfill_with_gift_card_lines_waiting_for_approval(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
-    assert GiftCard.objects.count() == 0
 
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [
@@ -567,12 +576,19 @@ def test_order_fulfill_with_gift_card_lines_waiting_for_approval(
             {"order_line": order_line2, "quantity": 1},
         ]
     }
+    quantities = {
+        order_line.pk: quantity,
+        order_line2.pk: quantity,
+    }
     mock_create_fulfillments.assert_called_once_with(
         staff_user,
         None,
         order,
         fulfillment_lines_for_warehouses,
         ANY,
+        [order_line, order_line2],
+        quantities,
+        site_settings,
         True,
         approved=False,
         allow_stock_to_be_exceeded=False,
@@ -591,6 +607,7 @@ def test_order_fulfill_with_gift_cards_by_app(
     gift_card_shippable_order_line,
     permission_manage_orders,
     warehouse,
+    site_settings,
 ):
     query = ORDER_FULFILL_QUERY
     app = app_api_client.app
@@ -617,34 +634,22 @@ def test_order_fulfill_with_gift_cards_by_app(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
-    gift_cards = GiftCard.objects.all()
-    assert gift_cards.count() == quantity
-    for card in gift_cards:
-        assert card.initial_balance.amount == round(
-            gift_card_shippable_order_line.unit_price_gross.amount, 2
-        )
-        assert card.current_balance.amount == round(
-            gift_card_shippable_order_line.unit_price_gross.amount, 2
-        )
-
-        assert GiftCardEvent.objects.filter(
-            gift_card=card,
-            type=GiftCardEvents.BOUGHT,
-            user=None,
-            app=app_api_client.app,
-        )
 
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [
             {"order_line": order_line, "quantity": 2},
         ]
     }
+    quantities = {order_line.pk: quantity}
     mock_create_fulfillments.assert_called_once_with(
         None,
         app,
         order,
         fulfillment_lines_for_warehouses,
         ANY,
+        [order_line],
+        quantities,
+        site_settings,
         True,
         allow_stock_to_be_exceeded=False,
         approved=True,
@@ -663,6 +668,7 @@ def test_order_fulfill_with_gift_cards_multiple_warehouses(
     gift_card_shippable_order_line,
     permission_manage_orders,
     warehouses,
+    site_settings,
 ):
     query = ORDER_FULFILL_QUERY
     app = app_api_client.app
@@ -695,22 +701,6 @@ def test_order_fulfill_with_gift_cards_multiple_warehouses(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
-    gift_cards = GiftCard.objects.all()
-    assert gift_cards.count() == quantity_1 + quantity_2
-    for card in gift_cards:
-        assert card.initial_balance.amount == round(
-            gift_card_shippable_order_line.unit_price_gross.amount, 2
-        )
-        assert card.current_balance.amount == round(
-            gift_card_shippable_order_line.unit_price_gross.amount, 2
-        )
-
-        assert GiftCardEvent.objects.filter(
-            gift_card=card,
-            type=GiftCardEvents.BOUGHT,
-            user=None,
-            app=app_api_client.app,
-        )
 
     fulfillment_lines_for_warehouses = {
         str(warehouse1.pk): [
@@ -720,12 +710,16 @@ def test_order_fulfill_with_gift_cards_multiple_warehouses(
             {"order_line": order_line, "quantity": quantity_2},
         ],
     }
+    quantities = {order_line.pk: quantity_1 + quantity_2}
     mock_create_fulfillments.assert_called_once_with(
         None,
         app,
         order,
         fulfillment_lines_for_warehouses,
         ANY,
+        [order_line],
+        quantities,
+        site_settings,
         True,
         allow_stock_to_be_exceeded=False,
         approved=True,
@@ -776,6 +770,9 @@ def test_order_fulfill_without_notification(
         None,
         order,
         fulfillment_lines_for_warehouses,
+        ANY,
+        [],
+        ANY,
         ANY,
         False,
         allow_stock_to_be_exceeded=False,
@@ -842,6 +839,9 @@ def test_order_fulfill_lines_with_empty_quantity(
         order,
         fulfillment_lines_for_warehouses,
         ANY,
+        [],
+        ANY,
+        ANY,
         True,
         allow_stock_to_be_exceeded=False,
         approved=True,
@@ -905,6 +905,9 @@ def test_order_fulfill_without_sku(
         None,
         order,
         fulfillment_lines_for_warehouses,
+        ANY,
+        [],
+        ANY,
         ANY,
         True,
         allow_stock_to_be_exceeded=False,

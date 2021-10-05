@@ -1,5 +1,5 @@
 from datetime import date, timedelta
-from unittest.mock import ANY, patch
+from unittest.mock import patch
 
 import pytest
 from dateutil.relativedelta import relativedelta
@@ -11,8 +11,9 @@ from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
 from ...site import GiftCardSettingsExpiryType
+from ...tests.utils import flush_post_commit_hooks
 from .. import GiftCardEvents, events
-from ..models import GiftCardEvent
+from ..models import GiftCard, GiftCardEvent
 from ..utils import (
     add_gift_card_code_to_checkout,
     calculate_expiry_date,
@@ -434,9 +435,7 @@ def test_get_non_shippable_gift_card_lines_no_gift_card_lines(
 
 
 @patch("saleor.giftcard.utils.create_fulfillments")
-@patch("saleor.giftcard.utils.gift_cards_create")
 def test_fulfill_non_shippable_gift_cards(
-    gift_cards_create_mock,
     create_fulfillments_mock,
     order,
     gift_card_shippable_order_line,
@@ -458,16 +457,6 @@ def test_fulfill_non_shippable_gift_cards(
     )
 
     # then
-    gift_cards_create_mock.assert_called_once()
-    args, _kwargs = gift_cards_create_mock.call_args
-    assert args[0] == order
-    assert {line.pk for line in args[1]} == {gift_card_non_shippable_order_line.pk}
-    assert args[2] == quantities
-    assert args[3] == site_settings
-    assert args[4] == staff_user
-    assert args[5] is None
-    assert args[6] == manager
-
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [
             {
@@ -477,20 +466,21 @@ def test_fulfill_non_shippable_gift_cards(
         ]
     }
 
-    create_fulfillments_mock.assert_called_once_with(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        ANY,
-        notify_customer=True,
-    )
+    create_fulfillments_mock.assert_called_once()
+    args, kwargs = create_fulfillments_mock.call_args
+    assert args[0] == staff_user
+    assert args[1] is None
+    assert args[2] == order
+    assert args[3] == fulfillment_lines_for_warehouses
+    assert args[4] == manager
+    assert {line.pk for line in args[5]} == {gift_card_non_shippable_order_line.pk}
+    assert args[6] == quantities
+    assert args[7] == site_settings
+    assert kwargs["notify_customer"] is True
 
 
 @patch("saleor.giftcard.utils.create_fulfillments")
-@patch("saleor.giftcard.utils.gift_cards_create")
 def test_fulfill_non_shippable_gift_cards_line_with_allocation(
-    gift_cards_create_mock,
     create_fulfillments_mock,
     order,
     gift_card_shippable_order_line,
@@ -518,17 +508,6 @@ def test_fulfill_non_shippable_gift_cards_line_with_allocation(
         order, order_lines, site_settings, staff_user, None, manager
     )
 
-    # then
-    gift_cards_create_mock.assert_called_once()
-    args, kwargs = gift_cards_create_mock.call_args
-    assert args[0] == order
-    assert {line.pk for line in args[1]} == {gift_card_non_shippable_order_line.pk}
-    assert args[2] == quantities
-    assert args[3] == site_settings
-    assert args[4] == staff_user
-    assert args[5] is None
-    assert args[6] == manager
-
     fulfillment_lines_for_warehouses = {
         str(stock.warehouse.pk): [
             {
@@ -538,18 +517,24 @@ def test_fulfill_non_shippable_gift_cards_line_with_allocation(
         ]
     }
 
-    create_fulfillments_mock.assert_called_once_with(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        ANY,
-        notify_customer=True,
-    )
+    create_fulfillments_mock.assert_called_once()
+    args, kwargs = create_fulfillments_mock.call_args
+    assert args[0] == staff_user
+    assert args[1] is None
+    assert args[2] == order
+    assert args[3] == fulfillment_lines_for_warehouses
+    assert args[4] == manager
+    assert {line.pk for line in args[5]} == {gift_card_non_shippable_order_line.pk}
+    assert args[6] == quantities
+    assert args[7] == site_settings
+    assert kwargs["notify_customer"] is True
 
 
 def test_fulfill_gift_card_lines(
-    staff_user, gift_card_non_shippable_order_line, gift_card_shippable_order_line
+    staff_user,
+    gift_card_non_shippable_order_line,
+    gift_card_shippable_order_line,
+    site_settings,
 ):
     # given
     manager = get_plugins_manager()
@@ -565,16 +550,43 @@ def test_fulfill_gift_card_lines(
         ]
     )
 
+    quantities = {line.pk: line.quantity for line in lines}
+
     # when
-    fulfillments = fulfill_gift_card_lines(lines, staff_user, None, order, manager)
+    fulfillments = fulfill_gift_card_lines(
+        lines, staff_user, None, order, quantities, site_settings, manager
+    )
 
     # then
     assert len(fulfillments) == 1
     assert fulfillments[0].lines.count() == len(lines)
+    flush_post_commit_hooks()
+    gift_cards = GiftCard.objects.all()
+    assert gift_cards.count() == sum(quantities.values())
+    shippable_gift_cards = gift_cards.filter(
+        product_id=gift_card_shippable_order_line.variant.product_id
+    )
+    assert len(shippable_gift_cards) == gift_card_shippable_order_line.quantity
+    non_shippable_gift_cards = gift_cards.filter(
+        product_id=gift_card_non_shippable_order_line.variant.product_id
+    )
+    assert len(non_shippable_gift_cards) == gift_card_non_shippable_order_line.quantity
+    for card in gift_cards:
+        assert card.initial_balance.amount == round(
+            gift_card_non_shippable_order_line.unit_price_gross.amount, 2
+        )
+        assert card.current_balance.amount == round(
+            gift_card_non_shippable_order_line.unit_price_gross.amount, 2
+        )
+        assert card.fulfillment_line
+        assert GiftCardEvent.objects.filter(gift_card=card, type=GiftCardEvents.BOUGHT)
 
 
 def test_fulfill_gift_card_lines_lack_of_stock(
-    staff_user, gift_card_non_shippable_order_line, gift_card_shippable_order_line
+    staff_user,
+    gift_card_non_shippable_order_line,
+    gift_card_shippable_order_line,
+    site_settings,
 ):
     # given
     manager = get_plugins_manager()
@@ -588,9 +600,13 @@ def test_fulfill_gift_card_lines_lack_of_stock(
         ]
     )
 
+    quantities = {line.pk: line.quantity for line in lines}
+
     # when
     with pytest.raises(ValidationError):
-        fulfill_gift_card_lines(lines, staff_user, None, order, manager)
+        fulfill_gift_card_lines(
+            lines, staff_user, None, order, quantities, site_settings, manager
+        )
 
 
 def test_deactivate_order_gift_cards(

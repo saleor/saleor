@@ -7,11 +7,7 @@ from django.template.defaultfilters import pluralize
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
-from ....giftcard.utils import (
-    get_gift_card_lines,
-    gift_cards_create,
-    order_has_gift_card_lines,
-)
+from ....giftcard.utils import get_gift_card_lines, order_has_gift_card_lines
 from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
@@ -284,6 +280,9 @@ class OrderFulfill(BaseMutation):
                 order,
                 dict(lines_for_warehouses),
                 manager,
+                gift_card_lines,
+                quantities,
+                context.site.settings,
                 notify_customer,
                 allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
                 approved=approved,
@@ -291,17 +290,6 @@ class OrderFulfill(BaseMutation):
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)
             raise ValidationError({"stocks": errors})
-
-        if approved:
-            gift_cards_create(
-                order,
-                gift_card_lines,
-                quantities,
-                context.site.settings,
-                user,
-                app,
-                manager,
-            )
 
         return OrderFulfill(fulfillments=fulfillments, order=order)
 
