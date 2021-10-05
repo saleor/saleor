@@ -26,6 +26,7 @@ def test_get_custom_order_payload(order):
     assert expected_payload == {
         "order": {
             "id": expected_payload["order"]["id"],
+            "number": expected_payload["order"]["id"],
             "private_metadata": {},
             "metadata": {},
             "status": "unfulfilled",
