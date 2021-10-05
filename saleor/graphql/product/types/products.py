@@ -562,36 +562,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ImagesByProductVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def __resolve_references(roots: List["ProductVariant"], info, **_kwargs):
-        requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = has_one_of_permissions(
-            requestor, ALL_PRODUCTS_PERMISSIONS
-        )
-        channels = defaultdict(set)
-        roots_ids = []
-        for root in roots:
-            _, root_id = from_global_id_or_error(root.id, ProductVariant)
-            roots_ids.append(f"{root.channel}_{root_id}")
-            channels[root.channel].add(root_id)
-
-        variants = {}
-        for channel, ids in channels.items():
-            visible_products = models.Product.objects.visible_to_user(
-                requestor, channel
-            ).values_list("pk", flat=True)
-            qs = models.ProductVariant.objects.filter(
-                id__in=ids, product__id__in=visible_products
-            )
-            if not requestor_has_access_to_all:
-                qs = qs.available_in_channel(channel)
-            for variant in qs:
-                variants[f"{channel}_{variant.id}"] = ChannelContext(
-                    channel_slug=channel, node=variant
-                )
-
-        return [variants.get(root_id) for root_id in roots_ids]
-
-    @staticmethod
     def resolve_weight(root: ChannelContext[models.ProductVariant], _info, **_kwargs):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
@@ -620,6 +590,36 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             )
 
         return variant_channel_listings.then(calculate_global_sold_units)
+
+    @staticmethod
+    def __resolve_references(roots: List["ProductVariant"], info, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
+        channels = defaultdict(set)
+        roots_ids = []
+        for root in roots:
+            _, root_id = from_global_id_or_error(root.id, ProductVariant)
+            roots_ids.append(f"{root.channel}_{root_id}")
+            channels[root.channel].add(root_id)
+
+        variants = {}
+        for channel, ids in channels.items():
+            visible_products = models.Product.objects.visible_to_user(
+                requestor, channel
+            ).values_list("pk", flat=True)
+            qs = models.ProductVariant.objects.filter(
+                id__in=ids, product__id__in=visible_products
+            )
+            if not requestor_has_access_to_all:
+                qs = qs.available_in_channel(channel)
+            for variant in qs:
+                variants[f"{channel}_{variant.id}"] = ChannelContext(
+                    channel_slug=channel, node=variant
+                )
+
+        return [variants.get(root_id) for root_id in roots_ids]
 
 
 @key(fields="id channel")
@@ -1028,29 +1028,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
-    def __resolve_references(roots: List["Product"], info, **_kwargs):
-        requestor = get_user_or_app_from_context(info.context)
-        channels = defaultdict(set)
-        roots_ids = []
-        for root in roots:
-            _, root_id = from_global_id_or_error(root.id, Product)
-            roots_ids.append(f"{root.channel}_{root_id}")
-            channels[root.channel].add(root_id)
-
-        products = {}
-        for channel, ids in channels.items():
-            queryset = resolve_products(
-                info, requestor, channel_slug=channel
-            ).qs.filter(id__in=ids)
-
-            for product in queryset:
-                products[f"{channel}_{product.id}"] = ChannelContext(
-                    channel_slug=channel, node=product
-                )
-
-        return [products.get(root_id) for root_id in roots_ids]
-
-    @staticmethod
     def resolve_weight(root: ChannelContext[models.Product], _info, **_kwargs):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
@@ -1093,6 +1070,29 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_product_type(root: ChannelContext[models.Product], info):
         return ProductTypeByIdLoader(info.context).load(root.node.product_type_id)
+
+    @staticmethod
+    def __resolve_references(roots: List["Product"], info, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+        channels = defaultdict(set)
+        roots_ids = []
+        for root in roots:
+            _, root_id = from_global_id_or_error(root.id, Product)
+            roots_ids.append(f"{root.channel}_{root_id}")
+            channels[root.channel].add(root_id)
+
+        products = {}
+        for channel, ids in channels.items():
+            queryset = resolve_products(
+                info, requestor, channel_slug=channel
+            ).qs.filter(id__in=ids)
+
+            for product in queryset:
+                products[f"{channel}_{product.id}"] = ChannelContext(
+                    channel_slug=channel, node=product
+                )
+
+        return [products.get(root_id) for root_id in roots_ids]
 
 
 @key(fields="id")
@@ -1192,15 +1192,15 @@ class ProductType(CountableDjangoObjectType):
         return resolve_attributes(info, qs=qs, **kwargs)
 
     @staticmethod
+    def resolve_weight(root: models.ProductType, _info, **_kwargs):
+        return convert_weight_to_default_weight_unit(root.weight)
+
+    @staticmethod
     def __resolve_references(roots: List["ProductType"], _info, **_kwargs):
         ids = [int(from_global_id_or_error(root.id, ProductType)[1]) for root in roots]
         qs = models.ProductType.objects.filter(id__in=ids)
         product_types = {product_type.id: product_type for product_type in qs}
         return [product_types.get(root_id) for root_id in ids]
-
-    @staticmethod
-    def resolve_weight(root: models.ProductType, _info, **_kwargs):
-        return convert_weight_to_default_weight_unit(root.weight)
 
 
 @key(fields="id channel")
@@ -1284,6 +1284,11 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
+    def resolve_description_json(root: ChannelContext[models.Collection], info):
+        description = root.node.description
+        return description if description is not None else {}
+
+    @staticmethod
     def __resolve_references(roots: List["Collection"], info, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
         channels = defaultdict(set)
@@ -1305,11 +1310,6 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 )
 
         return [collections.get(root_id) for root_id in roots_ids]
-
-    @staticmethod
-    def resolve_description_json(root: ChannelContext[models.Collection], info):
-        description = root.node.description
-        return description if description is not None else {}
 
 
 @key(fields="id")
@@ -1450,7 +1450,6 @@ class ProductMedia(CountableDjangoObjectType):
         return [medias.get(root_id) for root_id in ids]
 
 
-@key(fields="id")
 class ProductImage(graphene.ObjectType):
     id = graphene.ID(required=True, description="The ID of the image.")
     alt = graphene.String(description="The alt text of the image.")
@@ -1473,7 +1472,7 @@ class ProductImage(graphene.ObjectType):
 
     @staticmethod
     def resolve_id(root: models.ProductMedia, info):
-        return graphene.Node.to_global_id("ProductMedia", root.id)
+        return graphene.Node.to_global_id("ProductImage", root.id)
 
     @staticmethod
     def resolve_url(root: models.ProductMedia, info, *, size=None):

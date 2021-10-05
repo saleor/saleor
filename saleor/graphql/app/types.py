@@ -194,17 +194,6 @@ class App(CountableDjangoObjectType):
         return root.tokens.all()  # type: ignore
 
     @staticmethod
-    def __resolve_references(roots: List["App"], info, **_kwargs):
-        requestor = get_user_or_app_from_context(info.context)
-        if not requestor.has_perm(AppPermission.MANAGE_APPS):
-            return [None] * len(roots)
-
-        ids = [int(from_global_id_or_error(root.id, App)[1]) for root in roots]
-        qs = models.App.objects.filter(id__in=ids)
-        apps = {app.id: app for app in qs}
-        return [apps.get(root_id) for root_id in ids]
-
-    @staticmethod
     def resolve_webhooks(root: models.App, _info):
         return root.webhooks.all()
 
@@ -215,6 +204,17 @@ class App(CountableDjangoObjectType):
     @staticmethod
     def resolve_extensions(root: models.App, info):
         return AppExtensionByAppIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def __resolve_references(roots: List["App"], info, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor.has_perm(AppPermission.MANAGE_APPS):
+            return [None] * len(roots)
+
+        ids = [int(from_global_id_or_error(root.id, App)[1]) for root in roots]
+        qs = models.App.objects.filter(id__in=ids)
+        apps = {app.id: app for app in qs}
+        return [apps.get(root_id) for root_id in ids]
 
 
 class AppInstallation(CountableDjangoObjectType):

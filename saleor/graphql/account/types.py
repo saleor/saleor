@@ -225,8 +225,8 @@ class UserPermission(Permission):
         return groups
 
 
-@key("id")
-@key("email")
+@key(fields="id")
+@key(fields="email")
 class User(CountableDjangoObjectType):
     addresses = graphene.List(Address, description="List of all user's addresses.")
     checkout = graphene.Field(
@@ -393,6 +393,10 @@ class User(CountableDjangoObjectType):
         return resolve_wishlist_items_from_user(root)
 
     @staticmethod
+    def resolve_language_code(root, _info, **_kwargs):
+        return LanguageCodeEnum[str_to_enum(root.language_code)]
+
+    @staticmethod
     def __resolve_references(roots: List["User"], info, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
         requestor_has_access_to_all = has_one_of_permissions(
@@ -438,10 +442,6 @@ class User(CountableDjangoObjectType):
             else:
                 results.append(users_by_email.get(root.email))
         return results
-
-    @staticmethod
-    def resolve_language_code(root, _info, **_kwargs):
-        return LanguageCodeEnum[str_to_enum(root.language_code)]
 
 
 class ChoiceValue(graphene.ObjectType):
