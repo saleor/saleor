@@ -295,6 +295,8 @@ class BasePlugin:
         Any,
     ]
 
+    get_client_token: Callable[[Any, Any], Any]
+
     get_order_line_tax_rate: Callable[
         ["Order", "Product", "ProductVariant", Union["Address", NoneType], Decimal],
         Decimal,
@@ -340,6 +342,8 @@ class BasePlugin:
 
     #  Trigger after invoice is sent.
     invoice_sent: Callable[["Invoice", str, Any], Any]
+
+    list_payment_sources: Callable[[str, Any], List["CustomerSource"]]
 
     #  Handle notification request.
     #
@@ -413,6 +417,8 @@ class BasePlugin:
         ],
         Any,
     ]
+
+    process_payment: Callable[["PaymentData", Any], "GatewayResponse"]
 
     #  Trigger when product is created.
     #
