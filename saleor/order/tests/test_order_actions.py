@@ -14,6 +14,8 @@ from ...product.tests.utils import create_image
 from ...warehouse.models import Allocation, Stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
 from ..actions import (
+    _process_refund,
+    _update_missing_amounts_on_payments,
     automatically_fulfill_digital_lines,
     cancel_fulfillment,
     cancel_order,
@@ -637,3 +639,227 @@ def test_fulfill_digital_lines(
     assert fulfillment_lines.count() == 1
     assert line.digital_content_url
     assert mock_email_fulfillment.called
+
+
+@patch("saleor.order.actions._calculate_refund_amount")
+@patch("saleor.order.actions._update_missing_amounts_on_payments")
+def test_process_refund_calls_update_missing_amounts_on_payments(
+    mock_update_missing_amounts_on_payments,
+    mock_calculate_refund_amount,
+    order_with_lines,
+    payment_dummy_fully_charged,
+    staff_user,
+):
+    order_with_lines.payments.add(payment_dummy_fully_charged)
+    payment = order_with_lines.payments.last()
+    payments = [
+        {
+            "payment": payment,
+            "amount": Decimal("0"),
+            "include_shipping_costs": False,
+        }
+    ]
+    order_lines_to_return = order_with_lines.lines.all()
+
+    refund_amount = Decimal("500")
+    mock_calculate_refund_amount.return_value = refund_amount
+    mock_update_missing_amounts_on_payments.return_value = refund_amount, None
+
+    _process_refund(
+        user=staff_user,
+        app=None,
+        order=order_with_lines,
+        payments=payments,
+        order_lines_to_refund=[
+            OrderLineData(line=line, quantity=2, replace=False)
+            for line in order_lines_to_return
+        ],
+        fulfillment_lines_to_refund=[],
+        manager=get_plugins_manager(),
+    )
+    mock_update_missing_amounts_on_payments.assert_called_once_with(
+        refund_amount, payments, order_with_lines
+    )
+
+
+def test_update_missing_amounts_on_payments_with_specified_payment_amounts(
+    order_with_lines, payment_dummy_fully_charged, payment_txn_captured
+):
+    # given
+    order_with_lines.payments.add(payment_dummy_fully_charged)
+    order_with_lines.payments.add(payment_txn_captured)
+    refund_amount = (
+        payment_dummy_fully_charged.captured_amount
+        + payment_txn_captured.captured_amount
+    )
+    payments = [
+        {
+            "payment": payment_dummy_fully_charged,
+            "amount": payment_dummy_fully_charged.captured_amount,
+            "include_shipping_costs": False,
+        },
+        {
+            "payment": payment_txn_captured,
+            "amount": payment_txn_captured.captured_amount,
+            "include_shipping_costs": False,
+        },
+    ]
+
+    # when
+    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+        refund_amount, payments, order_with_lines
+    )
+
+    # then
+    assert total_refund_amount == refund_amount
+    assert shipping_refund_amount is None
+    assert payments[0]["amount"] == payment_dummy_fully_charged.captured_amount
+    assert payments[0]["amount"] == payment_txn_captured.captured_amount
+
+
+def test_update_missing_amounts_on_payments_with_including_shipping_amount_new_way(
+    order_with_lines, payment_dummy_fully_charged, payment_txn_captured
+):
+    # given
+    order_with_lines.payments.add(payment_dummy_fully_charged)
+    order_with_lines.payments.add(payment_txn_captured)
+    refund_amount = payment_txn_captured.captured_amount
+
+    payments = [
+        {
+            "payment": payment_dummy_fully_charged,
+            "amount": Decimal("0"),
+            "include_shipping_costs": True,
+        },
+        {
+            "payment": payment_txn_captured,
+            "amount": payment_txn_captured.captured_amount,
+            "include_shipping_costs": False,
+        },
+    ]
+
+    # when
+    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+        refund_amount, payments, order_with_lines
+    )
+
+    # then
+    assert (
+        total_refund_amount
+        == refund_amount + order_with_lines.shipping_price_gross_amount
+    )
+    assert shipping_refund_amount == order_with_lines.shipping_price_gross_amount
+    assert payments[0]["amount"] == order_with_lines.shipping_price_gross_amount
+    assert payments[1]["amount"] == payment_txn_captured.captured_amount
+
+
+def test_update_missing_amounts_on_payments_with_including_shipping_amount_old_way(
+    order_with_lines, payment_dummy_fully_charged
+):
+    # given
+    order_with_lines.payments.add(payment_dummy_fully_charged)
+    payment_dummy_fully_charged.captured_amount += (
+        order_with_lines.shipping_price_gross_amount
+    )
+    payment_dummy_fully_charged.save()
+    refund_amount = (
+        payment_dummy_fully_charged.captured_amount
+        - order_with_lines.shipping_price_gross_amount
+    )
+
+    payments = [
+        {
+            "payment": payment_dummy_fully_charged,
+            "amount": Decimal("0"),
+            "include_shipping_costs": True,
+            "is_deprecated_way": True,
+        },
+    ]
+
+    # when
+    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+        refund_amount,
+        payments,
+        order_with_lines,
+    )
+
+    # then
+    assert (
+        total_refund_amount
+        == refund_amount + order_with_lines.shipping_price_gross_amount
+    )
+    assert shipping_refund_amount == order_with_lines.shipping_price_gross_amount
+    assert (
+        payments[0]["amount"]
+        == refund_amount + order_with_lines.shipping_price_gross_amount
+    )
+
+
+def test_update_missing_amounts_on_payments_without_specified_amounts(
+    order_with_lines, payment_dummy_fully_charged, payment_txn_captured
+):
+    # given
+    order_with_lines.payments.add(payment_dummy_fully_charged)
+    order_with_lines.payments.add(payment_txn_captured)
+    refund_amount = (
+        payment_dummy_fully_charged.captured_amount
+        + payment_txn_captured.captured_amount
+    )
+    payments = [
+        {
+            "payment": payment_dummy_fully_charged,
+            "amount": Decimal("0"),
+            "include_shipping_costs": False,
+        },
+        {
+            "payment": payment_txn_captured,
+            "amount": Decimal("0"),
+            "include_shipping_costs": False,
+        },
+    ]
+
+    # when
+    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+        refund_amount, payments, order_with_lines
+    )
+
+    # then
+    assert total_refund_amount == refund_amount
+    assert shipping_refund_amount is None
+    assert payments[0]["amount"] == payment_dummy_fully_charged.captured_amount
+    assert payments[1]["amount"] == payment_txn_captured.captured_amount
+
+
+def test_update_missing_amounts_on_payments_refunding_smaller_amounts(
+    order_with_lines, payment_dummy_fully_charged, payment_txn_captured
+):
+    # given
+    order_with_lines.payments.add(payment_dummy_fully_charged)
+    order_with_lines.payments.add(payment_txn_captured)
+    refund_amount = (
+        payment_dummy_fully_charged.captured_amount
+        + payment_txn_captured.captured_amount
+    )
+    payments = [
+        {
+            "payment": payment_dummy_fully_charged,
+            "amount": payment_dummy_fully_charged.captured_amount // 2,
+            "include_shipping_costs": False,
+        },
+        {
+            "payment": payment_txn_captured,
+            "amount": payment_txn_captured.captured_amount // 2,
+            "include_shipping_costs": False,
+        },
+    ]
+
+    # when
+    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+        refund_amount, payments, order_with_lines
+    )
+
+    # then
+    assert total_refund_amount == refund_amount // 2
+    assert shipping_refund_amount is None
+    assert payments[0]["amount"] == payment_dummy_fully_charged.captured_amount // 2
+    assert payments[1]["amount"] == payment_txn_captured.captured_amount // 2

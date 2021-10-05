@@ -1332,12 +1332,14 @@ def _update_missing_amounts_on_payments(refund_amount, payments, order):
     """
     payments_total_amount = Decimal(sum([item["amount"] for item in payments]))
 
-    # Deduct the already specified amounts.
+    # Deduct already specified amounts.
     refund_amount -= payments_total_amount
 
     shipping_refund_amount = None
     for item in payments:
-        if item["amount"] == 0 and refund_amount > 0:
+        if item["include_shipping_costs"]:
+            refund_amount += order.shipping_price_gross_amount
+        if item["amount"] == 0:
             if item["include_shipping_costs"]:
                 shipping_refund_amount = __get_shipping_refund_amount(
                     item["include_shipping_costs"],
@@ -1349,14 +1351,14 @@ def _update_missing_amounts_on_payments(refund_amount, payments, order):
                     # then we expect only one payment to be in the list.
                     # TODO: this part can be refactored once we fully switch
                     # to the list of payments and will remove the separated
-                    # amount_to_refund input.
+                    # `amount_to_refund input.
                     item["amount"] += min(
-                        refund_amount + (shipping_refund_amount or Decimal("0")),
-                        item["payment"].captured_amount,
+                        refund_amount, item["payment"].captured_amount
                     )
                 else:
                     item["amount"] += shipping_refund_amount
-            else:
+
+            elif refund_amount > 0:
                 item["amount"] = min(refund_amount, item["payment"].captured_amount)
                 refund_amount -= item["amount"]
 
@@ -1378,7 +1380,6 @@ def _process_refund(
     refund_amount = _calculate_refund_amount(
         order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
     )
-
     total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
         refund_amount, payments, order
     )
