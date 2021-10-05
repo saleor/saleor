@@ -156,7 +156,9 @@ def register_transaction(
                     transaction_id,
                     ", ".join(cancel_error_codes),
                 )
-            errors = get_reason_messages_from_codes(set(response_data["authori_hold"]))
+            errors = get_reason_messages_from_codes(
+                set(response_data["results"][0]["authori_hold"])
+            )
 
         return PaymentResult(status=status, psp_reference=transaction_id, errors=errors)
 
@@ -173,7 +175,7 @@ def register_transaction(
 
 def _cancel(config: ApiConfig, transaction_id: str) -> Iterable[str]:
     data = {"transactions": [{"np_transaction_id": transaction_id}]}
-    response = np_request(config, "post", "/transactions/cancel", json=data)
+    response = np_request(config, "patch", "/transactions/cancel", json=data)
     errors = response.json().get("errors")
     if not errors:
         return []
