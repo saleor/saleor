@@ -1,6 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Union
+from functools import cached_property
+from typing import Any, Callable, Dict, List, Optional, Union
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
@@ -60,6 +61,13 @@ class AddressData:
 
 
 @dataclass
+class PaymentLineData:
+    gross: Decimal
+    description: str
+    quantity: int
+
+
+@dataclass
 class PaymentData:
     """Dataclass for storing all payment information.
 
@@ -82,6 +90,15 @@ class PaymentData:
     reuse_source: bool = False
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
+    # Optional, lazy-evaluated gateway arguments
+    _resolve_lines: InitVar[Callable] = None
+
+    def __post_init__(self, _resolve_lines: Callable):
+        self.__resolve_lines = _resolve_lines
+
+    @cached_property
+    def lines(self) -> List[PaymentLineData]:
+        return self.__resolve_lines()
 
 
 @dataclass

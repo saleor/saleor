@@ -3,12 +3,10 @@ from typing import TYPE_CHECKING
 import opentracing
 from django.core.exceptions import ValidationError
 
-from saleor.payment.gateways.np_atobarai import api
-from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
-from saleor.plugins.error_codes import PluginErrorCode
-
-from ..utils import require_active_plugin
-from . import GatewayConfig, capture, process_payment, refund, void
+from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from ....plugins.error_codes import PluginErrorCode
+from . import GatewayConfig, api, capture, get_api_config, process_payment, refund, void
+from .const import MERCHANT_CODE, SP_CODE, TERMINAL_ID, USE_SANDBOX
 
 GATEWAY_NAME = "NP後払い"
 
@@ -22,26 +20,12 @@ if TYPE_CHECKING:
 __all__ = ["NPAtobaraiGatewayPlugin"]
 
 
-MERCHANT_CODE = "merchant_code"
-SP_CODE = "sp_code"
-TERMINAL_ID = "terminal_id"
-USE_SANDBOX = "use_sandbox"
-
-
-def get_api_config(conf) -> api.ApiConfig:
-    return api.ApiConfig(
-        test_mode=conf[USE_SANDBOX],
-        merchant_code=conf[MERCHANT_CODE],
-        sp_code=conf[SP_CODE],
-        terminal_id=conf[TERMINAL_ID],
-    )
-
-
 class NPAtobaraiGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.np-atobarai"
     PLUGIN_NAME = GATEWAY_NAME
     CONFIGURATION_PER_CHANNEL = True
-    SUPPORTED_CURRENCIES = "JPY"
+    # TODO: restore just JPY
+    SUPPORTED_CURRENCIES = "JPY,PLN,USD"
 
     DEFAULT_CONFIGURATION = [
         {"name": MERCHANT_CODE, "value": None},
@@ -81,10 +65,10 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             auto_capture=False,
             supported_currencies=self.SUPPORTED_CURRENCIES,
             connection_params={
-                "merchant_code": configuration[MERCHANT_CODE],
-                "sp_code": configuration[SP_CODE],
-                "terminal_id": configuration[TERMINAL_ID],
-                "sandbox_mode": configuration[USE_SANDBOX],
+                MERCHANT_CODE: configuration[MERCHANT_CODE],
+                SP_CODE: configuration[SP_CODE],
+                TERMINAL_ID: configuration[TERMINAL_ID],
+                USE_SANDBOX: configuration[USE_SANDBOX],
             },
         )
 
@@ -114,6 +98,9 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     def get_supported_currencies(self, previous_value):
         return self.SUPPORTED_CURRENCIES
 
+    def token_is_required_as_payment_input(self, previous_value):
+        return False
+
     @classmethod
     def validate_authentication(cls, plugin_configuration: "PluginConfiguration"):
         conf = {
@@ -135,6 +122,9 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
+        if not plugin_configuration.active:
+            return
+
         missing_fields = []
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}

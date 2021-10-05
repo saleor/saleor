@@ -1,29 +1,91 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import graphene
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
 
 from ..account.models import User
+from ..checkout.calculations import checkout_line_total
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
+from ..discount.utils import fetch_active_discounts
 from ..order.models import Order
+from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
-from .interface import AddressData, GatewayResponse, PaymentData, PaymentMethodInfo
+from .interface import (
+    AddressData,
+    GatewayResponse,
+    PaymentData,
+    PaymentLineData,
+    PaymentMethodInfo,
+)
 from .models import Payment, Transaction
-
-if TYPE_CHECKING:
-    from ..plugins.manager import PluginsManager
 
 logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+
+
+def create_payment_lines_information(
+    payment: Payment,
+) -> List[PaymentLineData]:
+    checkout = payment.checkout
+    order = payment.order
+    line_items = []
+    if checkout:
+        manager = get_plugins_manager()
+        lines = fetch_checkout_lines(checkout)
+        discounts = fetch_active_discounts()
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+
+        for line_info in lines:
+            total = checkout_line_total(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                checkout_line_info=line_info,
+                discounts=discounts,
+            )
+            address = checkout_info.shipping_address or checkout_info.billing_address
+            unit_price = manager.calculate_checkout_line_unit_price(
+                total,
+                line_info.line.quantity,
+                checkout_info,
+                lines,
+                line_info,
+                address,
+                discounts,
+            )
+            unit_gross = unit_price.gross.amount
+
+            quantity = line_info.line.quantity
+            description = f"{line_info.variant.product.name}, {line_info.variant.name}"
+            line_items.append(
+                PaymentLineData(
+                    quantity=quantity,
+                    description=description,
+                    gross=unit_gross,
+                )
+            )
+
+    elif order:
+        for order_line in order.lines.all():
+            line_items.append(
+                PaymentLineData(
+                    quantity=order_line.quantity,
+                    description=order_line.translated_product_name,
+                    gross=order_line.total_price_gross_amount,
+                )
+            )
+
+    return line_items
 
 
 def create_payment_information(
@@ -79,6 +141,7 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
+        _resolve_lines=lambda: create_payment_lines_information(payment),
     )
 
 
