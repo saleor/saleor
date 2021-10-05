@@ -26,6 +26,7 @@ def test_get_custom_order_payload(order):
     assert expected_payload == {
         "order": {
             "id": expected_payload["order"]["id"],
+            "number": expected_payload["order"]["id"],
             "private_metadata": {},
             "metadata": {},
             "status": "unfulfilled",
@@ -228,6 +229,7 @@ def test_get_default_order_payload(order_line):
         ],
         "channel_slug": order.channel.slug,
         "id": order.id,
+        "number": order.id,
         "token": order.token,
         "created": str(order.created),
         "display_gross_prices": order.display_gross_prices,
