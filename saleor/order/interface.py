@@ -10,3 +10,4 @@ class OrderPaymentAction:
 
     payment: Payment
     amount: Decimal
+    include_shipping_costs: bool = False

@@ -4086,6 +4086,8 @@ enum OrderErrorCode {
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
   CHANNEL_INACTIVE
+  PAYMENTS_DO_NOT_BELONG_TO_ORDER
+  ORDER_HAS_MULTIPLE_PAYMENTS
   TOO_MANY_OR_NONE_FIELDS_SPECIFIED
   AMOUNT_TO_REFUND_TOO_BIG
 }
@@ -4185,9 +4187,9 @@ enum OrderEventsEnum {
   PAYMENT_CAPTURED
   EXTERNAL_SERVICE_NOTIFICATION
   PAYMENT_REFUNDED
+  PAYMENT_REFUND_FAILED
   PAYMENT_VOIDED
   PAYMENT_CAPTURE_FAILED
-  PAYMENT_REFUND_FAILED
   PAYMENT_VOID_FAILED
   INVOICE_REQUESTED
   INVOICE_GENERATED
@@ -4351,6 +4353,7 @@ input OrderRefundLineInput {
 input OrderRefundProductsInput {
   orderLines: [OrderRefundLineInput!]
   fulfillmentLines: [OrderRefundFulfillmentLineInput!]
+  paymentsToRefund: [PaymentToRefundInput]
   amountToRefund: PositiveDecimal
   includeShippingCosts: Boolean = false
 }
@@ -4841,6 +4844,12 @@ type PaymentSource {
   gateway: String!
   paymentMethodId: String
   creditCardInfo: CreditCard
+}
+
+input PaymentToRefundInput {
+  paymentId: ID!
+  amount: PositiveDecimal
+  includeShippingCosts: Boolean = false
 }
 
 type PaymentVoid {

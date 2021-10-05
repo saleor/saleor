@@ -193,8 +193,10 @@ def refund(
 ) -> Transaction:
     if amount is None:
         amount = payment.captured_amount
+
     _validate_refund_amount(payment, amount)
     if not payment.can_refund():
+
         raise PaymentError("This payment cannot be refunded.")
 
     kind = TransactionKind.EXTERNAL if payment.is_manual() else TransactionKind.CAPTURE

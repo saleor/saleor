@@ -5,9 +5,9 @@ import graphene
 from prices import Money, TaxedMoney
 
 from ....core.prices import quantize_price
-from ....order import OrderOrigin, OrderStatus
+from ....order import OrderEvents, OrderOrigin, OrderStatus
 from ....order.error_codes import OrderErrorCode
-from ....order.models import FulfillmentStatus, Order
+from ....order.models import FulfillmentStatus, Order, OrderEvent
 from ....payment import ChargeStatus, PaymentError
 from ....warehouse.models import Stock
 from ...tests.utils import get_graphql_content
@@ -84,7 +84,7 @@ def test_fulfillment_return_products_order_without_payment(
     assert fulfillment is None
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.order.actions.try_refund")
 def test_fulfillment_return_products_amount_and_shipping_costs(
     mocked_refund,
     staff_api_client,
@@ -110,14 +110,17 @@ def test_fulfillment_return_products_amount_and_shipping_costs(
     staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
 
     mocked_refund.assert_called_with(
-        payment_dummy,
-        ANY,
-        amount=quantize_price(amount_to_refund, fulfilled_order.currency),
+        order=fulfilled_order,
+        user=staff_api_client.user,
+        app=None,
+        payment=payment_dummy,
+        manager=ANY,
         channel_slug=fulfilled_order.channel.slug,
+        amount=quantize_price(amount_to_refund, fulfilled_order.currency),
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.actions.gateway.refund")
 def test_fulfillment_return_products_refund_raising_payment_error(
     mocked_refund,
     staff_api_client,
@@ -146,12 +149,16 @@ def test_fulfillment_return_products_refund_raising_payment_error(
 
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
-    errors = data["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
+
+    assert (
+        data["returnFulfillment"]["status"]
+        == FulfillmentStatus.REFUNDED_AND_RETURNED.upper()
+    )
+    event = OrderEvent.objects.filter(type=OrderEvents.PAYMENT_REFUND_FAILED).get()
+    assert event.parameters["payment_id"] == payment_dummy.token
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.order.actions.try_refund")
 def test_fulfillment_return_products_order_lines(
     mocked_refund,
     staff_api_client,
@@ -256,8 +263,15 @@ def test_fulfillment_return_products_order_lines(
 
     amount = line_to_return.unit_price_gross_amount * line_quantity_to_return
     amount += order_with_lines.shipping_price_gross_amount
+
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, amount=amount, channel_slug=order_with_lines.channel.slug
+        order=order_with_lines,
+        user=staff_api_client.user,
+        app=None,
+        payment=payment_dummy,
+        manager=ANY,
+        channel_slug=order_with_lines.channel.slug,
+        amount=amount,
     )
 
 
@@ -322,7 +336,7 @@ def test_fulfillment_return_products_order_lines_quantity_bigger_than_unfulfille
     assert return_fulfillment is None
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.order.actions.try_refund")
 def test_fulfillment_return_products_order_lines_custom_amount(
     mocked_refund,
     staff_api_client,
@@ -360,15 +374,19 @@ def test_fulfillment_return_products_order_lines_custom_amount(
     assert len(return_fulfillment["lines"]) == 1
     assert return_fulfillment["lines"][0]["orderLine"]["id"] == line_id
     assert return_fulfillment["lines"][0]["quantity"] == 2
+
     mocked_refund.assert_called_with(
-        payment_dummy,
-        ANY,
-        amount=amount_to_refund,
+        order=order_with_lines,
+        user=staff_api_client.user,
+        app=None,
+        payment=payment_dummy,
+        manager=ANY,
         channel_slug=order_with_lines.channel.slug,
+        amount=amount_to_refund,
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.order.actions.try_refund")
 def test_fulfillment_return_products_fulfillment_lines(
     mocked_refund,
     staff_api_client,
@@ -485,8 +503,15 @@ def test_fulfillment_return_products_fulfillment_lines(
         * quantity_to_return
     )
     amount += fulfilled_order.shipping_price_gross_amount
+
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+        order=fulfilled_order,
+        user=staff_api_client.user,
+        app=None,
+        payment=payment_dummy,
+        manager=ANY,
+        channel_slug=fulfilled_order.channel.slug,
+        amount=amount,
     )
 
 
@@ -600,7 +625,7 @@ def test_fulfillment_return_products_lines_with_incorrect_status(
     assert return_fulfillment is None
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.order.actions.try_refund")
 def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
     mocked_refund,
     staff_api_client,
@@ -647,12 +672,19 @@ def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
     assert return_fulfillment["lines"][0]["quantity"] == 2
     amount = fulfillment_line_to_return.order_line.unit_price_gross_amount * 2
     amount += fulfilled_order.shipping_price_gross_amount
+
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+        order=fulfilled_order,
+        user=staff_api_client.user,
+        app=None,
+        payment=payment_dummy,
+        manager=ANY,
+        channel_slug=fulfilled_order.channel.slug,
+        amount=amount,
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.order.actions.try_refund")
 def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     mocked_refund,
     warehouse,
@@ -753,6 +785,13 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
 
     amount = order_line.unit_price_gross_amount * 2
     amount = quantize_price(amount, fulfilled_order.currency)
+
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+        order=fulfilled_order,
+        user=staff_api_client.user,
+        app=None,
+        payment=payment_dummy,
+        manager=ANY,
+        channel_slug=fulfilled_order.channel.slug,
+        amount=amount,
     )
