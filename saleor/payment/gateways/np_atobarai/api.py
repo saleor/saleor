@@ -64,14 +64,20 @@ def _format_address(ad: AddressData):
     """Follow the japanese address guidelines."""
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
     with Posuto() as pp:
-        jap_ad = pp.get(ad.postal_code)
-        return (
-            f"{ad.country_area}"
-            f"{jap_ad.city}"
-            f"{jap_ad.neighborhood}"
-            f"{ad.street_address_2}"
-            f"{ad.street_address_1}"
-        )
+        try:
+            jap_ad = pp.get(ad.postal_code)
+        except KeyError:
+            raise PaymentError(
+                "Valid japanese address is required for transaction in NP Atobarai."
+            )
+        else:
+            return (
+                f"{ad.country_area}"
+                f"{jap_ad.city}"
+                f"{jap_ad.neighborhood}"
+                f"{ad.street_address_2}"
+                f"{ad.street_address_1}"
+            )
 
 
 def register_transaction(

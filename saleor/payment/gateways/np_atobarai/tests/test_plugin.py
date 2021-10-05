@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from ....interface import PaymentLineData
+from ....interface import AddressData, PaymentLineData
 
 
 @pytest.fixture
@@ -14,10 +14,22 @@ def dummy_payment_line_data():
 
 
 @pytest.fixture
-def np_payment_data(dummy_payment_data, dummy_address_data, dummy_payment_line_data):
-    dummy_address_data.phone = str(dummy_address_data.phone)
-    dummy_payment_data.billing = dummy_address_data
-    dummy_payment_data.shipping = dummy_address_data
+def np_payment_data(dummy_payment_data, dummy_payment_line_data):
+    address_data = AddressData(
+        first_name="John",
+        last_name="Doe",
+        company_name="",
+        phone="+81 03-1234-5678",
+        country="JP",
+        postal_code="370-2625",
+        country_area="群馬県",
+        city="甘楽郡下仁田町",
+        city_area="本宿",
+        street_address_1="2-16-3",
+        street_address_2="",
+    )
+    dummy_payment_data.billing = address_data
+    dummy_payment_data.shipping = address_data
     dummy_payment_data.lines = dummy_payment_line_data
     return dummy_payment_data
 
