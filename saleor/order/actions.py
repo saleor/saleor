@@ -911,12 +911,12 @@ def _move_fulfillment_lines_to_target_fulfillment(
 
 def __get_shipping_refund_amount(
     refund_shipping_costs: bool,
-    refund_amount: Optional[Decimal],
+    refund_amount: Decimal,
     shipping_price: Decimal,
 ) -> Optional[Decimal]:
     # We set shipping refund amount only when refund amount is calculated by Saleor
     shipping_refund_amount = None
-    if refund_shipping_costs and refund_amount is None:
+    if refund_shipping_costs and refund_amount == 0:
         shipping_refund_amount = shipping_price
     return shipping_refund_amount
 
@@ -942,16 +942,17 @@ def create_refund_fulfillment(
     counted_shipping_amount = None
     for item in payments:
         if item.include_shipping_costs:
-            if not item.amount:
+            if item.amount == 0:
                 counted_shipping_amount = order.shipping_price_gross_amount
             refund_shipping_costs = True
-            shipping_refund_amount = __get_shipping_refund_amount(
-                item.include_shipping_costs,
-                item.amount,
-                order.shipping_price_gross_amount,
-            )
-            if shipping_refund_amount:
-                item.amount = shipping_refund_amount
+            if not item.from_deprecated_request:
+                shipping_refund_amount = __get_shipping_refund_amount(
+                    item.include_shipping_costs,
+                    item.amount,
+                    order.shipping_price_gross_amount,
+                )
+                if shipping_refund_amount:
+                    item.amount = shipping_refund_amount
 
     refund_amount = Decimal(sum([item.amount for item in payments if item.amount]))
 
@@ -1175,12 +1176,12 @@ def create_return_fulfillment(
     order: "Order",
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
-    total_refund_amount: Optional[Decimal],
+    total_refund_amount: Decimal,
     shipping_refund_amount: Optional[Decimal],
     manager: "PluginsManager",
 ) -> Fulfillment:
     status = FulfillmentStatus.RETURNED
-    if total_refund_amount is not None:
+    if total_refund_amount > 0:
         status = FulfillmentStatus.REFUNDED_AND_RETURNED
     with traced_atomic_transaction():
         return_fulfillment = _move_lines_to_return_fulfillment(
@@ -1307,7 +1308,7 @@ def create_fulfillments_for_returned_products(
     shipping_refund_amount = __get_shipping_refund_amount(
         refund_shipping_costs, amount, order.shipping_price_gross_amount
     )
-    total_refund_amount = None
+    total_refund_amount = Decimal("0")
     with traced_atomic_transaction():
         if refund and payment:
             # FIXME this line is temporary and is for compatability
@@ -1416,8 +1417,7 @@ def _process_refund(
             amount += order.shipping_price_gross_amount
         # At this point there can be only one payment.
         payments[0].amount = min(payments[0].payment.captured_amount, amount)
-
-    if amount:
+    if amount > 0:
         for item in payments:
             try_refund(
                 order=order,

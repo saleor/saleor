@@ -91,7 +91,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
     order_with_lines.payments.add(payment_dummy)
     payment = order_with_lines.payments.latest("pk")
     order_lines_to_refund = order_with_lines.lines.all()
-    payments = [OrderPaymentAction(payment, Decimal("0"), True)]
+    payments = [OrderPaymentAction(payment, Decimal("0"), True, True)]
     original_quantity = {
         line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
     }
