@@ -6,6 +6,7 @@ from urllib.parse import urlparse, urlunparse
 
 import boto3
 import requests
+from botocore.exceptions import ClientError
 from celery.exceptions import MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from google.cloud import pubsub_v1
@@ -160,31 +161,31 @@ def send_webhook_request(self, webhook_id, target_url, secret, event_type, data)
     domain = Site.objects.get_current().domain
     message = data.encode("utf-8")
     signature = signature_for_payload(message, secret)
-    if parts.scheme.lower() in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
+
+    scheme_matrix = {
+        WebhookSchemes.HTTP: (send_webhook_using_http, RequestException),
+        WebhookSchemes.HTTPS: (send_webhook_using_http, RequestException),
+        WebhookSchemes.AWS_SQS: (send_webhook_using_aws_sqs, ClientError),
+        WebhookSchemes.GOOGLE_CLOUD_PUBSUB: (
+            send_webhook_using_google_cloud_pubsub,
+            pubsub_v1.publisher.exceptions.MessageTooLargeError,
+        ),
+    }
+
+    if methods := scheme_matrix.get(parts.scheme.lower()):
+        send_method, send_exception = methods
         try:
-            send_webhook_using_http(target_url, message, domain, signature, event_type)
-        except RequestException as e:
-            logger.debug("[Webhook] Failed request to %r: %r.", target_url, e)
+            send_method(target_url, message, domain, signature, event_type)
+        except send_exception as e:
+            task_logger.debug("[Webhook] Failed request to %r: %r.", target_url, e)
             try:
                 self.retry(countdown=10)
             except MaxRetriesExceededError:
-                logger.info(
+                task_logger.info(
                     "[Webhook] Failed request to %r: exceeded retry limit %r.",
                     target_url,
                     self.max_retries,
                 )
-    elif parts.scheme.lower() == WebhookSchemes.AWS_SQS:
-        send_webhook_using_aws_sqs(target_url, message, domain, signature, event_type)
-        task_logger.debug(
-            "[Webhook ID:%r] Payload sent to %r for event %r",
-            webhook_id,
-            target_url,
-            event_type,
-        )
-    elif parts.scheme.lower() == WebhookSchemes.GOOGLE_CLOUD_PUBSUB:
-        send_webhook_using_google_cloud_pubsub(
-            target_url, message, domain, signature, event_type
-        )
         task_logger.debug(
             "[Webhook ID:%r] Payload sent to %r for event %r",
             webhook_id,
