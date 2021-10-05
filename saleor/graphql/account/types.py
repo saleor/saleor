@@ -554,6 +554,4 @@ class Group(CountableDjangoObjectType):
         ]
         qs = auth_models.Group.objects.filter(id__in=ids)
         groups = {group.id: group for group in qs}
-        print(groups)
-        print(ids)
         return [groups.get(root_id) for root_id in ids]
