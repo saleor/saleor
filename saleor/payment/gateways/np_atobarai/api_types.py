@@ -2,12 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List
 
-from saleor.payment.gateways.np_atobarai.const import (
-    MERCHANT_CODE,
-    SP_CODE,
-    TERMINAL_ID,
-    USE_SANDBOX,
-)
+from .const import MERCHANT_CODE, SP_CODE, TERMINAL_ID, USE_SANDBOX
 
 
 @dataclass

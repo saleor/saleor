@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ....plugins.error_codes import PluginErrorCode
-from . import GatewayConfig, api, capture, process_payment, refund, void
+from . import GatewayConfig, api, capture, get_api_config, process_payment, refund, void
 from .const import MERCHANT_CODE, SP_CODE, TERMINAL_ID, USE_SANDBOX
 
 GATEWAY_NAME = "NP後払い"
@@ -20,20 +20,12 @@ if TYPE_CHECKING:
 __all__ = ["NPAtobaraiGatewayPlugin"]
 
 
-def get_api_config(conf) -> api.ApiConfig:
-    return api.ApiConfig(
-        test_mode=conf[USE_SANDBOX],
-        merchant_code=conf[MERCHANT_CODE],
-        sp_code=conf[SP_CODE],
-        terminal_id=conf[TERMINAL_ID],
-    )
-
-
 class NPAtobaraiGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.np-atobarai"
     PLUGIN_NAME = GATEWAY_NAME
     CONFIGURATION_PER_CHANNEL = True
-    SUPPORTED_CURRENCIES = "JPY"
+    # TODO: restore just JPY
+    SUPPORTED_CURRENCIES = "JPY,PLN,USD"
 
     DEFAULT_CONFIGURATION = [
         {"name": MERCHANT_CODE, "value": None},
@@ -106,6 +98,9 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     def get_supported_currencies(self, previous_value):
         return self.SUPPORTED_CURRENCIES
 
+    def token_is_required_as_payment_input(self, previous_value):
+        return False
+
     @classmethod
     def validate_authentication(cls, plugin_configuration: "PluginConfiguration"):
         conf = {
@@ -127,6 +122,9 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
+        if not plugin_configuration.active:
+            return
+
         missing_fields = []
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
