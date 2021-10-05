@@ -244,6 +244,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
             "billing_address": get_address_payload(order.billing_address),
             "shipping_address": get_address_payload(order.shipping_address),
             "shipping_method_name": order.shipping_method_name,
+            "collection_point_name": order.collection_point_name,
             **get_discounts_payload(order),
         }
     )
