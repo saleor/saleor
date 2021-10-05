@@ -1,15 +1,14 @@
 import pytest
 
-from saleor.payment.gateways.np_atobarai.plugin import (
+from .....plugins.manager import get_plugins_manager
+from .....plugins.models import PluginConfiguration
+from ..plugin import (
     MERCHANT_CODE,
     SP_CODE,
     TERMINAL_ID,
     USE_SANDBOX,
     NPAtobaraiGatewayPlugin,
 )
-
-from .....plugins.manager import get_plugins_manager
-from .....plugins.models import PluginConfiguration
 
 
 @pytest.fixture

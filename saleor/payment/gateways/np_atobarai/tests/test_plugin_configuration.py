@@ -4,8 +4,8 @@ from unittest.mock import Mock
 import pytest
 from django.core.exceptions import ValidationError
 
-from saleor.payment import PaymentError
-from saleor.plugins.models import PluginConfiguration
+from .....plugins.models import PluginConfiguration
+from .... import PaymentError
 
 
 @pytest.fixture
