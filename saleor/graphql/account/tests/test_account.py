@@ -1066,23 +1066,10 @@ def test_customer_register(
     mocked_generator,
     api_client,
     channel_PLN,
-    gift_card,
-    gift_card_expiry_date,
     order,
 ):
     mocked_generator.return_value = "token"
     email = "customer@example.com"
-
-    gift_card.created_by = None
-    gift_card.created_by_email = email
-    gift_card.save(update_fields=["created_by_email", "created_by"])
-
-    gift_card_expiry_date.used_by_email = email
-    gift_card_expiry_date.save(update_fields=["used_by_email"])
-
-    order.user = None
-    order.user_email = email
-    order.save(update_fields=["user_email", "user"])
 
     redirect_url = "http://localhost:3000"
     variables = {
@@ -1136,15 +1123,6 @@ def test_customer_register(
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_user
-
-    gift_card.refresh_from_db()
-    assert gift_card.created_by == new_user
-
-    gift_card_expiry_date.refresh_from_db()
-    assert gift_card_expiry_date.used_by == new_user
-
-    order.refresh_from_db()
-    assert order.user == new_user
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)

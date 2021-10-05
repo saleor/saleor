@@ -673,14 +673,16 @@ def test_assign_user_gift_cards(
     gift_card_created_by_staff,
 ):
     # given
-    for card in [
-        gift_card,
-        gift_card_expiry_date,
-        gift_card_created_by_staff,
-        gift_card_used,
-    ]:
-        card.created_by = None
-        card.save(update_fields=["created_by"])
+    card_ids = [
+        card.id
+        for card in [
+            gift_card,
+            gift_card_expiry_date,
+            gift_card_created_by_staff,
+            gift_card_used,
+        ]
+    ]
+    GiftCard.objects.filter(id__in=card_ids).update(created_by=None)
 
     gift_card_used.used_by = None
     gift_card_used.save(update_fields=["used_by"])

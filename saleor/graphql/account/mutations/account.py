@@ -146,9 +146,6 @@ class AccountRegister(ModelMutation):
         else:
             user.save()
 
-        assign_user_gift_cards(user)
-        assign_user_orders(user)
-
         account_events.customer_account_created_event(user=user)
         info.context.plugins.customer_created(customer=user)
 
