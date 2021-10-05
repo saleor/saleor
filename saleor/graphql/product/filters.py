@@ -667,14 +667,18 @@ class CollectionFilter(MetadataFilterBase):
     published = EnumFilter(
         input_class=CollectionPublished, method="filter_is_published"
     )
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("slug", "name")
-    )
+    search = django_filters.CharFilter(method="collection_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = Collection
         fields = ["published", "search"]
+
+    def collection_filter_search(self, queryset, _name, value):
+        if not value:
+            return queryset
+        name_slug_qs = Q(name__ilike=value) | Q(slug__ilike=value)
+        return queryset.filter(name_slug_qs)
 
     def filter_is_published(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
