@@ -176,16 +176,16 @@ def send_webhook_request(self, webhook_id, target_url, secret, event_type, data)
         try:
             send_method(target_url, message, domain, signature, event_type)
         except send_exception as e:
-            task_logger.debug("[Webhook] Failed request to %r: %r.", target_url, e)
+            task_logger.info("[Webhook] Failed request to %r: %r.", target_url, e)
             try:
                 countdown = self.retry_backoff * (2 ** self.request.retries)
                 self.retry(countdown=countdown, **self.retry_kwargs)
             except MaxRetriesExceededError:
-                task_logger.info(
+                task_logger.warning(
                     "[Webhook] Failed request to %r: exceeded retry limit.",
                     target_url,
                 )
-        task_logger.debug(
+        task_logger.info(
             "[Webhook ID:%r] Payload sent to %r for event %r",
             webhook_id,
             target_url,
