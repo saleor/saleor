@@ -98,9 +98,7 @@ def test_get_shipping_method(mock_send_request, shipping_app, plugin_manager, ch
 def test_get_shipping_method_empty_response(
     mock_send_request, shipping_app, plugin_manager, checkout
 ):
-    shipping_method_id = graphene.Node.to_global_id(
-        "app", f"{shipping_app.id}:abcd"
-    )
+    shipping_method_id = graphene.Node.to_global_id("app", f"{shipping_app.id}:abcd")
     mock_send_request.return_value = []
     shipping_method = plugin_manager.get_shipping_method(
         shipping_method_id, checkout, None

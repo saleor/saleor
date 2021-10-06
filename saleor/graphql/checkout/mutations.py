@@ -1301,7 +1301,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         delivery_method_is_valid = clean_delivery_method(
             checkout_info=checkout_info, lines=lines, method=delivery_method
         )
-        if not delivery_method_is_valid or not delivery_method:
+        if not delivery_method_is_valid:
             raise ValidationError(
                 {
                     "delivery_method_id": ValidationError(
