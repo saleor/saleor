@@ -45,7 +45,7 @@ WORKDIR /app
 
 ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
-RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --no-input
+#RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --no-input
 
 EXPOSE 8000
 ENV PYTHONUNBUFFERED 1

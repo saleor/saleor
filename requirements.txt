@@ -57,11 +57,11 @@ google-i18n-address==2.5.0
 google-measurement-protocol==1.1.0
 google-resumable-media==2.0.3; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 googleapis-common-protos==1.53.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-graphene-django==2.13.0
+#graphene-django==2.13.0
 graphene-federation==0.1.0
-graphene==2.1.9
-graphql-core==2.3.2
-graphql-relay==2.0.1
+graphene==3.0.0b8
+graphql-core==3.1.6
+graphql-relay==3.1.0
 grpc-google-iam-v1==0.12.3; python_version >= "3.6"
 grpcio==1.41.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 gunicorn==20.1.0; python_version >= "3.5"

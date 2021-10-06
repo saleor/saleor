@@ -1,6 +1,6 @@
 adyen==4.0.0
 amqp==5.0.6; python_version >= "3.6"
-aniso8601==7.0.0
+aniso8601==9.0.1
 asgiref==3.4.1; python_version >= "3.6"
 astroid==2.8.0; python_version >= "3.6" and python_version < "4.0"
 atomicwrites==1.4.0; python_version >= "3.6" and python_full_version < "3.0.0" and sys_platform == "win32" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6") or sys_platform == "win32" and python_version >= "3.6" and python_full_version >= "3.4.0" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6")
@@ -78,11 +78,9 @@ google-i18n-address==2.5.0
 google-measurement-protocol==1.1.0
 google-resumable-media==2.0.3; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 googleapis-common-protos==1.53.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-graphene-django==2.13.0
-graphene-federation==0.1.0
-graphene==2.1.9; python_version >= "3.6" and python_version < "4.0"
-graphql-core==2.3.2; python_version >= "3.6" and python_version < "4.0"
-graphql-relay==2.0.1
+graphene==3.0.0b8
+graphql-core==3.1.6
+graphql-relay==3.1.0
 grpc-google-iam-v1==0.12.3; python_version >= "3.6"
 grpcio==1.41.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 gunicorn==20.1.0; python_version >= "3.5"

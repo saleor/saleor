@@ -13,13 +13,13 @@ import sentry_sdk
 import sentry_sdk.utils
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
-from graphql.utils import schema_printer
+#from graphql.utils import schema_printer
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
-from . import patched_print_object
+#from . import patched_print_object
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 
 
@@ -624,5 +624,5 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
 # https://github.com/graphql-python/graphql-core-legacy/pull/258
 # https://github.com/graphql-python/graphql-core-legacy/issues/176
 
-assert hasattr(schema_printer, "_print_object")
-schema_printer._print_object = patched_print_object
+#assert hasattr(schema_printer, "_print_object")
+#schema_printer._print_object = patched_print_object
