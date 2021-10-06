@@ -142,7 +142,6 @@ def authorize(
     )
 
 
-@payment_postprocess
 @raise_payment_error
 @require_active_payment
 @with_locked_payment
@@ -184,7 +183,6 @@ def capture(
 
 
 @raise_payment_error
-@require_active_payment
 @with_locked_payment
 @payment_postprocess
 def refund(
@@ -195,8 +193,10 @@ def refund(
 ) -> Transaction:
     if amount is None:
         amount = payment.captured_amount
+
     _validate_refund_amount(payment, amount)
     if not payment.can_refund():
+
         raise PaymentError("This payment cannot be refunded.")
 
     kind = TransactionKind.EXTERNAL if payment.is_manual() else TransactionKind.CAPTURE
@@ -227,7 +227,6 @@ def refund(
 
 
 @raise_payment_error
-@require_active_payment
 @with_locked_payment
 @payment_postprocess
 def void(

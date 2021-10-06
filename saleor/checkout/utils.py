@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.utils import timezone
 from prices import Money
 
@@ -25,8 +26,8 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
-from ..payment import gateway
 from ..payment.models import Payment
+from ..payment.tasks import refund_or_void_inactive_payment
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
 from ..shipping.models import ShippingMethod
@@ -705,9 +706,7 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
 
 
 def call_payment_refund_or_void(
-    channel_slug: str,
     payment: Optional[Payment],
-    manager: PluginsManager,
     cancel_partial=False,
 ):
     if not payment:
@@ -716,6 +715,6 @@ def call_payment_refund_or_void(
     if payment.partial and not cancel_partial:
         return
 
-    gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
     payment.is_active = False
-    payment.save(update_fields=["is_active"])
+    payment.save(update_fields=["is_active", "modified"])
+    transaction.on_commit(lambda: refund_or_void_inactive_payment.delay(payment.pk))  # type: ignore

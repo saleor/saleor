@@ -214,12 +214,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         if partial:
             payments_to_cancel = [p for p in payments_to_cancel if not p.partial]
         for existing_payment in payments_to_cancel:
-            call_payment_refund_or_void(
-                checkout_info.channel.slug,
-                existing_payment,
-                manager,
-                cancel_partial=True,
-            )
+            call_payment_refund_or_void(existing_payment, cancel_partial=True)
 
         payment = create_payment(
             gateway=gateway,

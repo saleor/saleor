@@ -10,7 +10,7 @@ from ....tests.utils import get_graphql_content
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.order.actions.try_refund")
 def test_fulfillment_refund_products_order_lines(
     mocked_refund,
     staff_api_client,
@@ -71,7 +71,7 @@ def test_fulfillment_refund_products_order_lines(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.order.actions.try_refund")
 def test_fulfillment_return_products_order_lines(
     mocked_refund,
     back_in_stock_webhook_mock,
