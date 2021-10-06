@@ -467,21 +467,26 @@ class OrderMarkAsPaid(BaseMutation):
             )
 
     @classmethod
+    def clean_order(cls, app, order, user):
+        if not order.payments.exists():
+            return
+
+        message = "Orders with payments can not be manually marked as paid."
+        events.payment_capture_failed_event(
+            order=order, user=user, app=app, message=message, payment=None
+        )
+        raise ValidationError(
+            {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
+        )
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         transaction_reference = data.get("transaction_reference")
-        cls.clean_billing_address(order)
         user = info.context.user
         app = info.context.app
-
-        if order.payments.exists():
-            message = "Orders with payments can not be manually marked as paid."
-            events.payment_capture_failed_event(
-                order=order, user=user, app=app, message=message, payment=None
-            )
-            raise ValidationError(
-                {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
-            )
+        cls.clean_billing_address(order)
+        cls.clean_order(app, order, user)
 
         mark_order_as_paid(
             order, user, app, info.context.plugins, transaction_reference
