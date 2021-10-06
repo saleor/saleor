@@ -2699,7 +2699,9 @@ def test_checkout_shipping_method_update_external_shipping_method(
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])
 
-    method_id = f"app:{shipping_app.id}:{response_method_id}"
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
 
     response = staff_api_client.post_graphql(
         MUTATION_UPDATE_SHIPPING_METHOD,
@@ -2771,6 +2773,59 @@ def test_checkout_delivery_method_update(
             errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
         )
         assert checkout.shipping_method is None
+
+
+@pytest.mark.parametrize("is_valid_delivery_method", (True, False))
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
+def test_checkout_delivery_method_update_external_shipping(
+    mock_clean_delivery,
+    mock_send_request,
+    api_client,
+    checkout_with_item_for_cc,
+    is_valid_delivery_method,
+    settings,
+    shipping_app,
+    channel_USD,
+):
+    checkout = checkout_with_item_for_cc
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    mock_clean_delivery.return_value = is_valid_delivery_method
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    response = api_client.post_graphql(
+        query, {"token": checkout.token, "deliveryMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    checkout.refresh_from_db()
+
+    errors = data["errors"]
+    if is_valid_delivery_method:
+        assert not errors
+        assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
+    else:
+        assert len(errors) == 1
+        assert errors[0]["field"] == "deliveryMethodId"
+        assert (
+            errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
+        )
+        assert PRIVATE_META_APP_SHIPPING_ID not in checkout.private_metadata
 
 
 @patch("saleor.graphql.checkout.mutations.clean_delivery_method")

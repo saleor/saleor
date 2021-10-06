@@ -1,6 +1,7 @@
 import datetime
 from unittest.mock import Mock, patch
 
+import graphene
 import pytest
 import pytz
 from django.utils import timezone
@@ -88,7 +89,9 @@ def test_is_valid_delivery_method_external_method(
             "maximum_delivery_days": "7",
         }
     ]
-    method_id = f"app:{shipping_app.id}:{response_method_id}"
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
 
     mock_send_request.return_value = mock_json_response
     checkout = checkout_with_item

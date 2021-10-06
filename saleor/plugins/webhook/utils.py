@@ -1,3 +1,4 @@
+import base64
 import decimal
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
@@ -32,7 +33,9 @@ def to_payment_app_id(app: "App", gateway_id: str) -> "str":
 
 
 def to_shipping_app_id(app: "App", shipping_method_id: str) -> "str":
-    return f"{APP_ID_PREFIX}:{app.pk}:{shipping_method_id}"
+    return base64.b64encode(
+        str.encode(f"{APP_ID_PREFIX}:{app.pk}:{shipping_method_id}")
+    ).decode("utf-8")
 
 
 def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
@@ -144,7 +147,6 @@ def parse_list_shipping_methods_response(
                 name=method_name,
                 price=Money(method_amount, method_currency),
                 maximum_delivery_days=method_maximum_delivery_days,
-                is_external=True,
             )
         )
     return shipping_methods

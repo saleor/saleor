@@ -1,5 +1,6 @@
 from unittest import mock
 
+import graphene
 import pytest
 
 from ....webhook.event_types import WebhookEventType
@@ -65,7 +66,10 @@ def test_get_shipping_methods_for_checkout(
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_shipping_method(mock_send_request, shipping_app, plugin_manager, checkout):
     response_method_id = "abcd"
-    shipping_method_id = f"app:{shipping_app.id}:{response_method_id}"
+    shipping_method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
     mock_json_response = [
         {
             "id": response_method_id,
@@ -88,3 +92,18 @@ def test_get_shipping_method(mock_send_request, shipping_app, plugin_manager, ch
     )
 
     assert shipping_method.id == shipping_method_id
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_get_shipping_method_empty_response(
+    mock_send_request, shipping_app, plugin_manager, checkout
+):
+    shipping_method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:abcd"
+    )
+    mock_send_request.return_value = []
+    shipping_method = plugin_manager.get_shipping_method(
+        shipping_method_id, checkout, None
+    )
+
+    assert shipping_method is None

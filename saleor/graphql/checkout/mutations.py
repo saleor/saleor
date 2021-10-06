@@ -1040,6 +1040,27 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
+    @staticmethod
+    def _resolve_delivery_method_type(id_) -> Optional[str]:
+        if id_ is None:
+            return None
+
+        possible_types = ("ShippingMethod", "app")
+        type_, id_ = from_global_id_or_error(id_)
+        str_type = str(type_)
+
+        if str_type not in possible_types:
+            raise ValidationError(
+                {
+                    "shipping_method_id": ValidationError(
+                        "ID does not belong to known shipping methods",
+                        code=CheckoutErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+        return str_type
+
     @classmethod
     def perform_mutation(
         cls, _root, info, shipping_method_id, checkout_id=None, token=None
@@ -1067,30 +1088,28 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 {
                     "shipping_method": ValidationError(
                         ERROR_DOES_NOT_SHIP,
-                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED,
+                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value,
                     )
                 }
             )
 
-        try:
-            shipping_method = cls.get_node_or_error(
-                info,
-                shipping_method_id,
-                only_type=ShippingMethod,
-                field="shipping_method_id",
-                qs=shipping_models.ShippingMethod.objects.prefetch_related(
-                    "postal_code_rules"
-                ),
-            )
-            delivery_method = convert_to_shipping_method_data(shipping_method)
-        except (ValueError, ValidationError):
-            # external shipping method
-            delivery_method = manager.get_shipping_method(
-                checkout=checkout,
-                channel_slug=checkout.channel.slug,
-                shipping_method_id=shipping_method_id,
-            )
+        type_name = cls._resolve_delivery_method_type(shipping_method_id)
 
+        if type_name == "ShippingMethod":
+            return cls.perform_on_shipping_method(
+                info, shipping_method_id, checkout_info, lines, checkout, manager
+            )
+        return cls.perform_on_external_shipping_method(
+            info, shipping_method_id, checkout_info, lines, checkout, manager
+        )
+
+    @staticmethod
+    def _check_delivery_method(
+        checkout_info,
+        lines,
+        *,
+        delivery_method: Optional[shipping_interface.ShippingMethodData],
+    ) -> None:
         delivery_method_is_valid = clean_delivery_method(
             checkout_info=checkout_info,
             lines=lines,
@@ -1101,17 +1120,58 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 {
                     "shipping_method": ValidationError(
                         "This shipping method is not applicable.",
-                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
                     )
                 }
             )
 
-        if not delivery_method.is_external:
-            delete_external_shipping_id(checkout=checkout)
-            checkout.shipping_method = shipping_method
-        else:
-            set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
-            checkout.shipping_method = None
+    @classmethod
+    def perform_on_shipping_method(
+        cls, info, shipping_method_id, checkout_info, lines, checkout, manager
+    ):
+        shipping_method = cls.get_node_or_error(
+            info,
+            shipping_method_id,
+            only_type=ShippingMethod,
+            field="shipping_method_id",
+            qs=shipping_models.ShippingMethod.objects.prefetch_related(
+                "postal_code_rules"
+            ),
+        )
+        delivery_method = convert_to_shipping_method_data(shipping_method)
+
+        cls._check_delivery_method(
+            checkout_info, lines, delivery_method=delivery_method
+        )
+
+        delete_external_shipping_id(checkout=checkout)
+        checkout.shipping_method = shipping_method
+        checkout.save(
+            update_fields=["private_metadata", "shipping_method", "last_change"]
+        )
+
+        recalculate_checkout_discount(
+            manager, checkout_info, lines, info.context.discounts
+        )
+        manager.checkout_updated(checkout)
+        return CheckoutShippingMethodUpdate(checkout=checkout)
+
+    @classmethod
+    def perform_on_external_shipping_method(
+        cls, info, shipping_method_id, checkout_info, lines, checkout, manager
+    ):
+        delivery_method = manager.get_shipping_method(
+            checkout=checkout,
+            channel_slug=checkout.channel.slug,
+            shipping_method_id=shipping_method_id,
+        )
+
+        cls._check_delivery_method(
+            checkout_info, lines, delivery_method=delivery_method
+        )
+
+        set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
+        checkout.shipping_method = None
         checkout.save(
             update_fields=["private_metadata", "shipping_method", "last_change"]
         )
@@ -1154,14 +1214,42 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             ),
         )
 
+        delivery_method = convert_to_shipping_method_data(shipping_method)
         cls._check_delivery_method(
-            checkout_info, lines, shipping_method=shipping_method, collection_point=None
+            checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )
 
         cls._update_delivery_method(
             manager,
             checkout,
             shipping_method=shipping_method,
+            external_shipping_method=None,
+            collection_point=None,
+        )
+        recalculate_checkout_discount(
+            manager, checkout_info, lines, info.context.discounts
+        )
+        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+
+    @classmethod
+    def perform_on_external_shipping_method(
+        cls, info, shipping_method_id, checkout_info, lines, checkout, manager
+    ):
+        delivery_method = manager.get_shipping_method(
+            checkout=checkout,
+            channel_slug=checkout.channel.slug,
+            shipping_method_id=shipping_method_id,
+        )
+
+        cls._check_delivery_method(
+            checkout_info, lines, shipping_method=delivery_method, collection_point=None
+        )
+
+        cls._update_delivery_method(
+            manager,
+            checkout,
+            shipping_method=None,
+            external_shipping_method=delivery_method,
             collection_point=None,
         )
         recalculate_checkout_discount(
@@ -1187,7 +1275,11 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             collection_point=collection_point,
         )
         cls._update_delivery_method(
-            manager, checkout, shipping_method=None, collection_point=collection_point
+            manager,
+            checkout,
+            shipping_method=None,
+            external_shipping_method=None,
+            collection_point=collection_point,
         )
         return CheckoutDeliveryMethodUpdate(checkout=checkout)
 
@@ -1196,10 +1288,10 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         checkout_info,
         lines,
         *,
-        shipping_method: Optional[ShippingMethod],
+        shipping_method: Optional[shipping_interface.ShippingMethodData],
         collection_point: Optional[Warehouse]
     ) -> None:
-        delivery_method = convert_to_shipping_method_data(shipping_method)
+        delivery_method = shipping_method
         error_msg = "This shipping method is not applicable."
 
         if collection_point is not None:
@@ -1209,7 +1301,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         delivery_method_is_valid = clean_delivery_method(
             checkout_info=checkout_info, lines=lines, method=delivery_method
         )
-        if not delivery_method_is_valid:
+        if not delivery_method_is_valid or not delivery_method:
             raise ValidationError(
                 {
                     "delivery_method_id": ValidationError(
@@ -1225,12 +1317,24 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         checkout: Checkout,
         *,
         shipping_method: Optional[ShippingMethod],
+        external_shipping_method: Optional[shipping_interface.ShippingMethodData],
         collection_point: Optional[Warehouse]
     ) -> None:
+        if external_shipping_method:
+            set_external_shipping_id(
+                checkout=checkout, app_shipping_id=external_shipping_method.id
+            )
+        else:
+            delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
         checkout.save(
-            update_fields=["shipping_method", "collection_point", "last_change"]
+            update_fields=[
+                "private_metadata",
+                "shipping_method",
+                "collection_point",
+                "last_change",
+            ]
         )
         manager.checkout_updated(checkout)
 
@@ -1239,7 +1343,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         if id_ is None:
             return None
 
-        possible_types = ("Warehouse", "ShippingMethod")
+        possible_types = ("Warehouse", "ShippingMethod", "app")
         type_, id_ = from_global_id_or_error(id_)
         str_type = str(type_)
 
@@ -1286,7 +1390,11 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             return cls.perform_on_collection_point(
                 info, delivery_method_id, checkout_info, lines, checkout, manager
             )
-        return cls.perform_on_shipping_method(
+        if type_name == "ShippingMethod":
+            return cls.perform_on_shipping_method(
+                info, delivery_method_id, checkout_info, lines, checkout, manager
+            )
+        return cls.perform_on_external_shipping_method(
             info, delivery_method_id, checkout_info, lines, checkout, manager
         )
 
