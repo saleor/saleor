@@ -7,9 +7,6 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 from django.contrib.sites.models import Site
 from django.db import transaction
 
-from saleor.order.capture_payment import capture_payments
-from saleor.order.interface import OrderPaymentAction
-
 from ..account.models import User
 from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
@@ -35,6 +32,7 @@ from . import (
     events,
     utils,
 )
+from .capture_payment import capture_payments
 from .events import (
     draft_order_created_from_replace_event,
     fulfillment_refunded_event,
@@ -42,6 +40,7 @@ from .events import (
     order_replacement_created,
     order_returned_event,
 )
+from .interface import OrderPaymentAction
 from .models import Fulfillment, FulfillmentLine, Order, OrderLine
 from .notifications import (
     send_fulfillment_confirmation_to_customer,
@@ -108,7 +107,7 @@ def order_created(
                 order=order,
                 user=user,
                 app=app,
-                amounts_and_payments=[
+                payment_actions=[
                     OrderPaymentAction(
                         amount=payment.captured_amount,
                         payment=payment,
@@ -358,10 +357,10 @@ def order_captured(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    amounts_and_payments: List[OrderPaymentAction],
+    payment_actions: List[OrderPaymentAction],
     manager: "PluginsManager",
 ):
-    for amount_and_payment in amounts_and_payments:
+    for amount_and_payment in payment_actions:
         events.payment_captured_event(
             order=order,
             user=user,

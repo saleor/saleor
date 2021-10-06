@@ -24,8 +24,6 @@ from django.http.request import HttpHeaders
 from django.http.response import HttpResponseRedirect
 from graphql_relay import from_global_id
 
-from saleor.order.interface import OrderPaymentAction
-
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
@@ -39,6 +37,7 @@ from ....order.actions import (
     order_refunded,
 )
 from ....order.events import external_notification_event
+from ....order.interface import OrderPaymentAction
 from ....payment.models import Payment, Transaction
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind

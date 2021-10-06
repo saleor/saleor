@@ -5,8 +5,6 @@ import graphql
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.order.interface import OrderPaymentAction
-
 from ...order import OrderLineData
 from ...payment import ChargeStatus, TransactionKind
 from ...payment.models import Payment
@@ -25,6 +23,7 @@ from ..actions import (
     mark_order_as_paid,
     order_refunded,
 )
+from ..interface import OrderPaymentAction
 from ..models import Fulfillment
 from ..notifications import (
     send_fulfillment_confirmation_to_customer,

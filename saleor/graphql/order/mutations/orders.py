@@ -1,8 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from saleor.order.interface import OrderPaymentAction
-
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
@@ -19,6 +17,7 @@ from ....order.actions import (
     order_voided,
 )
 from ....order.error_codes import OrderErrorCode
+from ....order.interface import OrderPaymentAction
 from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
