@@ -44,7 +44,7 @@ def capture_payments(
     app: Optional[App],
     amount: Decimal = None,
 ):
-    to_pay = amount or order.missing_amount_to_be_paid().amount
+    to_pay = amount or order.outstanding_balance.amount
     payments_to_notify = []
 
     # We iterate over payments in the order in which they were created

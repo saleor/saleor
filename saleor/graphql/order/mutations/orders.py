@@ -28,6 +28,7 @@ from ....order.utils import (
     update_order_prices,
 )
 from ....payment import PaymentError, TransactionKind, gateway
+from ....payment.model_helpers import get_total_authorized
 from ....shipping import models as shipping_models
 from ...account.types import AddressInput
 from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
@@ -101,8 +102,38 @@ def clean_payment(payments):
         )
 
 
-def clean_order_capture(payments):
+def clean_order_capture(order, payments, amount):
+    if amount <= 0:
+        raise ValidationError(
+            {
+                "amount": ValidationError(
+                    "Amount should be a positive number.",
+                    code=OrderErrorCode.ZERO_QUANTITY,
+                )
+            }
+        )
+
     clean_payment(payments)
+
+    if order.outstanding_balance.amount < amount:
+        raise ValidationError(
+            {
+                "amount": ValidationError(
+                    "Amount should less than the outstanding balance.",
+                    code=OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG,
+                )
+            }
+        )
+
+    if get_total_authorized(payments, order.currency).amount < amount:
+        raise ValidationError(
+            {
+                "amount": ValidationError(
+                    "Amount should less than or equal the authorized amount.",
+                    code=OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG,
+                )
+            }
+        )
 
 
 def clean_void_payment(payment):
@@ -511,16 +542,6 @@ class OrderCapture(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, amount, **data):
-        if amount <= 0:
-            raise ValidationError(
-                {
-                    "amount": ValidationError(
-                        "Amount should be a positive number.",
-                        code=OrderErrorCode.ZERO_QUANTITY,
-                    )
-                }
-            )
-
         order = cls.get_node_or_error(
             info,
             data.get("id"),
@@ -528,7 +549,7 @@ class OrderCapture(BaseMutation):
             qs=models.Order.objects.prefetch_related("payments"),
         )
         payments = [p for p in get_active_payments(order) if p.is_authorized]
-        clean_order_capture(payments)
+        clean_order_capture(order, payments, amount)
         manager = info.context.plugins
         _capture_payments(
             order,
