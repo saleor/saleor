@@ -1,7 +1,7 @@
 from copy import copy, deepcopy
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from ..product.models import Product, ProductType, ProductVariant
 
 PluginConfigurationType = List[dict]
+NoneType = type(None)
 
 
 class ConfigurationTypeField:
@@ -98,585 +99,399 @@ class BasePlugin:
     def __str__(self):
         return self.PLUGIN_NAME
 
-    def external_authentication_url(
-        self, data: dict, request: WSGIRequest, previous_value
-    ) -> dict:
-        """Handle authentication request.
-
-        Overwrite this method if the plugin handles authentication flow.
-        """
-        return NotImplemented
-
-    def external_obtain_access_tokens(
-        self, data: dict, request: WSGIRequest, previous_value
-    ) -> ExternalAccessTokens:
-        """Handle authentication request responsible for obtaining access tokens.
-
-        Overwrite this method if the plugin handles authentication flow.
-        """
-        return NotImplemented
-
-    def external_refresh(
-        self, data: dict, request: WSGIRequest, previous_value
-    ) -> ExternalAccessTokens:
-        """Handle authentication refresh request.
-
-        Overwrite this method if the plugin handles authentication flow and supports
-        refreshing the access.
-        """
-        return NotImplemented
-
-    def external_logout(self, data: dict, request: WSGIRequest, previous_value):
-        """Handle logout request.
-
-        Overwrite this method if the plugin handles logout flow.
-        """
-        return NotImplemented
-
-    def external_verify(
-        self, data: dict, request: WSGIRequest, previous_value
-    ) -> Tuple[Optional["User"], dict]:
-        """Verify the provided authentication data.
-
-        Overwrite this method if the plugin should validate the authentication data.
-        """
-        return NotImplemented
-
-    def authenticate_user(
-        self, request: WSGIRequest, previous_value
-    ) -> Optional["User"]:
-        """Authenticate user which should be assigned to the request.
-
-        Overwrite this method if the plugin handles authentication flow.
-        """
-        return NotImplemented
-
-    def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
-        """Handle received http request.
-
-        Overwrite this method if the plugin expects the incoming requests.
-        """
-        return NotImplemented
-
-    def notify(self, event: "NotifyEventType", payload: dict, previous_value):
-        """Handle notification request.
-
-        Overwrite this method if the plugin is responsible for sending notifications.
-        """
-        return NotImplemented
-
-    def change_user_address(
-        self,
-        address: "Address",
-        address_type: Optional[str],
-        user: Optional["User"],
-        previous_value: "Address",
-    ) -> "Address":
-        return NotImplemented
-
-    def calculate_checkout_total(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines: List["CheckoutLineInfo"],
-        address: Optional["Address"],
-        discounts: List["DiscountInfo"],
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        """Calculate the total for checkout.
-
-        Overwrite this method if you need to apply specific logic for the calculation
-        of a checkout total. Return TaxedMoney.
-        """
-        return NotImplemented
-
-    def calculate_checkout_shipping(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines: List["CheckoutLineInfo"],
-        address: Optional["Address"],
-        discounts: List["DiscountInfo"],
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        """Calculate the shipping costs for checkout.
-
-        Overwrite this method if you need to apply specific logic for the calculation
-        of shipping costs. Return TaxedMoney.
-        """
-        return NotImplemented
-
-    def calculate_order_shipping(
-        self, order: "Order", previous_value: TaxedMoney
-    ) -> TaxedMoney:
-        """Calculate the shipping costs for the order.
-
-        Update shipping costs in the order in case of changes in shipping address or
-        changes in draft order. Return TaxedMoney.
-        """
-        return NotImplemented
-
-    def calculate_checkout_line_total(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines: List["CheckoutLineInfo"],
-        checkout_line_info: "CheckoutLineInfo",
-        address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        """Calculate checkout line total.
-
-        Overwrite this method if you need to apply specific logic for the calculation
-        of a checkout line total. Return TaxedMoney.
-        """
-        return NotImplemented
-
-    def calculate_order_line_total(
-        self,
-        order: "Order",
-        order_line: "OrderLine",
-        variant: "ProductVariant",
-        product: "Product",
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        """Calculate order line total.
-
-        Overwrite this method if you need to apply specific logic for the calculation
-        of a order line total. Return TaxedMoney.
-        """
-        return NotImplemented
-
-    def calculate_checkout_line_unit_price(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines: List["CheckoutLineInfo"],
-        checkout_line_info: "CheckoutLineInfo",
-        address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
-        previous_value: TaxedMoney,
-    ):
-        """Calculate checkout line unit price."""
-        return NotImplemented
-
-    def calculate_order_line_unit(
-        self,
-        order: "Order",
-        order_line: "OrderLine",
-        variant: "ProductVariant",
-        product: "Product",
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        """Calculate order line unit price.
-
-        Update order line unit price in the order in case of changes in draft order.
-        Return TaxedMoney.
-        Overwrite this method if you need to apply specific logic for the calculation
-        of an order line unit price.
-        """
-        return NotImplemented
-
-    def get_checkout_line_tax_rate(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines: List["CheckoutLineInfo"],
-        checkout_line_info: "CheckoutLineInfo",
-        address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
-        previous_value: Decimal,
-    ) -> Decimal:
-        return NotImplemented
-
-    def get_order_line_tax_rate(
-        self,
-        order: "Order",
-        product: "Product",
-        variant: "ProductVariant",
-        address: Optional["Address"],
-        previous_value: Decimal,
-    ) -> Decimal:
-        return NotImplemented
-
-    def get_checkout_shipping_tax_rate(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
-        address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
-        previous_value: Decimal,
-    ):
-        return NotImplemented
-
-    def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
-        return NotImplemented
-
-    def get_tax_rate_type_choices(
-        self, previous_value: List["TaxType"]
-    ) -> List["TaxType"]:
-        """Return list of all tax categories.
-
-        The returned list will be used to provide staff users with the possibility to
-        assign tax categories to a product. It can be used by tax plugins to properly
-        calculate taxes for products.
-        Overwrite this method in case your plugin provides a list of tax categories.
-        """
-        return NotImplemented
-
-    def show_taxes_on_storefront(self, previous_value: bool) -> bool:
-        """Define if storefront should add info about taxes to the price.
-
-        It is used only by the old storefront. The returned value determines if
-        storefront should append info to the price about "including/excluding X% VAT".
-        """
-        return NotImplemented
-
-    def apply_taxes_to_shipping(
-        self, price: Money, shipping_address: "Address", previous_value: TaxedMoney
-    ) -> TaxedMoney:
-        """Apply taxes to the shipping costs based on the shipping address.
-
-        Overwrite this method if you want to show available shipping methods with
-        taxes.
-        """
-        return NotImplemented
-
-    def apply_taxes_to_product(
-        self,
-        product: "Product",
-        price: Money,
-        country: Country,
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        """Apply taxes to the product price based on the customer country.
-
-        Overwrite this method if you want to show products with taxes.
-        """
-        return NotImplemented
-
-    def preprocess_order_creation(
-        self,
-        checkout_info: "CheckoutInfo",
-        discounts: List["DiscountInfo"],
-        lines: Optional[Iterable["CheckoutLineInfo"]],
-        previous_value: Any,
-    ):
-        """Trigger directly before order creation.
-
-        Overwrite this method if you need to trigger specific logic before an order is
-        created.
-        """
-        return NotImplemented
-
-    def order_created(self, order: "Order", previous_value: Any):
-        """Trigger when order is created.
-
-        Overwrite this method if you need to trigger specific logic after an order is
-        created.
-        """
-        return NotImplemented
-
-    def order_confirmed(self, order: "Order", previous_value: Any):
-        """Trigger when order is confirmed by staff.
-
-        Overwrite this method if you need to trigger specific logic after an order is
-        confirmed.
-        """
-        return NotImplemented
-
-    def sale_created(
-        self, sale: "Sale", current_catalogue: "NodeCatalogueInfo", previous_value: Any
-    ):
-        """Trigger when sale is created.
-
-        Overwrite this method if you need to trigger specific logic after sale is created.
-        """
-        return NotImplemented
-
-    def sale_deleted(
-        self, sale: "Sale", previous_catalogue: "NodeCatalogueInfo", previous_value: Any
-    ):
-        """Trigger when sale is deleted.
-
-        Overwrite this method if you need to trigger specific logic after sale is deleted.
-        """
-        return NotImplemented
-
-    def sale_updated(
-        self,
-        sale: "Sale",
-        previous_catalogue: "NodeCatalogueInfo",
-        current_catalogue: "NodeCatalogueInfo",
-        previous_value: Any,
-    ):
-        """Trigger when sale is updated.
-
-        Overwrite this method if you need to trigger specific logic after sale is updated.
-        """
-        return NotImplemented
-
-    def invoice_request(
-        self,
-        order: "Order",
-        invoice: "Invoice",
-        number: Optional[str],
-        previous_value: Any,
-    ) -> Any:
-        """Trigger when invoice creation starts.
-
-        Overwrite to create invoice with proper data, call invoice.update_invoice.
-        """
-        return NotImplemented
-
-    def invoice_delete(self, invoice: "Invoice", previous_value: Any):
-        """Trigger before invoice is deleted.
-
-        Perform any extra logic before the invoice gets deleted.
-        Note there is no need to run invoice.delete() as it will happen in mutation.
-        """
-        return NotImplemented
-
-    def invoice_sent(self, invoice: "Invoice", email: str, previous_value: Any):
-        """Trigger after invoice is sent."""
-        return NotImplemented
-
-    def assign_tax_code_to_object_meta(
-        self,
-        obj: Union["Product", "ProductType"],
-        tax_code: Optional[str],
-        previous_value: Any,
-    ):
-        """Assign tax code dedicated to plugin."""
-        return NotImplemented
-
-    def get_tax_code_from_object_meta(
-        self, obj: Union["Product", "ProductType"], previous_value: "TaxType"
-    ) -> "TaxType":
-        """Return tax code from object meta."""
-        return NotImplemented
-
-    def get_tax_rate_percentage_value(
-        self, obj: Union["Product", "ProductType"], country: Country, previous_value
-    ) -> Decimal:
-        """Return tax rate percentage value for a given tax rate type in a country.
-
-        It is used only by the old storefront.
-        """
-        return NotImplemented
-
-    def customer_created(self, customer: "User", previous_value: Any) -> Any:
-        """Trigger when user is created.
-
-        Overwrite this method if you need to trigger specific logic after a user is
-        created.
-        """
-        return NotImplemented
-
-    def customer_updated(self, customer: "User", previous_value: Any) -> Any:
-        """Trigger when user is updated.
-
-        Overwrite this method if you need to trigger specific logic after a user is
-        updated.
-        """
-        return NotImplemented
-
-    def product_created(self, product: "Product", previous_value: Any) -> Any:
-        """Trigger when product is created.
-
-        Overwrite this method if you need to trigger specific logic after a product is
-        created.
-        """
-        return NotImplemented
-
-    def product_updated(self, product: "Product", previous_value: Any) -> Any:
-        """Trigger when product is updated.
-
-        Overwrite this method if you need to trigger specific logic after a product is
-        updated.
-        """
-        return NotImplemented
-
-    def product_deleted(
-        self, product: "Product", variants: List[int], previous_value: Any
-    ) -> Any:
-        """Trigger when product is deleted.
-
-        Overwrite this method if you need to trigger specific logic after a product is
-        deleted.
-        """
-        return NotImplemented
-
-    def product_variant_created(
-        self, product_variant: "ProductVariant", previous_value: Any
-    ) -> Any:
-        """Trigger when product variant is created.
-
-        Overwrite this method if you need to trigger specific logic after a product
-        variant is created.
-        """
-        return NotImplemented
-
-    def product_variant_updated(
-        self, product_variant: "ProductVariant", previous_value: Any
-    ) -> Any:
-        """Trigger when product variant is updated.
-
-        Overwrite this method if you need to trigger specific logic after a product
-        variant is updated.
-        """
-        return NotImplemented
-
-    def product_variant_deleted(
-        self, product_variant: "ProductVariant", previous_value: Any
-    ) -> Any:
-        """Trigger when product variant is deleted.
-
-        Overwrite this method if you need to trigger specific logic after a product
-        variant is deleted.
-        """
-        return NotImplemented
-
-    def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
-        """Trigger when order is fully paid.
-
-        Overwrite this method if you need to trigger specific logic when an order is
-        fully paid.
-        """
-        return NotImplemented
-
-    def order_updated(self, order: "Order", previous_value: Any) -> Any:
-        """Trigger when order is updated.
-
-        Overwrite this method if you need to trigger specific logic when an order is
-        changed.
-        """
-        return NotImplemented
-
-    def order_cancelled(self, order: "Order", previous_value: Any) -> Any:
-        """Trigger when order is cancelled.
-
-        Overwrite this method if you need to trigger specific logic when an order is
-        canceled.
-        """
-        return NotImplemented
-
-    def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
-        """Trigger when order is fulfilled.
-
-        Overwrite this method if you need to trigger specific logic when an order is
-        fulfilled.
-        """
-        return NotImplemented
-
-    def fulfillment_created(
-        self, fulfillment: "Fulfillment", previous_value: Any
-    ) -> Any:
-        """Trigger when fulfillemnt is created.
-
-        Overwrite this method if you need to trigger specific logic when a fulfillment is
-         created.
-        """
-        return NotImplemented
-
-    def fulfillment_canceled(
-        self, fulfillment: "Fulfillment", previous_value: Any
-    ) -> Any:
-        """Trigger when fulfillemnt is cancelled.
-
-        Overwrite this method if you need to trigger specific logic when a fulfillment is
-        cancelled.
-        """
-        return NotImplemented
-
-    def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
-        """Trigger when checkout is created.
-
-        Overwrite this method if you need to trigger specific logic when a checkout is
-        created.
-        """
-        return NotImplemented
-
-    def checkout_updated(self, checkout: "Checkout", previous_value: Any) -> Any:
-        """Trigger when checkout is updated.
-
-        Overwrite this method if you need to trigger specific logic when a checkout is
-        updated.
-        """
-        return NotImplemented
-
-    def page_updated(self, page: "Page", previous_value: Any) -> Any:
-        """Trigger when page is updated.
-
-        Overwrite this method if you need to trigger specific logic when a page is
-        updated.
-        """
-        return NotImplemented
-
-    def page_created(self, page: "Page", previous_value: Any) -> Any:
-        """Trigger when page is created.
-
-        Overwrite this method if you need to trigger specific logic when a page is
-        created.
-        """
-        return NotImplemented
-
-    def page_deleted(self, page: "Page", previous_value: Any) -> Any:
-        """Trigger when page is deleted.
-
-        Overwrite this method if you need to trigger specific logic when a page is
-        deleted.
-        """
-        return NotImplemented
-
-    def fetch_taxes_data(self, previous_value: Any) -> Any:
-        """Triggered when ShopFetchTaxRates mutation is called."""
-        return NotImplemented
-
-    def initialize_payment(
-        self, payment_data: dict, previous_value
-    ) -> "InitializedPaymentResponse":
-        return NotImplemented
-
-    def authorize_payment(
-        self, payment_information: "PaymentData", previous_value
-    ) -> "GatewayResponse":
-        return NotImplemented
-
-    def capture_payment(
-        self, payment_information: "PaymentData", previous_value
-    ) -> "GatewayResponse":
-        return NotImplemented
-
-    def void_payment(
-        self, payment_information: "PaymentData", previous_value
-    ) -> "GatewayResponse":
-        return NotImplemented
-
-    def refund_payment(
-        self, payment_information: "PaymentData", previous_value
-    ) -> "GatewayResponse":
-        return NotImplemented
-
-    def confirm_payment(
-        self, payment_information: "PaymentData", previous_value
-    ) -> "GatewayResponse":
-        return NotImplemented
-
-    def process_payment(
-        self, payment_information: "PaymentData", previous_value
-    ) -> "GatewayResponse":
-        return NotImplemented
-
-    def list_payment_sources(
-        self, customer_id: str, previous_value
-    ) -> List["CustomerSource"]:
-        return NotImplemented
-
-    def get_client_token(self, token_config, previous_value):
-        return NotImplemented
-
-    def get_payment_config(self, previous_value):
-        return NotImplemented
-
-    def get_supported_currencies(self, previous_value):
-        return NotImplemented
+    #  Apply taxes to the product price based on the customer country.
+    #
+    #  Overwrite this method if you want to show products with taxes.
+    apply_taxes_to_product: Callable[
+        ["Product", Money, Country, TaxedMoney], TaxedMoney
+    ]
+
+    #  Apply taxes to the shipping costs based on the shipping address.
+    #
+    #  Overwrite this method if you want to show available shipping methods with
+    #  taxes.
+    apply_taxes_to_shipping: Callable[[Money, "Address", TaxedMoney], TaxedMoney]
+
+    #  Assign tax code dedicated to plugin.
+    assign_tax_code_to_object_meta: Callable[
+        [Union["Product", "ProductType"], Union[str, NoneType], Any], Any
+    ]
+
+    #  Authenticate user which should be assigned to the request.
+    #
+    #  Overwrite this method if the plugin handles authentication flow.
+    authenticate_user: Callable[[WSGIRequest], Union["User", NoneType]]
+
+    authorize_payment: Callable[["PaymentData", Any], GatewayResponse]
+
+    #  Calculate checkout line total.
+    #
+    #  Overwrite this method if you need to apply specific logic for the calculation
+    #  of a checkout line total. Return TaxedMoney.
+    calculate_checkout_line_total: Callable[
+        [
+            "CheckoutInfo",
+            List["CheckoutLineInfo"],
+            "CheckoutLineInfo",
+            Union["Address", NoneType],
+            Iterable["DiscountInfo"],
+            TaxedMoney,
+        ],
+        TaxedMoney,
+    ]
+
+    #  Calculate checkout line unit price.
+    calculate_checkout_line_unit_price: Callable[
+        [
+            "CheckoutInfo",
+            List["CheckoutLineInfo"],
+            "CheckoutLineInfo",
+            Union["Address", NoneType],
+            Iterable["DiscountInfo"],
+            Any,
+        ],
+        Any,
+    ]
+
+    #  Calculate the shipping costs for checkout.
+    #
+    #  Overwrite this method if you need to apply specific logic for the calculation
+    #  of shipping costs. Return TaxedMoney.
+    calculate_checkout_shipping: Callable[
+        [
+            "CheckoutInfo",
+            List["CheckoutLineInfo"],
+            Union["Address", NoneType],
+            List["DiscountInfo"],
+            TaxedMoney,
+        ],
+        TaxedMoney,
+    ]
+
+    #  Calculate the total for checkout.
+    #
+    #  Overwrite this method if you need to apply specific logic for the calculation
+    #  of a checkout total. Return TaxedMoney.
+    calculate_checkout_total: Callable[
+        [
+            "CheckoutInfo",
+            List["CheckoutLineInfo"],
+            Union["Address", NoneType],
+            List["DiscountInfo"],
+            TaxedMoney,
+        ],
+        TaxedMoney,
+    ]
+
+    #  Calculate order line total.
+    #
+    #  Overwrite this method if you need to apply specific logic for the calculation
+    #  of a order line total. Return TaxedMoney.
+    calculate_order_line_total: Callable[
+        ["Order", "OrderLine", "ProductVariant", "Product", TaxedMoney], TaxedMoney
+    ]
+
+    #  Calculate order line unit price.
+    #
+    #  Update order line unit price in the order in case of changes in draft order.
+    #  Return TaxedMoney.
+    #  Overwrite this method if you need to apply specific logic for the calculation
+    #  of an order line unit price.
+    calculate_order_line_unit: Callable[
+        ["Order", "OrderLine", "ProductVariant", "Product", TaxedMoney], TaxedMoney
+    ]
+
+    #  Calculate the shipping costs for the order.
+    #
+    #  Update shipping costs in the order in case of changes in shipping address or
+    #  changes in draft order. Return TaxedMoney.
+    calculate_order_shipping: Callable[["Order", TaxedMoney], TaxedMoney]
+
+    capture_payment: Callable[["PaymentData", Any], GatewayResponse]
+
+    change_user_address: Callable[
+        ["Address", Union[str, NoneType], Union["User", NoneType], "Address"], "Address"
+    ]
+
+    #  Trigger when checkout is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a checkout is
+    #  created.
+    checkout_created: Callable[["Checkout", Any], Any]
+
+    #  Trigger when checkout is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a checkout is
+    #  updated.
+    checkout_updated: Callable[["Checkout", Any], Any]
+
+    confirm_payment: Callable[["PaymentData", Any], GatewayResponse]
+
+    #  Trigger when user is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a user is
+    #  created.
+    customer_created: Callable[["User", Any], Any]
+
+    #  Trigger when user is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a user is
+    #  updated.
+    customer_updated: Callable[["User", Any], Any]
+
+    #  Handle authentication request.
+    #
+    #  Overwrite this method if the plugin handles authentication flow.
+    external_authentication_url: Callable[[dict, WSGIRequest], dict]
+
+    #  Handle logout request.
+    #
+    #  Overwrite this method if the plugin handles logout flow.
+    external_logout: Callable[[dict], Any]
+
+    #  Handle authentication request responsible for obtaining access tokens.
+    #
+    #  Overwrite this method if the plugin handles authentication flow.
+    external_obtain_access_tokens: Callable[[dict, WSGIRequest], ExternalAccessTokens]
+
+    #  Handle authentication refresh request.
+    #
+    #  Overwrite this method if the plugin handles authentication flow and supports
+    #  refreshing the access.
+    external_refresh: Callable[[dict, WSGIRequest], ExternalAccessTokens]
+
+    #  Verify the provided authentication data.
+    #
+    #  Overwrite this method if the plugin should validate the authentication data.
+    external_verify: Callable[[dict, WSGIRequest], Tuple[Union["User", NoneType], dict]]
+
+    #  Triggered when ShopFetchTaxRates mutation is called.
+    fetch_taxes_data: Callable[[Any], Any]
+
+    #  Trigger when fulfillemnt is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a fulfillment is
+    #  created.
+    fulfillment_created: Callable[["Fulfillment", Any], Any]
+
+    #  Trigger when fulfillemnt is cancelled.
+    #  Overwrite this method if you need to trigger specific logic when a fulfillment is
+    #  cancelled.
+    fulfillment_canceled: Callable[["Fulfillment", Any], Any]
+
+    get_checkout_line_tax_rate: Callable[
+        [
+            "CheckoutInfo",
+            List["CheckoutLineInfo"],
+            "CheckoutLineInfo",
+            Union["Address", NoneType],
+            Iterable["DiscountInfo"],
+            Decimal,
+        ],
+        Decimal,
+    ]
+
+    get_checkout_shipping_tax_rate: Callable[
+        [
+            "CheckoutInfo",
+            Iterable["CheckoutLineInfo"],
+            Union["Address", NoneType],
+            Iterable["DiscountInfo"],
+            Any,
+        ],
+        Any,
+    ]
+
+    get_client_token: Callable[[Any, Any], Any]
+
+    get_order_line_tax_rate: Callable[
+        ["Order", "Product", "ProductVariant", Union["Address", NoneType], Decimal],
+        Decimal,
+    ]
+
+    get_order_shipping_tax_rate: Callable[["Order", Any], Any]
+    get_payment_config: Callable[[Any], Any]
+
+    get_supported_currencies: Callable[[Any], Any]
+
+    #  Return tax code from object meta.
+    get_tax_code_from_object_meta: Callable[
+        [Union["Product", "ProductType"], "TaxType"], "TaxType"
+    ]
+
+    #  Return tax rate percentage value for a given tax rate type in a country.
+    #
+    #  It is used only by the old storefront.
+    get_tax_rate_percentage_value: Callable[
+        [Union["Product", "ProductType"], Country, Any], Decimal
+    ]
+
+    #  Return list of all tax categories.
+    #
+    #  The returned list will be used to provide staff users with the possibility to
+    #  assign tax categories to a product. It can be used by tax plugins to properly
+    #  calculate taxes for products.
+    #  Overwrite this method in case your plugin provides a list of tax categories.
+    get_tax_rate_type_choices: Callable[[List["TaxType"]], List["TaxType"]]
+
+    initialize_payment: Callable[[dict], InitializedPaymentResponse]
+
+    #  Trigger before invoice is deleted.
+    #
+    #  Perform any extra logic before the invoice gets deleted.
+    #  Note there is no need to run invoice.delete() as it will happen in mutation.
+    invoice_delete: Callable[["Invoice", Any], Any]
+
+    #  Trigger when invoice creation starts.
+    #
+    #  Overwrite to create invoice with proper data, call invoice.update_invoice.
+    invoice_request: Callable[["Order", "Invoice", Union[str, NoneType], Any], Any]
+
+    #  Trigger after invoice is sent.
+    invoice_sent: Callable[["Invoice", str, Any], Any]
+
+    list_payment_sources: Callable[[str, Any], List["CustomerSource"]]
+
+    #  Handle notification request.
+    #
+    #  Overwrite this method if the plugin is responsible for sending notifications.
+    notify: Callable[["NotifyEventType", dict, Any], Any]
+
+    #  Trigger when order is cancelled.
+    #
+    #  Overwrite this method if you need to trigger specific logic when an order is
+    #  canceled.
+    order_cancelled: Callable[["Order", Any], Any]
+
+    #  Trigger when order is confirmed by staff.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an order is
+    #  confirmed.
+    order_confirmed: Callable[["Order", Any], Any]
+
+    #  Trigger when order is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an order is
+    #  created.
+    order_created: Callable[["Order", Any], Any]
+
+    #  Trigger when order is fulfilled.
+    #
+    #  Overwrite this method if you need to trigger specific logic when an order is
+    #  fulfilled.
+    order_fulfilled: Callable[["Order", Any], Any]
+
+    #  Trigger when order is fully paid.
+    #
+    #  Overwrite this method if you need to trigger specific logic when an order is
+    #  fully paid.
+    order_fully_paid: Callable[["Order", Any], Any]
+
+    #  Trigger when order is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic when an order is
+    #  changed.
+    order_updated: Callable[["Order", Any], Any]
+
+    #  Trigger when page is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a page is
+    #  created.
+    page_created: Callable[["Page", Any], Any]
+
+    #  Trigger when page is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a page is
+    #  deleted.
+    page_deleted: Callable[["Page", Any], Any]
+
+    #  Trigger when page is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a page is
+    #  updated.
+    page_updated: Callable[["Page", Any], Any]
+
+    #  Trigger directly before order creation.
+    #
+    #  Overwrite this method if you need to trigger specific logic before an order is
+    #  created.
+    preprocess_order_creation: Callable[
+        [
+            "CheckoutInfo",
+            List["DiscountInfo"],
+            Union[Iterable["CheckoutLineInfo"], NoneType],
+            Any,
+        ],
+        Any,
+    ]
+
+    process_payment: Callable[["PaymentData", Any], Any]
+
+    #  Trigger when product is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a product is
+    #  created.
+    product_created: Callable[["Product", Any], Any]
+
+    #  Trigger when product is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a product is
+    #  deleted.
+    product_deleted: Callable[["Product", List[int], Any], Any]
+
+    #  Trigger when product is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a product is
+    #  updated.
+    product_updated: Callable[["Product", Any], Any]
+
+    #  Trigger when product variant is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a product
+    #  variant is created.
+    product_variant_created: Callable[["ProductVariant", Any], Any]
+
+    #  Trigger when product variant is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a product
+    #  variant is deleted.
+    product_variant_deleted: Callable[["ProductVariant", Any], Any]
+
+    #  Trigger when product variant is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a product
+    #  variant is updated.
+    product_variant_updated: Callable[["ProductVariant", Any], Any]
+
+    refund_payment: Callable[["PaymentData", Any], GatewayResponse]
+
+    #  Trigger when sale is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after sale is created.
+    sale_created: Callable[["Sale", "NodeCatalogueInfo", Any], Any]
+
+    #  Trigger when sale is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after sale is deleted.
+    sale_deleted: Callable[["Sale", "NodeCatalogueInfo", Any], Any]
+
+    #  Trigger when sale is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after sale is updated.
+    sale_updated: Callable[["Sale", "NodeCatalogueInfo", "NodeCatalogueInfo", Any], Any]
+
+    #  Define if storefront should add info about taxes to the price.
+    #
+    #  It is used only by the old storefront. The returned value determines if
+    #  storefront should append info to the price about "including/excluding X% VAT".
+    show_taxes_on_storefront: Callable[[bool], bool]
+
+    void_payment: Callable[["PaymentData", Any], GatewayResponse]
+
+    #  Handle received http request.
+    #
+    #  Overwrite this method if the plugin expects the incoming requests.
+    webhook: Callable[[WSGIRequest, str, Any], HttpResponse]
 
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value
@@ -684,9 +499,9 @@ class BasePlugin:
     def get_payment_gateways(
         self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
     ) -> List["PaymentGateway"]:
-        payment_config = self.get_payment_config(previous_value)
+        payment_config = self.get_payment_config(previous_value)  # type: ignore
         payment_config = payment_config if payment_config != NotImplemented else []
-        currencies = self.get_supported_currencies(previous_value=[])
+        currencies = self.get_supported_currencies(previous_value=[])  # type: ignore
         currencies = currencies if currencies != NotImplemented else []
         if currency and currency not in currencies:
             return []

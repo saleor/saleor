@@ -827,7 +827,9 @@ def test_shipping_voucher_order_discount(
     )
     subtotal = Money(100, "USD")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
-    shipping_total = Money(shipping_cost, "USD")
+    shipping_total = TaxedMoney(
+        gross=Money(shipping_cost, "USD"), net=Money(shipping_cost, "USD")
+    )
     order = Mock(
         get_subtotal=Mock(return_value=subtotal),
         shipping_price=shipping_total,

@@ -22,16 +22,14 @@
   <span> | </span>
   <a href="https://twitter.com/getsaleor">Twitter</a>
   <span> | </span>
-  <a href="https://gitter.im/mirumee/saleor">Gitter</a>
-  <span> | </span>
-  <a href="https://github.com/mirumee/saleor/discussions">GitHub Discussions</a>
+  <a href="https://github.com/saleor/saleor/discussions">GitHub Discussions</a>
 </div>
 
 <br>
 
 <div align="center">
-  <a href="http://codecov.io/github/mirumee/saleor?branch=master">
-    <img src="http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master" alt="Codecov" />
+  <a href="http://codecov.io/github/saleor/saleor?branch=master">
+    <img src="http://codecov.io/github/saleor/saleor/coverage.svg?branch=master" alt="Codecov" />
   </a>
   <a href="https://docs.saleor.io/">
     <img src="https://img.shields.io/badge/docs-docs.saleor.io-brightgreen.svg" alt="Documentation" />
@@ -85,35 +83,35 @@ Saleor requires Python 3.8, Node.js 10.0+, PostgreSQL and OS-specific dependency
 [See the Saleor docs](https://docs.saleor.io/docs/developer/installation) for step-by-step installation and deployment instructions.
 
 Note:
-The `master` branch is the development version of Saleor and it may be unstable. To use the latest stable version, download it from the [Releases](https://github.com/mirumee/saleor/releases/) page or switch to a release tag.
+The `master` branch is the development version of Saleor and it may be unstable. To use the latest stable version, download it from the [Releases](https://github.com/saleor/saleor/releases/) page or switch to a release tag.
 
 The current stable version is 2.11 and you should use this version for all three components:
 
-- Saleor: https://github.com/mirumee/saleor/releases/tag/2.11.1
-- Dashboard: https://github.com/mirumee/saleor-dashboard/releases/tag/2.11.1
-- Storefront: https://github.com/mirumee/saleor-storefront/releases/tag/2.11.0
+- Saleor: https://github.com/saleor/saleor/releases/tag/2.11.1
+- Dashboard: https://github.com/saleor/saleor-dashboard/releases/tag/2.11.1
+- Storefront: https://github.com/saleor/saleor-storefront/releases/tag/2.11.0
 
 ## Documentation
 
 Saleor documentation is available here: [docs.saleor.io](https://docs.saleor.io)
 
-To contribute, please see the [`mirumee/saleor-docs` repository](https://github.com/mirumee/saleor-docs/).
+To contribute, please see the [`saleor/saleor-docs` repository](https://github.com/saleor/saleor-docs/).
 
 ## Saleor Platform
 
-The easiest way to run all components of Saleor (API, storefront and dashboard) together on your local machine is to use the [saleor-platform](https://github.com/mirumee/saleor-platform) project. Go to that repository for instructions on how to use it.
+The easiest way to run all components of Saleor (API, storefront and dashboard) together on your local machine is to use the [saleor-platform](https://github.com/saleor/saleor-platform) project. Go to that repository for instructions on how to use it.
 
-[View saleor-platform](https://github.com/mirumee/saleor-platform)
+[View saleor-platform](https://github.com/saleor/saleor-platform)
 
 ## Storefront
 
-For PWA, single-page storefront go to the [saleor-storefront](https://github.com/mirumee/saleor-storefront) repository.
+For PWA, single-page storefront go to the [saleor-storefront](https://github.com/saleor/saleor-storefront) repository.
 
 [View storefront demo](https://demo.saleor.io/)
 
 ## Dashboard
 
-For dashboard go to the [saleor-dashboard](https://github.com/mirumee/saleor-dashboard) repository.
+For dashboard go to the [saleor-dashboard](https://github.com/saleor/saleor-dashboard) repository.
 
 [View dashboard demo](https://demo.saleor.io/dashboard/)
 
@@ -131,15 +129,11 @@ Login credentials: `admin@example.com`/`admin`
 
 ## Contributing
 
-We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labeled [`Help Wanted`](https://github.com/mirumee/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
+We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labeled [`Help Wanted`](https://github.com/saleor/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
-If nothing grabs your attention, check [our roadmap](https://github.com/mirumee/saleor/projects/12) or come up with your feature. Just drop us a line or [open an issue](https://github.com/mirumee/saleor/issues/new) and we’ll work out how to handle it.
+If nothing grabs your attention, check [our roadmap](https://github.com/saleor/saleor/projects/12) or come up with your feature. Just drop us a line or [open an issue](https://github.com/saleor/saleor/issues/new) and we’ll work out how to handle it.
 
 Get more details in our [Contributing Guide](https://docs.saleor.io/docs/developer/community/contributing).
-
-## Legacy views
-
-If you're interested in using the old version of Saleor, go the [legacy-views](https://github.com/mirumee/legacy-views) repository. It contains the 2.9.0 release, which includes Django-based views and HTML templates of Storefront 1.0 and Dashboard 1.0. Note: this version of Saleor is no longer officially maintained.
 
 ## Your feedback
 
@@ -150,10 +144,10 @@ Fill out this short survey and help us grow. It will take just a minute, but mea
 
 ## License
 
-Disclaimer: Everything you see here is open and free to use as long as you comply with the [license](https://github.com/mirumee/saleor/blob/master/LICENSE). There are no hidden charges. We promise to do our best to fix bugs and improve the code.
+Disclaimer: Everything you see here is open and free to use as long as you comply with the [license](https://github.com/saleor/saleor/blob/master/LICENSE). There are no hidden charges. We promise to do our best to fix bugs and improve the code.
 
 Some situations do call for extra code; we can cover exotic use cases or build you a custom e-commerce appliance.
 
-#### Crafted with ❤️ by [Mirumee Software](http://mirumee.com)
+#### Crafted with ❤️ by [Saleor Commerce](https://saleor.io)
 
-hello@mirumee.com
+hello@saleor.io

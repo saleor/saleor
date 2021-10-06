@@ -26,6 +26,7 @@ def test_get_custom_order_payload(order):
     assert expected_payload == {
         "order": {
             "id": expected_payload["order"]["id"],
+            "number": expected_payload["order"]["id"],
             "private_metadata": {},
             "metadata": {},
             "status": "unfulfilled",
@@ -74,6 +75,7 @@ def test_get_custom_order_payload(order):
                 "phone": "+48713988102",
             },
             "shipping_method_name": None,
+            "collection_point_name": None,
             "voucher_discount": None,
             "discounts": [],
             "discount_amount": 0,
@@ -227,6 +229,7 @@ def test_get_default_order_payload(order_line):
         ],
         "channel_slug": order.channel.slug,
         "id": order.id,
+        "number": order.id,
         "token": order.token,
         "created": str(order.created),
         "display_gross_prices": order.display_gross_prices,
@@ -234,6 +237,7 @@ def test_get_default_order_payload(order_line):
         "total_gross_amount": order.total_gross_amount,
         "total_net_amount": order.total_net_amount,
         "shipping_method_name": order.shipping_method_name,
+        "collection_point_name": order.collection_point_name,
         "status": order.status,
         "metadata": order.metadata,
         "private_metadata": order.private_metadata,
@@ -335,6 +339,31 @@ def test_send_email_order_confirmation(mocked_notify, order, site_settings):
         expected_payload,
         channel_slug=order.channel.slug,
     )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_email_order_confirmation_for_cc(
+    mocked_notify, order_with_lines_for_cc, site_settings, warehouse_for_cc
+):
+    manager = get_plugins_manager()
+    redirect_url = "https://www.example.com"
+
+    notifications.send_order_confirmation(
+        order_with_lines_for_cc, redirect_url, manager
+    )
+
+    expected_payload = {
+        "order": get_default_order_payload(order_with_lines_for_cc, redirect_url),
+        "recipient_email": order_with_lines_for_cc.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
+    }
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ORDER_CONFIRMATION,
+        expected_payload,
+        channel_slug=order_with_lines_for_cc.channel.slug,
+    )
+    assert expected_payload["order"]["collection_point_name"] == warehouse_for_cc.name
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
