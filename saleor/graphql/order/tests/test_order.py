@@ -343,7 +343,7 @@ query OrdersQuery {
                 }
                 deliveryMethod {
                     __typename
-                    ... on ShippingMethod {
+                    ... on ShippingMethodType {
                         id
                     }
                     ... on Warehouse {
@@ -456,7 +456,7 @@ def test_order_query_shipping_method_channel_listing_does_not_exist(
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert order_data["shippingMethod"]["id"] == graphene.Node.to_global_id(
-        "ShippingMethod", order.shipping_method.id
+        "ShippingMethodType", order.shipping_method.id
     )
 
 
@@ -1600,7 +1600,7 @@ def test_draft_order_create(
         {"variantId": variant_1_id, "quantity": 1},
     ]
     shipping_address = graphql_address_data
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     redirect_url = "https://www.example.com"
@@ -1683,7 +1683,7 @@ def test_draft_order_create_with_inactive_channel(
         {"variantId": variant_1_id, "quantity": 1},
     ]
     shipping_address = graphql_address_data
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -1751,7 +1751,7 @@ def test_draft_order_create_variant_with_0_price(
         {"variantId": variant_1_id, "quantity": 1},
     ]
     shipping_address = graphql_address_data
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     variables = {
         "user": user_id,
         "lines": variant_list,
@@ -1817,7 +1817,7 @@ def test_draft_order_create_tax_error(
         {"variantId": variant_1_id, "quantity": 1},
     ]
     shipping_address = graphql_address_data
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
         "user": user_id,
@@ -1866,7 +1866,7 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
         {"variantId": variant_id, "quantity": 2},
     ]
     shipping_address = graphql_address_data
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher.channel_listings.all().delete()
@@ -1907,7 +1907,7 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
         {"variantId": variant_id, "quantity": 2},
     ]
     shipping_address = graphql_address_data
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variant.product.channel_listings.all().delete()
     variant.channel_listings.all().delete()
@@ -1949,7 +1949,7 @@ def test_draft_order_create_with_variant_not_assigned_to_order_channel(
         {"variantId": variant_id, "quantity": 2},
     ]
     shipping_address = graphql_address_data
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variant.channel_listings.all().delete()
     variables = {
@@ -2084,7 +2084,7 @@ def test_draft_order_create_with_channel_with_unpublished_product(
         {"variantId": variant_1_id, "quantity": 1},
     ]
     shipping_address = graphql_address_data
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
@@ -2144,7 +2144,7 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
         {"variantId": variant_1_id, "quantity": 1},
     ]
     shipping_address = graphql_address_data
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
@@ -2201,7 +2201,7 @@ def test_draft_order_create_with_channel(
         {"variantId": variant_1_id, "quantity": 1},
     ]
     shipping_address = graphql_address_data
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
@@ -2272,7 +2272,7 @@ def test_draft_order_create_invalid_billing_address(
     ]
     billing_address = graphql_address_data.copy()
     del billing_address["country"]
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     redirect_url = "https://www.example.com"
@@ -2332,7 +2332,7 @@ def test_draft_order_create_invalid_shipping_address(
     ]
     shipping_address = graphql_address_data.copy()
     del shipping_address["country"]
-    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     redirect_url = "https://www.example.com"
@@ -4950,7 +4950,7 @@ def test_order_update_shipping(
     assert order.shipping_method != shipping_method
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -4990,7 +4990,7 @@ def test_order_update_shipping_tax_included(
 
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -5087,7 +5087,7 @@ def test_order_update_shipping_not_editable_order(
     assert order.shipping_method != shipping_method
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -5113,7 +5113,7 @@ def test_order_update_shipping_no_shipping_address(
     order.save()
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -5143,7 +5143,7 @@ def test_order_update_shipping_incorrect_shipping_method(
     assert order.shipping_address.country.code not in zone.countries
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -5169,7 +5169,7 @@ def test_order_update_shipping_shipping_zone_without_channels(
     order.channel.shipping_zones.clear()
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -5203,7 +5203,7 @@ def test_order_update_shipping_excluded_shipping_method_postal_code(
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method_excluded_by_postal_code.id
+        "ShippingMethodType", shipping_method_excluded_by_postal_code.id
     )
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(

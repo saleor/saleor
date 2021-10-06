@@ -1858,7 +1858,7 @@ def test_shipping_method_create_translation(
 ):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.id
+        "ShippingMethodType", shipping_method.id
     )
     description = dummy_editorjs("description", True)
     variables = {
@@ -1902,7 +1902,6 @@ def test_shipping_method_create_translation_by_translatable_content_id(
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["shippingPriceTranslate"]
-
     assert data["shippingMethod"]["translation"]["name"] == "DHL PL"
     assert data["shippingMethod"]["translation"]["description"] == description
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"
@@ -1938,7 +1937,7 @@ def test_shipping_method_update_translation(
     """
 
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.id
+        "ShippingMethodType", shipping_method.id
     )
     response = staff_api_client.post_graphql(
         query,
@@ -2531,10 +2530,9 @@ def test_translation_query_shipping_method(
     return_shipping_method,
 ):
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.id
+        "ShippingMethodType", shipping_method.id
     )
     perms = list(Permission.objects.filter(codename__in=perm_codenames))
-
     variables = {
         "id": shipping_method_id,
         "kind": TranslatableKinds.SHIPPING_METHOD.name,

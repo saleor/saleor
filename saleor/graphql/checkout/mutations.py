@@ -60,7 +60,7 @@ from ..core.validators import (
 )
 from ..order.types import Order
 from ..product.types import ProductVariant
-from ..shipping.types import ShippingMethod
+from ..shipping.types import ShippingMethodType
 from ..utils import get_user_or_app_from_context
 from ..warehouse.types import Warehouse
 from .types import Checkout, CheckoutLine
@@ -1064,7 +1064,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         shipping_method = cls.get_node_or_error(
             info,
             shipping_method_id,
-            only_type=ShippingMethod,
+            only_type=ShippingMethodType,
             field="shipping_method_id",
             qs=shipping_models.ShippingMethod.objects.prefetch_related(
                 "postal_code_rules"
@@ -1119,7 +1119,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         shipping_method = cls.get_node_or_error(
             info,
             shipping_method_id,
-            only_type=ShippingMethod,
+            only_type=ShippingMethodType,
             field="delivery_method_id",
             qs=shipping_models.ShippingMethod.objects.prefetch_related(
                 "postal_code_rules"
@@ -1168,7 +1168,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         checkout_info,
         lines,
         *,
-        shipping_method: Optional[ShippingMethod],
+        shipping_method: Optional[ShippingMethodType],
         collection_point: Optional[Warehouse]
     ) -> None:
         delivery_method = shipping_method
@@ -1196,7 +1196,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         manager,
         checkout: Checkout,
         *,
-        shipping_method: Optional[ShippingMethod],
+        shipping_method: Optional[ShippingMethodType],
         collection_point: Optional[Warehouse]
     ) -> None:
         checkout.shipping_method = shipping_method
@@ -1211,7 +1211,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         if id_ is None:
             return None
 
-        possible_types = ("Warehouse", "ShippingMethod")
+        possible_types = ("Warehouse", "ShippingMethodType")
         type_, id_ = from_global_id_or_error(id_)
         str_type = str(type_)
 
@@ -1219,7 +1219,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             raise ValidationError(
                 {
                     "delivery_method_id": ValidationError(
-                        "ID does not belong to Warehouse or ShippingMethod",
+                        "ID does not belong to Warehouse or ShippingMethodType",
                         code=CheckoutErrorCode.INVALID.value,
                     )
                 }
