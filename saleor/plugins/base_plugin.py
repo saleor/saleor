@@ -74,8 +74,8 @@ class ShippingMethod:
     name: str
     maximum_order_weight: Decimal
     minimum_order_weight: Decimal
-    maximum_delivery_days: Decimal
-    minimum_delivery_days: Decimal
+    maximum_delivery_days: int
+    minimum_delivery_days: int
 
 
 class BasePlugin:

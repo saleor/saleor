@@ -29,8 +29,8 @@ def available_shipping_methods_factory():
                     name=uuid.uuid4().hex,
                     maximum_order_weight=Decimal("0"),
                     minimum_order_weight=Decimal("100"),
-                    maximum_delivery_days=Decimal("0"),
-                    minimum_delivery_days=Decimal("5"),
+                    maximum_delivery_days=0,
+                    minimum_delivery_days=5,
                 )
             )
         return methods
