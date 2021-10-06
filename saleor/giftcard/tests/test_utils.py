@@ -12,7 +12,7 @@ from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
 from ...site import GiftCardSettingsExpiryType
 from ...tests.utils import flush_post_commit_hooks
-from .. import GiftCardEvents, events
+from .. import GiftCardEvents, GiftCardLineData, events
 from ..models import GiftCard, GiftCardEvent
 from ..utils import (
     add_gift_card_code_to_checkout,
@@ -191,11 +191,6 @@ def test_gift_cards_create(
     # given
     manager = get_plugins_manager()
     line_1, line_2 = gift_card_shippable_order_line, gift_card_non_shippable_order_line
-    order_lines = [line_1, line_2]
-    quantities = {
-        line_1.pk: 1,
-        line_2.pk: 1,
-    }
     user_email = order.user_email
     fulfillment = order.fulfillments.create(tracking_number="123")
     fulfillment_line_1 = fulfillment.lines.create(
@@ -208,14 +203,28 @@ def test_gift_cards_create(
         quantity=line_2.quantity,
         stock=line_2.allocations.get().stock,
     )
+    lines_data = [
+        GiftCardLineData(
+            quantity=1,
+            order_line=line_1,
+            variant=line_1.variant,
+            fulfillment_line=fulfillment_line_1,
+        ),
+        GiftCardLineData(
+            quantity=1,
+            order_line=line_2,
+            variant=line_2.variant,
+            fulfillment_line=fulfillment_line_2,
+        ),
+    ]
 
     # when
     gift_cards = gift_cards_create(
-        order, order_lines, quantities, site_settings, staff_user, None, manager
+        order, lines_data, site_settings, staff_user, None, manager
     )
 
     # then
-    assert len(gift_cards) == len(order_lines)
+    assert len(gift_cards) == len(lines_data)
 
     shippable_gift_card = gift_cards[0]
     shippable_price = gift_card_shippable_order_line.unit_price_gross
@@ -246,12 +255,12 @@ def test_gift_cards_create(
     assert non_shippable_gift_card.expiry_date is None
     assert non_shippable_gift_card.fulfillment_line == fulfillment_line_2
 
-    shippable_event = GiftCardEvent.objects.get(
+    non_shippable_event = GiftCardEvent.objects.get(
         gift_card=non_shippable_gift_card, type=GiftCardEvents.BOUGHT
     )
-    assert shippable_event.user == staff_user
-    assert shippable_event.app is None
-    assert shippable_event.parameters == {"order_id": order.id, "expiry_date": None}
+    assert non_shippable_event.user == staff_user
+    assert non_shippable_event.app is None
+    assert non_shippable_event.parameters == {"order_id": order.id, "expiry_date": None}
 
     send_notification_mock.assert_called_once_with(
         staff_user,
@@ -286,45 +295,46 @@ def test_gift_cards_create_expiry_date_set(
             "gift_card_expiry_period",
         ]
     )
-    fulfillment = order.fulfillments.create(tracking_number="123")
-    fulfillment_line = fulfillment.lines.create(
-        order_line=gift_card_non_shippable_order_line,
-        quantity=gift_card_non_shippable_order_line.quantity,
-        stock=gift_card_non_shippable_order_line.allocations.get().stock,
-    )
-
-    order_lines = [gift_card_non_shippable_order_line]
-    quantities = {
-        gift_card_shippable_order_line.pk: 1,
-        gift_card_non_shippable_order_line.pk: 1,
-    }
+    line_1 = gift_card_non_shippable_order_line
     user_email = order.user_email
+    fulfillment = order.fulfillments.create(tracking_number="123")
+    fulfillment_line_1 = fulfillment.lines.create(
+        order_line=line_1,
+        quantity=line_1.quantity,
+        stock=line_1.allocations.get().stock,
+    )
+    lines_data = [
+        GiftCardLineData(
+            quantity=1,
+            order_line=line_1,
+            variant=line_1.variant,
+            fulfillment_line=fulfillment_line_1,
+        )
+    ]
 
     # when
     gift_cards = gift_cards_create(
-        order, order_lines, quantities, site_settings, staff_user, None, manager
+        order, lines_data, site_settings, staff_user, None, manager
     )
 
     # then
-    assert len(gift_cards) == len(order_lines)
+    assert len(gift_cards) == len(lines_data)
 
-    non_shippable_gift_card = gift_cards[0]
-    non_shippable_price = gift_card_non_shippable_order_line.total_price_gross
-    assert non_shippable_gift_card.initial_balance == non_shippable_price
-    assert non_shippable_gift_card.current_balance == non_shippable_price
-    assert non_shippable_gift_card.created_by == order.user
-    assert non_shippable_gift_card.created_by_email == user_email
-    assert non_shippable_gift_card.expiry_date
-    assert non_shippable_gift_card.fulfillment_line == fulfillment_line
+    gift_card = gift_cards[0]
+    price = gift_card_non_shippable_order_line.total_price_gross
+    assert gift_card.initial_balance == price
+    assert gift_card.current_balance == price
+    assert gift_card.created_by == order.user
+    assert gift_card.created_by_email == user_email
+    assert gift_card.expiry_date
+    assert gift_card.fulfillment_line == fulfillment_line_1
 
-    shippable_event = GiftCardEvent.objects.get(
-        gift_card=non_shippable_gift_card, type=GiftCardEvents.BOUGHT
-    )
-    assert shippable_event.user == staff_user
-    assert shippable_event.app is None
-    assert shippable_event.parameters == {
+    event = GiftCardEvent.objects.get(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
+    assert event.user == staff_user
+    assert event.app is None
+    assert event.parameters == {
         "order_id": order.id,
-        "expiry_date": non_shippable_gift_card.expiry_date.isoformat(),
+        "expiry_date": gift_card.expiry_date.isoformat(),
     }
 
     send_notification_mock.assert_called_once_with(
@@ -332,7 +342,7 @@ def test_gift_cards_create_expiry_date_set(
         None,
         order.user,
         user_email,
-        non_shippable_gift_card,
+        gift_card,
         manager,
         order.channel.slug,
         resending=False,
@@ -352,12 +362,23 @@ def test_gift_cards_create_multiple_quantity(
     quantity = 3
     gift_card_non_shippable_order_line.quantity = quantity
     gift_card_non_shippable_order_line.save(update_fields=["quantity"])
-    order_lines = [gift_card_non_shippable_order_line]
-    quantities = {gift_card_non_shippable_order_line.pk: quantity}
+    fulfillment = order.fulfillments.create(tracking_number="123")
+    stock = gift_card_non_shippable_order_line.allocations.get().stock
+    fulfillment_line = fulfillment.lines.create(
+        order_line=gift_card_non_shippable_order_line, quantity=quantity, stock=stock
+    )
+    lines_data = [
+        GiftCardLineData(
+            quantity=quantity,
+            order_line=gift_card_non_shippable_order_line,
+            variant=gift_card_non_shippable_order_line.variant,
+            fulfillment_line=fulfillment_line,
+        )
+    ]
 
     # when
     gift_cards = gift_cards_create(
-        order, order_lines, quantities, site_settings, staff_user, None, manager
+        order, lines_data, site_settings, staff_user, None, manager
     )
 
     # then
@@ -366,6 +387,7 @@ def test_gift_cards_create_multiple_quantity(
     for gift_card in gift_cards:
         assert gift_card.initial_balance == price
         assert gift_card.current_balance == price
+        assert gift_card.fulfillment_line == fulfillment_line
 
     assert GiftCardEvent.objects.filter(type=GiftCardEvents.BOUGHT).count() == quantity
     assert send_notification_mock.call_count == quantity
@@ -447,9 +469,6 @@ def test_fulfill_non_shippable_gift_cards(
     # given
     manager = get_plugins_manager()
     order_lines = [gift_card_shippable_order_line, gift_card_non_shippable_order_line]
-    quantities = {
-        gift_card_non_shippable_order_line.pk: 1,
-    }
 
     # when
     fulfill_non_shippable_gift_cards(
@@ -473,9 +492,7 @@ def test_fulfill_non_shippable_gift_cards(
     assert args[2] == order
     assert args[3] == fulfillment_lines_for_warehouses
     assert args[4] == manager
-    assert {line.pk for line in args[5]} == {gift_card_non_shippable_order_line.pk}
-    assert args[6] == quantities
-    assert args[7] == site_settings
+    assert args[5] == site_settings
     assert kwargs["notify_customer"] is True
 
 
@@ -492,9 +509,6 @@ def test_fulfill_non_shippable_gift_cards_line_with_allocation(
     # given
     manager = get_plugins_manager()
     order_lines = [gift_card_shippable_order_line, gift_card_non_shippable_order_line]
-    quantities = {
-        gift_card_non_shippable_order_line.pk: 1,
-    }
 
     order = gift_card_non_shippable_order_line.order
     non_shippable_variant = gift_card_non_shippable_order_line.variant
@@ -524,9 +538,7 @@ def test_fulfill_non_shippable_gift_cards_line_with_allocation(
     assert args[2] == order
     assert args[3] == fulfillment_lines_for_warehouses
     assert args[4] == manager
-    assert {line.pk for line in args[5]} == {gift_card_non_shippable_order_line.pk}
-    assert args[6] == quantities
-    assert args[7] == site_settings
+    assert args[5] == site_settings
     assert kwargs["notify_customer"] is True
 
 
@@ -550,11 +562,9 @@ def test_fulfill_gift_card_lines(
         ]
     )
 
-    quantities = {line.pk: line.quantity for line in lines}
-
     # when
     fulfillments = fulfill_gift_card_lines(
-        lines, staff_user, None, order, quantities, site_settings, manager
+        lines, staff_user, None, order, site_settings, manager
     )
 
     # then
@@ -562,7 +572,7 @@ def test_fulfill_gift_card_lines(
     assert fulfillments[0].lines.count() == len(lines)
     flush_post_commit_hooks()
     gift_cards = GiftCard.objects.all()
-    assert gift_cards.count() == sum(quantities.values())
+    assert gift_cards.count() == sum([line.quantity for line in lines])
     shippable_gift_cards = gift_cards.filter(
         product_id=gift_card_shippable_order_line.variant.product_id
     )
@@ -600,13 +610,9 @@ def test_fulfill_gift_card_lines_lack_of_stock(
         ]
     )
 
-    quantities = {line.pk: line.quantity for line in lines}
-
     # when
     with pytest.raises(ValidationError):
-        fulfill_gift_card_lines(
-            lines, staff_user, None, order, quantities, site_settings, manager
-        )
+        fulfill_gift_card_lines(lines, staff_user, None, order, site_settings, manager)
 
 
 def test_deactivate_order_gift_cards(

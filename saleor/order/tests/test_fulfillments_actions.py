@@ -34,8 +34,6 @@ def test_create_fulfillments(
         order,
         fulfillment_lines_for_warehouses,
         manager,
-        [],
-        {},
         site_settings,
         True,
     )
@@ -101,8 +99,6 @@ def test_create_fulfillments_require_approval(
         order,
         fulfillment_lines_for_warehouses,
         manager,
-        [],
-        {},
         site_settings,
         True,
         False,
@@ -167,8 +163,6 @@ def test_create_fulfillments_require_approval_as_app(
         order,
         fulfillment_lines_for_warehouses,
         manager,
-        [],
-        {},
         site_settings,
         True,
         False,
@@ -234,8 +228,6 @@ def test_create_fulfillments_without_notification(
         order,
         fulfillment_lines_for_warehouses,
         get_plugins_manager(),
-        [],
-        {},
         site_settings,
         False,
     )
@@ -301,8 +293,6 @@ def test_create_fulfillments_many_warehouses(
         order,
         fulfillment_lines_for_warehouses,
         get_plugins_manager(),
-        [],
-        {},
         site_settings,
         False,
     )
@@ -359,8 +349,6 @@ def test_create_fulfillments_with_one_line_empty_quantity(
         order,
         fulfillment_lines_for_warehouses,
         manager,
-        [],
-        {},
         site_settings,
         True,
     )
@@ -415,8 +403,6 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
         order,
         fulfillment_lines_for_warehouses,
         manager,
-        [],
-        {},
         site_settings,
         True,
     )
@@ -469,8 +455,6 @@ def test_create_fulfillments_without_allocations(
         order,
         fulfillment_lines_for_warehouses,
         manager,
-        [],
-        {},
         site_settings,
         True,
     )
@@ -528,8 +512,6 @@ def test_create_fulfillments_warehouse_without_stock(
             order,
             fulfillment_lines_for_warehouses,
             get_plugins_manager(),
-            [],
-            {},
             site_settings,
             True,
         )
@@ -585,8 +567,6 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
             order,
             fulfillment_lines_for_warehouses,
             get_plugins_manager(),
-            [],
-            {},
             site_settings,
             True,
         )
@@ -639,8 +619,6 @@ def test_create_fullfilment_with_out_of_stock_webhook(
         order=order,
         fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
         manager=manager,
-        gift_card_lines=[],
-        order_line_quantities={},
         site_settings=site_settings,
     )
     flush_post_commit_hooks()
@@ -672,8 +650,6 @@ def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
         order=order,
         fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
         manager=manager,
-        gift_card_lines=[],
-        order_line_quantities={},
         site_settings=site_settings,
         approved=False,
     )
