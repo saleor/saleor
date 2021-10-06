@@ -1,8 +1,12 @@
+from datetime import timedelta
+
 import graphene
 from django.test import override_settings
+from django.utils import timezone
 from django_countries import countries
 
 from ....shipping.models import ShippingZone
+from ....warehouse.models import Reservation
 from ...tests.utils import get_graphql_content
 
 COUNTRY_CODE = "US"
@@ -209,6 +213,26 @@ def test_variant_quantity_available_with_enabled_reservations(
     variant_data = content["data"]["productVariant"]
     assert variant_data["deprecatedByCountry"] == 4
     assert variant_data["byAddress"] == 4
+
+
+def test_variant_quantity_available_with_enabled_expired_reservations(
+    site_settings_with_reservations,
+    api_client,
+    checkout_line_with_reservation_in_many_stocks,
+    channel_USD,
+):
+    Reservation.objects.update(reserved_until=timezone.now() - timedelta(minutes=2))
+    variant = checkout_line_with_reservation_in_many_stocks.variant
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "country": COUNTRY_CODE,
+        "channel": channel_USD.slug,
+    }
+    response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["deprecatedByCountry"] == 7
+    assert variant_data["byAddress"] == 7
 
 
 def test_variant_quantity_available_with_disabled_reservations(
