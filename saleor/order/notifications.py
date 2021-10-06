@@ -4,6 +4,8 @@ from urllib.parse import urlencode
 from django.forms import model_to_dict
 from graphql_relay import to_global_id
 
+from saleor.order.interface import OrderPaymentAction
+
 from ..account.models import StaffNotificationRecipient
 from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
@@ -366,11 +368,11 @@ def send_order_refunded_confirmation(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    payments: List[dict],
+    payments: List[OrderPaymentAction],
     currency: str,
     manager,
 ):
-    total_amount = sum([item["amount"] for item in payments])
+    total_amount = sum([item.amount for item in payments])
     payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
@@ -378,9 +380,9 @@ def send_order_refunded_confirmation(
         "currency": currency,
         "refunds": [
             {
-                "payment_id": to_global_id("Payment", item["payment"].id),
-                "amount": item["amount"],
-                "gateway": item["payment"].gateway,
+                "payment_id": to_global_id("Payment", item.payment.id),
+                "amount": item.amount,
+                "gateway": item.payment.gateway,
             }
             for item in payments
         ],

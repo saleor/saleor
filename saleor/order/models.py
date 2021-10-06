@@ -270,6 +270,9 @@ class Order(ModelWithMetadata):
     def is_fully_paid(self):
         return self.total_paid >= self.total.gross
 
+    def missing_amount_to_be_paid(self):
+        return self.total.gross - self.total_paid
+
     def is_partly_paid(self):
         return self.total_paid_amount > 0
 
@@ -302,17 +305,6 @@ class Order(ModelWithMetadata):
             self.payments.filter(
                 is_active=True,
                 transactions__kind=TransactionKind.AUTH,
-                transactions__action_required=False,
-            )
-            .filter(transactions__is_success=True)
-            .exists()
-        )
-
-    def is_captured(self):
-        return (
-            self.payments.filter(
-                is_active=True,
-                transactions__kind=TransactionKind.CAPTURE,
                 transactions__action_required=False,
             )
             .filter(transactions__is_success=True)

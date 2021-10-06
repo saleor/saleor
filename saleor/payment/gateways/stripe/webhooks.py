@@ -7,6 +7,8 @@ from django.http import HttpResponse
 from stripe.error import SignatureVerificationError
 from stripe.stripe_object import StripeObject
 
+from saleor.order.interface import OrderPaymentAction
+
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
@@ -310,8 +312,7 @@ def handle_successful_payment_intent(
                 payment.order,  # type: ignore
                 None,
                 None,
-                capture_transaction.amount,
-                payment,
+                [OrderPaymentAction(payment, capture_transaction.amount)],
                 get_plugins_manager(),
             )
         return
@@ -363,7 +364,7 @@ def handle_refund(
         payment, refund, TransactionKind.REFUND, refund.amount, refund.currency
     )
     if payment.order:
-        payments = [{"payment": payment, "amount": refund_transaction.amount}]
+        payments = [OrderPaymentAction(payment, refund_transaction.amount)]
         order_refunded(
             payment.order,
             None,

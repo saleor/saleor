@@ -7,6 +7,8 @@ from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
+from saleor.payment.models import Payment
+
 from ..account.models import User
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
@@ -868,3 +870,7 @@ def remove_discount_from_order_line(
             "tax_rate",
         ]
     )
+
+
+def get_active_payments(order: Order) -> List[Payment]:
+    return [p for p in order.payments.all() if p.is_active]

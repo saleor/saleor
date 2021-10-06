@@ -6,7 +6,7 @@ import pytest
 from prices import Money, TaxedMoney
 
 from ...order import OrderLineData
-from ...payment import ChargeStatus, PaymentError, TransactionKind
+from ...payment import ChargeStatus, TransactionKind
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContent
@@ -19,13 +19,13 @@ from ..actions import (
     automatically_fulfill_digital_lines,
     cancel_fulfillment,
     cancel_order,
-    clean_mark_order_as_paid,
     fulfill_order_lines,
     handle_fully_paid_order,
     make_refund,
     mark_order_as_paid,
     order_refunded,
 )
+from ..interface import OrderPaymentAction
 from ..models import Fulfillment
 from ..notifications import (
     send_fulfillment_confirmation_to_customer,
@@ -169,12 +169,6 @@ def test_mark_as_paid_no_billing_address(admin_user, draft_order):
         mark_order_as_paid(draft_order, admin_user, None, manager)
 
 
-def test_clean_mark_order_as_paid(payment_txn_preauth):
-    order = payment_txn_preauth.order
-    with pytest.raises(PaymentError):
-        clean_mark_order_as_paid(order)
-
-
 def test_cancel_fulfillment(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1, line_2 = fulfillment.lines.all()
@@ -252,7 +246,7 @@ def test_order_refunded_by_user(
         currency=order.currency,
     )
     amount = order.total.gross.amount
-    payments = [{"payment": payment, "amount": amount}]
+    payments = [OrderPaymentAction(payment, amount)]
     app = None
 
     # when
@@ -283,7 +277,7 @@ def test_order_refunded_by_app(
         currency=order.currency,
     )
     amount = order.total.gross.amount
-    payments = [{"payment": payment, "amount": amount}]
+    payments = [OrderPaymentAction(payment, amount)]
 
     # when
     manager = get_plugins_manager()
@@ -315,7 +309,7 @@ def test_order_refunded_does_not_send_notification(
         captured_amount=amount,
         charge_status=ChargeStatus.FULLY_CHARGED,
     )
-    payments = [{"payment": payment, "amount": amount}]
+    payments = [OrderPaymentAction(payment, amount)]
 
     # when
     manager = get_plugins_manager()
@@ -346,7 +340,7 @@ def test_order_refunded_creates_an_event_for_each_payment(
         )
 
     payments = Payment.objects.all()
-    payments = [{"payment": payment, "amount": amount} for payment in payments]
+    payments = [OrderPaymentAction(payment, amount) for payment in payments]
 
     # when
     manager = get_plugins_manager()
@@ -439,7 +433,7 @@ def test_make_refund_creates_only_one_order_fullfilment_for_multiple_payments(
         )
 
     payments = Payment.objects.all()
-    payments = [{"payment": payment, "amount": amount} for payment in payments]
+    payments = [OrderPaymentAction(payment, amount) for payment in payments]
 
     # when
     info = create_autospec(graphql.execution.base.ResolveInfo)
@@ -484,7 +478,7 @@ def test_make_refund_calls_try_refund_for_each_payment(
         )
 
     payments = Payment.objects.all()
-    payments = [{"payment": payment, "amount": amount} for payment in payments]
+    payments = [OrderPaymentAction(payment, amount) for payment in payments]
 
     # when
     info = create_autospec(graphql.execution.base.ResolveInfo)
@@ -652,13 +646,8 @@ def test_process_refund_calls_update_missing_amounts_on_payments(
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.payments.last()
-    payments = [
-        {
-            "payment": payment,
-            "amount": Decimal("0"),
-            "include_shipping_costs": False,
-        }
-    ]
+    payments = [OrderPaymentAction(payment, Decimal("0"), include_shipping_costs=False)]
+
     order_lines_to_return = order_with_lines.lines.all()
 
     refund_amount = Decimal("500")
@@ -693,16 +682,16 @@ def test_update_missing_amounts_on_payments_with_specified_payment_amounts(
         + payment_txn_captured.captured_amount
     )
     payments = [
-        {
-            "payment": payment_dummy_fully_charged,
-            "amount": payment_dummy_fully_charged.captured_amount,
-            "include_shipping_costs": False,
-        },
-        {
-            "payment": payment_txn_captured,
-            "amount": payment_txn_captured.captured_amount,
-            "include_shipping_costs": False,
-        },
+        OrderPaymentAction(
+            payment_dummy_fully_charged,
+            payment_dummy_fully_charged.captured_amount,
+            include_shipping_costs=False,
+        ),
+        OrderPaymentAction(
+            payment_txn_captured,
+            payment_txn_captured.captured_amount,
+            include_shipping_costs=False,
+        ),
     ]
 
     # when
@@ -713,8 +702,8 @@ def test_update_missing_amounts_on_payments_with_specified_payment_amounts(
     # then
     assert total_refund_amount == refund_amount
     assert shipping_refund_amount is None
-    assert payments[0]["amount"] == payment_dummy_fully_charged.captured_amount
-    assert payments[0]["amount"] == payment_txn_captured.captured_amount
+    assert payments[0].amount == payment_dummy_fully_charged.captured_amount
+    assert payments[0].amount == payment_txn_captured.captured_amount
 
 
 def test_update_missing_amounts_on_payments_with_including_shipping_amount_new_way(
@@ -726,16 +715,16 @@ def test_update_missing_amounts_on_payments_with_including_shipping_amount_new_w
     refund_amount = payment_txn_captured.captured_amount
 
     payments = [
-        {
-            "payment": payment_dummy_fully_charged,
-            "amount": Decimal("0"),
-            "include_shipping_costs": True,
-        },
-        {
-            "payment": payment_txn_captured,
-            "amount": payment_txn_captured.captured_amount,
-            "include_shipping_costs": False,
-        },
+        OrderPaymentAction(
+            payment_dummy_fully_charged,
+            Decimal("0"),
+            include_shipping_costs=True,
+        ),
+        OrderPaymentAction(
+            payment_txn_captured,
+            payment_txn_captured.captured_amount,
+            include_shipping_costs=False,
+        ),
     ]
 
     # when
@@ -749,8 +738,8 @@ def test_update_missing_amounts_on_payments_with_including_shipping_amount_new_w
         == refund_amount + order_with_lines.shipping_price_gross_amount
     )
     assert shipping_refund_amount == order_with_lines.shipping_price_gross_amount
-    assert payments[0]["amount"] == order_with_lines.shipping_price_gross_amount
-    assert payments[1]["amount"] == payment_txn_captured.captured_amount
+    assert payments[0].amount == order_with_lines.shipping_price_gross_amount
+    assert payments[1].amount == payment_txn_captured.captured_amount
 
 
 def test_update_missing_amounts_on_payments_with_including_shipping_amount_old_way(
@@ -766,14 +755,13 @@ def test_update_missing_amounts_on_payments_with_including_shipping_amount_old_w
         payment_dummy_fully_charged.captured_amount
         - order_with_lines.shipping_price_gross_amount
     )
-
     payments = [
-        {
-            "payment": payment_dummy_fully_charged,
-            "amount": Decimal("0"),
-            "include_shipping_costs": True,
-            "is_deprecated_way": True,
-        },
+        OrderPaymentAction(
+            payment_dummy_fully_charged,
+            Decimal("0"),
+            include_shipping_costs=True,
+            from_deprecated_request=True,
+        )
     ]
 
     # when
@@ -790,7 +778,7 @@ def test_update_missing_amounts_on_payments_with_including_shipping_amount_old_w
     )
     assert shipping_refund_amount == order_with_lines.shipping_price_gross_amount
     assert (
-        payments[0]["amount"]
+        payments[0].amount
         == refund_amount + order_with_lines.shipping_price_gross_amount
     )
 
@@ -806,16 +794,16 @@ def test_update_missing_amounts_on_payments_without_specified_amounts(
         + payment_txn_captured.captured_amount
     )
     payments = [
-        {
-            "payment": payment_dummy_fully_charged,
-            "amount": Decimal("0"),
-            "include_shipping_costs": False,
-        },
-        {
-            "payment": payment_txn_captured,
-            "amount": Decimal("0"),
-            "include_shipping_costs": False,
-        },
+        OrderPaymentAction(
+            payment_dummy_fully_charged,
+            Decimal("0"),
+            include_shipping_costs=False,
+        ),
+        OrderPaymentAction(
+            payment_txn_captured,
+            Decimal("0"),
+            include_shipping_costs=False,
+        ),
     ]
 
     # when
@@ -826,8 +814,8 @@ def test_update_missing_amounts_on_payments_without_specified_amounts(
     # then
     assert total_refund_amount == refund_amount
     assert shipping_refund_amount is None
-    assert payments[0]["amount"] == payment_dummy_fully_charged.captured_amount
-    assert payments[1]["amount"] == payment_txn_captured.captured_amount
+    assert payments[0].amount == payment_dummy_fully_charged.captured_amount
+    assert payments[1].amount == payment_txn_captured.captured_amount
 
 
 def test_update_missing_amounts_on_payments_refunding_smaller_amounts(
@@ -840,17 +828,18 @@ def test_update_missing_amounts_on_payments_refunding_smaller_amounts(
         payment_dummy_fully_charged.captured_amount
         + payment_txn_captured.captured_amount
     )
+
     payments = [
-        {
-            "payment": payment_dummy_fully_charged,
-            "amount": payment_dummy_fully_charged.captured_amount // 2,
-            "include_shipping_costs": False,
-        },
-        {
-            "payment": payment_txn_captured,
-            "amount": payment_txn_captured.captured_amount // 2,
-            "include_shipping_costs": False,
-        },
+        OrderPaymentAction(
+            payment_dummy_fully_charged,
+            payment_dummy_fully_charged.captured_amount // 2,
+            include_shipping_costs=False,
+        ),
+        OrderPaymentAction(
+            payment_txn_captured,
+            payment_txn_captured.captured_amount // 2,
+            include_shipping_costs=False,
+        ),
     ]
 
     # when
@@ -861,5 +850,5 @@ def test_update_missing_amounts_on_payments_refunding_smaller_amounts(
     # then
     assert total_refund_amount == refund_amount // 2
     assert shipping_refund_amount is None
-    assert payments[0]["amount"] == payment_dummy_fully_charged.captured_amount // 2
-    assert payments[1]["amount"] == payment_txn_captured.captured_amount // 2
+    assert payments[0].amount == payment_dummy_fully_charged.captured_amount // 2
+    assert payments[1].amount == payment_txn_captured.captured_amount // 2
