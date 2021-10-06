@@ -150,7 +150,6 @@ def send_webhook_using_google_cloud_pubsub(
 
 
 @app.task(
-    autoretry_for=(RequestException,),
     bind=True,
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
@@ -179,12 +178,12 @@ def send_webhook_request(self, webhook_id, target_url, secret, event_type, data)
         except send_exception as e:
             task_logger.debug("[Webhook] Failed request to %r: %r.", target_url, e)
             try:
-                self.retry(countdown=10)
+                countdown = self.retry_backoff * (2 ** self.request.retries)
+                self.retry(countdown=countdown, **self.retry_kwargs)
             except MaxRetriesExceededError:
                 task_logger.info(
-                    "[Webhook] Failed request to %r: exceeded retry limit %r.",
+                    "[Webhook] Failed request to %r: exceeded retry limit.",
                     target_url,
-                    self.max_retries,
                 )
         task_logger.debug(
             "[Webhook ID:%r] Payload sent to %r for event %r",
