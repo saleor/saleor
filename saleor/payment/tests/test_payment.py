@@ -534,11 +534,17 @@ def test_update_payment(gateway_response, payment_txn_captured):
 
 
 @pytest.mark.parametrize(
-    "value, result",
-    [(None, True), (True, True), (False, False)],
+    "partial, complete_order, result",
+    [
+        (True, True, True),
+        (False, True, True),
+        (False, False, True),
+        (True, False, False),
+    ],
 )
-def test_can_create_order(payment_txn_captured, value, result):
-    payment_txn_captured.create_order = value
+def test_can_create_order(payment_txn_captured, partial, complete_order, result):
+    payment_txn_captured.partial = partial
+    payment_txn_captured.complete_order = complete_order
     payment_txn_captured.save()
 
     assert payment_txn_captured.can_create_order() == result

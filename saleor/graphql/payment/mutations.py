@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -32,9 +30,6 @@ from ..core.types import common as common_types
 from ..core.types.common import CheckoutError
 from ..core.validators import validate_one_of_args_is_in_mutation
 from .types import Payment, PaymentInitialized
-
-if TYPE_CHECKING:
-    from prices import TaxedMoney
 
 
 class PaymentInput(graphene.InputObjectType):
@@ -166,15 +161,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def check_covered_amount(cls, checkout, checkout_total: "TaxedMoney", amount):
-        if amount < checkout_total:
-            covered_amount = get_covered_balance(checkout).amount
-            if covered_amount < checkout_total:
-                return False
-
-        return True
-
-    @classmethod
     def perform_mutation(cls, _root, info, checkout_id=None, token=None, **data):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
@@ -219,9 +205,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         partial = data.get("partial", False)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
         clean_billing_address(checkout_info, PaymentErrorCode)
-        is_amount_fully_covered = cls.check_covered_amount(
-            checkout, checkout_total.gross.amount, amount
-        )
         cls.clean_payment_amount(info, partial, checkout, checkout_total, amount)
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
@@ -250,7 +233,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
             return_url=data.get("return_url"),
-            is_amount_fully_covered=is_amount_fully_covered,
         )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
 

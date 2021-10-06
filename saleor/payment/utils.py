@@ -99,7 +99,6 @@ def create_payment(
     order: Order = None,
     return_url: str = None,
     external_reference: Optional[str] = None,
-    is_amount_fully_covered: bool = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -123,7 +122,6 @@ def create_payment(
     data = {
         "checkout": checkout,
         "order": order,
-        "create_order": is_amount_fully_covered,
         "customer_ip_address": customer_ip_address,
         "currency": currency,
         "gateway": gateway,

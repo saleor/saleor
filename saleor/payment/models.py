@@ -61,14 +61,6 @@ class Payment(models.Model):
     order = models.ForeignKey(
         "order.Order", null=True, related_name="payments", on_delete=models.PROTECT
     )
-    create_order = models.BooleanField(
-        blank=True,
-        null=True,
-        help_text=(
-            "Indicates whether a payment should convert a checkout into an order. "
-            "Used for partial payments."
-        ),
-    )
 
     billing_email = models.EmailField(blank=True)
     billing_first_name = models.CharField(max_length=256, blank=True)
@@ -129,12 +121,8 @@ class Payment(models.Model):
         return Money(self.total, self.currency)
 
     def can_create_order(self):
-        """Indicate whether an order can be created with this payment.
-
-        If the value is None it still should be possible
-        for supporting the legacy approach.
-        """
-        return True if not self.partial or self.create_order else False
+        """Indicate whether an order can be created with this payment."""
+        return False if self.partial and not self.complete_order else True
 
     def get_covered_amount(self):
         """Return an amount that is covered by this payment (but not necessarily captured).
