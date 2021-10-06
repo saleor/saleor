@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import Counter, defaultdict
 from typing import List
 
 import graphene
@@ -412,8 +412,11 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
             .distinct()
             .filter(pk__in=variant_attrs_pks)
         )
+
         if len(variant_attrs_pks) != len(assigned_attributes):
-            invalid_attrs = set(variant_attrs_pks) - set(assigned_attributes)
+            invalid_attrs = set(variant_attrs_pks) - set(
+                str(pk) for pk in assigned_attributes
+            )
             invalid_attrs = [
                 graphene.Node.to_global_id("Attribute", pk) for pk in invalid_attrs
             ]
@@ -421,7 +424,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
                 "Attribute is not assigned to product type.",
                 code=ProductErrorCode.NOT_FOUND,
                 params={
-                    "attributes": list(invalid_attrs),
+                    "attributes": invalid_attrs,
                 },
             )
             errors["operations"].append(error)
@@ -435,7 +438,9 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
         ).values_list("attribute_id", flat=True)
 
         if len(variant_attrs_pks) != len(assigned_attributes):
-            invalid_attrs = set(variant_attrs_pks) - set(assigned_attributes)
+            invalid_attrs = set(variant_attrs_pks) - set(
+                str(pk) for pk in assigned_attributes
+            )
             invalid_attrs = [
                 graphene.Node.to_global_id("Attribute", pk) for pk in invalid_attrs
             ]
@@ -443,8 +448,24 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
                 "Attribute is not assigned to product variant.",
                 code=ProductErrorCode.NOT_FOUND,
                 params={
-                    "attributes": list(invalid_attrs),
+                    "attributes": invalid_attrs,
                 },
+            )
+            errors["operations"].append(error)
+
+    @classmethod
+    def check_for_duplicates(cls, errors, variant_attrs_pks):
+        counter = Counter(variant_attrs_pks)
+        invalid_ids = []
+        for element, count in counter.items():
+            if count > 1:
+                invalid_ids.append(graphene.Node.to_global_id("Attribute", element))
+
+        if invalid_ids:
+            error = ValidationError(
+                "Attribute ids should be unique within operations.",
+                code=ProductErrorCode.INVALID,
+                params={"attributes": invalid_ids},
             )
             errors["operations"].append(error)
 
@@ -453,11 +474,15 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
         errors = defaultdict(list)
         variant_attrs_pks = [pk for pk, _, in variant_attrs_data]
 
+        cls.check_for_duplicates(errors, variant_attrs_pks)
+        if errors:
+            raise ValidationError(errors)
+
         attributes = attribute_models.Attribute.objects.filter(
             id__in=variant_attrs_pks
         ).values_list("pk", flat=True)
         if len(variant_attrs_pks) != len(attributes):
-            invalid_attrs = set(variant_attrs_pks) - set(attributes)
+            invalid_attrs = set(variant_attrs_pks) - set(str(pk) for pk in attributes)
             invalid_attrs = [
                 graphene.Node.to_global_id("Attribute", pk) for pk in invalid_attrs
             ]

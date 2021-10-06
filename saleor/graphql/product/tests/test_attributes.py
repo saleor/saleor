@@ -697,6 +697,58 @@ def test_assignment_attribute_update_assigned_to_product_should_raise_an_error(
         assert error in expected_errors
 
 
+def test_assignment_attrib_update_assigned_with_duplicates_type_should_raise_an_error(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    color_attribute_without_values,
+):
+    """The productAttributeAssignmentUpdate mutation should raise an error when
+    to modify operations with duplicated attribute ids."""
+
+    product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
+    attribute = color_attribute_without_values
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    product_type.variant_attributes.add(attribute)
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = PRODUCT_ASSIGN_ATTR_UPDATE_QUERY
+    id_ = graphene.Node.to_global_id("Attribute", attribute.pk)
+    operations = [
+        {
+            "id": id_,
+            "variantSelection": True,
+        },
+        {
+            "id": id_,
+            "variantSelection": False,
+        },
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["productAttributeAssignmentUpdate"]
+
+    expected_error_msg = "Attribute ids should be unique within operations."
+
+    expected_errors = [
+        {
+            "field": "operations",
+            "message": expected_error_msg,
+            "code": ProductErrorCode.INVALID.name,
+            "attributes": [id_],
+        },
+    ]
+    assert len(content["errors"]) == 1
+
+    for error in content["errors"]:
+        assert error in expected_errors
+
+
 def test_assignment_attribute_update_assigned_unsupported_type_should_raise_an_error(
     staff_api_client,
     permission_manage_product_types_and_attributes,
