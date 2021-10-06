@@ -104,7 +104,7 @@ from ..dataloaders import (
 )
 from ..enums import ProductTypeKindEnum, VariantAttributeScope
 from ..filters import ProductFilterInput
-from ..resolvers import resolve_products
+from ..resolvers import resolve_products, resolve_product_variants
 from ..sorters import ProductOrder
 from .channels import (
     CollectionChannelListing,
@@ -597,28 +597,25 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         requestor_has_access_to_all = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
+
         channels = defaultdict(set)
         roots_ids = []
         for root in roots:
-            _, root_id = from_global_id_or_error(
-                root.id, ProductVariant, raise_error=True
-            )
-            if root_id:
-                roots_ids.append(f"{root.channel}_{root_id}")
-                channels[root.channel].add(root_id)
+            roots_ids.append(f"{root.channel}_{root.id}")
+            channels[root.channel].add(root.id)
 
         variants = {}
         for channel, ids in channels.items():
-            visible_products = models.Product.objects.visible_to_user(
-                requestor, channel
-            ).values_list("pk", flat=True)
-            qs = models.ProductVariant.objects.filter(
-                id__in=ids, product__id__in=visible_products
-            )
-            if not requestor_has_access_to_all:
-                qs = qs.available_in_channel(channel)
+            qs = resolve_product_variants(
+                info,
+                requestor_has_access_to_all,
+                requestor,
+                ids=ids,
+                channel_slug=channel,
+            ).qs
             for variant in qs:
-                variants[f"{channel}_{variant.id}"] = ChannelContext(
+                global_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+                variants[f"{channel}_{global_id}"] = ChannelContext(
                     channel_slug=channel, node=variant
                 )
 
