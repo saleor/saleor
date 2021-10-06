@@ -3,7 +3,7 @@ from promise import Promise
 
 from ...checkout import calculations, models
 from ...checkout.utils import (
-    get_app_shipping_id,
+    get_external_shipping_id,
     get_valid_collection_points_for_checkout,
     get_valid_shipping_methods_for_checkout,
 )
@@ -286,7 +286,7 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Checkout, info):
-        external_app_shipping_id = get_app_shipping_id(root)
+        external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
             shipping_method = info.context.plugins.get_shipping_method(

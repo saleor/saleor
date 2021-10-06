@@ -52,6 +52,8 @@ def calculate_price_for_shipping_method(
     if not shipping_method or not shipping_required:
         return zero_taxed_money(checkout_info.checkout.currency)
 
+    # external shipping methods have the price field,
+    # while internal methods use channel listings
     shipping_price = shipping_method.price
     if shipping_price is None:
         shipping_price = shipping_method.channel_listings.get(  # type: ignore

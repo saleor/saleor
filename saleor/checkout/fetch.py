@@ -242,7 +242,7 @@ def fetch_checkout_info(
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
 
-    from .utils import get_app_shipping_id
+    from .utils import get_external_shipping_id
 
     channel = checkout.channel
     shipping_address = checkout.shipping_address
@@ -260,7 +260,7 @@ def fetch_checkout_info(
         delivery_method = checkout.collection_point
 
     if not delivery_method:
-        external_shipping_method_id = get_app_shipping_id(checkout)
+        external_shipping_method_id = get_external_shipping_id(checkout)
         delivery_method = manager.get_shipping_method(
             checkout=checkout,
             channel_slug=channel.slug,

@@ -10,7 +10,7 @@ from graphene import relay
 from promise import Promise
 
 from ...account.models import Address
-from ...checkout.utils import get_app_shipping_id
+from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
@@ -1043,7 +1043,7 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Order, info):
-        external_app_shipping_id = get_app_shipping_id(root)
+        external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
             shipping_method = info.context.plugins.get_shipping_method(

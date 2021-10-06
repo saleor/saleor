@@ -652,7 +652,7 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
     checkout.collection_point = None
     checkout.shipping_method = None
     update_checkout_info_delivery_method(checkout_info, None)
-    delete_app_shipping_id(checkout=checkout)
+    delete_external_shipping_id(checkout=checkout)
     checkout.save(
         update_fields=[
             "shipping_method",
@@ -729,15 +729,15 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
         )
 
 
-def set_app_shipping_id(checkout: Checkout, app_shipping_id: str):
+def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
     checkout.store_value_in_private_metadata(
         {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
     )
 
 
-def get_app_shipping_id(container: Union["Checkout", "Order"]):
+def get_external_shipping_id(container: Union["Checkout", "Order"]):
     return container.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
 
 
-def delete_app_shipping_id(checkout: Checkout):
+def delete_external_shipping_id(checkout: Checkout):
     checkout.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)

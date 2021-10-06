@@ -25,11 +25,11 @@ from ...checkout.utils import (
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_delivery_method,
-    delete_app_shipping_id,
+    delete_external_shipping_id,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
-    set_app_shipping_id,
+    set_external_shipping_id,
     validate_variants_in_checkout_lines,
 )
 from ...core import analytics
@@ -1107,10 +1107,10 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             )
 
         if not delivery_method.is_external:
-            delete_app_shipping_id(checkout=checkout)
+            delete_external_shipping_id(checkout=checkout)
             checkout.shipping_method = shipping_method
         else:
-            set_app_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
+            set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
             checkout.shipping_method = None
         checkout.save(
             update_fields=["private_metadata", "shipping_method", "last_change"]
