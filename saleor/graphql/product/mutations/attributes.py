@@ -409,9 +409,9 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
                 product_type.pk
             )
             .values_list("pk", flat=True)
+            .distinct()
             .filter(pk__in=variant_attrs_pks)
         )
-
         if len(variant_attrs_pks) != len(assigned_attributes):
             invalid_attrs = set(variant_attrs_pks) - set(assigned_attributes)
             invalid_attrs = [
