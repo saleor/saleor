@@ -5773,10 +5773,8 @@ enum ShippingErrorCode {
   DUPLICATED_INPUT_ITEM
 }
 
-type ShippingMethod implements Node & ObjectWithMetadata {
+type ShippingMethod implements Node {
   id: ID!
-  privateMetadata: [MetadataItem]!
-  metadata: [MetadataItem]!
   name: String!
   description: JSONString
   maximumDeliveryDays: Int

@@ -1,11 +1,10 @@
 from prices import MoneyRange
 
-from saleor.graphql.shipping.dataloaders import (
-    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
-)
-
 from ...shipping import models
 from ..channel import ChannelContext, ChannelQsContext
+from .dataloaders import (
+    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+)
 
 
 def resolve_shipping_zones(channel_slug):

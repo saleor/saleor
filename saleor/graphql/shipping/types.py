@@ -293,19 +293,8 @@ class ShippingMethod(ChannelContextObjectType):
     message = graphene.String(description="Message connected to this shipping method.")
 
     class Meta:
-        model = models.ShippingMethod
-        interfaces = [relay.Node, ObjectWithMetadata]
-        only_fields = [
-            "id",
-            "maximum_order_weight",
-            "minimum_order_weight",
-            "maximum_delivery_days",
-            "minimum_delivery_days",
-            "name",
-            "description",
-            "price",
-            "minimum_order_price",
-            "message",
+        interfaces = [
+            relay.Node,
         ]
         description = (
             (

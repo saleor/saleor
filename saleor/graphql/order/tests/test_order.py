@@ -400,7 +400,6 @@ def test_order_query(
         channel_id=order.channel_id
     )
     assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
-    print(method, "<-----")
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
