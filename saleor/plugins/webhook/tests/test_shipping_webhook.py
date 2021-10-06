@@ -1,15 +1,21 @@
+import json
 import uuid
 from decimal import Decimal
 from typing import List
 from unittest import mock
 
+import graphene
 import pytest
 
 from saleor.app.models import App
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.models import Webhook, WebhookEvent
+from saleor.webhook.payloads import (
+    generate_excluded_shipping_methods_for_checkout_payload,
+    generate_excluded_shipping_methods_for_order_payload,
+)
 
-from ...base_plugin import ShippingMethod
+from ...base_plugin import ExcludedShippingMethod, ShippingMethod
 
 
 @pytest.fixture()
@@ -61,7 +67,11 @@ def shipping_app(db, permission_manage_orders, permission_manage_checkouts):
 
 
 @mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_sync")
+@mock.patch(
+    "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
+)
 def test_excluded_shipping_methods_for_order(
+    mocked_payload,
     mocked_webhook,
     webhook_plugin,
     order_with_lines,
@@ -69,28 +79,129 @@ def test_excluded_shipping_methods_for_order(
     shipping_app,
 ):
     # given
-    reason = "spanish-inquisition"
+    webhook_reason = "spanish-inquisition"
+    other_reason = "it's a trap"
     mocked_webhook.return_value = {
         "excluded_methods": [
             {
                 "id": "1",
-                "reason": reason,
+                "reason": webhook_reason,
             }
         ]
     }
+    payload = mock.MagicMock()
+    mocked_payload.return_value = payload
     plugin = webhook_plugin()
     available_shipping_methods = available_shipping_methods_factory(num_methods=2)
+    previous_value = [
+        ExcludedShippingMethod(id="1", reason=other_reason),
+        ExcludedShippingMethod(id="2", reason=other_reason),
+    ]
+
     # when
     excluded_methods = plugin.excluded_shipping_methods_for_order(
         order=order_with_lines,
         available_shipping_methods=available_shipping_methods,
-        previous_value=[],
+        previous_value=previous_value,
     )
     # then
-    assert len(excluded_methods) == 1
+    assert len(excluded_methods) == 2
     em = excluded_methods[0]
     assert em.id == "1"
-    assert em.reason == reason
+    assert webhook_reason in em.reason
+    assert other_reason in em.reason
     mocked_webhook.assert_called_once_with(
-        mock.ANY, mock.ANY, WebhookEventType.ORDER_FILTER_SHIPPING_METHODS, mock.ANY
+        mock.ANY, mock.ANY, WebhookEventType.ORDER_FILTER_SHIPPING_METHODS, payload
     )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_sync")
+@mock.patch(
+    "saleor.plugins.webhook.plugin."
+    "generate_excluded_shipping_methods_for_checkout_payload"
+)
+def test_excluded_shipping_methods_for_checkout(
+    mocked_payload,
+    mocked_webhook,
+    webhook_plugin,
+    checkout_with_items,
+    available_shipping_methods_factory,
+    shipping_app,
+):
+    # given
+    webhook_reason = "spanish-inquisition"
+    other_reason = "it's a trap"
+    mocked_webhook.return_value = {
+        "excluded_methods": [
+            {
+                "id": "1",
+                "reason": webhook_reason,
+            }
+        ]
+    }
+    payload = mock.MagicMock()
+    mocked_payload.return_value = payload
+    plugin = webhook_plugin()
+    available_shipping_methods = available_shipping_methods_factory(num_methods=2)
+    previous_value = [
+        ExcludedShippingMethod(id="1", reason=other_reason),
+        ExcludedShippingMethod(id="2", reason=other_reason),
+    ]
+    # when
+    excluded_methods = plugin.excluded_shipping_methods_for_checkout(
+        checkout=checkout_with_items,
+        available_shipping_methods=available_shipping_methods,
+        previous_value=previous_value,
+    )
+    # then
+    assert len(excluded_methods) == 2
+    em = excluded_methods[0]
+    assert em.id == "1"
+    assert webhook_reason in em.reason
+    assert other_reason in em.reason
+    mocked_webhook.assert_called_once_with(
+        mock.ANY, mock.ANY, WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS, payload
+    )
+
+
+def test_generate_excluded_shipping_methods_for_order_payload(
+    webhook_plugin,
+    order_with_lines,
+    available_shipping_methods_factory,
+):
+    # given
+    methods = available_shipping_methods_factory(num_methods=3)
+    # when
+    json_payload = json.loads(
+        generate_excluded_shipping_methods_for_order_payload(
+            order=order_with_lines, available_shipping_methods=methods
+        )
+    )
+    # then
+    assert len(json_payload["shipping_methods"]) == 3
+    assert json_payload["shipping_methods"][0]["id"] == methods[0].id
+    assert json_payload["shipping_methods"][1]["id"] == methods[1].id
+    assert json_payload["shipping_methods"][2]["id"] == methods[2].id
+    graphql_order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    assert json_payload["order"]["id"] == graphql_order_id
+
+
+def test_generate_excluded_shipping_methods_for_checkout_payload(
+    webhook_plugin,
+    checkout_with_items,
+    available_shipping_methods_factory,
+):
+    # given
+    methods = available_shipping_methods_factory(num_methods=3)
+    # when
+    json_payload = json.loads(
+        generate_excluded_shipping_methods_for_checkout_payload(
+            checkout=checkout_with_items, available_shipping_methods=methods
+        )
+    )
+    # then
+    assert len(json_payload["shipping_methods"]) == 3
+    assert json_payload["shipping_methods"][0]["id"] == methods[0].id
+    assert json_payload["shipping_methods"][1]["id"] == methods[1].id
+    assert json_payload["shipping_methods"][2]["id"] == methods[2].id
+    assert "checkout" in json_payload
