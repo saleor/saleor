@@ -90,7 +90,7 @@ FRAGMENT_ADDRESS = """
 
 
 FRAGMENT_SHIPPING_METHOD = """
-    fragment ShippingMethod on ShippingMethod {
+    fragment ShippingMethodType on ShippingMethodType {
         id
         name
         price {
@@ -130,10 +130,10 @@ FRAGMENT_CHECKOUT = (
           }
           email
           availableShippingMethods {
-            ...ShippingMethod
+            ...ShippingMethodType
           }
           shippingMethod {
-            ...ShippingMethod
+            ...ShippingMethodType
           }
           shippingPrice {
             ...Price
@@ -260,7 +260,7 @@ def test_add_shipping_to_checkout(
     )
     variables = {
         "token": checkout_with_shipping_address.token,
-        "shippingMethodId": Node.to_global_id("ShippingMethod", shipping_method.pk),
+        "shippingMethodId": Node.to_global_id("ShippingMethodType", shipping_method.pk),
     }
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutShippingMethodUpdate"]["errors"]
