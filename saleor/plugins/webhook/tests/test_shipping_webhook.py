@@ -7,14 +7,13 @@ from unittest import mock
 import graphene
 import pytest
 
-from saleor.app.models import App
-from saleor.webhook.event_types import WebhookEventType
-from saleor.webhook.models import Webhook, WebhookEvent
-from saleor.webhook.payloads import (
+from ....app.models import App
+from ....webhook.event_types import WebhookEventType
+from ....webhook.models import Webhook, WebhookEvent
+from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_checkout_payload,
     generate_excluded_shipping_methods_for_order_payload,
 )
-
 from ...base_plugin import ExcludedShippingMethod, ShippingMethod
 
 

@@ -1,7 +1,7 @@
 import pytest
 
-from saleor.plugins.manager import get_plugins_manager
-from saleor.plugins.webhook.plugin import WebhookPlugin
+from ....plugins.manager import get_plugins_manager
+from ....plugins.webhook.plugin import WebhookPlugin
 
 
 @pytest.fixture
