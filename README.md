@@ -154,6 +154,6 @@ Disclaimer: Everything you see here is open and free to use as long as you compl
 
 Some situations do call for extra code; we can cover exotic use cases or build you a custom e-commerce appliance.
 
-#### Crafted with ❤️ by [Mirumee Software](http://mirumee.com)
+#### Crafted with ❤️ by [Saleor Commerce](https://saleor.io)
 
-hello@mirumee.com
+hello@saleor.io
