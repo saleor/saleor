@@ -81,15 +81,6 @@ class ShippingMethodType(ChannelContextTypeWithMetadata, CountableDjangoObjectTy
         graphene.NonNull(ShippingMethodChannelListing),
         description="List of channels available for the method.",
     )
-    price = graphene.Field(
-        Money, description="The price of the cheapest variant (including discounts)."
-    )
-    maximum_order_price = graphene.Field(
-        Money, description="The price of the cheapest variant (including discounts)."
-    )
-    minimum_order_price = graphene.Field(
-        Money, description="The price of the cheapest variant (including discounts)."
-    )
     postal_code_rules = graphene.List(
         ShippingMethodPostalCodeRule,
         description=(

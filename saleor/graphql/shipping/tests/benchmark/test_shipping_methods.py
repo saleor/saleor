@@ -27,18 +27,6 @@ query GetShippingMethods($channel: String) {
               name
             }
           }
-          price {
-            amount
-            currency
-          }
-          maximumOrderPrice {
-            currency
-            amount
-          }
-          minimumOrderPrice {
-            currency
-            amount
-          }
         }
       }
     }

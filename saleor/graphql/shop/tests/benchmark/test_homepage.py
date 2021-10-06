@@ -5,13 +5,6 @@ from ....tests.utils import get_graphql_content
 FRAGMENT_SHIPPING_METHOD_TYPES = """
     fragment AvailableShippingMethods on ShippingMethodType {
         id
-        price {
-            amount
-        }
-        minimumOrderPrice {
-            amount
-            currency
-        }
         name
     }
 """
