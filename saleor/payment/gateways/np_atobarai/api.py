@@ -67,12 +67,12 @@ def health_check(config: ApiConfig) -> bool:
 
 
 def _format_name(ad: AddressData):
-    """Follow the japanese name guidelines."""
+    """Follow the Japanese name guidelines."""
     return f"{ad.first_name} {ad.last_name}".lstrip().rstrip()
 
 
 def _format_address(config: ApiConfig, ad: AddressData):
-    """Follow the japanese address guidelines."""
+    """Follow the Japanese address guidelines."""
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
     if not config.fill_missing_address:
         return f"{ad.country_area}" f"{ad.street_address_2}" f"{ad.street_address_1}"
@@ -81,7 +81,7 @@ def _format_address(config: ApiConfig, ad: AddressData):
             jap_ad = pp.get(ad.postal_code)
         except KeyError:
             raise PaymentError(
-                "Valid japanese address is required for transaction in NP Atobarai."
+                "Valid Japanese address is required for transaction in NP Atobarai."
             )
         else:
             return (

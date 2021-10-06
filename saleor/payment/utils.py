@@ -35,12 +35,12 @@ ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
 
 def create_payment_lines_information(
     payment: Payment,
+    manager: PluginsManager,
 ) -> List[PaymentLineData]:
     checkout = payment.checkout
     order = payment.order
     line_items = []
     if checkout:
-        manager = get_plugins_manager()
         lines = fetch_checkout_lines(checkout)
         discounts = fetch_active_discounts()
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
@@ -96,6 +96,7 @@ def create_payment_information(
     customer_id: str = None,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
+    manager: Optional[PluginsManager] = None,
 ) -> PaymentData:
     """Extract order information along with payment details.
 
@@ -142,7 +143,9 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
-        _resolve_lines=lambda: create_payment_lines_information(payment),
+        _resolve_lines=lambda: create_payment_lines_information(
+            payment, manager or get_plugins_manager()
+        ),
     )
 
 
