@@ -69,7 +69,7 @@ flake8==3.9.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (p
 freezegun==1.1.0; python_version >= "3.5"
 gitdb==4.0.7; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.6"
 gitpython==3.1.20; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.6"
-google-api-core==2.0.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+google-api-core==2.0.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-auth==1.34.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-core==2.0.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-pubsub==2.7.0; python_version >= "3.6"
@@ -125,6 +125,7 @@ phonenumberslite==8.12.29
 pillow==8.3.1; python_version >= "3.6"
 platformdirs==2.2.0; python_version >= "3.6" and python_full_version >= "3.6.1"
 pluggy==0.13.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
+posuto==2021.10.0
 pre-commit==2.14.0; python_full_version >= "3.6.1"
 prices==1.1.0
 promise==2.3
