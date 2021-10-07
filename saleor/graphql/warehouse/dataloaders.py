@@ -105,7 +105,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             reservations_qs = (
                 Stock.objects.filter(product_variant_id__in=variant_ids)
                 .annotate_reserved_quantity()
-                .values_list("id", "quantity_reserved")
+                .values_list("id", "reserved_quantity")
             )
             for stock_id, quantity_reserved in reservations_qs:
                 stocks_reservations[stock_id] = quantity_reserved
@@ -242,7 +242,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugDEBUGLoader(
             reservations_qs = (
                 Stock.objects.filter(product_variant_id__in=variant_ids)
                 .annotate_reserved_quantity()
-                .values_list("id", "quantity_reserved")
+                .values_list("id", "reserved_quantity")
             )
             for stock_id, quantity_reserved in reservations_qs:
                 stocks_reservations[stock_id] = quantity_reserved
