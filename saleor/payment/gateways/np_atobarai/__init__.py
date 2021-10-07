@@ -50,7 +50,7 @@ def capture(payment_information: PaymentData, config: ApiConfig) -> GatewayRespo
 @inject_api_config
 def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
     with opentracing.global_tracer().start_active_span("np-atobarai.checkout.payments"):
-        result = api.cancel_transaction(config, payment_information)  # type: ignore
+        result = api.cancel_transaction(config, payment_information)
 
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,

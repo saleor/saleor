@@ -2,6 +2,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
+import requests
 
 from ....interface import AddressData, PaymentLineData
 
@@ -43,18 +44,21 @@ def test_process_payment_authorized(
     # given
     plugin = np_atobarai_plugin()
     payment_data = np_payment_data
-    response = Mock()
-    response.json = Mock(
-        return_value={
-            "results": [
-                {
-                    "shop_transaction_id": "abc1234567890",
-                    "np_transaction_id": "18121200001",
-                    "authori_result": "00",
-                    "authori_required_date": "2018-12-12T12:00:00+09:00",
-                }
-            ]
-        }
+    response = Mock(
+        spec=requests.Response,
+        status_code=200,
+        json=Mock(
+            return_value={
+                "results": [
+                    {
+                        "shop_transaction_id": "abc1234567890",
+                        "np_transaction_id": "18121200001",
+                        "authori_result": "00",
+                        "authori_required_date": "2018-12-12T12:00:00+09:00",
+                    }
+                ]
+            }
+        ),
     )
     mocked_request.return_value = response
 
@@ -71,18 +75,21 @@ def test_process_payment_refused(mocked_request, np_atobarai_plugin, np_payment_
     # given
     plugin = np_atobarai_plugin()
     payment_data = np_payment_data
-    response = Mock()
-    response.json = Mock(
-        return_value={
-            "results": [
-                {
-                    "shop_transaction_id": "abc1234567890",
-                    "np_transaction_id": "18121200001",
-                    "authori_result": "20",
-                    "authori_required_date": "2018-12-12T12:00:00+09:00",
-                }
-            ]
-        }
+    response = Mock(
+        spec=requests.Response,
+        status_code=200,
+        json=Mock(
+            return_value={
+                "results": [
+                    {
+                        "shop_transaction_id": "abc1234567890",
+                        "np_transaction_id": "18121200001",
+                        "authori_result": "20",
+                        "authori_required_date": "2018-12-12T12:00:00+09:00",
+                    }
+                ]
+            }
+        ),
     )
     mocked_request.return_value = response
 
@@ -98,8 +105,11 @@ def test_process_payment_error(mocked_request, np_atobarai_plugin, np_payment_da
     # given
     plugin = np_atobarai_plugin()
     payment_data = np_payment_data
-    response = Mock()
-    response.json = Mock(return_value={"errors": [{"codes": ["E0100059", "E0100083"]}]})
+    response = Mock(
+        spec=requests.Response,
+        status_code=400,
+        json=Mock(return_value={"errors": [{"codes": ["E0100059", "E0100083"]}]}),
+    )
     mocked_request.return_value = response
 
     # when

@@ -2,6 +2,7 @@ from unittest import mock
 from unittest.mock import Mock
 
 import pytest
+import requests
 from django.core.exceptions import ValidationError
 
 from .....plugins.models import PluginConfiguration
@@ -20,8 +21,7 @@ def test_validate_plugin_configuration_valid_credentials(
 ):
     # given
     plugin = np_atobarai_plugin()
-    response = Mock()
-    response.status_code = status_code
+    response = Mock(spec=requests.Response, status_code=status_code)
     mocked_request.return_value = response
     configuration = PluginConfiguration.objects.get()
     # when
@@ -36,8 +36,7 @@ def test_validate_plugin_configuration_invalid_credentials(
 ):
     # given
     plugin = np_atobarai_plugin()
-    response = Mock()
-    response.status_code = status_code
+    response = Mock(spec=requests.Response, status_code=status_code)
     mocked_request.return_value = response
     configuration = PluginConfiguration.objects.get()
     # then
@@ -50,8 +49,7 @@ def test_validate_plugin_configuration_invalid_credentials(
 def test_validate_plugin_configuration_missing_data(mocked_request, np_atobarai_plugin):
     # given
     plugin = np_atobarai_plugin(merchant_code=None, sp_code=None, terminal_id=None)
-    response = Mock()
-    response.status_code = 200
+    response = Mock(spec=requests.Response, status_code=200)
     mocked_request.return_value = response
     plugin_configuration = PluginConfiguration.objects.get()
 
@@ -73,9 +71,10 @@ def test_void_payment(
     psp_reference = "18121200001"
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
-    response = Mock()
-    response.json = Mock(
-        return_value={"results": [{"np_transaction_id": psp_reference}]}
+    response = Mock(
+        spec=requests.Response,
+        status_code=200,
+        json=Mock(return_value={"results": [{"np_transaction_id": psp_reference}]}),
     )
     mocked_request.return_value = response
 
@@ -94,9 +93,10 @@ def test_void_payment_payment_not_created(
     # given
     plugin = np_atobarai_plugin()
     payment_data = np_void_payment_data
-    response = Mock()
-    response.json = Mock(
-        return_value={"results": [{"np_transaction_id": "18121200001"}]}
+    response = Mock(
+        spec=requests.Response,
+        status_code=200,
+        json=Mock(return_value={"results": [{"np_transaction_id": "18121200001"}]}),
     )
     mocked_request.return_value = response
 
@@ -116,8 +116,11 @@ def test_void_payment_np_errors(
     psp_reference = "18121200001"
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
-    response = Mock()
-    response.json = Mock(return_value={"errors": [{"codes": ["E0100002", "E0100003"]}]})
+    response = Mock(
+        spec=requests.Response,
+        status_code=400,
+        json=Mock(return_value={"errors": [{"codes": ["E0100002", "E0100003"]}]}),
+    )
     mocked_request.return_value = response
 
     # when
