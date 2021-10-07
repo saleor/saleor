@@ -1293,7 +1293,6 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     def __resolve_references(roots: List["Collection"], info, **_kwargs):
         from ..resolvers import resolve_collections
 
-        requestor = get_user_or_app_from_context(info.context)
         channels = defaultdict(set)
         roots_ids = []
         for root in roots:

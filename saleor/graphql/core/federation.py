@@ -77,12 +77,10 @@ def set_entity_type_resolver(schema):
     entity.resolve_type = resolve_entity_type
 
 
-def resolve_federation_references(graphql_type, roots, qs):
-    """Generic resolver function for simple federated types"""
+def resolve_federation_references(graphql_type, roots, queryset):
     ids = [
         from_global_id_or_error(root.id, graphql_type, raise_error=True)[1]
         for root in roots
     ]
-    qs = qs.filter(id__in=ids)
-    objects = {str(obj.id): obj for obj in qs}
+    objects = {str(obj.id): obj for obj in queryset.filter(id__in=ids)}
     return [objects.get(root_id) for root_id in ids]
