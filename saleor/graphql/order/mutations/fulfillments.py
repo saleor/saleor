@@ -869,13 +869,13 @@ class OrderReturnProductsInput(graphene.InputObjectType):
     payments_to_refund = graphene.List(
         PaymentToReturnInput,
         required=False,
-        description=f"{ADDED_IN_31} Payments that need to be refunded.",
+        description="Payments that need to be refunded.",
     )
     amount_to_refund = PositiveDecimal(
         required=False,
         description=(
             "The total amount of refund when the value is provided manually. "
-            f"{DEPRECATED_IN_3X_INPUT} Use paymentsToRefund instead."
+            "Use paymentsToRefund instead."
         ),
     )
     include_shipping_costs = graphene.Boolean(
