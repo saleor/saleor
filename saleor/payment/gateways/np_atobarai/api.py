@@ -6,6 +6,8 @@ from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
+from saleor.order.models import Fulfillment
+
 from ... import PaymentError
 from ...interface import AddressData, PaymentData
 from ...models import Payment
@@ -13,6 +15,7 @@ from ...utils import price_to_minor_unit
 from .api_types import ApiConfig, PaymentResult, PaymentStatus
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL
 from .errors import (
+    FULFILLMENT_REPORT_RESULT_ERRORS,
     TRANSACTION_CANCELLATION_RESULT_ERROR,
     TRANSACTION_REGISTRATION_RESULT_ERRORS,
     get_error_messages_from_codes,
@@ -228,3 +231,34 @@ def cancel_transaction(
         psp_reference=psp_reference,
         errors=error_messages,
     )
+
+
+def report_fulfillment(config: ApiConfig, fulfillment: Fulfillment):
+    # TODO:
+    transaction_id = fulfillment.order.payments.latest().psp_reference
+
+    if not transaction_id:
+        # TODO: handle errors
+        pass
+
+    shipping_company_code = config.shipping_company
+    shipping_slip_number = fulfillment.tracking_number
+
+    data = {
+        "transactions": [
+            {
+                "np_transaction_id": transaction_id,
+                "pd_company_code": shipping_company_code,
+                "slip_no": shipping_slip_number,
+            }
+        ]
+    }
+    response = np_request(config, "post", "/shipments", json=data)
+    response_data = response.json()
+
+    if error_codes := _get_errors(response_data):
+        return get_error_messages_from_codes(
+            error_codes, FULFILLMENT_REPORT_RESULT_ERRORS
+        )
+
+    return []

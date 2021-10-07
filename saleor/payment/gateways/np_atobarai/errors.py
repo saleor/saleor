@@ -171,6 +171,45 @@ TRANSACTION_CANCELLATION_RESULT_ERROR = {
     "E0100132": "Please confirm that the payment method is as expected.",
 }
 
+FULFILLMENT_REPORT_RESULT_ERRORS = {
+    "EPRO0101": "Please confirm that at least one normal transaction is set.",
+    "EPRO0102": (
+        "Please confirm that 1, 000 or fewer sets of normal transactions are set."
+    ),
+    "EPRO0105": "Please check if the NP Transaction ID has been entered.",
+    "EPRO0106": "Please check if the same NP Transaction ID is duplicated.",
+    "E0100002": (
+        "Please check if the NP Transaction ID "
+        "is in half-width alphanumeric characters."
+    ),
+    "E0100003": "Please check if the NP Transaction ID is 11 digits.",
+    "E0100113": "",
+    "EPRO0107": "",
+    "E0100132": "",
+    "E0100105": "",
+    "E0100106": "",
+    "E0100107": "",
+    "E0100108": "",
+    "E0100109": "",
+    "E0100110": "",
+    "EPRO0109": "If not entered, it will not be checked.",
+    "E0100143": "The check is used only for NP Atobarai.",
+    "E0100111": "The check is used only for NP Atobarai wiz.",
+    "E0100124": "",
+    "E0100126": "",
+    "E0100114": "",
+    "E0100115": "",
+    "E0100118": "",
+    "E0100120": "",
+    "E0100121": "",
+    "E0109002": (
+        "This is an NP system error. Please contact the NP Support Desk if it occurs."
+    ),
+    "E0109003": (
+        "This is an NP system error. Please contact the NP Support Desk if it occurs."
+    ),
+}
+
 
 def get_error_messages_from_codes(
     error_codes: Iterable[str], error_map: Dict[str, str]

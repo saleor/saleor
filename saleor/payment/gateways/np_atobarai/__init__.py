@@ -3,6 +3,8 @@ from typing import List
 
 import opentracing
 
+from saleor.order.models import Fulfillment
+
 from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from . import api
@@ -63,6 +65,13 @@ def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse
         raw_response=result.raw_response,
         psp_reference=result.psp_reference,
     )
+
+
+@inject_api_config
+def fulfillment_created(fulfillment: Fulfillment, config: ApiConfig) -> None:
+    with opentracing.global_tracer().start_active_span("np-atobarai.checkout.payments"):
+        # TODO: handle errors
+        api.report_fulfillment(config, fulfillment)
 
 
 @inject_api_config
