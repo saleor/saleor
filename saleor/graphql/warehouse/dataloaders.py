@@ -97,8 +97,18 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             stocks = stocks.filter(warehouse_id__in=warehouse_shipping_zones_map.keys())
         stocks = stocks.annotate_available_quantity()
 
+        stocks_reservations = defaultdict(int)
         if is_reservation_enabled(self.context.site.settings):  # type: ignore
-            stocks = stocks.annotate_reserved_quantity()
+            # Can't do second annotation on same queryset because it made
+            # available_quantity annotated value incorrect thanks to how
+            # Django's ORM builds SQLs with annotations
+            reservations_qs = (
+                Stock.objects.filter(product_variant_id__in=variant_ids)
+                .annotate_reserved_quantity()
+                .values_list("id", "quantity_reserved")
+            )
+            for stock_id, quantity_reserved in reservations_qs:
+                stocks_reservations[stock_id] = quantity_reserved
 
         # A single country code (or a missing country code) can return results from
         # multiple shipping zones. We want to combine all quantities within a single
@@ -107,7 +117,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             int, DefaultDict[int, int]
         ] = defaultdict(lambda: defaultdict(int))
         for stock in stocks:
-            reserved_quantity = getattr(stock, "reserved_quantity", 0)
+            reserved_quantity = stocks_reservations[stock.id]
             quantity = max(0, stock.available_quantity - reserved_quantity)
             variant_id = stock.product_variant_id
             warehouse_id = stock.warehouse_id
@@ -223,7 +233,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugDEBUGLoader(
             )
         if additional_warehouse_filter:
             stocks = stocks.filter(warehouse_id__in=warehouse_shipping_zones_map.keys())
-        stocks = Stock.annotate_available_quantity()
+        stocks = stocks.annotate_available_quantity()
 
         stocks_reservations = defaultdict(int)
         if is_reservation_enabled(self.context.site.settings):  # type: ignore
