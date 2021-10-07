@@ -646,7 +646,7 @@ def test_process_refund_calls_update_missing_amounts_on_payments(
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.payments.last()
-    payments = [OrderPaymentAction(payment, Decimal("0"), include_shipping_costs=False)]
+    payments = [OrderPaymentAction(payment, Decimal("0"))]
 
     order_lines_to_return = order_with_lines.lines.all()
 
@@ -665,9 +665,10 @@ def test_process_refund_calls_update_missing_amounts_on_payments(
         ],
         fulfillment_lines_to_refund=[],
         manager=get_plugins_manager(),
+        include_shipping_costs=False,
     )
     mock_update_missing_amounts_on_payments.assert_called_once_with(
-        refund_amount, payments, order_with_lines
+        refund_amount, payments, order_with_lines, False
     )
 
 
@@ -685,18 +686,16 @@ def test_update_missing_amounts_on_payments_with_specified_payment_amounts(
         OrderPaymentAction(
             payment_dummy_fully_charged,
             payment_dummy_fully_charged.captured_amount,
-            include_shipping_costs=False,
         ),
         OrderPaymentAction(
             payment_txn_captured,
             payment_txn_captured.captured_amount,
-            include_shipping_costs=False,
         ),
     ]
 
     # when
     total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
-        refund_amount, payments, order_with_lines
+        refund_amount, payments, order_with_lines, include_shipping_costs=False
     )
 
     # then
@@ -706,7 +705,7 @@ def test_update_missing_amounts_on_payments_with_specified_payment_amounts(
     assert payments[0].amount == payment_txn_captured.captured_amount
 
 
-def test_update_missing_amounts_on_payments_with_including_shipping_amount_new_way(
+def test_update_missing_amounts_on_payments_with_shipping_amount_multiple_payments(
     order_with_lines, payment_dummy_fully_charged, payment_txn_captured
 ):
     # given
@@ -718,18 +717,16 @@ def test_update_missing_amounts_on_payments_with_including_shipping_amount_new_w
         OrderPaymentAction(
             payment_dummy_fully_charged,
             Decimal("0"),
-            include_shipping_costs=True,
         ),
         OrderPaymentAction(
             payment_txn_captured,
             payment_txn_captured.captured_amount,
-            include_shipping_costs=False,
         ),
     ]
 
     # when
     total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
-        refund_amount, payments, order_with_lines
+        refund_amount, payments, order_with_lines, include_shipping_costs=True
     )
 
     # then
@@ -742,7 +739,7 @@ def test_update_missing_amounts_on_payments_with_including_shipping_amount_new_w
     assert payments[1].amount == payment_txn_captured.captured_amount
 
 
-def test_update_missing_amounts_on_payments_with_including_shipping_amount_old_way(
+def test_update_missing_amounts_on_payments_with_shipping_amount_and_single_payment(
     order_with_lines, payment_dummy_fully_charged
 ):
     # given
@@ -755,20 +752,11 @@ def test_update_missing_amounts_on_payments_with_including_shipping_amount_old_w
         payment_dummy_fully_charged.captured_amount
         - order_with_lines.shipping_price_gross_amount
     )
-    payments = [
-        OrderPaymentAction(
-            payment_dummy_fully_charged,
-            Decimal("0"),
-            include_shipping_costs=True,
-            from_deprecated_request=True,
-        )
-    ]
+    payments = [OrderPaymentAction(payment_dummy_fully_charged, Decimal("0"))]
 
     # when
     total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
-        refund_amount,
-        payments,
-        order_with_lines,
+        refund_amount, payments, order_with_lines, include_shipping_costs=True
     )
 
     # then
@@ -797,18 +785,16 @@ def test_update_missing_amounts_on_payments_without_specified_amounts(
         OrderPaymentAction(
             payment_dummy_fully_charged,
             Decimal("0"),
-            include_shipping_costs=False,
         ),
         OrderPaymentAction(
             payment_txn_captured,
             Decimal("0"),
-            include_shipping_costs=False,
         ),
     ]
 
     # when
     total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
-        refund_amount, payments, order_with_lines
+        refund_amount, payments, order_with_lines, include_shipping_costs=False
     )
 
     # then
@@ -833,18 +819,16 @@ def test_update_missing_amounts_on_payments_refunding_smaller_amounts(
         OrderPaymentAction(
             payment_dummy_fully_charged,
             payment_dummy_fully_charged.captured_amount // 2,
-            include_shipping_costs=False,
         ),
         OrderPaymentAction(
             payment_txn_captured,
             payment_txn_captured.captured_amount // 2,
-            include_shipping_costs=False,
         ),
     ]
 
     # when
     total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
-        refund_amount, payments, order_with_lines
+        refund_amount, payments, order_with_lines, include_shipping_costs=False
     )
 
     # then

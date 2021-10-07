@@ -692,83 +692,6 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     )
 
 
-@pytest.mark.parametrize(
-    "number_of_shipping_costs, should_raise_error", [(0, False), (1, False), (2, True)]
-)
-def test_fulfillment_refund_products_checks_shipping_costs_in_payments(
-    number_of_shipping_costs,
-    should_raise_error,
-    staff_api_client,
-    fulfilled_order,
-    payment_dummy_factory,
-    permission_manage_orders,
-):
-    # given
-    payment_1 = payment_dummy_factory()
-    payment_1.captured_amount = payment_1.total
-    payment_1.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_1.save()
-    payment_2 = payment_dummy_factory()
-    payment_2.captured_amount = payment_2.total
-    payment_2.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_2.save()
-    payment_1.transactions.create(
-        amount=payment_1.captured_amount,
-        currency=payment_1.currency,
-        kind=TransactionKind.CAPTURE,
-        gateway_response={},
-        is_success=True,
-    )
-    payment_2.transactions.create(
-        amount=payment_2.captured_amount,
-        currency=payment_2.currency,
-        kind=TransactionKind.CAPTURE,
-        gateway_response={},
-        is_success=True,
-    )
-
-    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
-    variables = {
-        "order": order_id,
-        "input": {
-            "paymentsToRefund": [
-                {
-                    "paymentId": graphene.Node.to_global_id("Payment", payment_1.id),
-                    "amount": payment_1.captured_amount,
-                    "includeShippingCosts": True
-                    if number_of_shipping_costs > 0
-                    else False,
-                },
-                {
-                    "paymentId": graphene.Node.to_global_id("Payment", payment_2.id),
-                    "amount": payment_2.captured_amount,
-                    "includeShippingCosts": True
-                    if number_of_shipping_costs > 1
-                    else False,
-                },
-            ],
-        },
-    }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["orderFulfillmentRefundProducts"]
-
-    # then
-    if should_raise_error:
-        assert data["fulfillment"] is None
-        assert data["errors"][0]["field"] == "includeShippingCosts"
-        assert data["errors"][0]["code"] == OrderErrorCode.DUPLICATED_INPUT_ITEM.name
-        message = "Shipping costs cannot be included in more than one payment."
-        assert data["errors"][0]["message"] == message
-
-    else:
-        assert data["errors"] == []
-        assert data["fulfillment"] is not None
-
-
 def test_fulfillment_refund_products_raises_error_if_payment_doesnt_belong_to_order(
     staff_api_client,
     fulfilled_order,
@@ -809,14 +732,13 @@ def test_fulfillment_refund_products_raises_error_if_payment_doesnt_belong_to_or
                 {
                     "paymentId": graphene.Node.to_global_id("Payment", payment_1.id),
                     "amount": payment_1.captured_amount,
-                    "includeShippingCosts": False,
                 },
                 {
                     "paymentId": graphene.Node.to_global_id("Payment", payment_2.id),
                     "amount": payment_2.captured_amount,
-                    "includeShippingCosts": False,
                 },
             ],
+            "includeShippingCosts": False,
         },
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -941,15 +863,14 @@ def test_fulfillment_refund_products_with_payments_to_refund_passed(
     variables = {
         "order": order_id,
         "input": {
+            "includeShippingCosts": True,
             "paymentsToRefund": [
                 {
                     "paymentId": graphene.Node.to_global_id("Payment", payment_1.id),
                     "amount": payment_1.captured_amount,
-                    "includeShippingCosts": False,
                 },
                 {
                     "paymentId": graphene.Node.to_global_id("Payment", payment_2.id),
-                    "includeShippingCosts": True,
                 },
             ],
         },

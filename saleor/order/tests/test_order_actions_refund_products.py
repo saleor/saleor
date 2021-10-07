@@ -22,7 +22,7 @@ def test_create_refund_fulfillment_only_order_lines(
     payment_dummy.save()
     order_with_lines.payments.add(payment_dummy)
     payment = order_with_lines.payments.latest("pk")
-    payments = [OrderPaymentAction(payment, Decimal("0"), include_shipping_costs=False)]
+    payments = [OrderPaymentAction(payment, Decimal("0"))]
 
     order_lines_to_refund = order_with_lines.lines.all()
     original_quantity = {
@@ -44,6 +44,7 @@ def test_create_refund_fulfillment_only_order_lines(
         ],
         fulfillment_lines_to_refund=[],
         manager=get_plugins_manager(),
+        include_shipping_costs=False,
     )
 
     flush_post_commit_hooks()
@@ -93,7 +94,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
     payment = order_with_lines.payments.latest("pk")
     order_lines_to_refund = order_with_lines.lines.all()
 
-    payments = [OrderPaymentAction(payment, Decimal("0"), True, True)]
+    payments = [OrderPaymentAction(payment, Decimal("0"))]
     original_quantity = {
         line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
     }
@@ -110,6 +111,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
         ],
         fulfillment_lines_to_refund=[],
         manager=get_plugins_manager(),
+        include_shipping_costs=True,
     )
 
     flush_post_commit_hooks()
@@ -152,7 +154,7 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
     payment_dummy.save()
     fulfilled_order.payments.add(payment_dummy)
     payment = fulfilled_order.payments.latest("pk")
-    payments = [OrderPaymentAction(payment, Decimal("0"), include_shipping_costs=False)]
+    payments = [OrderPaymentAction(payment, Decimal("0"))]
 
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
@@ -170,6 +172,7 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
             for line in fulfillment_lines_to_refund
         ],
         manager=get_plugins_manager(),
+        include_shipping_costs=False,
     )
 
     flush_post_commit_hooks()
@@ -216,7 +219,7 @@ def test_create_refund_fulfillment_custom_amount(
     original_quantity = {line.id: line.quantity for line in fulfillment_lines}
     fulfillment_lines_to_refund = fulfillment_lines
     amount = Decimal("10.00")
-    payments = [OrderPaymentAction(payment, amount, False)]
+    payments = [OrderPaymentAction(payment, amount)]
     returned_fulfillemnt = create_refund_fulfillment(
         user=None,
         app=None,
@@ -228,6 +231,7 @@ def test_create_refund_fulfillment_custom_amount(
             for line in fulfillment_lines_to_refund
         ],
         manager=get_plugins_manager(),
+        include_shipping_costs=False,
     )
 
     flush_post_commit_hooks()

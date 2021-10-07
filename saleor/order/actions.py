@@ -1363,10 +1363,15 @@ def _update_missing_amounts_on_payments(
     """
     payments_total_amount = Decimal(sum([item.amount for item in payments]))
 
-    # Deduct already specified amounts.
-    refund_amount -= payments_total_amount
+    # If only `payments_to_refund` have been provided then the `refund_amount`
+    # would be zero (as their calculation is based on the lines).
+    # We should deduct the provided amounts only when the `refund_amount`
+    # is greater than zero.
+    if refund_amount > 0:
+        # Deduct already specified amounts.
+        refund_amount -= payments_total_amount
 
-    shipping_refund_amount = None
+        shipping_refund_amount = None
 
     if include_shipping_costs:
         shipping_refund_amount = order.shipping_price_gross_amount
@@ -1380,6 +1385,7 @@ def _update_missing_amounts_on_payments(
             refund_amount -= item.amount
 
     total_refund_amount = Decimal(sum([item.amount for item in payments]))
+
     return total_refund_amount, shipping_refund_amount
 
 
