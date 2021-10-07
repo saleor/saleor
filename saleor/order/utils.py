@@ -18,6 +18,7 @@ from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
 from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
+from ..payment import ChargeStatus
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
 from ..warehouse.management import (
@@ -874,3 +875,21 @@ def remove_discount_from_order_line(
 
 def get_active_payments(order: Order) -> List[Payment]:
     return [p for p in order.payments.all() if p.is_active]
+
+
+def get_authorized_payments(order: Order) -> List[Payment]:
+    return [p for p in order.payments.all() if p.is_active and p.is_authorized]
+
+
+def get_captured_payments(order: Order) -> List[Payment]:
+    return [
+        p
+        for p in order.payments.all()
+        if p.is_active
+        and p.charge_status
+        in [
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.PARTIALLY_CHARGED,
+            ChargeStatus.PARTIALLY_REFUNDED,
+        ]
+    ]

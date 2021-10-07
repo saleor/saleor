@@ -6,7 +6,7 @@ from saleor.app.models import App
 from saleor.order import events
 from saleor.order.interface import OrderPaymentAction
 from saleor.order.models import Order
-from saleor.order.utils import get_active_payments
+from saleor.order.utils import get_authorized_payments
 from saleor.payment import PaymentError, TransactionKind, gateway
 from saleor.payment.models import Payment, Transaction
 from saleor.plugins.manager import PluginsManager
@@ -44,12 +44,12 @@ def capture_payments(
     app: Optional[App],
     amount: Decimal = None,
 ):
-    to_pay = amount or order.missing_amount_to_be_paid().amount
+    to_pay = amount or order.outstanding_balance.amount
     payments_to_notify = []
 
     # We iterate over payments in the order in which they were created
     authorized_payments = sorted(
-        [p for p in get_active_payments(order) if p.is_authorized],
+        get_authorized_payments(order),
         key=lambda p: p.pk,
     )
     for payment in authorized_payments:

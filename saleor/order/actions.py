@@ -7,9 +7,6 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 from django.contrib.sites.models import Site
 from django.db import transaction
 
-from saleor.order.capture_payment import capture_payments
-from saleor.order.interface import OrderPaymentAction
-
 from ..account.models import User
 from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
@@ -35,6 +32,7 @@ from . import (
     events,
     utils,
 )
+from .capture_payment import capture_payments
 from .events import (
     draft_order_created_from_replace_event,
     fulfillment_refunded_event,
@@ -42,6 +40,7 @@ from .events import (
     order_replacement_created,
     order_returned_event,
 )
+from .interface import OrderPaymentAction
 from .models import Fulfillment, FulfillmentLine, Order, OrderLine
 from .notifications import (
     send_fulfillment_confirmation_to_customer,
@@ -51,7 +50,8 @@ from .notifications import (
     send_payment_confirmation,
 )
 from .utils import (
-    get_active_payments,
+    get_authorized_payments,
+    get_captured_payments,
     order_line_needs_automatic_fulfillment,
     recalculate_order,
     restock_fulfillment_lines,
@@ -79,44 +79,32 @@ def order_created(
 ):
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
     manager.order_created(order)
-    payments = get_active_payments(order)
-    if payments:
-        authorized_payments = [
-            p for p in payments if p.charge_status == ChargeStatus.AUTHORIZED
-        ]
-        if authorized_payments:
-            order_authorized(
-                order=order,
-                user=user,
-                app=app,
-                amount=authorized_payments[0].total,
-                payment=authorized_payments[0],
-                manager=manager,
-            )
+    authorized_payments = get_authorized_payments(order)
+    if authorized_payments:
+        order_authorized(
+            order=order,
+            user=user,
+            app=app,
+            amount=authorized_payments[0].total,
+            payment=authorized_payments[0],
+            manager=manager,
+        )
 
-        captured_payments = [
-            p
-            for p in payments
-            if p.charge_status
-            in [
-                ChargeStatus.FULLY_CHARGED,
-                ChargeStatus.PARTIALLY_CHARGED,
-            ]
-        ]
-        if captured_payments:
-            order_captured(
-                order=order,
-                user=user,
-                app=app,
-                amounts_and_payments=[
-                    OrderPaymentAction(
-                        amount=payment.captured_amount,
-                        payment=payment,
-                    )
-                    for payment in captured_payments
-                ],
-                manager=manager,
-            )
+    captured_payments = get_captured_payments(order)
+    if captured_payments:
+        order_captured(
+            order=order,
+            user=user,
+            app=app,
+            payment_actions=[
+                OrderPaymentAction(
+                    amount=payment.captured_amount,
+                    payment=payment,
+                )
+                for payment in captured_payments
+            ],
+            manager=manager,
+        )
 
     site_settings = Site.objects.get_current().settings
     if site_settings.automatically_confirm_all_new_orders:
@@ -358,10 +346,10 @@ def order_captured(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    amounts_and_payments: List[OrderPaymentAction],
+    payment_actions: List[OrderPaymentAction],
     manager: "PluginsManager",
 ):
-    for amount_and_payment in amounts_and_payments:
+    for amount_and_payment in payment_actions:
         events.payment_captured_event(
             order=order,
             user=user,

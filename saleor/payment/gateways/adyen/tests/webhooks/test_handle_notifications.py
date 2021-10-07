@@ -5,11 +5,10 @@ from unittest import mock
 import graphene
 import pytest
 
-from saleor.order.interface import OrderPaymentAction
-
 from ......checkout import calculations
 from ......checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
+from ......order.interface import OrderPaymentAction
 from ......plugins.manager import get_plugins_manager
 from ..... import ChargeStatus, TransactionKind
 from .....utils import price_to_minor_unit
