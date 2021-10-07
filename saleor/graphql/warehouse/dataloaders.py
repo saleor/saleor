@@ -142,6 +142,151 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         ]
 
 
+class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugDEBUGLoader(
+    DataLoader[VariantIdCountryCodeChannelSlug, int]
+):
+    """Calculates available variant quantity based on variant ID and country code.
+
+    For each country code, for each shipping zone supporting that country,
+    calculate the maximum available quantity, then return either that number
+    or the maximum allowed checkout quantity, whichever is lower.
+    """
+
+    context_key = "available_quantity_by_productvariant_and_country_debug"
+
+    def batch_load(self, keys):
+        # Split the list of keys by country first. A typical query will only touch
+        # a handful of unique countries but may access thousands of product variants
+        # so it's cheaper to execute one query per country.
+        variants_by_country_and_channel: DefaultDict[
+            CountryCode, List[int]
+        ] = defaultdict(list)
+        for variant_id, country_code, channel_slug in keys:
+            variants_by_country_and_channel[(country_code, channel_slug)].append(
+                variant_id
+            )
+
+        # For each country code execute a single query for all product variants.
+        quantity_by_variant_and_country: DefaultDict[
+            VariantIdCountryCodeChannelSlug, str
+        ] = defaultdict(int)
+        for key, variant_ids in variants_by_country_and_channel.items():
+            country_code, channel_slug = key
+            quantities = self.batch_load_quantities_by_country(
+                country_code, channel_slug, variant_ids
+            )
+            for variant_id, debug_data in quantities:
+                quantity_by_variant_and_country[
+                    (variant_id, country_code, channel_slug)
+                ] = debug_data
+
+        return [quantity_by_variant_and_country[key] for key in keys]
+
+    def batch_load_quantities_by_country(
+        self,
+        country_code: Optional[CountryCode],
+        channel_slug: Optional[str],
+        variant_ids: Iterable[int],
+    ) -> Iterable[Tuple[int, int]]:
+        # get stocks only for warehouses assigned to the shipping zones
+        # that are available in the given channel
+        stocks = Stock.objects.filter(product_variant_id__in=variant_ids)
+        WarehouseShippingZone = Warehouse.shipping_zones.through  # type: ignore
+        warehouse_shipping_zones = WarehouseShippingZone.objects.all()
+        additional_warehouse_filter = False
+        if country_code or channel_slug:
+            additional_warehouse_filter = True
+            if country_code:
+                shipping_zones = ShippingZone.objects.filter(
+                    countries__contains=country_code
+                ).values("pk")
+                warehouse_shipping_zones = warehouse_shipping_zones.filter(
+                    Exists(shipping_zones.filter(pk=OuterRef("shippingzone_id")))
+                )
+            if channel_slug:
+                ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
+                channels = Channel.objects.filter(slug=channel_slug).values("pk")
+                shipping_zone_channels = ShippingZoneChannel.objects.filter(
+                    Exists(channels.filter(pk=OuterRef("channel_id")))
+                ).values("shippingzone_id")
+                warehouse_shipping_zones = warehouse_shipping_zones.filter(
+                    Exists(
+                        shipping_zone_channels.filter(
+                            shippingzone_id=OuterRef("shippingzone_id")
+                        )
+                    )
+                )
+        warehouse_shipping_zones_map = defaultdict(list)
+        for warehouse_shipping_zone in warehouse_shipping_zones:
+            warehouse_shipping_zones_map[warehouse_shipping_zone.warehouse_id].append(
+                warehouse_shipping_zone.shippingzone_id
+            )
+        if additional_warehouse_filter:
+            stocks = stocks.filter(warehouse_id__in=warehouse_shipping_zones_map.keys())
+        stocks = stocks.annotate_available_quantity()
+
+        if is_reservation_enabled(self.context.site.settings):  # type: ignore
+            stocks = stocks.annotate_reserved_quantity()
+
+        debug_data = {}
+
+        # A single country code (or a missing country code) can return results from
+        # multiple shipping zones. We want to combine all quantities within a single
+        # zone and then find out which zone contains the highest total.
+        quantity_by_shipping_zone_by_product_variant: DefaultDict[
+            int, DefaultDict[int, int]
+        ] = defaultdict(lambda: defaultdict(int))
+        for stock in stocks:
+            reserved_quantity = getattr(stock, "reserved_quantity", 0)
+            quantity = max(0, stock.available_quantity - reserved_quantity)
+            debug_data[stock.product_variant_id] = {
+                "stock.id": stock.id,
+                "stock.quantity": stock.quantity,
+                "stock.available_quantity": stock.available_quantity,
+                "stock.reserved_quantity": getattr(stock, "reserved_quantity", 0),
+                "quantity": max(0, stock.available_quantity - reserved_quantity),
+                "quantity_final": 0,
+            }
+
+            variant_id = stock.product_variant_id
+            warehouse_id = stock.warehouse_id
+            shipping_zone_ids = warehouse_shipping_zones_map[warehouse_id]
+            for shipping_zone_id in shipping_zone_ids:
+                quantity_by_shipping_zone_by_product_variant[variant_id][
+                    shipping_zone_id
+                ] += quantity
+
+            debug_data[stock.product_variant_id]["shipping_zones"] = shipping_zone_ids
+
+        for (
+            variant_id,
+            quantity_by_shipping_zone,
+        ) in quantity_by_shipping_zone_by_product_variant.items():
+            quantity_values = quantity_by_shipping_zone.values()
+            if country_code:
+                # When country code is known, return the sum of quantities from all
+                # shipping zones supporting given country.
+                quantity_final = sum(quantity_values)
+
+            else:
+                # When country code is unknown, return the highest known quantity.
+                quantity_final = max(quantity_values)
+
+            debug_data[variant_id]["quantity_final"] = min(
+                quantity_final, settings.MAX_CHECKOUT_LINE_QUANTITY
+            )
+
+        # Return the quantities after capping them at the maximum quantity allowed in
+        # checkout. This prevent users from tracking the store's precise stock levels.
+        return [
+            (
+                variant_id,
+                str(debug_data.get(variant_id, "")),
+            )
+            for variant_id in variant_ids
+        ]
+
+
 class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
     DataLoader[VariantIdCountryCodeChannelSlug, Iterable[Stock]]
 ):

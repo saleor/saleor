@@ -76,6 +76,7 @@ from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
+    AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugDEBUGLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
 from ...warehouse.types import Stock
@@ -287,6 +288,21 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             ),
         ),
     )
+    quantity_available_debug = graphene.String(
+        required=True,
+        description="Quantity of a product available for sale in one checkout.",
+        address=destination_address_argument,
+        country_code=graphene.Argument(
+            CountryCodeEnum,
+            description=(
+                "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
+                "from a warehouse operating in shipping zones that contain this "
+                "country will be returned. Otherwise, it will return the maximum "
+                "quantity from all shipping zones. "
+                f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
+            ),
+        ),
+    )
     preorder = graphene.Field(
         PreorderData,
         required=False,
@@ -375,6 +391,57 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             return settings.MAX_CHECKOUT_LINE_QUANTITY
 
         return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
+            info.context
+        ).load((root.node.id, country_code, str(root.channel_slug)))
+
+    @staticmethod
+    def resolve_quantity_available_debug(
+        root: ChannelContext[models.ProductVariant],
+        info,
+        address=None,
+        country_code=None,
+    ):
+        if address is not None:
+            country_code = address.country
+
+        if root.node.is_preorder_active():
+            variant = root.node
+            channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
+                info.context
+            ).load((variant.id, str(root.channel_slug)))
+
+            def calculate_available_per_channel(channel_listing):
+                if channel_listing.preorder_quantity_threshold is not None:
+                    return min(
+                        channel_listing.preorder_quantity_threshold
+                        - channel_listing.preorder_quantity_allocated,
+                        settings.MAX_CHECKOUT_LINE_QUANTITY,
+                    )
+                if variant.preorder_global_threshold is not None:
+                    variant_channel_listings = VariantChannelListingByVariantIdLoader(
+                        info.context
+                    ).load(variant.id)
+
+                    def calculate_available_global(variant_channel_listings):
+                        global_sold_units = sum(
+                            channel_listing.preorder_quantity_allocated
+                            for channel_listing in variant_channel_listings
+                        )
+                        return min(
+                            variant.preorder_global_threshold - global_sold_units,
+                            settings.MAX_CHECKOUT_LINE_QUANTITY,
+                        )
+
+                    return variant_channel_listings.then(calculate_available_global)
+
+                return settings.MAX_CHECKOUT_LINE_QUANTITY
+
+            return channel_listing.then(calculate_available_per_channel)
+
+        if not root.node.track_inventory:
+            return settings.MAX_CHECKOUT_LINE_QUANTITY
+
+        return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugDEBUGLoader(
             info.context
         ).load((root.node.id, country_code, str(root.channel_slug)))
 
