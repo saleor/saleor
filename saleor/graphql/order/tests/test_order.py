@@ -4653,6 +4653,57 @@ def test_order_capture(
     )
 
 
+def test_order_capture_more_than_outstanding(
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+):
+    # given
+    order = payment_txn_preauth.order
+    amount = payment_txn_preauth.total
+    order.total_paid_amount = order.total_gross_amount - amount + Decimal("1")
+    order.save()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    # when
+    variables = {"id": order_id, "amount": float(amount)}
+    response = staff_api_client.post_graphql(
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    # then
+    errors = content["data"]["orderCapture"]["errors"]
+    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG.name
+    assert "outstanding balance" in errors[0]["message"]
+
+
+@patch("saleor.graphql.order.mutations.orders.get_total_authorized")
+def test_order_capture_more_than_authorized(
+    mocked_auth_amount,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+):
+    # given
+    order = payment_txn_preauth.order
+    amount = payment_txn_preauth.total
+    mocked_auth_amount.return_value = Money(amount - Decimal("1"), order.currency)
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    # when
+    variables = {"id": order_id, "amount": float(amount)}
+    response = staff_api_client.post_graphql(
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    # then
+    errors = content["data"]["orderCapture"]["errors"]
+    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG.name
+    assert "authorized amount" in errors[0]["message"]
+    mocked_auth_amount.assert_called_once_with(
+        [payment_txn_preauth],
+        order.currency,
+    )
+
+
 @patch("saleor.payment.gateway.capture")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_order_capture_payment_error(
@@ -5346,7 +5397,7 @@ def test_clean_order_refund_payment():
 
 def test_clean_order_capture():
     with pytest.raises(ValidationError) as e:
-        clean_order_capture(None)
+        clean_order_capture(None, None, Decimal("10"))
     msg = "There are no active payments associated with the order."
     assert e.value.error_dict["payment"][0].message == msg
 
@@ -7569,7 +7620,7 @@ def test_order_active_payments(order, payment_dummy, is_active, excpected_in):
     assert (payment_dummy in payments) == excpected_in
 
 
-def test_order_missing_amount_to_be_paid(order):
+def test_order_outstanding_balance(order):
     # given
     order.total = TaxedMoney(
         net=Money(amount=50, currency="USD"), gross=Money(amount=100, currency="USD")
@@ -7579,7 +7630,7 @@ def test_order_missing_amount_to_be_paid(order):
     order.refresh_from_db()
 
     # when
-    to_pay = order.missing_amount_to_be_paid()
+    to_pay = order.outstanding_balance
 
     # then
     assert to_pay == Money(amount=30, currency="USD")

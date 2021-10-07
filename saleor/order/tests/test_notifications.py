@@ -6,14 +6,13 @@ from graphql_relay import to_global_id
 from measurement.measures import Weight
 from prices import Money, fixed_discount
 
-from saleor.order.interface import OrderPaymentAction
-
 from ...core.notify_events import NotifyEventType
 from ...discount import DiscountValueType
 from ...order import notifications
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContentUrl
+from ..interface import OrderPaymentAction
 from ..notifications import (
     get_address_payload,
     get_default_fulfillment_line_payload,

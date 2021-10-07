@@ -11,7 +11,6 @@ from prices import Money
 
 from ..checkout.models import Checkout
 from ..core.permissions import PaymentPermissions
-from ..core.taxes import zero_money
 from . import ChargeStatus, CustomPaymentChoices, TransactionKind
 
 
@@ -135,40 +134,6 @@ class Payment(models.Model):
         if self.charge_status == ChargeStatus.AUTHORIZED:
             return self.total
         return self.captured_amount
-
-    def get_authorized_amount(self):
-        money = zero_money(self.currency)
-
-        # Query all the transactions which should be prefetched
-        # to optimize db queries
-        transactions = self.transactions.all()
-
-        # There is no authorized amount anymore when capture is succeeded
-        # since capture can only be made once, even it is a partial capture
-        if any(
-            [
-                txn.kind == TransactionKind.CAPTURE and txn.is_success
-                for txn in transactions
-            ]
-        ):
-            return money
-
-        # Filter the succeeded auth transactions
-        authorized_txns = [
-            txn
-            for txn in transactions
-            if txn.kind == TransactionKind.AUTH
-            and txn.is_success
-            and not txn.action_required
-        ]
-
-        # Calculate authorized amount from all succeeded auth transactions
-        for txn in authorized_txns:
-            money += Money(txn.amount, self.currency)
-
-        # If multiple partial capture is supported later though it's unlikely,
-        # the authorized amount should exclude the already captured amount here
-        return money
 
     def get_captured_amount(self):
         return Money(self.captured_amount, self.currency)

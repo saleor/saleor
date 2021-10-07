@@ -1,8 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from saleor.order.interface import OrderPaymentAction
-
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
@@ -10,24 +8,27 @@ from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderLineData, OrderStatus, events, models
 from ....order.actions import (
-    _capture_payments,
-    _void_payments,
     cancel_order,
+    capture_payments,
     make_refund,
     mark_order_as_paid,
     order_confirmed,
     order_shipping_updated,
+    void_payments,
 )
 from ....order.error_codes import OrderErrorCode
+from ....order.interface import OrderPaymentAction
 from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
     get_active_payments,
+    get_authorized_payments,
     get_valid_shipping_methods_for_order,
     recalculate_order,
     update_order_prices,
 )
+from ....payment.model_helpers import get_total_authorized
 from ....shipping import models as shipping_models
 from ...account.types import AddressInput
 from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
@@ -101,8 +102,38 @@ def clean_payments(payments):
         )
 
 
-def clean_order_capture(payments):
+def clean_order_capture(order, payments, amount):
+    if amount <= 0:
+        raise ValidationError(
+            {
+                "amount": ValidationError(
+                    "Amount should be a positive number.",
+                    code=OrderErrorCode.ZERO_QUANTITY,
+                )
+            }
+        )
+
     clean_payments(payments)
+
+    if order.outstanding_balance.amount < amount:
+        raise ValidationError(
+            {
+                "amount": ValidationError(
+                    "Amount should less than the outstanding balance.",
+                    code=OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG,
+                )
+            }
+        )
+
+    if get_total_authorized(payments, order.currency).amount < amount:
+        raise ValidationError(
+            {
+                "amount": ValidationError(
+                    "Amount should less than or equal the authorized amount.",
+                    code=OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG,
+                )
+            }
+        )
 
 
 def clean_void_payments(payments):
@@ -441,21 +472,26 @@ class OrderMarkAsPaid(BaseMutation):
             )
 
     @classmethod
+    def clean_order(cls, app, order, user):
+        if not order.payments.exists():
+            return
+
+        message = "Orders with payments can not be manually marked as paid."
+        events.payment_capture_failed_event(
+            order=order, user=user, app=app, message=message, payment=None
+        )
+        raise ValidationError(
+            {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
+        )
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         transaction_reference = data.get("transaction_reference")
-        cls.clean_billing_address(order)
         user = info.context.user
         app = info.context.app
-
-        if order.payments.exists():
-            message = "Orders with payments can not be manually marked as paid."
-            events.payment_capture_failed_event(
-                order=order, user=user, app=app, message=message, payment=None
-            )
-            raise ValidationError(
-                {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
-            )
+        cls.clean_billing_address(order)
+        cls.clean_order(app, order, user)
 
         mark_order_as_paid(
             order, user, app, info.context.plugins, transaction_reference
@@ -480,26 +516,16 @@ class OrderCapture(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, amount, **data):
-        if amount <= 0:
-            raise ValidationError(
-                {
-                    "amount": ValidationError(
-                        "Amount should be a positive number.",
-                        code=OrderErrorCode.ZERO_QUANTITY,
-                    )
-                }
-            )
-
         order = cls.get_node_or_error(
             info,
             data.get("id"),
             only_type=Order,
             qs=models.Order.objects.prefetch_related("payments"),
         )
-        payments = [p for p in get_active_payments(order) if p.is_authorized]
-        clean_order_capture(payments)
+        payments = get_authorized_payments(order)
+        clean_order_capture(order, payments, amount)
         manager = info.context.plugins
-        failed_events = _capture_payments(
+        failed_events = capture_payments(
             order,
             info.context.user,
             info.context.app,
@@ -537,7 +563,7 @@ class OrderVoid(BaseMutation):
         payments = [p for p in get_active_payments(order)]
         clean_void_payments(payments)
         manager = info.context.plugins
-        failed_events = _void_payments(
+        failed_events = void_payments(
             order,
             info.context.user,
             info.context.app,

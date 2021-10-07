@@ -27,7 +27,7 @@ from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.model_helpers import get_subtotal, get_total_authorized
+from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderOrigin, OrderStatus
@@ -270,9 +270,6 @@ class Order(ModelWithMetadata):
     def is_fully_paid(self):
         return self.total_paid >= self.total.gross
 
-    def missing_amount_to_be_paid(self):
-        return self.total.gross - self.total_paid
-
     def is_partly_paid(self):
         return self.total_paid_amount > 0
 
@@ -358,16 +355,16 @@ class Order(ModelWithMetadata):
         return len(payments) == 0
 
     @property
-    def total_authorized(self):
-        return get_total_authorized(self.payments.all(), self.currency)
-
-    @property
     def total_captured(self):
         return self.total_paid
 
     @property
     def total_balance(self):
         return self.total_captured - self.total.gross
+
+    @property
+    def outstanding_balance(self):
+        return self.total.gross - self.total_paid
 
     def get_total_weight(self, *_args):
         return self.weight

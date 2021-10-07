@@ -7,14 +7,13 @@ from django.http import HttpResponse
 from stripe.error import SignatureVerificationError
 from stripe.stripe_object import StripeObject
 
-from saleor.order.interface import OrderPaymentAction
-
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....discount.utils import fetch_active_discounts
 from ....order.actions import order_captured, order_refunded, order_voided
+from ....order.interface import OrderPaymentAction
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
