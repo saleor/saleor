@@ -50,7 +50,8 @@ from .notifications import (
     send_payment_confirmation,
 )
 from .utils import (
-    get_active_payments,
+    get_authorized_payments,
+    get_captured_payments,
     order_line_needs_automatic_fulfillment,
     recalculate_order,
     restock_fulfillment_lines,
@@ -78,44 +79,32 @@ def order_created(
 ):
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
     manager.order_created(order)
-    payments = get_active_payments(order)
-    if payments:
-        authorized_payments = [
-            p for p in payments if p.charge_status == ChargeStatus.AUTHORIZED
-        ]
-        if authorized_payments:
-            order_authorized(
-                order=order,
-                user=user,
-                app=app,
-                amount=authorized_payments[0].total,
-                payment=authorized_payments[0],
-                manager=manager,
-            )
+    authorized_payments = get_authorized_payments(order)
+    if authorized_payments:
+        order_authorized(
+            order=order,
+            user=user,
+            app=app,
+            amount=authorized_payments[0].total,
+            payment=authorized_payments[0],
+            manager=manager,
+        )
 
-        captured_payments = [
-            p
-            for p in payments
-            if p.charge_status
-            in [
-                ChargeStatus.FULLY_CHARGED,
-                ChargeStatus.PARTIALLY_CHARGED,
-            ]
-        ]
-        if captured_payments:
-            order_captured(
-                order=order,
-                user=user,
-                app=app,
-                payment_actions=[
-                    OrderPaymentAction(
-                        amount=payment.captured_amount,
-                        payment=payment,
-                    )
-                    for payment in captured_payments
-                ],
-                manager=manager,
-            )
+    captured_payments = get_captured_payments(order)
+    if captured_payments:
+        order_captured(
+            order=order,
+            user=user,
+            app=app,
+            payment_actions=[
+                OrderPaymentAction(
+                    amount=payment.captured_amount,
+                    payment=payment,
+                )
+                for payment in captured_payments
+            ],
+            manager=manager,
+        )
 
     site_settings = Site.objects.get_current().settings
     if site_settings.automatically_confirm_all_new_orders:

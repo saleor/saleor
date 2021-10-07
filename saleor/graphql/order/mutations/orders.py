@@ -22,7 +22,7 @@ from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
-    get_active_payments,
+    get_authorized_payments,
     get_valid_shipping_methods_for_order,
     recalculate_order,
     update_order_prices,
@@ -548,7 +548,7 @@ class OrderCapture(BaseMutation):
             only_type=Order,
             qs=models.Order.objects.prefetch_related("payments"),
         )
-        payments = [p for p in get_active_payments(order) if p.is_authorized]
+        payments = get_authorized_payments(order)
         clean_order_capture(order, payments, amount)
         manager = info.context.plugins
         _capture_payments(
