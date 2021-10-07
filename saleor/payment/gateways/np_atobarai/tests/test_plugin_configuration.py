@@ -5,8 +5,8 @@ import pytest
 import requests
 from django.core.exceptions import ValidationError
 
-from .....plugins.models import PluginConfiguration
 from .... import PaymentError
+from ..plugin import NPAtobaraiGatewayPlugin
 
 
 @pytest.fixture
@@ -23,9 +23,8 @@ def test_validate_plugin_configuration_valid_credentials(
     plugin = np_atobarai_plugin()
     response = Mock(spec=requests.Response, status_code=status_code)
     mocked_request.return_value = response
-    configuration = PluginConfiguration.objects.get()
     # when
-    plugin.validate_plugin_configuration(configuration)
+    NPAtobaraiGatewayPlugin.validate_plugin_configuration(plugin)
     # then: no exception
 
 
@@ -38,11 +37,10 @@ def test_validate_plugin_configuration_invalid_credentials(
     plugin = np_atobarai_plugin()
     response = Mock(spec=requests.Response, status_code=status_code)
     mocked_request.return_value = response
-    configuration = PluginConfiguration.objects.get()
     # then
     with pytest.raises(ValidationError):
         # when
-        plugin.validate_plugin_configuration(configuration)
+        NPAtobaraiGatewayPlugin.validate_plugin_configuration(plugin)
 
 
 @mock.patch("saleor.payment.gateways.np_atobarai.api.requests.request")
@@ -51,11 +49,10 @@ def test_validate_plugin_configuration_missing_data(mocked_request, np_atobarai_
     plugin = np_atobarai_plugin(merchant_code=None, sp_code=None, terminal_id=None)
     response = Mock(spec=requests.Response, status_code=200)
     mocked_request.return_value = response
-    plugin_configuration = PluginConfiguration.objects.get()
 
     # when
     with pytest.raises(ValidationError) as excinfo:
-        plugin.validate_plugin_configuration(plugin_configuration)
+        NPAtobaraiGatewayPlugin.validate_plugin_configuration(plugin)
 
     # then
     assert len(excinfo.value.error_dict) == 3

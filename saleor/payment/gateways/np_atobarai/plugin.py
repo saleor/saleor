@@ -126,8 +126,13 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
 
         if not response:
             raise ValidationError(
-                "Authentication failed. Please check provided data.",
-                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                {
+                    field: ValidationError(
+                        "Authentication failed. Please check provided data.",
+                        code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                    )
+                    for field in [MERCHANT_CODE, SP_CODE, TERMINAL_ID]
+                }
             )
 
     @classmethod

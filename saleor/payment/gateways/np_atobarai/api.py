@@ -57,7 +57,9 @@ def np_request(
             raise requests.HTTPError
         return response
     except requests.RequestException:
-        raise PaymentError("Cannot connect to NP Atobarai.")
+        msg = "Cannot connect to NP Atobarai."
+        logger.warning(msg, exc_info=True)
+        raise PaymentError(msg)
 
 
 def health_check(config: ApiConfig) -> bool:
@@ -207,10 +209,18 @@ def _get_errors(response_data: dict) -> Iterable[str]:
 def cancel_transaction(
     config: ApiConfig, payment_information: PaymentData
 ) -> PaymentResult:
-    psp_reference = Payment.objects.get(id=payment_information.payment_id).psp_reference
+    payment_id = payment_information.payment_id
+    payment = Payment.objects.filter(id=payment_id).first()
+
+    if not payment:
+        raise PaymentError(f"Payment with id {payment_id} does not exist.")
+
+    psp_reference = payment.psp_reference
 
     if not psp_reference:
-        raise PaymentError("Payment cannot be voided.")
+        raise PaymentError(
+            f"Payment with id {payment_id} cannot be voided - psp reference is missing."
+        )
 
     status = PaymentStatus.SUCCESS
     response_data = _cancel(config, psp_reference)
