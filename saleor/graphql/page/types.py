@@ -10,6 +10,7 @@ from ..attribute.filters import AttributeFilterInput
 from ..attribute.types import Attribute, SelectedAttribute
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.federation import resolve_federation_references
 from ..core.fields import FilterInputConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
@@ -114,10 +115,4 @@ class PageType(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["PageType"], info, **_kwargs):
-        ids = [
-            int(from_global_id_or_error(root.id, PageType, raise_error=True)[1])
-            for root in roots
-        ]
-        qs = models.PageType.objects.filter(id__in=ids)
-        page_types = {page_type.id: page_type for page_type in qs}
-        return [page_types.get(root_id) for root_id in ids]
+        return resolve_federation_references(PageType, roots, models.PageType.objects)

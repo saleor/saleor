@@ -42,6 +42,7 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
 )
 from ...core.enums import ReportingPeriod
+from ...core.federation import resolve_federation_references
 from ...core.fields import (
     ChannelContextFilterConnectionField,
     FilterInputConnectionField,
@@ -1198,13 +1199,9 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["ProductType"], _info, **_kwargs):
-        ids = [
-            int(from_global_id_or_error(root.id, ProductType, raise_error=True)[1])
-            for root in roots
-        ]
-        qs = models.ProductType.objects.filter(id__in=ids)
-        product_types = {product_type.id: product_type for product_type in qs}
-        return [product_types.get(root_id) for root_id in ids]
+        return resolve_federation_references(
+            ProductType, roots, models.ProductType.objects
+        )
 
 
 @key(fields="id channel")
@@ -1294,6 +1291,8 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["Collection"], info, **_kwargs):
+        from ..resolvers import resolve_collections
+
         requestor = get_user_or_app_from_context(info.context)
         channels = defaultdict(set)
         roots_ids = []
@@ -1304,9 +1303,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
         collections = {}
         for channel, ids in channels.items():
-            queryset = models.Collection.objects.visible_to_user(
-                requestor, channel
-            ).filter(id__in=ids)
+            queryset = resolve_collections(info, channel).qs.filter(id__in=ids)
 
             for collection in queryset:
                 collections[f"{channel}_{collection.id}"] = ChannelContext(
@@ -1415,13 +1412,7 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["Category"], _info, **_kwargs):
-        ids = [
-            int(from_global_id_or_error(root.id, Category, raise_error=True)[1])
-            for root in roots
-        ]
-        qs = models.Category.objects.filter(id__in=ids)
-        categories = {category.id: category for category in qs}
-        return [categories.get(root_id) for root_id in ids]
+        return resolve_federation_references(Category, roots, models.Category.objects)
 
 
 @key(fields="id")
@@ -1451,13 +1442,9 @@ class ProductMedia(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["ProductMedia"], _info, **_kwargs):
-        ids = [
-            int(from_global_id_or_error(root.id, ProductMedia, raise_error=True)[1])
-            for root in roots
-        ]
-        qs = models.ProductMedia.objects.filter(id__in=ids)
-        medias = {media.id: media for media in qs}
-        return [medias.get(root_id) for root_id in ids]
+        return resolve_federation_references(
+            ProductMedia, roots, models.ProductMedia.objects
+        )
 
 
 class ProductImage(graphene.ObjectType):

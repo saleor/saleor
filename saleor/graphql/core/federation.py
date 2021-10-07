@@ -7,6 +7,7 @@ from graphene_federation.entity import custom_entities
 from graphql import GraphQLError
 
 from ..channel import ChannelContext
+from .utils import from_global_id_or_error
 
 
 def build_federated_schema(query=None, mutation=None, **kwargs):
@@ -74,3 +75,14 @@ def set_entity_type_resolver(schema):
         return org_type_resolver(instance, info)
 
     entity.resolve_type = resolve_entity_type
+
+
+def resolve_federation_references(graphql_type, roots, qs):
+    """Generic resolver function for simple federated types"""
+    ids = [
+        from_global_id_or_error(root.id, graphql_type, raise_error=True)[1]
+        for root in roots
+    ]
+    qs = qs.filter(id__in=ids)
+    objects = {str(obj.id): obj for obj in qs}
+    return [objects.get(root_id) for root_id in ids]

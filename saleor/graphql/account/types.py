@@ -26,6 +26,7 @@ from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
+from ..core.federation import resolve_federation_references
 from ..core.fields import PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, Permission
@@ -130,22 +131,18 @@ class Address(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["Address"], info, **_kwargs):
-        user = info.context.user
-        app = info.context.app
+        from .resolvers import resolve_addresses
 
-        ids = [
-            int(from_global_id_or_error(root.id, Address, raise_error=True)[1])
-            for root in roots
-        ]
-        if app and app.has_perm(AccountPermissions.MANAGE_USERS):
-            qs = models.Address.objects.filter(id__in=ids)
-        elif user and not user.is_anonymous:
-            qs = user.addresses.filter(id__in=ids)
-        else:
-            return [None] * len(roots)
+        root_ids = [root.id for root in roots]
+        addresses = {
+            address.id: address for address in resolve_addresses(info, root_ids)
+        }
 
-        addresses = {address.id: address for address in qs}
-        return [addresses.get(root_id) for root_id in ids]
+        result = []
+        for root_id in root_ids:
+            _, root_id = from_global_id_or_error(root_id, Address)
+            result.append(addresses.get(int(root_id)))
+        return result
 
 
 class CustomerEvent(CountableDjangoObjectType):
@@ -544,14 +541,12 @@ class Group(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["Group"], info, **_kwargs):
+        from .resolvers import resolve_permission_groups
+
         requestor = get_user_or_app_from_context(info.context)
         if not requestor.has_perm(AccountPermissions.MANAGE_STAFF):
-            return [None] * len(roots)
+            qs = auth_models.Group.objects.none()
+        else:
+            qs = resolve_permission_groups(info)
 
-        ids = [
-            int(from_global_id_or_error(root.id, Group, raise_error=True)[1])
-            for root in roots
-        ]
-        qs = auth_models.Group.objects.filter(id__in=ids)
-        groups = {group.id: group for group in qs}
-        return [groups.get(root_id) for root_id in ids]
+        return resolve_federation_references(Group, roots, qs)

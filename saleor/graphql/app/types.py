@@ -8,6 +8,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
+from ..core.federation import resolve_federation_references
 from ..core.types import Permission
 from ..core.types.common import Job
 from ..core.utils import from_global_id_or_error
@@ -207,17 +208,15 @@ class App(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["App"], info, **_kwargs):
+        from .resolvers import resolve_apps
+
         requestor = get_user_or_app_from_context(info.context)
         if not requestor.has_perm(AppPermission.MANAGE_APPS):
-            return [None] * len(roots)
+            qs = models.App.objects.none()
+        else:
+            qs = resolve_apps(info)
 
-        ids = [
-            int(from_global_id_or_error(root.id, App, raise_error=True)[1])
-            for root in roots
-        ]
-        qs = models.App.objects.filter(id__in=ids)
-        apps = {app.id: app for app in qs}
-        return [apps.get(root_id) for root_id in ids]
+        return resolve_federation_references(App, roots, qs)
 
 
 class AppInstallation(CountableDjangoObjectType):
