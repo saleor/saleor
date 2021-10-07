@@ -598,7 +598,7 @@ class Order(CountableDjangoObjectType):
         ShippingMethod,
         required=False,
         description=(
-             "Shipping methods that can be used with this order. Deprecated in 4.0."
+            "Shipping methods that can be used with this order. Deprecated in 4.0."
         ),
     )
     shipping_methods = graphene.List(
