@@ -429,7 +429,7 @@ def test_order_query_shipping_method_channel_listing_does_not_exist(
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert order_data["shippingMethod"]["id"] == graphene.Node.to_global_id(
-        "ShippingMethodType", order.shipping_method.id
+        "ShippingMethod", order.shipping_method.id
     )
 
 

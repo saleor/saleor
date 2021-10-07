@@ -3736,7 +3736,6 @@ type Order implements Node & ObjectWithMetadata {
   trackingClientId: String!
   billingAddress: Address
   shippingAddress: Address
-  shippingMethod: ShippingMethodType
   shippingMethodName: String
   channel: Channel!
   shippingPrice: TaxedMoney!
@@ -3765,6 +3764,7 @@ type Order implements Node & ObjectWithMetadata {
   payments: [Payment]
   total: TaxedMoney!
   undiscountedTotal: TaxedMoney!
+  shippingMethod: ShippingMethod
   subtotal: TaxedMoney!
   statusDisplay: String
   canFinalize: Boolean!
