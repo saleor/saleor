@@ -22,9 +22,9 @@ assignees: ''
 <!-- If applicable, add screenshots to help explain your problem. -->
 
 **System information**
-<!-- Provide the version of Saleor or whether you're using it from the `master` branch. If using Saleor Dashboard or Storefront, provide their versions too. -->
+<!-- Provide the version of Saleor or whether you're using it from the `main` branch. If using Saleor Dashboard or Storefront, provide their versions too. -->
 Saleor version:
-- [ ] dev (current master)
+- [ ] dev (current main)
 - [ ] 3.0
 - [ ] 2.11
 - [ ] 2.10

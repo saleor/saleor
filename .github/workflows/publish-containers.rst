@@ -13,7 +13,7 @@ Tagging Process
 | ``refs/tags/1.0.0rc1``            | ghcr.io/mirumee/saleor:1.0.0rc1                                       |
 |                                   | ghcr.io/mirumee/saleor:snapshot                                       |
 +-----------------------------------+-----------------------------------------------------------------------+
-| ``refs/heads/master``             | docker.io/mirumee/saleor:master                                       |
+| ``refs/heads/main``               | docker.io/mirumee/saleor:main                                       |
 |                                   | docker.io/mirumee/saleor:sha-8ccaf90855b4a4251659c382a86e7e58f173c4e3 |
 +-----------------------------------+-----------------------------------------------------------------------+
 | ``refs/heads/preview/my-feature`` | docker.io/mirumee/saleor:my-feature                                   |
@@ -39,7 +39,7 @@ When the image is built, the following instructions will be provided to the belo
 +-----------------------------------+--------------------------------------------------------+
 | ``refs/tags/1.0.0a1``             | 1.0.0a1                                                |
 +-----------------------------------+--------------------------------------------------------+
-| ``refs/heads/master``             | heads/master-0-g8ccaf9                                 |
+| ``refs/heads/main``               | heads/main-0-g8ccaf9                                   |
 +-----------------------------------+--------------------------------------------------------+
 | ``refs/heads/preview/my-feature`` | heads/preview/my-feature-0-gd12214                     |
 +-----------------------------------+--------------------------------------------------------+

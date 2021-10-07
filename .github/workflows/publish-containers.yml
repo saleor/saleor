@@ -6,7 +6,7 @@ on:
       # Matches stable and pre-releases
       - "[0-9]+.[0-9]+.[0-9]+*"
     branches:
-      - master
+      - main
       - ci/**
 
 jobs:
