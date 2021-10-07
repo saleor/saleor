@@ -11,7 +11,6 @@ from ..core.descriptions import ADDED_IN_31
 from ..core.federation import resolve_federation_references
 from ..core.types import Permission
 from ..core.types.common import Job
-from ..core.utils import from_global_id_or_error
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook

@@ -12,7 +12,6 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.federation import resolve_federation_references
 from ..core.fields import FilterInputConnectionField
-from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
