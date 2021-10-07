@@ -5650,7 +5650,6 @@ type ProductVariant implements Node & ObjectWithMetadata {
   digitalContent: DigitalContent
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]
   quantityAvailable(address: AddressInput, countryCode: CountryCode): Int!
-  quantityAvailableDebug(address: AddressInput, countryCode: CountryCode): String!
   preorder: PreorderData
 }
 
