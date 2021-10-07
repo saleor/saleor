@@ -917,6 +917,7 @@ def create_refund_fulfillment(
     order_lines_to_refund: List[OrderLineData],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     manager: "PluginsManager",
+    include_shipping_costs: bool,
 ):
     """Proceed with all steps required for refunding products.
 
@@ -925,20 +926,6 @@ def create_refund_fulfillment(
     quantities which is used to create the refund fulfillment. The stock for
     unfulfilled lines will be deallocated.
     """
-    # Amount to be eventually specified in the Fulfillment object.
-    counted_shipping_amount = None
-    for item in payments:
-        if item.include_shipping_costs:
-            if item.amount == 0:
-                counted_shipping_amount = order.shipping_price_gross_amount
-            if not item.from_deprecated_request:
-                shipping_refund_amount = __get_shipping_refund_amount(
-                    item.include_shipping_costs,
-                    item.amount,
-                    order.shipping_price_gross_amount,
-                )
-                if shipping_refund_amount:
-                    item.amount = shipping_refund_amount
 
     with transaction_with_commit_on_errors():
         total_refund_amount, shipping_refund_amount = _process_refund(
@@ -949,13 +936,14 @@ def create_refund_fulfillment(
             order_lines_to_refund=order_lines_to_refund,
             fulfillment_lines_to_refund=fulfillment_lines_to_refund,
             manager=manager,
+            include_shipping_costs=include_shipping_costs,
         )
 
         refunded_fulfillment = Fulfillment.objects.create(
             status=FulfillmentStatus.REFUNDED,
             order=order,
             total_refund_amount=total_refund_amount,
-            shipping_refund_amount=counted_shipping_amount,
+            shipping_refund_amount=shipping_refund_amount,
         )
         created_fulfillment_lines = _move_order_lines_to_target_fulfillment(
             order_lines_to_move=order_lines_to_refund,
@@ -1259,6 +1247,7 @@ def create_fulfillments_for_returned_products(
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
     manager: "PluginsManager",
+    include_shipping_costs: bool,
     refund: bool = False,
 ) -> Tuple[Fulfillment, Optional[Fulfillment], Optional[Order]]:
     """Process the request for replacing or returning the products.
@@ -1298,6 +1287,7 @@ def create_fulfillments_for_returned_products(
                 order_lines_to_refund=return_order_lines,
                 fulfillment_lines_to_refund=return_fulfillment_lines,
                 manager=manager,
+                include_shipping_costs=include_shipping_costs,
             )
 
         replace_order_lines = [data for data in order_lines if data.replace]
@@ -1364,7 +1354,9 @@ def _calculate_refund_amount(
     return refund_amount
 
 
-def _update_missing_amounts_on_payments(refund_amount, payments, order):
+def _update_missing_amounts_on_payments(
+    refund_amount, payments, order, include_shipping_costs
+):
     """Add amounts to refund to payments that were sent without specified ones.
 
     Include shipping costs if needs be.
@@ -1375,29 +1367,17 @@ def _update_missing_amounts_on_payments(refund_amount, payments, order):
     refund_amount -= payments_total_amount
 
     shipping_refund_amount = None
-    for item in payments:
-        if item.include_shipping_costs:
-            refund_amount += order.shipping_price_gross_amount
-        if item.amount == 0:
-            if item.include_shipping_costs:
-                shipping_refund_amount = __get_shipping_refund_amount(
-                    item.include_shipping_costs,
-                    item.amount,
-                    order.shipping_price_gross_amount,
-                )
-                if item.from_deprecated_request:
-                    # If we still work with payments in a deprecated way,
-                    # then we expect only one payment to be in the list.
-                    # TODO: this part can be refactored once we fully switch
-                    # to the list of payments and will remove the separated
-                    # `amount_to_refund input.
-                    item.amount += min(refund_amount, item.payment.captured_amount)
-                else:
-                    item.amount += shipping_refund_amount
 
-            elif refund_amount > 0:
-                item.amount = min(refund_amount, item.payment.captured_amount)
-                refund_amount -= item.amount
+    if include_shipping_costs:
+        shipping_refund_amount = order.shipping_price_gross_amount
+        refund_amount += shipping_refund_amount
+
+    for item in payments:
+
+        # Only zero (not specified) amounts can be updated.
+        if item.amount == 0 and refund_amount > 0:
+            item.amount = min(refund_amount, item.payment.captured_amount)
+            refund_amount -= item.amount
 
     total_refund_amount = Decimal(sum([item.amount for item in payments]))
     return total_refund_amount, shipping_refund_amount
@@ -1412,13 +1392,14 @@ def _process_refund(
     order_lines_to_refund: List[OrderLineData],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     manager: "PluginsManager",
+    include_shipping_costs: bool,
 ):
     lines_to_refund: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
     refund_amount = _calculate_refund_amount(
         order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
     )
     total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
-        refund_amount, payments, order
+        refund_amount, payments, order, include_shipping_costs
     )
 
     for item in payments:

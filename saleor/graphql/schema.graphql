@@ -4851,13 +4851,11 @@ type PaymentSource {
 input PaymentToRefundInput {
   paymentId: ID!
   amount: PositiveDecimal
-  includeShippingCosts: Boolean = false
 }
 
 input PaymentToReturnInput {
   paymentId: ID!
   amount: PositiveDecimal
-  includeShippingCosts: Boolean = false
 }
 
 type PaymentVoid {
