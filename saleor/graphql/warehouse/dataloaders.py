@@ -223,10 +223,19 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugDEBUGLoader(
             )
         if additional_warehouse_filter:
             stocks = stocks.filter(warehouse_id__in=warehouse_shipping_zones_map.keys())
-        stocks = stocks.annotate_available_quantity()
+        stocks = Stock.annotate_available_quantity()
 
+        stocks_reservations = defaultdict(int)
         if is_reservation_enabled(self.context.site.settings):  # type: ignore
-            stocks = stocks.annotate_reserved_quantity()
+            # Can't do second annotations on same queryset because it made
+            # available_quantity annotated value incorrect
+            reservations_qs = (
+                Stock.objects.filter(product_variant_id__in=variant_ids)
+                .annotate_reserved_quantity()
+                .values_list("id", "quantity_reserved")
+            )
+            for stock_id, quantity_reserved in reservations_qs:
+                stocks_reservations[stock_id] = quantity_reserved
 
         debug_data = {}
 
@@ -237,13 +246,13 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugDEBUGLoader(
             int, DefaultDict[int, int]
         ] = defaultdict(lambda: defaultdict(int))
         for stock in stocks:
-            reserved_quantity = getattr(stock, "reserved_quantity", 0)
+            reserved_quantity = stocks_reservations[stock.id]
             quantity = max(0, stock.available_quantity - reserved_quantity)
             debug_data[stock.product_variant_id] = {
                 "stock.id": stock.id,
                 "stock.quantity": stock.quantity,
                 "stock.available_quantity": stock.available_quantity,
-                "stock.reserved_quantity": getattr(stock, "reserved_quantity", 0),
+                "stock.reserved_quantity": reserved_quantity,
                 "quantity": max(0, stock.available_quantity - reserved_quantity),
                 "quantity_final": 0,
             }
