@@ -1371,7 +1371,7 @@ def _update_missing_amounts_on_payments(
         # Deduct already specified amounts.
         refund_amount -= payments_total_amount
 
-        shipping_refund_amount = None
+    shipping_refund_amount = None
 
     if include_shipping_costs:
         shipping_refund_amount = order.shipping_price_gross_amount
