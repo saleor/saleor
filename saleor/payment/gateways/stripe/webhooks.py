@@ -13,6 +13,7 @@ from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....discount.utils import fetch_active_discounts
 from ....order.actions import order_captured, order_refunded, order_voided
+from ....order.interface import OrderPaymentAction
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
@@ -310,8 +311,7 @@ def handle_successful_payment_intent(
                 payment.order,  # type: ignore
                 None,
                 None,
-                capture_transaction.amount,
-                payment,
+                [OrderPaymentAction(payment, capture_transaction.amount)],
                 get_plugins_manager(),
             )
         return
@@ -363,7 +363,7 @@ def handle_refund(
         payment, refund, TransactionKind.REFUND, refund.amount, refund.currency
     )
     if payment.order:
-        payments = [{"payment": payment, "amount": refund_transaction.amount}]
+        payments = [OrderPaymentAction(payment, refund_transaction.amount)]
         order_refunded(
             payment.order,
             None,

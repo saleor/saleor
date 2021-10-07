@@ -3338,21 +3338,29 @@ def draft_order_without_inventory_tracking(order_with_line_without_inventory_tra
 
 
 @pytest.fixture
-def payment_txn_preauth(order_with_lines, payment_dummy):
-    order = order_with_lines
-    payment = payment_dummy
-    payment.order = order
-    payment.charge_status = ChargeStatus.AUTHORIZED
-    payment.save()
+def payment_txn_preauth_factory(order_with_lines, payment_dummy_factory):
+    def factory():
+        order = order_with_lines
+        payment = payment_dummy_factory()
+        payment.order = order
+        payment.charge_status = ChargeStatus.AUTHORIZED
+        payment.save()
 
-    payment.transactions.create(
-        amount=payment.total,
-        currency=payment.currency,
-        kind=TransactionKind.AUTH,
-        gateway_response={},
-        is_success=True,
-    )
-    return payment
+        payment.transactions.create(
+            amount=payment.total,
+            currency=payment.currency,
+            kind=TransactionKind.AUTH,
+            gateway_response={},
+            is_success=True,
+        )
+        return payment
+
+    return factory
+
+
+@pytest.fixture
+def payment_txn_preauth(payment_txn_preauth_factory):
+    return payment_txn_preauth_factory()
 
 
 @pytest.fixture
@@ -4078,6 +4086,14 @@ def payment_dummy_factory(payment_kwargs):
 @pytest.fixture
 def payment_dummy(payment_dummy_factory):
     return payment_dummy_factory()
+
+
+@pytest.fixture
+def payment_dummy_factory(payment_kwargs):
+    def factory():
+        return Payment.objects.create(**payment_kwargs)
+
+    return factory
 
 
 @pytest.fixture

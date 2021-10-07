@@ -12,7 +12,7 @@ from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
-from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError, TransactionKind
+from ..payment import ChargeStatus, CustomPaymentChoices, TransactionKind
 from ..payment.actions import try_refund
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
@@ -32,6 +32,7 @@ from . import (
     events,
     utils,
 )
+from .capture_payment import capture_payments
 from .events import (
     draft_order_created_from_replace_event,
     fulfillment_refunded_event,
@@ -39,6 +40,7 @@ from .events import (
     order_replacement_created,
     order_returned_event,
 )
+from .interface import OrderPaymentAction
 from .models import Fulfillment, FulfillmentLine, Order, OrderLine
 from .notifications import (
     send_fulfillment_confirmation_to_customer,
@@ -48,6 +50,8 @@ from .notifications import (
     send_payment_confirmation,
 )
 from .utils import (
+    get_authorized_payments,
+    get_captured_payments,
     order_line_needs_automatic_fulfillment,
     recalculate_order,
     restock_fulfillment_lines,
@@ -75,29 +79,54 @@ def order_created(
 ):
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
     manager.order_created(order)
-    payment = order.get_last_payment()
-    if payment:
-        if order.is_captured():
-            order_captured(
-                order=order,
-                user=user,
-                app=app,
-                amount=payment.total,
-                payment=payment,
-                manager=manager,
-            )
-        elif order.is_pre_authorized():
-            order_authorized(
-                order=order,
-                user=user,
-                app=app,
-                amount=payment.total,
-                payment=payment,
-                manager=manager,
-            )
+    authorized_payments = get_authorized_payments(order)
+    if authorized_payments:
+        order_authorized(
+            order=order,
+            user=user,
+            app=app,
+            amount=authorized_payments[0].total,
+            payment=authorized_payments[0],
+            manager=manager,
+        )
+
+    captured_payments = get_captured_payments(order)
+    if captured_payments:
+        order_captured(
+            order=order,
+            user=user,
+            app=app,
+            payment_actions=[
+                OrderPaymentAction(
+                    amount=payment.captured_amount,
+                    payment=payment,
+                )
+                for payment in captured_payments
+            ],
+            manager=manager,
+        )
+
     site_settings = Site.objects.get_current().settings
     if site_settings.automatically_confirm_all_new_orders:
         order_confirmed(order, user, app, manager)
+
+
+def _capture_payments(
+    order: "Order",
+    user: "User",
+    app: Optional["App"],
+    manager: "PluginsManager",
+):
+    payments_to_notify = capture_payments(order, manager, user, app)
+    order.refresh_from_db()
+    if payments_to_notify:
+        order_captured(
+            order,
+            user,
+            app,
+            payments_to_notify,
+            manager,
+        )
 
 
 def order_confirmed(
@@ -109,8 +138,9 @@ def order_confirmed(
 ):
     """Order confirmed.
 
-    Trigger event, plugin hooks and optionally confirmation email.
+    Trigger event, capture, plugin hooks and optionally confirmation email.
     """
+    _capture_payments(order, user, app, manager)
     events.order_confirmed_event(order=order, user=user, app=app)
     manager.order_confirmed(order)
     if send_confirmation_email:
@@ -161,12 +191,12 @@ def cancel_order(
     send_order_canceled_confirmation(order, user, app, manager)
 
 
-def make_refund(order, payments, info):
+def make_refund(order: Order, payments: List[OrderPaymentAction], info):
     not_refunded_payments = []
 
     for item in payments:
-        payment = item["payment"]
-        amount = item["amount"]
+        payment = item.payment
+        amount = item.amount
 
         transaction = try_refund(
             order=order,
@@ -182,13 +212,13 @@ def make_refund(order, payments, info):
         if transaction.kind != TransactionKind.REFUND:
             not_refunded_payments.append(payment.id)
 
-    total_amount = sum([item["amount"] for item in payments])
+    total_amount = sum([item.amount for item in payments])
     order.fulfillments.create(
         status=FulfillmentStatus.REFUNDED, total_refund_amount=total_amount
     )
 
     refunded_payments = [
-        item for item in payments if item["payment"].id not in not_refunded_payments
+        item for item in payments if item.payment.id not in not_refunded_payments
     ]
 
     order_refunded(
@@ -204,7 +234,7 @@ def order_refunded(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    payments: List[dict],
+    payments: List[OrderPaymentAction],
     manager: "PluginsManager",
     *,
     send_notification: bool = True,
@@ -214,8 +244,8 @@ def order_refunded(
             order=order,
             user=user,
             app=app,
-            amount=item["amount"],
-            payment=item["payment"],
+            amount=item.amount,
+            payment=item.payment,
         )
     manager.order_updated(order)
 
@@ -316,13 +346,17 @@ def order_captured(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    amount: "Decimal",
-    payment: "Payment",
+    payment_actions: List[OrderPaymentAction],
     manager: "PluginsManager",
 ):
-    events.payment_captured_event(
-        order=order, user=user, app=app, amount=amount, payment=payment
-    )
+    for amount_and_payment in payment_actions:
+        events.payment_captured_event(
+            order=order,
+            user=user,
+            app=app,
+            amount=amount_and_payment.amount,
+            payment=amount_and_payment.payment,
+        )
     manager.order_updated(order)
     if order.is_fully_paid():
         handle_fully_paid_order(manager, order, user, app)
@@ -480,14 +514,6 @@ def mark_order_as_paid(
     manager.order_fully_paid(order)
     manager.order_updated(order)
     order.update_total_paid()
-
-
-def clean_mark_order_as_paid(order: "Order"):
-    """Check if an order can be marked as paid."""
-    if order.payments.exists():
-        raise PaymentError(
-            "Orders with payments can not be manually marked as paid.",
-        )
 
 
 @traced_atomic_transaction()
@@ -873,12 +899,12 @@ def _move_fulfillment_lines_to_target_fulfillment(
 
 def __get_shipping_refund_amount(
     refund_shipping_costs: bool,
-    refund_amount: Optional[Decimal],
+    refund_amount: Decimal,
     shipping_price: Decimal,
 ) -> Optional[Decimal]:
     # We set shipping refund amount only when refund amount is calculated by Saleor
     shipping_refund_amount = None
-    if refund_shipping_costs and refund_amount is None:
+    if refund_shipping_costs and refund_amount == 0:
         shipping_refund_amount = shipping_price
     return shipping_refund_amount
 
@@ -887,7 +913,7 @@ def create_refund_fulfillment(
     user: Optional["User"],
     app: Optional["App"],
     order,
-    payments: List[dict],
+    payments: List[OrderPaymentAction],
     order_lines_to_refund: List[OrderLineData],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     manager: "PluginsManager",
@@ -903,21 +929,20 @@ def create_refund_fulfillment(
     # Amount to be eventually specified in the Fulfillment object.
     counted_shipping_amount = None
     for item in payments:
-        if item["include_shipping_costs"]:
-            if not item["amount"]:
+        if item.include_shipping_costs:
+            if item.amount == 0:
                 counted_shipping_amount = order.shipping_price_gross_amount
             refund_shipping_costs = True
-            shipping_refund_amount = __get_shipping_refund_amount(
-                item["include_shipping_costs"],
-                item["amount"],
-                order.shipping_price_gross_amount,
-            )
-            if shipping_refund_amount:
-                item["amount"] = shipping_refund_amount
+            if not item.from_deprecated_request:
+                shipping_refund_amount = __get_shipping_refund_amount(
+                    item.include_shipping_costs,
+                    item.amount,
+                    order.shipping_price_gross_amount,
+                )
+                if shipping_refund_amount:
+                    item.amount = shipping_refund_amount
 
-    refund_amount = (
-        Decimal(sum([item["amount"] for item in payments if item["amount"]])) or None
-    )
+    refund_amount = Decimal(sum([item.amount for item in payments if item.amount]))
 
     with transaction_with_commit_on_errors():
         total_refund_amount = _process_refund(
@@ -1139,12 +1164,12 @@ def create_return_fulfillment(
     order: "Order",
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
-    total_refund_amount: Optional[Decimal],
+    total_refund_amount: Decimal,
     shipping_refund_amount: Optional[Decimal],
     manager: "PluginsManager",
 ) -> Fulfillment:
     status = FulfillmentStatus.RETURNED
-    if total_refund_amount is not None:
+    if total_refund_amount > 0:
         status = FulfillmentStatus.REFUNDED_AND_RETURNED
     with traced_atomic_transaction():
         return_fulfillment = _move_lines_to_return_fulfillment(
@@ -1241,7 +1266,7 @@ def create_fulfillments_for_returned_products(
     fulfillment_lines: List[FulfillmentLineData],
     manager: "PluginsManager",
     refund: bool = False,
-    amount: Optional[Decimal] = None,
+    amount: Decimal = Decimal("0"),
     refund_shipping_costs=False,
 ) -> Tuple[Fulfillment, Optional[Fulfillment], Optional[Order]]:
     """Process the request for replacing or returning the products.
@@ -1271,13 +1296,13 @@ def create_fulfillments_for_returned_products(
     shipping_refund_amount = __get_shipping_refund_amount(
         refund_shipping_costs, amount, order.shipping_price_gross_amount
     )
-    total_refund_amount = None
+    total_refund_amount = Decimal("0")
     with traced_atomic_transaction():
         if refund and payment:
             # FIXME this line is temporary and is for compatability
             #  with the new changes of the _process_refund().
             #  It should be refactored in this issue SALEOR-3670
-            payments = [{"payment": payment, "amount": amount}]
+            payments = [OrderPaymentAction(payment, amount)]
             total_refund_amount = _process_refund(
                 user=user,
                 app=app,
@@ -1359,10 +1384,10 @@ def _process_refund(
     user: Optional["User"],
     app: Optional["App"],
     order: "Order",
-    payments: List[dict],
+    payments: List[OrderPaymentAction],
     order_lines_to_refund: List[OrderLineData],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
-    amount: Optional[Decimal],
+    amount: Decimal,
     refund_shipping_costs: bool,
     manager: "PluginsManager",
 ):
@@ -1372,25 +1397,24 @@ def _process_refund(
     )
 
     # Happens when neither payments_to_refund nor amount_to_refund were specified.
-    if amount is None:
+    if amount == 0:
         amount = refund_amount
         # we take into consideration the shipping costs only when amount is not
         # provided.
         if refund_shipping_costs:
             amount += order.shipping_price_gross_amount
         # At this point there can be only one payment.
-        payments[0]["amount"] = min(payments[0]["payment"].captured_amount, amount)
-
-    if amount:
+        payments[0].amount = min(payments[0].payment.captured_amount, amount)
+    if amount > 0:
         for item in payments:
             try_refund(
                 order=order,
                 user=user,
                 app=app,
-                payment=item["payment"],
+                payment=item.payment,
                 manager=manager,
                 channel_slug=order.channel.slug,
-                amount=item["amount"],
+                amount=item.amount,
             )
 
             transaction.on_commit(
@@ -1398,8 +1422,8 @@ def _process_refund(
                     order=order,
                     user=user,
                     app=app,
-                    amount=item["amount"],  # type: ignore
-                    payment=item["payment"],
+                    amount=item.amount,  # type: ignore
+                    payment=item.payment,
                 )
             )
 

@@ -21,7 +21,13 @@ from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
-from ....order import FulfillmentStatus, OrderOrigin, OrderPaymentStatus, OrderStatus
+from ....order import (
+    FulfillmentStatus,
+    OrderEvents,
+    OrderOrigin,
+    OrderPaymentStatus,
+    OrderStatus,
+)
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
@@ -38,7 +44,6 @@ from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
     clean_refund_payment,
-    try_payment_capture_action,
     try_payment_void_action,
 )
 from ...payment.types import PaymentChargeStatusEnum
@@ -970,6 +975,59 @@ ORDER_CONFIRM_MUTATION = """
 """
 
 
+@pytest.mark.parametrize(
+    (
+        "payment_totals,"
+        "triggered_events,"
+        "payment_to_test_idx,"
+        "expected_exists,"
+        "expected_amount"
+    ),
+    [
+        (
+            [Decimal("98.400")],
+            ["payment_captured", "order_fully_paid", "confirmed"],
+            0,
+            True,
+            Decimal("98.400"),
+        ),
+        (
+            [Decimal("98.400"), Decimal("88.400")],
+            ["payment_captured", "order_fully_paid", "confirmed"],
+            0,
+            True,
+            Decimal("98.400"),
+        ),
+        (
+            [Decimal("98.400"), Decimal("88.400")],
+            ["payment_captured", "order_fully_paid", "confirmed"],
+            1,
+            False,
+            None,
+        ),
+        (
+            [Decimal("88.400"), Decimal("20.000")],
+            ["payment_captured", "payment_captured", "order_fully_paid", "confirmed"],
+            0,
+            True,
+            Decimal("88.400"),
+        ),
+        (
+            [Decimal("88.400"), Decimal("20.000")],
+            ["payment_captured", "payment_captured", "order_fully_paid", "confirmed"],
+            1,
+            True,
+            Decimal("10.000"),
+        ),
+        (
+            [Decimal("88.400"), Decimal("5.000")],
+            ["payment_captured", "payment_captured", "confirmed"],
+            1,
+            True,
+            Decimal("5.000"),
+        ),
+    ],
+)
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch("saleor.payment.gateway.capture")
 def test_order_confirm(
@@ -978,38 +1036,91 @@ def test_order_confirm(
     staff_api_client,
     order_unconfirmed,
     permission_manage_orders,
-    payment_txn_preauth,
+    payment_txn_preauth_factory,
+    payment_totals,
+    triggered_events,
+    payment_to_test_idx,
+    expected_exists,
+    expected_amount,
 ):
-    payment_txn_preauth.order = order_unconfirmed
-    payment_txn_preauth.save()
+    # given
+    def _simulate_capture(
+        payment: Payment,
+        manager: "PluginsManager",
+        channel_slug: str,
+        amount: Decimal = None,
+        customer_id: str = None,
+        store_source: bool = False,
+    ):
+        payment.captured_amount = amount
+        payment.save()
+        payment.order.update_total_paid()
+        return payment.transactions.create(
+            amount=amount,
+            currency=payment.currency,
+            kind=TransactionKind.CAPTURE,
+            gateway_response={},
+            is_success=True,
+        )
+
+    capture_mock.side_effect = _simulate_capture
+
+    payments = []
+    for payment_total in payment_totals:
+        payment_txn_preauth = payment_txn_preauth_factory()
+        payment_txn_preauth.order = order_unconfirmed
+        payment_txn_preauth.total = payment_total
+        payment_txn_preauth.currency = "USD"
+        payment_txn_preauth.save()
+        payments.append(payment_txn_preauth)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     assert not OrderEvent.objects.exists()
+
+    # when
     response = staff_api_client.post_graphql(
         ORDER_CONFIRM_MUTATION,
         {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
     )
     order_data = get_graphql_content(response)["data"]["orderConfirm"]["order"]
 
+    # then
     assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
     order_unconfirmed.refresh_from_db()
     assert order_unconfirmed.status == OrderStatus.UNFULFILLED
-    assert OrderEvent.objects.count() == 2
+    assert list(OrderEvent.objects.values_list("type", flat=True)) == triggered_events
     assert OrderEvent.objects.filter(
         order=order_unconfirmed,
         user=staff_api_client.user,
         type=order_events.OrderEvents.CONFIRMED,
     ).exists()
 
-    assert OrderEvent.objects.filter(
-        order=order_unconfirmed,
-        user=staff_api_client.user,
-        type=order_events.OrderEvents.PAYMENT_CAPTURED,
-        parameters__amount=payment_txn_preauth.get_total().amount,
-    ).exists()
-
-    capture_mock.assert_called_once_with(
-        payment_txn_preauth, ANY, channel_slug=order_unconfirmed.channel.slug
+    payment_txn_preauth_to_test = payments[payment_to_test_idx]
+    assert (
+        OrderEvent.objects.filter(
+            order=order_unconfirmed,
+            user=staff_api_client.user,
+            type=order_events.OrderEvents.PAYMENT_CAPTURED,
+            parameters__amount=expected_amount,
+        ).exists()
+        == expected_exists
     )
+
+    if expected_exists:
+        capture_mock.assert_any_call(
+            payment_txn_preauth_to_test,
+            ANY,
+            channel_slug=order_unconfirmed.channel.slug,
+            amount=expected_amount,
+        )
+    else:
+        with pytest.raises(AssertionError):
+            capture_mock.assert_any_call(
+                payment_txn_preauth_to_test,
+                ANY,
+                channel_slug=order_unconfirmed.channel.slug,
+                amount=expected_amount,
+            )
+
     expected_payload = {
         "order": get_default_order_payload(order_unconfirmed, ""),
         "recipient_email": order_unconfirmed.user.email,
@@ -1018,7 +1129,7 @@ def test_order_confirm(
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
-    mocked_notify.assert_called_once_with(
+    mocked_notify.assert_any_call(
         NotifyEventType.ORDER_CONFIRMED,
         expected_payload,
         channel_slug=order_unconfirmed.channel.slug,
@@ -4453,6 +4564,26 @@ def test_order_cancel_as_app(
     )
 
 
+MUTATION_ORDER_CAPTURE = """
+mutation captureOrder($id: ID!, $amount: PositiveDecimal!) {
+    orderCapture(id: $id, amount: $amount) {
+        order {
+            paymentStatus
+            paymentStatusDisplay
+            isPaid
+            totalCaptured {
+                amount
+            }
+        }
+        errors {
+            code
+            message
+        }
+    }
+}
+"""
+
+
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_order_capture(
     mocked_notify,
@@ -4463,25 +4594,14 @@ def test_order_capture(
     staff_user,
 ):
     order = payment_txn_preauth.order
-    query = """
-        mutation captureOrder($id: ID!, $amount: PositiveDecimal!) {
-            orderCapture(id: $id, amount: $amount) {
-                order {
-                    paymentStatus
-                    paymentStatusDisplay
-                    isPaid
-                    totalCaptured {
-                        amount
-                    }
-                }
-            }
-        }
-    """
+    payment_txn_preauth.transactions.update(amount=order.total.gross.amount)
+    payment_txn_preauth.total = order.total.gross.amount
+    payment_txn_preauth.save(update_fields=["total"])
     order_id = graphene.Node.to_global_id("Order", order.id)
-    amount = float(payment_txn_preauth.total)
-    variables = {"id": order_id, "amount": amount}
+    amount = payment_txn_preauth.total
+    variables = {"id": order_id, "amount": float(amount)}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCapture"]["order"]
@@ -4534,6 +4654,102 @@ def test_order_capture(
     )
 
 
+def test_order_capture_more_than_outstanding(
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+):
+    # given
+    order = payment_txn_preauth.order
+    amount = payment_txn_preauth.total
+    order.total_paid_amount = order.total_gross_amount - amount + Decimal("1")
+    order.save()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    # when
+    variables = {"id": order_id, "amount": float(amount)}
+    response = staff_api_client.post_graphql(
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    # then
+    errors = content["data"]["orderCapture"]["errors"]
+    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG.name
+    assert "outstanding balance" in errors[0]["message"]
+
+
+@patch("saleor.graphql.order.mutations.orders.get_total_authorized")
+def test_order_capture_more_than_authorized(
+    mocked_auth_amount,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+):
+    # given
+    order = payment_txn_preauth.order
+    amount = payment_txn_preauth.total
+    mocked_auth_amount.return_value = Money(amount - Decimal("1"), order.currency)
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    # when
+    variables = {"id": order_id, "amount": float(amount)}
+    response = staff_api_client.post_graphql(
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    # then
+    errors = content["data"]["orderCapture"]["errors"]
+    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG.name
+    assert "authorized amount" in errors[0]["message"]
+    mocked_auth_amount.assert_called_once_with(
+        [payment_txn_preauth],
+        order.currency,
+    )
+
+
+@patch("saleor.payment.gateway.capture")
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_order_capture_with_failed_payment(
+    mocked_notify,
+    mocked_capture,
+    channel_USD,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+    staff_user,
+):
+    # given
+    mocked_capture.side_effect = PaymentError("mock")
+    order = payment_txn_preauth.order
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = payment_txn_preauth.total
+    variables = {"id": order_id, "amount": float(amount)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderCapture"]["order"]
+    assert data["paymentStatus"] == OrderPaymentStatusEnum.NOT_CHARGED.name
+    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
+        OrderPaymentStatus.NOT_CHARGED
+    )
+    assert data["paymentStatusDisplay"] == payment_status_display
+    assert not data["isPaid"]
+    assert data["totalCaptured"]["amount"] == float(0)
+
+    assert (
+        OrderEvent.objects.filter(
+            type=OrderEvents.PAYMENT_CAPTURE_FAILED,
+            order=order,
+            user=staff_api_client.user,
+            parameters__message__contains="mock",
+        ).count()
+        == 1
+    )
+
+
 MUTATION_MARK_ORDER_AS_PAID = """
     mutation markPaid($id: ID!, $transaction: String) {
         orderMarkAsPaid(id: $id, transactionReference: $transaction) {
@@ -4575,6 +4791,15 @@ def test_paid_order_mark_as_paid(
 
     order_errors = content["data"]["orderMarkAsPaid"]["errors"]
     assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
+
+    assert (
+        OrderEvent.objects.filter(
+            order=order,
+            type=OrderEvents.PAYMENT_CAPTURE_FAILED,
+            parameters__message__icontains=msg,
+        ).count()
+        == 1
+    )
 
 
 def test_order_mark_as_paid_with_external_reference(
@@ -5158,7 +5383,7 @@ def test_clean_payment_without_payment_associated_to_order(
     )
     errors = get_graphql_content(response)["data"][mutation_name].get("errors")
 
-    message = "There's no payment associated with the order."
+    message = "There are no active payments associated with the order."
 
     assert errors, "expected an error"
     assert errors == [{"field": "payment", "message": message}]
@@ -5167,10 +5392,7 @@ def test_clean_payment_without_payment_associated_to_order(
 
 @pytest.mark.parametrize(
     "try_payment_action, exp_type",
-    (
-        (try_payment_capture_action, order_events.OrderEvents.PAYMENT_CAPTURE_FAILED),
-        (try_payment_void_action, order_events.OrderEvents.PAYMENT_VOID_FAILED),
-    ),
+    ((try_payment_void_action, order_events.OrderEvents.PAYMENT_VOID_FAILED),),
 )
 def test_try_payment_action_generates_event(
     order, try_payment_action, exp_type, staff_user, payment_dummy
@@ -5211,14 +5433,14 @@ def test_try_payment_action_generates_app_event(order, app, payment_dummy):
         raise PaymentError(message)
 
     with pytest.raises(ValidationError) as exc:
-        try_payment_capture_action(
+        try_payment_void_action(
             order=order, user=None, app=app, payment=payment_dummy, func=_test_operation
         )
 
     assert exc.value.args[0]["payment"].message == message
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == order_events.OrderEvents.PAYMENT_CAPTURE_FAILED
+    assert error_event.type == order_events.OrderEvents.PAYMENT_VOID_FAILED
     assert not error_event.user
     assert error_event.app == app
     assert error_event.parameters == {
@@ -5238,8 +5460,8 @@ def test_clean_order_refund_payment():
 
 def test_clean_order_capture():
     with pytest.raises(ValidationError) as e:
-        clean_order_capture(None)
-    msg = "There's no payment associated with the order."
+        clean_order_capture(None, None, Decimal("10"))
+    msg = "There are no active payments associated with the order."
     assert e.value.error_dict["payment"][0].message == msg
 
 
@@ -7439,3 +7661,39 @@ def test_order_shipping_update_mutation_properly_recalculate_total(
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["order"]["shippingMethod"] is None
+
+
+@pytest.mark.parametrize(
+    "is_active, excpected_in",
+    [
+        (True, True),
+        (False, False),
+    ],
+)
+def test_order_active_payments(order, payment_dummy, is_active, excpected_in):
+    # given
+    payment_dummy.order = order
+    payment_dummy.is_active = is_active
+    payment_dummy.save()
+
+    # when
+    payments = order.payments.filter(is_active=True)
+
+    # then
+    assert (payment_dummy in payments) == excpected_in
+
+
+def test_order_outstanding_balance(order):
+    # given
+    order.total = TaxedMoney(
+        net=Money(amount=50, currency="USD"), gross=Money(amount=100, currency="USD")
+    )
+    order.total_paid = Money(amount=70, currency="USD")
+    order.save()
+    order.refresh_from_db()
+
+    # when
+    to_pay = order.outstanding_balance
+
+    # then
+    assert to_pay == Money(amount=30, currency="USD")

@@ -37,6 +37,7 @@ from ....order.actions import (
     order_refunded,
 )
 from ....order.events import external_notification_event
+from ....order.interface import OrderPaymentAction
 from ....payment.models import Payment, Transaction
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind
@@ -248,8 +249,12 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                         payment.order,
                         None,
                         None,
-                        new_transaction.amount,
-                        payment,
+                        [
+                            OrderPaymentAction(
+                                amount=new_transaction.amount,
+                                payment=payment,
+                            )
+                        ],
                         manager,
                     )
                 else:
@@ -344,7 +349,11 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         if new_transaction.is_success and not capture_transaction:
             gateway_postprocess(new_transaction, payment)
             order_captured(
-                payment.order, None, None, new_transaction.amount, payment, manager
+                payment.order,
+                None,
+                None,
+                [OrderPaymentAction(payment, new_transaction.amount)],
+                manager,
             )
 
     reason = notification.get("reason", "-")
@@ -425,7 +434,7 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
         payment, success_msg, failed_msg, new_transaction.is_success
     )
     if payment.order and new_transaction.is_success:
-        payments = [{"payment": payment, "amount": new_transaction.amount}]
+        payments = [OrderPaymentAction(payment, new_transaction.amount)]
         order_refunded(
             payment.order,
             None,

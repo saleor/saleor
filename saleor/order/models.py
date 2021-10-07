@@ -308,17 +308,6 @@ class Order(ModelWithMetadata):
             .exists()
         )
 
-    def is_captured(self):
-        return (
-            self.payments.filter(
-                is_active=True,
-                transactions__kind=TransactionKind.CAPTURE,
-                transactions__action_required=False,
-            )
-            .filter(transactions__is_success=True)
-            .exists()
-        )
-
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self.lines.all())
 
@@ -386,6 +375,10 @@ class Order(ModelWithMetadata):
     @property
     def total_balance(self):
         return self.total_captured - self.total.gross
+
+    @property
+    def outstanding_balance(self):
+        return self.total.gross - self.total_paid
 
     def get_total_weight(self, *_args):
         return self.weight

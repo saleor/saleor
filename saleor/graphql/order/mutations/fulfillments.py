@@ -19,6 +19,7 @@ from ....order.actions import (
     fulfillment_tracking_updated,
 )
 from ....order.error_codes import OrderErrorCode
+from ....order.interface import OrderPaymentAction
 from ....order.notifications import send_fulfillment_update
 from ....payment.models import Payment
 from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
@@ -503,7 +504,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
 
     @classmethod
     def clean_amount_to_refund(cls, amount_to_refund, payment, cleaned_input):
-        if amount_to_refund is not None and amount_to_refund > payment.captured_amount:
+        if amount_to_refund > payment.captured_amount:
             raise ValidationError(
                 {
                     "amount_to_refund": ValidationError(
@@ -711,7 +712,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
 
             for item in payments_to_refund:
                 data = {
-                    "amount": item.get("amount"),
+                    "amount": item.get("amount", Decimal("0")),
                     "include_shipping_costs": item.get("include_shipping_costs"),
                 }
                 payment_pk = int(
@@ -727,29 +728,20 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
                 payment_data = payments_data.get(payment.id)
                 include_shipping_costs = payment_data.get("include_shipping_costs")
                 amount = payment_data.get("amount")
-                amount = (
-                    amount
-                    if amount or include_shipping_costs
-                    else payment.captured_amount
+                payments.append(
+                    OrderPaymentAction(payment, amount, include_shipping_costs)
                 )
-                data = {
-                    "payment": payment,
-                    "amount": amount,
-                    "include_shipping_costs": include_shipping_costs,
-                }
-                payments.append(data)
 
         else:
             cls._check_order_has_single_payment(order)
             payment = order.payments.first()
             payments = [
-                {
-                    "payment": payment,
-                    # For future calculations we need to distinguish
-                    # whether amount_to_refund was specified.
-                    "amount": amount_to_refund or Decimal("0"),
-                    "include_shipping_costs": include_shipping_costs,
-                }
+                OrderPaymentAction(
+                    payment,
+                    amount_to_refund or Decimal("0"),
+                    include_shipping_costs,
+                    from_deprecated_request=True,
+                )
             ]
 
         return payments
@@ -770,8 +762,8 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             info, order, payments_to_refund, amount_to_refund, include_shipping_costs
         )
         for item in payments:
-            cls.clean_order_payment(item["payment"], cleaned_input)
-            cls.clean_amount_to_refund(item["amount"], item["payment"], cleaned_input)
+            cls.clean_order_payment(item.payment, cleaned_input)
+            cls.clean_amount_to_refund(item.amount, item.payment, cleaned_input)
 
         cleaned_input.update(
             {
@@ -902,7 +894,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
     @classmethod
     def clean_input(cls, info, order_id, input):
         cleaned_input = {}
-        amount_to_refund = input.get("amount_to_refund")
+        amount_to_refund = input.get("amount_to_refund", Decimal("0"))
         include_shipping_costs = input["include_shipping_costs"]
         refund = input["refund"]
 
