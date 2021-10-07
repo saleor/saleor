@@ -8,8 +8,6 @@ from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
 
-from saleor import shipping
-
 from ...account.models import Address
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
@@ -599,9 +597,8 @@ class Order(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod,
         required=False,
-        description=(
-            "Shipping methods that can be used with this order. Deprecated in 4.0."
-        ),
+        description=("Shipping methods that can be used with this order."),
+        deprecation_reason=("Use shipping_methods, this field will be removed in 4.0"),
     )
     shipping_methods = graphene.List(
         ShippingMethod, description="Shipping methods related to this order."
@@ -728,7 +725,6 @@ class Order(CountableDjangoObjectType):
             "gift_cards",
             "id",
             "shipping_address",
-            # "shipping_method",
             "shipping_method_name",
             "shipping_price",
             "shipping_tax_rate",
@@ -854,7 +850,17 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Order, info):
-        return root.shipping_method
+        def wrap_shipping_method_with_channel_context(data):
+            shipping_method, channel = data
+            return ChannelContext(node=shipping_method, channel_slug=channel.slug)
+
+        shipping_method = ShippingMethodByIdLoader(info.context).load(
+            root.shipping_method_id
+        )
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+        return Promise.all([shipping_method, channel]).then(
+            wrap_shipping_method_with_channel_context
+        )
 
     @staticmethod
     def resolve_shipping_price(root: models.Order, _info):
@@ -1027,24 +1033,6 @@ class Order(CountableDjangoObjectType):
             return None
 
         return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
-
-    # @staticmethod
-    # def resolve_shipping_method(root: models.Order, info):
-    #     if not root.shipping_method_id:
-    #         return None
-
-    #     def wrap_shipping_method_with_channel_context(data):
-    #         shipping_method, channel = data
-    #         return ChannelContext(node=shipping_method, channel_slug=channel.slug)
-
-    #     shipping_method = ShippingMethodByIdLoader(info.context).load(
-    #         root.shipping_method_id
-    #     )
-    #     channel = ChannelByIdLoader(info.context).load(root.channel_id)
-
-    #     return Promise.all([shipping_method, channel]).then(
-    #         wrap_shipping_method_with_channel_context
-    #     )
 
     @staticmethod
     @traced_resolver
