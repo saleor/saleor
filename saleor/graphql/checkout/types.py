@@ -155,8 +155,8 @@ class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod,
         required=True,
-        description=("Shipping methods that can be used with this checkout."),
-        deprecation_reason=("Use shipping_methods, this field will be removed in 4.0"),
+        description="Shipping methods that can be used with this checkout.",
+        deprecation_reason="Use shipping_methods, this field will be removed in 4.0",
     )
     shipping_methods = graphene.List(
         ShippingMethod,
