@@ -7,6 +7,8 @@ from unittest import mock
 import graphene
 import pytest
 
+from saleor.graphql.tests.utils import get_graphql_content
+
 from ....app.models import App
 from ....webhook.event_types import WebhookEventType
 from ....webhook.models import Webhook, WebhookEvent
@@ -15,6 +17,36 @@ from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_order_payload,
 )
 from ...base_plugin import ExcludedShippingMethod, ShippingMethod
+
+ORDER_QUERY_SHIPPING_METHOD = """
+    query OrdersQuery {
+        orders(first: 1) {
+            edges {
+                node {
+                    shippingMethods {
+                        id
+                        name
+                    }
+                }
+            }
+        }
+    }
+"""
+
+CHECKOUT_QUERY_SHIPPING_METHOD = """
+    query CheckoutsQuery {
+        checkouts(first: 1) {
+            edges {
+                node {
+                    shippingMethods {
+                        id
+                        name
+                    }
+                }
+            }
+        }
+    }
+"""
 
 
 @pytest.fixture()
@@ -117,6 +149,67 @@ def test_excluded_shipping_methods_for_order(
         WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
     )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+def test_order_available_shipping_methods(
+    mocked_webhook,
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
+):
+    # given
+    webhook_reason = "spanish-inquisition"
+    excluded_shipping_method_id = order_with_lines.shipping_method.id
+    mocked_webhook.return_value = {
+        "excluded_methods": [
+            {
+                "id": excluded_shipping_method_id,
+                "reason": webhook_reason,
+            }
+        ]
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    # when
+    response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    shipping_methods = [method["name"] for method in order_data["shippingMethods"]]
+    # then
+    assert len(shipping_methods) == 0
+
+
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
+)
+def test_checkout_available_shipping_methods(
+    mocked_webhook,
+    staff_api_client,
+    checkout_ready_to_complete,
+    permission_manage_checkouts,
+):
+    # given
+    webhook_reason = "spanish-inquisition"
+
+    excluded_shipping_method_id = checkout_ready_to_complete.shipping_method.id
+    mocked_webhook.return_value = {
+        "excluded_methods": [
+            {
+                "id": excluded_shipping_method_id,
+                "reason": webhook_reason,
+            }
+        ]
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+    # when
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_SHIPPING_METHOD)
+    content = get_graphql_content(response)
+    checkout_data = content["data"]["checkouts"]["edges"][0]["node"]
+
+    shipping_methods = [method["name"] for method in checkout_data["shippingMethods"]]
+    # then
+    assert len(shipping_methods) == 1
 
 
 @mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_sync")

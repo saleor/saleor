@@ -79,7 +79,16 @@ def resolve_checkout_available_shipping_methods(root: models.Checkout, info):
         )
         if available is None:
             return []
+        webhook_excluded_methods = manager.excluded_shipping_methods_for_checkout(
+            root, available
+        )
         available_ids = available.values_list("id", flat=True)
+        if webhook_excluded_methods:
+            excluded_methods_ids = [
+                shipping_method["id"]
+                for shipping_method in webhook_excluded_methods["excluded_methods"]
+            ]
+            available_ids = available_ids.exclude(id__in=excluded_methods_ids)
 
         def map_shipping_method_with_channel(shippings):
             def apply_price_to_shipping_method(channel_listings):
