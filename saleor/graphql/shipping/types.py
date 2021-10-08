@@ -284,9 +284,7 @@ class ShippingMethod(ChannelContextObjectType):
     message = graphene.String(description="Message connected to this shipping method.")
 
     class Meta:
-        interfaces = [
-            relay.Node,
-        ]
+        interfaces = [relay.Node, ObjectWithMetadata]
         description = (
             (
                 "Shipping methods that can be used as means of shipping"
