@@ -22,9 +22,11 @@ def parse_description_json_field(apps, schema):
     Category = apps.get_model("product", "Category")
 
     for category in Category.objects.iterator():
-        category.description_plaintext = parse_draftjs_content_to_string(
-            category.description
-        )
+        category.description_plaintext = ""
+        if category.description:
+            category.description_plaintext = parse_draftjs_content_to_string(
+                category.description
+            )
         category.save(update_fields=["description_plaintext"])
 
 
