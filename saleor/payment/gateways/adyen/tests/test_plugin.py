@@ -475,7 +475,6 @@ def test_confirm_payment_with_additional_details(payment_adyen_for_order, adyen_
 
 
 def test_confirm_payment_without_additional_data(payment_adyen_for_order, adyen_plugin):
-    # create ACTION_TO_CONFIRM transaction with is_success = False
     Transaction.objects.create(
         payment=payment_adyen_for_order,
         action_required=False,
