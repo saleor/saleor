@@ -69,9 +69,10 @@ def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse
 
 @inject_api_config
 def fulfillment_created(fulfillment: Fulfillment, config: ApiConfig) -> None:
-    with opentracing.global_tracer().start_active_span("np-atobarai.checkout.payments"):
-        # TODO: handle errors
-        api.report_fulfillment(config, fulfillment)
+    if fulfillment.fulfillment_order > 1:
+        return
+
+    api.report_fulfillment(config, fulfillment)
 
 
 @inject_api_config

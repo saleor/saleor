@@ -1,6 +1,7 @@
 import logging
 from typing import Iterable, Optional
 
+import opentracing
 import requests
 from django.utils import timezone
 from posuto import Posuto
@@ -234,31 +235,43 @@ def cancel_transaction(
 
 
 def report_fulfillment(config: ApiConfig, fulfillment: Fulfillment):
-    # TODO:
-    transaction_id = fulfillment.order.payments.latest().psp_reference
+    with opentracing.global_tracer().start_active_span(
+        "np-atobarai.checkout.payments.capture"
+    ):
+        payment: Payment = fulfillment.order.get_last_payment()
 
-    if not transaction_id:
-        # TODO: handle errors
-        pass
+        if not payment:
+            # TODO: handle errors
+            pass
 
-    shipping_company_code = config.shipping_company
-    shipping_slip_number = fulfillment.tracking_number
+        transaction_id = payment.psp_reference
 
-    data = {
-        "transactions": [
-            {
-                "np_transaction_id": transaction_id,
-                "pd_company_code": shipping_company_code,
-                "slip_no": shipping_slip_number,
-            }
-        ]
-    }
-    response = np_request(config, "post", "/shipments", json=data)
-    response_data = response.json()
+        if not transaction_id:
+            # TODO: handle errors
+            pass
 
-    if error_codes := _get_errors(response_data):
-        return get_error_messages_from_codes(
-            error_codes, FULFILLMENT_REPORT_RESULT_ERRORS
-        )
+        shipping_company_code = config.shipping_company
+        shipping_slip_number = fulfillment.tracking_number
 
-    return []
+        if not shipping_slip_number:
+            # TODO: handle errors
+            pass
+
+        data = {
+            "transactions": [
+                {
+                    "np_transaction_id": transaction_id,
+                    "pd_company_code": shipping_company_code,
+                    "slip_no": shipping_slip_number,
+                }
+            ]
+        }
+        response = np_request(config, "post", "/shipments", json=data)
+        response_data = response.json()
+
+        if error_codes := _get_errors(response_data):
+            return get_error_messages_from_codes(
+                error_codes, FULFILLMENT_REPORT_RESULT_ERRORS
+            )
+
+        return []
