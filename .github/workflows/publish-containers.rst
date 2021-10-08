@@ -4,20 +4,18 @@ Tagging Process
 +-----------------------------------+-----------------------------------------------------------------------+
 | Git Ref                           | Container Tags                                                        |
 +===================================+=======================================================================+
-| ``refs/tags/1.0.0``               | ghcr.io/mirumee/saleor:1.0.0                                          |
-|                                   | ghcr.io/mirumee/saleor:latest                                         |
+| ``refs/tags/1.0.0``               | ghcr.io/saleor/saleor:1.0.0                                           |
+|                                   | ghcr.io/saleor/saleor:latest                                          |
 +-----------------------------------+-----------------------------------------------------------------------+
-| ``refs/tags/1.0.0a1``             | ghcr.io/mirumee/saleor:1.0.0a1                                        |
-|                                   | ghcr.io/mirumee/saleor:snapshot                                       |
+| ``refs/tags/1.0.0a1``             | ghcr.io/saleor/saleor:1.0.0a1                                         |
+|                                   | ghcr.io/saleor/saleor:snapshot                                        |
 +-----------------------------------+-----------------------------------------------------------------------+
-| ``refs/tags/1.0.0rc1``            | ghcr.io/mirumee/saleor:1.0.0rc1                                       |
-|                                   | ghcr.io/mirumee/saleor:snapshot                                       |
+| ``refs/tags/1.0.0rc1``            | ghcr.io/saleor/saleor:1.0.0rc1                                        |
+|                                   | ghcr.io/saleor/saleor:snapshot                                        |
 +-----------------------------------+-----------------------------------------------------------------------+
-| ``refs/heads/main``               | docker.io/mirumee/saleor:main                                       |
-|                                   | docker.io/mirumee/saleor:sha-8ccaf90855b4a4251659c382a86e7e58f173c4e3 |
+| ``refs/heads/main``               | ghcr.io/saleor/saleor:unstable-main                                   |
 +-----------------------------------+-----------------------------------------------------------------------+
-| ``refs/heads/preview/my-feature`` | docker.io/mirumee/saleor:my-feature                                   |
-|                                   | docker.io/mirumee/saleor:sha-d122141d318518e216fc0e5b657259de317318c5 |
+| ``refs/heads/preview/my-feature`` | ghcr.io/saleor/saleor:unstable-my-feature                             |
 +-----------------------------------+-----------------------------------------------------------------------+
 
 
