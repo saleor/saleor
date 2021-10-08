@@ -3,7 +3,6 @@ from functools import partial
 
 import graphene
 from graphene.relay import PageInfo
-from graphene_django.fields import DjangoConnectionField
 from graphql.error import GraphQLError
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
@@ -13,6 +12,10 @@ from ..channel import ChannelContext, ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..utils.sorting import sort_queryset_for_connection
 from .connection import connection_from_queryset_slice
+
+
+class DjangoConnectionField:
+    pass  # TODO: FIXME
 
 
 def patch_pagination_args(field: DjangoConnectionField):

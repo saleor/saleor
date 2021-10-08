@@ -1,7 +1,7 @@
 import django_filters
-from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ..core.types import FilterInputObjectType
+from ..django.filters import GlobalIDMultipleChoiceFilter
 from .types import Payment
 
 

@@ -9,7 +9,6 @@ from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
 from django.db.models.fields import IntegerField
 from django.db.models.functions import Cast, Coalesce
 from django.utils import timezone
-from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...attribute import AttributeInputType
 from ...attribute.models import (
@@ -42,6 +41,7 @@ from ..core.filters import (
 )
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
+from ..django.filters import GlobalIDMultipleChoiceFilter
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_fields_containing_value, filter_range_field
 from ..warehouse import types as warehouse_types

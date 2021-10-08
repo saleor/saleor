@@ -2,12 +2,12 @@ from contextlib import contextmanager
 
 import opentracing
 from django.db import transaction
-from graphql import ResolveInfo
+from graphql import GraphQLResolveInfo
 
 
 def traced_resolver(func):
     def wrapper(*args, **kwargs):
-        info = next(arg for arg in args if isinstance(arg, ResolveInfo))
+        info = next(arg for arg in args if isinstance(arg, GraphQLResolveInfo))
         operation = f"{info.parent_type.name}.{info.field_name}"
         with opentracing.global_tracer().start_active_span(operation) as scope:
             span = scope.span

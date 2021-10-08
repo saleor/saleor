@@ -3,7 +3,6 @@ from typing import Union
 import graphene
 from django.db.models import Model
 from graphene.types.resolver import get_default_resolver
-from graphene_django import DjangoObjectType
 
 from ...channel import models
 from ...core.permissions import ChannelPermissions
@@ -11,6 +10,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
 from ..core.types import CountryDisplay
 from ..decorators import permission_required
+from ..django.types import DjangoObjectType
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
 from . import ChannelContext

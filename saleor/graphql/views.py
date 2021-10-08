@@ -16,9 +16,9 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
 from django.views.generic import View
-from graphene_django.settings import graphene_settings
-from graphene_django.views import instantiate_middleware
-from graphql import GraphQLDocument, get_default_backend
+# from graphene_django.settings import graphene_settings
+# from graphene_django.views import instantiate_middleware
+from graphql import DocumentNode
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.error import format_error as format_graphql_error
 from graphql.execution import ExecutionResult
@@ -210,7 +210,7 @@ class GraphQLView(View):
 
     def parse_query(
         self, query: str
-    ) -> Tuple[Optional[GraphQLDocument], Optional[ExecutionResult]]:
+    ) -> Tuple[Optional[DocumentNode], Optional[ExecutionResult]]:
         """Attempt to parse a query (mandatory) to a gql document object.
 
         If no query was given or query is not a string, it returns an error.
@@ -234,7 +234,7 @@ class GraphQLView(View):
         except (ValueError, GraphQLSyntaxError) as e:
             return None, ExecutionResult(errors=[e], invalid=True)
 
-    def check_if_query_contains_only_schema(self, document: GraphQLDocument):
+    def check_if_query_contains_only_schema(self, document: DocumentNode):
         query_with_schema = False
         for definition in document.document_ast.definitions:
             selections = definition.selection_set.selections

@@ -2,7 +2,7 @@ from enum import Enum
 from functools import wraps
 from typing import Iterable, Union
 
-from graphql.execution.base import ResolveInfo
+from graphql import GraphQLResolveInfo
 
 from ..attribute import AttributeType
 from ..core.exceptions import PermissionDenied
@@ -18,7 +18,7 @@ from .utils import get_user_or_app_from_context
 def context(f):
     def decorator(func):
         def wrapper(*args, **kwargs):
-            info = next(arg for arg in args if isinstance(arg, ResolveInfo))
+            info = next(arg for arg in args if isinstance(arg, GraphQLResolveInfo))
             return func(info.context, *args, **kwargs)
 
         return wrapper

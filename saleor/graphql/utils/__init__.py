@@ -4,8 +4,7 @@ from typing import Union
 import graphene
 from django.db.models import Value
 from django.db.models.functions import Concat
-from graphene_django.registry import get_global_registry
-from graphql import GraphQLDocument
+from graphql import DocumentNode
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
@@ -15,7 +14,6 @@ from ..core.types import Permission
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
 )
-registry = get_global_registry()
 REVERSED_DIRECTION = {
     "-": "",
     "": "-",
@@ -56,6 +54,7 @@ def resolve_global_ids_to_primary_keys(
 
 
 def _resolve_graphene_type(type_name):
+    raise NotImplementedError("THIS FUNCTION IS IMPORTED FROM ")
     for _, _type in registry._registry.items():
         if _type._meta.name == type_name:
             return _type
@@ -134,7 +133,7 @@ def requestor_is_superuser(requestor):
     return getattr(requestor, "is_superuser", False)
 
 
-def query_fingerprint(document: GraphQLDocument) -> str:
+def query_fingerprint(document: DocumentNode) -> str:
     """Generate a fingerprint for a GraphQL query."""
     label = "unknown"
     for definition in document.document_ast.definitions:

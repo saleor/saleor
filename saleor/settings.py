@@ -215,7 +215,6 @@ INSTALLED_APPS = [
     "django_prices",
     "django_prices_openexchangerates",
     "django_prices_vatlayer",
-    "graphene_django",
     "mptt",
     "django_countries",
     "django_filters",

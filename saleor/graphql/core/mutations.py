@@ -13,12 +13,12 @@ from django.core.files.storage import default_storage
 from django.db.models.fields.files import FileField
 from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
-from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ..decorators import staff_member_or_app_required
+from ..django.registry import get_global_registry
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .descriptions import DEPRECATED_IN_3X_FIELD
 from .types import File, Upload

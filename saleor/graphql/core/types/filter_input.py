@@ -1,8 +1,8 @@
 from graphene import Argument, InputField, InputObjectType, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
-from graphene_django.filter.utils import get_filterset_class
 
+from ...django.filter.utils import get_filterset_class
 from ..descriptions import DEPRECATED_IN_3X_INPUT
 from .converter import convert_form_field
 

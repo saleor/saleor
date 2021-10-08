@@ -6,12 +6,12 @@ import graphene
 from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
 from graphene.relay.connection import Connection
-from graphene_django.types import DjangoObjectType
 from graphql.error import GraphQLError
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
 from graphql_relay.utils import base64, unbase64
 
 from ..core.enums import OrderDirection
+from ..django.types import DjangoObjectType
 
 ConnectionArguments = Dict[str, Any]
 

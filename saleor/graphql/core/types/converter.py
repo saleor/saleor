@@ -1,10 +1,10 @@
 import graphene
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
-from graphene_django.converter import convert_django_field
-from graphene_django.forms.converter import convert_form_field
 
 from ....account.models import PossiblePhoneNumberField
+from ...django.converter import convert_django_field
+from ...django.forms.converter import convert_form_field
 from ..filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from .common import Weight
 from .money import Money, TaxedMoney

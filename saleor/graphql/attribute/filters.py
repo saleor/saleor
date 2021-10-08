@@ -1,6 +1,5 @@
 import django_filters
 from django.db.models import Q
-from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
 from ...attribute.models import Attribute, AttributeValue
 from ...core.permissions import has_one_of_permissions
@@ -11,6 +10,7 @@ from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, MetadataFilterBase
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.utils import from_global_id_or_error
+from ..django.filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_fields_containing_value
 

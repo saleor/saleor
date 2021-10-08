@@ -1,4 +1,4 @@
-from graphene import build_schema
+from graphene import Schema
 # from ..graphql.notifications.schema import ExternalNotificationMutations
 # from .account.schema import AccountMutations, AccountQueries
 # from .app.schema import AppMutations, AppQueries
@@ -80,4 +80,4 @@ class Mutation(
 
 
 # schema = build_federated_schema(Query, mutation=Mutation, types=unit_enums)
-schema = build_schema(Query, mutation=Mutation, types=unit_enums)
+schema = Schema(query=Query, mutation=Mutation, types=unit_enums)
