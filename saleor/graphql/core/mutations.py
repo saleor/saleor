@@ -19,11 +19,6 @@ from graphql.error import GraphQLError
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ..decorators import staff_member_or_app_required
-from ..shipping import types as shipping_types
-from ..shipping.utils import (
-    get_instances_by_object_ids,
-    get_shipping_model_by_object_id,
-)
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .descriptions import DEPRECATED_IN_3X_FIELD
 from .types import File, Upload
@@ -489,9 +484,6 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def get_type_for_model(cls):
-        # ShippingMethod type isn't model-based class
-        if cls._meta.model._meta.object_name == "ShippingMethod":
-            return shipping_types.ShippingMethod
         return registry.get_type_for_model(cls._meta.model)
 
     @classmethod
@@ -503,14 +495,10 @@ class ModelMutation(BaseMutation):
         object_id = data.get("id")
         qs = data.get("qs")
         if object_id:
-            # ShippingMethod type isn't model-based class
-            if cls._meta.model._meta.object_name == "ShippingMethod":
-                instance = get_shipping_model_by_object_id(object_id)
-            else:
-                model_type = cls.get_type_for_model()
-                instance = cls.get_node_or_error(
-                    info, object_id, only_type=model_type, qs=qs
-                )
+            model_type = cls.get_type_for_model()
+            instance = cls.get_node_or_error(
+                info, object_id, only_type=model_type, qs=qs
+            )
         else:
             instance = cls._meta.model()
         return instance
@@ -615,12 +603,7 @@ class BaseBulkMutation(BaseMutation):
         instance_model = cls._meta.model
         model_type = registry.get_type_for_model(instance_model)
         try:
-            # ShippingMethod type isn't model-based class
-            if instance_model._meta.object_name == "ShippingMethod":
-                instances = get_instances_by_object_ids(ids)
-            else:
-                instances = cls.get_nodes_or_error(ids, "id", model_type)
-
+            instances = cls.get_nodes_or_error(ids, "id", model_type)
         except ValidationError as error:
             return 0, error
         for instance, node_id in zip(instances, ids):

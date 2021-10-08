@@ -15,7 +15,7 @@ from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
 from ..product.types import Product, ProductVariant
-from ..shipping.utils import get_shipping_model_by_object_id
+from ..shipping import types as shipping_types
 from ..shop.types import Shop
 from . import types as translation_types
 
@@ -87,12 +87,8 @@ class BaseTranslateMutation(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        # ShippingMethod type isn't model-based class
-        if cls._meta.model._meta.object_name == "ShippingMethod":
-            instance = get_shipping_model_by_object_id(data.get("id"))
-        else:
-            node_id, model_type = cls.clean_node_id(**data)
-            instance = cls.get_node_or_error(info, node_id, only_type=model_type)
+        node_id, model_type = cls.clean_node_id(**data)
+        instance = cls.get_node_or_error(info, node_id, only_type=model_type)
         translation, created = instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
@@ -367,6 +363,16 @@ class ShippingPriceTranslate(BaseTranslateMutation):
         response = super().perform_mutation(_root, info, **data)
         instance = ChannelContext(node=response.shippingMethod, channel_slug=None)
         return cls(**{cls._meta.return_field_name: instance})
+
+    @classmethod
+    def get_type_for_model(cls):
+        return shipping_types.ShippingMethod
+
+    @classmethod
+    def get_node_or_error(cls, info, node_id, field="id", only_type=None, qs=None):
+        return super().get_node_or_error(
+            info, node_id, field, qs=shipping_models.ShippingMethod.objects
+        )
 
 
 class MenuItemTranslate(BaseTranslateMutation):

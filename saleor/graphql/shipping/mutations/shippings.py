@@ -21,7 +21,7 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types.common import ShippingError
 from ...product import types as product_types
-from ...shipping.utils import get_shipping_model_by_object_id
+from ...shipping import types as shipping_types
 from ...utils import resolve_global_ids_to_primary_keys
 from ...utils.validators import check_for_duplicates
 from ..enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
@@ -257,6 +257,23 @@ class ShippingZoneDelete(ModelDeleteMutation):
         return response
 
 
+class ShippingMethodTypeMixin:
+    @classmethod
+    def get_type_for_model(cls):
+        return shipping_types.ShippingMethod
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        object_id = data.get("id")
+        if object_id:
+            instance = cls.get_node_or_error(
+                info, object_id, qs=models.ShippingMethod.objects
+            )
+        else:
+            instance = cls._meta.model()
+        return instance
+
+
 class ShippingPriceMixin:
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
@@ -410,7 +427,7 @@ class ShippingPriceMixin:
                     )
 
 
-class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
+class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMutation):
     shipping_zone = graphene.Field(
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",
@@ -442,7 +459,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
         return response
 
 
-class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
+class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMutation):
     shipping_zone = graphene.Field(
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",
@@ -494,7 +511,9 @@ class ShippingPriceDelete(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        shipping_method = get_shipping_model_by_object_id(data.get("id"))
+        shipping_method = cls.get_node_or_error(
+            info, data.get("id"), qs=models.ShippingMethod.objects
+        )
         shipping_method_id = shipping_method.id
         shipping_zone = shipping_method.shipping_zone
         shipping_method.delete()
@@ -534,7 +553,9 @@ class ShippingPriceExcludeProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        shipping_method = get_shipping_model_by_object_id(data.get("id"))
+        shipping_method = cls.get_node_or_error(
+            info, data.get("id"), qs=models.ShippingMethod.objects
+        )
         input = data.get("input")
         product_ids = input.get("products", [])
 
@@ -577,7 +598,9 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        shipping_method = get_shipping_model_by_object_id(data.get("id"))
+        shipping_method = cls.get_node_or_error(
+            info, data.get("id"), qs=models.ShippingMethod.objects
+        )
 
         product_ids = data.get("products")
         if product_ids:
