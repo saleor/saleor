@@ -174,7 +174,6 @@ def resolve_addresses(info, ids):
         for address_id in ids
     ]
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
-        print("HERE", ids)
         return models.Address.objects.filter(id__in=ids)
     if user and not user.is_anonymous:
         return user.addresses.filter(id__in=ids)
