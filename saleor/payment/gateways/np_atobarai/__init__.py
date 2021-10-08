@@ -1,8 +1,6 @@
 import os
 from typing import List
 
-import opentracing
-
 from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from . import api
@@ -26,8 +24,7 @@ def parse_errors(errors: List[str]) -> str:
 def process_payment(
     payment_information: PaymentData, config: ApiConfig
 ) -> GatewayResponse:
-    with opentracing.global_tracer().start_active_span("np-atobarai.checkout.payments"):
-        result = api.register_transaction(config, payment_information)
+    result = api.register_transaction(config, payment_information)
 
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,
@@ -49,8 +46,7 @@ def capture(payment_information: PaymentData, config: ApiConfig) -> GatewayRespo
 
 @inject_api_config
 def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
-    with opentracing.global_tracer().start_active_span("np-atobarai.checkout.payments"):
-        result = api.cancel_transaction(config, payment_information)
+    result = api.cancel_transaction(config, payment_information)
 
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,
