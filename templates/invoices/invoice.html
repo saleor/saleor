@@ -70,6 +70,7 @@
             display: block;
             padding-bottom: 5px;
             font-family: Inter;
+            text-transform: uppercase;
             letter-spacing: -0.02em;
             font-style: normal;
             font-weight: 600;
@@ -205,7 +206,7 @@
     </div>
     <div class="section-invoice-info section-right">
         <div class="content-padded">
-            <span class="header-title">INVOICE INFORMATION</span>
+            <span class="header-title">Invoice information</span>
             <span class="header-category">Invoice number:</span>
             <div class="padded-font-sm"></div>
             <span class="header-item">{{ invoice.number }}</span>
@@ -225,7 +226,7 @@
     </div>
     <div class="section-left">
         <div class="content-tight-padded padded-top">
-            <span class="header-title">BILLING ADDRESS</span>
+            <span class="header-title">Billing address</span>
             <br />
             <span class="normal-text">
                 {{ order.billing_address.first_name }}
@@ -252,7 +253,7 @@
     </div>
     <div class="section-right">
         <div class="content-tight-padded padded-top">
-            <span class="header-title">SHIPMENT ADDRESS</span>
+            <span class="header-title">Shipment address</span>
             <br />
             <span class="normal-text">
                 {{ order.shipping_address.first_name }}
@@ -282,7 +283,7 @@
     </div>
     <div class="section-left">
         <div class="content-tight-padded padded-top">
-            <span class="header-title">PAYMENT METHOD</span>
+            <span class="header-title">Payment method</span>
             <br />
             {% if order.get_last_payment %}
                 <span class="normal-text">{{ order.get_last_payment.gateway }}</span>
@@ -294,7 +295,7 @@
     </div>
     <div class="section-right">
         <div class="content-tight-padded padded-top">
-            <span class="header-title">SHIPMENT METHOD</span>
+            <span class="header-title">Shipment method</span>
             <br />
             <span class="normal-text">{{ order.shipping_method_name }}</span>
             <br />
@@ -304,7 +305,7 @@
         <div class="content-separator">&nbsp;</div>
     </div>
     <div class="content-padded">
-        <span class="header-title">ITEMS ORDERED</span>
+        <span class="header-title">Items ordered</span>
         {% include "invoices/invoice_products_table.html" with products=products_first_page %}
         {% if not rest_of_products|length %}
             {% if products_first_page|length == 4 %}
