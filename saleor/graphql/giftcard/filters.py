@@ -107,3 +107,18 @@ def check_currency_in_filter_data(filter_data: dict):
 class GiftCardFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = GiftCardFilter
+
+
+def filter_gift_card_tag_search(qs, _, value):
+    if not value:
+        return qs
+    return qs.filter(name__ilike=value)
+
+
+class GiftCardTagFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(method=filter_gift_card_tag_search)
+
+
+class GiftCardTagFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = GiftCardTagFilter

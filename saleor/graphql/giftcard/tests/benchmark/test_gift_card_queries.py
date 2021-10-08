@@ -195,7 +195,7 @@ def test_filter_gift_cards_by_tags(
     content = get_graphql_content(
         staff_api_client.post_graphql(
             query,
-            {"filter": {"tags": ["test-tag"]}},
+            {"filter": {"tags": ["benchmark-test-tag"]}},
             permissions=[
                 permission_manage_gift_card,
                 permission_manage_apps,
