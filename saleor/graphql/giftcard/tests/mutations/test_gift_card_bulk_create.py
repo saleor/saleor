@@ -16,7 +16,9 @@ GIFT_CARD_BULK_CREATE_MUTATION = """
                 last4CodeChars
                 isActive
                 expiryDate
-                tag
+                tags {
+                    name
+                }
                 created
                 lastUsedOn
                 initialBalance {
@@ -88,7 +90,7 @@ def test_create_never_expiry_gift_cards(
     # given
     initial_balance = 100
     currency = "USD"
-    tag = "gift-card-tag"
+    tags = ["gift-card-tag", "gift-card-tag-2"]
     count = 10
     is_active = True
     variables = {
@@ -98,7 +100,7 @@ def test_create_never_expiry_gift_cards(
                 "amount": initial_balance,
                 "currency": currency,
             },
-            "tag": tag,
+            "tags": tags,
             "isActive": is_active,
         }
     }
@@ -124,7 +126,8 @@ def test_create_never_expiry_gift_cards(
     assert len(data["giftCards"]) == count
     for card_data in data["giftCards"]:
         assert card_data["isActive"] == is_active
-        assert card_data["tag"] == tag
+        assert len(card_data["tags"]) == len(tags)
+        assert {tag["name"] for tag in card_data["tags"]} == set(tags)
         assert card_data["expiryDate"] is None
         assert card_data["usedBy"] is None
         assert card_data["usedByEmail"] is None
@@ -178,7 +181,7 @@ def test_create_gift_cards_with_expiry_date_by_app(
                 "amount": initial_balance,
                 "currency": currency,
             },
-            "tag": tag,
+            "tags": [tag],
             "isActive": is_active,
             "expiryDate": date_value,
         }
@@ -205,7 +208,8 @@ def test_create_gift_cards_with_expiry_date_by_app(
     assert len(data["giftCards"]) == count
     for card_data in data["giftCards"]:
         assert card_data["isActive"] == is_active
-        assert card_data["tag"] == tag
+        assert len(card_data["tags"]) == 1
+        assert card_data["tags"][0]["name"] == tag
         assert card_data["expiryDate"] == date_value.isoformat()
         assert card_data["usedBy"] is None
         assert card_data["usedByEmail"] is None
@@ -253,7 +257,7 @@ def test_create_gift_cards_by_cutomer(api_client):
                 "amount": initial_balance,
                 "currency": currency,
             },
-            "tag": tag,
+            "tags": [tag],
             "isActive": is_active,
         }
     }
@@ -289,7 +293,7 @@ def test_create_gift_cards_invalid_count_value(
                 "amount": initial_balance,
                 "currency": currency,
             },
-            "tag": tag,
+            "tags": [tag],
             "isActive": is_active,
             "expiryDate": date_value,
         }
@@ -337,7 +341,7 @@ def test_create_gift_cards_too_many_decimal_places_in_balance_amount(
                 "amount": initial_balance,
                 "currency": currency,
             },
-            "tag": tag,
+            "tags": [tag],
             "isActive": is_active,
             "expiryDate": date_value,
         }
@@ -385,7 +389,7 @@ def test_create_gift_cards_zero_balance_amount(
                 "amount": initial_balance,
                 "currency": currency,
             },
-            "tag": tag,
+            "tags": [tag],
             "isActive": is_active,
             "expiryDate": date_value,
         }
@@ -434,7 +438,7 @@ def test_create_gift_cards_invalid_expiry_date(
                 "amount": initial_balance,
                 "currency": currency,
             },
-            "tag": tag,
+            "tags": [tag],
             "isActive": is_active,
             "expiryDate": date_value,
         }

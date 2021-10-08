@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 from ..account.models import User
 from ..app.models import App
@@ -123,9 +123,9 @@ def gift_card_expiry_date_updated_event(
     )
 
 
-def gift_card_tag_updated_event(
+def gift_card_tags_updated_event(
     gift_card: GiftCard,
-    old_gift_card: GiftCard,
+    old_tags: List[str],
     user: UserType,
     app: AppType,
 ):
@@ -135,10 +135,12 @@ def gift_card_tag_updated_event(
         gift_card=gift_card,
         user=user,
         app=app,
-        type=GiftCardEvents.TAG_UPDATED,
+        type=GiftCardEvents.TAGS_UPDATED,
         parameters={
-            "tag": gift_card.tag,
-            "old_tag": old_gift_card.tag,
+            "tags": list(
+                gift_card.tags.order_by("name").values_list("name", flat=True)
+            ),
+            "old_tags": old_tags,
         },
     )
 

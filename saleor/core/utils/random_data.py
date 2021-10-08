@@ -57,7 +57,7 @@ from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...discount.utils import fetch_discounts
 from ...giftcard import events as gift_card_events
-from ...giftcard.models import GiftCard
+from ...giftcard.models import GiftCard, GiftCardTag
 from ...menu.models import Menu
 from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
@@ -1428,17 +1428,18 @@ def create_vouchers():
 
 def create_gift_cards(how_many=5):
     product_pk = Product.objects.get(name="Gift card").pk
+    tag, _ = GiftCardTag.objects.get_or_create(name="issued-gift-cards")
     for i in range(how_many):
         staff_user = User.objects.filter(is_staff=True).order_by("?").first()
         gift_card, created = GiftCard.objects.get_or_create(
             code=f"Gift_card_{i+1}",
             defaults={
                 "created_by": staff_user,
-                "tag": "issued-gift-cards",
                 "initial_balance": Money(50, DEFAULT_CURRENCY),
                 "current_balance": Money(50, DEFAULT_CURRENCY),
             },
         )
+        gift_card.tags.add(tag)
         gift_card_events.gift_card_issued_event(gift_card, staff_user, None)
         if created:
             yield "Gift card #%d" % gift_card.id

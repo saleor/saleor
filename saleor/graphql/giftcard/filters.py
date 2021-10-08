@@ -16,12 +16,6 @@ from ..utils import resolve_global_ids_to_primary_keys
 from .enums import GiftCardEventsEnum
 
 
-def filter_gift_card_tag(qs, _, value):
-    if not value:
-        return qs
-    return qs.filter(tag__ilike=value)
-
-
 def filter_products(qs, _, value):
     if value:
         _, product_pks = resolve_global_ids_to_primary_keys(value, "Product")
@@ -49,7 +43,8 @@ def filter_gift_cards_by_used_by_user(qs, user_pks):
 def filter_tags_list(qs, _, value):
     if not value:
         return qs
-    return qs.filter(tag__in=value)
+    tags = models.GiftCardTag.objects.filter(name__in=value)
+    return qs.filter(Exists(tags.filter(pk=OuterRef("tags__id"))))
 
 
 def filter_gift_card_used(qs, _, value):
@@ -80,7 +75,6 @@ def filter_code(qs, _, value):
 
 
 class GiftCardFilter(MetadataFilterBase):
-    tag = django_filters.CharFilter(method=filter_gift_card_tag)
     tags = ListObjectTypeFilter(input_class=graphene.String, method=filter_tags_list)
     products = GlobalIDMultipleChoiceFilter(method=filter_products)
     used_by = GlobalIDMultipleChoiceFilter(method=filter_used_by)

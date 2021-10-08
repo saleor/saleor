@@ -4,7 +4,7 @@ import pytest
 from prices import Money
 
 from .....giftcard import GiftCardEvents
-from .....giftcard.models import GiftCard, GiftCardEvent
+from .....giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 
 GIFT_CARD_COUNT_IN_BENCHMARKS = 20
 
@@ -23,11 +23,12 @@ def gift_cards_for_benchmarks(
             created_by_email=customer_user.email,
             initial_balance=Money(10, "USD"),
             current_balance=Money(10, "USD"),
-            tag="test-tag",
         )
         for _ in range(GIFT_CARD_COUNT_IN_BENCHMARKS)
     ]
     created_gift_cards = GiftCard.objects.bulk_create(gift_cards)
+    tag = GiftCardTag.objects.create(name="test-tag")
+    tag.gift_cards.add(*created_gift_cards)
 
     parameters = {
         "message": "test message",

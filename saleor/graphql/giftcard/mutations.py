@@ -6,6 +6,7 @@ from django.core.validators import validate_email
 
 from ...account.models import User
 from ...core.permissions import GiftcardPermissions
+from ...core.tracing import traced_atomic_transaction
 from ...core.utils.promo_code import generate_promo_code
 from ...core.utils.validators import is_date_in_future, user_is_valid
 from ...giftcard import events, models
@@ -22,6 +23,7 @@ from ..core.scalars import PositiveDecimal
 from ..core.types.common import GiftCardError, PriceInput
 from ..core.utils import validate_required_string_field
 from ..core.validators import validate_price_precision
+from ..utils.validators import check_for_duplicates
 from .types import GiftCard, GiftCardEvent
 
 
@@ -38,7 +40,10 @@ def clean_gift_card(gift_card: GiftCard):
 
 
 class GiftCardInput(graphene.InputObjectType):
-    tag = graphene.String(description=f"{ADDED_IN_31} The gift card tag.")
+    add_tags = graphene.List(
+        graphene.NonNull(graphene.String),
+        description=f"{ADDED_IN_31} The gift card tags to add.",
+    )
     expiry_date = graphene.types.datetime.Date(
         description=f"{ADDED_IN_31} The gift card expiry date."
     )
@@ -86,6 +91,10 @@ class GiftCardCreateInput(GiftCardInput):
 
 
 class GiftCardUpdateInput(GiftCardInput):
+    remove_tags = graphene.List(
+        graphene.NonNull(graphene.String),
+        description=f"{ADDED_IN_31} The gift card tags to remove.",
+    )
     balance_amount = PositiveDecimal(
         description=f"{ADDED_IN_31} The gift card balance amount.", required=False
     )
@@ -222,6 +231,20 @@ class GiftCardCreate(ModelMutation):
                 resending=False,
             )
 
+    @classmethod
+    @traced_atomic_transaction()
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        tags = cleaned_data.get("add_tags")
+        if tags:
+            tags = {tag.lower() for tag in tags}
+            gift_card_tags = models.GiftCardTag.objects.filter(name__in=tags)
+            tags_to_create = tags - set(gift_card_tags.values_list("name", flat=True))
+            models.GiftCardTag.objects.bulk_create(
+                [models.GiftCardTag(name=tag) for tag in tags_to_create]
+            )
+            instance.tags.add(*gift_card_tags)
+
 
 class GiftCardUpdate(GiftCardCreate):
     class Arguments:
@@ -253,6 +276,13 @@ class GiftCardUpdate(GiftCardCreate):
         cleaned_input["current_balance_amount"] = amount
         cleaned_input["initial_balance_amount"] = amount
 
+    @staticmethod
+    def clean_tags(cleaned_input):
+        error = check_for_duplicates(cleaned_input, "add_tags", "remove_tags", "tags")
+        if error:
+            error.code = GiftCardErrorCode.DUPLICATED_INPUT_ITEM.value
+            raise ValidationError({"tags": error})
+
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
@@ -261,24 +291,61 @@ class GiftCardUpdate(GiftCardCreate):
 
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
+
+        tags_updated = "add_tags" in cleaned_input or "remove_tags" in cleaned_input
+        if tags_updated:
+            old_tags = list(
+                old_instance.tags.order_by("name").values_list("name", flat=True)
+            )
+
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
+        cls._save_m2m(info, instance, cleaned_input)
 
+        user = info.context.user
+        app = info.context.app
         if "initial_balance_amount" in cleaned_input:
-            events.gift_card_balance_reset_event(
-                instance, old_instance, info.context.user, info.context.app
-            )
+            events.gift_card_balance_reset_event(instance, old_instance, user, app)
         if "expiry_date" in cleaned_input:
             events.gift_card_expiry_date_updated_event(
-                instance, old_instance, info.context.user, info.context.app
+                instance, old_instance, user, app
             )
-        if "tag" in cleaned_input:
-            events.gift_card_tag_updated_event(
-                instance, old_instance, info.context.user, info.context.app
-            )
+        if tags_updated:
+            events.gift_card_tags_updated_event(instance, old_tags, user, app)
 
         return cls.success_response(instance)
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
+        cls.clean_tags(cleaned_input)
+        return cleaned_input
+
+    @classmethod
+    @traced_atomic_transaction()
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        add_tags = cleaned_data.get("add_tags")
+        remove_tags = cleaned_data.get("remove_tags")
+        if add_tags:
+            add_tags = {tag.lower() for tag in add_tags}
+            add_tags_instances = models.GiftCardTag.objects.filter(name__in=add_tags)
+            tags_to_create = add_tags - set(
+                add_tags_instances.values_list("name", flat=True)
+            )
+            models.GiftCardTag.objects.bulk_create(
+                [models.GiftCardTag(name=tag) for tag in tags_to_create]
+            )
+            instance.tags.add(*add_tags_instances)
+        if remove_tags:
+            remove_tags = {tag.lower() for tag in remove_tags}
+            remove_tags_instances = models.GiftCardTag.objects.filter(
+                name__in=remove_tags
+            )
+            instance.tags.remove(*remove_tags_instances)
+            # delete tags without gift card assigned
+            remove_tags_instances.filter(gift_cards__isnull=True).delete()
 
 
 class GiftCardDelete(ModelDeleteMutation):
