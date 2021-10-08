@@ -135,3 +135,18 @@ def filter_events_by_orders(events: List[models.GiftCardEvent], order_ids: List[
 class GiftCardEventFilterInput(graphene.InputObjectType):
     type = graphene.Argument(GiftCardEventsEnum)
     orders = graphene.List(graphene.NonNull(graphene.ID))
+
+
+def filter_gift_card_tag_search(qs, _, value):
+    if not value:
+        return qs
+    return qs.filter(name__ilike=value)
+
+
+class GiftCardTagFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(method=filter_gift_card_tag_search)
+
+
+class GiftCardTagFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = GiftCardTagFilter

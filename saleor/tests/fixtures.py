@@ -3129,6 +3129,7 @@ def checkout_line_with_reserved_preorder_item(
     return checkout_line
 
 
+@pytest.fixture
 def gift_card_tag_list(db):
     tags = [GiftCardTag(name=f"test-tag-{i}") for i in range(5)]
     return GiftCardTag.objects.bulk_create(tags)
@@ -3143,7 +3144,7 @@ def gift_card(customer_user):
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
     )
-    tag = GiftCardTag.objects.create(name="test-tag")
+    tag, _ = GiftCardTag.objects.get_or_create(name="test-tag")
     gift_card.tags.add(tag)
     return gift_card
 
@@ -3200,7 +3201,7 @@ def gift_card_created_by_staff(staff_user):
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
     )
-    tag = GiftCardTag.objects.create(name="test-tag")
+    tag, _ = GiftCardTag.objects.get_or_create(name="test-tag")
     gift_card.tags.add(tag)
     return gift_card
 

@@ -2562,6 +2562,21 @@ type GiftCardTag implements Node {
   name: String!
 }
 
+type GiftCardTagCountableConnection {
+  pageInfo: PageInfo!
+  edges: [GiftCardTagCountableEdge!]!
+  totalCount: Int
+}
+
+type GiftCardTagCountableEdge {
+  node: GiftCardTag!
+  cursor: String!
+}
+
+input GiftCardTagFilterInput {
+  search: String
+}
+
 type GiftCardUpdate {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [GiftCardError!]!
@@ -5988,6 +6003,7 @@ type Query {
   giftCard(id: ID!): GiftCard
   giftCards(sortBy: GiftCardSortingInput, filter: GiftCardFilterInput, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   giftCardCurrencies: [String!]!
+  giftCardTags(filter: GiftCardTagFilterInput, before: String, after: String, first: Int, last: Int): GiftCardTagCountableConnection
   plugin(id: ID!): Plugin
   plugins(filter: PluginFilterInput, sortBy: PluginSortingInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!, channel: String): Sale

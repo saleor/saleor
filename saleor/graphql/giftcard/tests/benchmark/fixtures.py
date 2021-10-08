@@ -27,7 +27,7 @@ def gift_cards_for_benchmarks(
         for _ in range(GIFT_CARD_COUNT_IN_BENCHMARKS)
     ]
     created_gift_cards = GiftCard.objects.bulk_create(gift_cards)
-    tag = GiftCardTag.objects.create(name="test-tag")
+    tag = GiftCardTag.objects.create(name="benchmark-test-tag")
     tag.gift_cards.add(*created_gift_cards)
 
     parameters = {

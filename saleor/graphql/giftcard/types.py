@@ -23,7 +23,10 @@ from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader
 from ..utils import get_user_or_app_from_context
-from .dataloaders import GiftCardEventsByGiftCardIdLoader
+from .dataloaders import (
+    GiftCardEventsByGiftCardIdLoader,
+    GiftCardTagsByGiftCardIdLoader,
+)
 from .enums import GiftCardEventsEnum
 from .filters import (
     GiftCardEventFilterInput,
@@ -419,8 +422,8 @@ class GiftCard(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
-    def resolve_tags(root: models.GiftCard, _info):
-        return root.tags.all()
+    def resolve_tags(root: models.GiftCard, info):
+        return GiftCardTagsByGiftCardIdLoader(info.context).load(root.id)
 
     @staticmethod
     @traced_resolver
@@ -486,3 +489,8 @@ class GiftCard(CountableDjangoObjectType):
 class GiftCardCountableConnection(CountableConnection):
     class Meta:
         node = GiftCard
+
+
+class GiftCardTagCountableConnection(CountableConnection):
+    class Meta:
+        node = GiftCardTag

@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Iterable
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -231,19 +232,25 @@ class GiftCardCreate(ModelMutation):
                 resending=False,
             )
 
+    @staticmethod
+    def assign_gift_card_tags(instance: models.GiftCard, tags_values: Iterable[str]):
+        add_tags = {tag.lower() for tag in tags_values}
+        add_tags_instances = models.GiftCardTag.objects.filter(name__in=add_tags)
+        tags_to_create = add_tags - set(
+            add_tags_instances.values_list("name", flat=True)
+        )
+        models.GiftCardTag.objects.bulk_create(
+            [models.GiftCardTag(name=tag) for tag in tags_to_create]
+        )
+        instance.tags.add(*add_tags_instances)
+
     @classmethod
     @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         tags = cleaned_data.get("add_tags")
         if tags:
-            tags = {tag.lower() for tag in tags}
-            gift_card_tags = models.GiftCardTag.objects.filter(name__in=tags)
-            tags_to_create = tags - set(gift_card_tags.values_list("name", flat=True))
-            models.GiftCardTag.objects.bulk_create(
-                [models.GiftCardTag(name=tag) for tag in tags_to_create]
-            )
-            instance.tags.add(*gift_card_tags)
+            cls.assign_gift_card_tags(instance, tags)
 
 
 class GiftCardUpdate(GiftCardCreate):
@@ -326,18 +333,7 @@ class GiftCardUpdate(GiftCardCreate):
     @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
-        add_tags = cleaned_data.get("add_tags")
         remove_tags = cleaned_data.get("remove_tags")
-        if add_tags:
-            add_tags = {tag.lower() for tag in add_tags}
-            add_tags_instances = models.GiftCardTag.objects.filter(name__in=add_tags)
-            tags_to_create = add_tags - set(
-                add_tags_instances.values_list("name", flat=True)
-            )
-            models.GiftCardTag.objects.bulk_create(
-                [models.GiftCardTag(name=tag) for tag in tags_to_create]
-            )
-            instance.tags.add(*add_tags_instances)
         if remove_tags:
             remove_tags = {tag.lower() for tag in remove_tags}
             remove_tags_instances = models.GiftCardTag.objects.filter(
