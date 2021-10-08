@@ -7,7 +7,7 @@ from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.types import (
     ChannelContext,
-    ChannelContextObjectType,
+    ChannelContextType,
     ChannelContextTypeWithMetadata,
 )
 from ..core.connection import CountableDjangoObjectType
@@ -33,7 +33,7 @@ class Menu(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     items = graphene.List(lambda: MenuItem)
 
     class Meta:
-        default_resolver = ChannelContextObjectType.resolver_with_context
+        default_resolver = ChannelContextType.resolver_with_context
         description = (
             "Represents a single menu - an object that is used to help navigate "
             "through the store."
@@ -59,11 +59,11 @@ class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     translation = TranslationField(
         MenuItemTranslation,
         type_name="menu item",
-        resolver=ChannelContextObjectType.resolve_translation,
+        resolver=ChannelContextType.resolve_translation,
     )
 
     class Meta:
-        default_resolver = ChannelContextObjectType.resolver_with_context
+        default_resolver = ChannelContextType.resolver_with_context
 
         description = (
             "Represents a single item of the related menu. Can store categories, "

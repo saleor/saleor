@@ -6,7 +6,7 @@ from ...discount import models
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
     ChannelContext,
-    ChannelContextObjectType,
+    ChannelContextType,
     ChannelContextTypeWithMetadata,
 )
 from ..core import types
@@ -57,7 +57,7 @@ class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     translation = TranslationField(
         SaleTranslation,
         type_name="sale",
-        resolver=ChannelContextObjectType.resolve_translation,
+        resolver=ChannelContextType.resolve_translation,
     )
     channel_listings = graphene.List(
         graphene.NonNull(SaleChannelListing),
@@ -67,7 +67,7 @@ class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     currency = graphene.String(description="Currency code for sale.")
 
     class Meta:
-        default_resolver = ChannelContextObjectType.resolver_with_context
+        default_resolver = ChannelContextType.resolver_with_context
         description = (
             "Sales allow creating discounts for categories, collections or products "
             "and are visible to all the customers."
@@ -157,7 +157,7 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     translation = TranslationField(
         VoucherTranslation,
         type_name="voucher",
-        resolver=ChannelContextObjectType.resolve_translation,
+        resolver=ChannelContextType.resolve_translation,
     )
     discount_value_type = DiscountValueTypeEnum(
         description="Determines a type of discount for voucher - value or percentage",
@@ -175,7 +175,7 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
 
     class Meta:
-        default_resolver = ChannelContextObjectType.resolver_with_context
+        default_resolver = ChannelContextType.resolver_with_context
         description = (
             "Vouchers allow giving discounts to particular customers on categories, "
             "collections or specific products. They can be used during checkout by "

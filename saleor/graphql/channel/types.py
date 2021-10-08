@@ -17,7 +17,7 @@ from . import ChannelContext
 from .dataloaders import ChannelWithHasOrdersByIdLoader
 
 
-class ChannelContextObjectType(ObjectType):
+class ChannelContextType(ObjectType):
     """A Graphene type that supports resolvers' root as ChannelContext objects."""
 
     @staticmethod

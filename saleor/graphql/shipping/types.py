@@ -10,7 +10,7 @@ from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
     Channel,
     ChannelContext,
-    ChannelContextObjectType,
+    ChannelContextType,
     ChannelContextTypeWithMetadata,
 )
 from ..core.connection import CountableDjangoObjectType
@@ -75,7 +75,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadata, CountableDjangoObjectTy
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
-        resolver=ChannelContextObjectType.resolve_translation,
+        resolver=ChannelContextType.resolve_translation,
     )
     channel_listings = graphene.List(
         graphene.NonNull(ShippingMethodChannelListing),
@@ -93,7 +93,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadata, CountableDjangoObjectTy
     )
 
     class Meta:
-        default_resolver = ChannelContextObjectType.resolver_with_context
+        default_resolver = ChannelContextType.resolver_with_context
         description = (
             "Shipping method are the methods you'll use to get customer's orders to "
             "them. They are directly exposed to the customers."
@@ -198,7 +198,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     description = graphene.String(description="Description of a shipping zone.")
 
     class Meta:
-        default_resolver = ChannelContextObjectType.resolver_with_context
+        default_resolver = ChannelContextType.resolver_with_context
         description = (
             "Represents a shipping zone in the shop. Zones are the concept used only "
             "for grouping shipping methods in the dashboard, and are never exposed to "
@@ -254,7 +254,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
-class ShippingMethod(ChannelContextObjectType):
+class ShippingMethod(ChannelContextType):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
@@ -269,7 +269,7 @@ class ShippingMethod(ChannelContextObjectType):
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
-        resolver=ChannelContextObjectType.resolve_translation,
+        resolver=ChannelContextType.resolve_translation,
     )
     price = graphene.Field(
         Money, required=True, description="The price of selected shipping method."
