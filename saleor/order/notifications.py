@@ -231,6 +231,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
     order_payload.update(
         {
+            "number": order.id,
             "channel_slug": order.channel.slug,
             "created": str(order.created),
             "shipping_price_net_amount": order.shipping_price_net_amount,
@@ -244,6 +245,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
             "billing_address": get_address_payload(order.billing_address),
             "shipping_address": get_address_payload(order.shipping_address),
             "shipping_method_name": order.shipping_method_name,
+            "collection_point_name": order.collection_point_name,
             **get_discounts_payload(order),
         }
     )

@@ -76,8 +76,11 @@ def test_generate_order_payload(
     payload = json.loads(generate_order_payload(order_with_lines))[0]
 
     assert order_id == payload["id"]
-    for field in ORDER_FIELDS:
+    non_empty_fields = [f for f in ORDER_FIELDS if f != "collection_point_name"]
+    for field in non_empty_fields:
         assert payload.get(field) is not None
+
+    assert payload["collection_point_name"] is None
 
     assert payload.get("shipping_method")
     assert payload.get("shipping_tax_rate")
@@ -465,6 +468,7 @@ def test_generate_invoice_payload(fulfilled_order):
             "origin": OrderOrigin.CHECKOUT,
             "user_email": "test@example.com",
             "shipping_method_name": "DHL",
+            "collection_point_name": None,
             "shipping_price_net_amount": "10.000",
             "shipping_price_gross_amount": "12.300",
             "shipping_tax_rate": "0.0000",
