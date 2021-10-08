@@ -19,8 +19,8 @@ FRAGMENT_EVENTS = """
         email
         orderId
         orderNumber
-        tag
-        oldTag
+        tags
+        oldTags
         balance {
             initialBalance {
                 amount
@@ -53,7 +53,9 @@ FRAGMENT_GIFT_CARD_DETAILS = (
             displayCode
             isActive
             expiryDate
-            tag
+            tags {
+                name
+            }
             created
             lastUsedOn
             boughtInChannel
@@ -168,7 +170,7 @@ def test_query_gift_cards(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_filter_gift_cards_by_tag(
+def test_filter_gift_cards_by_tags(
     staff_api_client,
     gift_cards_for_benchmarks,
     permission_manage_gift_card,
@@ -193,7 +195,7 @@ def test_filter_gift_cards_by_tag(
     content = get_graphql_content(
         staff_api_client.post_graphql(
             query,
-            {"filter": {"tag": "tag"}},
+            {"filter": {"tags": ["test-tag"]}},
             permissions=[
                 permission_manage_gift_card,
                 permission_manage_apps,

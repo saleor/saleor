@@ -1,7 +1,6 @@
 import os
 
 from django.conf import settings
-from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import JSONField, Q
 from django.utils import timezone
@@ -20,6 +19,10 @@ class GiftCardQueryset(models.QuerySet):
             Q(expiry_date__isnull=True) | Q(expiry_date__gte=date),
             is_active=True,
         )
+
+
+class GiftCardTag(models.Model):
+    name = models.CharField(max_length=255)
 
 
 class GiftCard(ModelWithMetadata):
@@ -51,7 +54,7 @@ class GiftCard(ModelWithMetadata):
 
     expiry_date = models.DateField(null=True, blank=True)
 
-    tag = models.CharField(max_length=255, null=True, blank=True)
+    tags = models.ManyToManyField(GiftCardTag, "gift_cards")
     created = models.DateTimeField(auto_now_add=True)
     last_used_on = models.DateTimeField(null=True, blank=True)
     product = models.ForeignKey(
@@ -97,15 +100,6 @@ class GiftCard(ModelWithMetadata):
         permissions = (
             (GiftcardPermissions.MANAGE_GIFT_CARD.codename, "Manage gift cards."),
         )
-        indexes = [
-            *ModelWithMetadata.Meta.indexes,
-            GinIndex(
-                name="giftcard_search_gin",
-                # `opclasses` and `fields` should be the same length
-                fields=["tag"],
-                opclasses=["gin_trgm_ops"],
-            ),
-        ]
 
     @property
     def display_code(self):

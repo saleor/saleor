@@ -4,7 +4,6 @@ from ..core.types import SortInputObjectType
 
 
 class GiftCardSortField(graphene.Enum):
-    TAG = ["tag"]
     PRODUCT = ["product__name", "product__slug"]
     USED_BY = ["used_by__first_name", "used_by__last_name", "created"]
     CURRENT_BALANCE = ["current_balance_amount", "created"]
