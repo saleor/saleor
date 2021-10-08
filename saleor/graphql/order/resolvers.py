@@ -89,6 +89,19 @@ def resolve_order_shipping_methods(root: models.Order, info):
             else:
                 shipping_method.price = taxed_price.net
             available_shipping_methods.append(shipping_method)
+    webhook_excluded_methods = manager.excluded_shipping_methods_for_order(
+        root, available_shipping_methods
+    )
+    if webhook_excluded_methods:
+        excluded_methods_ids = [
+            shipping_method["id"]
+            for shipping_method in webhook_excluded_methods["excluded_methods"]
+        ]
+        available_shipping_methods = [
+            shipping_method
+            for shipping_method in available_shipping_methods
+            if shipping_method.id not in excluded_methods_ids
+        ]
     instances = [
         ChannelContext(
             node=ShippingMethod(
