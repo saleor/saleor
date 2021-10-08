@@ -190,7 +190,7 @@ def _process_payment_with_checkout(
 ):
     checkout = _get_checkout(payment.id)
 
-    if checkout:
+    if checkout and payment.can_create_order():
         _finalize_checkout(checkout, payment, payment_intent, kind, amount, currency)
 
 

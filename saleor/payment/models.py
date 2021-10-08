@@ -126,6 +126,10 @@ class Payment(models.Model):
     def get_total(self):
         return Money(self.total, self.currency)
 
+    def can_create_order(self):
+        """Indicate whether an order can be created with this payment."""
+        return False if self.partial and not self.complete_order else True
+
     def get_covered_amount(self):
         """Return an amount that is covered by this payment (but not necessarily captured).
 
