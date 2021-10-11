@@ -21,6 +21,7 @@ from ....order.actions import (
 from ....order.error_codes import OrderErrorCode
 from ....order.interface import OrderPaymentAction
 from ....order.notifications import send_fulfillment_update
+from ....order.utils import get_active_payments
 from ....payment.models import Payment
 from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
@@ -482,7 +483,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         abstract = True
 
     @classmethod
-    def clean_order_payment(cls, payment, cleaned_input):
+    def clean_order_payment(cls, payment):
         if not payment or not payment.can_refund():
             raise ValidationError(
                 {
@@ -575,12 +576,16 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         else:
             cls._check_order_has_single_payment(order)
 
+            active_payments = get_active_payments(order)
+            if not active_payments:
+                # Raise a proper error if the list is empty.
+                cls.clean_order_payment(None)
+
             has_amounts_specified.append(amount_to_refund)
 
-            payment = order.payments.filter(is_active=True).first()
             payments = [
                 OrderPaymentAction(
-                    payment,
+                    active_payments[0],
                     amount_to_refund or Decimal("0"),
                 )
             ]
@@ -736,7 +741,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             order, payments_to_refund, amount_to_refund, include_shipping_costs
         )
         for item in payments:
-            cls.clean_order_payment(item.payment, cleaned_input)
+            cls.clean_order_payment(item.payment)
             cls.clean_amount_to_refund(item.amount, item.payment, cleaned_input)
 
         cleaned_input.update(
@@ -898,7 +903,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
         )
         if refund:
             for item in payments:
-                cls.clean_order_payment(item.payment, cleaned_input)
+                cls.clean_order_payment(item.payment)
                 cls.clean_amount_to_refund(item.amount, item.payment, cleaned_input)
 
         cleaned_input.update(
