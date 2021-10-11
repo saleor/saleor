@@ -399,7 +399,7 @@ def _decrease_stocks_quantity(
         )
         if stock is None:
             # If there is no stock but allow_stock_to_be_exceeded == True
-            # we proceed with fulfillment an order, treat as error otherwise
+            # we proceed with fulfilling the order, treat as error otherwise
             if not allow_stock_to_be_exceeded:
                 insufficient_stocks.append(
                     InsufficientStockData(
