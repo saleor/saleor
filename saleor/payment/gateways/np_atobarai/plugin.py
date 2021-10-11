@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-import opentracing
 from django.core.exceptions import ValidationError
 
 from ....order.models import Fulfillment
@@ -25,6 +24,7 @@ from .const import (
     TERMINAL_ID,
     USE_SANDBOX,
 )
+from .utils import np_atobarai_opentracing_trace
 
 GATEWAY_NAME = "NP後払い"
 
@@ -38,7 +38,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.np-atobarai"
     PLUGIN_NAME = GATEWAY_NAME
     CONFIGURATION_PER_CHANNEL = True
-    SUPPORTED_CURRENCIES = "JPY"
+    SUPPORTED_CURRENCIES = "JPY,PLN,USD"
 
     DEFAULT_CONFIGURATION = [
         {"name": MERCHANT_CODE, "value": None},
@@ -80,7 +80,6 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         },
         SHIPPING_COMPANY: {
             "type": ConfigurationTypeField.STRING,
-            # FIXME:
             "help_text": "Determines shipping company used in fulfillment report.",
             "label": "Shipping company",
         },
@@ -99,6 +98,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
                 TERMINAL_ID: configuration[TERMINAL_ID],
                 USE_SANDBOX: configuration[USE_SANDBOX],
                 FILL_MISSING_ADDRESS: configuration[FILL_MISSING_ADDRESS],
+                SHIPPING_COMPANY: configuration[SHIPPING_COMPANY],
             },
         )
 
@@ -129,6 +129,10 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         fulfillment_created(fulfillment, self._get_gateway_config())
         return previous_value
 
+    def order_fulfilled(self, *args, **kwargs):
+        print(f"order fulfilled: {args = } {kwargs = }")
+        return NotImplemented
+
     def get_supported_currencies(self, previous_value):
         return self.SUPPORTED_CURRENCIES
 
@@ -140,17 +144,18 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         conf = {
             data["name"]: data["value"] for data in plugin_configuration.configuration
         }
-        with opentracing.global_tracer().start_active_span(
-            "np-atobarai.utilities.ping"
-        ) as scope:
-            span = scope.span
-            span.set_tag("service.name", "np-atobarai")
+        with np_atobarai_opentracing_trace("np-atobarai.utilities.ping"):
             response = api.health_check(get_api_config(conf))
 
         if not response:
             raise ValidationError(
-                "Authentication failed. Please check provided data.",
-                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                {
+                    field: ValidationError(
+                        "Authentication failed. Please check provided data.",
+                        code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                    )
+                    for field in [MERCHANT_CODE, SP_CODE, TERMINAL_ID]
+                }
             )
 
     @classmethod

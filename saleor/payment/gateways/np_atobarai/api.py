@@ -1,7 +1,6 @@
 import logging
-from typing import Iterable, Optional
+from typing import Iterable, List, Optional
 
-import opentracing
 import requests
 from django.utils import timezone
 from posuto import Posuto
@@ -16,12 +15,12 @@ from ...utils import price_to_minor_unit
 from .api_types import ApiConfig, PaymentResult, PaymentStatus
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL
 from .errors import (
-    FULFILLMENT_REPORT_RESULT_ERRORS,
     TRANSACTION_CANCELLATION_RESULT_ERROR,
     TRANSACTION_REGISTRATION_RESULT_ERRORS,
     get_error_messages_from_codes,
     get_reason_messages_from_codes,
 )
+from .utils import np_atobarai_opentracing_trace
 
 REQUEST_TIMEOUT = 15
 
@@ -40,35 +39,36 @@ def _request(
     path: str = "",
     json: Optional[dict] = None,
 ) -> requests.Response:
-    return requests.request(
-        method=method,
-        url=get_url(config, path),
-        timeout=REQUEST_TIMEOUT,
-        json=json or {},
-        auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
-        headers={"X-NP-Terminal-Id": config.terminal_id},
-    )
+    with np_atobarai_opentracing_trace("np-atobarai.utilities.request"):
+        response = requests.request(
+            method=method,
+            url=get_url(config, path),
+            timeout=REQUEST_TIMEOUT,
+            json=json or {},
+            auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
+            headers={"X-NP-Terminal-Id": config.terminal_id},
+        )
+        if 400 < response.status_code <= 600:
+            raise requests.HTTPError
+        return response
 
 
 def np_request(
     config: ApiConfig, method: str, path: str = "", json: Optional[dict] = None
 ) -> requests.Response:
     try:
-        response = _request(config, method, path, json)
-        # NP responses with status code 400 should be processed by api functions
-        # They contain error details that we need to pass to the customer
-        if 400 < response.status_code <= 600:
-            raise requests.HTTPError
-        return response
+        return _request(config, method, path, json)
     except requests.RequestException:
-        raise PaymentError("Cannot connect to NP Atobarai.")
+        msg = "Cannot connect to NP Atobarai."
+        logger.warning(msg, exc_info=True)
+        raise PaymentError(msg)
 
 
 def health_check(config: ApiConfig) -> bool:
     try:
-        response = _request(config, "post", "/authorizations/find")
-        return response.status_code not in [401, 403]
-    except requests.HTTPError:
+        _request(config, "post", "/authorizations/find")
+        return True
+    except requests.RequestException:
         return False
 
 
@@ -81,7 +81,7 @@ def _format_address(config: ApiConfig, ad: AddressData):
     """Follow the Japanese address guidelines."""
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
     if not config.fill_missing_address:
-        return f"{ad.country_area}" f"{ad.street_address_2}" f"{ad.street_address_1}"
+        return f"{ad.country_area}{ad.street_address_2}{ad.street_address_1}"
     with Posuto() as pp:
         try:
             jap_ad = pp.get(ad.postal_code)
@@ -102,98 +102,99 @@ def _format_address(config: ApiConfig, ad: AddressData):
 def register_transaction(
     config: ApiConfig, payment_information: "PaymentData"
 ) -> PaymentResult:
-    order_date = timezone.now().strftime("%Y-%m-%d")
+    with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.register"):
+        order_date = timezone.now().strftime("%Y-%m-%d")
 
-    billing = payment_information.billing
-    shipping = payment_information.shipping
+        billing = payment_information.billing
+        shipping = payment_information.shipping
 
-    if not billing:
-        raise PaymentError(
-            "Billing address is required for transaction in NP Atobarai."
-        )
-    if not shipping:
-        raise PaymentError(
-            "Shipping address is required for transaction in NP Atobarai."
-        )
+        if not billing:
+            raise PaymentError(
+                "Billing address is required for transaction in NP Atobarai."
+            )
+        if not shipping:
+            raise PaymentError(
+                "Shipping address is required for transaction in NP Atobarai."
+            )
 
-    data = {
-        "transactions": [
-            {
-                "shop_transaction_id": payment_information.payment_id,
-                "shop_order_date": order_date,
-                "settlement_type": NP_ATOBARAI,
-                "billed_amount": int(
-                    price_to_minor_unit(
-                        payment_information.amount, payment_information.currency
-                    )
-                ),
-                "customer": {
-                    "customer_name": billing.first_name,
-                    "company_name": billing.company_name,
-                    "zip_code": billing.postal_code,
-                    "address": _format_address(config, billing),
-                    "tel": billing.phone.replace("+81", "0"),
-                    "email": payment_information.customer_email,
+        data = {
+            "transactions": [
+                {
+                    "shop_transaction_id": payment_information.payment_id,
+                    "shop_order_date": order_date,
+                    "settlement_type": NP_ATOBARAI,
+                    "billed_amount": int(
+                        price_to_minor_unit(
+                            payment_information.amount, payment_information.currency
+                        )
+                    ),
+                    "customer": {
+                        "customer_name": billing.first_name,
+                        "company_name": billing.company_name,
+                        "zip_code": billing.postal_code,
+                        "address": _format_address(config, billing),
+                        "tel": billing.phone.replace("+81", "0"),
+                        "email": payment_information.customer_email,
+                    },
+                    "dest_customer": {
+                        "customer_name": _format_name(shipping),
+                        "company_name": shipping.company_name,
+                        "zip_code": shipping.postal_code,
+                        "address": _format_address(config, shipping),
+                        "tel": shipping.phone.replace("+81", "0"),
+                    },
+                    "goods": [
+                        {
+                            "quantity": line.quantity,
+                            "goods_name": line.product_name,
+                            "goods_price": int(
+                                price_to_minor_unit(
+                                    line.gross, payment_information.currency
+                                )
+                            ),
+                        }
+                        for line in payment_information.lines
+                    ],
                 },
-                "dest_customer": {
-                    "customer_name": _format_name(shipping),
-                    "company_name": shipping.company_name,
-                    "zip_code": shipping.postal_code,
-                    "address": _format_address(config, shipping),
-                    "tel": shipping.phone.replace("+81", "0"),
-                },
-                "goods": [
-                    {
-                        "quantity": line.quantity,
-                        "goods_name": line.product_name,
-                        "goods_price": int(
-                            price_to_minor_unit(
-                                line.gross, payment_information.currency
-                            )
-                        ),
-                    }
-                    for line in payment_information.lines
-                ],
-            },
-        ]
-    }
+            ]
+        }
 
-    response = np_request(config, "post", "/transactions", json=data)
-    response_data = response.json()
+        response = np_request(config, "post", "/transactions", json=data)
+        response_data = response.json()
 
-    if "errors" in response_data:
-        error_messages = get_error_messages_from_codes(
-            error_codes=set(response_data["errors"][0]["codes"]),
-            error_map=TRANSACTION_REGISTRATION_RESULT_ERRORS,
-        )
+        if "errors" in response_data:
+            error_messages = get_error_messages_from_codes(
+                error_codes=set(response_data["errors"][0]["codes"]),
+                error_map=TRANSACTION_REGISTRATION_RESULT_ERRORS,
+            )
+            return PaymentResult(
+                status=PaymentStatus.FAILED,
+                raw_response=response_data,
+                errors=error_messages,
+            )
+
+        transaction = response_data["results"][0]
+        status = transaction["authori_result"]
+        transaction_id = transaction["np_transaction_id"]
+        error_messages = []
+
+        if status == PaymentStatus.PENDING:
+            if cancel_error_codes := _get_errors(_cancel(config, transaction_id)):
+                logger.error(
+                    "Payment #%s could not be cancelled: %s",
+                    transaction_id,
+                    ", ".join(cancel_error_codes),
+                )
+            error_messages = get_reason_messages_from_codes(
+                set(response_data["results"][0]["authori_hold"])
+            )
+
         return PaymentResult(
-            status=PaymentStatus.FAILED,
+            status=status,
+            psp_reference=transaction_id,
             raw_response=response_data,
             errors=error_messages,
         )
-
-    transaction = response_data["results"][0]
-    status = transaction["authori_result"]
-    transaction_id = transaction["np_transaction_id"]
-    error_messages = []
-
-    if status == PaymentStatus.PENDING:
-        if cancel_error_codes := _get_errors(_cancel(config, transaction_id)):
-            logger.error(
-                "Payment #%s could not be cancelled: %s",
-                transaction_id,
-                ", ".join(cancel_error_codes),
-            )
-        error_messages = get_reason_messages_from_codes(
-            set(response_data["results"][0]["authori_hold"])
-        )
-
-    return PaymentResult(
-        status=status,
-        psp_reference=transaction_id,
-        raw_response=response_data,
-        errors=error_messages,
-    )
 
 
 def _cancel(config: ApiConfig, transaction_id: str) -> dict:
@@ -211,20 +212,30 @@ def _get_errors(response_data: dict) -> Iterable[str]:
 def cancel_transaction(
     config: ApiConfig, payment_information: PaymentData
 ) -> PaymentResult:
-    psp_reference = Payment.objects.get(id=payment_information.payment_id).psp_reference
+    with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.cancel"):
+        payment_id = payment_information.payment_id
+        payment = Payment.objects.filter(id=payment_id).first()
 
-    if not psp_reference:
-        raise PaymentError("Payment cannot be voided.")
+        if not payment:
+            raise PaymentError(f"Payment with id {payment_id} does not exist.")
 
-    status = PaymentStatus.SUCCESS
-    response_data = _cancel(config, psp_reference)
-    error_messages = []
+        psp_reference = payment.psp_reference
 
-    if error_codes := _get_errors(response_data):
-        status = PaymentStatus.FAILED
-        error_messages = get_error_messages_from_codes(
-            error_codes, TRANSACTION_CANCELLATION_RESULT_ERROR
-        )
+        if not psp_reference:
+            raise PaymentError(
+                f"Payment with id {payment_id} cannot be voided "
+                f"- psp reference is missing."
+            )
+
+        status = PaymentStatus.SUCCESS
+        response_data = _cancel(config, psp_reference)
+        error_messages = []
+
+        if error_codes := _get_errors(response_data):
+            status = PaymentStatus.FAILED
+            error_messages = get_error_messages_from_codes(
+                error_codes, TRANSACTION_CANCELLATION_RESULT_ERROR
+            )
 
     return PaymentResult(
         status=status,
@@ -234,28 +245,23 @@ def cancel_transaction(
     )
 
 
-def report_fulfillment(config: ApiConfig, fulfillment: Fulfillment):
-    with opentracing.global_tracer().start_active_span(
-        "np-atobarai.checkout.payments.capture"
-    ):
+def report_fulfillment(config: ApiConfig, fulfillment: Fulfillment) -> List[str]:
+    with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.capture"):
         payment: Payment = fulfillment.order.get_last_payment()
 
         if not payment:
-            # TODO: handle errors
-            pass
+            return ["Payment does not exist for this order"]
 
         transaction_id = payment.psp_reference
 
         if not transaction_id:
-            # TODO: handle errors
-            pass
+            return ["Payment does not have psp reference"]
 
         shipping_company_code = config.shipping_company
         shipping_slip_number = fulfillment.tracking_number
 
         if not shipping_slip_number:
-            # TODO: handle errors
-            pass
+            return ["Fulfillment does not have tracking number"]
 
         data = {
             "transactions": [
@@ -269,9 +275,4 @@ def report_fulfillment(config: ApiConfig, fulfillment: Fulfillment):
         response = np_request(config, "post", "/shipments", json=data)
         response_data = response.json()
 
-        if error_codes := _get_errors(response_data):
-            return get_error_messages_from_codes(
-                error_codes, FULFILLMENT_REPORT_RESULT_ERRORS
-            )
-
-        return []
+        return list(_get_errors(response_data))

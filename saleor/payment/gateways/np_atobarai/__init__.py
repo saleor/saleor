@@ -1,7 +1,6 @@
+import logging
 import os
 from typing import List
-
-import opentracing
 
 from saleor.order.models import Fulfillment
 
@@ -9,6 +8,8 @@ from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from . import api
 from .api_types import ApiConfig, PaymentStatus, get_api_config
+
+logger = logging.getLogger(__name__)
 
 
 def inject_api_config(fun):
@@ -28,8 +29,7 @@ def parse_errors(errors: List[str]) -> str:
 def process_payment(
     payment_information: PaymentData, config: ApiConfig
 ) -> GatewayResponse:
-    with opentracing.global_tracer().start_active_span("np-atobarai.checkout.payments"):
-        result = api.register_transaction(config, payment_information)
+    result = api.register_transaction(config, payment_information)
 
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,
@@ -51,8 +51,7 @@ def capture(payment_information: PaymentData, config: ApiConfig) -> GatewayRespo
 
 @inject_api_config
 def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
-    with opentracing.global_tracer().start_active_span("np-atobarai.checkout.payments"):
-        result = api.cancel_transaction(config, payment_information)
+    result = api.cancel_transaction(config, payment_information)
 
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,
@@ -72,7 +71,11 @@ def fulfillment_created(fulfillment: Fulfillment, config: ApiConfig) -> None:
     if fulfillment.fulfillment_order > 1:
         return
 
-    api.report_fulfillment(config, fulfillment)
+    errors = api.report_fulfillment(config, fulfillment)
+    if errors:
+        logger.warning("Could not capture payment in NP Atobarai: %s" ", ".join(errors))
+    else:
+        logger.info("Payment captured in NP Atobarai successfully.")
 
 
 @inject_api_config
