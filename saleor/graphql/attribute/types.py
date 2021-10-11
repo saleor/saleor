@@ -2,14 +2,13 @@ import re
 
 import graphene
 
-from saleor.graphql.core.descriptions import ADDED_IN_31
-
 from ...attribute import AttributeInputType, AttributeType, models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import PagePermissions, ProductPermissions
 from ...core.tracing import traced_resolver
 from ...graphql.utils import get_user_or_app_from_context
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import FilterInputConnectionField
 from ..core.types import File
@@ -208,7 +207,7 @@ class Attribute(CountableDjangoObjectType):
 
 class AssignedVariantAttribute(graphene.ObjectType):
     attribute = graphene.Field(
-        Attribute, description=AttributeDescriptions.NAME, required=True
+        Attribute, description="Attribute assigned to variant.", required=True
     )
     variant_selection = graphene.Boolean(
         required=True,
@@ -221,7 +220,9 @@ class AssignedVariantAttribute(graphene.ObjectType):
     class Meta:
         description = (
             f"{ADDED_IN_31} Represents assigned attribute to variant with "
-            "variant selection attached."
+            "variant selection attached. Supported variant types for "
+            "variant selection are: "
+            f"{AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}"
         )
 
 

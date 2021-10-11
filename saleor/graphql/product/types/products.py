@@ -1130,7 +1130,7 @@ class ProductType(CountableDjangoObjectType):
             description="Define scope of returned attributes.",
         ),
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} use `assignedVariantAttributes` instead."
+            f"{DEPRECATED_IN_3X_FIELD} Use `assignedVariantAttributes` instead."
         ),
     )
     assigned_variant_attributes = graphene.List(

@@ -550,9 +550,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
             )
 
         cls.clean_operations(product_type, variant_attrs_data)
-
         cls.update_field_values(product_type, variant_attrs_data)
-
         return cls(product_type=product_type)
 
 
