@@ -7,7 +7,7 @@ from ...order.models import OrderEvent
 from ...order.utils import get_valid_shipping_methods_for_order, sum_order_totals
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
-from ..shipping.types import ShippingMethod
+from ..shipping.utils import convert_shipping_method_model_to_dataclass
 from ..utils.filters import filter_by_period
 
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
@@ -89,31 +89,25 @@ def resolve_order_shipping_methods(root: models.Order, info):
             else:
                 shipping_method.price = taxed_price.net
             available_shipping_methods.append(shipping_method)
-    webhook_excluded_methods = manager.excluded_shipping_methods_for_order(
-        root, available_shipping_methods
-    )
-    if webhook_excluded_methods:
-        excluded_methods_ids = [
-            shipping_method["id"]
-            for shipping_method in webhook_excluded_methods["excluded_methods"]
-        ]
-        available_shipping_methods = [
-            shipping_method
-            for shipping_method in available_shipping_methods
-            if shipping_method.id not in excluded_methods_ids
-        ]
     instances = [
         ChannelContext(
-            node=ShippingMethod(
-                id=shipping.id,
-                price=shipping.price,
-                name=shipping.name,
-                description=shipping.description,
-                maximum_delivery_days=shipping.maximum_delivery_days,
-                minimum_delivery_days=shipping.minimum_delivery_days,
-            ),
+            node=shipping,
             channel_slug=channel_slug,
         )
         for shipping in available_shipping_methods
     ]
+    excluded_methods = manager.excluded_shipping_methods_for_order(
+        root,
+        [
+            convert_shipping_method_model_to_dataclass(shipping)
+            for shipping in available_shipping_methods
+        ],
+    )
+    for instance in instances:
+        instance.node.active = True
+        instance.node.message = ""
+        for e in excluded_methods:
+            if instance.node.id == e.id:
+                instance.node.active = False
+                instance.node.message = e.reason
     return instances

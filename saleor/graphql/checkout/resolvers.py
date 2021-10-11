@@ -12,7 +12,7 @@ from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
-from ..shipping.types import ShippingMethod
+from ..shipping.utils import convert_shipping_method_model_to_dataclass
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     CheckoutInfoByCheckoutTokenLoader,
@@ -60,7 +60,9 @@ def resolve_checkout(info, token):
     return None
 
 
-def resolve_checkout_available_shipping_methods(root: models.Checkout, info):
+def resolve_checkout_available_shipping_methods(
+    root: models.Checkout, info, include_active_only=False
+):
     def calculate_available_shipping_methods(data):
         address, lines, checkout_info, discounts, channel = data
         if not address:
@@ -79,16 +81,7 @@ def resolve_checkout_available_shipping_methods(root: models.Checkout, info):
         )
         if available is None:
             return []
-        webhook_excluded_methods = manager.excluded_shipping_methods_for_checkout(
-            root, available
-        )
         available_ids = available.values_list("id", flat=True)
-        if webhook_excluded_methods:
-            excluded_methods_ids = [
-                shipping_method["id"]
-                for shipping_method in webhook_excluded_methods["excluded_methods"]
-            ]
-            available_ids = available_ids.exclude(id__in=excluded_methods_ids)
 
         def map_shipping_method_with_channel(shippings):
             def apply_price_to_shipping_method(channel_listings):
@@ -108,17 +101,31 @@ def resolve_checkout_available_shipping_methods(root: models.Checkout, info):
                         shipping.price = taxed_price.net
                     available_with_channel_context.append(
                         ChannelContext(
-                            node=ShippingMethod(
-                                id=shipping.id,
-                                price=shipping.price,
-                                name=shipping.name,
-                                description=shipping.description,
-                                maximum_delivery_days=shipping.maximum_delivery_days,
-                                minimum_delivery_days=shipping.minimum_delivery_days,
-                            ),
+                            node=shipping,
                             channel_slug=channel_slug,
                         )
                     )
+                excluded_methods = manager.excluded_shipping_methods_for_checkout(
+                    root,
+                    [
+                        convert_shipping_method_model_to_dataclass(shipping)
+                        for shipping in shippings
+                    ],
+                )
+                for instance in available_with_channel_context:
+                    instance.node.active = True
+                    instance.node.message = ""
+                    for e in excluded_methods:
+                        if instance.node.id == e.id:
+                            instance.node.active = False
+                            instance.node.message = e.reason
+                if include_active_only:
+                    available_with_channel_context = [
+                        shipping
+                        for shipping in available_with_channel_context
+                        if shipping.node.active
+                    ]
+
                 return available_with_channel_context
 
             map_shipping_method_and_channel = (
