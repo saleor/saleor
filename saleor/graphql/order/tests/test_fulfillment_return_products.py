@@ -8,7 +8,7 @@ from ....core.prices import quantize_price
 from ....order import OrderEvents, OrderOrigin, OrderStatus
 from ....order.error_codes import OrderErrorCode
 from ....order.models import FulfillmentStatus, Order, OrderEvent
-from ....payment import ChargeStatus, PaymentError
+from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....warehouse.models import Stock
 from ...tests.utils import get_graphql_content
 
@@ -795,3 +795,147 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
     )
+
+
+def test_fulfillment_refund_products_with_amount_to_refund_with_multiple_payments(
+    staff_api_client,
+    fulfilled_order,
+    payment_dummy_factory,
+    permission_manage_orders,
+):
+    # given
+    payment_1 = payment_dummy_factory()
+    payment_1.captured_amount = payment_1.total
+    payment_1.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_1.save()
+    payment_2 = payment_dummy_factory()
+    payment_2.captured_amount = payment_2.total
+    payment_2.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_2.save()
+    payment_1.transactions.create(
+        amount=payment_1.captured_amount,
+        currency=payment_1.currency,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+    payment_2.transactions.create(
+        amount=payment_2.captured_amount,
+        currency=payment_2.currency,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+
+    payments = [payment_1, payment_2]
+
+    fulfilled_order.payments.set(payments)
+
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    variables = {"order": order_id, "input": {"amountToRefund": "11.00"}}
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+
+    # then
+    assert data["returnFulfillment"] is None
+    assert data["errors"][0]["field"] == "amountToRefund"
+    assert data["errors"][0]["code"] == OrderErrorCode.ORDER_HAS_MULTIPLE_PAYMENTS.name
+    message = (
+        "It is not possible to use the amount field "
+        "for orders with multiple payments."
+    )
+    assert data["errors"][0]["message"] == message
+
+
+def test_fulfillment_refund_products_with_amount_to_refund_with_one_payment(
+    staff_api_client,
+    fulfilled_order,
+    payment_dummy_factory,
+    permission_manage_orders,
+):
+    # given
+    payment_1 = payment_dummy_factory()
+    payment_1.captured_amount = payment_1.total
+    payment_1.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_1.save()
+
+    payment_1.transactions.create(
+        amount=payment_1.captured_amount,
+        currency=payment_1.currency,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+
+    payments = [payment_1]
+
+    fulfilled_order.payments.set(payments)
+
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    variables = {"order": order_id, "input": {"amountToRefund": "11.00"}}
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+
+    # then
+    assert data["errors"] == []
+    assert data["returnFulfillment"] is not None
+
+
+def test_fulfillment_refund_products_counts_only_active_payments(
+    staff_api_client,
+    fulfilled_order,
+    payment_dummy_factory,
+    permission_manage_orders,
+):
+    # given
+    payment_1 = payment_dummy_factory()
+    payment_1.captured_amount = payment_1.total
+    payment_1.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_1.save()
+    payment_2 = payment_dummy_factory()
+    payment_2.captured_amount = payment_2.total
+    payment_2.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_2.is_active = False
+    payment_2.save()
+    payment_1.transactions.create(
+        amount=payment_1.captured_amount,
+        currency=payment_1.currency,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+    payment_2.transactions.create(
+        amount=payment_2.captured_amount,
+        currency=payment_2.currency,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+
+    payments = [payment_1, payment_2]
+
+    fulfilled_order.payments.set(payments)
+
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    variables = {"order": order_id, "input": {"amountToRefund": "11.00"}}
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+
+    # then
+    assert data["errors"] == []
+    assert data["returnFulfillment"] is not None

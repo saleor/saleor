@@ -521,12 +521,11 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                 graphene.Node.to_global_id("Payment", payment_id)
                 for payment_id in improper_payments_ids
             ]
-            code = OrderErrorCode.PAYMENTS_DO_NOT_BELONG_TO_ORDER
             raise ValidationError(
                 {
                     "payments_to_refund": ValidationError(
                         "These payments do not belong to the order.",
-                        code=code,  # type: ignore
+                        code=OrderErrorCode.PAYMENTS_DO_NOT_BELONG_TO_ORDER.value,
                         params={"payments": improper_payments_global_ids},
                     )
                 }
@@ -534,7 +533,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
 
     @classmethod
     def _check_order_has_single_payment(cls, order):
-        if order.payments.count() > 1:
+        if order.payments.filter(is_active=True).count() > 1:
             raise ValidationError(
                 {
                     "amount_to_refund": ValidationError(
@@ -578,7 +577,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
 
             has_amounts_specified.append(amount_to_refund)
 
-            payment = order.payments.first()
+            payment = order.payments.filter(is_active=True).first()
             payments = [
                 OrderPaymentAction(
                     payment,
@@ -722,43 +721,6 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         error_type_field = "order_errors"
 
     @classmethod
-    def _check_payments_belong_to_order(cls, order, payments_ids) -> None:
-        order_payments_ids = order.payments.filter(id__in=payments_ids).values_list(
-            "id", flat=True
-        )
-        if set(order_payments_ids) != set(payments_ids):
-            improper_payments_ids = set(payments_ids).difference(
-                set(order_payments_ids)
-            )
-            improper_payments_global_ids = [
-                graphene.Node.to_global_id("Payment", payment_id)
-                for payment_id in improper_payments_ids
-            ]
-
-            raise ValidationError(
-                {
-                    "payments_to_refund": ValidationError(
-                        "These payments do not belong to the order.",
-                        code=OrderErrorCode.PAYMENTS_DO_NOT_BELONG_TO_ORDER.value,
-                        params={"payments": improper_payments_global_ids},
-                    )
-                }
-            )
-
-    @classmethod
-    def _check_order_has_single_payment(cls, order):
-        if order.payments.count() > 1:
-            raise ValidationError(
-                {
-                    "amount_to_refund": ValidationError(
-                        "It is not possible to use the amount field "
-                        "for orders with multiple payments.",
-                        code=OrderErrorCode.ORDER_HAS_MULTIPLE_PAYMENTS,
-                    )
-                }
-            )
-
-    @classmethod
     def clean_input(cls, info, order_id, input):
         cleaned_input = {}
         payments_to_refund = input.get("payments_to_refund")
@@ -881,7 +843,7 @@ class OrderReturnProductsInput(graphene.InputObjectType):
     include_shipping_costs = graphene.Boolean(
         description=(
             "If true, Saleor will refund shipping costs. If amountToRefund is provided "
-            "includeShippingCosts will be ignored. "
+            "includeShippingCosts will be ignored."
         ),
         default_value=False,
     )

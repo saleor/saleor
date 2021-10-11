@@ -1378,7 +1378,6 @@ def _update_missing_amounts_on_payments(
         refund_amount += shipping_refund_amount
 
     for item in payments:
-
         # Only zero (not specified) amounts can be updated.
         if item.amount == 0 and refund_amount > 0:
             item.amount = min(refund_amount, item.payment.captured_amount)
