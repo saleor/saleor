@@ -1,10 +1,13 @@
 from ...channel.models import Channel
+from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
-from ...order.utils import sum_order_totals
+from ...order.utils import get_valid_shipping_methods_for_order, sum_order_totals
+from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
+from ..shipping.types import ShippingMethod
 from ..utils.filters import filter_by_period
 
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
@@ -58,3 +61,46 @@ def resolve_order_by_token(token):
         .filter(token=token)
         .first()
     )
+
+
+def resolve_order_shipping_methods(root: models.Order, info):
+    # TODO: We should optimize it in/after PR#5819
+    available = get_valid_shipping_methods_for_order(root)
+    if available is None:
+        return []
+    available_shipping_methods = []
+    manager = info.context.plugins
+    display_gross = display_gross_prices()
+    channel_slug = root.channel.slug
+    for shipping_method in available:
+        # Ignore typing check because it is checked in
+        # get_valid_shipping_methods_for_order
+        shipping_channel_listing = shipping_method.channel_listings.filter(
+            channel=root.channel
+        ).first()
+        if shipping_channel_listing:
+            taxed_price = manager.apply_taxes_to_shipping(
+                shipping_channel_listing.price,
+                root.shipping_address,  # type: ignore
+                channel_slug,
+            )
+            if display_gross:
+                shipping_method.price = taxed_price.gross
+            else:
+                shipping_method.price = taxed_price.net
+            available_shipping_methods.append(shipping_method)
+    instances = [
+        ChannelContext(
+            node=ShippingMethod(
+                id=shipping.id,
+                price=shipping.price,
+                name=shipping.name,
+                description=shipping.description,
+                maximum_delivery_days=shipping.maximum_delivery_days,
+                minimum_delivery_days=shipping.minimum_delivery_days,
+            ),
+            channel_slug=channel_slug,
+        )
+        for shipping in available_shipping_methods
+    ]
+    return instances
