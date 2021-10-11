@@ -15,7 +15,6 @@ from ....plugins.manager import get_plugins_manager
 from ....product.models import ProductVariant
 from ....warehouse.models import Allocation, Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
-from .utils import assert_order_fulfilled, assert_order_not_fulfilled
 
 ORDER_FULFILL_QUERY = """
     mutation fulfillOrder(
@@ -268,7 +267,13 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_
     get_graphql_content(response)
     order.refresh_from_db()
 
-    assert_order_fulfilled(order)
+    assert order.status == OrderStatus.FULFILLED
+    order_lines = order.lines.all()
+    assert order_lines[0].quantity_fulfilled == 3
+    assert order_lines[0].quantity_unfulfilled == 0
+
+    assert order_lines[1].quantity_fulfilled == 2
+    assert order_lines[1].quantity_unfulfilled == 0
 
 
 def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_stocks(
@@ -287,7 +292,14 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_sto
     get_graphql_content(response)
     order.refresh_from_db()
 
-    assert_order_not_fulfilled(order)
+    assert not order.status == OrderStatus.FULFILLED
+
+    order_lines = order.lines.all()
+    assert order_lines[0].quantity_fulfilled == 0
+    assert order_lines[0].quantity_unfulfilled == 3
+
+    assert order_lines[1].quantity_fulfilled == 0
+    assert order_lines[1].quantity_unfulfilled == 2
 
 
 def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_variant(
@@ -305,7 +317,13 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_
     get_graphql_content(response)
     order.refresh_from_db()
 
-    assert_order_fulfilled(order)
+    assert order.status == OrderStatus.FULFILLED
+    order_lines = order.lines.all()
+    assert order_lines[0].quantity_fulfilled == 3
+    assert order_lines[0].quantity_unfulfilled == 0
+
+    assert order_lines[1].quantity_fulfilled == 2
+    assert order_lines[1].quantity_unfulfilled == 0
 
 
 def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_variant(
@@ -324,7 +342,14 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_var
     get_graphql_content(response)
     order.refresh_from_db()
 
-    assert_order_not_fulfilled(order)
+    assert not order.status == OrderStatus.FULFILLED
+
+    order_lines = order.lines.all()
+    assert order_lines[0].quantity_fulfilled == 0
+    assert order_lines[0].quantity_unfulfilled == 3
+
+    assert order_lines[1].quantity_fulfilled == 0
+    assert order_lines[1].quantity_unfulfilled == 2
 
 
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
