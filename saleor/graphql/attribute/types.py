@@ -213,16 +213,16 @@ class AssignedVariantAttribute(graphene.ObjectType):
         required=True,
         description=(
             "Determines, whether assigned attribute is "
-            "allowed for variant selection."
+            "allowed for variant selection. Supported variant types for "
+            "variant selection are: "
+            f"{AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}"
         ),
     )
 
     class Meta:
         description = (
             f"{ADDED_IN_31} Represents assigned attribute to variant with "
-            "variant selection attached. Supported variant types for "
-            "variant selection are: "
-            f"{AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}"
+            "variant selection attached."
         )
 
 
