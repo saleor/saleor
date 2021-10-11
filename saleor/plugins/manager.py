@@ -846,15 +846,14 @@ class PluginsManager(PaymentInterface):
         shipping_plugins = [
             plugin
             for plugin in plugins
-            if "get_shipping_methods_for_checkout" in type(plugin).__dict__
+            if hasattr(plugin, "get_shipping_methods_for_checkout")
         ]
 
         shipping_methods = []
         for plugin in shipping_plugins:
             shipping_methods.extend(
-                plugin.get_shipping_methods_for_checkout(
-                    checkout=checkout, previous_value=None
-                )
+                # https://github.com/python/mypy/issues/9975
+                getattr(plugin, "get_shipping_methods_for_checkout")(checkout, None)
             )
         return shipping_methods
 

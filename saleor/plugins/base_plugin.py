@@ -313,6 +313,10 @@ class BasePlugin:
     get_order_shipping_tax_rate: Callable[["Order", Any], Any]
     get_payment_config: Callable[[Any], Any]
 
+    get_shipping_methods_for_checkout: Callable[
+        ["Checkout", Any], List["ShippingMethodData"]
+    ]
+
     get_supported_currencies: Callable[[Any], Any]
 
     #  Return tax code from object meta.
@@ -513,11 +517,6 @@ class BasePlugin:
             currencies=currencies,
         )
         return [gateway]
-
-    def get_shipping_methods_for_checkout(
-        self, checkout: "Checkout", previous_value, **kwargs
-    ) -> List["ShippingMethodData"]:
-        return NotImplemented
 
     @classmethod
     def _update_config_items(

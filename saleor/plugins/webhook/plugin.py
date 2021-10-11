@@ -490,7 +490,7 @@ class WebhookPlugin(BasePlugin):
         )
 
     def get_shipping_methods_for_checkout(
-        self, checkout: "Checkout", previous_value, **kwargs
+        self, checkout: "Checkout", previous_value: Any
     ) -> List["ShippingMethodData"]:
         methods = []
         apps = App.objects.for_event_type(
