@@ -4721,7 +4721,7 @@ def test_order_update_with_draft_order(
     order_updated_webhook_mock.assert_not_called()
 
 
-@patch("saleor.plugins.base_plugin.BasePlugin.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_update_without_sku(
     plugin_mock,
     staff_api_client,

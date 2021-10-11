@@ -9,7 +9,7 @@ from requests.exceptions import RequestException, SSLError
 from .....plugins.models import PluginConfiguration
 from .... import PaymentError, TransactionKind
 from ....interface import GatewayResponse, PaymentMethodInfo
-from ....models import Payment
+from ....models import Payment, Transaction
 from ....utils import create_payment_information, create_transaction
 
 
@@ -472,6 +472,30 @@ def test_confirm_payment_with_additional_details(payment_adyen_for_order, adyen_
     )
     adyen_plugin = adyen_plugin()
     adyen_plugin.confirm_payment(payment_info, None)
+
+
+def test_confirm_payment_without_additional_data(payment_adyen_for_order, adyen_plugin):
+    Transaction.objects.create(
+        payment=payment_adyen_for_order,
+        action_required=False,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        token="token",
+        is_success=False,
+        amount="100",
+        currency="EUR",
+        error="",
+        gateway_response={},
+        action_required_data={},
+    )
+
+    payment_info = create_payment_information(payment_adyen_for_order)
+    response = adyen_plugin().confirm_payment(payment_info, None)
+
+    assert not response.is_success
+    assert not response.action_required
+    assert response.kind == TransactionKind.AUTH
+    assert response.error is not None
+    assert payment_info.graphql_payment_id in response.error
 
 
 @pytest.mark.vcr
