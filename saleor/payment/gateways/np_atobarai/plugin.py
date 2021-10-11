@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-import opentracing
 from django.core.exceptions import ValidationError
 
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
@@ -13,6 +12,7 @@ from .const import (
     TERMINAL_ID,
     USE_SANDBOX,
 )
+from .utils import np_atobarai_opentracing_trace
 
 GATEWAY_NAME = "NP後払い"
 
@@ -117,11 +117,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         conf = {
             data["name"]: data["value"] for data in plugin_configuration.configuration
         }
-        with opentracing.global_tracer().start_active_span(
-            "np-atobarai.utilities.ping"
-        ) as scope:
-            span = scope.span
-            span.set_tag("service.name", "np-atobarai")
+        with np_atobarai_opentracing_trace("np-atobarai.utilities.ping"):
             response = api.health_check(get_api_config(conf))
 
         if not response:

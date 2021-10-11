@@ -1,7 +1,6 @@
 import logging
 from typing import Iterable, Optional
 
-import opentracing
 import requests
 from django.utils import timezone
 from posuto import Posuto
@@ -19,6 +18,7 @@ from .errors import (
     get_error_messages_from_codes,
     get_reason_messages_from_codes,
 )
+from .utils import np_atobarai_opentracing_trace
 
 REQUEST_TIMEOUT = 15
 
@@ -37,17 +37,18 @@ def _request(
     path: str = "",
     json: Optional[dict] = None,
 ) -> requests.Response:
-    response = requests.request(
-        method=method,
-        url=get_url(config, path),
-        timeout=REQUEST_TIMEOUT,
-        json=json or {},
-        auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
-        headers={"X-NP-Terminal-Id": config.terminal_id},
-    )
-    if 400 < response.status_code <= 600:
-        raise requests.HTTPError
-    return response
+    with np_atobarai_opentracing_trace("np-atobarai.utilities.request"):
+        response = requests.request(
+            method=method,
+            url=get_url(config, path),
+            timeout=REQUEST_TIMEOUT,
+            json=json or {},
+            auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
+            headers={"X-NP-Terminal-Id": config.terminal_id},
+        )
+        if 400 < response.status_code <= 600:
+            raise requests.HTTPError
+        return response
 
 
 def np_request(
@@ -99,9 +100,7 @@ def _format_address(config: ApiConfig, ad: AddressData):
 def register_transaction(
     config: ApiConfig, payment_information: "PaymentData"
 ) -> PaymentResult:
-    with opentracing.global_tracer().start_active_span(
-        "np-atobarai.checkout.payments.register"
-    ):
+    with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.register"):
         order_date = timezone.now().strftime("%Y-%m-%d")
 
         billing = payment_information.billing
@@ -211,9 +210,7 @@ def _get_errors(response_data: dict) -> Iterable[str]:
 def cancel_transaction(
     config: ApiConfig, payment_information: PaymentData
 ) -> PaymentResult:
-    with opentracing.global_tracer().start_active_span(
-        "np-atobarai.checkout.payments.cancel"
-    ):
+    with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.cancel"):
         payment_id = payment_information.payment_id
         payment = Payment.objects.filter(id=payment_id).first()
 
