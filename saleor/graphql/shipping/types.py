@@ -71,6 +71,11 @@ class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
 
 
 class ShippingMethodType(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+    """An internal representation of a shipping method used in private API.
+
+    Used to manage and configure available shipping methods.
+    """
+
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
         ShippingMethodTranslation,
