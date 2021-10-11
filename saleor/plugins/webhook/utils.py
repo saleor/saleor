@@ -50,18 +50,6 @@ def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
     return None
 
 
-def from_shipping_app_id(app_shipping_method_id: str) -> Optional["ShippingAppData"]:
-    splitted_id = app_shipping_method_id.split(":")
-    if len(splitted_id) == 3 and splitted_id[0] == APP_ID_PREFIX and all(splitted_id):
-        try:
-            app_pk = int(splitted_id[1])
-        except (TypeError, ValueError):
-            return None
-        else:
-            return ShippingAppData(app_pk, shipping_method_id=splitted_id[2])
-    return None
-
-
 def parse_list_payment_gateways_response(
     response_data: Any, app: "App"
 ) -> List["PaymentGateway"]:
