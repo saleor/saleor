@@ -1037,7 +1037,12 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_available_shipping_methods(root: models.Order, info):
-        return resolve_order_shipping_methods(root, info)
+        shipping_methods = resolve_order_shipping_methods(root, info)
+        return [
+            shipping_method
+            for shipping_method in shipping_methods
+            if shipping_method.node.active
+        ]
 
     @staticmethod
     @traced_resolver

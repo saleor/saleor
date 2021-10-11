@@ -442,6 +442,7 @@ class WebhookPlugin(BasePlugin):
             response_data = send_webhook_request_sync(
                 app_name, webhook.target_url, webhook.secret_key, event_type, payload
             )
+            print("lilili", response_data)
             if response_data:
                 for method in parse_excluded_shipping_methods_response(response_data):
                     excluded_methods_map[method.id].append(method)

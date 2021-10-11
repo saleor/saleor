@@ -315,3 +315,7 @@ class ShippingMethod(ChannelContextType):
     @staticmethod
     def resolve_id(root: ChannelContext, _info):
         return graphene.Node.to_global_id("ShippingMethod", root.node.id)
+
+    @staticmethod
+    def resolve_active(root: ChannelContext, _info):
+        return root.node.active

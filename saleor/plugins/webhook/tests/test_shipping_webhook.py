@@ -26,6 +26,12 @@ ORDER_QUERY_SHIPPING_METHOD = """
                     shippingMethods {
                         id
                         name
+                        active
+                    }
+                    availableShippingMethods {
+                        id
+                        name
+                        active
                     }
                 }
             }
@@ -41,6 +47,12 @@ CHECKOUT_QUERY_SHIPPING_METHOD = """
                     shippingMethods {
                         id
                         name
+                        active
+                    }
+                    availableShippingMethods {
+                        id
+                        name
+                        active
                     }
                 }
             }
@@ -151,33 +163,122 @@ def test_excluded_shipping_methods_for_order(
     )
 
 
-@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
-def test_order_available_shipping_methods(
+@mock.patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_order"
+)
+def test_order_shipping_methods(
     mocked_webhook,
     staff_api_client,
     order_with_lines,
     permission_manage_orders,
+    settings,
 ):
     # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "spanish-inquisition"
     excluded_shipping_method_id = order_with_lines.shipping_method.id
-    mocked_webhook.return_value = {
-        "excluded_methods": [
-            {
-                "id": excluded_shipping_method_id,
-                "reason": webhook_reason,
-            }
-        ]
-    }
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
+    ]
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     # when
     response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
 
-    shipping_methods = [method["name"] for method in order_data["shippingMethods"]]
+    shipping_methods = order_data["shippingMethods"]
     # then
-    assert len(shipping_methods) == 0
+    assert len(shipping_methods) == 1
+    assert not shipping_methods[0]["active"]
+
+
+@pytest.mark.parametrize(
+    "webhook_response, expected_count",
+    [(lambda s: [ExcludedShippingMethod(s.id, "")], 0), (lambda s: [], 1)],
+)
+@mock.patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_order"
+)
+def test_order_available_shipping_methods(
+    mocked_webhook,
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
+    settings,
+    webhook_response,
+    expected_count,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    mocked_webhook.side_effect = lambda *args, **kwargs: webhook_response(
+        order_with_lines.shipping_method
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    # when
+    response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    # then
+    assert len(order_data["availableShippingMethods"]) == expected_count
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+def test_order_shipping_methods_webhook_called_once(
+    mocked_webhook,
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
+):
+    # given
+    mocked_webhook.side_effect = [[], AssertionError("called twice.")]
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    # when
+    response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    # then
+    assert len(order_data["availableShippingMethods"]) == 1
+    assert len(order_data["shippingMethods"]) == 1
+
+
+@mock.patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
+)
+def test_checkout_shipping_methods(
+    mocked_webhook,
+    staff_api_client,
+    checkout_ready_to_complete,
+    permission_manage_checkouts,
+    settings,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    webhook_reason = "spanish-inquisition"
+    excluded_shipping_method_id = checkout_ready_to_complete.shipping_method.id
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
+    ]
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+    # when
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_SHIPPING_METHOD)
+    content = get_graphql_content(response)
+    checkout_data = content["data"]["checkouts"]["edges"][0]["node"]
+
+    shipping_methods = checkout_data["shippingMethods"]
+    # then
+    assert len(shipping_methods) == 2
+    inactive_method = list(
+        filter(
+            lambda s: s["id"]
+            == graphene.Node.to_global_id(
+                "ShippingMethod", excluded_shipping_method_id
+            ),
+            shipping_methods,
+        )
+    )
+    assert not inactive_method[0]["active"]
 
 
 @mock.patch(
@@ -188,28 +289,27 @@ def test_checkout_available_shipping_methods(
     staff_api_client,
     checkout_ready_to_complete,
     permission_manage_checkouts,
+    settings,
 ):
     # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "spanish-inquisition"
 
     excluded_shipping_method_id = checkout_ready_to_complete.shipping_method.id
-    mocked_webhook.return_value = {
-        "excluded_methods": [
-            {
-                "id": excluded_shipping_method_id,
-                "reason": webhook_reason,
-            }
-        ]
-    }
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
+    ]
+
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
     # when
     response = staff_api_client.post_graphql(CHECKOUT_QUERY_SHIPPING_METHOD)
     content = get_graphql_content(response)
-    checkout_data = content["data"]["checkouts"]["edges"][0]["node"]
-
-    shipping_methods = [method["name"] for method in checkout_data["shippingMethods"]]
+    shipping_methods = content["data"]["checkouts"]["edges"][0]["node"][
+        "availableShippingMethods"
+    ]
     # then
     assert len(shipping_methods) == 1
+    assert shipping_methods[0]["active"]
 
 
 @mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_sync")
