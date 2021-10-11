@@ -12,7 +12,13 @@ from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
-from ..payment import ChargeStatus, CustomPaymentChoices, TransactionKind
+from ..payment import (
+    ChargeStatus,
+    CustomPaymentChoices,
+    PaymentError,
+    TransactionKind,
+    gateway,
+)
 from ..payment.actions import try_refund
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
@@ -32,7 +38,6 @@ from . import (
     events,
     utils,
 )
-from .capture_payment import capture_payments
 from .events import (
     draft_order_created_from_replace_event,
     fulfillment_refunded_event,
@@ -41,7 +46,7 @@ from .events import (
     order_returned_event,
 )
 from .interface import OrderPaymentAction
-from .models import Fulfillment, FulfillmentLine, Order, OrderLine
+from .models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from .notifications import (
     send_fulfillment_confirmation_to_customer,
     send_order_canceled_confirmation,
@@ -50,6 +55,7 @@ from .notifications import (
     send_payment_confirmation,
 )
 from .utils import (
+    get_active_payments,
     get_authorized_payments,
     get_captured_payments,
     order_line_needs_automatic_fulfillment,
@@ -79,14 +85,20 @@ def order_created(
 ):
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
     manager.order_created(order)
+
     authorized_payments = get_authorized_payments(order)
     if authorized_payments:
         order_authorized(
             order=order,
             user=user,
             app=app,
-            amount=authorized_payments[0].total,
-            payment=authorized_payments[0],
+            payment_actions=[
+                OrderPaymentAction(
+                    amount=payment.captured_amount,
+                    payment=payment,
+                )
+                for payment in authorized_payments
+            ],
             manager=manager,
         )
 
@@ -111,13 +123,141 @@ def order_created(
         order_confirmed(order, user, app, manager)
 
 
+def __capture_payment(
+    order: Order,
+    payment: Payment,
+    manager: "PluginsManager",
+    user: Optional[User],
+    app: Optional["App"],
+    to_pay: Decimal,
+) -> Tuple[Optional[Transaction], Optional[OrderEvent]]:
+    if payment and payment.can_capture():
+        amount = min(to_pay, payment.get_charge_amount())
+        try:
+            return (
+                gateway.capture(
+                    payment,
+                    manager,
+                    channel_slug=order.channel.slug,
+                    amount=amount,
+                ),
+                None,
+            )
+        except PaymentError as e:
+            return None, events.payment_capture_failed_event(
+                order=order, user=user, app=app, message=str(e), payment=payment
+            )
+
+    return None, None
+
+
 def _capture_payments(
+    order: Order,
+    manager: "PluginsManager",
+    user: Optional[User],
+    app: Optional["App"],
+    amount: Decimal = None,
+):
+    to_pay = amount or order.outstanding_balance.amount
+    payments_to_notify = []
+    failed_events = []
+
+    # We iterate over payments in the order in which they were created
+    authorized_payments = sorted(
+        get_authorized_payments(order),
+        key=lambda p: p.pk,
+    )
+    for payment in authorized_payments:
+        if to_pay > Decimal("0.00"):
+            transaction, event = __capture_payment(
+                order, payment, manager, user, app, to_pay
+            )
+            # Process only successful charges
+            if transaction and transaction.is_success:
+                to_pay -= transaction.amount
+                #  Confirm that we changed the status to capture. Some payments
+                #  can receive asynchronous webhooks with status updates
+                if transaction.kind == TransactionKind.CAPTURE:
+                    payments_to_notify.append(
+                        OrderPaymentAction(
+                            amount=transaction.amount,
+                            payment=payment,
+                        )
+                    )
+            elif event:
+                failed_events.append(event)
+
+        else:
+            break
+
+    return payments_to_notify, failed_events
+
+
+def __void_payment(
+    order: Order,
+    payment: Payment,
+    manager: "PluginsManager",
+    user: Optional[User],
+    app: Optional["App"],
+) -> Tuple[Optional[Transaction], Optional[OrderEvent]]:
+    if payment and payment.can_void():
+        try:
+            return (
+                gateway.void(
+                    payment,
+                    manager,
+                    channel_slug=order.channel.slug,
+                ),
+                None,
+            )
+        except PaymentError as e:
+            return None, events.payment_void_failed_event(
+                order=order, user=user, app=app, message=str(e), payment=payment
+            )
+
+    return None, None
+
+
+def _void_payments(
+    order: Order,
+    manager: "PluginsManager",
+    user: Optional[User],
+    app: Optional["App"],
+):
+    payments_to_notify = []
+    failed_events = []
+
+    # We iterate over payments in the order in which they were created
+    authorized_payments = sorted(
+        [p for p in get_active_payments(order) if p.is_authorized],
+        key=lambda p: p.pk,
+    )
+    for payment in authorized_payments:
+        transaction, event = __void_payment(order, payment, manager, user, app)
+        # Process only successful voids
+        if transaction and transaction.is_success:
+            #  Confirm that we changed the status to VOID. Some payments
+            #  can receive asynchronous webhooks with status updates
+            if transaction.kind == TransactionKind.VOID:
+                payments_to_notify.append(
+                    OrderPaymentAction(
+                        amount=transaction.amount,
+                        payment=payment,
+                    )
+                )
+        elif event:
+            failed_events.append(event)
+
+    return payments_to_notify, failed_events
+
+
+def capture_payments(
     order: "Order",
     user: "User",
     app: Optional["App"],
     manager: "PluginsManager",
-):
-    payments_to_notify = capture_payments(order, manager, user, app)
+) -> List[OrderEvent]:
+    payments_to_notify, failed_events = _capture_payments(order, manager, user, app)
     order.refresh_from_db()
     if payments_to_notify:
         order_captured(
@@ -127,6 +267,28 @@ def _capture_payments(
             payments_to_notify,
             manager,
         )
+
+    return failed_events
+
+
+def void_payments(
+    order: "Order",
+    user: "User",
+    app: Optional["App"],
+    manager: "PluginsManager",
+) -> List[OrderEvent]:
+    payments_to_notify, failed_events = _void_payments(order, manager, user, app)
+    order.refresh_from_db()
+    if payments_to_notify:
+        order_voided(
+            order,
+            user,
+            app,
+            payments_to_notify,
+            manager,
+        )
+
+    return failed_events
 
 
 def order_confirmed(
@@ -140,7 +302,7 @@ def order_confirmed(
 
     Trigger event, capture, plugin hooks and optionally confirmation email.
     """
-    _capture_payments(order, user, app, manager)
+    capture_payments(order, user, app, manager)
     events.order_confirmed_event(order=order, user=user, app=app)
     manager.order_confirmed(order)
     if send_confirmation_email:
@@ -260,10 +422,13 @@ def order_voided(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    payment: "Payment",
+    payment_actions: List["OrderPaymentAction"],
     manager: "PluginsManager",
 ):
-    events.payment_voided_event(order=order, user=user, app=app, payment=payment)
+    for action in payment_actions:
+        events.payment_voided_event(
+            order=order, user=user, app=app, payment=action.payment
+        )
     manager.order_updated(order)
 
 
@@ -332,13 +497,17 @@ def order_authorized(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    amount: "Decimal",
-    payment: "Payment",
+    payment_actions: List[OrderPaymentAction],
     manager: "PluginsManager",
 ):
-    events.payment_authorized_event(
-        order=order, user=user, app=app, amount=amount, payment=payment
-    )
+    for action in payment_actions:
+        events.payment_authorized_event(
+            order=order,
+            user=user,
+            app=app,
+            amount=action.amount,
+            payment=action.payment,
+        )
     manager.order_updated(order)
 
 
@@ -349,13 +518,13 @@ def order_captured(
     payment_actions: List[OrderPaymentAction],
     manager: "PluginsManager",
 ):
-    for amount_and_payment in payment_actions:
+    for action in payment_actions:
         events.payment_captured_event(
             order=order,
             user=user,
             app=app,
-            amount=amount_and_payment.amount,
-            payment=amount_and_payment.payment,
+            amount=action.amount,
+            payment=action.payment,
         )
     manager.order_updated(order)
     if order.is_fully_paid():

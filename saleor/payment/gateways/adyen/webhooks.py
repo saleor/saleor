@@ -265,8 +265,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                         payment.order,
                         None,
                         None,
-                        new_transaction.amount,
-                        payment,
+                        [OrderPaymentAction(payment, new_transaction.amount)],
                         manager,
                     )
     reason = notification.get("reason", "-")
