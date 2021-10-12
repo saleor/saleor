@@ -103,10 +103,10 @@ def _resolve_checkout_excluded_shipping_methods(
     for instance in available_with_channel_context:
         instance.node.active = True
         instance.node.message = ""
-        for e in excluded_methods:
-            if instance.node.id == e.id:
+        for method in excluded_methods:
+            if instance.node.id == method.id:
                 instance.node.active = False
-                instance.node.message = e.reason
+                instance.node.message = method.reason
     setattr(root, cache_key, available_with_channel_context)
     return getattr(root, cache_key)
 
