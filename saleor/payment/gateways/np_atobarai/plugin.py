@@ -9,10 +9,10 @@ from . import (
     GatewayConfig,
     api,
     capture,
-    fulfillment_created,
     get_api_config,
     process_payment,
     refund,
+    tracking_number_updated,
     void,
 )
 from .const import (
@@ -125,13 +125,8 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     ) -> "GatewayResponse":
         return process_payment(payment_information, self._get_gateway_config())
 
-    def fulfillment_created(self, fulfillment: Fulfillment, previous_value):
-        fulfillment_created(fulfillment, self._get_gateway_config())
-        return previous_value
-
-    def order_fulfilled(self, *args, **kwargs):
-        print(f"order fulfilled: {args = } {kwargs = }")
-        return NotImplemented
+    def tracking_number_updated(self, fulfillment: "Fulfillment", previous_value):
+        tracking_number_updated(fulfillment, self._get_gateway_config())
 
     def get_supported_currencies(self, previous_value):
         return self.SUPPORTED_CURRENCIES

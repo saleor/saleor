@@ -67,15 +67,11 @@ def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse
 
 
 @inject_api_config
-def fulfillment_created(fulfillment: Fulfillment, config: ApiConfig) -> None:
-    if fulfillment.fulfillment_order > 1:
-        return
-
+def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None:
     errors = api.report_fulfillment(config, fulfillment)
+
     if errors:
-        logger.warning("Could not capture payment in NP Atobarai: %s" ", ".join(errors))
-    else:
-        logger.info("Payment captured in NP Atobarai successfully.")
+        logger.error("Could not capture payment in NP Atobarai: %s" ", ".join(errors))
 
 
 @inject_api_config

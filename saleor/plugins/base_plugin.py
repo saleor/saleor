@@ -542,6 +542,13 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def tracking_number_updated(self, fulfillment: "Fulfillment", previous_value: Any):
+        """Trigger when tracking number is updated.
+
+        Overwrite this method if you need to trigger specific logic when a tracking
+        number is updated.
+        """
+
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         """Trigger when checkout is created.
 
