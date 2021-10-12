@@ -6,6 +6,7 @@ import pytest
 from django.conf import settings
 
 from ....app.models import App
+from ....core.models import EventDelivery
 from ....payment import PaymentError, TransactionKind
 from ....payment.utils import create_payment_information
 from ....webhook.event_types import WebhookEventType
@@ -14,7 +15,6 @@ from ...manager import get_plugins_manager
 from ..tasks import (
     send_webhook_request,
     send_webhook_request_sync,
-    signature_for_payload,
     trigger_webhook_sync,
 )
 from ..utils import (
@@ -69,13 +69,8 @@ def webhook_data():
 def test_trigger_webhook_sync(mock_request, payment_app):
     data = {"key": "value"}
     trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
-    webhook = payment_app.webhooks.first()
-    mock_request.assert_called_once_with(
-        webhook.target_url,
-        webhook.secret_key,
-        WebhookEventType.PAYMENT_CAPTURE,
-        data,
-    )
+    event_delivery = EventDelivery.objects.first()
+    mock_request.assert_called_once_with(event_delivery)
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
@@ -93,12 +88,11 @@ def test_trigger_webhook_sync_use_first_webhook(mock_request, payment_app):
 
     data = {"key": "value"}
     trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
-    mock_request.assert_called_once_with(
-        webhook_1.target_url,
-        webhook_1.secret_key,
-        WebhookEventType.PAYMENT_CAPTURE,
-        data,
-    )
+    event_delivery = EventDelivery.objects.first()
+    mock_request.assert_called_once_with(event_delivery)
+
+    assert event_delivery.webhook.target_url == webhook_1.target_url
+    assert event_delivery.webhook.secret_key == webhook_1.secret_key
 
 
 def test_trigger_webhook_sync_no_webhook_available():
@@ -119,14 +113,8 @@ def test_send_webhook_request_sync(
     send_webhook_request_sync(
         target_url, webhook_data.secret, webhook_data.event_type, webhook_data.data
     )
-    mock_send_http.assert_called_once_with(
-        target_url,
-        webhook_data.message,
-        site_settings.site.domain,
-        signature_for_payload(webhook_data.message, webhook_data.secret),
-        webhook_data.event_type,
-        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-    )
+    event_delivery = EventDelivery.objects.first()
+    mock_send_http.assert_called_once_with(event_delivery)
 
 
 @pytest.mark.parametrize(

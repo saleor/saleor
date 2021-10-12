@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max, Q
 
-from . import JobStatus
+from . import EventDeliveryStatus, JobStatus
 from .utils.json_serializer import CustomJsonEncoder
 
 
@@ -126,17 +126,23 @@ class EventPayload(models.Model):
     payload = models.TextField()
 
 
-class EventTask(models.Model):
+class EventDelivery(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-    event_payload = models.ForeignKey(
-        EventPayload,
-        related_name="event_tasks",
-        null=True,
-        on_delete=models.SET_NULL,
+    status = models.CharField(max_length=255, choices=EventDeliveryStatus.CHOICES)
+    event_type = models.CharField(max_length=255)
+    payload = models.ForeignKey(
+        EventPayload, related_name="deliveries", null=True, on_delete=models.SET_NULL
     )
-    task_id = models.CharField(max_length=254)
-    status = models.CharField(max_length=50, choices=JobStatus.CHOICES)
-    error = models.CharField(null=True, blank=True, max_length=254)
-    duration = models.FloatField()
     webhook = models.ForeignKey("webhook.Webhook", null=True, on_delete=models.SET_NULL)
-    event_type = models.CharField(max_length=254)
+
+
+class EventDeliveryAttempt(models.Model):
+    delivery = models.ForeignKey(
+        EventDelivery, related_name="attempts", null=True, on_delete=models.SET_NULL
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    task_id = models.CharField(max_length=255, null=True)
+    duration = models.FloatField(null=True)
+    response = models.TextField(null=True)
+    headers = models.TextField(null=True)
+    status = models.CharField(max_length=255, choices=EventDeliveryStatus.CHOICES)

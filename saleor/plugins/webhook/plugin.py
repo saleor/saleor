@@ -21,8 +21,9 @@ from ...webhook.payloads import (
     generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
-from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
+from .tasks import _get_webhooks_for_event, send_webhook_request, trigger_webhook_sync
 from .utils import (
+    create_event_delivery_object_for_webhook,
     from_payment_app_id,
     parse_list_payment_gateways_response,
     parse_payment_action_response,
@@ -67,9 +68,7 @@ class WebhookPlugin(BasePlugin):
         order_data = json.dumps(generate_order_payload(order))
         event_payload = EventPayload.objects.create(payload=order_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.ORDER_CREATED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.ORDER_CREATED)
 
     def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -77,9 +76,7 @@ class WebhookPlugin(BasePlugin):
         order_data = json.dumps(generate_order_payload(order))
         event_payload = EventPayload.objects.create(payload=order_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.ORDER_CONFIRMED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.ORDER_CONFIRMED)
 
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -87,9 +84,7 @@ class WebhookPlugin(BasePlugin):
         order_data = json.dumps(generate_order_payload(order))
         event_payload = EventPayload.objects.create(payload=order_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.ORDER_FULLY_PAID, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.ORDER_UPDATED)
 
     def order_updated(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -97,9 +92,7 @@ class WebhookPlugin(BasePlugin):
         order_data = json.dumps(generate_order_payload(order))
         event_payload = EventPayload.objects.create(payload=order_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.ORDER_UPDATED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.ORDER_UPDATED)
 
     def invoice_request(
         self,
@@ -113,8 +106,8 @@ class WebhookPlugin(BasePlugin):
         invoice_data = json.dumps(generate_invoice_payload(invoice))
         event_payload = EventPayload.objects.create(payload=invoice_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.INVOICE_REQUESTED, event_payload.id
+        self._trigger_webhook_requests(
+            event_payload, WebhookEventType.INVOICE_REQUESTED
         )
 
     def invoice_delete(self, invoice: "Invoice", previous_value: Any):
@@ -123,9 +116,7 @@ class WebhookPlugin(BasePlugin):
         invoice_data = json.dumps(generate_invoice_payload(invoice))
         event_payload = EventPayload.objects.create(payload=invoice_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.INVOICE_DELETED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.INVOICE_DELETED)
 
     def invoice_sent(self, invoice: "Invoice", email: str, previous_value: Any) -> Any:
         if not self.active:
@@ -133,9 +124,7 @@ class WebhookPlugin(BasePlugin):
         invoice_data = json.dumps(generate_invoice_payload(invoice))
         event_payload = EventPayload.objects.create(payload=invoice_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.INVOICE_SENT, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.INVOICE_SENT)
 
     def order_cancelled(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -143,9 +132,7 @@ class WebhookPlugin(BasePlugin):
         order_data = json.dumps(generate_order_payload(order))
         event_payload = EventPayload.objects.create(payload=order_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.ORDER_CANCELLED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.ORDER_CANCELLED)
 
     def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -153,32 +140,33 @@ class WebhookPlugin(BasePlugin):
         order_data = json.dumps(generate_order_payload(order))
         event_payload = EventPayload.objects.create(payload=order_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.ORDER_FULFILLED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.ORDER_FULFILLED)
 
     def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
         order_data = generate_order_payload(order)
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.DRAFT_ORDER_CREATED, order_data
+        event_payload = EventPayload.objects.create(payload=order_data)
+        self._trigger_webhook_requests(
+            event_payload, WebhookEventType.DRAFT_ORDER_CREATED
         )
 
     def draft_order_updated(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
         order_data = generate_order_payload(order)
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.DRAFT_ORDER_UPDATED, order_data
+        event_payload = EventPayload.objects.create(payload=order_data)
+        self._trigger_webhook_requests(
+            event_payload, WebhookEventType.DRAFT_ORDER_UPDATED
         )
 
     def draft_order_deleted(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
         order_data = generate_order_payload(order)
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.DRAFT_ORDER_DELETED, order_data
+        event_payload = EventPayload.objects.create(payload=order_data)
+        self._trigger_webhook_requests(
+            event_payload, WebhookEventType.DRAFT_ORDER_DELETED
         )
 
     def fulfillment_created(self, fulfillment: "Fulfillment", previous_value):
@@ -186,9 +174,8 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         fulfillment_data = json.dumps(generate_fulfillment_payload(fulfillment))
         event_payload = EventPayload.objects.create(payload=fulfillment_data)
-
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.FULFILLMENT_CREATED, event_payload.id
+        self._trigger_webhook_requests(
+            event_payload, WebhookEventType.FULFILLMENT_CREATED
         )
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
@@ -196,20 +183,14 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         customer_data = json.dumps(generate_customer_payload(customer))
         event_payload = EventPayload.objects.create(payload=customer_data)
-
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.CUSTOMER_CREATED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.CUSTOMER_CREATED)
 
     def customer_updated(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
         customer_data = json.dumps(generate_customer_payload(customer))
         event_payload = EventPayload.objects.create(payload=customer_data)
-
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.CUSTOMER_UPDATED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.CUSTOMER_UPDATED)
 
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
@@ -217,9 +198,7 @@ class WebhookPlugin(BasePlugin):
         product_data = json.dumps(generate_product_payload(product))
         event_payload = EventPayload.objects.create(payload=product_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.PRODUCT_CREATED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.PRODUCT_CREATED)
 
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
@@ -227,9 +206,7 @@ class WebhookPlugin(BasePlugin):
         product_data = json.dumps(generate_product_payload(product))
         event_payload = EventPayload.objects.create(payload=product_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.PRODUCT_UPDATED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.PRODUCT_UPDATED)
 
     def product_deleted(
         self, product: "Product", variants: List[int], previous_value: Any
@@ -238,10 +215,7 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         product_data = json.dumps(generate_product_deleted_payload(product, variants))
         event_payload = EventPayload.objects.create(payload=product_data)
-
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.PRODUCT_DELETED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.PRODUCT_DELETED)
 
     def product_variant_created(
         self, product_variant: "ProductVariant", previous_value: Any
@@ -252,9 +226,8 @@ class WebhookPlugin(BasePlugin):
             generate_product_variant_payload([product_variant])
         )
         event_payload = EventPayload.objects.create(payload=product_variant_data)
-
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.PRODUCT_VARIANT_CREATED, event_payload.id
+        self._trigger_webhook_requests(
+            event_payload, WebhookEventType.PRODUCT_VARIANT_CREATED
         )
 
     def product_variant_updated(
@@ -267,8 +240,8 @@ class WebhookPlugin(BasePlugin):
         )
         event_payload = EventPayload.objects.create(payload=product_variant_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.PRODUCT_VARIANT_UPDATED, event_payload.id
+        self._trigger_webhook_requests(
+            event_payload, WebhookEventType.PRODUCT_VARIANT_UPDATED
         )
 
     def product_variant_deleted(
@@ -281,8 +254,8 @@ class WebhookPlugin(BasePlugin):
         )
         event_payload = EventPayload.objects.create(payload=product_variant_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.PRODUCT_VARIANT_DELETED, event_payload.id
+        self._trigger_webhook_requests(
+            event_payload, WebhookEventType.PRODUCT_VARIANT_DELETED
         )
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
@@ -291,72 +264,59 @@ class WebhookPlugin(BasePlugin):
         checkout_data = json.dumps(generate_checkout_payload(checkout))
         event_payload = EventPayload.objects.create(payload=checkout_data)
 
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.CHECKOUT_CREATED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.CHECKOUT_CREATED)
 
     def checkout_updated(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
         checkout_data = json.dumps(generate_checkout_payload(checkout))
         event_payload = EventPayload.objects.create(payload=checkout_data)
-
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.CHECKOUT_UPDATED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.CHECKOUT_UPDATED)
 
     def notify(self, event: "NotifyEventType", payload: dict, previous_value) -> Any:
         if not self.active:
             return previous_value
         data = json.dumps({"notify_event": event, "payload": payload})
         event_payload = EventPayload.objects.create(payload=data)
-
-        trigger_webhooks_for_event.delay(WebhookEventType.NOTIFY_USER, event_payload.id)
+        self._trigger_webhook_requests(event_payload, WebhookEventType.NOTIFY_USER)
 
     def page_created(self, page: "Page", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
         page_data = json.dumps(generate_page_payload(page))
         event_payload = EventPayload.objects.create(payload=page_data)
-
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.PAGE_CREATED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.PAGE_CREATED)
 
     def page_updated(self, page: "Page", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
         page_data = json.dumps(generate_page_payload(page))
         event_payload = EventPayload.objects.create(payload=page_data)
-
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.PAGE_UPDATED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.PAGE_UPDATED)
 
     def page_deleted(self, page: "Page", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
         page_data = json.dumps(generate_page_payload(page))
         event_payload = EventPayload.objects.create(payload=page_data)
-
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.PAGE_DELETED, event_payload.id
-        )
+        self._trigger_webhook_requests(event_payload, WebhookEventType.PAGE_DELETED)
 
     def translation_created(self, translation: "Translation", previous_value: Any):
         if not self.active:
             return previous_value
         translation_data = generate_translation_payload(translation)
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.TRANSLATION_CREATED, translation_data
+        event_payload = EventPayload.objects.create(payload=translation_data)
+        self._trigger_webhook_requests(
+            event_payload, WebhookEventType.TRANSLATION_CREATED
         )
 
     def translation_updated(self, translation: "Translation", previous_value: Any):
         if not self.active:
             return previous_value
         translation_data = generate_translation_payload(translation)
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.TRANSLATION_UPDATED, translation_data
+        event_payload = EventPayload.objects.create(payload=translation_data)
+        self._trigger_webhook_requests(
+            event_payload, WebhookEventType.TRANSLATION_UPDATED
         )
 
     def __run_payment_webhook(
@@ -497,3 +457,14 @@ class WebhookPlugin(BasePlugin):
             previous_value,
             **kwargs,
         )
+
+    @staticmethod
+    def _trigger_webhook_requests(payload, event_type):
+        webhooks = _get_webhooks_for_event(event_type)
+        for webhook in webhooks:
+            webhook_delivery = create_event_delivery_object_for_webhook(
+                payload,
+                webhook,
+                event_type,
+            )
+            send_webhook_request.delay(webhook_delivery.id)

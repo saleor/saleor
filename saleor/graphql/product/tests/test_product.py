@@ -170,6 +170,8 @@ QUERY_PRODUCT = """
     }
     """
 
+MOCKED_EVENT_PAYLOAD = "mocked_event_payload"
+
 
 def test_product_query_by_id_available_as_staff_user(
     staff_api_client, permission_manage_products, product, channel_USD
@@ -6778,7 +6780,7 @@ def test_delete_product_with_image(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@patch("saleor.plugins.webhook.plugin.WebhookPlugin._trigger_webhook_requests")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_trigger_webhook(
     mocked_recalculate_orders_task,
@@ -6805,7 +6807,7 @@ def test_delete_product_trigger_webhook(
 
     event_payload = EventPayload.objects.first()
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.PRODUCT_DELETED, event_payload.id
+        event_payload, WebhookEventType.PRODUCT_DELETED
     )
     mocked_recalculate_orders_task.assert_not_called()
 

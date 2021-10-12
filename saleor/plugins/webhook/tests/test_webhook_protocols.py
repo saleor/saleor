@@ -11,7 +11,7 @@ from kombu.asynchronous.aws.sqs.connection import AsyncSQSConnection
 from ....core.models import EventPayload
 from ....webhook.event_types import WebhookEventType
 from ...webhook import signature_for_payload
-from ...webhook.tasks import trigger_webhooks_for_event
+from ...webhook.plugin import WebhookPlugin
 
 
 @pytest.mark.parametrize(
@@ -49,7 +49,10 @@ def test_trigger_webhooks_with_aws_sqs(
 
     expected_data = serialize("json", [order_with_lines])
     event_payload = EventPayload.objects.create(payload=json.dumps(expected_data))
-    trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, event_payload.id)
+    WebhookPlugin._trigger_webhook_requests(
+        event_payload, WebhookEventType.ORDER_CREATED
+    )
+    # trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, event_payload.id)
 
     mocked_client_constructor.assert_called_once_with(
         "sqs",
@@ -103,8 +106,9 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
         json.loads(message).encode("utf-8"), webhook.secret_key
     )
     event_payload = EventPayload.objects.create(payload=json.dumps(expected_data))
-
-    trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, event_payload.id)
+    WebhookPlugin._trigger_webhook_requests(
+        event_payload, WebhookEventType.ORDER_CREATED
+    )
 
     mocked_client_constructor.assert_called_once_with(
         "sqs",
@@ -143,7 +147,9 @@ def test_trigger_webhooks_with_google_pub_sub(
     expected_data = json.dumps(serialize("json", [order_with_lines]))
     event_payload = EventPayload.objects.create(payload=expected_data)
 
-    trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, event_payload.id)
+    WebhookPlugin._trigger_webhook_requests(
+        event_payload, WebhookEventType.ORDER_CREATED
+    )
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
         json.loads(expected_data).encode("utf-8"),
@@ -177,7 +183,9 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
         json.loads(message).encode("utf-8"), webhook.secret_key
     )
     event_payload = EventPayload.objects.create(payload=json.dumps(expected_data))
-    trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, event_payload.id)
+    WebhookPlugin._trigger_webhook_requests(
+        event_payload, WebhookEventType.ORDER_CREATED
+    )
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
         json.loads(message).encode("utf-8"),
@@ -204,7 +212,9 @@ def test_trigger_webhooks_with_http(
     expected_data = json.dumps(serialize("json", [order_with_lines]))
     event_payload = EventPayload.objects.create(payload=expected_data)
 
-    trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, event_payload.id)
+    WebhookPlugin._trigger_webhook_requests(
+        event_payload, WebhookEventType.ORDER_CREATED
+    )
 
     expected_headers = {
         "Content-Type": "application/json",
@@ -233,7 +243,9 @@ def test_trigger_webhooks_with_http_and_secret_key(
 
     expected_data = json.dumps(serialize("json", [order_with_lines]))
     event_payload = EventPayload.objects.create(payload=expected_data)
-    trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, event_payload.id)
+    WebhookPlugin._trigger_webhook_requests(
+        event_payload, WebhookEventType.ORDER_CREATED
+    )
 
     expected_signature = signature_for_payload(
         json.loads(expected_data).encode("utf-8"), webhook.secret_key

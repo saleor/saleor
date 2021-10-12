@@ -4,11 +4,19 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, List, Optional
 
+from ...core.models import (
+    EventDelivery,
+    EventDeliveryAttempt,
+    EventDeliveryStatus,
+    EventPayload,
+)
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 
 if TYPE_CHECKING:
     from ...app.models import App
     from ...payment.interface import PaymentData
+    from ...webhook.models import Webhook
+    from .tasks import WebhookResponse
 
 
 APP_GATEWAY_ID_PREFIX = "app"
@@ -112,3 +120,50 @@ def parse_payment_action_response(
 def catch_duration_time():
     start = datetime.now()
     yield lambda: datetime.now() - start
+
+
+def create_event_delivery_object_for_webhook(
+    event_payload: "EventPayload",
+    webhook: "Webhook",
+    event_type: str,
+) -> EventDelivery:
+    event_delivery = EventDelivery.objects.create(
+        status=EventDeliveryStatus.PENDING,
+        event_type=event_type,
+        payload=event_payload,
+        webhook=webhook,
+    )
+    return event_delivery
+
+
+def create_attempt(
+    delivery: "EventDelivery",
+    task_id: str = None,
+):
+    attempt = EventDeliveryAttempt.objects.create(
+        delivery=delivery,
+        task_id=task_id,
+        duration=None,
+        response=None,
+        headers=None,
+        status=EventDeliveryStatus.PENDING,
+    )
+    return attempt
+
+
+def attempt_update(
+    attempt: "EventDeliveryAttempt",
+    webhook_response: "WebhookResponse",
+    status: str,
+    duration: float,
+):
+    attempt.duration = duration
+    attempt.response = webhook_response.content
+    attempt.headers = webhook_response.headers
+    attempt.status = status
+    attempt.save()
+
+
+def delivery_update(delivery: "EventDelivery", status: str):
+    delivery.status = status
+    delivery.save()
