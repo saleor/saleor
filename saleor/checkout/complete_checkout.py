@@ -41,7 +41,11 @@ from ..warehouse.management import allocate_stocks
 from . import AddressType
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
-from .utils import get_voucher_for_checkout
+from .utils import (
+    call_payment_refund_or_void,
+    get_active_payments,
+    get_voucher_for_checkout,
+)
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -446,7 +450,7 @@ def _prepare_checkout(
         lines,
         discounts,
         CheckoutErrorCode,
-        last_payment=payment,
+        current_payment=payment,
     )
     if not checkout_info.channel.is_active:
         raise ValidationError(
@@ -518,13 +522,14 @@ def _get_order_data(
 
 
 def _process_payment(
+    channel_slug: "str",
     payment: Payment,
     customer_id: Optional[str],
     store_source: bool,
     payment_data: Optional[dict],
-    order_data: dict,
+    order_data: Optional[dict],
     manager: "PluginsManager",
-    channel_slug: str,
+    complete_order: bool = False,
 ) -> Transaction:
     """Process the payment assigned to checkout."""
     try:
@@ -546,12 +551,91 @@ def _process_payment(
                 channel_slug=channel_slug,
             )
         payment.refresh_from_db()
+        payment.complete_order = complete_order
+        payment.save(update_fields=["complete_order"])
         if not txn.is_success:
             raise PaymentError(txn.error)
     except PaymentError as e:
-        release_voucher_usage(order_data)
+        if order_data:
+            release_voucher_usage(order_data)
+        call_payment_refund_or_void(payment)
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
     return txn
+
+
+def _complete_checkout_payment(
+    channel_slug: str,
+    payment: "Optional[Payment]",
+    manager: "PluginsManager",
+    payment_data,
+    store_source,
+    user,
+    order_data=None,
+    complete_order: bool = False,
+):
+    """Complete processing a payment.
+
+    If no payment was provided, it means that it was already processed
+    by this function as part of checkoutPaymentComplete mutation.
+    """
+    customer_id = None
+    if not payment:
+        return {}, False
+
+    if user.is_authenticated:
+        customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
+
+    txn = _process_payment(
+        channel_slug=channel_slug,
+        payment=payment,  # type: ignore
+        customer_id=customer_id,
+        store_source=store_source,
+        payment_data=payment_data,
+        order_data=order_data,
+        manager=manager,
+        complete_order=complete_order,
+    )
+
+    if txn.customer_id and user.is_authenticated:
+        store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
+
+    action_required = txn.action_required
+    action_data = txn.action_required_data if action_required else {}
+
+    return action_data, action_required
+
+
+def complete_checkout_payment(
+    payment: "Payment",
+    manager: "PluginsManager",
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    payment_data,
+    store_source,
+    discounts,
+    user,
+    tracking_code=None,
+    redirect_url=None,
+) -> Tuple[bool, dict]:
+    """Logic required to finalize a single checkout payment.
+
+    Should be used with transaction_with_commit_on_errors, as there is a possibility
+    for thread race.
+    :raises ValidationError
+    """
+
+    action_data, action_required = _complete_checkout_payment(
+        checkout_info.channel.slug,
+        payment,
+        manager,
+        payment_data,
+        store_source,
+        user,
+        order_data=None,
+        complete_order=False,
+    )
+
+    return action_required, action_data
 
 
 def complete_checkout(
@@ -563,6 +647,7 @@ def complete_checkout(
     discounts,
     user,
     app,
+    payment=None,
     site_settings=None,
     tracking_code=None,
     redirect_url=None,
@@ -574,8 +659,22 @@ def complete_checkout(
     :raises ValidationError
     """
     checkout = checkout_info.checkout
-    channel_slug = checkout_info.channel.slug
-    payment = checkout.get_last_active_payment()
+
+    if payment is None:
+        active_payments = get_active_payments(checkout)
+        if len(active_payments) == 1:
+            payment = active_payments[0]
+
+        # Implies partial payments
+        elif len(active_payments) > 1:
+            incomplete_payments = [p for p in active_payments if p.not_charged]
+            if len(incomplete_payments) > 1:
+                raise ValidationError(
+                    "When multiple active payments are present you have to provide "
+                    "a specific paymentID as the input parameter.",
+                    code=CheckoutErrorCode.PAYMENT_NOT_SET.value,
+                )
+
     _prepare_checkout(
         manager=manager,
         checkout_info=checkout_info,
@@ -589,28 +688,19 @@ def complete_checkout(
     try:
         order_data = _get_order_data(manager, checkout_info, lines, discounts)
     except ValidationError as exc:
-        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        call_payment_refund_or_void(payment)
         raise exc
 
-    customer_id = None
-    if payment and user.is_authenticated:
-        customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
-
-    txn = _process_payment(
-        payment=payment,  # type: ignore
-        customer_id=customer_id,
-        store_source=store_source,
-        payment_data=payment_data,
+    action_data, action_required = _complete_checkout_payment(
+        checkout_info.channel.slug,
+        payment,
+        manager,
+        payment_data,
+        store_source,
+        user,
         order_data=order_data,
-        manager=manager,
-        channel_slug=channel_slug,
+        complete_order=True,
     )
-
-    if txn.customer_id and user.is_authenticated:
-        store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
-
-    action_required = txn.action_required
-    action_data = txn.action_required_data if action_required else {}
 
     order = None
     if not action_required:
@@ -627,7 +717,7 @@ def complete_checkout(
             checkout.delete()
         except InsufficientStock as e:
             release_voucher_usage(order_data)
-            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+            call_payment_refund_or_void(payment)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
     return order, action_required, action_data

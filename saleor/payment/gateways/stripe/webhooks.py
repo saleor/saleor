@@ -13,6 +13,7 @@ from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....discount.utils import fetch_active_discounts
 from ....order.actions import order_captured, order_refunded, order_voided
+from ....order.interface import OrderPaymentAction
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
@@ -93,6 +94,7 @@ def _get_payment(payment_intent_id: str) -> Optional[Payment]:
             "checkout",
         )
         .select_for_update(of=("self",))
+        # TODO: inactive payments should be processed to reflect their state in PSP
         .filter(transactions__token=payment_intent_id, is_active=True)
         .first()
     )
@@ -188,7 +190,7 @@ def _process_payment_with_checkout(
 ):
     checkout = _get_checkout(payment.id)
 
-    if checkout:
+    if checkout and payment.can_create_order():
         _finalize_checkout(checkout, payment, payment_intent, kind, amount, currency)
 
 
@@ -236,7 +238,7 @@ def handle_failed_payment_intent(
             extra={"payment_intent": payment_intent.id},
         )
         return
-    _update_payment_with_new_transaction(
+    transaction = _update_payment_with_new_transaction(
         payment,
         payment_intent,
         TransactionKind.CANCEL,
@@ -244,7 +246,8 @@ def handle_failed_payment_intent(
         payment_intent.currency,
     )
     if payment.order:
-        order_voided(payment.order, None, None, payment, get_plugins_manager())
+        actions = [OrderPaymentAction(payment, transaction.amount)]
+        order_voided(payment.order, None, None, actions, get_plugins_manager())
 
 
 def handle_processing_payment_intent(
@@ -309,8 +312,7 @@ def handle_successful_payment_intent(
                 payment.order,  # type: ignore
                 None,
                 None,
-                capture_transaction.amount,
-                payment,
+                [OrderPaymentAction(payment, capture_transaction.amount)],
                 get_plugins_manager(),
             )
         return
@@ -362,11 +364,12 @@ def handle_refund(
         payment, refund, TransactionKind.REFUND, refund.amount, refund.currency
     )
     if payment.order:
+        payments = [OrderPaymentAction(payment, refund_transaction.amount)]
         order_refunded(
             payment.order,
             None,
             None,
-            refund_transaction.amount,
-            payment,
+            payments,
             get_plugins_manager(),
+            send_notification=False,
         )

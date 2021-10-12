@@ -2,6 +2,9 @@ from typing import TYPE_CHECKING, Iterable, List, Optional
 from urllib.parse import urlencode
 
 from django.forms import model_to_dict
+from graphql_relay import to_global_id
+
+import saleor.order.interface
 
 from ..account.models import StaffNotificationRecipient
 from ..core.notifications import get_site_context
@@ -14,8 +17,6 @@ from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
 from .models import FulfillmentLine, Order, OrderLine
 
 if TYPE_CHECKING:
-    from decimal import Decimal
-
     from ..account.models import User  # noqa: F401
     from ..app.models import App
 
@@ -374,15 +375,24 @@ def send_order_refunded_confirmation(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    amount: "Decimal",
+    payments: List[saleor.order.interface.OrderPaymentAction],
     currency: str,
     manager,
 ):
+    total_amount = sum([item.amount for item in payments])
     payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
-        "amount": amount,
+        "amount": total_amount,
         "currency": currency,
+        "refunds": [
+            {
+                "payment_id": to_global_id("Payment", item.payment.id),
+                "amount": item.amount,
+                "gateway": item.payment.gateway,
+            }
+            for item in payments
+        ],
         **get_site_context(),
     }
     attach_requester_payload_data(payload, user, app)

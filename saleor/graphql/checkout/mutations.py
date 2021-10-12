@@ -51,6 +51,7 @@ from ..core.validators import (
     validate_variants_available_in_channel,
 )
 from ..order.types import Order
+from ..payment.types import Payment
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
@@ -204,11 +205,12 @@ def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
         )
 
 
-def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []):
+def get_checkout_by_token(token: uuid.UUID, qs=None):
+    if qs is None:
+        qs = models.Checkout.objects.all()
+
     try:
-        checkout = models.Checkout.objects.prefetch_related(*prefetch_lookups).get(
-            token=token
-        )
+        checkout = qs.get(token=token)
     except ObjectDoesNotExist:
         raise ValidationError(
             {
@@ -797,9 +799,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         )
 
         if token:
-            checkout = get_checkout_by_token(
-                token, prefetch_lookups=["lines__variant__product__product_type"]
+            qs = models.Checkout.objects.prefetch_related(
+                "lines__variant__product__product_type"
             )
+            checkout = get_checkout_by_token(token, qs)
         # DEPRECATED
         if checkout_id:
             pk = cls.get_global_id_or_error(
@@ -1119,6 +1122,13 @@ class CheckoutComplete(BaseMutation):
                 "see the order details. URL in RFC 1808 format."
             ),
         )
+        payment_id = graphene.ID(
+            description=(
+                "The ID of the payment used to finalize the checkout. "
+                "Mandatory for checkouts with multiple payments."
+            ),
+            required=False,
+        )
         payment_data = graphene.JSONString(
             required=False,
             description=(
@@ -1140,7 +1150,14 @@ class CheckoutComplete(BaseMutation):
 
     @classmethod
     def perform_mutation(
-        cls, _root, info, store_source, checkout_id=None, token=None, **data
+        cls,
+        _root,
+        info,
+        store_source,
+        checkout_id=None,
+        token=None,
+        payment_id=None,
+        **data
     ):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
@@ -1150,8 +1167,11 @@ class CheckoutComplete(BaseMutation):
         tracking_code = analytics.get_client_id(info.context)
         with transaction_with_commit_on_errors():
             try:
+                qs = models.Checkout.objects.select_for_update(
+                    of=["self"]
+                ).prefetch_related("payments")
                 if token:
-                    checkout = get_checkout_by_token(token)
+                    checkout = get_checkout_by_token(token, qs)
                 # DEPRECATED
                 else:
                     checkout = cls.get_node_or_error(
@@ -1159,6 +1179,7 @@ class CheckoutComplete(BaseMutation):
                         checkout_id or token,
                         only_type=Checkout,
                         field="checkout_id",
+                        qs=qs,
                     )
             except ValidationError as e:
                 # DEPRECATED
@@ -1186,6 +1207,14 @@ class CheckoutComplete(BaseMutation):
                     )
                 raise e
 
+            if payment_id:
+                _qs = checkout.payments.filter(is_active=True)
+                payment = cls.get_node_or_error(
+                    info, payment_id, only_type=Payment, qs=_qs
+                )
+            else:
+                payment = None
+
             manager = info.context.plugins
             lines = fetch_checkout_lines(checkout)
             validate_variants_in_checkout_lines(lines)
@@ -1205,6 +1234,7 @@ class CheckoutComplete(BaseMutation):
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
+                payment=payment,
                 payment_data=data.get("payment_data", {}),
                 store_source=store_source,
                 discounts=info.context.discounts,

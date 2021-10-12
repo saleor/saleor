@@ -5,7 +5,9 @@ from ....tests.utils import get_graphql_content
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_user_checkout_details(user_api_client, customer_checkout, count_queries):
+def test_user_checkout_details(
+    user_api_client, checkout_with_customer_payments, count_queries
+):
     query = """
         fragment Price on TaxedMoney {
           gross {
@@ -127,6 +129,15 @@ def test_user_checkout_details(user_api_client, customer_checkout, count_queries
           discountName
           translatedDiscountName
           voucherCode
+          payments {
+            gateway
+            isActive
+            chargeStatus
+            total {
+              currency
+              amount
+            }
+          }
         }
 
         query UserCheckoutDetails {

@@ -486,6 +486,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.warehouse.tasks.delete_empty_allocations_task",
         "schedule": timedelta(days=1),
     },
+    "release-unfinished-payments": {
+        "task": "saleor.payment.tasks.release_unfinished_payments_task",
+        "schedule": timedelta(days=1),
+    },
 }
 
 # Change this value if your application is running behind a proxy,
@@ -622,3 +626,8 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
 
 assert hasattr(schema_printer, "_print_object")
 schema_printer._print_object = patched_print_object
+
+
+UNFINISHED_PAYMENT_TTL = timedelta(
+    seconds=parse(os.environ.get("UNFINISHED_PAYMENT_TTL", "1 day"))
+)

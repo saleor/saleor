@@ -8,9 +8,9 @@ from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import JSONField  # type: ignore
-from django.db.models import F, Max, Sum
+from django.db.models import ExpressionWrapper, F, JSONField, Max, Q  # type: ignore
 from django.db.models.expressions import Exists, OuterRef
+from django.db.models.indexes import Index
 from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
@@ -27,7 +27,7 @@ from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.model_helpers import get_subtotal, get_total_authorized
+from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderOrigin, OrderStatus
@@ -57,12 +57,9 @@ class OrderQueryset(models.QuerySet):
         fulfilled).
         """
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
-        payments = Payment.objects.filter(is_active=True).values("id")
-        qs = self.annotate(amount_paid=Sum("payments__captured_amount"))
-        return qs.filter(
-            Exists(payments.filter(order_id=OuterRef("id"))),
+        return self.filter(
             status__in=statuses,
-            total_gross_amount__lte=F("amount_paid"),
+            total_gross_amount__lte=F("total_paid_amount"),
         )
 
     def ready_to_capture(self):
@@ -77,6 +74,10 @@ class OrderQueryset(models.QuerySet):
         ).values("id")
         qs = self.filter(Exists(payments.filter(order_id=OuterRef("id"))))
         return qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
+
+    def overpaid(self):
+        """Return orders that are overpaid."""
+        return self.filter(total_gross_amount__lt=F("total_paid_amount"))
 
     def ready_to_confirm(self):
         """Return unconfirmed orders."""
@@ -242,7 +243,24 @@ class Order(ModelWithMetadata):
     class Meta:
         ordering = ("-pk",)
         permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
-        indexes = [*ModelWithMetadata.Meta.indexes, GinIndex(fields=["user_email"])]
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(fields=["user_email"]),
+            Index(
+                ExpressionWrapper(
+                    Q(total_gross_amount__lt=F("total_paid_amount")),
+                    output_field=models.BooleanField(),
+                ),  # type: ignore
+                name="idx_overpaid",
+            ),  # type: ignore
+            Index(
+                ExpressionWrapper(
+                    Q(total_gross_amount__lte=F("total_paid_amount")),
+                    output_field=models.BooleanField(),
+                ),  # type: ignore
+                name="idx_fully_paid",
+            ),  # type: ignore
+        ]
 
     def save(self, *args, **kwargs):
         if not self.token:
@@ -290,17 +308,6 @@ class Order(ModelWithMetadata):
             .exists()
         )
 
-    def is_captured(self):
-        return (
-            self.payments.filter(
-                is_active=True,
-                transactions__kind=TransactionKind.CAPTURE,
-                transactions__action_required=False,
-            )
-            .filter(transactions__is_success=True)
-            .exists()
-        )
-
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self.lines.all())
 
@@ -334,36 +341,18 @@ class Order(ModelWithMetadata):
             ).exists()
         ) and self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
 
-    def can_capture(self, payment=None):
-        if not payment:
-            payment = self.get_last_payment()
-        if not payment:
-            return False
+    def can_capture(self, payments):
         order_status_ok = self.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED}
-        return payment.can_capture() and order_status_ok
+        return order_status_ok and any([p.can_capture() for p in payments])
 
-    def can_void(self, payment=None):
-        if not payment:
-            payment = self.get_last_payment()
-        if not payment:
-            return False
-        return payment.can_void()
+    def can_void(self, payments):
+        return all([p.can_void() for p in payments])
 
-    def can_refund(self, payment=None):
-        if not payment:
-            payment = self.get_last_payment()
-        if not payment:
-            return False
-        return payment.can_refund()
+    def can_refund(self, payments):
+        return any([p.can_refund() for p in payments])
 
-    def can_mark_as_paid(self, payments=None):
-        if not payments:
-            payments = self.payments.all()
+    def can_mark_as_paid(self, payments):
         return len(payments) == 0
-
-    @property
-    def total_authorized(self):
-        return get_total_authorized(self.payments.all(), self.currency)
 
     @property
     def total_captured(self):
@@ -372,6 +361,10 @@ class Order(ModelWithMetadata):
     @property
     def total_balance(self):
         return self.total_captured - self.total.gross
+
+    @property
+    def outstanding_balance(self):
+        return self.total.gross - self.total_paid
 
     def get_total_weight(self, *_args):
         return self.weight

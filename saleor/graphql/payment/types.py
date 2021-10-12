@@ -77,6 +77,11 @@ class Payment(CountableDjangoObjectType):
         ),
         required=True,
     )
+    partial = graphene.Boolean(
+        description=(
+            "Indicates whether this payment will " "be processed as a partial payment."
+        )
+    )
     total = graphene.Field(Money, description="Total amount of the payment.")
     captured_amount = graphene.Field(
         Money, description="Total amount captured for this payment."
@@ -110,6 +115,7 @@ class Payment(CountableDjangoObjectType):
             "order",
             "customer_ip_address",
             "payment_method_type",
+            "psp_reference",
         ]
 
     @staticmethod

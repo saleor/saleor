@@ -2,14 +2,17 @@ from decimal import Decimal
 from functools import partial
 from unittest import mock
 
+from graphql_relay import to_global_id
 from measurement.measures import Weight
 from prices import Money, fixed_discount
 
 from ...core.notify_events import NotifyEventType
 from ...discount import DiscountValueType
 from ...order import notifications
+from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContentUrl
+from ..interface import OrderPaymentAction
 from ..notifications import (
     get_address_payload,
     get_default_fulfillment_line_payload,
@@ -515,15 +518,19 @@ def test_send_email_order_canceled_by_app(mocked_notify, order, site_settings, a
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_order_refunded_by_user(
-    mocked_notify, order, site_settings, staff_user
+    mocked_notify, order, site_settings, staff_user, checkout_with_item
 ):
     # given
     manager = get_plugins_manager()
     amount = order.total.gross.amount
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout_with_item
+    )
+    payments = [OrderPaymentAction(payment, amount)]
 
     # when
     notifications.send_order_refunded_confirmation(
-        order, staff_user, None, amount, order.currency, manager
+        order, staff_user, None, payments, order.currency, manager
     )
 
     # then
@@ -533,6 +540,14 @@ def test_send_email_order_refunded_by_user(
         "order": get_default_order_payload(order),
         "amount": amount,
         "currency": order.currency,
+        "refunds": [
+            {
+                "payment_id": to_global_id("Payment", item.payment.id),
+                "amount": item.amount,
+                "gateway": item.payment.gateway,
+            }
+            for item in payments
+        ],
         "recipient_email": order.get_customer_email(),
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
@@ -546,14 +561,20 @@ def test_send_email_order_refunded_by_user(
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_send_email_order_refunded_by_app(mocked_notify, order, site_settings, app):
+def test_send_email_order_refunded_by_app(
+    mocked_notify, order, site_settings, app, checkout_with_item
+):
     # given
     manager = get_plugins_manager()
     amount = order.total.gross.amount
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout_with_item
+    )
+    payments = [OrderPaymentAction(payment, amount)]
 
     # when
     notifications.send_order_refunded_confirmation(
-        order, None, app, amount, order.currency, manager
+        order, None, app, payments, order.currency, manager
     )
 
     # then
@@ -563,6 +584,14 @@ def test_send_email_order_refunded_by_app(mocked_notify, order, site_settings, a
         "order": get_default_order_payload(order),
         "amount": amount,
         "currency": order.currency,
+        "refunds": [
+            {
+                "payment_id": to_global_id("Payment", item.payment.id),
+                "amount": item.amount,
+                "gateway": item.payment.gateway,
+            }
+            for item in payments
+        ],
         "recipient_email": order.get_customer_email(),
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
