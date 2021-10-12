@@ -311,6 +311,27 @@ def test_checkout_available_shipping_methods(
     assert shipping_methods[0]["active"]
 
 
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
+)
+def test_checkout_shipping_methods_webhook_called_once(
+    mocked_webhook,
+    staff_api_client,
+    checkout_ready_to_complete,
+    permission_manage_checkouts,
+):
+    # given
+    mocked_webhook.side_effect = [[], AssertionError("called twice.")]
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+    # when
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_SHIPPING_METHOD)
+    content = get_graphql_content(response)
+    checkout_data = content["data"]["checkouts"]["edges"][0]["node"]
+    # then
+    assert len(checkout_data["availableShippingMethods"]) == 2
+    assert len(checkout_data["shippingMethods"]) == 2
+
+
 @mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin."
