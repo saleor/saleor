@@ -60,6 +60,57 @@ def resolve_checkout(info, token):
     return None
 
 
+def _resolve_checkout_excluded_shipping_methods(
+    root,
+    channel_listings,
+    shippings,
+    address,
+    channel_slug,
+    display_gross,
+    manager,
+    info,
+):
+    cache_key = "__available_shipping_methods"
+    if hasattr(root, cache_key):
+        return getattr(root, cache_key)
+    channel_listing_map = {
+        channel_listing.shipping_method_id: channel_listing
+        for channel_listing in channel_listings
+    }
+    available_with_channel_context = []
+    for shipping in shippings:
+        shipping_channel_listing = channel_listing_map[shipping.id]
+        taxed_price = info.context.plugins.apply_taxes_to_shipping(
+            shipping_channel_listing.price, address, channel_slug
+        )
+        if display_gross:
+            shipping.price = taxed_price.gross
+        else:
+            shipping.price = taxed_price.net
+        available_with_channel_context.append(
+            ChannelContext(
+                node=shipping,
+                channel_slug=channel_slug,
+            )
+        )
+    excluded_methods = manager.excluded_shipping_methods_for_checkout(
+        root,
+        [
+            convert_shipping_method_model_to_dataclass(shipping)
+            for shipping in shippings
+        ],
+    )
+    for instance in available_with_channel_context:
+        instance.node.active = True
+        instance.node.message = ""
+        for e in excluded_methods:
+            if instance.node.id == e.id:
+                instance.node.active = False
+                instance.node.message = e.reason
+    setattr(root, cache_key, available_with_channel_context)
+    return getattr(root, cache_key)
+
+
 def resolve_checkout_available_shipping_methods(
     root: models.Checkout, info, include_active_only=False
 ):
@@ -85,47 +136,24 @@ def resolve_checkout_available_shipping_methods(
 
         def map_shipping_method_with_channel(shippings):
             def apply_price_to_shipping_method(channel_listings):
-                channel_listing_map = {
-                    channel_listing.shipping_method_id: channel_listing
-                    for channel_listing in channel_listings
-                }
-                available_with_channel_context = []
-                for shipping in shippings:
-                    shipping_channel_listing = channel_listing_map[shipping.id]
-                    taxed_price = info.context.plugins.apply_taxes_to_shipping(
-                        shipping_channel_listing.price, address, channel_slug
+                available_with_channel_context = (
+                    _resolve_checkout_excluded_shipping_methods(
+                        root,
+                        channel_listings,
+                        shippings,
+                        address,
+                        channel_slug,
+                        display_gross,
+                        manager,
+                        info,
                     )
-                    if display_gross:
-                        shipping.price = taxed_price.gross
-                    else:
-                        shipping.price = taxed_price.net
-                    available_with_channel_context.append(
-                        ChannelContext(
-                            node=shipping,
-                            channel_slug=channel_slug,
-                        )
-                    )
-                excluded_methods = manager.excluded_shipping_methods_for_checkout(
-                    root,
-                    [
-                        convert_shipping_method_model_to_dataclass(shipping)
-                        for shipping in shippings
-                    ],
                 )
-                for instance in available_with_channel_context:
-                    instance.node.active = True
-                    instance.node.message = ""
-                    for e in excluded_methods:
-                        if instance.node.id == e.id:
-                            instance.node.active = False
-                            instance.node.message = e.reason
                 if include_active_only:
                     available_with_channel_context = [
                         shipping
                         for shipping in available_with_channel_context
                         if shipping.node.active
                     ]
-
                 return available_with_channel_context
 
             map_shipping_method_and_channel = (
