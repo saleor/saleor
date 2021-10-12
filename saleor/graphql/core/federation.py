@@ -29,7 +29,7 @@ def resolve_entities(parent, info, representations):
         representations_count = len(representations)
         raise GraphQLError(
             f"Federated query exceeded entity limit: {representations_count} "
-            "items requested over {max_representations}."
+            f"items requested over {max_representations}."
         )
 
     resolvers = {}

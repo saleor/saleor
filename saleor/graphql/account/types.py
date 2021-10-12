@@ -3,7 +3,6 @@ from typing import List
 import graphene
 from django.contrib.auth import get_user_model
 from django.contrib.auth import models as auth_models
-from django.db.models import Q
 from graphene import relay
 from graphene_federation import key
 
@@ -398,6 +397,8 @@ class User(CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_references(roots: List["User"], info, **_kwargs):
+        from .resolvers import resolve_users
+
         requestor = get_user_or_app_from_context(info.context)
         requestor_has_access_to_all = has_one_of_permissions(
             requestor,
@@ -408,29 +409,11 @@ class User(CountableDjangoObjectType):
         emails = set()
         for root in roots:
             if root.id is not None:
-                _, user_id = from_global_id_or_error(root.id, User, raise_error=True)
-                ids.add(int(user_id))
+                ids.add(root.id)
             else:
                 emails.add(root.email)
 
-        # If user has no access to all users, we can only return themselves, but
-        # only if they are authenticated and one of requested users
-        users = []
-        if not requestor_has_access_to_all:
-            user = info.context.user
-            if user.is_authenticated and (user.id in ids or user.email in emails):
-                users.append(user)
-        else:
-            # If we can access all users, just fetch them from DB and return them
-            qs = get_user_model().objects
-            if ids and emails:
-                qs = qs.filter(Q(id__in=ids) | Q(email__in=emails))
-            elif ids:
-                qs = qs.filter(id__in=ids)
-            else:
-                qs = qs.filter(email__in=emails)
-            users = list(qs)
-
+        users = list(resolve_users(info, ids=ids, emails=emails))
         users_by_id = {user.id: user for user in users}
         users_by_email = {user.email: user for user in users}
 

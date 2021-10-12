@@ -349,3 +349,58 @@ def test_update_product_variant(
         )
     )["data"]["productVariantUpdate"]
     assert not data["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_products_variants_for_federation_query_count(
+    api_client,
+    product_variant_list,
+    channel_USD,
+    django_assert_num_queries,
+    count_queries,
+):
+    query = """
+      query GetProductVariantInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on ProductVariant {
+            id
+            name
+          }
+        }
+      }
+    """
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductVariant",
+                "id": graphene.Node.to_global_id(
+                    "ProductVariant", product_variant_list[0].pk
+                ),
+                "channel": channel_USD.slug,
+            },
+        ],
+    }
+
+    with django_assert_num_queries(3):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 1
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductVariant",
+                "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+                "channel": channel_USD.slug,
+            }
+            for variant in product_variant_list
+        ],
+    }
+
+    with django_assert_num_queries(3):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 4
