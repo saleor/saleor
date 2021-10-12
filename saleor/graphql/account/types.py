@@ -9,11 +9,7 @@ from graphene_federation import key
 from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import (
-    AccountPermissions,
-    AppPermission,
-    OrderPermissions,
-)
+from ...core.permissions import AccountPermissions, AppPermission, OrderPermissions
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ..account.utils import requestor_has_access
