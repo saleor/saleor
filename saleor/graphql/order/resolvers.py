@@ -110,10 +110,10 @@ def _resolve_order_shipping_methods(root: models.Order, info):
     for instance in instances:
         instance.node.active = True
         instance.node.message = ""
-        for e in excluded_methods:
-            if instance.node.id == e.id:
+        for method in excluded_methods:
+            if instance.node.id == method.id:
                 instance.node.active = False
-                instance.node.message = e.reason
+                instance.node.message = method.reason
     setattr(root, cache_key, instances)
     return getattr(root, cache_key)
 
