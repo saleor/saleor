@@ -241,9 +241,9 @@ def send_webhook_request_sync(app_name, target_url, secret, event_type, data: st
                 )
                 response_data = response.json()
         except RequestException as e:
-            logger.debug("[Webhook] Failed request to %r: %r.", target_url, e)
+            logger.warning("[Webhook] Failed request to %r: %r.", target_url, e)
         except JSONDecodeError as e:
-            logger.debug(
+            logger.warning(
                 "[Webhook] Failed parsing JSON response from %r: %r.", target_url, e
             )
         else:
