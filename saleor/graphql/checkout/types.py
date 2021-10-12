@@ -10,6 +10,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
+from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
@@ -560,6 +561,9 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_stock_reservation_expires(root: models.Checkout, info):
+        if not is_reservation_enabled(info.context.site.settings):
+            return None
+
         def get_oldest_stock_reservation_expiration_date(reservations):
             if not reservations:
                 return None
