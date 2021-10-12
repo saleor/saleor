@@ -252,6 +252,106 @@ def test_order_fulfill_with_stock_exceeded_with_flag_enabled(
         assert stock.quantity < 0
 
 
+def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_stocks(
+    staff_api_client, staff_user, permission_manage_orders, order_fulfill_data
+):
+    order = order_fulfill_data.order
+
+    Stock.objects.filter(warehouse=order_fulfill_data.warehouse).delete()
+
+    response = staff_api_client.post_graphql(
+        ORDER_FULFILL_QUERY,
+        order_fulfill_data.variables,
+        permissions=[permission_manage_orders],
+    )
+    get_graphql_content(response)
+    order.refresh_from_db()
+
+    assert order.status == OrderStatus.FULFILLED
+    order_lines = order.lines.all()
+    assert order_lines[0].quantity_fulfilled == 3
+    assert order_lines[0].quantity_unfulfilled == 0
+
+    assert order_lines[1].quantity_fulfilled == 2
+    assert order_lines[1].quantity_unfulfilled == 0
+
+
+def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_stocks(
+    staff_api_client, staff_user, permission_manage_orders, order_fulfill_data
+):
+    order = order_fulfill_data.order
+    order_fulfill_data.variables["input"]["allowStockToBeExceeded"] = False
+
+    Stock.objects.filter(warehouse=order_fulfill_data.warehouse).delete()
+
+    response = staff_api_client.post_graphql(
+        ORDER_FULFILL_QUERY,
+        order_fulfill_data.variables,
+        permissions=[permission_manage_orders],
+    )
+    get_graphql_content(response)
+    order.refresh_from_db()
+
+    assert not order.status == OrderStatus.FULFILLED
+
+    order_lines = order.lines.all()
+    assert order_lines[0].quantity_fulfilled == 0
+    assert order_lines[0].quantity_unfulfilled == 3
+
+    assert order_lines[1].quantity_fulfilled == 0
+    assert order_lines[1].quantity_unfulfilled == 2
+
+
+def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_variant(
+    staff_api_client, staff_user, permission_manage_orders, order_fulfill_data
+):
+    order = order_fulfill_data.order
+
+    order.lines.first().variant.delete()
+
+    response = staff_api_client.post_graphql(
+        ORDER_FULFILL_QUERY,
+        order_fulfill_data.variables,
+        permissions=[permission_manage_orders],
+    )
+    get_graphql_content(response)
+    order.refresh_from_db()
+
+    assert order.status == OrderStatus.FULFILLED
+    order_lines = order.lines.all()
+    assert order_lines[0].quantity_fulfilled == 3
+    assert order_lines[0].quantity_unfulfilled == 0
+
+    assert order_lines[1].quantity_fulfilled == 2
+    assert order_lines[1].quantity_unfulfilled == 0
+
+
+def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_variant(
+    staff_api_client, staff_user, permission_manage_orders, order_fulfill_data
+):
+    order = order_fulfill_data.order
+    order_fulfill_data.variables["input"]["allowStockToBeExceeded"] = False
+
+    order.lines.first().variant.delete()
+
+    response = staff_api_client.post_graphql(
+        ORDER_FULFILL_QUERY,
+        order_fulfill_data.variables,
+        permissions=[permission_manage_orders],
+    )
+    get_graphql_content(response)
+    order.refresh_from_db()
+
+    assert not order.status == OrderStatus.FULFILLED
+
+    order_lines = order.lines.all()
+    assert order_lines[0].quantity_fulfilled == 0
+    assert order_lines[0].quantity_unfulfilled == 3
+
+    assert order_lines[1].quantity_fulfilled == 0
+    assert order_lines[1].quantity_unfulfilled == 2
+
+
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
 def test_order_fulfill_above_available_quantity(
     mock_create_fulfillments,
