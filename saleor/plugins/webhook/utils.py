@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
+from ..base_plugin import ExcludedShippingMethod
 
 if TYPE_CHECKING:
     from ...app.models import App
@@ -104,3 +105,16 @@ def parse_payment_action_response(
             "transaction_already_processed", False
         ),
     )
+
+
+def parse_excluded_shipping_methods_response(
+    response_data: dict,
+) -> List[ExcludedShippingMethod]:
+    excluded_methods = []
+    for method_data in response_data.get("excluded_methods", []):
+        excluded_methods.append(
+            ExcludedShippingMethod(
+                id=method_data.get("id", ""), reason=method_data.get("reason", "")
+            )
+        )
+    return excluded_methods
