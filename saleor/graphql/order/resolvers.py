@@ -63,8 +63,12 @@ def resolve_order_by_token(token):
     )
 
 
-def resolve_order_shipping_methods(root: models.Order, info):
+def _resolve_order_shipping_methods(root: models.Order, info):
     # TODO: We should optimize it in/after PR#5819
+    cache_key = "__available_shipping_methods"
+    if hasattr(root, cache_key):
+        return getattr(root, cache_key)
+
     available = get_valid_shipping_methods_for_order(root)
     if available is None:
         return []
@@ -110,4 +114,13 @@ def resolve_order_shipping_methods(root: models.Order, info):
             if instance.node.id == e.id:
                 instance.node.active = False
                 instance.node.message = e.reason
+    setattr(root, cache_key, instances)
+    return getattr(root, cache_key)
+
+
+def resolve_order_shipping_methods(root: models.Order, info, include_active_only=False):
+    # TODO: We should optimize it in/after PR#5819
+    instances = _resolve_order_shipping_methods(root, info)
+    if include_active_only:
+        instances = [instance for instance in instances if instance.node.active]
     return instances

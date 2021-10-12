@@ -237,7 +237,6 @@ def test_order_shipping_methods_webhook_called_once(
     response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-
     # then
     assert len(order_data["availableShippingMethods"]) == 1
     assert len(order_data["shippingMethods"]) == 1

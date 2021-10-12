@@ -155,6 +155,7 @@ def resolve_checkout_available_shipping_methods(
     lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
     checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
     discounts = DiscountsByDateTimeLoader(info.context).load(info.context.request_time)
+
     return Promise.all([address, lines, checkout_info, discounts, channel]).then(
         calculate_available_shipping_methods
     )
