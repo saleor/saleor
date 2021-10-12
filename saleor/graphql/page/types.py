@@ -1,5 +1,5 @@
 import graphene
-from graphene_federation import key
+# from graphene_federation import key
 
 from ...attribute import models as attribute_models
 from ...core.permissions import PagePermissions
@@ -68,7 +68,7 @@ class Page(CountableDjangoObjectType):
         return SelectedAttributesByPageIdLoader(info.context).load(root.id)
 
 
-@key(fields="id")
+# @key(fields="id")
 class PageType(CountableDjangoObjectType):
     attributes = graphene.List(
         Attribute, description="Page attributes of that page type."

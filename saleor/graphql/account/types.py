@@ -2,7 +2,7 @@ import graphene
 from django.contrib.auth import get_user_model
 from django.contrib.auth import models as auth_models
 from graphene import relay
-from graphene_federation import key
+# from graphene_federation import key
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
@@ -47,7 +47,7 @@ class AddressInput(graphene.InputObjectType):
     phone = graphene.String(description="Phone number.")
 
 
-@key(fields="id")
+# @key(fields="id")
 class Address(CountableDjangoObjectType):
     country = graphene.Field(
         CountryDisplay, required=True, description="Shop's default country."
@@ -210,8 +210,8 @@ class UserPermission(Permission):
         return groups
 
 
-@key("id")
-@key("email")
+# @key("id")
+# @key("email")
 class User(CountableDjangoObjectType):
     addresses = graphene.List(Address, description="List of all user's addresses.")
     checkout = graphene.Field(
@@ -467,7 +467,7 @@ class StaffNotificationRecipient(CountableDjangoObjectType):
         return root.get_email()
 
 
-@key(fields="id")
+# @key(fields="id")
 class Group(CountableDjangoObjectType):
     users = graphene.List(User, description="List of group users")
     permissions = graphene.List(Permission, description="List of group permissions")

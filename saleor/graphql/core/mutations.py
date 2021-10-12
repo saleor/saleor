@@ -1,3 +1,4 @@
+import dataclasses
 import os
 import secrets
 from itertools import chain
@@ -41,7 +42,7 @@ def get_error_fields(error_type_class, error_type_field, deprecation_reason=None
             graphene.NonNull(error_type_class),
             description="List of errors that occurred executing the mutation.",
         ),
-        default_value=[],
+        default_value=dataclasses.field(default_factory=list),
         required=True,
     )
     if deprecation_reason is not None:

@@ -5,7 +5,7 @@ import graphene
 from django.conf import settings
 from django_countries.fields import Country
 from graphene import relay
-from graphene_federation import key
+# from graphene_federation import key
 
 from ....attribute import models as attribute_models
 from ....core.permissions import (
@@ -205,7 +205,7 @@ class PreorderData(graphene.ObjectType):
         return root.global_sold_units
 
 
-@key(fields="id channel")
+# @key(fields="id channel")
 class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     channel = graphene.String(
         description=(
@@ -613,7 +613,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return variant_channel_listings.then(calculate_global_sold_units)
 
 
-@key(fields="id channel")
+# @key(fields="id channel")
 class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     channel = graphene.String(
         description=(
@@ -1074,7 +1074,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ProductTypeByIdLoader(info.context).load(root.node.product_type_id)
 
 
-@key(fields="id")
+# @key(fields="id")
 class ProductType(CountableDjangoObjectType):
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)
     products = ChannelContextFilterConnectionField(
@@ -1179,7 +1179,7 @@ class ProductType(CountableDjangoObjectType):
         return convert_weight_to_default_weight_unit(root.weight)
 
 
-@key(fields="id channel")
+# @key(fields="id channel")
 class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     channel = graphene.String(
         description=(
@@ -1277,7 +1277,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return description if description is not None else {}
 
 
-@key(fields="id")
+# @key(fields="id")
 class Category(CountableDjangoObjectType):
     description_json = graphene.JSONString(
         description="Description of the category (JSON).",
@@ -1379,7 +1379,7 @@ class Category(CountableDjangoObjectType):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
 
-@key(fields="id")
+# @key(fields="id")
 class ProductMedia(CountableDjangoObjectType):
     url = graphene.String(
         required=True,
@@ -1409,7 +1409,7 @@ class ProductMedia(CountableDjangoObjectType):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
 
-@key(fields="id")
+# @key(fields="id")
 class ProductImage(graphene.ObjectType):
     id = graphene.ID(required=True, description="The ID of the image.")
     alt = graphene.String(description="The alt text of the image.")

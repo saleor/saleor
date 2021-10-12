@@ -1,5 +1,5 @@
 import graphene
-from graphene_federation import key
+# from graphene_federation import key
 
 from ...app import models
 from ...core.exceptions import PermissionDenied
@@ -122,7 +122,7 @@ class AppToken(CountableDjangoObjectType):
         return root.auth_token[-4:]
 
 
-@key(fields="id")
+# @key(fields="id")
 class App(CountableDjangoObjectType):
     permissions = graphene.List(
         Permission, description="List of the app's permissions."
