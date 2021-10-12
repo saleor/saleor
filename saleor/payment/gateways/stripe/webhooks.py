@@ -190,7 +190,7 @@ def _process_payment_with_checkout(
 ):
     checkout = _get_checkout(payment.id)
 
-    if checkout:
+    if checkout and payment.can_create_order():
         _finalize_checkout(checkout, payment, payment_intent, kind, amount, currency)
 
 
@@ -238,7 +238,7 @@ def handle_failed_payment_intent(
             extra={"payment_intent": payment_intent.id},
         )
         return
-    _update_payment_with_new_transaction(
+    transaction = _update_payment_with_new_transaction(
         payment,
         payment_intent,
         TransactionKind.CANCEL,
@@ -246,7 +246,8 @@ def handle_failed_payment_intent(
         payment_intent.currency,
     )
     if payment.order:
-        order_voided(payment.order, None, None, payment, get_plugins_manager())
+        actions = [OrderPaymentAction(payment, transaction.amount)]
+        order_voided(payment.order, None, None, actions, get_plugins_manager())
 
 
 def handle_processing_payment_intent(

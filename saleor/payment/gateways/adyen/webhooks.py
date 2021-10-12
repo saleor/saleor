@@ -208,7 +208,10 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
         )
 
     # Only when we confirm that notification is success we will create the order
-    if transaction.is_success and checkout:  # type: ignore
+    if (
+        transaction.is_success and checkout and payment.can_create_order()
+    ):  # type: ignore
+
         order = create_order(payment, checkout, manager)
         return order
     return None
@@ -262,8 +265,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                         payment.order,
                         None,
                         None,
-                        new_transaction.amount,
-                        payment,
+                        [OrderPaymentAction(payment, new_transaction.amount)],
                         manager,
                     )
     reason = notification.get("reason", "-")
