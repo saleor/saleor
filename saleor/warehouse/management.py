@@ -398,11 +398,14 @@ def _decrease_stocks_quantity(
             warehouse_pk
         )
         if stock is None:
-            insufficient_stocks.append(
-                InsufficientStockData(
-                    variant, line_info.line, warehouse_pk  # type: ignore
+            # If there is no stock but allow_stock_to_be_exceeded == True
+            # we proceed with fulfilling the order, treat as error otherwise
+            if not allow_stock_to_be_exceeded:
+                insufficient_stocks.append(
+                    InsufficientStockData(
+                        variant, line_info.line, warehouse_pk  # type: ignore
+                    )
                 )
-            )
             continue
 
         quantity_allocated = quantity_allocation_for_stocks.get(stock.pk, 0)

@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from collections import namedtuple
 from contextlib import contextmanager
 from decimal import Decimal
 from functools import partial
@@ -3189,6 +3190,37 @@ def order_with_lines_for_cc(
 
     order.refresh_from_db()
     return order
+
+
+@pytest.fixture
+def order_fulfill_data(order_with_lines, warehouse):
+    FulfillmentData = namedtuple("FulfillmentData", "order variables warehouse")
+    order = order_with_lines
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_line, order_line2 = order.lines.all()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": False,
+            "allowStockToBeExceeded": True,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
+                },
+                {
+                    "orderLineId": order_line2_id,
+                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                },
+            ],
+        },
+    }
+
+    return FulfillmentData(order, variables, warehouse)
 
 
 @pytest.fixture
