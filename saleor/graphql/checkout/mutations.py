@@ -53,7 +53,7 @@ from ..core.validators import (
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
-from ..utils import get_user_or_app_from_context
+from ..utils import get_user_or_app_from_context, resolve_global_ids_to_primary_keys
 from .types import Checkout, CheckoutLine
 from .utils import prepare_insufficient_stock_checkout_validation_error
 
@@ -579,6 +579,62 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         return super().perform_mutation(
             root, info, lines, checkout_id, token, replace=True
         )
+
+
+class CheckoutLinesDelete(BaseMutation):
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
+
+    class Arguments:
+        checkout_id = graphene.ID(
+            description=(
+                "The ID of the checkout."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
+        lines_ids = graphene.List(
+            graphene.ID,
+            required=True,
+            description=("A list of checkout lines."),
+        )
+
+    class Meta:
+        description = "Deletes a CheckoutLine."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, lines_ids, checkout_id=None, token=None):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
+        )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
+        node, lines = resolve_global_ids_to_primary_keys(
+            lines_ids, graphene_type="CheckoutLine", raise_error=True
+        )
+        checkout.lines.filter(id__in=lines).delete()
+
+        manager = info.context.plugins
+        lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(
+            checkout, lines, info.context.discounts, manager
+        )
+        update_checkout_shipping_method_if_invalid(checkout_info, lines)
+        recalculate_checkout_discount(
+            manager, checkout_info, lines, info.context.discounts
+        )
+        manager.checkout_updated(checkout)
+        return CheckoutLinesDelete(checkout=checkout)
 
 
 class CheckoutLineDelete(BaseMutation):

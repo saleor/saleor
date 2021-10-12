@@ -1099,6 +1099,12 @@ type CheckoutLinesAdd {
   errors: [CheckoutError!]!
 }
 
+type CheckoutLinesDelete {
+  checkout: Checkout
+  checkoutErrors: [CheckoutError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [CheckoutError!]!
+}
+
 type CheckoutLinesUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
@@ -3631,7 +3637,8 @@ type Mutation {
   checkoutCustomerAttach(checkoutId: ID, customerId: ID, token: UUID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID, token: UUID): CheckoutCustomerDetach
   checkoutEmailUpdate(checkoutId: ID, email: String!, token: UUID): CheckoutEmailUpdate
-  checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete
+  checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete @deprecated(reason: "DEPRECATED: Will be removed in Saleor 4.0.")
+  checkoutLinesDelete(checkoutId: ID, linesIds: [ID]!, token: UUID): CheckoutLinesDelete
   checkoutLinesAdd(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesUpdate
   checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
