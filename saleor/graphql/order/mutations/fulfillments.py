@@ -545,49 +545,61 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
             )
 
     @classmethod
+    def _prepare_multiple_payments_data(cls, order, payments_to_refund):
+        has_amounts_specified = []
+        payments = []
+        payments_data = {}
+
+        for item in payments_to_refund:
+            data = {"amount": item.get("amount")}
+            payment_pk = int(cls.get_global_id_or_error(item["payment_id"], "Payment"))
+
+            payments_data.update({payment_pk: data})
+
+        cls._check_payments_belong_to_order(order, payments_data.keys())
+        payment_objects = Payment.objects.filter(pk__in=payments_data.keys())
+
+        for payment in payment_objects:
+            payment_data = payments_data.get(payment.id)
+            amount = payment_data.get("amount")
+            has_amounts_specified.append(amount)
+
+            payments.append(OrderPaymentAction(payment, amount or Decimal("0")))
+
+        return payments, has_amounts_specified
+
+    @classmethod
+    def _prepare_single_payment_data(cls, order, amount_to_refund):
+        cls._check_order_has_single_payment(order)
+
+        active_payments = get_active_payments(order)
+        if not active_payments:
+            # Raise a proper error if the list is empty.
+            cls.clean_order_payment(None)
+
+        has_amounts_specified = [amount_to_refund]
+
+        payments = [
+            OrderPaymentAction(
+                active_payments[0],
+                amount_to_refund or Decimal("0"),
+            )
+        ]
+        return payments, has_amounts_specified
+
+    @classmethod
     def _get_payments_to_refund(
         cls, order, payments_to_refund, amount_to_refund, include_shipping_costs
     ):
-        has_amounts_specified = []
-
         if payments_to_refund:
-            payments = []
-            payments_data = {}
-
-            for item in payments_to_refund:
-                data = {"amount": item.get("amount")}
-                payment_pk = int(
-                    cls.get_global_id_or_error(item["payment_id"], "Payment")
-                )
-
-                payments_data.update({payment_pk: data})
-
-            cls._check_payments_belong_to_order(order, payments_data.keys())
-            payment_objects = Payment.objects.filter(pk__in=payments_data.keys())
-
-            for payment in payment_objects:
-                payment_data = payments_data.get(payment.id)
-                amount = payment_data.get("amount")
-                has_amounts_specified.append(amount)
-
-                payments.append(OrderPaymentAction(payment, amount or Decimal("0")))
+            payments, has_amounts_specified = cls._prepare_multiple_payments_data(
+                order, payments_to_refund
+            )
 
         else:
-            cls._check_order_has_single_payment(order)
-
-            active_payments = get_active_payments(order)
-            if not active_payments:
-                # Raise a proper error if the list is empty.
-                cls.clean_order_payment(None)
-
-            has_amounts_specified.append(amount_to_refund)
-
-            payments = [
-                OrderPaymentAction(
-                    active_payments[0],
-                    amount_to_refund or Decimal("0"),
-                )
-            ]
+            payments, has_amounts_specified = cls._prepare_single_payment_data(
+                order, amount_to_refund
+            )
 
         # We should ignore shipping_costs if amount is specified for every payment.
         if all(has_amounts_specified):
