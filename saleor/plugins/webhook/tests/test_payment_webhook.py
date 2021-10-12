@@ -6,17 +6,13 @@ import pytest
 from django.conf import settings
 
 from ....app.models import App
+from ....core.models import EventDelivery, EventPayload
 from ....payment import PaymentError, TransactionKind
 from ....payment.utils import create_payment_information
 from ....webhook.event_types import WebhookEventType
 from ....webhook.models import Webhook, WebhookEvent
 from ...manager import get_plugins_manager
-from ..tasks import (
-    send_webhook_request,
-    send_webhook_request_sync,
-    signature_for_payload,
-    trigger_webhook_sync,
-)
+from ..tasks import send_webhook_request_sync, trigger_webhook_sync
 from ..utils import (
     parse_list_payment_gateways_response,
     parse_payment_action_response,
@@ -69,13 +65,8 @@ def webhook_data():
 def test_trigger_webhook_sync(mock_request, payment_app):
     data = {"key": "value"}
     trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
-    webhook = payment_app.webhooks.first()
-    mock_request.assert_called_once_with(
-        webhook.target_url,
-        webhook.secret_key,
-        WebhookEventType.PAYMENT_CAPTURE,
-        data,
-    )
+    event_delivery = EventDelivery.objects.first()
+    mock_request.assert_called_once_with(event_delivery)
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
@@ -93,12 +84,11 @@ def test_trigger_webhook_sync_use_first_webhook(mock_request, payment_app):
 
     data = {"key": "value"}
     trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
-    mock_request.assert_called_once_with(
-        webhook_1.target_url,
-        webhook_1.secret_key,
-        WebhookEventType.PAYMENT_CAPTURE,
-        data,
-    )
+    event_delivery = EventDelivery.objects.first()
+    mock_request.assert_called_once_with(event_delivery)
+
+    assert event_delivery.webhook.target_url == webhook_1.target_url
+    assert event_delivery.webhook.secret_key == webhook_1.secret_key
 
 
 def test_trigger_webhook_sync_no_webhook_available():
@@ -114,19 +104,17 @@ def test_trigger_webhook_sync_no_webhook_available():
 )
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_http")
 def test_send_webhook_request_sync(
-    mock_send_http, target_url, site_settings, webhook_data
+    mock_send_http, target_url, site_settings, webhook_data, webhook
 ):
-    send_webhook_request_sync(
-        target_url, webhook_data.secret, webhook_data.event_type, webhook_data.data
+    event_payload = EventPayload.objects.create(payload='{"fake_key":"fake_val"}')
+    delivery = EventDelivery.objects.create(
+        status="pending",
+        event_type=WebhookEventType.ANY,
+        payload=event_payload,
+        webhook=webhook,
     )
-    mock_send_http.assert_called_once_with(
-        target_url,
-        webhook_data.message,
-        site_settings.site.domain,
-        signature_for_payload(webhook_data.message, webhook_data.secret),
-        webhook_data.event_type,
-        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-    )
+    send_webhook_request_sync(delivery)
+    mock_send_http.assert_called_once_with(delivery)
 
 
 @pytest.mark.parametrize(
@@ -135,23 +123,33 @@ def test_send_webhook_request_sync(
 )
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 def test_send_webhook_request_with_proper_timeout(
-    mock_post, target_url, site_settings, webhook_data
+    mock_post, target_url, site_settings, webhook_data, webhook
 ):
-    send_webhook_request(
-        "ID",
-        target_url,
-        webhook_data.secret,
-        webhook_data.event_type,
-        webhook_data.data,
+    event_payload = EventPayload.objects.create(payload='{"fake_key":"fake_val"}')
+    delivery = EventDelivery.objects.create(
+        status="pending",
+        event_type=WebhookEventType.ANY,
+        payload=event_payload,
+        webhook=webhook,
     )
+    send_webhook_request_sync(delivery)
     assert mock_post.call_count == 1
     assert mock_post.call_args.kwargs["timeout"] == settings.WEBHOOK_TIMEOUT
 
 
-def test_send_webhook_request_sync_invalid_scheme():
+def test_send_webhook_request_sync_invalid_scheme(webhook):
     with pytest.raises(ValueError):
         target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
-        send_webhook_request_sync(target_url, "", "", "")
+        event_payload = EventPayload.objects.create(payload="fake_content")
+        webhook.target_url = target_url
+        webhook.save()
+        delivery = EventDelivery.objects.create(
+            status="pending",
+            event_type=WebhookEventType.ANY,
+            payload=event_payload,
+            webhook=webhook,
+        )
+        send_webhook_request_sync(delivery)
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
