@@ -13,7 +13,6 @@ from ...core.permissions import (
     AccountPermissions,
     AppPermission,
     OrderPermissions,
-    has_one_of_permissions,
 )
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
