@@ -443,7 +443,6 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
 
 
 class PaymentToRefundInput(graphene.InputObjectType):
-
     payment_id = graphene.ID(required=True, description="The GraphQL ID of a payment.")
     amount = PositiveDecimal(required=False, description="Amount of the refund.")
 
@@ -818,11 +817,6 @@ class OrderReturnFulfillmentLineInput(graphene.InputObjectType):
     )
 
 
-class PaymentToReturnInput(graphene.InputObjectType):
-    payment_id = graphene.ID(required=True, description="The graphql ID of a payment.")
-    amount = PositiveDecimal(required=False, description="Amount of the refund.")
-
-
 class OrderReturnProductsInput(graphene.InputObjectType):
     order_lines = graphene.List(
         graphene.NonNull(OrderReturnLineInput),
@@ -834,7 +828,7 @@ class OrderReturnProductsInput(graphene.InputObjectType):
     )
 
     payments_to_refund = graphene.List(
-        PaymentToReturnInput,
+        PaymentToRefundInput,
         required=False,
         description="Payments that need to be refunded.",
     )
