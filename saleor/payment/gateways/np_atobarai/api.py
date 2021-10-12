@@ -15,6 +15,7 @@ from ...utils import price_to_minor_unit
 from .api_types import ApiConfig, PaymentResult, PaymentStatus
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL
 from .errors import (
+    FULFILLMENT_REPORT_RESULT_ERRORS,
     TRANSACTION_CANCELLATION_RESULT_ERROR,
     TRANSACTION_REGISTRATION_RESULT_ERRORS,
     get_error_messages_from_codes,
@@ -250,18 +251,18 @@ def report_fulfillment(config: ApiConfig, fulfillment: Fulfillment) -> List[str]
         payment: Payment = fulfillment.order.get_last_payment()
 
         if not payment:
-            return ["Payment does not exist for this order"]
+            return ["Payment does not exist for this order."]
 
         transaction_id = payment.psp_reference
 
         if not transaction_id:
-            return ["Payment does not have psp reference"]
+            return ["Payment does not have psp reference."]
 
         shipping_company_code = config.shipping_company
         shipping_slip_number = fulfillment.tracking_number
 
         if not shipping_slip_number:
-            return ["Fulfillment does not have tracking number"]
+            return ["Fulfillment does not have tracking number."]
 
         data = {
             "transactions": [
@@ -275,4 +276,6 @@ def report_fulfillment(config: ApiConfig, fulfillment: Fulfillment) -> List[str]
         response = np_request(config, "post", "/shipments", json=data)
         response_data = response.json()
 
-        return list(_get_errors(response_data))
+        return get_error_messages_from_codes(
+            _get_errors(response_data), FULFILLMENT_REPORT_RESULT_ERRORS
+        )

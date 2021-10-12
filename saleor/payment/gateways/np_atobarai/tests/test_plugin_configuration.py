@@ -59,6 +59,23 @@ def test_validate_plugin_configuration_missing_data(mocked_request, np_atobarai_
 
 
 @mock.patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+def test_validate_plugin_configuration_invalid_shipping_company_code(
+    mocked_request, np_atobarai_plugin
+):
+    # given
+    plugin = np_atobarai_plugin(shipping_company="00")
+    response = Mock(spec=requests.Response, status_code=200)
+    mocked_request.return_value = response
+
+    # when
+    with pytest.raises(ValidationError) as excinfo:
+        NPAtobaraiGatewayPlugin.validate_plugin_configuration(plugin)
+
+    # then
+    assert "shipping_company" in excinfo.value.error_dict
+
+
+@mock.patch("saleor.payment.gateways.np_atobarai.api.requests.request")
 def test_void_payment(
     mocked_request, np_atobarai_plugin, np_void_payment_data, payment_dummy
 ):
