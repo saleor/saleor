@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 import graphene
 from django.utils.functional import SimpleLazyObject
@@ -40,7 +40,7 @@ class CheckoutInfo:
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     shipping_method: Optional["ShippingMethod"]
-    valid_shipping_methods: Union[List["ShippingMethod"], SimpleLazyObject]
+    valid_shipping_methods: List["ShippingMethod"]
     shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
 
     def get_country(self) -> str:
@@ -119,7 +119,7 @@ def fetch_checkout_info(
         lambda: get_valid_shipping_method_list_for_checkout_info(
             checkout_info, shipping_address, lines, discounts, manager
         )
-    )
+    )  # type: ignore
     return checkout_info
 
 
