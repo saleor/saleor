@@ -10,6 +10,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
+from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
@@ -34,7 +35,10 @@ from ..shipping.dataloaders import (
 )
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
-from ..warehouse.dataloaders import WarehouseByIdLoader
+from ..warehouse.dataloaders import (
+    StocksReservationsByCheckoutTokenLoader,
+    WarehouseByIdLoader,
+)
 from ..warehouse.types import Warehouse
 from .dataloaders import (
     CheckoutByTokenLoader,
@@ -200,6 +204,12 @@ class Checkout(CountableDjangoObjectType):
         description="Returns True, if checkout requires shipping.", required=True
     )
     quantity = graphene.Int(required=True, description="The number of items purchased.")
+    stock_reservation_expires = graphene.DateTime(
+        description=(
+            f"{ADDED_IN_31} Date when oldest stock reservation for this checkout "
+            " expires or null if no stock is reserved."
+        ),
+    )
     lines = graphene.List(
         CheckoutLine,
         description=(
@@ -547,3 +557,21 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_language_code(root, _info, **_kwargs):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
+
+    @staticmethod
+    @traced_resolver
+    def resolve_stock_reservation_expires(root: models.Checkout, info):
+        if not is_reservation_enabled(info.context.site.settings):
+            return None
+
+        def get_oldest_stock_reservation_expiration_date(reservations):
+            if not reservations:
+                return None
+
+            return min(reservation.reserved_until for reservation in reservations)
+
+        return (
+            StocksReservationsByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(get_oldest_stock_reservation_expiration_date)
+        )

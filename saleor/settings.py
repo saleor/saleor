@@ -490,6 +490,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.product.tasks.deactivate_preorder_for_variants_task",
         "schedule": timedelta(hours=1),
     },
+    "delete-expired-reservations": {
+        "task": "saleor.warehouse.tasks.delete_expired_reservations_task",
+        "schedule": timedelta(days=1),
+    },
 }
 
 # Change this value if your application is running behind a proxy,

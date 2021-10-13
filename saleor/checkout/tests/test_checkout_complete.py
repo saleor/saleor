@@ -55,6 +55,7 @@ def test_create_order_captured_payment_creates_expected_events(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -203,6 +204,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -346,6 +348,7 @@ def test_create_order_preauth_payment_creates_expected_events(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -457,6 +460,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -574,6 +578,7 @@ def test_create_order_doesnt_duplicate_order(
 
     order_1 = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=order_data,
         user=customer_user,
         app=None,
@@ -583,6 +588,7 @@ def test_create_order_doesnt_duplicate_order(
 
     order_2 = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=order_data,
         user=customer_user,
         app=None,
@@ -628,6 +634,7 @@ def test_create_order_with_gift_card(
 
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -677,6 +684,7 @@ def test_create_order_with_gift_card_partial_use(
 
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -739,6 +747,7 @@ def test_create_order_with_many_gift_cards(
 
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -807,6 +816,7 @@ def test_create_order_gift_card_bought(
 
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -883,6 +893,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
 
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -941,6 +952,7 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
 
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -967,6 +979,7 @@ def test_note_in_created_order(checkout_with_item, address, customer_user):
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -1001,6 +1014,7 @@ def test_create_order_with_variant_tracking_false(
 
     order_1 = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=order_data,
         user=customer_user,
         app=None,

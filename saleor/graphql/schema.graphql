@@ -1017,6 +1017,7 @@ type Checkout implements Node & ObjectWithMetadata {
   email: String!
   isShippingRequired: Boolean!
   quantity: Int!
+  stockReservationExpires: DateTime
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
@@ -6360,6 +6361,8 @@ type Shop {
   defaultWeightUnit: WeightUnitsEnum
   translation(languageCode: LanguageCodeEnum!): ShopTranslation
   automaticFulfillmentDigitalProducts: Boolean
+  reserveStockDurationAnonymousUser: Int
+  reserveStockDurationAuthenticatedUser: Int
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
   companyAddress: Address
@@ -6419,6 +6422,8 @@ input ShopSettingsInput {
   defaultMailSenderName: String
   defaultMailSenderAddress: String
   customerSetPasswordUrl: String
+  reserveStockDurationAnonymousUser: Int
+  reserveStockDurationAuthenticatedUser: Int
 }
 
 type ShopSettingsTranslate {
@@ -6551,6 +6556,7 @@ type Stock implements Node {
   quantity: Int!
   id: ID!
   quantityAllocated: Int!
+  quantityReserved: Int!
 }
 
 enum StockAvailability {
