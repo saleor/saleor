@@ -199,3 +199,36 @@ def test_page_type_query_no_pages(
     available_attributes = page_type_data["availableAttributes"]["edges"]
     assert len(available_attributes) == 1
     assert available_attributes[0]["node"]["slug"] == author_page_attribute.slug
+
+
+def test_page_types_for_federation_query_count(api_client, page_type):
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "PageType",
+                "id": page_type_id,
+            },
+        ],
+    }
+    query = """
+      query GetPageTypeInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on PageType {
+            id
+            name
+          }
+        }
+      }
+    """
+
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "PageType",
+            "id": page_type_id,
+            "name": page_type.name,
+        }
+    ]

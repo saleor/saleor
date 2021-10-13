@@ -1,3 +1,5 @@
+from typing import List
+
 import graphene
 from django.contrib.auth import get_user_model
 from django.contrib.auth import models as auth_models
@@ -18,6 +20,7 @@ from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
+from ..core.federation import resolve_federation_references
 from ..core.fields import PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, Permission
@@ -121,13 +124,19 @@ class Address(CountableDjangoObjectType):
         return False
 
     @staticmethod
-    def __resolve_reference(root: "Address", info, **_kwargs):
-        try:
-            from .resolvers import resolve_address
+    def __resolve_references(roots: List["Address"], info, **_kwargs):
+        from .resolvers import resolve_addresses
 
-            return resolve_address(info, root.id)
-        except PermissionDenied:
-            return None
+        root_ids = [root.id for root in roots]
+        addresses = {
+            address.id: address for address in resolve_addresses(info, root_ids)
+        }
+
+        result = []
+        for root_id in root_ids:
+            _, root_id = from_global_id_or_error(root_id, Address)
+            result.append(addresses.get(int(root_id)))
+        return result
 
 
 class CustomerEvent(CountableDjangoObjectType):
@@ -210,8 +219,8 @@ class UserPermission(Permission):
         return groups
 
 
-@key("id")
-@key("email")
+@key(fields="id")
+@key(fields="email")
 class User(CountableDjangoObjectType):
     addresses = graphene.List(Address, description="List of all user's addresses.")
     checkout = graphene.Field(
@@ -378,32 +387,33 @@ class User(CountableDjangoObjectType):
         return resolve_wishlist_items_from_user(root)
 
     @staticmethod
-    def __resolve_reference(root: "User", info, **_kwargs):
-        User = get_user_model()
-
-        try:
-            if root.id is not None:
-                user = graphene.Node.get_node_from_global_id(info, root.id)
-            else:
-                user = get_user_model().objects.get(email=root.email)
-        except User.DoesNotExist:
-            user = None
-
-        if not user:
-            return None
-
-        auth_user = info.context.user
-        manage_staff = auth_user.has_perm(AccountPermissions.MANAGE_STAFF)
-        manage_users = auth_user.has_perm(AccountPermissions.MANAGE_USERS)
-
-        if user == auth_user or manage_staff or manage_users:
-            return user
-
-        return None
-
-    @staticmethod
     def resolve_language_code(root, _info, **_kwargs):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
+
+    @staticmethod
+    def __resolve_references(roots: List["User"], info, **_kwargs):
+        from .resolvers import resolve_users
+
+        ids = set()
+        emails = set()
+        for root in roots:
+            if root.id is not None:
+                ids.add(root.id)
+            else:
+                emails.add(root.email)
+
+        users = list(resolve_users(info, ids=ids, emails=emails))
+        users_by_id = {user.id: user for user in users}
+        users_by_email = {user.email: user for user in users}
+
+        results = []
+        for root in roots:
+            if root.id is not None:
+                _, user_id = from_global_id_or_error(root.id, User)
+                results.append(users_by_id.get(int(user_id)))
+            else:
+                results.append(users_by_email.get(root.email))
+        return results
 
 
 class ChoiceValue(graphene.ObjectType):
@@ -500,3 +510,15 @@ class Group(CountableDjangoObjectType):
     def resolve_user_can_manage(root: auth_models.Group, info):
         user = info.context.user
         return can_user_manage_group(user, root)
+
+    @staticmethod
+    def __resolve_references(roots: List["Group"], info, **_kwargs):
+        from .resolvers import resolve_permission_groups
+
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor.has_perm(AccountPermissions.MANAGE_STAFF):
+            qs = auth_models.Group.objects.none()
+        else:
+            qs = resolve_permission_groups(info)
+
+        return resolve_federation_references(Group, roots, qs)

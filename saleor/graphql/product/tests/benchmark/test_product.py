@@ -7,7 +7,7 @@ from graphene import Node
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.taxes import TaxType
 from .....plugins.manager import PluginsManager
-from .....product.models import ProductTranslation
+from .....product.models import ProductMedia, ProductTranslation
 from ....tests.utils import get_graphql_content
 
 
@@ -683,3 +683,179 @@ def test_product_translations(api_client, product_list, channel_USD, count_queri
 
     variables = {"channel": channel_USD.slug}
     get_graphql_content(api_client.post_graphql(query, variables))
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_products_for_federation_query_count(
+    api_client,
+    product,
+    shippable_gift_card_product,
+    channel_USD,
+    django_assert_num_queries,
+    count_queries,
+):
+    query = """
+      query GetProductInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on Product {
+            id
+            name
+          }
+        }
+      }
+    """
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "Product",
+                "id": graphene.Node.to_global_id("Product", product.pk),
+                "channel": channel_USD.slug,
+            },
+        ],
+    }
+
+    with django_assert_num_queries(3):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 1
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "Product",
+                "id": graphene.Node.to_global_id("Product", product.pk),
+                "channel": channel_USD.slug,
+            },
+            {
+                "__typename": "Product",
+                "id": graphene.Node.to_global_id(
+                    "Product", shippable_gift_card_product.pk
+                ),
+                "channel": channel_USD.slug,
+            },
+        ],
+    }
+
+    with django_assert_num_queries(3):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 2
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_products_media_for_federation_query_count(
+    api_client,
+    product,
+    image,
+    media_root,
+    django_assert_num_queries,
+    count_queries,
+):
+    medias = ProductMedia.objects.bulk_create(
+        [
+            ProductMedia(product=product, image=image),
+            ProductMedia(product=product, image=image),
+            ProductMedia(product=product, image=image),
+        ]
+    )
+
+    query = """
+      query GetProductMediaInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on ProductMedia {
+            id
+            url
+          }
+        }
+      }
+    """
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductMedia",
+                "id": graphene.Node.to_global_id("ProductMedia", medias[0].pk),
+            },
+        ],
+    }
+
+    with django_assert_num_queries(1):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 1
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductMedia",
+                "id": graphene.Node.to_global_id("ProductMedia", media.pk),
+            }
+            for media in medias
+        ],
+    }
+
+    with django_assert_num_queries(1):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 3
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_products_types_for_federation_query_count(
+    api_client,
+    product_type,
+    product_type_without_variant,
+    django_assert_num_queries,
+    count_queries,
+):
+    query = """
+      query GetProductTypeInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on ProductType {
+            id
+            name
+          }
+        }
+      }
+    """
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductType",
+                "id": graphene.Node.to_global_id("ProductType", product_type.pk),
+            },
+        ],
+    }
+
+    with django_assert_num_queries(1):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 1
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductType",
+                "id": graphene.Node.to_global_id("ProductType", product_type.pk),
+            },
+            {
+                "__typename": "ProductType",
+                "id": graphene.Node.to_global_id(
+                    "ProductType", product_type_without_variant.pk
+                ),
+            },
+        ],
+    }
+
+    with django_assert_num_queries(1):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 2

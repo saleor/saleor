@@ -358,3 +358,151 @@ def test_customers_query(
     staff_api_client.user.user_permissions.set([permission_manage_users])
     content = get_graphql_content(staff_api_client.post_graphql(CUSTOMERS_QUERY))
     assert content["data"]["customers"] is not None
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_users_for_federation_query_count(
+    customer_user,
+    customer_user2,
+    staff_api_client,
+    permission_manage_staff,
+    permission_manage_users,
+    django_assert_num_queries,
+    count_queries,
+):
+    query = """
+        query GetUserInFederation($representations: [_Any]) {
+            _entities(representations: $representations) {
+                __typename
+                ... on User {
+                    id
+                    email
+                }
+            }
+        }
+    """
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "User",
+                "id": graphene.Node.to_global_id("User", customer_user.pk),
+            },
+            {
+                "__typename": "User",
+                "email": customer_user.email,
+            },
+        ],
+    }
+
+    with django_assert_num_queries(4):
+        response = staff_api_client.post_graphql(
+            query,
+            variables,
+            permissions=[permission_manage_staff, permission_manage_users],
+            check_no_permissions=False,
+        )
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 2
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "User",
+                "id": graphene.Node.to_global_id("User", customer_user.pk),
+            },
+            {
+                "__typename": "User",
+                "id": graphene.Node.to_global_id("User", customer_user2.pk),
+            },
+            {
+                "__typename": "User",
+                "email": customer_user.email,
+            },
+            {
+                "__typename": "User",
+                "email": customer_user2.email,
+            },
+        ],
+    }
+
+    with django_assert_num_queries(4):
+        response = staff_api_client.post_graphql(
+            query,
+            variables,
+            permissions=[permission_manage_staff, permission_manage_users],
+            check_no_permissions=False,
+        )
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 4
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_addresses_for_federation_query_count(
+    address,
+    customer_user,
+    customer_user2,
+    staff_api_client,
+    permission_manage_users,
+    django_assert_num_queries,
+    count_queries,
+):
+    address2 = address.get_copy()
+    customer_user.addresses.add(address)
+    customer_user2.addresses.add(address2)
+
+    query = """
+        query GetAddressInFederation($representations: [_Any]) {
+            _entities(representations: $representations) {
+                __typename
+                ... on Address {
+                    id
+                    city
+                }
+            }
+        }
+    """
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "Address",
+                "id": graphene.Node.to_global_id("Address", address.pk),
+            },
+        ],
+    }
+
+    with django_assert_num_queries(3):
+        response = staff_api_client.post_graphql(
+            query,
+            variables,
+            permissions=[permission_manage_users],
+            check_no_permissions=False,
+        )
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 1
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "Address",
+                "id": graphene.Node.to_global_id("Address", address.pk),
+            },
+            {
+                "__typename": "Address",
+                "id": graphene.Node.to_global_id("Address", address2.pk),
+            },
+        ],
+    }
+
+    with django_assert_num_queries(3):
+        response = staff_api_client.post_graphql(
+            query,
+            variables,
+            permissions=[permission_manage_users],
+            check_no_permissions=False,
+        )
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 2
