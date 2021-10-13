@@ -957,5 +957,5 @@ def test_prepare_address_request_data_with_city_area_without_country_area(
     assert result["country"] == "PL"
     assert result["houseNumberOrName"] == "Mirumee Software"
     assert result["postalCode"] == "53-601"
-    assert result["stateOrProvince"] == "test_city_area"
+    assert result["stateOrProvince"] == "ZZ"
     assert result["street"] == "Tęczowa 7"
