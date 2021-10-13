@@ -285,3 +285,21 @@ def test_variant_quantity_available_preorder_without_threshold(
     variant_data = content["data"]["productVariant"]
     assert variant_data["deprecatedByCountry"] == settings.MAX_CHECKOUT_LINE_QUANTITY
     assert variant_data["byAddress"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+
+
+@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
+def test_variant_quantity_available_preorder_without_channel(
+    api_client,
+    preorder_variant_global_threshold,
+    channel_USD,
+):
+    variant = preorder_variant_global_threshold
+    variant.channel_listings.all().delete()
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "country": COUNTRY_CODE,
+        "channel": channel_USD.slug,
+    }
+    response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
+    content = get_graphql_content(response)
+    assert not content["data"]["productVariant"]
