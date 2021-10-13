@@ -1,3 +1,4 @@
+import dataclasses
 from collections import defaultdict
 
 import graphene
@@ -217,7 +218,7 @@ class ProductVariantBulkCreate(BaseMutation):
     product_variants = graphene.List(
         graphene.NonNull(ProductVariant),
         required=True,
-        default_value=[],
+        default_value=dataclasses.field(default_factory=list),
         description="List of the created variants.",
     )
 

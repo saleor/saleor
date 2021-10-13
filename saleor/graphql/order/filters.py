@@ -8,7 +8,7 @@ from ...payment.models import Payment
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_or_error
-from ..django.filters import GlobalIDMultipleChoiceFilter
+from ..django.filter import GlobalIDMultipleChoiceFilter
 from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_range_field

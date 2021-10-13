@@ -1,3 +1,4 @@
+import dataclasses
 from decimal import Decimal
 from operator import attrgetter
 from typing import Optional
@@ -725,7 +726,7 @@ class Order(CountableDjangoObjectType):
     errors = graphene.List(
         graphene.NonNull(OrderError),
         description="List of errors that occurred during order validation.",
-        default_value=[],
+        default_value=dataclasses.field(default_factory=list),
         required=True,
     )
 

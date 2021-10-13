@@ -48,8 +48,7 @@ class FilterInputObjectType(InputObjectType):
                 "create default filterset"
             )
 
-        meta = dict(model=cls.model, fields=cls.fields)
-        cls.filterset_class = get_filterset_class(cls.custom_filterset_class, **meta)
+        cls.filterset_class = get_filterset_class(cls.custom_filterset_class)
 
         args = {}
         for name, filter_field in cls.filterset_class.base_filters.items():

@@ -1,7 +1,7 @@
 import django_filters
 
 from ..core.types import FilterInputObjectType
-from ..django.filters import GlobalIDMultipleChoiceFilter
+from ..django.filter import GlobalIDMultipleChoiceFilter
 from .types import Payment
 
 

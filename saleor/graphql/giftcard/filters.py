@@ -10,7 +10,7 @@ from ..account import types as account_types
 from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
 from ..core.types.common import PriceRangeInput
-from ..django.filters import GlobalIDMultipleChoiceFilter
+from ..django.filter import GlobalIDMultipleChoiceFilter
 from ..product.types import products as product_types
 from ..utils import resolve_global_ids_to_primary_keys
 

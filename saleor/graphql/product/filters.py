@@ -41,7 +41,7 @@ from ..core.filters import (
 )
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
-from ..django.filters import GlobalIDMultipleChoiceFilter
+from ..django.filter import GlobalIDMultipleChoiceFilter
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_fields_containing_value, filter_range_field
 from ..warehouse import types as warehouse_types

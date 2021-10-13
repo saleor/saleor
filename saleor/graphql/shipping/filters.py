@@ -3,7 +3,7 @@ import django_filters
 from ...shipping.models import ShippingZone
 from ..channel.types import Channel
 from ..core.types import FilterInputObjectType
-from ..django.filters import GlobalIDMultipleChoiceFilter
+from ..django.filter import GlobalIDMultipleChoiceFilter
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_fields_containing_value
 
