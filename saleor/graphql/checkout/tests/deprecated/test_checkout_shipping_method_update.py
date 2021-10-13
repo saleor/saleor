@@ -42,7 +42,7 @@ def test_checkout_shipping_method_update_by_id(
     mock_clean_shipping.return_value = True
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
     response = staff_api_client.post_graphql(
         query, {"checkoutId": checkout_id, "shippingMethodId": method_id}
@@ -78,7 +78,7 @@ def test_checkout_shipping_method_update_by_token(
     mock_clean_shipping.return_value = True
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
     response = staff_api_client.post_graphql(
         query, {"checkoutId": checkout_id, "shippingMethodId": method_id}
@@ -108,7 +108,7 @@ def test_checkout_shipping_method_update_neither_token_and_id_given(
     query = MUTATION_UPDATE_SHIPPING_METHOD
     mock_clean_shipping.return_value = True
 
-    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
     response = staff_api_client.post_graphql(query, {"shippingMethodId": method_id})
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
@@ -126,7 +126,7 @@ def test_checkout_shipping_method_update_both_token_and_id_given(
     mock_clean_shipping.return_value = True
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
     response = staff_api_client.post_graphql(
         query,
