@@ -3,6 +3,8 @@ import hashlib
 import json
 import logging
 import traceback
+from graphql import parse
+from graphql.validation import validate
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import opentracing
@@ -62,20 +64,17 @@ class GraphQLView(View):
 
     schema = None
     executor = None
-    backend = None
     middleware = None
     root_value = None
 
     HANDLED_EXCEPTIONS = (GraphQLError, PyJWTError, ReadOnlyException, PermissionDenied)
 
     def __init__(
-        self, schema=None, executor=None, middleware=None, root_value=None, backend=None
+        self, schema=None, executor=None, middleware=None, root_value=None
     ):
         super().__init__()
         if schema is None:
             schema = graphene_settings.SCHEMA
-        if backend is None:
-            backend = get_default_backend()
         if middleware is None:
             middleware = graphene_settings.MIDDLEWARE
         self.schema = self.schema or schema
@@ -83,7 +82,6 @@ class GraphQLView(View):
             self.middleware = list(instantiate_middleware(middleware))
         self.executor = executor
         self.root_value = root_value
-        self.backend = backend
 
     def dispatch(self, request, *args, **kwargs):
         # Handle options method the GraphQlView restricts it.
@@ -227,12 +225,15 @@ class GraphQLView(View):
 
         # Attempt to parse the query, if it fails, return the error
         try:
-            return (
-                self.backend.document_from_string(self.schema, query),  # type: ignore
-                None,
-            )
-        except (ValueError, GraphQLSyntaxError) as e:
-            return None, ExecutionResult(errors=[e], invalid=True)
+            document = parse(source)
+        except GraphQLError as error:
+            return None, ExecutionResult(data=None, errors=[error])
+
+        validation_errors = validate(schema, document)
+        if validation_errors:
+            return None, ExecutionResult(data=None, errors=validation_errors)
+
+        return document, None
 
     def check_if_query_contains_only_schema(self, document: DocumentNode):
         query_with_schema = False
