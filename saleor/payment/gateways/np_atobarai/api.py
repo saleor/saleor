@@ -248,7 +248,7 @@ def cancel_transaction(
 
 def report_fulfillment(config: ApiConfig, fulfillment: Fulfillment) -> List[str]:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.capture"):
-        payment: Payment = fulfillment.order.get_last_payment()
+        payment = fulfillment.order.get_last_payment()
 
         if not payment:
             return ["Payment does not exist for this order."]
