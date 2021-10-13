@@ -3,7 +3,9 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, ca
 
 from django.db import transaction
 from django.db.models import F, Sum
+from django.db.models.functions import Coalesce
 
+from ..checkout.models import CheckoutLine
 from ..core.exceptions import (
     AllocationError,
     InsufficientStock,
@@ -14,7 +16,7 @@ from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
 from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
-from .models import Allocation, PreorderAllocation, Stock, Warehouse
+from .models import Allocation, PreorderAllocation, Reservation, Stock, Warehouse
 
 if TYPE_CHECKING:
     from ..order.models import Order, OrderLine
@@ -30,6 +32,8 @@ def allocate_stocks(
     channel_slug: str,
     manager: PluginsManager,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
+    check_reservations: bool = False,
+    checkout_lines: Optional[Iterable["CheckoutLine"]] = None,
 ):
     """Allocate stocks for given `order_lines` in given country.
 
@@ -59,7 +63,26 @@ def allocate_stocks(
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity")
     )
-    stocks_id = (stock.pop("id") for stock in stocks)
+    stocks_id = [stock.pop("id") for stock in stocks]
+
+    quantity_reservation_for_stocks: Dict = defaultdict(int)
+
+    if check_reservations:
+        quantity_reservation = (
+            Reservation.objects.filter(
+                stock_id__in=stocks_id,
+            )
+            .not_expired()
+            .exclude_checkout_lines(checkout_lines or [])
+            .values("stock")
+            .annotate(
+                quantity_reserved=Coalesce(Sum("quantity_reserved"), 0),
+            )
+        )  # type: ignore
+        for reservation in quantity_reservation:
+            quantity_reservation_for_stocks[reservation["stock"]] += reservation[
+                "quantity_reserved"
+            ]
 
     quantity_allocation_list = list(
         Allocation.objects.filter(
@@ -89,6 +112,7 @@ def allocate_stocks(
             line_info,
             stock_allocations,
             quantity_allocation_for_stocks,
+            quantity_reservation_for_stocks,
             insufficient_stock,
         )
         allocations.extend(allocation_items)
@@ -115,18 +139,17 @@ def allocate_stocks(
 def _create_allocations(
     line_info: "OrderLineData",
     stocks: List[StockData],
-    quantity_allocation_for_stocks: dict,
+    stocks_allocations: dict,
+    stocks_reservations: dict,
     insufficient_stock: List[InsufficientStockData],
 ):
     quantity = line_info.quantity
     quantity_allocated = 0
     allocations = []
     for stock_data in stocks:
-        quantity_allocated_in_stock = quantity_allocation_for_stocks.get(
-            stock_data.pk, 0
-        )
-
-        quantity_available_in_stock = stock_data.quantity - quantity_allocated_in_stock
+        quantity_available_in_stock = stock_data.quantity
+        quantity_available_in_stock -= stocks_allocations.get(stock_data.pk, 0)
+        quantity_available_in_stock -= stocks_reservations.get(stock_data.pk, 0)
 
         quantity_to_allocate = min(
             (quantity - quantity_allocated), quantity_available_in_stock

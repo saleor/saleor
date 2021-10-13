@@ -32,6 +32,7 @@ from ..warehouse.availability import (
     check_stock_and_preorder_quantity_bulk,
 )
 from ..warehouse.models import Warehouse
+from ..warehouse.reservations import reserve_stocks
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
 from .fetch import (
@@ -92,8 +93,12 @@ def add_variant_to_checkout(
 
     If `replace` is truthy then any previous quantity is discarded instead
     of added to.
+
+    This function is not used outside of test suite.
     """
     checkout = checkout_info.checkout
+    channel_slug = checkout_info.channel.slug
+
     product_channel_listing = product_models.ProductChannelListing.objects.filter(
         channel_id=checkout.channel_id, product_id=variant.product_id
     ).first()
@@ -103,7 +108,7 @@ def add_variant_to_checkout(
     new_quantity, line = check_variant_in_stock(
         checkout,
         variant,
-        checkout_info.channel.slug,
+        channel_slug,
         quantity=quantity,
         replace=replace,
         check_quantity=check_quantity,
@@ -115,8 +120,11 @@ def add_variant_to_checkout(
     if new_quantity == 0:
         if line is not None:
             line.delete()
+            line = None
     elif line is None:
-        checkout.lines.create(checkout=checkout, variant=variant, quantity=new_quantity)
+        line = checkout.lines.create(
+            checkout=checkout, variant=variant, quantity=new_quantity
+        )
     elif new_quantity > 0:
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
@@ -129,7 +137,14 @@ def calculate_checkout_quantity(lines: Iterable["CheckoutLineInfo"]):
 
 
 def add_variants_to_checkout(
-    checkout, variants, quantities, channel_slug, skip_stock_check=False, replace=False
+    checkout,
+    variants,
+    quantities,
+    channel_slug,
+    skip_stock_check=False,
+    replace=False,
+    replace_reservations=False,
+    reservation_length: Optional[int] = None,
 ):
     """Add variants to checkout.
 
@@ -137,12 +152,15 @@ def add_variants_to_checkout(
     If quantity is set to 0, checkout line will be deleted.
     Otherwise, quantity will be added or replaced (if replace argument is True).
     """
-
     # check quantities
     country_code = checkout.get_country()
     if not skip_stock_check:
         check_stock_and_preorder_quantity_bulk(
-            variants, country_code, quantities, channel_slug
+            variants,
+            country_code,
+            quantities,
+            channel_slug,
+            check_reservations=bool(reservation_length),
         )
 
     channel_listings = product_models.ProductChannelListing.objects.filter(
@@ -157,7 +175,8 @@ def add_variants_to_checkout(
         if not product_channel_listing or not product_channel_listing.is_published:
             raise ProductNotPublished()
 
-    variant_ids_in_lines = {line.variant_id: line for line in checkout.lines.all()}
+    checkout_lines = checkout.lines.select_related("variant")
+    variant_ids_in_lines = {line.variant_id: line for line in checkout_lines}
     to_create = []
     to_update = []
     to_delete = []
@@ -182,6 +201,24 @@ def add_variants_to_checkout(
         CheckoutLine.objects.bulk_update(to_update, ["quantity"])
     if to_create:
         CheckoutLine.objects.bulk_create(to_create)
+
+    to_reserve = to_create + to_update
+    if reservation_length and to_reserve:
+        updated_lines_ids = [line.pk for line in to_reserve + to_delete]
+        for line in checkout_lines:
+            if line.pk not in updated_lines_ids:
+                to_reserve.append(line)
+                variants.append(line.variant)
+
+        reserve_stocks(
+            to_reserve,
+            variants,
+            country_code,
+            channel_slug,
+            reservation_length,
+            replace=replace_reservations,
+        )
+
     return checkout
 
 

@@ -6,7 +6,8 @@ from django.conf import settings
 from django.db.models import Exists, OuterRef
 
 from ...channel.models import Channel
-from ...warehouse.models import ShippingZone, Stock, Warehouse
+from ...warehouse.models import Reservation, ShippingZone, Stock, Warehouse
+from ...warehouse.reservations import is_reservation_enabled
 from ..core.dataloaders import DataLoader
 
 CountryCode = Optional[str]
@@ -96,6 +97,19 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             stocks = stocks.filter(warehouse_id__in=warehouse_shipping_zones_map.keys())
         stocks = stocks.annotate_available_quantity()
 
+        stocks_reservations = defaultdict(int)
+        if is_reservation_enabled(self.context.site.settings):  # type: ignore
+            # Can't do second annotation on same queryset because it made
+            # available_quantity annotated value incorrect thanks to how
+            # Django's ORM builds SQLs with annotations
+            reservations_qs = (
+                Stock.objects.filter(product_variant_id__in=variant_ids)
+                .annotate_reserved_quantity()
+                .values_list("id", "reserved_quantity")
+            )
+            for stock_id, quantity_reserved in reservations_qs:
+                stocks_reservations[stock_id] = quantity_reserved
+
         # A single country code (or a missing country code) can return results from
         # multiple shipping zones. We want to combine all quantities within a single
         # zone and then find out which zone contains the highest total.
@@ -103,7 +117,8 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             int, DefaultDict[int, int]
         ] = defaultdict(lambda: defaultdict(int))
         for stock in stocks:
-            quantity = max(0, stock.available_quantity)
+            reserved_quantity = stocks_reservations[stock.id]
+            quantity = max(0, stock.available_quantity - reserved_quantity)
             variant_id = stock.product_variant_id
             warehouse_id = stock.warehouse_id
             shipping_zone_ids = warehouse_shipping_zones_map[warehouse_id]
@@ -204,6 +219,55 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             )
             for variant_id in variant_ids
         ]
+
+
+class StocksReservationsByCheckoutTokenLoader(DataLoader):
+    context_key = "stock_reservations_by_checkout_token"
+
+    def batch_load(self, keys):
+        from ..checkout.dataloaders import CheckoutLinesByCheckoutTokenLoader
+
+        def with_checkouts_lines(checkouts_lines):
+            checkouts_keys_map = {}
+            for i, key in enumerate(keys):
+                for checkout_line in checkouts_lines[i]:
+                    checkouts_keys_map[checkout_line.id] = key
+
+            def with_lines_reservations(lines_reservations):
+                reservations_map = defaultdict(list)
+                for reservations in lines_reservations:
+                    for reservation in reservations:
+                        checkout_key = checkouts_keys_map[reservation.checkout_line_id]
+                        reservations_map[checkout_key].append(reservation)
+
+                return [reservations_map[key] for key in keys]
+
+            return (
+                ActiveReservationsByCheckoutLineIdLoader(self.context)
+                .load_many(checkouts_keys_map.keys())
+                .then(with_lines_reservations)
+            )
+
+        return (
+            CheckoutLinesByCheckoutTokenLoader(self.context)
+            .load_many(keys)
+            .then(with_checkouts_lines)
+        )
+
+
+class ActiveReservationsByCheckoutLineIdLoader(DataLoader):
+    context_key = "active_reservations_by_checkout_line_id"
+
+    def batch_load(self, keys):
+        reservations_by_checkout_line = defaultdict(list)
+        queryset = Reservation.objects.filter(
+            checkout_line_id__in=keys
+        ).not_expired()  # type: ignore
+        for reservation in queryset:
+            reservations_by_checkout_line[reservation.checkout_line_id].append(
+                reservation
+            )
+        return [reservations_by_checkout_line[key] for key in keys]
 
 
 class WarehouseByIdLoader(DataLoader):

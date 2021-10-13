@@ -20,6 +20,7 @@ from ....order.utils import (
     update_order_prices,
 )
 from ....warehouse.management import allocate_preorders, allocate_stocks
+from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.types import Channel
@@ -447,7 +448,15 @@ class DraftOrderComplete(BaseMutation):
                 channel_slug = order.channel.slug
                 try:
                     with traced_atomic_transaction():
-                        allocate_stocks([line_data], country, channel_slug, manager)
+                        allocate_stocks(
+                            [line_data],
+                            country,
+                            channel_slug,
+                            manager,
+                            check_reservations=is_reservation_enabled(
+                                info.context.site.settings
+                            ),
+                        )
                         allocate_preorders([line_data], channel_slug)
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)

@@ -2,6 +2,7 @@ import datetime
 import uuid
 from collections import namedtuple
 from contextlib import contextmanager
+from datetime import timedelta
 from decimal import Decimal
 from functools import partial
 from io import BytesIO
@@ -110,7 +111,13 @@ from ..shipping.models import (
 )
 from ..site.models import SiteSettings
 from ..warehouse import WarehouseClickAndCollectOption
-from ..warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
+from ..warehouse.models import (
+    Allocation,
+    PreorderAllocation,
+    Reservation,
+    Stock,
+    Warehouse,
+)
 from ..webhook.event_types import WebhookEventType
 from ..webhook.models import Webhook, WebhookEvent
 from ..wishlist.models import Wishlist
@@ -263,6 +270,14 @@ def site_settings(db, settings) -> SiteSettings:
 
 
 @pytest.fixture
+def site_settings_with_reservations(site_settings):
+    site_settings.reserve_stock_duration_anonymous_user = 5
+    site_settings.reserve_stock_duration_authenticated_user = 5
+    site_settings.save()
+    return site_settings
+
+
+@pytest.fixture
 def checkout(db, channel_USD):
     checkout = Checkout.objects.create(
         currency=channel_USD.currency_code, channel=channel_USD
@@ -278,6 +293,11 @@ def checkout_with_item(checkout, product):
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
+
+
+@pytest.fixture
+def checkout_line(checkout_with_item):
+    return checkout_with_item.lines.first()
 
 
 @pytest.fixture
@@ -2963,6 +2983,64 @@ def order_line_with_one_allocation(
     )
 
     return order_line
+
+
+@pytest.fixture
+def checkout_line_with_reservation_in_many_stocks(
+    customer_user, variant_with_many_stocks, checkout
+):
+    address = customer_user.default_billing_address.get_copy()
+    variant = variant_with_many_stocks
+    stocks = variant.stocks.all().order_by("pk")
+    checkout_line = checkout.lines.create(
+        variant=variant,
+        quantity=3,
+    )
+
+    reserved_until = timezone.now() + timedelta(minutes=5)
+
+    Reservation.objects.bulk_create(
+        [
+            Reservation(
+                checkout_line=checkout_line,
+                stock=stocks[0],
+                quantity_reserved=2,
+                reserved_until=reserved_until,
+            ),
+            Reservation(
+                checkout_line=checkout_line,
+                stock=stocks[1],
+                quantity_reserved=1,
+                reserved_until=reserved_until,
+            ),
+        ]
+    )
+
+    return checkout_line
+
+
+@pytest.fixture
+def checkout_line_with_one_reservation(
+    customer_user, variant_with_many_stocks, checkout
+):
+    address = customer_user.default_billing_address.get_copy()
+    variant = variant_with_many_stocks
+    stocks = variant.stocks.all().order_by("pk")
+    checkout_line = checkout.lines.create(
+        variant=variant,
+        quantity=2,
+    )
+
+    reserved_until = timezone.now() + timedelta(minutes=5)
+
+    Reservation.objects.create(
+        checkout_line=checkout_line,
+        stock=stocks[0],
+        quantity_reserved=2,
+        reserved_until=reserved_until,
+    )
+
+    return checkout_line
 
 
 @pytest.fixture

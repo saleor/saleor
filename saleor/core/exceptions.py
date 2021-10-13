@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 from ..checkout.error_codes import CheckoutErrorCode
 
 if TYPE_CHECKING:
+    from ..checkout.models import CheckoutLine
     from ..order.models import OrderLine
     from ..product.models import ProductVariant
 
@@ -11,6 +12,7 @@ if TYPE_CHECKING:
 @dataclass
 class InsufficientStockData:
     variant: "ProductVariant"
+    checkout_line: Optional["CheckoutLine"] = None
     order_line: Optional["OrderLine"] = None
     warehouse_pk: Union[str, int, None] = None
     available_quantity: Optional[int] = None

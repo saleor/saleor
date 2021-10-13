@@ -96,6 +96,52 @@ def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks, channe
     assert allocations[1].quantity_allocated == 1
 
 
+def test_allocate_stock_with_reservations(
+    order_line,
+    variant_with_many_stocks,
+    channel_USD,
+    checkout_line_with_one_reservation,
+):
+    variant = variant_with_many_stocks
+    stocks = variant.stocks.all()
+
+    line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=3)
+    allocate_stocks(
+        [line_data],
+        COUNTRY_CODE,
+        channel_USD.slug,
+        manager=get_plugins_manager(),
+        check_reservations=True,
+    )
+
+    allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
+    assert allocations[0].quantity_allocated == 2
+    assert allocations[1].quantity_allocated == 1
+
+
+def test_allocate_stock_insufficient_stock_due_to_reservations(
+    order_line,
+    variant_with_many_stocks,
+    channel_USD,
+    checkout_line_with_reservation_in_many_stocks,
+):
+    variant = variant_with_many_stocks
+    variant.stocks.all()
+
+    line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=5)
+
+    with pytest.raises(InsufficientStock):
+        allocate_stocks(
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD.slug,
+            manager=get_plugins_manager(),
+            check_reservations=True,
+        )
+
+    assert not Allocation.objects.exists()
+
+
 def test_allocate_stock_many_stocks_partially_allocated(
     order_line,
     order_line_with_allocation_in_many_stocks,
