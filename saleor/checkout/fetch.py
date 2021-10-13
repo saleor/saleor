@@ -115,8 +115,23 @@ def fetch_checkout_info(
     valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
         checkout_info, shipping_address, lines, discounts, manager
     )
+    excluded_shipping_methods = manager.excluded_shipping_methods_for_checkout(
+        checkout, valid_shipping_methods
+    )
+    for valid_method in valid_shipping_methods:
+        valid_method.active = True
+        valid_method.message = ""
+        for excluded_method in excluded_shipping_methods:
+            if valid_method.id == excluded_method.id:
+                valid_method.active = False
+                valid_method.message = excluded_method.reason
     checkout_info.valid_shipping_methods = valid_shipping_methods
-
+    print(excluded_shipping_methods, "<---------")
+    if excluded_shipping_methods:
+        print(excluded_shipping_methods[0].id)
+    print(valid_shipping_methods, "<><><><")
+    if valid_shipping_methods:
+        print(valid_shipping_methods[0].id)
     return checkout_info
 
 
