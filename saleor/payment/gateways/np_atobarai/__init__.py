@@ -6,8 +6,9 @@ from saleor.order.models import Fulfillment
 
 from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
+from ...models import Payment
 from . import api
-from .api_types import ApiConfig, PaymentStatus, get_api_config
+from .api_types import ApiConfig, PaymentResult, PaymentStatus, get_api_config
 
 logger = logging.getLogger(__name__)
 
@@ -51,19 +52,7 @@ def capture(payment_information: PaymentData, config: ApiConfig) -> GatewayRespo
 
 @inject_api_config
 def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
-    result = api.cancel_transaction(config, payment_information)
-
-    return GatewayResponse(
-        is_success=result.status == PaymentStatus.SUCCESS,
-        action_required=False,
-        kind=TransactionKind.VOID,
-        amount=payment_information.amount,
-        currency=payment_information.currency,
-        transaction_id=result.psp_reference,
-        error=os.linesep.join(result.errors),
-        raw_response=result.raw_response,
-        psp_reference=result.psp_reference,
-    )
+    raise NotImplementedError
 
 
 @inject_api_config
@@ -76,4 +65,28 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
 
 @inject_api_config
 def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
-    raise NotImplementedError
+    payment = Payment.objects.get(pk=payment_information.payment_id)
+
+    if payment_information.amount < payment.captured_amount:
+        # TODO: is it even possible to have a payment here without psp reference?
+        assert payment.psp_reference
+        # TODO: does it make sense?
+        result = PaymentResult(
+            status=PaymentStatus.FAILED,
+            psp_reference=payment.psp_reference,
+            errors=["Cannot partially refund transaction in NP."],
+        )
+    else:
+        result = api.cancel_transaction(config, payment_information)
+
+    return GatewayResponse(
+        is_success=result.status == PaymentStatus.SUCCESS,
+        action_required=False,
+        kind=TransactionKind.REFUND,
+        amount=payment_information.amount,
+        currency=payment_information.currency,
+        transaction_id=result.psp_reference,
+        error=os.linesep.join(result.errors),
+        raw_response=result.raw_response,
+        psp_reference=result.psp_reference,
+    )
