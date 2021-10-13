@@ -8,7 +8,6 @@ from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from . import api
 from .api_types import ApiConfig, PaymentStatus, get_api_config
-from .utils import mark_payment_as_fully_charged
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +34,7 @@ def process_payment(
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,
         action_required=False,
-        kind=TransactionKind.AUTH,
+        kind=TransactionKind.CAPTURE,
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=result.psp_reference,
@@ -73,9 +72,6 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
 
     if errors:
         logger.error("Could not capture payment in NP Atobarai: %s" ", ".join(errors))
-
-    else:
-        mark_payment_as_fully_charged(fulfillment)
 
 
 @inject_api_config
