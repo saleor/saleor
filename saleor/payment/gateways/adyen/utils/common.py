@@ -73,7 +73,7 @@ def prepare_address_request_data(address: Optional["AddressData"]) -> Optional[d
     if not address:
         return None
 
-    city = address.city or address.country_area or address.city_area or "ZZ"
+    city = address.city or address.country_area or "ZZ"
     country = str(address.country) if address.country else "ZZ"
     postal_code = address.postal_code or "ZZ"
     state_or_province = address.country_area or address.city_area or "ZZ"
