@@ -324,8 +324,8 @@ class ProductVariantChannelListingUpdate(BaseMutation):
             graphene.NonNull(ProductVariantChannelListingAddInput),
             required=True,
             description=(
-                "List of fields required to create or upgrade product variant ",
-                "channel listings.",
+                "List of fields required to create or upgrade product variant "
+                "channel listings."
             ),
         )
 
