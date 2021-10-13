@@ -341,7 +341,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             ).load((variant.id, str(root.channel_slug)))
 
             def calculate_available_per_channel(channel_listing):
-                if channel_listing.preorder_quantity_threshold is not None:
+                if (
+                    channel_listing
+                    and channel_listing.preorder_quantity_threshold is not None
+                ):
                     return min(
                         channel_listing.preorder_quantity_threshold
                         - channel_listing.preorder_quantity_allocated,
@@ -353,6 +356,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                     ).load(variant.id)
 
                     def calculate_available_global(variant_channel_listings):
+                        if not variant_channel_listings:
+                            return settings.MAX_CHECKOUT_LINE_QUANTITY
                         global_sold_units = sum(
                             channel_listing.preorder_quantity_allocated
                             for channel_listing in variant_channel_listings
