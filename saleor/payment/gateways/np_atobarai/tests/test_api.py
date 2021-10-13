@@ -3,12 +3,83 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 
+from saleor.payment import PaymentError
 from saleor.payment.gateways.np_atobarai import api, get_api_config
 
 
 @pytest.fixture
 def config(np_atobarai_plugin):
     return get_api_config(np_atobarai_plugin().config.connection_params)
+
+
+@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+def test_refund_payment(
+    mocked_request, np_atobarai_plugin, dummy_payment_data, payment_dummy
+):
+    # given
+    plugin = np_atobarai_plugin()
+    payment_data = dummy_payment_data
+    psp_reference = "18121200001"
+    payment_dummy.psp_reference = psp_reference
+    payment_dummy.save(update_fields=["psp_reference"])
+    response = Mock(
+        spec=requests.Response,
+        status_code=200,
+        json=Mock(return_value={"results": [{"np_transaction_id": psp_reference}]}),
+    )
+    mocked_request.return_value = response
+
+    # when
+    gateway_response = plugin.refund_payment(payment_data, None)
+
+    # then
+    assert gateway_response.is_success
+    assert gateway_response.psp_reference == psp_reference
+
+
+@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+def test_refund_payment_payment_not_created(
+    mocked_request, np_atobarai_plugin, dummy_payment_data, payment_dummy
+):
+    # given
+    plugin = np_atobarai_plugin()
+    payment_data = dummy_payment_data
+    response = Mock(
+        spec=requests.Response,
+        status_code=200,
+        json=Mock(return_value={"results": [{"np_transaction_id": "18121200001"}]}),
+    )
+    mocked_request.return_value = response
+
+    # then
+    with pytest.raises(PaymentError):
+        # when
+        plugin.refund_payment(payment_data, None)
+
+
+@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+def test_refund_payment_np_errors(
+    mocked_request, np_atobarai_plugin, dummy_payment_data, payment_dummy
+):
+    # given
+    plugin = np_atobarai_plugin()
+    payment_data = dummy_payment_data
+    psp_reference = "18121200001"
+    payment_dummy.psp_reference = psp_reference
+    payment_dummy.save(update_fields=["psp_reference"])
+    response = Mock(
+        spec=requests.Response,
+        status_code=400,
+        json=Mock(return_value={"errors": [{"codes": ["E0100002", "E0100003"]}]}),
+    )
+    mocked_request.return_value = response
+
+    # when
+    gateway_response = plugin.refund_payment(payment_data, None)
+
+    # then
+    assert not gateway_response.is_success
+    assert gateway_response.error
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.requests.request")
