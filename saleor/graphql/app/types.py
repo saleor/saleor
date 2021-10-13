@@ -1,3 +1,5 @@
+from typing import List
+
 import graphene
 from graphene_federation import key
 
@@ -6,6 +8,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
+from ..core.federation import resolve_federation_references
 from ..core.types import Permission
 from ..core.types.common import Job
 from ..meta.types import ObjectWithMetadata
@@ -191,10 +194,6 @@ class App(CountableDjangoObjectType):
         return root.tokens.all()  # type: ignore
 
     @staticmethod
-    def __resolve_reference(root: "App", _info, **_kwargs):
-        return graphene.Node.get_node_from_global_id(_info, root.id)
-
-    @staticmethod
     def resolve_webhooks(root: models.App, _info):
         return root.webhooks.all()
 
@@ -205,6 +204,18 @@ class App(CountableDjangoObjectType):
     @staticmethod
     def resolve_extensions(root: models.App, info):
         return AppExtensionByAppIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def __resolve_references(roots: List["App"], info, **_kwargs):
+        from .resolvers import resolve_apps
+
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor.has_perm(AppPermission.MANAGE_APPS):
+            qs = models.App.objects.none()
+        else:
+            qs = resolve_apps(info)
+
+        return resolve_federation_references(App, roots, qs)
 
 
 class AppInstallation(CountableDjangoObjectType):
