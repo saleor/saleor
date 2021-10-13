@@ -1919,7 +1919,10 @@ query getCheckoutStockReservationExpiration($token: UUID!) {
 
 
 def test_checkout_reservation_date_for_single_reservation(
-    api_client, checkout_line_with_one_reservation, address
+    site_settings_with_reservations,
+    api_client,
+    checkout_line_with_one_reservation,
+    address,
 ):
     reservation = Reservation.objects.order_by("reserved_until").first()
     query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
@@ -1930,6 +1933,7 @@ def test_checkout_reservation_date_for_single_reservation(
 
 
 def test_checkout_reservation_date_for_multiple_reservations(
+    site_settings_with_reservations,
     api_client,
     checkout_line_with_one_reservation,
     checkout_line_with_reservation_in_many_stocks,
@@ -1944,6 +1948,7 @@ def test_checkout_reservation_date_for_multiple_reservations(
 
 
 def test_checkout_reservation_date_for_expired_reservations(
+    site_settings_with_reservations,
     api_client,
     checkout_line_with_one_reservation,
     address,
@@ -1960,12 +1965,24 @@ def test_checkout_reservation_date_for_expired_reservations(
 
 
 def test_checkout_reservation_date_for_no_reservations(
+    site_settings_with_reservations,
     api_client,
     checkout_line_with_one_reservation,
     address,
 ):
     Reservation.objects.all().delete()
 
+    query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
+    variables = {"token": checkout_line_with_one_reservation.checkout.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["stockReservationExpires"] is None
+
+
+def test_checkout_reservation_date_for_disabled_reservations(
+    api_client, checkout_line_with_one_reservation, address
+):
+    reservation = Reservation.objects.order_by("reserved_until").first()
     query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
     variables = {"token": checkout_line_with_one_reservation.checkout.token}
     response = api_client.post_graphql(query, variables)
