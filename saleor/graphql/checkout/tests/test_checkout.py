@@ -1982,7 +1982,6 @@ def test_checkout_reservation_date_for_no_reservations(
 def test_checkout_reservation_date_for_disabled_reservations(
     api_client, checkout_line_with_one_reservation, address
 ):
-    reservation = Reservation.objects.order_by("reserved_until").first()
     query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
     variables = {"token": checkout_line_with_one_reservation.checkout.token}
     response = api_client.post_graphql(query, variables)
