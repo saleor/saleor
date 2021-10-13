@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
+from graphql.error import GraphQLError
 
 from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
@@ -28,6 +29,7 @@ from ...checkout.utils import (
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
+    remove_voucher_from_checkout,
     validate_variants_in_checkout_lines,
 )
 from ...core import analytics
@@ -58,6 +60,8 @@ from ..core.validators import (
     validate_one_of_args_is_in_mutation,
     validate_variants_available_in_channel,
 )
+from ..discount.types import Voucher
+from ..giftcard.types import GiftCard
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -1481,7 +1485,11 @@ class CheckoutRemovePromoCode(BaseMutation):
         )
         token = UUID(description="Checkout token.", required=False)
         promo_code = graphene.String(
-            description="Gift card code or voucher code.", required=True
+            description="Gift card code or voucher code.", required=False
+        )
+        promo_code_id = graphene.ID(
+            description="Gift card or voucher ID.",
+            required=False,
         )
 
     class Meta:
@@ -1490,11 +1498,24 @@ class CheckoutRemovePromoCode(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, promo_code, checkout_id=None, token=None):
+    def perform_mutation(
+        cls,
+        _root,
+        info,
+        checkout_id=None,
+        token=None,
+        promo_code=None,
+        promo_code_id=None,
+    ):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
             CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "promo_code", promo_code, "promo_code_id", promo_code_id
+        )
+
+        object_type, promo_code_pk = cls.clean_promo_code_id(promo_code_id)
 
         if token:
             checkout = get_checkout_by_token(token)
@@ -1508,6 +1529,59 @@ class CheckoutRemovePromoCode(BaseMutation):
         checkout_info = fetch_checkout_info(
             checkout, [], info.context.discounts, manager
         )
-        remove_promo_code_from_checkout(checkout_info, promo_code)
+        if promo_code:
+            remove_promo_code_from_checkout(checkout_info, promo_code)
+        else:
+            cls.remove_promo_code_by_id(info, checkout, object_type, promo_code_pk)
+
         manager.checkout_updated(checkout)
         return CheckoutRemovePromoCode(checkout=checkout)
+
+    @staticmethod
+    def clean_promo_code_id(promo_code_id: Optional[str]):
+        if promo_code_id is None:
+            return None, None
+        try:
+            object_type, promo_code_pk = from_global_id_or_error(
+                promo_code_id, raise_error=True
+            )
+        except GraphQLError as e:
+            raise ValidationError(
+                {
+                    "promo_code_id": ValidationError(
+                        str(e), code=CheckoutErrorCode.GRAPHQL_ERROR.value
+                    )
+                }
+            )
+
+        if object_type not in (str(Voucher), str(GiftCard)):
+            raise ValidationError(
+                {
+                    "promo_code_id": ValidationError(
+                        "Must receive Voucher or GiftCard id.",
+                        code=CheckoutErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+
+        return object_type, promo_code_pk
+
+    @classmethod
+    def remove_promo_code_by_id(
+        cls, info, checkout: models.Checkout, object_type: str, promo_code_pk: int
+    ):
+        if object_type == str(Voucher) and checkout.voucher_code is not None:
+            node = cls._get_node_by_pk(info, graphene_type=Voucher, pk=promo_code_pk)
+            if node is None:
+                raise ValidationError(
+                    {
+                        "promo_code_id": ValidationError(
+                            f"Couldn't resolve to a node: {promo_code_pk}",
+                            code=CheckoutErrorCode.NOT_FOUND.value,
+                        )
+                    }
+                )
+            if checkout.voucher_code == node.code:
+                remove_voucher_from_checkout(checkout)
+        else:
+            checkout.gift_cards.remove(promo_code_pk)

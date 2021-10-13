@@ -800,11 +800,12 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
 
 
 MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
-    mutation($token: UUID, $promoCode: String!) {
+    mutation($token: UUID, $promoCode: String, $promoCodeId: ID) {
         checkoutRemovePromoCode(
-            token: $token, promoCode: $promoCode) {
+            token: $token, promoCode: $promoCode, promoCodeId: $promoCodeId) {
             errors {
                 field
+                code
                 message
             }
             checkout {
@@ -915,3 +916,114 @@ def test_checkout_remove_promo_code_invalid_checkout(api_client, voucher):
 
     assert data["errors"]
     assert data["errors"][0]["field"] == "token"
+
+
+def test_checkout_remove_voucher_code_by_id(
+    api_client, checkout_with_voucher, voucher, gift_card
+):
+    assert checkout_with_voucher.voucher_code is not None
+    checkout_with_voucher.gift_cards.add(gift_card)
+
+    variables = {
+        "token": checkout_with_voucher.token,
+        "promoCodeId": graphene.Node.to_global_id("Voucher", voucher.id),
+    }
+
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
+    assert data["checkout"]["voucherCode"] is None
+    assert len(data["checkout"]["giftCards"]) == 1
+    assert checkout_with_voucher.voucher_code is None
+
+
+def test_checkout_remove_gift_card_by_id(
+    api_client, checkout_with_voucher, gift_card, gift_card_expiry_date
+):
+    assert checkout_with_voucher.voucher_code is not None
+    checkout_with_voucher.gift_cards.add(gift_card, gift_card_expiry_date)
+
+    variables = {
+        "token": checkout_with_voucher.token,
+        "promoCodeId": graphene.Node.to_global_id("GiftCard", gift_card.id),
+    }
+
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
+    assert data["checkout"]["voucherCode"] is not None
+    gift_cards = data["checkout"]["giftCards"]
+    assert len(gift_cards) == 1
+    assert gift_cards[0]["id"] == graphene.Node.to_global_id(
+        "GiftCard", gift_card_expiry_date.pk
+    )
+
+
+def test_checkout_remove_promo_code_id_and_code_given(
+    api_client, checkout_with_voucher, gift_card
+):
+    assert checkout_with_voucher.voucher_code is not None
+
+    variables = {
+        "token": checkout_with_voucher.token,
+        "promoCode": checkout_with_voucher.voucher_code,
+        "promoCodeId": graphene.Node.to_global_id("GiftCard", gift_card.id),
+    }
+
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["code"] == CheckoutErrorCode.GRAPHQL_ERROR.name
+
+
+def test_checkout_remove_promo_code_no_id_and_code_given(
+    api_client, checkout_with_voucher, gift_card
+):
+    assert checkout_with_voucher.voucher_code is not None
+
+    variables = {
+        "token": checkout_with_voucher.token,
+    }
+
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["code"] == CheckoutErrorCode.GRAPHQL_ERROR.name
+
+
+def test_checkout_remove_promo_code_id_does_not_exist(
+    api_client, checkout_with_voucher, gift_card
+):
+    assert checkout_with_voucher.voucher_code is not None
+
+    variables = {
+        "token": checkout_with_voucher.token,
+        "promoCodeId": "Abc",
+    }
+
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["code"] == CheckoutErrorCode.GRAPHQL_ERROR.name
+    assert data["errors"][0]["field"] == "promoCodeId"
+
+
+def test_checkout_remove_promo_code_invalid_object_type(
+    api_client, checkout_with_voucher, gift_card
+):
+    assert checkout_with_voucher.voucher_code is not None
+
+    variables = {
+        "token": checkout_with_voucher.token,
+        "promoCodeId": graphene.Node.to_global_id("Product", gift_card.id),
+    }
+
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
+    assert data["errors"][0]["field"] == "promoCodeId"
