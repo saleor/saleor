@@ -65,6 +65,12 @@ def np_request(
         raise PaymentError(msg)
 
 
+def _get_errors(response_data: dict) -> Iterable[str]:
+    if "errors" not in response_data:
+        return []
+    return set(response_data["errors"][0]["codes"])
+
+
 def health_check(config: ApiConfig) -> bool:
     try:
         _request(config, "post", "/authorizations/find")
@@ -198,14 +204,61 @@ def register_transaction(
         )
 
 
+def _get_misc_goods(*_, **__):
+    return [{"quantity": ...}]
+
+
+def _get_product_goods(refunded_lines, currency):
+    return [
+        {
+            "quantity": line.quantity,
+            "goods_name": line.product_name,
+            "goods_price": int(price_to_minor_unit(line.gross, currency)),
+        }
+        for line in refunded_lines
+    ]
+
+
 def change_transaction(
     config: ApiConfig, payment_information: PaymentData
 ) -> PaymentResult:
-    # TODO: add actual implementation
+
+    payment = Payment.objects.get(pk=payment_information.payment_id)
+
+    psp_reference = payment.psp_reference
+    refunded_lines = ...
+    is_misc_refund = True
+
+    data = {
+        "transactions": [
+            {
+                "np_transaction_id": psp_reference,
+                "goods": (
+                    _get_misc_goods()
+                    if is_misc_refund
+                    else _get_product_goods(
+                        refunded_lines, payment_information.currency
+                    )
+                ),
+            }
+        ]
+    }
+
+    response = np_request(config, "patch", "/transaction/update", json=data)
+    response_data = response.json()
+
+    status = PaymentStatus.SUCCESS
+    error_messages = []
+
+    if error_codes := _get_errors(response_data):
+        status = PaymentStatus.FAILED
+        error_messages = get_error_messages_from_codes(
+            error_codes, TRANSACTION_REGISTRATION_RESULT_ERRORS
+        )
+
     return PaymentResult(
-        status=PaymentStatus.FAILED,
-        psp_reference="",
-        errors=["Cannot partially refund transaction in NP."],
+        status=status,
+        errors=error_messages,
     )
 
 
@@ -213,12 +266,6 @@ def _cancel(config: ApiConfig, transaction_id: str) -> dict:
     data = {"transactions": [{"np_transaction_id": transaction_id}]}
     response = np_request(config, "patch", "/transactions/cancel", json=data)
     return response.json()
-
-
-def _get_errors(response_data: dict) -> Iterable[str]:
-    if "errors" not in response_data:
-        return []
-    return set(response_data["errors"][0]["codes"])
 
 
 def cancel_transaction(
