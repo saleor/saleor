@@ -5,6 +5,7 @@ from django.contrib.auth.tokens import default_token_generator
 
 from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
+from ..core.tokens import account_delete_token_generator
 from ..core.utils.url import prepare_url
 from .models import User
 
@@ -117,7 +118,7 @@ def send_account_delete_confirmation_notification(
     redirect_url, user, manager, channel_slug
 ):
     """Trigger sending a account delete notification for the given user."""
-    token = default_token_generator.make_token(user)
+    token = account_delete_token_generator.make_token(user)
     params = urlencode({"token": token})
     delete_url = prepare_url(params, redirect_url)
     payload = {
