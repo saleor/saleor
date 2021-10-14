@@ -198,6 +198,17 @@ def register_transaction(
         )
 
 
+def change_transaction(
+    config: ApiConfig, payment_information: PaymentData
+) -> PaymentResult:
+    # TODO: add actual implementation
+    return PaymentResult(
+        status=PaymentStatus.FAILED,
+        psp_reference="",
+        errors=["Cannot partially refund transaction in NP."],
+    )
+
+
 def _cancel(config: ApiConfig, transaction_id: str) -> dict:
     data = {"transactions": [{"np_transaction_id": transaction_id}]}
     response = np_request(config, "patch", "/transactions/cancel", json=data)

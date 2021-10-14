@@ -8,7 +8,7 @@ from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from ...models import Payment
 from . import api
-from .api_types import ApiConfig, PaymentResult, PaymentStatus, get_api_config
+from .api_types import ApiConfig, PaymentStatus, get_api_config
 
 logger = logging.getLogger(__name__)
 
@@ -68,14 +68,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
     payment = Payment.objects.get(pk=payment_information.payment_id)
 
     if payment_information.amount < payment.captured_amount:
-        # TODO: is it even possible to have a payment here without psp reference?
-        assert payment.psp_reference
-        # TODO: does it make sense?
-        result = PaymentResult(
-            status=PaymentStatus.FAILED,
-            psp_reference=payment.psp_reference,
-            errors=["Cannot partially refund transaction in NP."],
-        )
+        result = api.change_transaction(config, payment_information)
     else:
         result = api.cancel_transaction(config, payment_information)
 
