@@ -1,6 +1,10 @@
+from typing import List
+
+from ...plugins.base_plugin import ExcludedShippingMethod
 from ...plugins.base_plugin import ShippingMethod as ShippingMethodDataclass
 from ...plugins.base_plugin import Weight
 from ...shipping import models as shipping_models
+from ..channel import ChannelContext
 
 
 def convert_shipping_method_model_to_dataclass(
@@ -27,3 +31,25 @@ def convert_shipping_method_model_to_dataclass(
             value=min_weight.value,
         )
     return shipping_method_dataclass
+
+
+def set_active_shipping_methods(
+    excluded_methods: List[ExcludedShippingMethod],
+    available_shipping_methods: List,
+    channel_slug: str,
+) -> List[ChannelContext]:
+    instances = [
+        ChannelContext(
+            node=shipping,
+            channel_slug=channel_slug,
+        )
+        for shipping in available_shipping_methods
+    ]
+    for instance in instances:
+        instance.node.active = True
+        instance.node.message = ""
+        for method in excluded_methods:
+            if instance.node.id == method.id:
+                instance.node.active = False
+                instance.node.message = method.reason
+    return instances

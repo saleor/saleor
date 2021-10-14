@@ -5,14 +5,16 @@ from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.tracing import traced_resolver
 from ..account.dataloaders import AddressByIdLoader
-from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
-from ..shipping.utils import convert_shipping_method_model_to_dataclass
+from ..shipping.utils import (
+    convert_shipping_method_model_to_dataclass,
+    set_active_shipping_methods,
+)
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     CheckoutInfoByCheckoutTokenLoader,
@@ -87,26 +89,18 @@ def _resolve_checkout_excluded_shipping_methods(
             shipping.price = taxed_price.gross
         else:
             shipping.price = taxed_price.net
-        available_with_channel_context.append(
-            ChannelContext(
-                node=shipping,
-                channel_slug=channel_slug,
-            )
-        )
-    excluded_methods = manager.excluded_shipping_methods_for_checkout(
-        root,
-        [
-            convert_shipping_method_model_to_dataclass(shipping)
-            for shipping in shippings
-        ],
+        available_with_channel_context.append(shipping)
+    available_with_channel_context = set_active_shipping_methods(
+        manager.excluded_shipping_methods_for_checkout(
+            root,
+            [
+                convert_shipping_method_model_to_dataclass(shipping)
+                for shipping in shippings
+            ],
+        ),
+        available_with_channel_context,
+        channel_slug,
     )
-    for instance in available_with_channel_context:
-        instance.node.active = True
-        instance.node.message = ""
-        for method in excluded_methods:
-            if instance.node.id == method.id:
-                instance.node.active = False
-                instance.node.message = method.reason
     setattr(root, cache_key, available_with_channel_context)
     return getattr(root, cache_key)
 
