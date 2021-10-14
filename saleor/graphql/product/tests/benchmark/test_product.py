@@ -704,7 +704,7 @@ def test_product_translations(api_client, product_list, channel_USD, count_queri
 def test_products_for_federation_query_count(
     api_client,
     product,
-    shippable_gift_card_product,
+    product_with_default_variant,
     channel_USD,
     django_assert_num_queries,
     count_queries,
@@ -746,7 +746,7 @@ def test_products_for_federation_query_count(
             {
                 "__typename": "Product",
                 "id": graphene.Node.to_global_id(
-                    "Product", shippable_gift_card_product.pk
+                    "Product", product_with_default_variant.pk
                 ),
                 "channel": channel_USD.slug,
             },

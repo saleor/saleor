@@ -10,7 +10,7 @@ from ..core.federation import resolve_federation_references
 from ..core.types import Permission
 from ..core.types.common import Job
 from ..meta.types import ObjectWithMetadata
-from ..utils import format_permissions_for_display
+from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
 from .enums import AppTypeEnum
 from .resolvers import resolve_access_token

@@ -360,6 +360,21 @@ def test_customers_query(
     assert content["data"]["customers"] is not None
 
 
+@pytest.fixture
+def customer_user2(address):
+    address_copy = address.get_copy()
+    user = User.objects.create_user(
+        "test2@example.com",
+        "password",
+        default_billing_address=address_copy,
+        default_shipping_address=address_copy,
+        first_name="Jane",
+        last_name="Doe",
+    )
+    user.addresses.add(address_copy)
+    return user
+
+
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_users_for_federation_query_count(

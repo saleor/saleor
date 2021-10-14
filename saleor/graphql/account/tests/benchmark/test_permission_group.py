@@ -313,9 +313,6 @@ def test_permission_group_query(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_groups_for_federation_query_count(
-    address,
-    customer_user,
-    customer_user2,
     api_client,
     django_assert_num_queries,
     count_queries,
