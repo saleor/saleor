@@ -4605,6 +4605,7 @@ type Payment implements Node {
   availableCaptureAmount: Money
   availableRefundAmount: Money
   creditCard: CreditCard
+  gatewayName: String
 }
 
 type PaymentCapture {
