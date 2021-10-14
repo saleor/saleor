@@ -91,7 +91,7 @@ class PaymentData:
     graphql_customer_id: Optional[str] = None
     store_payment_method: StorePaymentMethodEnum = StorePaymentMethodEnum.NONE
     payment_metadata: Dict[str, str] = field(default_factory=dict)
-    psp_reference: str = None
+    psp_reference: Optional[str] = None
 
 
 @dataclass
