@@ -405,17 +405,33 @@ def approve_fulfillment(
     )
     lines_to_fulfill = []
     gift_card_lines_info = []
+    insufficient_stocks = []
     for fulfillment_line in fulfillment.lines.all().prefetch_related(
         "order_line__variant"
     ):
         order_line = fulfillment_line.order_line
         variant = fulfillment_line.order_line.variant
+
+        stock = fulfillment_line.stock
+
+        if stock is None:
+            warehouse_pk = None
+            if not allow_stock_to_be_exceeded:
+                error_data = InsufficientStockData(
+                    variant=variant,
+                    order_line=order_line,
+                    warehouse_pk=warehouse_pk,
+                )
+                insufficient_stocks.append(error_data)
+        else:
+            warehouse_pk = stock.warehouse_id
+
         lines_to_fulfill.append(
             OrderLineData(
                 line=order_line,
                 quantity=fulfillment_line.quantity,
                 variant=variant,
-                warehouse_pk=str(fulfillment_line.stock.warehouse_id),  # type: ignore
+                warehouse_pk=str(warehouse_pk) if warehouse_pk else None,
             )
         )
         if order_line.is_gift_card:
@@ -427,6 +443,10 @@ def approve_fulfillment(
                     fulfillment_line=fulfillment_line,
                 )
             )
+
+    if insufficient_stocks:
+        raise InsufficientStock(insufficient_stocks)
+
     _decrease_stocks(lines_to_fulfill, manager, allow_stock_to_be_exceeded)
     order.refresh_from_db()
     update_order_status(order)
