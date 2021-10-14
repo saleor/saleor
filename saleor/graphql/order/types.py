@@ -10,6 +10,7 @@ from graphene import relay
 from promise import Promise
 
 from ...account.models import Address
+from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
@@ -1042,6 +1043,19 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Order, info):
+        external_app_shipping_id = get_external_shipping_id(root)
+
+        if external_app_shipping_id:
+            shipping_method = info.context.plugins.get_shipping_method(
+                checkout=root,
+                channel_slug=root.channel.slug,
+                shipping_method_id=external_app_shipping_id,
+            )
+            if shipping_method:
+                return ChannelContext(
+                    node=shipping_method, channel_slug=root.channel.slug
+                )
+
         if not root.shipping_method_id:
             return None
 
@@ -1073,34 +1087,34 @@ class Order(CountableDjangoObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, info):
-        available = get_valid_shipping_methods_for_order(root)
-        if available is None:
-            return []
-        available_shipping_methods = []
+        instances = []
         manager = info.context.plugins
-        display_gross = display_gross_prices()
-        channel_slug = root.channel.slug
-        for shipping_method in available:
-            # Ignore typing check because it is checked in
-            # get_valid_shipping_methods_for_order
-            shipping_channel_listing = shipping_method.channel_listings.filter(
-                channel=root.channel
-            ).first()
-            if shipping_channel_listing:
-                taxed_price = manager.apply_taxes_to_shipping(
-                    shipping_channel_listing.price,
-                    root.shipping_address,  # type: ignore
-                    channel_slug,
-                )
-                if display_gross:
-                    shipping_method.price = taxed_price.gross
-                else:
-                    shipping_method.price = taxed_price.net
-                available_shipping_methods.append(shipping_method)
-        instances = [
-            ChannelContext(node=shipping, channel_slug=channel_slug)
-            for shipping in available_shipping_methods
-        ]
+        available = get_valid_shipping_methods_for_order(root)
+        if available is not None:
+            available_shipping_methods = []
+            display_gross = display_gross_prices()
+            channel_slug = root.channel.slug
+            for shipping_method in available:
+                # Ignore typing check because it is checked in
+                # get_valid_shipping_methods_for_order
+                shipping_channel_listing = shipping_method.channel_listings.filter(
+                    channel=root.channel
+                ).first()
+                if shipping_channel_listing:
+                    taxed_price = manager.apply_taxes_to_shipping(
+                        shipping_channel_listing.price,
+                        root.shipping_address,  # type: ignore
+                        channel_slug,
+                    )
+                    if display_gross:
+                        shipping_method.price = taxed_price.gross
+                    else:
+                        shipping_method.price = taxed_price.net
+                    available_shipping_methods.append(shipping_method)
+            instances = [
+                ChannelContext(node=shipping, channel_slug=channel_slug)
+                for shipping in available_shipping_methods
+            ]
 
         return instances
 

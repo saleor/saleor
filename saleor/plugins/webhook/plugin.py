@@ -28,6 +28,7 @@ from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
 from .utils import (
     from_payment_app_id,
     parse_list_payment_gateways_response,
+    parse_list_shipping_methods_response,
     parse_payment_action_response,
 )
 
@@ -41,6 +42,7 @@ if TYPE_CHECKING:
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
     from ...product.models import Product, ProductVariant
+    from ...shipping.interface import ShippingMethodData
     from ...translation.models import Translation
     from ...warehouse.models import Stock
 
@@ -486,3 +488,24 @@ class WebhookPlugin(BasePlugin):
             previous_value,
             **kwargs,
         )
+
+    def get_shipping_methods_for_checkout(
+        self, checkout: "Checkout", previous_value: Any
+    ) -> List["ShippingMethodData"]:
+        methods = []
+        apps = App.objects.for_event_type(
+            WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+        ).prefetch_related("webhooks")
+        payload = generate_checkout_payload(checkout)
+        for app in apps:
+            response_data = trigger_webhook_sync(
+                event_type=WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                data=payload,
+                app=app,
+            )
+            if response_data:
+                shipping_methods = parse_list_shipping_methods_response(
+                    response_data, app
+                )
+                methods.extend(shipping_methods)
+        return methods

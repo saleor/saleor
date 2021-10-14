@@ -28,6 +28,7 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...product.types import ProductVariant
+from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import Order
 from ..utils import (
     prepare_insufficient_stock_order_validation_errors,
@@ -105,6 +106,10 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
 
+        shipping_method = get_shipping_model_by_object_id(
+            object_id=data.pop("shipping_method", None), raise_error=False
+        )
+
         cleaned_input = super().clean_input(info, instance, data)
 
         channel = cls.clean_channel_id(info, instance, cleaned_input, channel_id)
@@ -119,6 +124,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         lines = data.pop("lines", None)
         cls.clean_lines(cleaned_input, lines, channel)
 
+        cleaned_input["shipping_method"] = shipping_method
         cleaned_input["status"] = OrderStatus.DRAFT
         cleaned_input["origin"] = OrderOrigin.DRAFT
         display_gross_prices = info.context.site.settings.display_gross_prices

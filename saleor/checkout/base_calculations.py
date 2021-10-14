@@ -34,7 +34,9 @@ def base_checkout_shipping_price(
 
 
 def calculate_price_for_shipping_method(
-    checkout_info: "CheckoutInfo", shipping_method_info: ShippingMethodInfo, lines=None
+    checkout_info: "CheckoutInfo",
+    shipping_method_info: ShippingMethodInfo,
+    lines=None,
 ) -> TaxedMoney:
     """Return checkout shipping price."""
     # FIXME: Optimize checkout.is_shipping_required
@@ -49,9 +51,14 @@ def calculate_price_for_shipping_method(
 
     if not shipping_method or not shipping_required:
         return zero_taxed_money(checkout_info.checkout.currency)
-    shipping_price = shipping_method.channel_listings.get(
-        channel_id=checkout_info.checkout.channel_id,
-    ).get_total()
+
+    # external shipping methods have the price field,
+    # while internal methods use channel listings
+    shipping_price = shipping_method.price
+    if shipping_price is None:
+        shipping_price = shipping_method.channel_listings.get(  # type: ignore
+            channel_id=checkout_info.checkout.channel_id,
+        ).get_total()
 
     return quantize_price(
         TaxedMoney(net=shipping_price, gross=shipping_price), shipping_price.currency

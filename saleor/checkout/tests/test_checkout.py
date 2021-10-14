@@ -1,6 +1,7 @@
 import datetime
 from unittest.mock import Mock, patch
 
+import graphene
 import pytest
 import pytz
 from django.utils import timezone
@@ -16,6 +17,7 @@ from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingMethod, ShippingZone
+from ...shipping.utils import convert_to_shipping_method_data
 from .. import AddressType, calculations
 from ..fetch import (
     CheckoutInfo,
@@ -27,17 +29,21 @@ from ..fetch import (
 )
 from ..models import Checkout
 from ..utils import (
+    PRIVATE_META_APP_SHIPPING_ID,
     add_voucher_to_checkout,
     calculate_checkout_quantity,
     cancel_active_payments,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_delivery_method,
+    delete_external_shipping_id,
+    get_external_shipping_id,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
     is_fully_paid,
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
+    set_external_shipping_id,
 )
 
 
@@ -66,6 +72,39 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     delivery_method_info = checkout_info.delivery_method_info
 
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
+
+
+@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_is_valid_delivery_method_external_method(
+    mock_send_request, checkout_with_item, address, settings, shipping_app
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    mock_send_request.return_value = mock_json_response
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: method_id}
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    delivery_method_info = checkout_info.delivery_method_info
+
+    assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
 def test_clear_delivery_method(checkout, shipping_method):
@@ -429,7 +468,7 @@ def test_get_discount_for_checkout_shipping_voucher(
         checkout=checkout,
         shipping_address=shipping_address,
         delivery_method_info=get_delivery_method_info(
-            shipping_method, shipping_address
+            convert_to_shipping_method_data(shipping_method), shipping_address
         ),
         billing_address=None,
         channel=channel_USD,
@@ -489,7 +528,9 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     manager = get_plugins_manager()
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        delivery_method_info=get_delivery_method_info(shipping_method, None),
+        delivery_method_info=get_delivery_method_info(
+            convert_to_shipping_method_data(shipping_method), None
+        ),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
@@ -682,7 +723,9 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        delivery_method_info=get_delivery_method_info(shipping_method),
+        delivery_method_info=get_delivery_method_info(
+            convert_to_shipping_method_data(shipping_method)
+        ),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
@@ -1238,3 +1281,18 @@ def test_chckout_without_delivery_method_creates_empty_delivery_method(
     assert not delivery_method_info.is_valid_delivery_method()
     assert not delivery_method_info.is_local_collection_point
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
+
+
+def test_manage_external_shipping_id(checkout):
+    app_shipping_id = "abcd"
+    initial_private_metadata = {"test": 123}
+    checkout.private_metadata = initial_private_metadata
+
+    set_external_shipping_id(checkout, app_shipping_id)
+    assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
+
+    shipping_id = get_external_shipping_id(checkout)
+    assert shipping_id == app_shipping_id
+
+    delete_external_shipping_id(checkout)
+    assert checkout.private_metadata == initial_private_metadata

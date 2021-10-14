@@ -218,12 +218,14 @@ class VatlayerPlugin(BasePlugin):
         taxes = None
         if address:
             taxes = self._get_taxes_for_country(address.country)
-        if (
-            not checkout_info.delivery_method_info.delivery_method
-            or not checkout_info.shipping_method_channel_listings
-        ):
+        if not checkout_info.delivery_method_info.delivery_method:
             return previous_value
-        shipping_price = checkout_info.shipping_method_channel_listings.price
+        shipping_price = getattr(
+            checkout_info.delivery_method_info.delivery_method, "price", None
+        )
+        if shipping_price is None and checkout_info.shipping_method_channel_listings:
+            shipping_price = checkout_info.shipping_method_channel_listings.price
+
         return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_order_shipping(

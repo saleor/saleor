@@ -4767,6 +4767,29 @@ def payment_app(db, permission_manage_payments):
 
 
 @pytest.fixture
+def shipping_app(db, permission_manage_shipping):
+    app = App.objects.create(name="Shipping App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_shipping)
+
+    webhook = Webhook.objects.create(
+        name="shipping-webhook-1",
+        app=app,
+        target_url="https://shipping-app.com/api/",
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in [
+                WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                WebhookEventType.FULFILLMENT_CREATED,
+            ]
+        ]
+    )
+    return app
+
+
+@pytest.fixture
 def external_app(db):
     app = App.objects.create(
         name="External App",

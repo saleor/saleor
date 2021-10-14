@@ -86,10 +86,6 @@ def _process_shipping_data_for_order(
     delivery_method_info = checkout_info.delivery_method_info
     shipping_address = delivery_method_info.shipping_address
 
-    delivery_method_dict = {
-        delivery_method_info.order_key: delivery_method_info.delivery_method
-    }
-
     if checkout_info.user and shipping_address:
         store_user_address(
             checkout_info.user, shipping_address, AddressType.SHIPPING, manager=manager
@@ -102,7 +98,7 @@ def _process_shipping_data_for_order(
         "shipping_price": shipping_price,
         "weight": checkout_info.checkout.get_total_weight(lines),
     }
-    result.update(delivery_method_dict)
+    result.update(delivery_method_info.delivery_method_order_field)
     result.update(delivery_method_info.delivery_method_name)
 
     return result

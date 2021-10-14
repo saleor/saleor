@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
     from ..product.models import Product, ProductType, ProductVariant
+    from ..shipping.interface import ShippingMethodData
 
 PluginConfigurationType = List[dict]
 NoneType = type(None)
@@ -311,6 +312,10 @@ class BasePlugin:
 
     get_order_shipping_tax_rate: Callable[["Order", Any], Any]
     get_payment_config: Callable[[Any], Any]
+
+    get_shipping_methods_for_checkout: Callable[
+        ["Checkout", Any], List["ShippingMethodData"]
+    ]
 
     get_supported_currencies: Callable[[Any], Any]
 

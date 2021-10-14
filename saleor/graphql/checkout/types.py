@@ -3,6 +3,7 @@ from promise import Promise
 
 from ...checkout import calculations, models
 from ...checkout.utils import (
+    get_external_shipping_id,
     get_valid_collection_points_for_checkout,
     get_valid_shipping_methods_for_checkout,
 )
@@ -10,6 +11,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
+from ...shipping.utils import convert_to_shipping_method_data
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
@@ -294,6 +296,19 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Checkout, info):
+        external_app_shipping_id = get_external_shipping_id(root)
+
+        if external_app_shipping_id:
+            shipping_method = info.context.plugins.get_shipping_method(
+                checkout=root,
+                channel_slug=root.channel.slug,
+                shipping_method_id=external_app_shipping_id,
+            )
+            if shipping_method:
+                return ChannelContext(
+                    node=shipping_method, channel_slug=root.channel.slug
+                )
+
         if not root.shipping_method_id:
             return None
 
@@ -459,8 +474,10 @@ class Checkout(CountableDjangoObjectType):
                             shipping.price = taxed_price.gross
                         else:
                             shipping.price = taxed_price.net
+
+                        node = convert_to_shipping_method_data(shipping)
                         available_with_channel_context.append(
-                            ChannelContext(node=shipping, channel_slug=channel_slug)
+                            ChannelContext(node=node, channel_slug=channel_slug)
                         )
                     return available_with_channel_context
 
@@ -493,9 +510,27 @@ class Checkout(CountableDjangoObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([address, lines, checkout_info, discounts, channel]).then(
-            calculate_available_shipping_methods
-        )
+
+        shipping_methods = Promise.all(
+            [address, lines, checkout_info, discounts, channel]
+        ).then(calculate_available_shipping_methods)
+
+        def with_external_shipping_methods(shipping_methods):
+            external_shipping_methods = (
+                info.context.plugins.list_shipping_methods_for_checkout(
+                    checkout=root, channel_slug=root.channel.slug
+                )
+            )
+
+            if external_shipping_methods:
+                shipping_methods += [
+                    ChannelContext(node=shipping, channel_slug=root.channel.slug)
+                    for shipping in external_shipping_methods
+                ]
+
+            return shipping_methods
+
+        return shipping_methods.then(with_external_shipping_methods)
 
     @staticmethod
     @traced_resolver

@@ -6118,14 +6118,10 @@ enum ShippingErrorCode {
 
 type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
-  name: String!
-  description: JSONString
-  minimumOrderWeight: Weight
-  maximumOrderWeight: Weight
-  maximumDeliveryDays: Int
-  minimumDeliveryDays: Int
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  name: String!
+  description: JSONString
   type: ShippingMethodTypeEnum
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
   channelListings: [ShippingMethodChannelListing!]
@@ -6134,6 +6130,10 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   minimumOrderPrice: Money
   postalCodeRules: [ShippingMethodPostalCodeRule]
   excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  minimumOrderWeight: Weight
+  maximumOrderWeight: Weight
+  maximumDeliveryDays: Int
+  minimumDeliveryDays: Int
 }
 
 type ShippingMethodChannelListing implements Node {
@@ -7265,6 +7265,7 @@ enum WebhookEventTypeEnum {
   PAYMENT_PROCESS
   PAYMENT_REFUND
   PAYMENT_VOID
+  SHIPPING_LIST_METHODS_FOR_CHECKOUT
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
@@ -7310,6 +7311,7 @@ enum WebhookSampleEventTypeEnum {
   PAYMENT_PROCESS
   PAYMENT_REFUND
   PAYMENT_VOID
+  SHIPPING_LIST_METHODS_FOR_CHECKOUT
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
