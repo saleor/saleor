@@ -21,6 +21,7 @@ from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
 from ....product import ProductTypeKind
 from ....product.models import Product, ProductType
+from ....shipping.utils import convert_to_shipping_method_data
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from .. import (
@@ -959,7 +960,7 @@ def test_get_checkout_line_tax_rate(
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
         delivery_method_info=get_delivery_method_info(
-            checkout_with_item.shipping_method
+            convert_to_shipping_method_data(checkout_with_item.shipping_method)
         ),
         shipping_address=address,
         billing_address=None,
@@ -1015,7 +1016,7 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
         delivery_method_info=get_delivery_method_info(
-            checkout_with_item.shipping_method
+            convert_to_shipping_method_data(checkout_with_item.shipping_method)
         ),
         shipping_address=address,
         billing_address=None,
@@ -1085,7 +1086,7 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
         delivery_method_info=get_delivery_method_info(
-            checkout_with_item.shipping_method
+            convert_to_shipping_method_data(checkout_with_item.shipping_method)
         ),
         shipping_address=address,
         billing_address=None,
@@ -1313,7 +1314,7 @@ def test_get_checkout_shipping_tax_rate(
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
         delivery_method_info=get_delivery_method_info(
-            checkout_with_item.shipping_method
+            convert_to_shipping_method_data(checkout_with_item.shipping_method)
         ),
         shipping_address=address,
         billing_address=None,

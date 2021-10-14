@@ -312,10 +312,18 @@ def generate_checkout_payload(checkout: "Checkout"):
         "discount_name",
         "private_metadata",
         "metadata",
+        "channel",
     )
     user_fields = ("email", "first_name", "last_name")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
     lines_dict_data = serialize_checkout_lines(checkout)
+
+    # todo use the most appropriate warehouse
+    warehouse = None
+    if checkout.shipping_address:
+        warehouse = Warehouse.objects.for_country(
+            checkout.shipping_address.country.code
+        ).first()
 
     checkout_data = serializer.serialize(
         [checkout],
@@ -326,6 +334,10 @@ def generate_checkout_payload(checkout: "Checkout"):
             "billing_address": (lambda c: c.billing_address, ADDRESS_FIELDS),
             "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
             "shipping_method": (lambda c: c.shipping_method, shipping_method_fields),
+            "warehouse_address": (
+                lambda c: warehouse.address if warehouse else None,
+                ADDRESS_FIELDS,
+            ),
         },
         extra_dict_data={
             # Casting to list to make it json-serializable

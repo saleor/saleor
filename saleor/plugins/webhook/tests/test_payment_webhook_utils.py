@@ -2,7 +2,7 @@ import pytest
 
 from ....payment import TransactionKind
 from ..utils import (
-    APP_GATEWAY_ID_PREFIX,
+    APP_ID_PREFIX,
     from_payment_app_id,
     parse_list_payment_gateways_response,
     parse_payment_action_response,
@@ -13,7 +13,7 @@ from ..utils import (
 def test_to_payment_app_id(app):
     gateway_id = "example-gateway"
     payment_app_id = to_payment_app_id(app, gateway_id)
-    assert payment_app_id == f"{APP_GATEWAY_ID_PREFIX}:{app.pk}:{gateway_id}"
+    assert payment_app_id == f"{APP_ID_PREFIX}:{app.pk}:{gateway_id}"
 
 
 def test_from_payment_app_id():
@@ -31,9 +31,9 @@ def test_from_payment_app_id():
         "1",
         "name",
         "1:1:name",
-        f"{APP_GATEWAY_ID_PREFIX}:1",
-        f"{APP_GATEWAY_ID_PREFIX}:1:",
-        f"{APP_GATEWAY_ID_PREFIX}:1a:name",
+        f"{APP_ID_PREFIX}:1",
+        f"{APP_ID_PREFIX}:1:",
+        f"{APP_ID_PREFIX}:1a:name",
     ],
 )
 def test_from_payment_app_id_invalid(app_id):
