@@ -2,7 +2,6 @@ import graphene
 import jwt
 from django.conf import settings
 from django.contrib.auth import password_validation
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
 from ....account import events as account_events
@@ -10,6 +9,7 @@ from ....account import models, notifications, utils
 from ....account.error_codes import AccountErrorCode
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
+from ....core.tokens import account_delete_token_generator
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
@@ -262,7 +262,7 @@ class AccountDelete(ModelDeleteMutation):
         cls.clean_instance(info, user)
 
         token = data.pop("token")
-        if not default_token_generator.check_token(user, token):
+        if not account_delete_token_generator.check_token(user, token):
             raise ValidationError(
                 {"token": ValidationError(INVALID_TOKEN, code=AccountErrorCode.INVALID)}
             )
