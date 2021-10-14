@@ -205,18 +205,19 @@ def register_transaction(
 
 
 def change_transaction(
-    config: ApiConfig, payment_information: PaymentData
+    config: ApiConfig,
+    payment: Payment,
+    payment_information: PaymentData,
 ) -> PaymentResult:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.change"):
-        payment = Payment.objects.get(pk=payment_information.payment_id)
-
         data = {
             "transactions": [
                 {
                     "np_transaction_id": payment.psp_reference,
                     "billed_amount": int(
                         price_to_minor_unit(
-                            payment_information.amount, payment_information.currency
+                            payment.captured_amount - payment_information.amount,
+                            payment_information.currency,
                         )
                     ),
                 }

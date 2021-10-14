@@ -4,7 +4,7 @@ from typing import List
 
 from saleor.order.models import Fulfillment
 
-from ... import TransactionKind
+from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from ...models import Payment
 from . import api
@@ -65,10 +65,15 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
 
 @inject_api_config
 def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
-    payment = Payment.objects.get(pk=payment_information.payment_id)
+    payment = Payment.objects.filter(pk=payment_information.payment_id).first()
+
+    if not payment:
+        raise PaymentError(
+            f"Payment with id {payment_information.payment_id} does not exist."
+        )
 
     if payment_information.amount < payment.captured_amount:
-        result = api.change_transaction(config, payment_information)
+        result = api.change_transaction(config, payment, payment_information)
     else:
         result = api.cancel_transaction(config, payment_information)
 
