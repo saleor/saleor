@@ -61,6 +61,13 @@ class GiftCard(ModelWithMetadata):
         on_delete=models.SET_NULL,
         related_name="gift_cards",
     )
+    fulfillment_line = models.ForeignKey(
+        "order.FulfillmentLine",
+        related_name="gift_cards",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
 
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,

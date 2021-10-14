@@ -38,6 +38,7 @@ from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_preorders, allocate_stocks
+from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
@@ -85,10 +86,6 @@ def _process_shipping_data_for_order(
     delivery_method_info = checkout_info.delivery_method_info
     shipping_address = delivery_method_info.shipping_address
 
-    delivery_method_dict = {
-        delivery_method_info.order_key: delivery_method_info.delivery_method
-    }
-
     if checkout_info.user and shipping_address:
         store_user_address(
             checkout_info.user, shipping_address, AddressType.SHIPPING, manager=manager
@@ -101,7 +98,7 @@ def _process_shipping_data_for_order(
         "shipping_price": shipping_price,
         "weight": checkout_info.checkout.get_total_weight(lines),
     }
-    result.update(delivery_method_dict)
+    result.update(delivery_method_info.delivery_method_order_field)
     result.update(delivery_method_info.delivery_method_name)
 
     return result
@@ -353,6 +350,7 @@ def _prepare_order_data(
 def _create_order(
     *,
     checkout_info: "CheckoutInfo",
+    checkout_lines: Iterable["CheckoutLineInfo"],
     order_data: dict,
     user: User,
     app: Optional["App"],
@@ -427,6 +425,8 @@ def _create_order(
         checkout_info.channel.slug,
         manager,
         additional_warehouse_lookup,
+        check_reservations=is_reservation_enabled(site_settings),
+        checkout_lines=[line.line for line in checkout_lines],
     )
     allocate_preorders(order_lines_info, checkout_info.channel.slug)
 
@@ -648,6 +648,7 @@ def complete_checkout(
         try:
             order = _create_order(
                 checkout_info=checkout_info,
+                checkout_lines=lines,
                 order_data=order_data,
                 user=user,  # type: ignore
                 app=app,

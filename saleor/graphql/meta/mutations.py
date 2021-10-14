@@ -162,7 +162,29 @@ class MetadataInput(graphene.InputObjectType):
     value = graphene.String(required=True, description="Value of a metadata item.")
 
 
-class UpdateMetadata(BaseMetadataMutation):
+class ShippingMethodMetadataMixin:
+    @classmethod
+    def get_instance(cls, info, **data):
+        object_id = data.get("id")
+        qs = data.get("qs", None)
+
+        type_name, _ = from_global_id_or_error(object_id)
+        # ShippingMethod type isn't model-based class
+        if type_name == "ShippingMethod":
+            qs = shipping_models.ShippingMethod.objects
+
+        return cls.get_node_or_error(info, object_id, qs=qs)
+
+    @classmethod
+    def get_model_for_type_name(cls, info, type_name):
+        # ShippingMethod type isn't model-based class
+        if type_name == "ShippingMethod":
+            return shipping_models.ShippingMethod
+        graphene_type = info.schema.get_type(type_name).graphene_type
+        return graphene_type._meta.model
+
+
+class UpdateMetadata(ShippingMethodMetadataMixin, BaseMetadataMutation):
     class Meta:
         description = "Updates metadata of an object."
         permission_map = PUBLIC_META_PERMISSION_MAP
@@ -189,7 +211,7 @@ class UpdateMetadata(BaseMetadataMutation):
         return cls.success_response(instance)
 
 
-class DeleteMetadata(BaseMetadataMutation):
+class DeleteMetadata(ShippingMethodMetadataMixin, BaseMetadataMutation):
     class Meta:
         description = "Delete metadata of an object."
         permission_map = PUBLIC_META_PERMISSION_MAP
@@ -215,7 +237,7 @@ class DeleteMetadata(BaseMetadataMutation):
         return cls.success_response(instance)
 
 
-class UpdatePrivateMetadata(BaseMetadataMutation):
+class UpdatePrivateMetadata(ShippingMethodMetadataMixin, BaseMetadataMutation):
     class Meta:
         description = "Updates private metadata of an object."
         permission_map = PRIVATE_META_PERMISSION_MAP
@@ -242,7 +264,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
         return cls.success_response(instance)
 
 
-class DeletePrivateMetadata(BaseMetadataMutation):
+class DeletePrivateMetadata(ShippingMethodMetadataMixin, BaseMetadataMutation):
     class Meta:
         description = "Delete object's private metadata."
         permission_map = PRIVATE_META_PERMISSION_MAP

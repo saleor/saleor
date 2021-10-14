@@ -490,6 +490,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.product.tasks.deactivate_preorder_for_variants_task",
         "schedule": timedelta(hours=1),
     },
+    "delete-expired-reservations": {
+        "task": "saleor.warehouse.tasks.delete_expired_reservations_task",
+        "schedule": timedelta(days=1),
+    },
 }
 
 # Change this value if your application is running behind a proxy,
@@ -527,6 +531,12 @@ GRAPHENE = {
         "saleor.graphql.middleware.JWTMiddleware",
     ],
 }
+
+# Max number entities that can be requested in single query by Apollo Federation
+# Federation protocol implements no securities on its own part - malicious actor
+# may build a query that requests for potentially few thousands of entities.
+# Set FEDERATED_QUERY_MAX_ENTITIES=0 in env to disable (not recommended)
+FEDERATED_QUERY_MAX_ENTITIES = int(os.environ.get("FEDERATED_QUERY_MAX_ENTITIES", 100))
 
 BUILTIN_PLUGINS = [
     "saleor.plugins.avatax.plugin.AvataxPlugin",

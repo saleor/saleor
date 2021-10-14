@@ -1017,6 +1017,7 @@ type Checkout implements Node & ObjectWithMetadata {
   email: String!
   isShippingRequired: Boolean!
   quantity: Int!
+  stockReservationExpires: DateTime
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
@@ -3909,7 +3910,7 @@ type Mutation {
   checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete
   checkoutLinesAdd(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesUpdate
-  checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
+  checkoutRemovePromoCode(checkoutId: ID, promoCode: String, promoCodeId: ID, token: UUID): CheckoutRemovePromoCode
   checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
@@ -6118,14 +6119,10 @@ enum ShippingErrorCode {
 
 type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
-  name: String!
-  description: JSONString
-  minimumOrderWeight: Weight
-  maximumOrderWeight: Weight
-  maximumDeliveryDays: Int
-  minimumDeliveryDays: Int
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  name: String!
+  description: JSONString
   type: ShippingMethodTypeEnum
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
   channelListings: [ShippingMethodChannelListing!]
@@ -6134,6 +6131,10 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   minimumOrderPrice: Money
   postalCodeRules: [ShippingMethodPostalCodeRule]
   excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  minimumOrderWeight: Weight
+  maximumOrderWeight: Weight
+  maximumDeliveryDays: Int
+  minimumDeliveryDays: Int
 }
 
 type ShippingMethodChannelListing implements Node {
@@ -6361,6 +6362,8 @@ type Shop {
   defaultWeightUnit: WeightUnitsEnum
   translation(languageCode: LanguageCodeEnum!): ShopTranslation
   automaticFulfillmentDigitalProducts: Boolean
+  reserveStockDurationAnonymousUser: Int
+  reserveStockDurationAuthenticatedUser: Int
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
   companyAddress: Address
@@ -6420,6 +6423,8 @@ input ShopSettingsInput {
   defaultMailSenderName: String
   defaultMailSenderAddress: String
   customerSetPasswordUrl: String
+  reserveStockDurationAnonymousUser: Int
+  reserveStockDurationAuthenticatedUser: Int
 }
 
 type ShopSettingsTranslate {
@@ -6552,6 +6557,7 @@ type Stock implements Node {
   quantity: Int!
   id: ID!
   quantityAllocated: Int!
+  quantityReserved: Int!
 }
 
 enum StockAvailability {
@@ -7260,6 +7266,7 @@ enum WebhookEventTypeEnum {
   PAYMENT_PROCESS
   PAYMENT_REFUND
   PAYMENT_VOID
+  SHIPPING_LIST_METHODS_FOR_CHECKOUT
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
@@ -7305,6 +7312,7 @@ enum WebhookSampleEventTypeEnum {
   PAYMENT_PROCESS
   PAYMENT_REFUND
   PAYMENT_VOID
+  SHIPPING_LIST_METHODS_FOR_CHECKOUT
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
@@ -7341,7 +7349,7 @@ enum WeightUnitsEnum {
 
 scalar _Any
 
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | ProductImage | PageType
+union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | PageType
 
 type _Service {
   sdl: String

@@ -1,3 +1,11 @@
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from ..order.models import FulfillmentLine, OrderLine
+    from ..product.models import ProductVariant
+
+
 class GiftCardEvents:
     """The different gift card event types."""
 
@@ -28,3 +36,11 @@ class GiftCardEvents:
         (NOTE_ADDED, "A note was added to the gift card."),
         (USED_IN_ORDER, "The gift card was used in order."),
     ]
+
+
+@dataclass
+class GiftCardLineData:
+    quantity: int
+    order_line: "OrderLine"
+    variant: Optional["ProductVariant"]
+    fulfillment_line: "FulfillmentLine"

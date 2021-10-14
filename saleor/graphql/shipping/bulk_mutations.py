@@ -36,3 +36,9 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
+
+    @classmethod
+    def get_nodes_or_error(cls, ids, field, only_type=None, qs=None):
+        return super().get_nodes_or_error(
+            ids, field, "ShippingMethod", qs=models.ShippingMethod.objects
+        )
