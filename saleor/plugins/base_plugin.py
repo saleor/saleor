@@ -69,7 +69,7 @@ class ExcludedShippingMethod:
 
 
 @dataclass
-class Mass:
+class Weight:
     unit: str
     value: Decimal
 
@@ -79,8 +79,8 @@ class ShippingMethod:
     id: str
     price: Decimal
     name: str
-    maximum_order_weight: Optional[Mass]
-    minimum_order_weight: Optional[Mass]
+    maximum_order_weight: Optional[Weight]
+    minimum_order_weight: Optional[Weight]
     maximum_delivery_days: Optional[int]
     minimum_delivery_days: Optional[int]
 
