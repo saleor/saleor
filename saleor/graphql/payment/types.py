@@ -99,7 +99,8 @@ class Payment(CountableDjangoObjectType):
         CreditCard, description="The details of the card used for this payment."
     )
     gateway_name = graphene.String(
-        description="A human-readable name of the payment gateway plugin."
+        description="A human-readable name of the payment gateway plugin.",
+        required=True,
     )
 
     class Meta:
