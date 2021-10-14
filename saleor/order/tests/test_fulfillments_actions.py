@@ -17,6 +17,7 @@ def test_create_fulfillments(
     staff_user,
     order_with_lines,
     warehouse,
+    site_settings,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -28,7 +29,13 @@ def test_create_fulfillments(
     }
     manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, None, order, fulfillment_lines_for_warehouses, manager, True
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        manager,
+        site_settings,
+        True,
     )
     flush_post_commit_hooks()
 
@@ -75,6 +82,7 @@ def test_create_fulfillments_require_approval(
     staff_user,
     order_with_lines,
     warehouse,
+    site_settings,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -86,7 +94,14 @@ def test_create_fulfillments_require_approval(
     }
     manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, None, order, fulfillment_lines_for_warehouses, manager, True, False
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        manager,
+        site_settings,
+        True,
+        False,
     )
     flush_post_commit_hooks()
 
@@ -131,6 +146,7 @@ def test_create_fulfillments_require_approval_as_app(
     app,
     order_with_lines,
     warehouse,
+    site_settings,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -142,7 +158,14 @@ def test_create_fulfillments_require_approval_as_app(
     }
     manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        None, app, order, fulfillment_lines_for_warehouses, manager, True, False
+        None,
+        app,
+        order,
+        fulfillment_lines_for_warehouses,
+        manager,
+        site_settings,
+        True,
+        False,
     )
     flush_post_commit_hooks()
 
@@ -188,6 +211,7 @@ def test_create_fulfillments_without_notification(
     staff_user,
     order_with_lines,
     warehouse,
+    site_settings,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -204,6 +228,7 @@ def test_create_fulfillments_without_notification(
         order,
         fulfillment_lines_for_warehouses,
         get_plugins_manager(),
+        site_settings,
         False,
     )
     flush_post_commit_hooks()
@@ -238,6 +263,7 @@ def test_create_fulfillments_many_warehouses(
     staff_user,
     order_with_lines,
     warehouses_with_shipping_zone,
+    site_settings,
 ):
     order = order_with_lines
     warehouse1, warehouse2 = warehouses_with_shipping_zone
@@ -267,6 +293,7 @@ def test_create_fulfillments_many_warehouses(
         order,
         fulfillment_lines_for_warehouses,
         get_plugins_manager(),
+        site_settings,
         False,
     )
     flush_post_commit_hooks()
@@ -304,6 +331,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
     staff_user,
     order_with_lines,
     warehouse,
+    site_settings,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -316,7 +344,13 @@ def test_create_fulfillments_with_one_line_empty_quantity(
 
     manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, None, order, fulfillment_lines_for_warehouses, manager, True
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        manager,
+        site_settings,
+        True,
     )
     flush_post_commit_hooks()
 
@@ -352,6 +386,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
     staff_user,
     order_with_line_without_inventory_tracking,
     warehouse,
+    site_settings,
 ):
     order = order_with_line_without_inventory_tracking
     order_line = order.lines.get()
@@ -363,7 +398,13 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
 
     manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, None, order, fulfillment_lines_for_warehouses, manager, True
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        manager,
+        site_settings,
+        True,
     )
     flush_post_commit_hooks()
 
@@ -394,6 +435,7 @@ def test_create_fulfillments_without_allocations(
     staff_user,
     order_with_lines,
     warehouse,
+    site_settings,
 ):
 
     order = order_with_lines
@@ -408,7 +450,13 @@ def test_create_fulfillments_without_allocations(
 
     manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, None, order, fulfillment_lines_for_warehouses, manager, True
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        manager,
+        site_settings,
+        True,
     )
     flush_post_commit_hooks()
 
@@ -446,6 +494,7 @@ def test_create_fulfillments_warehouse_without_stock(
     staff_user,
     order_with_lines,
     warehouse_no_shipping_zone,
+    site_settings,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -463,6 +512,7 @@ def test_create_fulfillments_warehouse_without_stock(
             order,
             fulfillment_lines_for_warehouses,
             get_plugins_manager(),
+            site_settings,
             True,
         )
 
@@ -502,6 +552,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
     staff_user,
     order_with_line_without_inventory_tracking,
     warehouse_no_shipping_zone,
+    site_settings,
 ):
     order = order_with_line_without_inventory_tracking
     order_line = order.lines.get()
@@ -516,6 +567,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
             order,
             fulfillment_lines_for_warehouses,
             get_plugins_manager(),
+            site_settings,
             True,
         )
 
@@ -545,7 +597,11 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_create_fullfilment_with_out_of_stock_webhook(
-    product_variant_out_of_stock_webhook, staff_user, order_with_lines, warehouse
+    product_variant_out_of_stock_webhook,
+    staff_user,
+    order_with_lines,
+    warehouse,
+    site_settings,
 ):
 
     order = order_with_lines
@@ -563,6 +619,7 @@ def test_create_fullfilment_with_out_of_stock_webhook(
         order=order,
         fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
         manager=manager,
+        site_settings=site_settings,
     )
     flush_post_commit_hooks()
 
@@ -571,7 +628,11 @@ def test_create_fullfilment_with_out_of_stock_webhook(
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
-    product_variant_out_of_stock_webhook, staff_user, order_with_lines, warehouse
+    product_variant_out_of_stock_webhook,
+    staff_user,
+    order_with_lines,
+    warehouse,
+    site_settings,
 ):
 
     order = order_with_lines
@@ -589,6 +650,7 @@ def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
         order=order,
         fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
         manager=manager,
+        site_settings=site_settings,
         approved=False,
     )
     flush_post_commit_hooks()

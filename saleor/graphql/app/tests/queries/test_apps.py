@@ -201,3 +201,59 @@ def test_apps_query_no_permission(
         permissions=[permission_manage_users, permission_manage_staff],
     )
     assert_no_permission(response)
+
+
+QUERY_APPS_FOR_FEDERATION = """
+    query GetAppInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+            __typename
+            ... on App {
+                id
+                name
+            }
+        }
+    }
+"""
+
+
+def test_query_app_for_federation(staff_api_client, app, permission_manage_apps):
+    app_id = graphene.Node.to_global_id("App", app.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "App",
+                "id": app_id,
+            },
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_APPS_FOR_FEDERATION,
+        variables,
+        permissions=[permission_manage_apps],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "App",
+            "id": app_id,
+            "name": app.name,
+        }
+    ]
+
+
+def test_query_app_for_federation_without_permission(api_client, app):
+    app_id = graphene.Node.to_global_id("App", app.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "App",
+                "id": app_id,
+            },
+        ],
+    }
+
+    response = api_client.post_graphql(QUERY_APPS_FOR_FEDERATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [None]

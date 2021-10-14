@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
@@ -6,6 +7,7 @@ import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.db.models.aggregates import Sum
+from django.utils import timezone
 
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
@@ -21,7 +23,7 @@ from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager, get_plugins_manager
-from ....warehouse.models import Stock, WarehouseClickAndCollectOption
+from ....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
 
@@ -1156,6 +1158,130 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     gateway_void_mock.assert_called_once_with(
         payment, ANY, channel_slug=checkout_info.channel.slug
     )
+
+
+def test_checkout_complete_insufficient_stock_reserved_by_other_user(
+    site_settings_with_reservations,
+    user_api_client,
+    checkout_with_item,
+    address,
+    payment_dummy,
+    shipping_method,
+    channel_USD,
+):
+    checkout = checkout_with_item
+    checkout_line = checkout.lines.first()
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    quantity_available = get_available_quantity_for_stock(stock)
+
+    other_checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
+    other_checkout_line = other_checkout.lines.create(
+        variant=checkout_line.variant,
+        quantity=quantity_available,
+    )
+    Reservation.objects.create(
+        checkout_line=other_checkout_line,
+        stock=stock,
+        quantity_reserved=quantity_available,
+        reserved_until=timezone.now() + timedelta(minutes=5),
+    )
+
+    checkout_line.quantity = 1
+    checkout_line.save()
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
+    orders_count = Order.objects.count()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert data["errors"][0]["message"] == "Insufficient product stock: 123"
+    assert orders_count == Order.objects.count()
+
+
+def test_checkout_complete_own_reservation(
+    site_settings_with_reservations,
+    user_api_client,
+    checkout_with_item,
+    address,
+    payment_dummy,
+    shipping_method,
+    channel_USD,
+):
+    checkout = checkout_with_item
+    checkout_line = checkout.lines.first()
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    quantity_available = get_available_quantity_for_stock(stock)
+
+    checkout_line.quantity = quantity_available
+    checkout_line.save()
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    reservation = Reservation.objects.create(
+        checkout_line=checkout_line,
+        stock=stock,
+        quantity_reserved=quantity_available,
+        reserved_until=timezone.now() + timedelta(minutes=5),
+    )
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
+    orders_count = Order.objects.count()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.token == order_token
+
+    order_line = order.lines.first()
+    assert order_line.quantity == quantity_available
+    assert order_line.variant == checkout_line.variant
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+
+    # Reservation associated with checkout has been deleted
+    with pytest.raises(Reservation.DoesNotExist):
+        reservation.refresh_from_db()
 
 
 def test_checkout_complete_without_redirect_url(

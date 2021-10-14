@@ -17,6 +17,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend `accountRegister` mutation to consume first & last name - #8184 by @piotrgrundas
 - Introduce sales / vouchers per product variant - #8064 by @kuchichan
 - Introduce sales webhooks - #8157 @kuchichan
+- Batch loads in queries for Apollo Federation - #8273 by @rafalp
+- Reserve stocks for checkouts - #7589 by @rafalp
 
 # 3.0.0 [Unreleased]
 
@@ -164,7 +166,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `customerId` to `checkoutCustomerAttach` mutation
   - Add new permision `IMPERSONATE_USER`
   - Handle `SameSite` cookie attribute in jwt refresh token middleware - #8209 by @jakubkuc
-
 
 
 ### Breaking

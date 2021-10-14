@@ -7,11 +7,7 @@ from django.template.defaultfilters import pluralize
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
-from ....giftcard.utils import (
-    get_gift_card_lines,
-    gift_cards_create,
-    order_has_gift_card_lines,
-)
+from ....giftcard.utils import order_has_gift_card_lines
 from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
@@ -102,9 +98,9 @@ class OrderFulfill(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_lines(cls, order_lines, quantities):
-        for order_line in order_lines:
-            line_total_quantity = quantities[order_line.pk]
+    def clean_lines(cls, order_lines, quantities_for_lines):
+        for order_line, line_quantities in zip(order_lines, quantities_for_lines):
+            line_total_quantity = sum(line_quantities)
             line_quantity_unfulfilled = order_line.quantity_unfulfilled
 
             if line_total_quantity > line_quantity_unfulfilled:
@@ -220,12 +216,8 @@ class OrderFulfill(BaseMutation):
         order_lines = cls.get_nodes_or_error(
             lines_ids, field="lines", only_type=OrderLine
         )
-        order_line_id_to_total_quantity = {
-            order_line.pk: sum(line_quantities)
-            for order_line, line_quantities in zip(order_lines, quantities_for_lines)
-        }
 
-        cls.clean_lines(order_lines, order_line_id_to_total_quantity)
+        cls.clean_lines(order_lines, quantities_for_lines)
 
         if site_settings.fulfillment_auto_approve:
             cls.check_lines_for_preorder(order_lines)
@@ -244,8 +236,6 @@ class OrderFulfill(BaseMutation):
                     )
 
         data["order_lines"] = order_lines
-        data["gift_card_lines"] = get_gift_card_lines(order_lines)
-        data["quantities"] = order_line_id_to_total_quantity
         data["lines_for_warehouses"] = lines_for_warehouses
         return data
 
@@ -272,21 +262,8 @@ class OrderFulfill(BaseMutation):
         allow_stock_to_be_exceeded = cleaned_input.get(
             "allow_stock_to_be_exceeded", False
         )
-        gift_card_lines = cleaned_input["gift_card_lines"]
-        quantities = cleaned_input["quantities"]
 
         approved = info.context.site.settings.fulfillment_auto_approve
-
-        if approved:
-            gift_cards_create(
-                order,
-                gift_card_lines,
-                quantities,
-                context.site.settings,
-                user,
-                app,
-                manager,
-            )
 
         try:
             fulfillments = create_fulfillments(
@@ -295,6 +272,7 @@ class OrderFulfill(BaseMutation):
                 order,
                 dict(lines_for_warehouses),
                 manager,
+                context.site.settings,
                 notify_customer,
                 allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
                 approved=approved,
