@@ -7,9 +7,8 @@ from unittest import mock
 import graphene
 import pytest
 
-from saleor.graphql.tests.utils import get_graphql_content
-
 from ....app.models import App
+from ....graphql.tests.utils import get_graphql_content
 from ....webhook.event_types import WebhookEventType
 from ....webhook.models import Webhook, WebhookEvent
 from ....webhook.payloads import (
