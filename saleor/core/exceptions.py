@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class InsufficientStockData:
-    variant: "ProductVariant"
+    variant: Optional["ProductVariant"] = None
     checkout_line: Optional["CheckoutLine"] = None
     order_line: Optional["OrderLine"] = None
     warehouse_pk: Union[str, int, None] = None
@@ -20,8 +20,8 @@ class InsufficientStockData:
 
 class InsufficientStock(Exception):
     def __init__(self, items: List[InsufficientStockData]):
-        variants = [str(item.variant) for item in items]
-        super().__init__(f"Insufficient stock for {', '.join(variants)}")
+        details = [str(item.variant or item.order_line) for item in items]
+        super().__init__(f"Insufficient stock for {', '.join(details)}")
         self.items = items
         self.code = CheckoutErrorCode.INSUFFICIENT_STOCK
 

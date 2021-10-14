@@ -12,7 +12,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.events import OrderEvents
 from ....order.models import Fulfillment, FulfillmentLine, FulfillmentStatus
 from ....plugins.manager import get_plugins_manager
-from ....product.models import ProductVariant
+from ....product.models import Product, ProductVariant
 from ....warehouse.models import Allocation, Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -1746,6 +1746,82 @@ def test_fulfillment_approve(
     event = events[0]
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.user == staff_api_client.user
+
+
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceeded_true(
+    mock_email_fulfillment,
+    staff_api_client,
+    fulfillment,
+    permission_manage_orders,
+):
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
+
+    Product.objects.all().delete()
+
+    query = APPROVE_FULFILLMENT_MUTATION
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    variables = {
+        "id": fulfillment_id,
+        "notifyCustomer": True,
+        "allowStockToBeExceeded": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentApprove"]
+    assert not data["errors"]
+    assert data["fulfillment"]["status"] == FulfillmentStatus.FULFILLED.upper()
+    assert data["order"]["status"] == OrderStatus.FULFILLED.upper()
+    fulfillment.refresh_from_db()
+    assert fulfillment.status == FulfillmentStatus.FULFILLED
+
+    assert mock_email_fulfillment.call_count == 1
+    events = fulfillment.order.events.all()
+    assert len(events) == 1
+    event = events[0]
+    assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
+    assert event.user == staff_api_client.user
+
+
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceeded_false(
+    mock_email_fulfillment,
+    staff_api_client,
+    fulfillment,
+    permission_manage_orders,
+):
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
+
+    Product.objects.all().delete()
+
+    query = APPROVE_FULFILLMENT_MUTATION
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    variables = {
+        "id": fulfillment_id,
+        "notifyCustomer": True,
+        "allowStockToBeExceeded": False,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"]
+        == "Insufficient stock for Test product (SKU_AA), Test product 2 (SKU_B)"
+    )
+
+    fulfillment.refresh_from_db()
+    assert fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL
+
+    assert mock_email_fulfillment.call_count == 1
+    events = fulfillment.order.events.all()
+    assert len(events) == 0
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
