@@ -431,7 +431,7 @@ def approve_fulfillment(
                 line=order_line,
                 quantity=fulfillment_line.quantity,
                 variant=variant,
-                warehouse_pk=str(warehouse_pk),  # type: ignore
+                warehouse_pk=str(warehouse_pk) if warehouse_pk else None,
             )
         )
         if order_line.is_gift_card:
