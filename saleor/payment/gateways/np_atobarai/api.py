@@ -204,62 +204,42 @@ def register_transaction(
         )
 
 
-def _get_misc_goods(*_, **__):
-    return [{"quantity": ...}]
-
-
-def _get_product_goods(refunded_lines, currency):
-    return [
-        {
-            "quantity": line.quantity,
-            "goods_name": line.product_name,
-            "goods_price": int(price_to_minor_unit(line.gross, currency)),
-        }
-        for line in refunded_lines
-    ]
-
-
 def change_transaction(
     config: ApiConfig, payment_information: PaymentData
 ) -> PaymentResult:
+    with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.change"):
+        payment = Payment.objects.get(pk=payment_information.payment_id)
 
-    payment = Payment.objects.get(pk=payment_information.payment_id)
+        data = {
+            "transactions": [
+                {
+                    "np_transaction_id": payment.psp_reference,
+                    "billed_amount": int(
+                        price_to_minor_unit(
+                            payment_information.amount, payment_information.currency
+                        )
+                    ),
+                }
+            ]
+        }
 
-    psp_reference = payment.psp_reference
-    refunded_lines = ...
-    is_misc_refund = True
+        response = np_request(config, "patch", "/transactions/update", json=data)
+        response_data = response.json()
 
-    data = {
-        "transactions": [
-            {
-                "np_transaction_id": psp_reference,
-                "goods": (
-                    _get_misc_goods()
-                    if is_misc_refund
-                    else _get_product_goods(
-                        refunded_lines, payment_information.currency
-                    )
-                ),
-            }
-        ]
-    }
+        status = PaymentStatus.SUCCESS
+        error_messages = []
 
-    response = np_request(config, "patch", "/transaction/update", json=data)
-    response_data = response.json()
+        if error_codes := _get_errors(response_data):
+            status = PaymentStatus.FAILED
+            error_messages = get_error_messages_from_codes(
+                error_codes, TRANSACTION_REGISTRATION_RESULT_ERRORS
+            )
 
-    status = PaymentStatus.SUCCESS
-    error_messages = []
-
-    if error_codes := _get_errors(response_data):
-        status = PaymentStatus.FAILED
-        error_messages = get_error_messages_from_codes(
-            error_codes, TRANSACTION_REGISTRATION_RESULT_ERRORS
+        return PaymentResult(
+            status=status,
+            psp_reference=payment.psp_reference or "",
+            errors=error_messages,
         )
-
-    return PaymentResult(
-        status=status,
-        errors=error_messages,
-    )
 
 
 def _cancel(config: ApiConfig, transaction_id: str) -> dict:
