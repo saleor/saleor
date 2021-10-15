@@ -2,11 +2,13 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+import pytest
 from prices import Money, TaxedMoney
 
 from ....core.prices import quantize_price
 from ....order import OrderEvents, OrderOrigin, OrderStatus
 from ....order.error_codes import OrderErrorCode
+from ....order.interface import OrderPaymentAction
 from ....order.models import FulfillmentStatus, Order, OrderEvent
 from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....warehouse.models import Stock
@@ -797,7 +799,7 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     )
 
 
-def test_fulfillment_refund_products_with_amount_to_refund_with_multiple_payments(
+def test_fulfillment_refund_products_with_amount_to_refund_with_payments(
     staff_api_client,
     fulfilled_order,
     payment_dummy_factory,
@@ -939,3 +941,87 @@ def test_fulfillment_refund_products_counts_only_active_payments(
     # then
     assert data["errors"] == []
     assert data["returnFulfillment"] is not None
+
+
+@pytest.mark.parametrize(
+    "ordering", [(1, 2, 3), (1, 3, 2), (3, 2, 1), (3, 1, 2), (2, 1, 3), (2, 3, 1)]
+)
+@patch(
+    "saleor.graphql.order.mutations.fulfillments."
+    "create_fulfillments_for_returned_products"
+)
+def test_fulfillment_refund_products_preserves_payments_order(
+    mock_create_fulfillments_for_returned_products,
+    ordering,
+    staff_api_client,
+    fulfilled_order,
+    payment_dummy_factory,
+    permission_manage_orders,
+):
+    # given
+    payment_1 = payment_dummy_factory()
+    payment_1.captured_amount = payment_1.total
+    payment_1.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_1.save()
+    payment_2 = payment_dummy_factory()
+    payment_2.captured_amount = payment_2.total
+    payment_2.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_2.save()
+    payment_3 = payment_dummy_factory()
+    payment_3.captured_amount = payment_2.total
+    payment_3.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_3.save()
+
+    mapped_payments = {
+        "payment_1": payment_1,
+        "payment_2": payment_2,
+        "payment_3": payment_3,
+    }
+
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "includeShippingCosts": False,
+            "paymentsToRefund": [
+                {
+                    "paymentId": graphene.Node.to_global_id(
+                        "Payment", mapped_payments[f"payment_{ordering[0]}"].id
+                    ),
+                },
+                {
+                    "paymentId": graphene.Node.to_global_id(
+                        "Payment", mapped_payments[f"payment_{ordering[1]}"].id
+                    ),
+                },
+                {
+                    "paymentId": graphene.Node.to_global_id(
+                        "Payment", mapped_payments[f"payment_{ordering[2]}"].id
+                    ),
+                },
+            ],
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    payments_to_refund = [
+        OrderPaymentAction(mapped_payments[f"payment_{ordering[0]}"], Decimal("0")),
+        OrderPaymentAction(mapped_payments[f"payment_{ordering[1]}"], Decimal("0")),
+        OrderPaymentAction(mapped_payments[f"payment_{ordering[2]}"], Decimal("0")),
+    ]
+
+    # then
+    mock_create_fulfillments_for_returned_products.assert_called_once_with(
+        staff_api_client.user,
+        None,
+        fulfilled_order,
+        payments_to_refund,
+        [],
+        [],
+        ANY,
+        False,
+        True,
+    )
