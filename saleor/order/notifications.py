@@ -15,6 +15,7 @@ from ..product import ProductMediaTypes
 from ..product.models import DigitalContentUrl, Product, ProductMedia, ProductVariant
 from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
 from .models import FulfillmentLine, Order, OrderLine
+from .utils import get_active_payments
 
 if TYPE_CHECKING:
     from ..account.models import User  # noqa: F401
@@ -334,22 +335,38 @@ def send_fulfillment_update(order, fulfillment, manager):
     )
 
 
+def _prepare_payment_data(payment):
+    data = {
+        "created": payment.created,
+        "modified": payment.modified,
+        "charge_status": payment.charge_status,
+        "total": payment.total,
+        "captured_amount": payment.captured_amount,
+        "currency": payment.currency,
+    }
+
+    return data
+
+
 def send_payment_confirmation(order, manager):
     """Send notification with the payment confirmation."""
-    payment = order.get_last_payment()
+
     payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
-        "payment": {
-            "created": payment.created,
-            "modified": payment.modified,
-            "charge_status": payment.charge_status,
-            "total": payment.total,
-            "captured_amount": payment.captured_amount,
-            "currency": payment.currency,
-        },
         **get_site_context(),
     }
+
+    payments = get_active_payments(order)
+    if len(payments) == 1:
+        payload["payment"] = _prepare_payment_data(payments[0])
+    else:
+        payments_data = []
+        for payment in payments:
+            data = _prepare_payment_data(payment)
+            payments_data.append(data)
+        payload["payments"] = payments_data
+
     manager.notify(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
         payload,

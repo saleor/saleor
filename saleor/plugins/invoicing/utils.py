@@ -8,6 +8,8 @@ from django.template.loader import get_template
 from weasyprint import HTML
 
 from ...invoice.models import Invoice
+from ...order.utils import get_active_payments
+from ..manager import get_plugins_manager
 
 MAX_PRODUCTS_WITH_TABLE = 3
 MAX_PRODUCTS_WITHOUT_TABLE = 4
@@ -62,6 +64,21 @@ def get_product_limit_first_page(products):
     return MAX_PRODUCTS_WITHOUT_TABLE
 
 
+def _get_payments_data(order):
+    payments = get_active_payments(order)
+    manager = get_plugins_manager()
+    payments_data = [
+        {
+            "gateway_name": manager.get_plugin(payment.gateway).PLUGIN_NAME,
+            "captured_amount": payment.captured_amount,
+            "currency": payment.currency,
+        }
+        for payment in payments
+    ]
+
+    return payments_data
+
+
 def generate_invoice_pdf(invoice):
     font_path = os.path.join(
         settings.PROJECT_ROOT, "templates", "invoices", "inter.ttf"
@@ -76,11 +93,15 @@ def generate_invoice_pdf(invoice):
         all_products[product_limit_first_page:], MAX_PRODUCTS_PER_PAGE
     )
     creation_date = datetime.now(tz=pytz.utc)
+
+    payments_data = _get_payments_data(invoice.order)
+
     rendered_template = get_template("invoices/invoice.html").render(
         {
             "invoice": invoice,
             "creation_date": creation_date.strftime("%d %b %Y"),
             "order": invoice.order,
+            "payments_data": payments_data,
             "font_path": f"file://{font_path}",
             "products_first_page": products_first_page,
             "rest_of_products": rest_of_products,

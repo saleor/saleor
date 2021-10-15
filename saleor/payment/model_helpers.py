@@ -1,4 +1,3 @@
-from operator import attrgetter
 from typing import TYPE_CHECKING, List
 
 from ..core.taxes import zero_money, zero_taxed_money
@@ -6,10 +5,6 @@ from .models import Payment
 
 if TYPE_CHECKING:
     from ..order.models import OrderLine
-
-
-def get_last_payment(payments: List[Payment]):
-    return max(payments, default=None, key=attrgetter("pk"))
 
 
 def get_total_authorized(payments: List[Payment], fallback_currency: str):

@@ -1,5 +1,4 @@
 from decimal import Decimal
-from operator import attrgetter
 from re import match
 from typing import Optional
 from uuid import uuid4
@@ -293,9 +292,6 @@ class Order(ModelWithMetadata):
 
     def __str__(self):
         return "#%d" % (self.id,)
-
-    def get_last_payment(self):
-        return max(self.payments.all(), default=None, key=attrgetter("pk"))
 
     def is_pre_authorized(self):
         return (
