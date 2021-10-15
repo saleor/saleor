@@ -601,7 +601,9 @@ class Order(CountableDjangoObjectType):
         deprecation_reason="Use `shippingMethods`, this field will be removed in 4.0",
     )
     shipping_methods = graphene.List(
-        ShippingMethod, description="Shipping methods related to this order."
+        graphene.NonNull(ShippingMethod),
+        description="Shipping methods related to this order.",
+        required=True,
     )
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
