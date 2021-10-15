@@ -44,7 +44,6 @@ from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
     clean_refund_payment,
-    try_payment_void_action,
 )
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import (
@@ -4707,7 +4706,7 @@ def test_order_capture_more_than_authorized(
 
 @patch("saleor.payment.gateway.capture")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_order_capture_with_failed_payment(
+def test_order_capture_payment_error(
     mocked_notify,
     mocked_capture,
     channel_USD,
@@ -4717,7 +4716,8 @@ def test_order_capture_with_failed_payment(
     staff_user,
 ):
     # given
-    mocked_capture.side_effect = PaymentError("mock")
+    msg = "Oops! Something went wrong."
+    mocked_capture.side_effect = PaymentError(msg)
     order = payment_txn_preauth.order
     order_id = graphene.Node.to_global_id("Order", order.id)
     amount = payment_txn_preauth.total
@@ -4730,21 +4730,18 @@ def test_order_capture_with_failed_payment(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["orderCapture"]["order"]
-    assert data["paymentStatus"] == OrderPaymentStatusEnum.NOT_CHARGED.name
-    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
-        OrderPaymentStatus.NOT_CHARGED
-    )
-    assert data["paymentStatusDisplay"] == payment_status_display
-    assert not data["isPaid"]
-    assert data["totalCaptured"]["amount"] == float(0)
+    errors = content["data"]["orderCapture"]["errors"]
+    assert errors[0]["message"] == msg
+
+    order_errors = content["data"]["orderCapture"]["errors"]
+    assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
 
     assert (
         OrderEvent.objects.filter(
             type=OrderEvents.PAYMENT_CAPTURE_FAILED,
             order=order,
             user=staff_api_client.user,
-            parameters__message__contains="mock",
+            parameters__message__contains=msg,
         ).count()
         == 1
     )
@@ -4920,13 +4917,13 @@ def test_order_void_payment_error(
     order = payment_txn_preauth.order
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    mock_void_payment.side_effect = ValueError(msg)
+    mock_void_payment.side_effect = PaymentError(msg)
     response = staff_api_client.post_graphql(
         ORDER_VOID, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     errors = content["data"]["orderVoid"]["errors"]
-    assert errors[0]["field"] == "payment"
+    assert errors[0]["field"] is None
     assert errors[0]["message"] == msg
 
     order_errors = content["data"]["orderVoid"]["errors"]
@@ -5388,66 +5385,6 @@ def test_clean_payment_without_payment_associated_to_order(
     assert errors, "expected an error"
     assert errors == [{"field": "payment", "message": message}]
     assert not OrderEvent.objects.exists()
-
-
-@pytest.mark.parametrize(
-    "try_payment_action, exp_type",
-    ((try_payment_void_action, order_events.OrderEvents.PAYMENT_VOID_FAILED),),
-)
-def test_try_payment_action_generates_event(
-    order, try_payment_action, exp_type, staff_user, payment_dummy
-):
-    message = "The payment did a oopsie!"
-    assert not OrderEvent.objects.exists()
-
-    def _test_operation():
-        raise PaymentError(message)
-
-    with pytest.raises(ValidationError) as exc:
-        try_payment_action(
-            order=order,
-            user=staff_user,
-            app=None,
-            payment=payment_dummy,
-            func=_test_operation,
-        )
-
-    assert exc.value.args[0]["payment"].message == message
-
-    error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == exp_type
-    assert error_event.user == staff_user
-    assert not error_event.app
-    assert error_event.parameters == {
-        "message": message,
-        "gateway": payment_dummy.gateway,
-        "payment_id": payment_dummy.token,
-    }
-
-
-def test_try_payment_action_generates_app_event(order, app, payment_dummy):
-    message = "The payment did a oopsie!"
-    assert not OrderEvent.objects.exists()
-
-    def _test_operation():
-        raise PaymentError(message)
-
-    with pytest.raises(ValidationError) as exc:
-        try_payment_void_action(
-            order=order, user=None, app=app, payment=payment_dummy, func=_test_operation
-        )
-
-    assert exc.value.args[0]["payment"].message == message
-
-    error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == order_events.OrderEvents.PAYMENT_VOID_FAILED
-    assert not error_event.user
-    assert error_event.app == app
-    assert error_event.parameters == {
-        "message": message,
-        "gateway": payment_dummy.gateway,
-        "payment_id": payment_dummy.token,
-    }
 
 
 def test_clean_order_refund_payment():

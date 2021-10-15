@@ -547,6 +547,23 @@ def test_update_payment(gateway_response, payment_txn_captured):
     assert payment.payment_method_type == gateway_response.payment_method_info.type
 
 
+@pytest.mark.parametrize(
+    "partial, complete_order, result",
+    [
+        (True, True, True),
+        (False, True, True),
+        (False, False, True),
+        (True, False, False),
+    ],
+)
+def test_can_create_order(payment_txn_captured, partial, complete_order, result):
+    payment_txn_captured.partial = partial
+    payment_txn_captured.complete_order = complete_order
+    payment_txn_captured.save()
+
+    assert payment_txn_captured.can_create_order() == result
+
+
 @freeze_time("2021-06-01 12:00:00")
 @override_settings(UNFINISHED_PAYMENT_TTL=timedelta(days=1))
 @pytest.mark.parametrize(

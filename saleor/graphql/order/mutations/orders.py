@@ -8,13 +8,13 @@ from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderLineData, OrderStatus, events, models
 from ....order.actions import (
-    _capture_payments,
     cancel_order,
+    capture_payments,
     make_refund,
     mark_order_as_paid,
     order_confirmed,
     order_shipping_updated,
-    order_voided,
+    void_payments,
 )
 from ....order.error_codes import OrderErrorCode
 from ....order.interface import OrderPaymentAction
@@ -22,12 +22,12 @@ from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
+    get_active_payments,
     get_authorized_payments,
     get_valid_shipping_methods_for_order,
     recalculate_order,
     update_order_prices,
 )
-from ....payment import PaymentError, TransactionKind, gateway
 from ....payment.model_helpers import get_total_authorized
 from ....shipping import models as shipping_models
 from ...account.types import AddressInput
@@ -90,7 +90,7 @@ def clean_order_cancel(order):
         )
 
 
-def clean_payment(payments):
+def clean_payments(payments):
     if not payments:
         raise ValidationError(
             {
@@ -113,7 +113,7 @@ def clean_order_capture(order, payments, amount):
             }
         )
 
-    clean_payment(payments)
+    clean_payments(payments)
 
     if order.outstanding_balance.amount < amount:
         raise ValidationError(
@@ -136,22 +136,18 @@ def clean_order_capture(order, payments, amount):
         )
 
 
-def clean_void_payment(payment):
+def clean_void_payments(payments):
     """Check for payment errors."""
-    clean_payment(payment)
-    if not payment.is_active:
+    clean_payments(payments)
+    if not all([p.is_authorized for p in payments]):
         raise ValidationError(
-            {
-                "payment": ValidationError(
-                    "Only pre-authorized payments can be voided",
-                    code=OrderErrorCode.VOID_INACTIVE_PAYMENT,
-                )
-            }
+            "The order has active payments with status other than authorized.",
+            code=OrderErrorCode.PAYMENT_ERROR.value,
         )
 
 
 def clean_refund_payment(payment):
-    clean_payment(payment)
+    clean_payments(payment)
     if not payment.can_refund():
         raise ValidationError(
             {
@@ -161,28 +157,6 @@ def clean_refund_payment(payment):
                 )
             }
         )
-
-
-def try_payment_action_factory(payment_failed_event_func):
-    def try_payment_action(order, user, app, payment, func, *args, **kwargs):
-        try:
-            result = func(*args, **kwargs)
-            # provided order might alter it's total_paid.
-            order.refresh_from_db()
-            return result
-        except (PaymentError, ValueError) as e:
-            message = str(e)
-            payment_failed_event_func(
-                order=order, user=user, app=app, message=message, payment=payment
-            )
-            raise ValidationError(
-                {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
-            )
-
-    return try_payment_action
-
-
-try_payment_void_action = try_payment_action_factory(events.payment_void_failed_event)
 
 
 class OrderUpdateInput(graphene.InputObjectType):
@@ -551,12 +525,18 @@ class OrderCapture(BaseMutation):
         payments = get_authorized_payments(order)
         clean_order_capture(order, payments, amount)
         manager = info.context.plugins
-        _capture_payments(
+        failed_events = capture_payments(
             order,
             info.context.user,
             info.context.app,
             manager,
         )
+        if failed_events:
+            messages = [e.parameters["message"] for e in failed_events]
+            raise ValidationError(
+                " ".join(messages),
+                code=OrderErrorCode.PAYMENT_ERROR.value,
+            )
         return OrderCapture(order=order)
 
 
@@ -574,29 +554,26 @@ class OrderVoid(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        payment = order.get_last_payment()
-        clean_void_payment(payment)
-
-        transaction = try_payment_void_action(
+        order = cls.get_node_or_error(
+            info,
+            data.get("id"),
+            only_type=Order,
+            qs=models.Order.objects.prefetch_related("payments"),
+        )
+        payments = [p for p in get_active_payments(order)]
+        clean_void_payments(payments)
+        manager = info.context.plugins
+        failed_events = void_payments(
             order,
             info.context.user,
             info.context.app,
-            payment,
-            gateway.void,
-            payment,
-            info.context.plugins,
-            channel_slug=order.channel.slug,
+            manager,
         )
-        # Confirm that we changed the status to void. Some payment can receive
-        # asynchronous webhook with update status
-        if transaction.kind == TransactionKind.VOID:
-            order_voided(
-                order,
-                info.context.user,
-                info.context.app,
-                payment,
-                info.context.plugins,
+        if failed_events:
+            messages = [e.parameters["message"] for e in failed_events]
+            raise ValidationError(
+                " ".join(messages),
+                code=OrderErrorCode.PAYMENT_ERROR.value,
             )
         return OrderVoid(order=order)
 
