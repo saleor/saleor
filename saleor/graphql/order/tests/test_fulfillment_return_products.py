@@ -950,7 +950,7 @@ def test_fulfillment_refund_products_counts_only_active_payments(
     "saleor.graphql.order.mutations.fulfillments."
     "create_fulfillments_for_returned_products"
 )
-def test_fulfillment_refund_products_preserves_payments_order(
+def test_fulfillment_return_products_preserves_payments_order(
     mock_create_fulfillments_for_returned_products,
     ordering,
     staff_api_client,

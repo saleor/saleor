@@ -3,7 +3,6 @@ from decimal import Decimal
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Case, When
 from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
@@ -560,16 +559,11 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         payment_ids = payments_data.keys()
         cls._check_payments_belong_to_order(order, payment_ids)
 
-        preserved_order = Case(
-            *[When(pk=pk, then=position) for position, pk in enumerate(payment_ids)]
-        )
-        payment_objects = Payment.objects.filter(pk__in=payment_ids).order_by(
-            preserved_order
-        )
+        payment_objects = Payment.objects.in_bulk(payment_ids)
 
-        for payment in payment_objects:
-            payment_data = payments_data.get(payment.id)
-            amount = payment_data.get("amount")
+        for item in payments_data.items():
+            payment = payment_objects[item[0]]
+            amount = item[1]["amount"]
             has_amounts_specified.append(amount)
 
             payments.append(OrderPaymentAction(payment, amount or Decimal("0")))
