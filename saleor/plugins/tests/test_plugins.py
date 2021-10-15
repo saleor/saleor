@@ -221,3 +221,23 @@ def test_change_user_address_in_anonymize_plugin_reset_phone(address, settings):
         address=address, address_type=None, user=None, previous_value=address
     )
     assert not new_address.phone
+
+
+def test_get_plugin_name_for_existing_plugin(settings):
+    # given
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+    manager = get_plugins_manager()
+    # when
+    plugin_name = manager.get_plugin_name(PluginSample.PLUGIN_ID)
+    # then
+    assert plugin_name == PluginSample.PLUGIN_NAME
+
+
+def test_get_plugin_name_for_missing_plugin(settings):
+    # given
+    settings.PLUGINS = []
+    manager = get_plugins_manager()
+    # when
+    plugin_name = manager.get_plugin_name(PluginSample.PLUGIN_ID)
+    # then
+    assert plugin_name == PluginSample.PLUGIN_ID

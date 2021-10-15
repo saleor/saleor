@@ -98,6 +98,10 @@ class Payment(CountableDjangoObjectType):
     credit_card = graphene.Field(
         CreditCard, description="The details of the card used for this payment."
     )
+    gateway_name = graphene.String(
+        description="A human-readable name of the payment gateway plugin.",
+        required=True,
+    )
 
     class Meta:
         description = "Represents a payment of a given type."
@@ -107,6 +111,7 @@ class Payment(CountableDjangoObjectType):
         only_fields = [
             "id",
             "gateway",
+            "gateway_name",
             "is_active",
             "created",
             "modified",
@@ -175,6 +180,10 @@ class Payment(CountableDjangoObjectType):
         if not any(data.values()):
             return None
         return CreditCard(**data)
+
+    @staticmethod
+    def resolve_gateway_name(root: models.Payment, _info):
+        return _info.context.plugins.get_plugin_name(root.gateway)
 
 
 class PaymentInitialized(graphene.ObjectType):
