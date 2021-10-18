@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from ..graphql.core.types.common import Weight
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -66,12 +67,6 @@ class ExternalAccessTokens:
 class ExcludedShippingMethod:
     id: str
     reason: Optional[str]
-
-
-@dataclass
-class Weight:
-    unit: str
-    value: Decimal
 
 
 @dataclass
