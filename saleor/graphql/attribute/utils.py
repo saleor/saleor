@@ -515,13 +515,8 @@ class AttributeAssignmentMixin:
 
 
 def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
-    return (
-        qs.prefetch_related("attributevariant")
-        .filter(
-            attributevariant__variant_selection=True,
-            type=AttributeType.PRODUCT_TYPE,
-        )
-        .distinct()
+    return qs.filter(
+        type=AttributeType.PRODUCT_TYPE, attributevariant__variant_selection=True
     )
 
 
