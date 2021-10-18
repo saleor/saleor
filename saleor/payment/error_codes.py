@@ -15,3 +15,4 @@ class PaymentErrorCode(Enum):
     PAYMENT_ERROR = "payment_error"
     NOT_SUPPORTED_GATEWAY = "not_supported_gateway"
     CHANNEL_INACTIVE = "channel_inactive"
+    EMAIL_NOT_SET = "email_not_set"
