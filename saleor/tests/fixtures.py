@@ -282,7 +282,7 @@ def site_settings_with_reservations(site_settings):
 @pytest.fixture
 def checkout(db, channel_USD):
     checkout = Checkout.objects.create(
-        currency=channel_USD.currency_code, channel=channel_USD
+        currency=channel_USD.currency_code, channel=channel_USD, email="user@email.com"
     )
     checkout.set_country("US", commit=True)
     return checkout
@@ -682,6 +682,7 @@ def user_checkout(customer_user, channel_USD):
 def user_checkout_for_cc(customer_user, channel_USD, warehouse_for_cc):
     checkout = Checkout.objects.create(
         user=customer_user,
+        email=customer_user.email,
         channel=channel_USD,
         billing_address=customer_user.default_billing_address,
         shipping_address=warehouse_for_cc.address,
@@ -5237,6 +5238,7 @@ def checkout_for_cc(channel_USD, customer_user, product_variant_list):
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
         currency="USD",
+        email=customer_user.email,
     )
 
 

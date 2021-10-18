@@ -1025,7 +1025,7 @@ type Checkout implements Node & ObjectWithMetadata {
   availableShippingMethods: [ShippingMethod]!
   availableCollectionPoints: [Warehouse!]!
   availablePaymentGateways: [PaymentGateway!]!
-  email: String!
+  email: String
   isShippingRequired: Boolean!
   quantity: Int!
   stockReservationExpires: DateTime
