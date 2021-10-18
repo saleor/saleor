@@ -252,6 +252,14 @@ def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []
     return checkout
 
 
+def validate_checkout_email(checkout: models.Checkout):
+    if not checkout.email:
+        raise ValidationError(
+            "Checkout email must be set.",
+            code=CheckoutErrorCode.EMAIL_NOT_SET.value,
+        )
+
+
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
@@ -1640,6 +1648,8 @@ class CheckoutComplete(BaseMutation):
                     )
                 raise e
 
+            validate_checkout_email(checkout)
+
             manager = info.context.plugins
             lines = fetch_checkout_lines(checkout)
             validate_variants_in_checkout_lines(lines)
@@ -1713,6 +1723,8 @@ class CheckoutAddPromoCode(BaseMutation):
             checkout = cls.get_node_or_error(
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
+
+        validate_checkout_email(checkout)
 
         manager = info.context.plugins
         discounts = info.context.discounts
