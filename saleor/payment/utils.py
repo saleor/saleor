@@ -1,7 +1,7 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, cast
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -56,7 +56,7 @@ def create_payment_information(
     if checkout:
         billing = checkout.billing_address
         shipping = checkout.shipping_address
-        email = checkout.get_customer_email()
+        email = cast(str, checkout.get_customer_email())
         user_id = checkout.user_id
     elif payment.order:
         billing = payment.order.billing_address

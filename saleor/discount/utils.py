@@ -1,6 +1,6 @@
 import datetime
 from collections import defaultdict
-from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, List, Optional, Set
+from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, List, Optional, Set, cast
 
 from django.db.models import F
 from django.utils import timezone
@@ -135,7 +135,7 @@ def validate_voucher_for_checkout(
         discounts=discounts,
     )
 
-    customer_email = checkout_info.get_customer_email()
+    customer_email = cast(str, checkout_info.get_customer_email())
     validate_voucher(
         voucher,
         subtotal,

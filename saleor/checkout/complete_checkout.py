@@ -1,5 +1,5 @@
 from datetime import date
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, cast
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -70,7 +70,8 @@ def _get_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     if voucher.usage_limit:
         increase_voucher_usage(voucher)
     if voucher.apply_once_per_customer:
-        add_voucher_usage_by_customer(voucher, checkout_info.get_customer_email())
+        customer_email = cast(str, checkout_info.get_customer_email())
+        add_voucher_usage_by_customer(voucher, customer_email)
     return {
         "voucher": voucher,
     }

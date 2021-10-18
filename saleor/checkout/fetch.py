@@ -65,7 +65,7 @@ class CheckoutInfo:
             return self.checkout.country.code
         return address.country.code
 
-    def get_customer_email(self) -> str:
+    def get_customer_email(self) -> Optional[str]:
         return self.user.email if self.user else self.checkout.email
 
 
