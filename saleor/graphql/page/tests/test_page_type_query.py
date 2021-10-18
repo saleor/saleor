@@ -201,7 +201,7 @@ def test_page_type_query_no_pages(
     assert available_attributes[0]["node"]["slug"] == author_page_attribute.slug
 
 
-def test_page_types_for_federation_query_count(api_client, page_type):
+def test_query_page_types_for_federation(api_client, page_type):
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
     variables = {
         "representations": [
