@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django_countries.fields import Country
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from ..graphql.core.types.common import Weight
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
