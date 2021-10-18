@@ -223,8 +223,11 @@ class VatlayerPlugin(BasePlugin):
         shipping_price = getattr(
             checkout_info.delivery_method_info.delivery_method, "price", None
         )
-        if shipping_price is None and checkout_info.shipping_method_channel_listings:
-            shipping_price = checkout_info.shipping_method_channel_listings.price
+        if shipping_price is None:
+            if checkout_info.shipping_method_channel_listings:
+                shipping_price = checkout_info.shipping_method_channel_listings.price
+            else:
+                shipping_price = previous_value
 
         return get_taxed_shipping_price(shipping_price, taxes)
 
