@@ -1,8 +1,8 @@
 from typing import List
 
+from ...graphql.core.types import Weight
 from ...plugins.base_plugin import ExcludedShippingMethod
 from ...plugins.base_plugin import ShippingMethod as ShippingMethodDataclass
-from ...plugins.base_plugin import Weight
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
 
