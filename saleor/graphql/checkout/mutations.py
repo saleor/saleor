@@ -611,13 +611,33 @@ class CheckoutLinesDelete(BaseMutation):
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
 
-        node, lines = resolve_global_ids_to_primary_keys(
+        node, lines_to_delete = resolve_global_ids_to_primary_keys(
             lines_ids, graphene_type="CheckoutLine", raise_error=True
         )
-        checkout.lines.filter(id__in=lines).delete()
+        lines = checkout.lines.all()
+        all_lines_ids = [str(line.id) for line in lines]
+        invalid_line_ids = list()
+        for line_to_delete in lines_to_delete:
+            if line_to_delete not in all_lines_ids:
+                line_to_delete = graphene.Node.to_global_id(
+                    "CheckoutLine", line_to_delete
+                )
+                invalid_line_ids.append(line_to_delete)
+
+        if invalid_line_ids:
+            raise ValidationError(
+                {
+                    "line_id": ValidationError(
+                        "Provided line_ids aren't part of checkout.",
+                        params={"lines": invalid_line_ids},
+                    )
+                }
+            )
+        checkout.lines.filter(id__in=lines_to_delete).delete()
+
+        lines = fetch_checkout_lines(checkout)
 
         manager = info.context.plugins
-        lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
             checkout, lines, info.context.discounts, manager
         )

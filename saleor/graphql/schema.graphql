@@ -1028,6 +1028,7 @@ type CheckoutError {
   message: String
   code: CheckoutErrorCode!
   variants: [ID!]
+  lines: [ID!]
   addressType: AddressTypeEnum
 }
 

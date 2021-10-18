@@ -743,8 +743,10 @@ MUTATION_CHECKOUT_LINES_DELETE = """
                 }
             }
             errors {
-                field
-                message
+                  message
+                  code
+                  field
+                  lines
             }
         }
     }
@@ -782,3 +784,40 @@ def test_checkout_lines_delete(
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+
+
+def test_checkout_lines_delete_invalid_checkout_token(
+    user_api_client, checkout_with_items
+):
+    checkout = checkout_with_items
+    line = checkout.lines.first()
+    second_line = checkout.lines.last()
+
+    first_line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
+    second_line_id = graphene.Node.to_global_id("CheckoutLine", second_line.pk)
+    lines_list = [first_line_id, second_line_id]
+
+    variables = {
+        "token": "bd159cc8-9dd6-4529-a6f6-8a5dee169806",
+        "linesIds": lines_list,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutLinesDelete"]["errors"][0]
+    assert errors["code"] == CheckoutErrorCode.NOT_FOUND.name
+
+
+def tests_checkout_lines_delete_invalid_lines_ids(user_api_client, checkout_with_items):
+    checkout = checkout_with_items
+    line = checkout.lines.first()
+
+    first_line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
+    lines_list = [first_line_id, "Q2hlY2tvdXRMaW5lOjE8"]
+
+    variables = {"token": checkout.token, "linesIds": lines_list}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutLinesDelete"]["errors"][0]
+    assert errors["code"] == CheckoutErrorCode.INVALID.name
+    assert errors["lines"] == lines_list[1:]
+    assert errors["field"] == "lineId"
