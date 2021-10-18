@@ -3,11 +3,13 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Callable, List, Optional
 
 from ..core.tracing import traced_atomic_transaction
+from ..order import FulfillmentLineData, OrderLineData
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
 from .utils import (
     clean_authorize,
     clean_capture,
+    create_lines_to_refund,
     create_payment_information,
     create_transaction,
     gateway_postprocess,
@@ -195,6 +197,8 @@ def refund(
     manager: "PluginsManager",
     channel_slug: str,
     amount: Decimal = None,
+    order_lines_to_refund: Optional[List[OrderLineData]] = None,
+    fulfillment_lines_to_refund: Optional[List[FulfillmentLineData]] = None,
 ) -> Transaction:
     if amount is None:
         amount = payment.captured_amount
@@ -206,7 +210,14 @@ def refund(
 
     token = _get_past_transaction_token(payment, kind)
     payment_data = create_payment_information(
-        payment=payment, manager=manager, payment_token=token, amount=amount
+        payment=payment,
+        manager=manager,
+        payment_token=token,
+        amount=amount,
+        lines_to_refund=create_lines_to_refund(
+            fulfillment_lines_to_refund or [],
+            order_lines_to_refund or [],
+        ),
     )
     if payment.is_manual():
         # for manual payment we just need to mark payment as a refunded

@@ -1218,7 +1218,12 @@ def _process_refund(
         amount = min(payment.captured_amount, amount)
         try:
             gateway.refund(
-                payment, manager, amount=amount, channel_slug=order.channel.slug
+                payment,
+                manager,
+                amount=amount,
+                channel_slug=order.channel.slug,
+                order_lines_to_refund=order_lines_to_refund,
+                fulfillment_lines_to_refund=fulfillment_lines_to_refund,
             )
         except PaymentError:
             raise ValidationError(
