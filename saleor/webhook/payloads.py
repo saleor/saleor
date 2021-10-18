@@ -127,7 +127,7 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
     )
 
 
-def generate_order_payload(order: "Order"):
+def generate_order_payload(order: "Order", available_shipping_methods: List[ShippingMethod] = List):
     serializer = PayloadSerializer()
     fulfillment_fields = (
         "status",
@@ -173,7 +173,7 @@ def generate_order_payload(order: "Order"):
 
     channel_fields = ("slug", "currency_code")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
-
+    excluded_shipping_method_fields = ("id", "reason")
     lines = order.lines.all()
 
     fulfillments_data = serializer.serialize(
@@ -193,6 +193,9 @@ def generate_order_payload(order: "Order"):
             "shipping_address": (lambda o: o.shipping_address, ADDRESS_FIELDS),
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
             "discounts": (lambda o: o.discounts.all(), discount_fields),
+            "shipping_methods": [
+                asdict(shipping_method) for shipping_method in available_shipping_methods
+            ],
         },
         extra_dict_data={
             "original": graphene.Node.to_global_id("Order", order.original_id),
