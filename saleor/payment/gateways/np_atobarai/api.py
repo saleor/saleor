@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 from typing import Iterable, List, Optional
 
 import requests
@@ -6,10 +7,9 @@ from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
-from saleor.order.models import Fulfillment
-
+from ....order.models import Fulfillment
 from ... import PaymentError
-from ...interface import AddressData, PaymentData
+from ...interface import AddressData, PaymentData, PaymentLineData, RefundLineData
 from ...models import Payment
 from ...utils import price_to_minor_unit
 from .api_types import ApiConfig, PaymentResult, PaymentStatus
@@ -65,6 +65,12 @@ def np_request(
         raise PaymentError(msg)
 
 
+def _get_errors(response_data: dict) -> Iterable[str]:
+    if "errors" not in response_data:
+        return []
+    return set(response_data["errors"][0]["codes"])
+
+
 def health_check(config: ApiConfig) -> bool:
     try:
         _request(config, "post", "/authorizations/find")
@@ -100,6 +106,10 @@ def _format_address(config: ApiConfig, ad: AddressData):
             )
 
 
+def _format_price(price: Decimal, currency: str) -> int:
+    return int(price_to_minor_unit(price, currency))
+
+
 def register_transaction(
     config: ApiConfig, payment_information: "PaymentData"
 ) -> PaymentResult:
@@ -124,10 +134,8 @@ def register_transaction(
                     "shop_transaction_id": payment_information.payment_id,
                     "shop_order_date": order_date,
                     "settlement_type": NP_ATOBARAI,
-                    "billed_amount": int(
-                        price_to_minor_unit(
-                            payment_information.amount, payment_information.currency
-                        )
+                    "billed_amount": _format_price(
+                        payment_information.amount, payment_information.currency
                     ),
                     "customer": {
                         "customer_name": billing.first_name,
@@ -148,10 +156,8 @@ def register_transaction(
                         {
                             "quantity": line.quantity,
                             "goods_name": line.product_name,
-                            "goods_price": int(
-                                price_to_minor_unit(
-                                    line.gross, payment_information.currency
-                                )
+                            "goods_price": _format_price(
+                                line.gross, payment_information.currency
                             ),
                         }
                         for line in payment_information.lines
@@ -198,15 +204,97 @@ def register_transaction(
         )
 
 
+def _get_refunded_goods(
+    refund_lines: List[RefundLineData],
+    payment_information: PaymentData,
+) -> List[dict]:
+    goods = []
+
+    for payment_line in payment_information.lines:
+        for refund_line in refund_lines:
+            if refund_line.product_sku == payment_line.product_sku:
+                quantity = refund_line.quantity
+                break
+        else:
+            quantity = payment_line.quantity
+
+        goods.append(
+            {
+                "goods_name": payment_line.product_name,
+                "goods_price": _format_price(
+                    payment_line.gross, payment_information.currency
+                ),
+                "quantity": quantity,
+            }
+        )
+    return goods
+
+
+def _get_discount(
+    payment_information: PaymentData,
+) -> List[dict]:
+    return [
+        {
+            "goods_name": line.product_name,
+            "goods_price": _format_price(
+                line.gross,
+                payment_information.currency,
+            ),
+            "quantity": line.quantity,
+        }
+        for line in payment_information.lines
+        + [
+            PaymentLineData(
+                product_name="discount",
+                product_sku="",
+                gross=-payment_information.amount,
+                quantity=1,
+            )
+        ]
+    ]
+
+
 def change_transaction(
-    config: ApiConfig, payment_information: PaymentData
+    config: ApiConfig,
+    payment: Payment,
+    payment_information: PaymentData,
+    lines: Optional[List[RefundLineData]],
 ) -> PaymentResult:
-    # TODO: add actual implementation
-    return PaymentResult(
-        status=PaymentStatus.FAILED,
-        psp_reference="",
-        errors=["Cannot partially refund transaction in NP."],
-    )
+    with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.change"):
+        if lines:
+            goods = _get_refunded_goods(lines, payment_information)
+        else:
+            goods = _get_discount(payment_information)
+        data = {
+            "transactions": [
+                {
+                    "np_transaction_id": payment.psp_reference,
+                    "billed_amount": _format_price(
+                        payment.captured_amount - payment_information.amount,
+                        payment_information.currency,
+                    ),
+                    "goods": goods,
+                }
+            ]
+        }
+
+        response = np_request(config, "patch", "/transactions/update", json=data)
+        response_data = response.json()
+
+        status = PaymentStatus.SUCCESS
+        error_messages = []
+
+        if error_codes := _get_errors(response_data):
+            status = PaymentStatus.FAILED
+            error_messages = get_error_messages_from_codes(
+                error_codes, TRANSACTION_REGISTRATION_RESULT_ERRORS
+            )
+
+        return PaymentResult(
+            status=status,
+            psp_reference=payment.psp_reference or "",
+            errors=error_messages,
+        )
 
 
 def _cancel(config: ApiConfig, transaction_id: str) -> dict:
@@ -215,10 +303,16 @@ def _cancel(config: ApiConfig, transaction_id: str) -> dict:
     return response.json()
 
 
-def _get_errors(response_data: dict) -> Iterable[str]:
-    if "errors" not in response_data:
-        return []
-    return set(response_data["errors"][0]["codes"])
+def transaction_reregistration_for_partial_return(
+    config: ApiConfig,
+    payment: Payment,
+    payment_information: PaymentData,
+    lines: Optional[List[RefundLineData]],
+) -> PaymentResult:
+    return PaymentResult(
+        status=PaymentStatus.FAILED,
+        errors=["NP Transaction Re-Registration is not implemented."],
+    )
 
 
 def cancel_transaction(

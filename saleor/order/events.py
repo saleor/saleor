@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ..account import events as account_events
 from ..account.models import User
@@ -809,4 +809,19 @@ def order_line_variant_removed_event(
         user=user,
         app=app,
         parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
+    )
+
+
+def order_other_event(
+    order: Order,
+    user: UserType,
+    app: AppType,
+    parameters: Dict[str, Any],
+):
+    return OrderEvent.objects.create(
+        type=OrderEvents.OTHER,
+        order=order,
+        user=user,
+        app=app,
+        parameters=parameters,
     )

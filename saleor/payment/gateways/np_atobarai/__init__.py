@@ -2,13 +2,17 @@ import logging
 import os
 from typing import List
 
-from saleor.order.models import Fulfillment
-
-from ... import TransactionKind
+from ....order.models import Fulfillment
+from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from ...models import Payment
 from . import api
 from .api_types import ApiConfig, PaymentStatus, get_api_config
+from .utils import (
+    fulfillment_is_captured,
+    mark_fulfillment_as_captured,
+    notify_dashboard,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -57,18 +61,43 @@ def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse
 
 @inject_api_config
 def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None:
-    errors = api.report_fulfillment(config, fulfillment)
+    order = fulfillment.order
+
+    if not fulfillment.lines.count() == order.lines.count():
+        errors = ["Cannot report tracking lines for partial fulfillments."]
+    else:
+        errors = api.report_fulfillment(config, fulfillment)
 
     if errors:
-        logger.error("Could not capture payment in NP Atobarai: %s" ", ".join(errors))
+        error = ", ".join(errors)
+        logger.warning("Could not capture payment in NP Atobarai: %s", error)
+        notify_dashboard(order, "Capture Error: Partial Fulfillment")
+    else:
+        mark_fulfillment_as_captured(fulfillment)
 
 
 @inject_api_config
 def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
-    payment = Payment.objects.get(pk=payment_information.payment_id)
+    payment_id = payment_information.payment_id
+    payment = Payment.objects.filter(pk=payment_id).first()
+
+    if not payment:
+        raise PaymentError(f"Payment with id {payment_id} does not exist.")
 
     if payment_information.amount < payment.captured_amount:
-        result = api.change_transaction(config, payment_information)
+        order = payment.order
+        if not order:
+            raise PaymentError(f"Order does not exist for payment with id {payment_id}")
+
+        fulfillment = order.fulfillments.order_by("fulfillment_order").first()
+        lines = payment_information.lines_to_refund
+
+        if fulfillment_is_captured(fulfillment):
+            result = api.transaction_reregistration_for_partial_return(
+                config, payment, payment_information, lines
+            )
+        else:
+            result = api.change_transaction(config, payment, payment_information, lines)
     else:
         result = api.cancel_transaction(config, payment_information)
 
