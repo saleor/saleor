@@ -47,12 +47,14 @@ def get_tax_percentage_in_adyen_format(total_gross, total_net):
     return tax_percentage_in_adyen_format
 
 
-def api_call(request_data: Optional[Dict[str, Any]], method: Callable) -> Adyen.Adyen:
+def api_call(
+    request_data: Optional[Dict[str, Any]], method: Callable, **kwargs
+) -> Adyen.Adyen:
     try:
-        return method(request_data)
+        return method(request_data, **kwargs)
     except (Adyen.AdyenError, ValueError, TypeError) as e:
         logger.warning(f"Unable to process the payment: {e}")
-        raise PaymentError("Unable to process the payment request.")
+        raise PaymentError(f"Unable to process the payment request: {e}.")
 
 
 def prepare_address_request_data(address: Optional["AddressData"]) -> Optional[dict]:
@@ -440,3 +442,24 @@ def get_payment_method_info(
         type="card" if payment_method == "scheme" else payment_method,
     )
     return payment_method_info
+
+
+def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dict:
+    amount = data["card"].get("money")
+    security_code = data["card"].get("cvc")
+
+    request_data = {
+        "merchantAccount": merchant_account,
+        "paymentMethod": {
+            "type": data["method"],
+            "number": data["card"]["code"],
+        },
+    }
+
+    if amount:
+        request_data["amount"] = amount
+
+    if security_code:
+        request_data["paymentMethod"]["securityCode"] = security_code  # type: ignore
+
+    return request_data

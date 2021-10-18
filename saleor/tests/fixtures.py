@@ -4345,3 +4345,17 @@ def app_export_event(app_export_file):
         app=app_export_file.app,
         parameters={"message": "Example error message"},
     )
+
+
+@pytest.fixture
+def check_payment_balance_input():
+    return {
+        "gatewayId": "mirumee.payments.gateway",
+        "channel": "channel_default",
+        "method": "givex",
+        "card": {
+            "cvc": "9891",
+            "code": "12345678910",
+            "money": {"currency": "GBP", "value": 100.0},
+        },
+    }
