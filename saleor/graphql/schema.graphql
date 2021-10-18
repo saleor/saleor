@@ -1144,6 +1144,7 @@ enum CheckoutErrorCode {
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
   UNAVAILABLE_VARIANT_IN_CHANNEL
+  EMAIL_NOT_SET
 }
 
 input CheckoutFilterInput {
@@ -4966,6 +4967,7 @@ enum PaymentErrorCode {
   NOT_SUPPORTED_GATEWAY
   CHANNEL_INACTIVE
   BALANCE_CHECK_ERROR
+  EMAIL_NOT_SET
 }
 
 input PaymentFilterInput {
