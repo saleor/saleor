@@ -201,6 +201,7 @@ def test_excluded_shipping_methods_id_expected_for_order(
             order=order_with_lines,
             available_shipping_methods=available_shipping_methods,
             previous_value=previous_value,
+            app_name=shipping_app,
         )
 
 
