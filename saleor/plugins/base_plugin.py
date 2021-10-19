@@ -62,6 +62,23 @@ class ExternalAccessTokens:
     user: Optional["User"] = None
 
 
+@dataclass
+class ExcludedShippingMethod:
+    id: str
+    reason: Optional[str]
+
+
+@dataclass
+class ShippingMethod:
+    id: str
+    price: Decimal
+    name: str
+    maximum_order_weight: Decimal
+    minimum_order_weight: Decimal
+    maximum_delivery_days: int
+    minimum_delivery_days: int
+
+
 class BasePlugin:
     """Abstract class for storing all methods available for any plugin.
 
@@ -628,3 +645,19 @@ class BasePlugin:
             # Let's add a translated descriptions and labels
             self._append_config_structure(configuration)
         return configuration
+
+    def excluded_shipping_methods_for_order(
+        self,
+        order: "Order",
+        available_shipping_methods: List[ShippingMethod],
+        previous_value,
+    ) -> List[ExcludedShippingMethod]:
+        return NotImplemented
+
+    def excluded_shipping_methods_for_checkout(
+        self,
+        checkout: "Checkout",
+        available_shipping_methods: List[ShippingMethod],
+        previous_value,
+    ) -> List[ExcludedShippingMethod]:
+        return NotImplemented
