@@ -152,7 +152,7 @@ TRANSACTION_REGISTRATION_RESULT_ERRORS = {
 TRANSACTION_CANCELLATION_RESULT_ERROR = {
     "EPRO0101": "Please confirm that at least one normal transaction is set.",
     "EPRO0102": (
-        "Please confirm that 1, 000 or fewer sets of normal transactions are set."
+        "Please confirm that 1000 or fewer sets of normal transactions are set."
     ),
     "EPRO0105": "Please check if the NP Transaction ID has been entered.",
     "EPRO0106": "Please check if the same NP Transaction ID is duplicated.",
@@ -174,7 +174,7 @@ TRANSACTION_CANCELLATION_RESULT_ERROR = {
 FULFILLMENT_REPORT_RESULT_ERRORS = {
     "EPRO0101": "Please confirm that at least one normal transaction is set.",
     "EPRO0102": (
-        "Please confirm that 1, 000 or fewer sets of normal transactions are set."
+        "Please confirm that 1000 or fewer sets of normal transactions are set."
     ),
     "EPRO0105": "Please check if the NP Transaction ID has been entered.",
     "EPRO0106": "Please check if the same NP Transaction ID is duplicated.",
@@ -216,8 +216,8 @@ FULFILLMENT_REPORT_RESULT_ERRORS = {
     "E0100118": "Please check if transaction is prior to customer payment.",
     "E0100120": "Please check that the credit result is OK.",
     "E0100121": "Please check if the invoice print data was downloaded.",
-    "E0109002": ("NP system error - NP Transaction Fee."),
-    "E0109003": ("NP system error - Invoice Issuance Fee."),
+    "E0109002": "NP system error - NP Transaction Fee.",
+    "E0109003": "NP system error - Invoice Issuance Fee.",
 }
 
 

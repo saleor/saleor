@@ -165,6 +165,6 @@ def test_report_fulfillment_np_errors(
 
     # then
     assert set(errors) == {
-        "Please confirm that 1, 000 or fewer sets of normal transactions are set.",
+        "Please confirm that 1000 or fewer sets of normal transactions are set.",
         "Please confirm that at least one normal transaction is set.",
     }

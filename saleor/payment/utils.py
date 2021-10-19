@@ -98,19 +98,24 @@ def create_lines_to_refund(
     fulfillment_lines: Optional[List[FulfillmentLineData]],
     order_lines: Optional[List[OrderLineData]],
 ) -> Optional[List[RefundLineData]]:
-    return [
+
+    fulfillment_refund_lines = [
         RefundLineData(
             product_sku=(order_line := line.line.order_line).product_sku,
             quantity=order_line.quantity - line.quantity,
         )
         for line in fulfillment_lines or []
-    ] + [
+    ]
+
+    order_refund_lines = [
         RefundLineData(
             product_sku=line.line.product_sku,
             quantity=line.line.quantity - line.quantity,
         )
         for line in order_lines or []
-    ] or None
+    ]
+
+    return fulfillment_refund_lines + order_refund_lines or None
 
 
 def create_payment_information(
