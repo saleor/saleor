@@ -6,6 +6,7 @@ from unittest import mock
 
 import graphene
 import pytest
+from django.core.exceptions import ValidationError
 
 from ....app.models import App
 from ....graphql.tests.utils import get_graphql_content
@@ -160,6 +161,47 @@ def test_excluded_shipping_methods_for_order(
         WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
     )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_sync")
+@mock.patch(
+    "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
+)
+def test_excluded_shipping_methods_id_expected_for_order(
+    mocked_payload,
+    mocked_webhook,
+    webhook_plugin,
+    order_with_lines,
+    available_shipping_methods_factory,
+    shipping_app,
+):
+    # given
+    webhook_reason = "spanish-inquisition"
+    other_reason = "it's a trap"
+    mocked_webhook.return_value = {
+        "excluded_methods": [
+            {
+                "id": "",
+                "reason": webhook_reason,
+            }
+        ]
+    }
+    payload = mock.MagicMock()
+    mocked_payload.return_value = payload
+    plugin = webhook_plugin()
+    available_shipping_methods = available_shipping_methods_factory(num_methods=2)
+    previous_value = [
+        ExcludedShippingMethod(id="1", reason=other_reason),
+        ExcludedShippingMethod(id="2", reason=other_reason),
+    ]
+
+    # when
+    with pytest.raises(ValidationError):
+        plugin.excluded_shipping_methods_for_order(
+            order=order_with_lines,
+            available_shipping_methods=available_shipping_methods,
+            previous_value=previous_value,
+        )
 
 
 @mock.patch(
