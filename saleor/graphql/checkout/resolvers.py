@@ -105,7 +105,7 @@ def _resolve_checkout_excluded_shipping_methods(
     return getattr(root, cache_key)
 
 
-def resolve_checkout_available_shipping_methods(
+def resolve_checkout_shipping_methods(
     root: models.Checkout, info, include_active_only=False
 ):
     def calculate_available_shipping_methods(data):

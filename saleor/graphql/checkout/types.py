@@ -32,7 +32,7 @@ from .dataloaders import (
     CheckoutLinesByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
-from .resolvers import resolve_checkout_available_shipping_methods
+from .resolvers import resolve_checkout_shipping_methods
 
 
 class GatewayConfigLine(graphene.ObjectType):
@@ -254,14 +254,12 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_available_shipping_methods(root: models.Checkout, info):
-        return resolve_checkout_available_shipping_methods(
-            root, info, include_active_only=True
-        )
+        return resolve_checkout_shipping_methods(root, info, include_active_only=True)
 
     @staticmethod
     @traced_resolver
     def resolve_shipping_methods(root: models.Checkout, info):
-        return resolve_checkout_available_shipping_methods(root, info)
+        return resolve_checkout_shipping_methods(root, info)
 
     @staticmethod
     def resolve_shipping_method(root: models.Checkout, info):
