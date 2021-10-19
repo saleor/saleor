@@ -65,7 +65,10 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_customer_detach = CheckoutCustomerDetach.Field()
     checkout_email_update = CheckoutEmailUpdate.Field()
     checkout_line_delete = CheckoutLineDelete.Field(
-        deprecation_reason="DEPRECATED: Will be removed in Saleor 4.0."
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 4.0. "
+            "Use `checkoutLinesDelete` instead."
+        )
     )
     checkout_lines_delete = CheckoutLinesDelete.Field()
     checkout_lines_add = CheckoutLinesAdd.Field()

@@ -135,7 +135,7 @@ class CheckoutError(Error):
     )
     lines = graphene.List(
         graphene.NonNull(graphene.ID),
-        description="List of line Ids which causes the error.",
+        description="List of line Ids which cause the error.",
         required=False,
     )
     address_type = AddressTypeEnum(

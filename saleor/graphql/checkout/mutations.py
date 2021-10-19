@@ -585,11 +585,11 @@ class CheckoutLinesDelete(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        token = UUID(description="Checkout token.", required=False)
+        token = UUID(description="Checkout token.", required=True)
         lines_ids = graphene.List(
             graphene.ID,
             required=True,
-            description=("A list of checkout lines."),
+            description="A list of checkout lines.",
         )
 
     class Meta:
@@ -597,23 +597,7 @@ class CheckoutLinesDelete(BaseMutation):
         error_type_class = CheckoutError
 
     @classmethod
-    def perform_mutation(cls, _root, info, lines_ids, checkout_id=None, token=None):
-        # DEPRECATED
-        validate_one_of_args_is_in_mutation(
-            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
-        )
-
-        if token:
-            checkout = get_checkout_by_token(token)
-        # DEPRECATED
-        else:
-            checkout = cls.get_node_or_error(
-                info, checkout_id or token, only_type=Checkout, field="checkout_id"
-            )
-
-        node, lines_to_delete = resolve_global_ids_to_primary_keys(
-            lines_ids, graphene_type="CheckoutLine", raise_error=True
-        )
+    def validate_lines(cls, checkout, lines_to_delete):
         lines = checkout.lines.all()
         all_lines_ids = [str(line.id) for line in lines]
         invalid_line_ids = list()
@@ -633,6 +617,15 @@ class CheckoutLinesDelete(BaseMutation):
                     )
                 }
             )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, lines_ids, token=None):
+        checkout = get_checkout_by_token(token)
+
+        _, lines_to_delete = resolve_global_ids_to_primary_keys(
+            lines_ids, graphene_type="CheckoutLine", raise_error=True
+        )
+        cls.validate_lines(checkout, lines_to_delete)
         checkout.lines.filter(id__in=lines_to_delete).delete()
 
         lines = fetch_checkout_lines(checkout)
