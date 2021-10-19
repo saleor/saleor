@@ -9,6 +9,7 @@ from ....order import FulfillmentLineData, OrderLineData
 from ....order.error_codes import OrderErrorCode
 from ....order.models import FulfillmentStatus
 from ....payment import ChargeStatus, PaymentError
+from ....payment.utils import create_lines_to_refund
 from ....warehouse.models import Stock
 from ...tests.utils import get_graphql_content
 
@@ -86,8 +87,10 @@ def test_fulfillment_refund_products_amount_and_shipping_costs(
         ANY,
         amount=quantize_price(amount_to_refund, fulfilled_order.currency),
         channel_slug=fulfilled_order.channel.slug,
-        fulfillment_lines_to_refund=[],
-        order_lines_to_refund=[],
+        lines_to_refund=create_lines_to_refund(
+            fulfillment_lines=[],
+            order_lines=[],
+        ),
     )
 
 
@@ -161,14 +164,16 @@ def test_fulfillment_refund_products_order_lines(
         ANY,
         amount=line_to_refund.unit_price_gross_amount * 2,
         channel_slug=order_with_lines.channel.slug,
-        fulfillment_lines_to_refund=[],
-        order_lines_to_refund=[
-            OrderLineData(
-                line=line_to_refund,
-                quantity=2,
-                replace=False,
-            )
-        ],
+        lines_to_refund=create_lines_to_refund(
+            fulfillment_lines=[],
+            order_lines=[
+                OrderLineData(
+                    line=line_to_refund,
+                    quantity=2,
+                    replace=False,
+                )
+            ],
+        ),
     )
 
 
@@ -277,14 +282,16 @@ def test_fulfillment_refund_products_fulfillment_lines(
         ANY,
         amount=fulfillment_line_to_refund.order_line.unit_price_gross_amount * 2,
         channel_slug=fulfilled_order.channel.slug,
-        fulfillment_lines_to_refund=[
-            FulfillmentLineData(
-                line=fulfillment_line_to_refund,
-                quantity=2,
-                replace=False,
-            )
-        ],
-        order_lines_to_refund=[],
+        lines_to_refund=create_lines_to_refund(
+            fulfillment_lines=[
+                FulfillmentLineData(
+                    line=fulfillment_line_to_refund,
+                    quantity=2,
+                    replace=False,
+                )
+            ],
+            order_lines=[],
+        ),
     )
 
 
@@ -406,14 +413,16 @@ def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
-        fulfillment_lines_to_refund=[
-            FulfillmentLineData(
-                line=fulfillment_line_to_refund,
-                quantity=2,
-                replace=False,
-            )
-        ],
-        order_lines_to_refund=[],
+        lines_to_refund=create_lines_to_refund(
+            fulfillment_lines=[
+                FulfillmentLineData(
+                    line=fulfillment_line_to_refund,
+                    quantity=2,
+                    replace=False,
+                )
+            ],
+            order_lines=[],
+        ),
     )
 
 
@@ -458,14 +467,16 @@ def test_fulfillment_refund_products_order_lines_include_shipping_costs(
         ANY,
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
-        fulfillment_lines_to_refund=[],
-        order_lines_to_refund=[
-            OrderLineData(
-                line=line_to_refund,
-                quantity=2,
-                replace=False,
-            )
-        ],
+        lines_to_refund=create_lines_to_refund(
+            fulfillment_lines=[],
+            order_lines=[
+                OrderLineData(
+                    line=line_to_refund,
+                    quantity=2,
+                    replace=False,
+                )
+            ],
+        ),
     )
 
 
@@ -517,14 +528,16 @@ def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
         ANY,
         amount=amount_to_refund,
         channel_slug=fulfilled_order.channel.slug,
-        fulfillment_lines_to_refund=[
-            FulfillmentLineData(
-                line=fulfillment_line_to_refund,
-                quantity=2,
-                replace=False,
-            )
-        ],
-        order_lines_to_refund=[],
+        lines_to_refund=create_lines_to_refund(
+            fulfillment_lines=[
+                FulfillmentLineData(
+                    line=fulfillment_line_to_refund,
+                    quantity=2,
+                    replace=False,
+                )
+            ],
+            order_lines=[],
+        ),
     )
 
 
@@ -568,14 +581,16 @@ def test_fulfillment_refund_products_order_lines_custom_amount(
         ANY,
         amount=amount_to_refund,
         channel_slug=order_with_lines.channel.slug,
-        fulfillment_lines_to_refund=[],
-        order_lines_to_refund=[
-            OrderLineData(
-                line=line_to_refund,
-                quantity=2,
-                replace=False,
-            )
-        ],
+        lines_to_refund=create_lines_to_refund(
+            fulfillment_lines=[],
+            order_lines=[
+                OrderLineData(
+                    line=line_to_refund,
+                    quantity=2,
+                    replace=False,
+                )
+            ],
+        ),
     )
 
 
@@ -668,18 +683,20 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
-        fulfillment_lines_to_refund=[
-            FulfillmentLineData(
-                line=fulfillment_line_to_refund,
-                quantity=2,
-                replace=False,
-            )
-        ],
-        order_lines_to_refund=[
-            OrderLineData(
-                line=order_line,
-                quantity=2,
-                replace=False,
-            )
-        ],
+        lines_to_refund=create_lines_to_refund(
+            fulfillment_lines=[
+                FulfillmentLineData(
+                    line=fulfillment_line_to_refund,
+                    quantity=2,
+                    replace=False,
+                )
+            ],
+            order_lines=[
+                OrderLineData(
+                    line=order_line,
+                    quantity=2,
+                    replace=False,
+                )
+            ],
+        ),
     )
