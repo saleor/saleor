@@ -316,6 +316,11 @@ class PaymentError(Error):
 
 class GiftCardError(Error):
     code = GiftCardErrorCode(description="The error code.", required=True)
+    tags = graphene.List(
+        graphene.NonNull(graphene.String),
+        description="List of tag values that cause the error.",
+        required=False,
+    )
 
 
 class PluginError(Error):
