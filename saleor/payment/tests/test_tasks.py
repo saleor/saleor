@@ -1,7 +1,7 @@
 from unittest import mock
 from unittest.mock import ANY
 
-from saleor.payment.tasks import refund_or_void_inactive_payment
+from ..tasks import refund_or_void_inactive_payment
 
 
 @mock.patch("saleor.payment.tasks.task_logger.info")

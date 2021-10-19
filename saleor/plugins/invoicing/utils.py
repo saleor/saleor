@@ -69,7 +69,7 @@ def _get_payments_data(order):
     manager = get_plugins_manager()
     payments_data = [
         {
-            "gateway_name": manager.get_plugin(payment.gateway).PLUGIN_NAME,
+            "gateway_name": manager.get_plugin_name(payment.gateway),
             "captured_amount": payment.captured_amount,
             "currency": payment.currency,
         }

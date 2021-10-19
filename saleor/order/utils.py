@@ -7,8 +7,6 @@ from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
-from saleor.payment.models import Payment
-
 from ..account.models import User
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
@@ -19,6 +17,7 @@ from ..discount.utils import get_products_voucher_discount, validate_voucher_in_
 from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
 from ..payment import ChargeStatus
+from ..payment.models import Payment
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
 from ..warehouse.management import (
