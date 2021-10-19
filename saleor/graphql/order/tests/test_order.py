@@ -5288,7 +5288,7 @@ def test_clean_payment_without_payment_associated_to_order(
     message = "There are no active payments associated with the order."
 
     assert errors, "expected an error"
-    assert errors == [{"field": "payment", "message": message}]
+    assert errors == [{"field": "payments", "message": message}]
     assert not OrderEvent.objects.exists()
 
 
@@ -5304,7 +5304,7 @@ def test_clean_order_capture():
     with pytest.raises(ValidationError) as e:
         clean_order_capture(None, None, Decimal("10"))
     msg = "There are no active payments associated with the order."
-    assert e.value.error_dict["payment"][0].message == msg
+    assert e.value.error_dict["payments"][0].message == msg
 
 
 @pytest.mark.parametrize(

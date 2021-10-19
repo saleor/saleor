@@ -94,7 +94,7 @@ def clean_payments(payments):
     if not payments:
         raise ValidationError(
             {
-                "payment": ValidationError(
+                "payments": ValidationError(
                     "There are no active payments associated with the order.",
                     code=OrderErrorCode.PAYMENT_MISSING,
                 )
