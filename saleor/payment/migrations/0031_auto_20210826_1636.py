@@ -2,17 +2,19 @@
 
 from django.db import migrations
 
-from saleor.payment import ChargeStatus, TransactionKind
+NOT_CHARGED = "not-charged"
+VOID = "void"
+CANCELLED = "cancelled"
 
 
 def migrate_voided_transactions(apps, schema_editor):
     Payment = apps.get_model("payment", "Payment")
 
     Payment.objects.filter(
-        charge_status=ChargeStatus.NOT_CHARGED,
+        charge_status=NOT_CHARGED,
         transactions__is_success=True,
-        transactions__kind=TransactionKind.VOID,
-    ).update(charge_status=ChargeStatus.CANCELLED)
+        transactions__kind=VOID,
+    ).update(charge_status=CANCELLED)
 
 
 class Migration(migrations.Migration):
