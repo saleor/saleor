@@ -467,7 +467,7 @@ class WebhookPlugin(BasePlugin):
         previous_value: List[ExcludedShippingMethod],
         app_name,
     ) -> List[ExcludedShippingMethod]:
-        payload = generate_order_payload(
+        payload = generate_excluded_shipping_methods_for_order_payload(
             order,
             available_shipping_methods,
         )

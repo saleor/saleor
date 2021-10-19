@@ -14,7 +14,6 @@ from ....webhook.models import Webhook, WebhookEvent
 from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_checkout_payload,
     generate_excluded_shipping_methods_for_order_payload,
-    generate_order_payload
 )
 from ...base_plugin import ExcludedShippingMethod, ShippingMethod
 
@@ -111,7 +110,7 @@ def shipping_app(db, permission_manage_orders, permission_manage_checkouts):
 
 @mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_sync")
 @mock.patch(
-    "saleor.plugins.webhook.plugin.generate_order_payload"
+    "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
 )
 def test_excluded_shipping_methods_for_order(
     mocked_payload,
@@ -395,11 +394,10 @@ def test_generate_excluded_shipping_methods_for_order_payload(
     methods = available_shipping_methods_factory(num_methods=3)
     # when
     json_payload = json.loads(
-        generate_order_payload(
+        generate_excluded_shipping_methods_for_order_payload(
             order=order_with_lines, available_shipping_methods=methods
         )
     )
-    print(json_payload)
     # then
     assert len(json_payload["shipping_methods"]) == 3
     assert json_payload["shipping_methods"][0]["id"] == methods[0].id
