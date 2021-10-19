@@ -125,7 +125,7 @@ def test_checkout_update_shipping_method(
     """Test updating the shipping method of a digital order throws an error."""
 
     checkout = checkout_with_digital_item
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.pk)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.pk)
     variables = {"token": checkout.token, "shippingMethodId": method_id}
 
     # Put a shipping address, to ensure it is still handled properly

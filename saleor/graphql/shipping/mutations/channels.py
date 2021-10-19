@@ -16,7 +16,7 @@ from ...channel.mutations import BaseChannelListingMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import ShippingError
 from ...core.validators import validate_price_precision
-from ..types import ShippingMethod
+from ..types import ShippingMethodType
 
 if TYPE_CHECKING:
     from ....shipping.models import ShippingMethod as ShippingMethodModel
@@ -54,7 +54,7 @@ class ShippingMethodChannelListingInput(graphene.InputObjectType):
 
 class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
     shipping_method = graphene.Field(
-        ShippingMethod, description="An updated shipping method instance."
+        ShippingMethodType, description="An updated shipping method instance."
     )
 
     class Arguments:
@@ -233,7 +233,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
         shipping_method = cls.get_node_or_error(
-            info, id, only_type=ShippingMethod, field="id"
+            info, id, only_type=ShippingMethodType, field="id"
         )
         errors = defaultdict(list)
         clean_channels = cls.clean_channels(

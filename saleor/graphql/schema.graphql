@@ -944,14 +944,14 @@ type Checkout implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  availableShippingMethods: [ShippingMethod]!
+  availableShippingMethods: [ShippingMethodType]!
   availablePaymentGateways: [PaymentGateway!]!
   email: String!
   isShippingRequired: Boolean!
   quantity: Int!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   subtotalPrice: TaxedMoney
   token: UUID!
   totalPrice: TaxedMoney
@@ -3736,7 +3736,7 @@ type Order implements Node & ObjectWithMetadata {
   trackingClientId: String!
   billingAddress: Address
   shippingAddress: Address
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingMethodName: String
   channel: Channel!
   shippingPrice: TaxedMoney!
@@ -3753,7 +3753,7 @@ type Order implements Node & ObjectWithMetadata {
   fulfillments: [Fulfillment]!
   lines: [OrderLine]!
   actions: [OrderAction]!
-  availableShippingMethods: [ShippingMethod]
+  availableShippingMethods: [ShippingMethodType]
   invoices: [Invoice]
   number: String
   original: ID
@@ -5774,26 +5774,6 @@ enum ShippingErrorCode {
   DUPLICATED_INPUT_ITEM
 }
 
-type ShippingMethod implements Node & ObjectWithMetadata {
-  id: ID!
-  name: String!
-  description: JSONString
-  minimumOrderWeight: Weight
-  maximumOrderWeight: Weight
-  maximumDeliveryDays: Int
-  minimumDeliveryDays: Int
-  privateMetadata: [MetadataItem]!
-  metadata: [MetadataItem]!
-  type: ShippingMethodTypeEnum
-  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
-  channelListings: [ShippingMethodChannelListing!]
-  price: Money
-  maximumOrderPrice: Money
-  minimumOrderPrice: Money
-  postalCodeRules: [ShippingMethodPostalCodeRule]
-  excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-}
-
 type ShippingMethodChannelListing implements Node {
   id: ID!
   channel: Channel!
@@ -5815,7 +5795,7 @@ input ShippingMethodChannelListingInput {
 }
 
 type ShippingMethodChannelListingUpdate {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [ShippingError!]!
 }
@@ -5832,7 +5812,7 @@ type ShippingMethodTranslatableContent implements Node {
   name: String!
   description: JSONString
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
-  shippingMethod: ShippingMethod @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
+  shippingMethod: ShippingMethodType @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type ShippingMethodTranslation implements Node {
@@ -5840,6 +5820,26 @@ type ShippingMethodTranslation implements Node {
   name: String
   description: JSONString
   language: LanguageDisplay!
+}
+
+type ShippingMethodType implements Node & ObjectWithMetadata {
+  id: ID!
+  name: String!
+  description: JSONString
+  minimumOrderWeight: Weight
+  maximumOrderWeight: Weight
+  maximumDeliveryDays: Int
+  minimumDeliveryDays: Int
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  type: ShippingMethodTypeEnum
+  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
+  channelListings: [ShippingMethodChannelListing!]
+  price: Money
+  maximumOrderPrice: Money
+  minimumOrderPrice: Money
+  postalCodeRules: [ShippingMethodPostalCodeRule]
+  excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
 }
 
 enum ShippingMethodTypeEnum {
@@ -5860,20 +5860,20 @@ type ShippingPriceBulkDelete {
 
 type ShippingPriceCreate {
   shippingZone: ShippingZone
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [ShippingError!]!
 }
 
 type ShippingPriceDelete {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingZone: ShippingZone
   shippingErrors: [ShippingError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [ShippingError!]!
 }
 
 type ShippingPriceExcludeProducts {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [ShippingError!]!
 }
@@ -5897,7 +5897,7 @@ input ShippingPriceInput {
 }
 
 type ShippingPriceRemoveProductFromExclude {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [ShippingError!]!
 }
@@ -5905,7 +5905,7 @@ type ShippingPriceRemoveProductFromExclude {
 type ShippingPriceTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [TranslationError!]!
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
 }
 
 input ShippingPriceTranslationInput {
@@ -5915,7 +5915,7 @@ input ShippingPriceTranslationInput {
 
 type ShippingPriceUpdate {
   shippingZone: ShippingZone
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [ShippingError!]!
 }
@@ -5928,7 +5928,7 @@ type ShippingZone implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   priceRange: MoneyRange
   countries: [CountryDisplay]
-  shippingMethods: [ShippingMethod]
+  shippingMethods: [ShippingMethodType]
   warehouses: [Warehouse!]!
   channels: [Channel!]!
   description: String
@@ -5997,7 +5997,7 @@ input ShippingZoneUpdateInput {
 type Shop {
   availablePaymentGateways(currency: String, channel: String): [PaymentGateway!]!
   availableExternalAuthentications: [ExternalAuthentication!]!
-  availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
+  availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethodType]
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
