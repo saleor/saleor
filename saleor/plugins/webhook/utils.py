@@ -1,4 +1,5 @@
 import decimal
+import json
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
@@ -145,7 +146,8 @@ def create_attempt(
         task_id=task_id,
         duration=None,
         response=None,
-        headers=None,
+        request_headers=None,
+        response_headers=None,
         status=EventDeliveryStatus.PENDING,
     )
     return attempt
@@ -154,13 +156,12 @@ def create_attempt(
 def attempt_update(
     attempt: "EventDeliveryAttempt",
     webhook_response: "WebhookResponse",
-    status: str,
-    duration: float,
 ):
-    attempt.duration = duration
+    attempt.duration = webhook_response.duration
     attempt.response = webhook_response.content
-    attempt.headers = webhook_response.headers
-    attempt.status = status
+    attempt.response_headers = json.dumps(webhook_response.response_headers)
+    attempt.request_headers = json.dumps(webhook_response.request_headers)
+    attempt.status = webhook_response.status
     attempt.save()
 
 

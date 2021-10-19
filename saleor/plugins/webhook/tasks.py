@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple, Type
 from urllib.parse import urlparse, urlunparse
 
 import boto3
@@ -49,7 +49,10 @@ class WebhookSchemes(str, Enum):
 @dataclass
 class WebhookResponse:
     content: str
-    headers = None
+    request_headers: Optional[Dict] = None
+    response_headers: Optional[Dict] = None
+    status: str = EventDeliveryStatus.SUCCESS
+    duration: float = 0.0
 
 
 @app.task(compression="zlib")
@@ -75,21 +78,6 @@ def _get_webhooks_for_event(event_type, webhooks=None):
         "app__permissions__content_type"
     )
     return webhooks
-
-
-@app.task
-def trigger_webhooks_for_event(event_type, event_payload_id):
-    """Send a webhook request for an event as an async task."""
-    webhooks = _get_webhooks_for_event(event_type)
-    for webhook in webhooks:
-        send_webhook_request.delay(
-            webhook.app.name,
-            webhook.pk,
-            webhook.target_url,
-            webhook.secret_key,
-            event_type,
-            event_payload_id,
-        )
 
 
 def trigger_webhook_sync(event_type: str, data: str, app: "App"):
@@ -122,7 +110,7 @@ def send_webhook_using_http(
     :param timeout: Request timeout.
 
     :raises HTTPError: Requests exception class containg error message.
-    :return: HTTP response object.
+    :return: WebhookResponse object.
     """
     headers = {
         "Content-Type": "application/json",
@@ -137,7 +125,12 @@ def send_webhook_using_http(
 
     response = requests.post(target_url, data=message, headers=headers, timeout=timeout)
     response.raise_for_status()
-    return WebhookResponse(content=response.text, headers=response.headers)
+    return WebhookResponse(
+        content=response.text,
+        request_headers=headers,
+        response_headers=dict(response.headers),
+        duration=response.elapsed.total_seconds(),
+    )
 
 
 def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_type):
@@ -171,8 +164,9 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
     }
     if is_fifo:
         message_kwargs["MessageGroupId"] = domain
-    response = client.send_message(**message_kwargs)
-    return WebhookResponse(content=response)
+    with catch_duration_time() as duration:
+        response = client.send_message(**message_kwargs)
+        return WebhookResponse(content=response, duration=duration().total_seconds())
 
 
 def send_webhook_using_google_cloud_pubsub(
@@ -188,9 +182,41 @@ def send_webhook_using_google_cloud_pubsub(
         eventType=event_type,
         signature=signature,
     )
-    response = future.result()
+    with catch_duration_time() as duration:
+        response = future.result()
+        return WebhookResponse(content=response, duration=duration().total_seconds())
 
-    return WebhookResponse(content=response)
+
+def send_webhook_using_scheme_method(
+    target_url, domain, secret, event_type, data
+) -> WebhookResponse:
+    parts = urlparse(target_url)
+    message = data.encode("utf-8")
+    signature = signature_for_payload(message, secret)
+    scheme_matrix: Dict[
+        WebhookSchemes, Tuple[Callable, Tuple[Type[Exception], ...]]
+    ] = {
+        WebhookSchemes.HTTP: (send_webhook_using_http, (RequestException,)),
+        WebhookSchemes.HTTPS: (send_webhook_using_http, (RequestException,)),
+        WebhookSchemes.AWS_SQS: (send_webhook_using_aws_sqs, (ClientError,)),
+        WebhookSchemes.GOOGLE_CLOUD_PUBSUB: (
+            send_webhook_using_google_cloud_pubsub,
+            (pubsub_v1.publisher.exceptions.MessageTooLargeError, RuntimeError),
+        ),
+    }
+    if method := scheme_matrix.get(parts.scheme.lower()):
+        send_method, send_exception = method
+        try:
+            return send_method(
+                target_url,
+                message,
+                domain,
+                signature,
+                event_type,
+            )
+        except send_exception as e:
+            return WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
+    raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
 
 
 @app.task(
@@ -200,80 +226,50 @@ def send_webhook_using_google_cloud_pubsub(
     compression="zlib",
 )
 def send_webhook_request(self, event_delivery_id):
-    delivery = EventDelivery.objects.select_related("payload", "webhook").get(
-        id=event_delivery_id
-    )
-    event_payload = delivery.payload
-    data = json.loads(event_payload.payload)
-    if not data:
-        return
+    delivery = EventDelivery.objects.select_related(
+        "payload", "webhook", "webhook__app"
+    ).get(id=event_delivery_id)
+    data = json.loads(delivery.payload.payload)
     webhook = delivery.webhook
-    parts = urlparse(webhook.target_url)
+    app = webhook.app
     domain = Site.objects.get_current().domain
-    message = data.encode("utf-8")
-    signature = signature_for_payload(message, webhook.secret_key)
     attempt = create_attempt(delivery, self.request.id)
-    scheme_matrix = {
-        WebhookSchemes.HTTP: (send_webhook_using_http, RequestException),
-        WebhookSchemes.HTTPS: (send_webhook_using_http, RequestException),
-        WebhookSchemes.AWS_SQS: (send_webhook_using_aws_sqs, ClientError),
-        WebhookSchemes.GOOGLE_CLOUD_PUBSUB: (
-            send_webhook_using_google_cloud_pubsub,
-            (pubsub_v1.publisher.exceptions.MessageTooLargeError, RuntimeError),
-        ),
-    }
-
-    if methods := scheme_matrix.get(parts.scheme.lower()):
-        send_method, send_exception = methods
-        with catch_duration_time() as duration:
+    try:
+        with webhooks_opentracing_trace(delivery.event_type, domain, app_name=app.name):
+            response = send_webhook_using_scheme_method(
+                webhook.target_url,
+                domain,
+                webhook.secret_key,
+                delivery.event_type,
+                data,
+            )
+        attempt_update(attempt, response)
+        if response.status == EventDeliveryStatus.FAILED:
+            task_logger.info(
+                "[Webhook] Failed request to %r: %r.",
+                webhook.target_url,
+                response.content,
+            )
             try:
-                response = send_method(
+                countdown = self.retry_backoff * (2 ** self.request.retries)
+                self.retry(countdown=countdown, **self.retry_kwargs)
+            except MaxRetriesExceededError:
+                task_logger.warning(
+                    "[Webhook] Failed request to %r: exceeded retry limit.",
                     webhook.target_url,
-                    message,
-                    domain,
-                    signature,
-                    delivery.event_type,
                 )
-                attempt_update(
-                    attempt,
-                    response,
-                    EventDeliveryStatus.SUCCESS,
-                    duration().total_seconds(),
-                )
-                delivery_update(delivery, EventDeliveryStatus.SUCCESS)
-            except send_exception as e:
-                task_logger.info(
-                    "[Webhook] Failed request to %r: %r.", webhook.target_url, e
-                )
-                response = WebhookResponse(content=e)
-                attempt_update(
-                    attempt,
-                    response,
-                    EventDeliveryStatus.FAILED,
-                    duration().total_seconds(),
-                )
-                try:
-                    countdown = self.retry_backoff * (2 ** self.request.retries)
-                    self.retry(countdown=countdown, **self.retry_kwargs)
-                except MaxRetriesExceededError:
-                    task_logger.warning(
-                        "[Webhook] Failed request to %r: exceeded retry limit.",
-                        webhook.target_url,
-                    )
-                    delivery_update(
-                        delivery=delivery, status=EventDeliveryStatus.FAILED
-                    )
-
+                delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+        delivery_update(delivery, EventDeliveryStatus.SUCCESS)
         task_logger.info(
             "[Webhook ID:%r] Payload sent to %r for event %r",
             webhook.id,
             webhook.target_url,
             delivery.event_type,
         )
-    else:
-        response = WebhookResponse("Unknown webhook scheme: %r" % (parts.scheme,))
+    except ValueError as e:
+        response = WebhookResponse(content=str(e))
+        attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
-        attempt_update(attempt, response, EventDeliveryStatus.FAILED, None)
 
 
 def send_webhook_request_sync(app_name, delivery):
@@ -285,6 +281,7 @@ def send_webhook_request_sync(app_name, delivery):
     message = data.encode("utf-8")
     signature = signature_for_payload(message, webhook.secret_key)
 
+    response = WebhookResponse(content="")
     response_data = None
     if parts.scheme.lower() in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
         logger.debug(
@@ -293,7 +290,6 @@ def send_webhook_request_sync(app_name, delivery):
             delivery.event_type,
         )
         attempt = create_attempt(delivery=delivery, task_id=None)
-        status = EventDeliveryStatus.SUCCESS
         try:
             with webhooks_opentracing_trace(
                 delivery.event_type, domain, sync=True, app_name=app_name
@@ -306,24 +302,26 @@ def send_webhook_request_sync(app_name, delivery):
                     delivery.event_type,
                     timeout=WEBHOOK_SYNC_TIMEOUT,
                 )
-                response_data = response.coontent.json()
+                response_data = json.loads(response.content)
         except RequestException as e:
-            logger.debug("[Webhook] Failed request to %r: %r.", webhook.target_url, e)
-            status = EventDeliveryStatus.FAILED
+            logger.warning("[Webhook] Failed request to %r: %r.", webhook.target_url, e)
+            response.status = EventDeliveryStatus.FAILED
+            response.content = e.response
 
         except JSONDecodeError as e:
-            logger.debug(
+            logger.warning(
                 "[Webhook] Failed parsing JSON response from %r: %r.",
                 webhook.target_url,
                 e,
             )
-            status = EventDeliveryStatus.FAILED
+            response.status = EventDeliveryStatus.FAILED
+            response.content = e.msg
         else:
             logger.debug("[Webhook] Success response from %r.", webhook.target_url)
-            status = EventDeliveryStatus.SUCCESS
+
+        attempt_update(attempt, response)
     else:
         delivery_update(delivery, EventDeliveryStatus.FAILED)
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
-    attempt_update(attempt=attempt, status=status, duration=0)
-    delivery_update(delivery, status)
+    delivery_update(delivery, response.status)
     return response_data

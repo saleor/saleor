@@ -999,13 +999,16 @@ def test_product_variant_create_translation(
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
 
     translation = variant.translations.first()
-    expected_payload = json.dumps(generate_translation_payload(translation))
-    event_payload = EventPayload.objects.first()
-    mocked_webhook_trigger.assert_called_with(
-        event_payload, WebhookEventType.TRANSLATION_CREATED
-    )
+    expected_payload = generate_translation_payload(translation)
+    event_payload_qs = EventPayload.objects.all()
 
-    assert expected_payload == event_payload.payload
+    mocked_webhook_trigger.assert_has_calls(
+        [
+            call(event_payload_qs[0], WebhookEventType.PRODUCT_VARIANT_UPDATED),
+            call(event_payload_qs[1], WebhookEventType.TRANSLATION_CREATED),
+        ]
+    )
+    assert expected_payload == event_payload_qs[1].payload
 
 
 def test_product_variant_create_translation_by_translatable_content_id(
@@ -2159,16 +2162,13 @@ def test_shop_update_translation(
 
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation)
-    event_payload_qs = EventPayload.objects.all()
-
-    mocked_webhook_trigger.assert_has_calls(
-        [
-            call(event_payload_qs[0], WebhookEventType.PRODUCT_VARIANT_UPDATED),
-            call(event_payload_qs[1], WebhookEventType.TRANSLATION_UPDATED),
-        ]
+    event_payload = EventPayload.objects.first()
+    mocked_webhook_trigger.assert_called_once_with(
+        event_payload,
+        WebhookEventType.TRANSLATION_UPDATED,
     )
 
-    assert expected_payload == event_payload_qs[1].payload
+    assert expected_payload == event_payload.payload
 
 
 @pytest.mark.parametrize(

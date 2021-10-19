@@ -128,21 +128,30 @@ class EventPayload(models.Model):
 
 class EventDelivery(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=255, choices=EventDeliveryStatus.CHOICES)
+    status = models.CharField(
+        max_length=255,
+        choices=EventDeliveryStatus.CHOICES,
+        default=EventDeliveryStatus.PENDING,
+    )
     event_type = models.CharField(max_length=255)
     payload = models.ForeignKey(
-        EventPayload, related_name="deliveries", null=True, on_delete=models.SET_NULL
+        EventPayload, related_name="deliveries", null=True, on_delete=models.CASCADE
     )
     webhook = models.ForeignKey("webhook.Webhook", null=True, on_delete=models.SET_NULL)
 
 
 class EventDeliveryAttempt(models.Model):
     delivery = models.ForeignKey(
-        EventDelivery, related_name="attempts", null=True, on_delete=models.SET_NULL
+        EventDelivery, related_name="attempts", null=True, on_delete=models.CASCADE
     )
     created_at = models.DateTimeField(auto_now_add=True)
     task_id = models.CharField(max_length=255, null=True)
     duration = models.FloatField(null=True)
     response = models.TextField(null=True)
-    headers = models.TextField(null=True)
-    status = models.CharField(max_length=255, choices=EventDeliveryStatus.CHOICES)
+    response_headers = models.TextField(null=True)
+    request_headers = models.TextField(null=True)
+    status = models.CharField(
+        max_length=255,
+        choices=EventDeliveryStatus.CHOICES,
+        default=EventDeliveryStatus.PENDING,
+    )

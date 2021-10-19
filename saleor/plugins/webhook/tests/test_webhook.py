@@ -34,7 +34,7 @@ from ....webhook.payloads import (
 )
 from ...manager import get_plugins_manager
 from ...webhook.plugin import WebhookPlugin
-from ...webhook.tasks import send_webhook_request, trigger_webhooks_for_event
+from ...webhook.tasks import send_webhook_request
 
 first_url = "http://www.example.com/first/"
 third_url = "http://www.example.com/third/"
@@ -90,11 +90,14 @@ def test_trigger_webhooks_for_event_calls_expected_events(
     )
     third_webhook.events.create(event_type=WebhookEventType.ANY)
     event_payload = EventPayload.objects.create()
-    trigger_webhooks_for_event(event_name, event_payload.id)
+    WebhookPlugin._trigger_webhook_requests(event_payload, event_name)
+    deliveries_called = {
+        EventDelivery.objects.get(id=delivery_id[0][0])
+        for delivery_id in mock_request.call_args_list
+    }
+    urls_called = {delivery.webhook.target_url for delivery in deliveries_called}
     assert mock_request.call_count == total_webhook_calls
-
-    target_url_calls = {call[0][2] for call in mock_request.call_args_list}
-    assert target_url_calls == expected_target_urls
+    assert urls_called == expected_target_urls
 
 
 @mock.patch("saleor.plugins.webhook.plugin.WebhookPlugin._trigger_webhook_requests")
