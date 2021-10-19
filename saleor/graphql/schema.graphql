@@ -2276,7 +2276,6 @@ type GiftCard implements Node & ObjectWithMetadata {
   code: String!
   isActive: Boolean!
   expiryDate: Date
-  tag: String
   created: DateTime!
   lastUsedOn: DateTime
   initialBalance: Money
@@ -2292,6 +2291,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   app: App
   product: Product
   events: [GiftCardEvent!]!
+  tags: [GiftCardTag!]!
   boughtInChannel: String
   user: User @deprecated(reason: "This field will be removed in Saleor 4.0. Use `createdBy` field instead.")
   endDate: DateTime @deprecated(reason: "This field will be removed in Saleor 4.0. Use `expiryDate` field instead.")
@@ -2347,7 +2347,7 @@ type GiftCardCreate {
 }
 
 input GiftCardCreateInput {
-  tag: String
+  addTags: [String!]
   expiryDate: Date
   startDate: Date
   endDate: Date
@@ -2375,6 +2375,7 @@ type GiftCardError {
   field: String
   message: String
   code: GiftCardErrorCode!
+  tags: [String!]
 }
 
 enum GiftCardErrorCode {
@@ -2384,6 +2385,7 @@ enum GiftCardErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  DUPLICATED_INPUT_ITEM
 }
 
 type GiftCardEvent implements Node {
@@ -2396,8 +2398,8 @@ type GiftCardEvent implements Node {
   email: String
   orderId: ID
   orderNumber: String
-  tag: String
-  oldTag: String
+  tags: [String!]
+  oldTags: [String!]
   balance: GiftCardEventBalance
   expiryDate: Date
   oldExpiryDate: Date
@@ -2418,7 +2420,7 @@ enum GiftCardEventsEnum {
   DEACTIVATED
   BALANCE_RESET
   EXPIRY_DATE_UPDATED
-  TAG_UPDATED
+  TAGS_UPDATED
   SENT_TO_CUSTOMER
   RESENT
   NOTE_ADDED
@@ -2427,7 +2429,6 @@ enum GiftCardEventsEnum {
 
 input GiftCardFilterInput {
   isActive: Boolean
-  tag: String
   tags: [String]
   products: [ID]
   usedBy: [ID]
@@ -2481,7 +2482,6 @@ input GiftCardSettingsUpdateInput {
 }
 
 enum GiftCardSortField {
-  TAG
   PRODUCT
   USED_BY
   CURRENT_BALANCE
@@ -2492,6 +2492,26 @@ input GiftCardSortingInput {
   field: GiftCardSortField!
 }
 
+type GiftCardTag implements Node {
+  id: ID!
+  name: String!
+}
+
+type GiftCardTagCountableConnection {
+  pageInfo: PageInfo!
+  edges: [GiftCardTagCountableEdge!]!
+  totalCount: Int
+}
+
+type GiftCardTagCountableEdge {
+  node: GiftCardTag!
+  cursor: String!
+}
+
+input GiftCardTagFilterInput {
+  search: String
+}
+
 type GiftCardUpdate {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [GiftCardError!]!
@@ -2499,10 +2519,11 @@ type GiftCardUpdate {
 }
 
 input GiftCardUpdateInput {
-  tag: String
+  addTags: [String!]
   expiryDate: Date
   startDate: Date
   endDate: Date
+  removeTags: [String!]
   balanceAmount: PositiveDecimal
 }
 
@@ -5885,6 +5906,7 @@ type Query {
   giftCard(id: ID!): GiftCard
   giftCards(sortBy: GiftCardSortingInput, filter: GiftCardFilterInput, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   giftCardCurrencies: [String!]!
+  giftCardTags(filter: GiftCardTagFilterInput, before: String, after: String, first: Int, last: Int): GiftCardTagCountableConnection
   plugin(id: ID!): Plugin
   plugins(filter: PluginFilterInput, sortBy: PluginSortingInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!, channel: String): Sale

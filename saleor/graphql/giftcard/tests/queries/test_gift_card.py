@@ -20,7 +20,9 @@ QUERY_GIFT_CARD_BY_ID = """
             displayCode
             isActive
             expiryDate
-            tag
+            tags {
+                name
+            }
             created
             lastUsedOn
             boughtInChannel
@@ -82,7 +84,7 @@ def test_query_gift_card_with_permissions(
     assert data["displayCode"] == gift_card.display_code
     assert data["isActive"] == gift_card.is_active
     assert data["expiryDate"] is None
-    assert data["tag"] == gift_card.tag
+    assert data["tags"][0]["name"] == gift_card.tags.first().name
     assert data["created"] == gift_card.created.isoformat()
     assert data["lastUsedOn"] == gift_card.last_used_on
     assert data["boughtInChannel"] is None
@@ -147,7 +149,7 @@ def test_query_gift_card_by_app(
     assert data["displayCode"] == gift_card.display_code
     assert data["isActive"] == gift_card.is_active
     assert data["expiryDate"] is None
-    assert data["tag"] == gift_card.tag
+    assert data["tags"][0]["name"] == gift_card.tags.first().name
     assert data["created"] == gift_card.created.isoformat()
     assert data["lastUsedOn"] == gift_card.last_used_on
     assert data["initialBalance"]["currency"] == gift_card.initial_balance.currency
@@ -381,8 +383,8 @@ QUERY_GIFT_CARD_EVENTS = """
                 email
                 orderId
                 orderNumber
-                tag
-                oldTag
+                tags
+                oldTags
                 balance {
                     initialBalance {
                         amount
@@ -454,8 +456,8 @@ def test_query_gift_card_events(
     assert events_data[0]["email"] is None
     assert events_data[0]["orderId"] is None
     assert events_data[0]["orderNumber"] is None
-    assert events_data[0]["tag"] is None
-    assert events_data[0]["oldTag"] is None
+    assert events_data[0]["tags"] is None
+    assert events_data[0]["oldTags"] is None
     assert events_data[0]["balance"] is None
     assert events_data[0]["expiryDate"] is None
 
@@ -471,8 +473,8 @@ def test_query_gift_card_events(
     assert events_data[1]["email"] == parameters["email"]
     assert events_data[1]["orderId"] == graphene.Node.to_global_id("Order", order.pk)
     assert events_data[1]["orderNumber"] == str(order.pk)
-    assert events_data[1]["tag"] == parameters["tag"]
-    assert events_data[1]["oldTag"] == parameters["old_tag"]
+    assert events_data[1]["tags"] == parameters["tags"]
+    assert events_data[1]["oldTags"] == parameters["old_tags"]
     assert (
         events_data[1]["balance"]["initialBalance"]["amount"]
         == parameters["balance"]["initial_balance"]
