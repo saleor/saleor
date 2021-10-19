@@ -15,7 +15,8 @@ def mark_fulfillment_as_captured(fulfillment: Fulfillment) -> None:
 
 def fulfillment_is_captured(fulfillment: Optional[Fulfillment]) -> bool:
     return bool(
-        fulfillment and fulfillment.get_value_from_metadata(CAPTURED_METADATA_KEY)
+        fulfillment
+        and fulfillment.get_value_from_private_metadata(CAPTURED_METADATA_KEY)
     )
 
 
