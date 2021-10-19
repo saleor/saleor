@@ -651,6 +651,7 @@ class BasePlugin:
         order: "Order",
         available_shipping_methods: List[ShippingMethod],
         previous_value,
+        app_name,
     ) -> List[ExcludedShippingMethod]:
         return NotImplemented
 
@@ -659,5 +660,6 @@ class BasePlugin:
         checkout: "Checkout",
         available_shipping_methods: List[ShippingMethod],
         previous_value,
+        app_name,
     ) -> List[ExcludedShippingMethod]:
         return NotImplemented
