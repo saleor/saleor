@@ -559,7 +559,7 @@ class OrderVoid(BaseMutation):
 
 
 class OrderPaymentToRefundInput(graphene.InputObjectType):
-    payment_id = graphene.ID(required=True, description="The graphene ID of a payment.")
+    payment_id = graphene.ID(required=True, description="The GraphQL ID of a payment.")
     amount = PositiveDecimal(required=True, description="Amount of the refund.")
 
 
