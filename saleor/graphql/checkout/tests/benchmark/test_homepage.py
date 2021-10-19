@@ -74,7 +74,7 @@ def test_user_checkout_details(user_api_client, customer_checkout, count_queries
           isDefaultShippingAddress
         }
 
-        fragment ShippingMethodType on ShippingMethodType {
+        fragment ShippingMethod on ShippingMethod {
           id
           name
           price {
@@ -108,10 +108,10 @@ def test_user_checkout_details(user_api_client, customer_checkout, count_queries
           }
           email
           availableShippingMethods {
-            ...ShippingMethodType
+            ...ShippingMethod
           }
           shippingMethod {
-            ...ShippingMethodType
+            ...ShippingMethod
           }
           shippingPrice {
             ...Price

@@ -90,7 +90,7 @@ FRAGMENT_ADDRESS = """
 
 
 FRAGMENT_SHIPPING_METHOD = """
-    fragment ShippingMethodType on ShippingMethodType {
+    fragment ShippingMethodType on ShippingMethod {
         id
         name
         price {

@@ -23,7 +23,7 @@ from ..decorators import (
     staff_member_or_app_required,
     staff_member_required,
 )
-from ..shipping.types import ShippingMethodType
+from ..shipping.types import ShippingMethod
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
@@ -103,7 +103,7 @@ class Shop(graphene.ObjectType):
         required=True,
     )
     available_shipping_methods = graphene.List(
-        ShippingMethodType,
+        ShippingMethod,
         channel=graphene.Argument(
             graphene.String,
             description="Slug of a channel for which the data should be returned.",

@@ -944,14 +944,15 @@ type Checkout implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  availableShippingMethods: [ShippingMethodType]!
+  availableShippingMethods: [ShippingMethod]! @deprecated(reason: "Use `shippingMethods`, this field will be removed in 4.0")
+  shippingMethods: [ShippingMethod]!
   availablePaymentGateways: [PaymentGateway!]!
   email: String!
   isShippingRequired: Boolean!
   quantity: Int!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
-  shippingMethod: ShippingMethodType
+  shippingMethod: ShippingMethod
   subtotalPrice: TaxedMoney
   token: UUID!
   totalPrice: TaxedMoney
@@ -3736,7 +3737,6 @@ type Order implements Node & ObjectWithMetadata {
   trackingClientId: String!
   billingAddress: Address
   shippingAddress: Address
-  shippingMethod: ShippingMethodType
   shippingMethodName: String
   channel: Channel!
   shippingPrice: TaxedMoney!
@@ -3753,7 +3753,8 @@ type Order implements Node & ObjectWithMetadata {
   fulfillments: [Fulfillment]!
   lines: [OrderLine]!
   actions: [OrderAction]!
-  availableShippingMethods: [ShippingMethodType]
+  availableShippingMethods: [ShippingMethod] @deprecated(reason: "Use `shippingMethods`, this field will be removed in 4.0")
+  shippingMethods: [ShippingMethod]
   invoices: [Invoice]
   number: String
   original: ID
@@ -3764,6 +3765,7 @@ type Order implements Node & ObjectWithMetadata {
   payments: [Payment]
   total: TaxedMoney!
   undiscountedTotal: TaxedMoney!
+  shippingMethod: ShippingMethod
   subtotal: TaxedMoney!
   statusDisplay: String
   canFinalize: Boolean!
@@ -5774,6 +5776,21 @@ enum ShippingErrorCode {
   DUPLICATED_INPUT_ITEM
 }
 
+type ShippingMethod implements Node & ObjectWithMetadata {
+  id: ID!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  name: String!
+  description: JSONString
+  maximumDeliveryDays: Int
+  minimumDeliveryDays: Int
+  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
+  price: Money!
+  minimumOrderPrice: Money
+  active: Boolean!
+  message: String
+}
+
 type ShippingMethodChannelListing implements Node {
   id: ID!
   channel: Channel!
@@ -5835,9 +5852,6 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
   type: ShippingMethodTypeEnum
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
   channelListings: [ShippingMethodChannelListing!]
-  price: Money
-  maximumOrderPrice: Money
-  minimumOrderPrice: Money
   postalCodeRules: [ShippingMethodPostalCodeRule]
   excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
 }
@@ -5997,7 +6011,7 @@ input ShippingZoneUpdateInput {
 type Shop {
   availablePaymentGateways(currency: String, channel: String): [PaymentGateway!]!
   availableExternalAuthentications: [ExternalAuthentication!]!
-  availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethodType]
+  availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
