@@ -644,7 +644,7 @@ def test_adyen_check_payment_balance(
         "card": {
             "cvc": "9891",
             "code": "603628983671049414498",
-            "money": {"currency": "GBP", "value": 100.0},
+            "money": {"currency": "GBP", "amount": 100.0},
         },
     }
 
@@ -682,7 +682,7 @@ def test_adyen_check_payment_balance_adyen_raises_error(
         "card": {
             "cvc": "9891",
             "code": "603628983671049414498",
-            "money": {"currency": "GBP", "value": 100.0},
+            "money": {"currency": "GBP", "amount": 100.0},
         },
     }
 

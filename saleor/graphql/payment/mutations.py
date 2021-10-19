@@ -16,6 +16,7 @@ from ...payment import PaymentError, StorePaymentMethod, gateway
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
+from ..channel.utils import validate_channel
 from ..checkout.mutations import get_checkout_by_token
 from ..checkout.types import Checkout
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
@@ -420,7 +421,7 @@ class PaymentInitialize(BaseMutation):
 
 class MoneyInput(graphene.InputObjectType):
     currency = graphene.String(description="Currency code.", required=True)
-    value = graphene.Float(description="Amount of money.", required=True)
+    amount = graphene.Float(description="Amount of money.", required=True)
 
 
 class CardInput(graphene.InputObjectType):
@@ -466,7 +467,7 @@ class PaymentCheckBalance(BaseMutation):
         cls.validate_currency(money.currency, gateway_id, manager)
 
         channel = data["input"].pop("channel")
-        cls.validate_channel(channel)
+        validate_channel(channel, PaymentErrorCode)
 
         try:
             data = manager.check_payment_balance(data["input"], channel)
@@ -506,27 +507,3 @@ class PaymentCheckBalance(BaseMutation):
                     )
                 }
             )
-
-    @classmethod
-    def validate_channel(cls, channel_slug):
-        try:
-            channel = Channel.objects.get(slug=channel_slug)
-        except Channel.DoesNotExist:
-            raise ValidationError(
-                {
-                    "channel": ValidationError(
-                        f"Channel with '{channel_slug}' slug does not exist.",
-                        code=PaymentErrorCode.NOT_FOUND.value,
-                    )
-                }
-            )
-        if not channel.is_active:
-            raise ValidationError(
-                {
-                    "channel": ValidationError(
-                        f"Channel with '{channel_slug}' is inactive.",
-                        code=PaymentErrorCode.CHANNEL_INACTIVE.value,
-                    )
-                }
-            )
-        return channel

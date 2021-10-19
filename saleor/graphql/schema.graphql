@@ -3740,7 +3740,7 @@ type Money {
 
 input MoneyInput {
   currency: String!
-  value: Float!
+  amount: Float!
 }
 
 type MoneyRange {
