@@ -2,6 +2,8 @@ import decimal
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
+from django.core.exceptions import ValidationError
+
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ..base_plugin import ExcludedShippingMethod
 
@@ -112,9 +114,10 @@ def parse_excluded_shipping_methods_response(
 ) -> List[ExcludedShippingMethod]:
     excluded_methods = []
     for method_data in response_data.get("excluded_methods", []):
+        method_id = method_data.get("id", "")
+        if not method_id:
+            raise ValidationError({"id": "ShippingMethod id cannot be blank."})
         excluded_methods.append(
-            ExcludedShippingMethod(
-                id=method_data.get("id", ""), reason=method_data.get("reason", "")
-            )
+            ExcludedShippingMethod(id=method_id, reason=method_data.get("reason", ""))
         )
     return excluded_methods

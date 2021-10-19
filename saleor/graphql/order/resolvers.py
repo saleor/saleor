@@ -95,17 +95,21 @@ def _resolve_order_shipping_methods(root: models.Order, info):
             else:
                 shipping_method.price = taxed_price.net
             available_shipping_methods.append(shipping_method)
+
+    shipping_method_dataclasses = [
+        convert_shipping_method_model_to_dataclass(shipping)
+        for shipping in available_shipping_methods
+    ]
+    excluded_shipping_methods = manager.excluded_shipping_methods_for_order(
+        root,
+        shipping_method_dataclasses,
+    )
     instances = set_active_shipping_methods(
-        manager.excluded_shipping_methods_for_order(
-            root,
-            [
-                convert_shipping_method_model_to_dataclass(shipping)
-                for shipping in available_shipping_methods
-            ],
-        ),
+        excluded_shipping_methods,
         available_shipping_methods,
         channel_slug,
     )
+
     setattr(root, cache_key, instances)
     return getattr(root, cache_key)
 
