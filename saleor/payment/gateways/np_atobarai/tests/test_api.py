@@ -3,8 +3,8 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 
-from saleor.payment import PaymentError
-from saleor.payment.gateways.np_atobarai import api, get_api_config
+from .... import PaymentError
+from .. import api, get_api_config
 
 
 @pytest.fixture
