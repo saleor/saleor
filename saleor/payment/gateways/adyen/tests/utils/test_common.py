@@ -969,7 +969,7 @@ def test_get_request_data_for_check_payment():
             "card": {
                 "code": "1243456",
                 "cvc": "123",
-                "money": {"value": 1000, "currency": "EUR"},
+                "money": {"amount": 1000, "currency": "EUR"},
             },
         },
         merchant_account="TEST_ACCOUNT",
@@ -999,7 +999,7 @@ def test_get_request_data_for_check_payment_without_cvc():
     data = get_request_data_for_check_payment(
         {
             "method": "test",
-            "card": {"code": "1243456", "money": {"value": 1000, "currency": "EUR"}},
+            "card": {"code": "1243456", "money": {"amount": 1000, "currency": "EUR"}},
         },
         merchant_account="TEST_ACCOUNT",
     )

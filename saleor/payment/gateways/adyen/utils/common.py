@@ -457,6 +457,7 @@ def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dic
     }
 
     if amount:
+        amount["value"] = amount.pop("amount")  # rename `amount` key with `value`
         request_data["amount"] = amount
 
     if security_code:

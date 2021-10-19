@@ -4356,6 +4356,6 @@ def check_payment_balance_input():
         "card": {
             "cvc": "9891",
             "code": "12345678910",
-            "money": {"currency": "GBP", "value": 100.0},
+            "money": {"currency": "GBP", "amount": 100.0},
         },
     }

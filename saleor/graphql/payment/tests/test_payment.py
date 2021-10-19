@@ -1177,7 +1177,7 @@ def test_payment_check_balance_mutation_validate_gateway_does_not_exist(
 
 @patch.object(PluginsManager, "check_payment_balance")
 @patch.object(PaymentCheckBalance, "validate_gateway")
-@patch.object(PaymentCheckBalance, "validate_channel")
+@patch("saleor.graphql.channel.utils.validate_channel")
 def test_payment_check_balance_validate_not_supported_currency(
     _, __, check_payment_balance_mock, staff_api_client, check_payment_balance_input
 ):
@@ -1256,7 +1256,7 @@ def test_payment_check_balance_validate_channel_inactive(
 @patch.object(PluginsManager, "check_payment_balance")
 @patch.object(PaymentCheckBalance, "validate_gateway")
 @patch.object(PaymentCheckBalance, "validate_currency")
-@patch.object(PaymentCheckBalance, "validate_channel")
+@patch("saleor.graphql.payment.mutations.validate_channel")
 def test_payment_check_balance_payment(
     _,
     __,
@@ -1276,7 +1276,7 @@ def test_payment_check_balance_payment(
             "card": {
                 "cvc": "9891",
                 "code": "12345678910",
-                "money": {"currency": "GBP", "value": 100.0},
+                "money": {"currency": "GBP", "amount": 100.0},
             },
         },
         "channel_default",
@@ -1286,7 +1286,7 @@ def test_payment_check_balance_payment(
 @patch.object(PluginsManager, "check_payment_balance")
 @patch.object(PaymentCheckBalance, "validate_gateway")
 @patch.object(PaymentCheckBalance, "validate_currency")
-@patch.object(PaymentCheckBalance, "validate_channel")
+@patch("saleor.graphql.payment.mutations.validate_channel")
 def test_payment_check_balance_balance_raises_error(
     _,
     __,
@@ -1318,7 +1318,7 @@ def test_payment_check_balance_balance_raises_error(
             "card": {
                 "cvc": "9891",
                 "code": "12345678910",
-                "money": {"currency": "GBP", "value": 100.0},
+                "money": {"currency": "GBP", "amount": 100.0},
             },
         },
         "channel_default",
