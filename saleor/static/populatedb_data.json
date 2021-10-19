@@ -8685,7 +8685,8 @@
     "fields": {
       "sort_order": null,
       "attribute": 13,
-      "product_type": 14
+      "product_type": 14,
+      "variant_selection": false
     }
   },
   {
@@ -8694,7 +8695,8 @@
     "fields": {
       "sort_order": null,
       "attribute": 15,
-      "product_type": 9
+      "product_type": 9,
+      "variant_selection": false
     }
   },
   {
@@ -8703,7 +8705,8 @@
     "fields": {
       "sort_order": null,
       "attribute": 18,
-      "product_type": 7
+      "product_type": 7,
+      "variant_selection": false
     }
   },
   {
@@ -8712,7 +8715,8 @@
     "fields": {
       "sort_order": null,
       "attribute": 19,
-      "product_type": 8
+      "product_type": 8,
+      "variant_selection": true
     }
   },
   {
@@ -8721,7 +8725,8 @@
     "fields": {
       "sort_order": null,
       "attribute": 22,
-      "product_type": 12
+      "product_type": 12,
+      "variant_selection": true
     }
   },
   {
@@ -8730,7 +8735,8 @@
     "fields": {
       "sort_order": null,
       "attribute": 24,
-      "product_type": 13
+      "product_type": 13,
+      "variant_selection": true
     }
   },
   {
@@ -8739,7 +8745,8 @@
     "fields": {
       "sort_order": 0,
       "attribute": 19,
-      "product_type": 15
+      "product_type": 15,
+      "variant_selection": false
     }
   },
   {
@@ -8748,7 +8755,8 @@
     "fields": {
         "sort_order": null,
         "attribute": 32,
-        "product_type": 12
+        "product_type": 12,
+        "variant_selection": false
     }
   },
   {
@@ -8757,7 +8765,8 @@
     "fields": {
         "sort_order": null,
         "attribute": 33,
-        "product_type": 12
+        "product_type": 12,
+        "variant_selection": false
     }
   },
   {
@@ -8766,7 +8775,8 @@
     "fields": {
         "sort_order": null,
         "attribute": 34,
-        "product_type": 15
+        "product_type": 15,
+        "variant_selection": true
     }
   },
   {
@@ -8775,7 +8785,8 @@
     "fields": {
         "sort_order": null,
         "attribute": 35,
-        "product_type": 15
+        "product_type": 15,
+        "variant_selection": false
     }
   },
   {

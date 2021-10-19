@@ -96,6 +96,7 @@ def create_payment_information(
             payment.store_payment_method.upper()
         ],
         payment_metadata=payment.metadata,
+        psp_reference=payment.psp_reference,
     )
 
 

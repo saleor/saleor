@@ -7617,6 +7617,123 @@ def test_product_type_query_only_variant_selections_value_set(
         )
 
 
+PRODUCT_TYPE_QUERY_ASSIGNED_VARIANT_ATTRIBUTES = """
+    query getProductType(
+        $id: ID!, $variantSelection: VariantAttributeScope, $channel: String
+    ) {
+        productType(id: $id) {
+            name
+            assignedVariantAttributes(variantSelection: $variantSelection) {
+                attribute {
+                    slug
+                }
+                variantSelection
+            }
+            products(first: 20, channel:$channel) {
+                totalCount
+                edges {
+                    node {
+                        name
+                    }
+                }
+            }
+            taxType {
+                taxCode
+                description
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "variant_selection",
+    [
+        VariantAttributeScope.ALL.name,
+        VariantAttributeScope.VARIANT_SELECTION.name,
+        VariantAttributeScope.NOT_VARIANT_SELECTION.name,
+    ],
+)
+def test_product_type_query_only_assigned_variant_selections_value_set(
+    variant_selection,
+    user_api_client,
+    staff_api_client,
+    product_type,
+    file_attribute_with_file_input_type_without_values,
+    author_page_attribute,
+    product_type_page_reference_attribute,
+    product,
+    permission_manage_products,
+    monkeypatch,
+    channel_USD,
+):
+    monkeypatch.setattr(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(code="123", description="Standard Taxes"),
+    )
+    query = PRODUCT_TYPE_QUERY_ASSIGNED_VARIANT_ATTRIBUTES
+
+    no_products = Product.objects.count()
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).update(
+        is_published=False
+    )
+
+    product_type.variant_attributes.add(
+        file_attribute_with_file_input_type_without_values,
+        author_page_attribute,
+        product_type_page_reference_attribute,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductType", product_type.id),
+        "variantSelection": variant_selection,
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["productType"]["products"]["totalCount"] == no_products - 1
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["productType"]["products"]["totalCount"] == no_products
+    assert data["productType"]["taxType"]["taxCode"] == "123"
+    assert data["productType"]["taxType"]["description"] == "Standard Taxes"
+
+    if variant_selection == VariantAttributeScope.VARIANT_SELECTION.name:
+        assert (
+            len(data["productType"]["assignedVariantAttributes"])
+            == product_type.variant_attributes.filter(
+                input_type=AttributeInputType.DROPDOWN, type=AttributeType.PRODUCT_TYPE
+            ).count()
+        )
+        assert all(
+            assign["variantSelection"]
+            for assign in data["productType"]["assignedVariantAttributes"]
+        )
+    elif variant_selection == VariantAttributeScope.NOT_VARIANT_SELECTION.name:
+        assert (
+            len(data["productType"]["assignedVariantAttributes"])
+            == product_type.variant_attributes.exclude(
+                input_type=AttributeInputType.DROPDOWN, type=AttributeType.PRODUCT_TYPE
+            ).count()
+        )
+        assert not any(
+            assign["variantSelection"]
+            for assign in data["productType"]["assignedVariantAttributes"]
+        )
+
+    else:
+        assert (
+            len(data["productType"]["assignedVariantAttributes"])
+            == product_type.variant_attributes.count()
+        )
+
+
 PRODUCT_TYPE_CREATE_MUTATION = """
     mutation createProductType(
         $name: String,
