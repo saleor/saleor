@@ -21,7 +21,7 @@ from ..payment import (
     gateway,
 )
 from ..payment.models import Payment, Transaction
-from ..payment.utils import create_payment
+from ..payment.utils import create_lines_to_refund, create_payment
 from ..warehouse.management import (
     deallocate_stock,
     deallocate_stock_for_order,
@@ -1222,8 +1222,9 @@ def _process_refund(
                 manager,
                 amount=amount,
                 channel_slug=order.channel.slug,
-                order_lines_to_refund=order_lines_to_refund,
-                fulfillment_lines_to_refund=fulfillment_lines_to_refund,
+                lines_to_refund=create_lines_to_refund(
+                    fulfillment_lines_to_refund, order_lines_to_refund
+                ),
             )
         except PaymentError:
             raise ValidationError(

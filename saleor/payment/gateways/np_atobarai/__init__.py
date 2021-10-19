@@ -65,6 +65,8 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
 
     if not fulfillment.lines.count() == order.lines.count():
         errors = ["Cannot report tracking lines for partial fulfillments."]
+    elif not (payment := order.get_last_payment()) and not payment.is_active:
+        errors = ["Active payment for this order does not exist"]
     else:
         errors = api.report_fulfillment(config, fulfillment)
 

@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from typing import Optional
 
 from ....core.tracing import opentracing_trace
-from ....order.events import order_other_event
+from ....order.events import external_notification_event
 from ....order.models import Fulfillment, Order
 
 CAPTURED_METADATA_KEY = "np_atobarai.fulfillment_is_captured"
@@ -20,7 +20,9 @@ def fulfillment_is_captured(fulfillment: Optional[Fulfillment]) -> bool:
 
 
 def notify_dashboard(order: Order, message: str):
-    order_other_event(order, None, None, {"message": message})
+    external_notification_event(
+        order=order, user=None, app=None, message=message, parameters=None
+    )
 
 
 @contextmanager
