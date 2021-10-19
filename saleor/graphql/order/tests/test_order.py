@@ -2588,10 +2588,8 @@ def test_draft_order_update_doing_nothing_generates_no_events(
     assert not OrderEvent.objects.exists()
 
 
-def test_draft_order_delete(
-    staff_api_client, permission_manage_orders, order_with_lines
-):
-    order = order_with_lines
+def test_draft_order_delete(staff_api_client, permission_manage_orders, draft_order):
+    order = draft_order
     query = """
         mutation draftDelete($id: ID!) {
             draftOrderDelete(id: $id) {
