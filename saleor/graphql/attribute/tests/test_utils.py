@@ -239,7 +239,7 @@ def test_validate_attributes_input_for_product_lack_of_required_attribute(
         input_data,
         product_attributes,
         is_page_attributes=False,
-        variant_validation=False,
+        variant_validation=None,
     )
 
     # then
@@ -534,7 +534,7 @@ def test_validate_attributes_input_for_page_lack_of_required_attribute(
 
     # when
     errors = validate_attributes_input(
-        input_data, page_attributes, is_page_attributes=True, variant_validation=False
+        input_data, page_attributes, is_page_attributes=True, variant_validation=None
     )
 
     # then
@@ -705,6 +705,10 @@ def test_validate_not_required_variant_selection_attributes_input_no_values_give
     weight_attribute.input_type = AttributeInputType.MULTISELECT
     weight_attribute.save(update_fields=["value_required", "input_type"])
 
+    # To be verified.
+    product_type.variant_attributes.add(weight_attribute)
+    product_type.variant_attributes.add(color_attribute)
+
     input_data = [
         (
             weight_attribute,
@@ -729,10 +733,14 @@ def test_validate_not_required_variant_selection_attributes_input_no_values_give
     ]
 
     attributes = product_type.variant_attributes.all()
-
     # when
     errors = validate_attributes_input(
-        input_data, attributes, is_page_attributes=False, variant_validation=True
+        input_data,
+        attributes,
+        is_page_attributes=False,
+        variant_validation=attributes.values(
+            "id", "attributevariant__variant_selection"
+        ),
     )
 
     # then
@@ -776,7 +784,12 @@ def test_validate_attributes_input_too_many_values_given(
 
     # when
     errors = validate_attributes_input(
-        input_data, attributes, is_page_attributes=False, variant_validation=True
+        input_data,
+        attributes,
+        is_page_attributes=False,
+        variant_validation=attributes.values(
+            "id", "attributevariant__variant_selection"
+        ),
     )
 
     # then
@@ -929,7 +942,7 @@ def test_validate_attributes_with_file_input_type_for_product(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        variant_validation=None,
     )
 
     # then
@@ -974,7 +987,7 @@ def test_validate_attributes_with_file_input_type_for_product_no_file_given(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        variant_validation=None,
     )
 
     # then
@@ -1024,7 +1037,7 @@ def test_validate_not_required_attrs_with_file_input_type_for_product_no_file_gi
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        variant_validation=None,
     )
 
     # then
@@ -1069,7 +1082,7 @@ def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        variant_validation=None,
     )
 
     # then
@@ -1104,7 +1117,7 @@ def test_validate_numeric_attributes_input_for_product(numeric_attribute, produc
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        variant_validation=None,
     )
 
     # then
@@ -1137,7 +1150,7 @@ def test_validate_numeric_attributes_input_for_product_not_numeric_value_given(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        variant_validation=None,
     )
 
     # then
@@ -1174,7 +1187,7 @@ def test_validate_numeric_attributes_input_for_product_blank_value(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        variant_validation=None,
     )
 
     # then
@@ -1211,7 +1224,7 @@ def test_validate_numeric_attributes_input_for_product_more_than_one_value_given
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        variant_validation=None,
     )
 
     # then

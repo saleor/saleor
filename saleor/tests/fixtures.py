@@ -1536,7 +1536,9 @@ def product_type(color_attribute, size_attribute):
         is_shipping_required=True,
     )
     product_type.product_attributes.add(color_attribute)
-    product_type.variant_attributes.add(size_attribute)
+    product_type.variant_attributes.add(
+        size_attribute, through_defaults={"variant_selection": True}
+    )
     return product_type
 
 

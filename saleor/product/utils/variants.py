@@ -1,9 +1,9 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
 
-from ...attribute import AttributeInputType, AttributeType
+from ...attribute import AttributeType
 
 if TYPE_CHECKING:
-    from ...attribute.models import AssignedVariantAttribute
+    from ...attribute.models import AssignedVariantAttribute, Attribute
     from ..models import ProductVariant
 
 
@@ -11,9 +11,8 @@ def generate_and_set_variant_name(variant: "ProductVariant", sku: Optional[str])
     """Generate ProductVariant's name based on its attributes."""
     attributes_display = []
 
-    variant_selection_input_types = AttributeInputType.ALLOWED_IN_VARIANT_SELECTION
     variant_selection_attributes = variant.attributes.filter(
-        assignment__attribute__input_type__in=variant_selection_input_types,
+        assignment__variant_selection=True,
         assignment__attribute__type=AttributeType.PRODUCT_TYPE,
     )
     for (
@@ -31,15 +30,16 @@ def generate_and_set_variant_name(variant: "ProductVariant", sku: Optional[str])
     variant.save(update_fields=["name"])
 
 
-def get_variant_selection_attributes(attributes):
+def get_variant_selection_attributes(
+    attributes: Sequence[Tuple["Attribute", bool]]
+) -> List[Tuple["Attribute", bool]]:
     """Return attributes that can be used in variant selection.
 
     Attribute must be product attribute and attribute input type must be
     in ALLOWED_IN_VARIANT_SELECTION list.
     """
     return [
-        attribute
-        for attribute in attributes
-        if attribute.input_type in AttributeInputType.ALLOWED_IN_VARIANT_SELECTION
-        and attribute.type == AttributeType.PRODUCT_TYPE
+        (attribute, variant_selection)
+        for attribute, variant_selection in attributes
+        if variant_selection and attribute.type == AttributeType.PRODUCT_TYPE
     ]
