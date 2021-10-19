@@ -75,6 +75,7 @@ def _resolve_checkout_excluded_shipping_methods(
     cache_key = "__available_shipping_methods"
     if hasattr(root, cache_key):
         return getattr(root, cache_key)
+
     channel_listing_map = {
         channel_listing.shipping_method_id: channel_listing
         for channel_listing in channel_listings
@@ -90,17 +91,20 @@ def _resolve_checkout_excluded_shipping_methods(
         else:
             shipping.price = taxed_price.net
         available_with_channel_context.append(shipping)
+
+    excluded_shipping_methods = manager.excluded_shipping_methods_for_checkout(
+        root,
+        [
+            convert_shipping_method_model_to_dataclass(shipping)
+            for shipping in shippings
+        ],
+    )
     available_with_channel_context = set_active_shipping_methods(
-        manager.excluded_shipping_methods_for_checkout(
-            root,
-            [
-                convert_shipping_method_model_to_dataclass(shipping)
-                for shipping in shippings
-            ],
-        ),
+        excluded_shipping_methods,
         available_with_channel_context,
         channel_slug,
     )
+
     setattr(root, cache_key, available_with_channel_context)
     return getattr(root, cache_key)
 
