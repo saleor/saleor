@@ -8,6 +8,7 @@ from ...core.permissions import PagePermissions, ProductPermissions
 from ...core.tracing import traced_resolver
 from ...graphql.utils import get_user_or_app_from_context
 from ..core.connection import CountableDjangoObjectType
+from ..core.descriptions import ADDED_IN_31
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import FilterInputConnectionField
 from ..core.types import File
@@ -202,6 +203,27 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     def resolve_with_choices(root: models.Attribute, *_args):
         return root.input_type in AttributeInputType.TYPES_WITH_CHOICES
+
+
+class AssignedVariantAttribute(graphene.ObjectType):
+    attribute = graphene.Field(
+        Attribute, description="Attribute assigned to variant.", required=True
+    )
+    variant_selection = graphene.Boolean(
+        required=True,
+        description=(
+            "Determines, whether assigned attribute is "
+            "allowed for variant selection. Supported variant types for "
+            "variant selection are: "
+            f"{AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}"
+        ),
+    )
+
+    class Meta:
+        description = (
+            f"{ADDED_IN_31} Represents assigned attribute to variant with "
+            "variant selection attached."
+        )
 
 
 class SelectedAttribute(graphene.ObjectType):

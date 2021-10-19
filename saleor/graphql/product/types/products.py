@@ -30,7 +30,7 @@ from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
 from ...attribute.resolvers import resolve_attributes
-from ...attribute.types import Attribute, SelectedAttribute
+from ...attribute.types import AssignedVariantAttribute, Attribute, SelectedAttribute
 from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
@@ -394,9 +394,12 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
                 return selected_attributes
             attributes = [
-                selected_att["attribute"] for selected_att in selected_attributes
+                (selected_att["attribute"], selected_att["variant_selection"])
+                for selected_att in selected_attributes
             ]
-            variant_selection_attrs = get_variant_selection_attributes(attributes)
+            variant_selection_attrs = [
+                attr for attr, _ in get_variant_selection_attributes(attributes)
+            ]
 
             if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
                 return [
@@ -1126,6 +1129,20 @@ class ProductType(CountableDjangoObjectType):
             VariantAttributeScope,
             description="Define scope of returned attributes.",
         ),
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `assignedVariantAttributes` instead."
+        ),
+    )
+    assigned_variant_attributes = graphene.List(
+        AssignedVariantAttribute,
+        description=(
+            f"{ADDED_IN_31} Variant attributes of that product "
+            "type with attached variant selection."
+        ),
+        variant_selection=graphene.Argument(
+            VariantAttributeScope,
+            description="Define scope of returned attributes.",
+        ),
     )
     product_attributes = graphene.List(
         Attribute, description="Product attributes of that product type."
@@ -1159,7 +1176,14 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product_attributes(root: models.ProductType, info):
-        return ProductAttributesByProductTypeIdLoader(info.context).load(root.pk)
+        def unpack_attributes(attributes):
+            return [attr for attr, *_ in attributes]
+
+        return (
+            ProductAttributesByProductTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(unpack_attributes)
+        )
 
     @staticmethod
     @traced_resolver
@@ -1170,11 +1194,46 @@ class ProductType(CountableDjangoObjectType):
     ):
         def apply_variant_selection_filter(attributes):
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
-                return attributes
+                return [attr for attr, *_ in attributes]
             variant_selection_attrs = get_variant_selection_attributes(attributes)
             if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
-                return variant_selection_attrs
-            return [attr for attr in attributes if attr not in variant_selection_attrs]
+                return [attr for attr, *_ in variant_selection_attrs]
+            return [
+                attr
+                for attr, variant_selection in attributes
+                if (attr, variant_selection) not in variant_selection_attrs
+            ]
+
+        return (
+            VariantAttributesByProductTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(apply_variant_selection_filter)
+        )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_assigned_variant_attributes(
+        root: models.ProductType,
+        info,
+        variant_selection: Optional[str] = None,
+    ):
+        def apply_variant_selection_filter(attributes):
+            if not variant_selection or variant_selection == VariantAttributeScope.ALL:
+                return [
+                    {"attribute": attr, "variant_selection": variant_selection}
+                    for attr, variant_selection in attributes
+                ]
+            variant_selection_attrs = get_variant_selection_attributes(attributes)
+            if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
+                return [
+                    {"attribute": attr, "variant_selection": variant_selection}
+                    for attr, variant_selection in variant_selection_attrs
+                ]
+            return [
+                {"attribute": attr, "variant_selection": variant_selection}
+                for attr, variant_selection in attributes
+                if (attr, variant_selection) not in variant_selection_attrs
+            ]
 
         return (
             VariantAttributesByProductTypeIdLoader(info.context)
