@@ -94,7 +94,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
         fulfillment = order.fulfillments.order_by("fulfillment_order").first()
         lines = payment_information.lines_to_refund
 
-        if fulfillment_is_captured(fulfillment):
+        if fulfillment and fulfillment_is_captured(fulfillment):
             result = api.transaction_reregistration_for_partial_return(
                 config, payment, payment_information, lines
             )
