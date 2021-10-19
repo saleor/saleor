@@ -192,7 +192,12 @@ class ProductVariantsByProductIdAndChannel(DataLoader):
         )
         variant_map = defaultdict(list)
         for variant in variants.iterator():
-            variant_map[(variant.product_id, variant.channel_slug)].append(variant)
+            variant_map[
+                (
+                    variant.product_id,
+                    variant.channel_slug,
+                )
+            ].append(variant)
 
         return [variant_map.get(key, []) for key in keys]
 

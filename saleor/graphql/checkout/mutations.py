@@ -1,6 +1,7 @@
 import datetime
 import uuid
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
+from collections import defaultdict
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
 
 import graphene
 from django.conf import settings
@@ -152,8 +153,11 @@ def check_lines_quantity(
     allow_zero_quantities can be set to True
     and checkout lines with this quantity can be later removed.
     """
+    for quantity, variant in zip(quantities, variants):
+        available_quantity = settings.MAX_CHECKOUT_LINE_QUANTITY
+        if variant_quantity := variant.quantity_limit_per_customer:
+            available_quantity = variant_quantity
 
-    for quantity in quantities:
         if not allow_zero_quantity and quantity <= 0:
             raise ValidationError(
                 {
@@ -174,7 +178,7 @@ def check_lines_quantity(
                 }
             )
 
-        if quantity > settings.MAX_CHECKOUT_LINE_QUANTITY:
+        if quantity > available_quantity:
             raise ValidationError(
                 {
                     "quantity": ValidationError(
@@ -341,7 +345,14 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             ),
         )
 
-        quantities = [line["quantity"] for line in lines]
+        # Calculates quantities/variants correctly then variant duplicated in checkout
+        # TODO: Check if needed
+        variant_quantity_map: Dict[str, int] = defaultdict(int)
+        for quantity, variant_id in (line.values() for line in lines):
+            variant_quantity_map[variant_id] += quantity
+        variant_ids = {variant_id for variant_id in variant_ids}
+        quantities = list(variant_quantity_map.values())
+
         variant_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variant_db_ids, channel.id)
         validate_variants_available_in_channel(

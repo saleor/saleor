@@ -776,6 +776,13 @@ class ProductVariantInput(graphene.InputObjectType):
     preorder = PreorderSettingsInput(
         description=f"{ADDED_IN_31} Determines if variant is in preorder."
     )
+    quantity_limit_per_customer = graphene.Int(
+        required=False,
+        description=(
+            f"{ADDED_IN_31} Determines maximum quantity of `ProductVariant`."
+            "that can be bought in a single checkout."
+        ),
+    )
 
 
 class ProductVariantCreateInput(ProductVariantInput):
@@ -857,6 +864,17 @@ class ProductVariantCreate(ModelMutation):
                     "weight": ValidationError(
                         "Product variant can't have negative weight.",
                         code=ProductErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+        quantity_limit_per_customer = cleaned_input.get("quantity_limit_per_customer")
+        if quantity_limit_per_customer is not None and quantity_limit_per_customer < 1:
+            raise ValidationError(
+                {
+                    "quantity_limit_per_customer": ValidationError(
+                        "Product variant can't have ",
+                        "quantity_limit_per_customer lower than 1",
                     )
                 }
             )

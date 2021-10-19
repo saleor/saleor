@@ -2,7 +2,6 @@ from collections import defaultdict
 from typing import DefaultDict, Iterable, List, Optional, Tuple
 from uuid import UUID
 
-from django.conf import settings
 from django.db.models import Exists, OuterRef, Q
 from django.db.models.aggregates import Sum
 from django.db.models.functions import Coalesce
@@ -22,10 +21,11 @@ from ..core.dataloaders import DataLoader
 
 CountryCode = Optional[str]
 VariantIdCountryCodeChannelSlug = Tuple[int, CountryCode, str]
+VariantIdCountryCodeChannelSlugLimit = Tuple[int, CountryCode, str, int]
 
 
 class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
-    DataLoader[VariantIdCountryCodeChannelSlug, int]
+    DataLoader[VariantIdCountryCodeChannelSlugLimit, int]
 ):
     """Calculates available variant quantity based on variant ID and country code.
 
@@ -41,37 +41,41 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         # a handful of unique countries but may access thousands of product variants
         # so it's cheaper to execute one query per country.
         variants_by_country_and_channel: DefaultDict[
-            CountryCode, List[int]
+            Tuple[CountryCode, str], List[Tuple[int, int]]
         ] = defaultdict(list)
-        for variant_id, country_code, channel_slug in keys:
+        for variant_id, country_code, channel_slug, quantity_limit in keys:
             variants_by_country_and_channel[(country_code, channel_slug)].append(
-                variant_id
+                (variant_id, quantity_limit)
             )
 
         # For each country code execute a single query for all product variants.
         quantity_by_variant_and_country: DefaultDict[
             VariantIdCountryCodeChannelSlug, int
         ] = defaultdict(int)
-        for key, variant_ids in variants_by_country_and_channel.items():
+        for key, variant_data in variants_by_country_and_channel.items():
             country_code, channel_slug = key
             quantities = self.batch_load_quantities_by_country(
-                country_code, channel_slug, variant_ids
+                country_code, channel_slug, variant_data
             )
             for variant_id, quantity in quantities:
                 quantity_by_variant_and_country[
                     (variant_id, country_code, channel_slug)
                 ] = max(0, quantity)
 
-        return [quantity_by_variant_and_country[key] for key in keys]
+        return [
+            quantity_by_variant_and_country[(id_, country_code, channel_slug)]
+            for id_, country_code, channel_slug, _ in keys
+        ]
 
     def batch_load_quantities_by_country(
         self,
         country_code: Optional[CountryCode],
         channel_slug: Optional[str],
-        variant_ids: Iterable[int],
+        variant_data: Iterable[Tuple[int, int]],
     ) -> Iterable[Tuple[int, int]]:
         # get stocks only for warehouses assigned to the shipping zones
         # that are available in the given channel
+        variant_ids = [ids for ids, _ in variant_data]
         stocks = Stock.objects.filter(product_variant_id__in=variant_ids)
         WarehouseShippingZone = Warehouse.shipping_zones.through  # type: ignore
         warehouse_shipping_zones = WarehouseShippingZone.objects.all()
@@ -156,9 +160,9 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         return [
             (
                 variant_id,
-                min(quantity_map[variant_id], settings.MAX_CHECKOUT_LINE_QUANTITY),
+                min(quantity_map[variant_id], quantity_limit),
             )
-            for variant_id in variant_ids
+            for variant_id, quantity_limit in variant_data
         ]
 
 
