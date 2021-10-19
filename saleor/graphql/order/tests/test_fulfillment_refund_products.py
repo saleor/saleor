@@ -63,7 +63,7 @@ def test_fulfillment_refund_products_order_without_payment(
     assert fulfillment is None
 
 
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_refund_products_amount_and_shipping_costs(
     mocked_refund,
     staff_api_client,
@@ -85,20 +85,17 @@ def test_fulfillment_refund_products_amount_and_shipping_costs(
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     mocked_refund.assert_called_with(
-        order=fulfilled_order,
-        user=staff_api_client.user,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
-        channel_slug=fulfilled_order.channel.slug,
+        payment_dummy,
+        ANY,
         amount=quantize_price(
             amount_to_refund,
             fulfilled_order.currency,
         ),
+        channel_slug=fulfilled_order.channel.slug,
     )
 
 
-@patch("saleor.payment.actions.gateway.refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_refund_products_refund_raising_payment_error(
     mocked_refund,
     staff_api_client,
@@ -132,7 +129,7 @@ def test_fulfillment_refund_products_refund_raising_payment_error(
     assert event.parameters["payment_id"] == payment_dummy.token
 
 
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_refund_products_order_lines(
     mocked_refund,
     staff_api_client,
@@ -165,13 +162,10 @@ def test_fulfillment_refund_products_order_lines(
     assert refund_fulfillment["lines"][0]["quantity"] == 2
 
     mocked_refund.assert_called_with(
-        order=order_with_lines,
-        user=staff_api_client.user,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
-        channel_slug=order_with_lines.channel.slug,
+        payment_dummy,
+        ANY,
         amount=line_to_refund.unit_price_gross_amount * 2,
+        channel_slug=order_with_lines.channel.slug,
     )
 
 
@@ -234,7 +228,7 @@ def test_fulfillment_refund_products_order_lines_quantity_bigger_than_unfulfille
     assert refund_fulfillment is None
 
 
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_refund_products_fulfillment_lines(
     mocked_refund,
     staff_api_client,
@@ -277,11 +271,8 @@ def test_fulfillment_refund_products_fulfillment_lines(
     assert refund_fulfillment["lines"][0]["quantity"] == 2
 
     mocked_refund.assert_called_with(
-        order=fulfilled_order,
-        user=staff_api_client.user,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=fulfillment_line_to_refund.order_line.unit_price_gross_amount * 2,
     )
@@ -356,7 +347,7 @@ def test_fulfillment_refund_products_amount_bigger_than_captured_amount(
     assert refund_fulfillment is None
 
 
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
     mocked_refund,
     staff_api_client,
@@ -402,17 +393,14 @@ def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
     amount += fulfilled_order.shipping_price_gross_amount
 
     mocked_refund.assert_called_with(
-        order=fulfilled_order,
-        user=staff_api_client.user,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
-        channel_slug=fulfilled_order.channel.slug,
+        payment_dummy,
+        ANY,
         amount=amount,
+        channel_slug=fulfilled_order.channel.slug,
     )
 
 
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_refund_products_order_lines_include_shipping_costs(
     mocked_refund,
     staff_api_client,
@@ -450,17 +438,14 @@ def test_fulfillment_refund_products_order_lines_include_shipping_costs(
     amount += order_with_lines.shipping_price_gross_amount
 
     mocked_refund.assert_called_with(
-        order=order_with_lines,
-        user=staff_api_client.user,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
-        channel_slug=order_with_lines.channel.slug,
+        payment_dummy,
+        ANY,
         amount=amount,
+        channel_slug=order_with_lines.channel.slug,
     )
 
 
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
     mocked_refund,
     staff_api_client,
@@ -505,17 +490,14 @@ def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
     assert refund_fulfillment["lines"][0]["quantity"] == 2
 
     mocked_refund.assert_called_with(
-        order=fulfilled_order,
-        user=staff_api_client.user,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount_to_refund,
     )
 
 
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_refund_products_order_lines_custom_amount(
     mocked_refund,
     staff_api_client,
@@ -552,17 +534,14 @@ def test_fulfillment_refund_products_order_lines_custom_amount(
     assert refund_fulfillment["lines"][0]["quantity"] == 2
 
     mocked_refund.assert_called_with(
-        order=order_with_lines,
-        user=staff_api_client.user,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount_to_refund,
     )
 
 
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     mocked_refund,
     warehouse,
@@ -648,11 +627,8 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     amount = quantize_price(amount, fulfilled_order.currency)
 
     mocked_refund.assert_called_with(
-        order=fulfilled_order,
-        user=staff_api_client.user,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
     )

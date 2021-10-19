@@ -11,6 +11,7 @@ from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContent
 from ...product.tests.utils import create_image
+from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
 from ..actions import (
@@ -21,9 +22,9 @@ from ..actions import (
     cancel_order,
     fulfill_order_lines,
     handle_fully_paid_order,
-    make_refund,
     mark_order_as_paid,
     order_refunded,
+    refund_payments,
 )
 from ..interface import OrderPaymentAction
 from ..models import Fulfillment
@@ -69,6 +70,12 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     Allocation.objects.create(order_line=line, stock=stock, quantity_allocated=quantity)
 
     return order
+
+
+@pytest.fixture
+def refund_response(gateway_response):
+    gateway_response.kind = TransactionKind.REFUND
+    return gateway_response
 
 
 @patch(
@@ -252,6 +259,7 @@ def test_order_refunded_by_user(
     # when
     manager = get_plugins_manager()
     order_refunded(order, order.user, app, payments, manager)
+    flush_post_commit_hooks()
 
     # then
     order_event = order.events.last()
@@ -282,6 +290,7 @@ def test_order_refunded_by_app(
     # when
     manager = get_plugins_manager()
     order_refunded(order, None, app, payments, manager)
+    flush_post_commit_hooks()
 
     # then
     order_event = order.events.last()
@@ -350,62 +359,8 @@ def test_order_refunded_creates_an_event_for_each_payment(
     assert payment_refunded_event_mock.call_count == num_of_payments
 
 
-@patch("saleor.payment.actions.try_refund")
-@patch("saleor.order.actions.order_refunded")
-@pytest.mark.parametrize("transaction_kind", TransactionKind.CHOICES)
-def test_make_refund_calls_order_refunded_only_with_refunded_payments(
-    order_refunded_mock,
-    try_refund_mock,
-    transaction_kind,
-    order,
-    checkout_with_item,
-    app,
-):
-    # given
-    num_of_payments = 2
-    money = Money(amount=Decimal("60"), currency=order.currency)
-    order.total = TaxedMoney(money, money)
-    order.save()
-    amount = order.total.gross.amount / num_of_payments
-
-    for _ in range(num_of_payments):
-        Payment.objects.create(
-            gateway="mirumee.payments.dummy",
-            is_active=True,
-            checkout=checkout_with_item,
-            currency=order.currency,
-            captured_amount=amount,
-            charge_status=ChargeStatus.FULLY_CHARGED,
-        )
-
-    payments = Payment.objects.all()
-    payments = [{"payment": payment, "amount": amount} for payment in payments]
-    try_refund_mock.return_value.kind = transaction_kind
-    refunded_payments = [
-        {"payment": payment, "amount": amount}
-        for payment in payments
-        if transaction_kind == TransactionKind.REFUND
-    ]
-
-    # when
-    info = create_autospec(graphql.execution.base.ResolveInfo)
-    info.context.user = None
-    info.context.app = app
-    info.context.plugins = get_plugins_manager()
-    make_refund(order, refunded_payments, info)
-
-    # then
-    order_refunded_mock.assert_called_once_with(
-        order,
-        info.context.user,
-        info.context.app,
-        refunded_payments,
-        info.context.plugins,
-    )
-
-
-@patch("saleor.payment.actions.try_refund")
-def test_make_refund_creates_only_one_order_fullfilment_for_multiple_payments(
+@patch("saleor.order.actions.gateway.refund")
+def test_refund_payments_creates_only_one_order_fullfilment_for_multiple_payments(
     try_refund_mock, order, checkout_with_item, app
 ):
     # given
@@ -441,14 +396,13 @@ def test_make_refund_creates_only_one_order_fullfilment_for_multiple_payments(
     info.context.app = app
     info.context.plugins = get_plugins_manager()
 
-    make_refund(order, payments, info)
+    refund_payments(
+        order, payments, info.context.user, info.context.app, info.context.plugins
+    )
 
-    # then
-    assert order.fulfillments.count() == 1
 
-
-@patch("saleor.order.actions.try_refund")
-def test_make_refund_calls_try_refund_for_each_payment(
+@patch("saleor.order.actions.gateway.refund")
+def test_refund_payments_calls_gateway_refund_for_each_payment(
     try_refund_mock,
     order,
     checkout_with_item,
@@ -482,10 +436,11 @@ def test_make_refund_calls_try_refund_for_each_payment(
 
     # when
     info = create_autospec(graphql.execution.base.ResolveInfo)
-    info.context.user = None
     info.context.app = app
     info.context.plugins = get_plugins_manager()
-    make_refund(order, payments, info)
+    refund_payments(
+        order, payments, info.context.user, info.context.app, info.context.plugins
+    )
 
     # then
     assert try_refund_mock.call_count == num_of_payments

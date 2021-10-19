@@ -7,14 +7,14 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
-from ....order import OrderLineData, OrderStatus, events, models
+from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     capture_payments,
-    make_refund,
     mark_order_as_paid,
     order_confirmed,
     order_shipping_updated,
+    refund_payments,
     void_payments,
 )
 from ....order.error_codes import OrderErrorCode
@@ -695,7 +695,18 @@ class OrderRefund(BaseMutation):
             # The check still has to be performed.
             clean_refund_payment(None)
 
-        make_refund(order, payments, info)
+        refund_payments(
+            order,
+            payments,
+            info.context.user,
+            info.context.app,
+            info.context.plugins,
+        )
+
+        total_amount = sum([item.amount for item in payments])
+        order.fulfillments.create(
+            status=FulfillmentStatus.REFUNDED, total_refund_amount=total_amount
+        )
 
         return OrderRefund(order=order)
 

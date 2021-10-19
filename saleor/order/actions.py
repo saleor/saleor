@@ -19,7 +19,6 @@ from ..payment import (
     TransactionKind,
     gateway,
 )
-from ..payment.actions import try_refund
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
 from ..warehouse.management import (
@@ -123,7 +122,7 @@ def order_created(
         order_confirmed(order, user, app, manager)
 
 
-def __capture_payment(
+def __capture_payment_or_create_event(
     order: Order,
     payment: Payment,
     manager: "PluginsManager",
@@ -157,7 +156,7 @@ def _capture_payments(
     user: Optional[User],
     app: Optional["App"],
     amount: Decimal = None,
-):
+) -> Tuple[List[OrderPaymentAction], List[OrderEvent]]:
     to_pay = amount or order.outstanding_balance.amount
     payments_to_notify = []
     failed_events = []
@@ -169,7 +168,7 @@ def _capture_payments(
     )
     for payment in authorized_payments:
         if to_pay > Decimal("0.00"):
-            transaction, event = __capture_payment(
+            transaction, event = __capture_payment_or_create_event(
                 order, payment, manager, user, app, to_pay
             )
             # Process only successful charges
@@ -193,7 +192,7 @@ def _capture_payments(
     return payments_to_notify, failed_events
 
 
-def __void_payment(
+def __void_payment_or_create_event(
     order: Order,
     payment: Payment,
     manager: "PluginsManager",
@@ -223,7 +222,7 @@ def _void_payments(
     manager: "PluginsManager",
     user: Optional[User],
     app: Optional["App"],
-):
+) -> Tuple[List[OrderPaymentAction], List[OrderEvent]]:
     payments_to_notify = []
     failed_events = []
 
@@ -233,12 +232,73 @@ def _void_payments(
         key=lambda p: p.pk,
     )
     for payment in authorized_payments:
-        transaction, event = __void_payment(order, payment, manager, user, app)
+        transaction, event = __void_payment_or_create_event(
+            order, payment, manager, user, app
+        )
         # Process only successful voids
         if transaction and transaction.is_success:
             #  Confirm that we changed the status to VOID. Some payments
             #  can receive asynchronous webhooks with status updates
             if transaction.kind == TransactionKind.VOID:
+                payments_to_notify.append(
+                    OrderPaymentAction(
+                        amount=transaction.amount,
+                        payment=payment,
+                    )
+                )
+        elif event:
+            failed_events.append(event)
+
+    return payments_to_notify, failed_events
+
+
+def __refund_payment_or_create_event(
+    order: Order,
+    payment: Payment,
+    amount: Decimal,
+    manager: "PluginsManager",
+    user: Optional[User],
+    app: Optional["App"],
+) -> Tuple[Optional[Transaction], Optional[OrderEvent]]:
+    if payment and payment.can_refund():
+        try:
+            return (
+                gateway.refund(
+                    payment,
+                    manager,
+                    channel_slug=order.channel.slug,
+                    amount=amount,
+                ),
+                None,
+            )
+        except PaymentError as e:
+            return None, events.payment_refund_failed_event(
+                order=order, user=user, app=app, message=str(e), payment=payment
+            )
+
+    return None, None
+
+
+def _refund_payments(
+    order: Order,
+    payments: List[OrderPaymentAction],
+    manager: "PluginsManager",
+    user: Optional[User],
+    app: Optional["App"],
+) -> Tuple[List[OrderPaymentAction], List[OrderEvent]]:
+    payments_to_notify = []
+    failed_events = []
+    for item in payments:
+        payment = item.payment
+        amount = item.amount
+        transaction, event = __refund_payment_or_create_event(
+            order, payment, amount, manager, user, app
+        )
+        # Process only successful refunds
+        if transaction and transaction.is_success:
+            # Confirm that we changed the status to refund. Some payments
+            # can receive asynchronous webhook with update status
+            if transaction.kind == TransactionKind.REFUND:
                 payments_to_notify.append(
                     OrderPaymentAction(
                         amount=transaction.amount,
@@ -281,6 +341,29 @@ def void_payments(
     order.refresh_from_db()
     if payments_to_notify:
         order_voided(
+            order,
+            user,
+            app,
+            payments_to_notify,
+            manager,
+        )
+
+    return failed_events
+
+
+def refund_payments(
+    order: "Order",
+    payments: List[OrderPaymentAction],
+    user: Optional["User"],
+    app: Optional["App"],
+    manager: "PluginsManager",
+):
+    payments_to_notify, failed_events = _refund_payments(
+        order, payments, manager, user, app
+    )
+    order.refresh_from_db()
+    if payments_to_notify:
+        order_refunded(
             order,
             user,
             app,
@@ -354,68 +437,31 @@ def cancel_order(
     send_order_canceled_confirmation(order, user, app, manager)
 
 
-def make_refund(order: Order, payments: List[OrderPaymentAction], info):
-    not_refunded_payments = []
-
-    for item in payments:
-        payment = item.payment
-        amount = item.amount
-
-        transaction = try_refund(
-            order=order,
-            user=info.context.user,
-            app=info.context.app,
-            payment=payment,
-            manager=info.context.plugins,
-            channel_slug=order.channel.slug,
-            amount=amount,
-        )
-        # Confirm that we changed the status to refund. Some payment can receive
-        # asynchronous webhook with update status
-        if transaction.kind != TransactionKind.REFUND:
-            not_refunded_payments.append(payment.id)
-
-    total_amount = sum([item.amount for item in payments])
-    order.fulfillments.create(
-        status=FulfillmentStatus.REFUNDED, total_refund_amount=total_amount
-    )
-
-    refunded_payments = [
-        item for item in payments if item.payment.id not in not_refunded_payments
-    ]
-
-    order_refunded(
-        order,
-        info.context.user,
-        info.context.app,
-        refunded_payments,
-        info.context.plugins,
-    )
-
-
 def order_refunded(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    payments: List[OrderPaymentAction],
+    payment_actions: List[OrderPaymentAction],
     manager: "PluginsManager",
     *,
     send_notification: bool = True,
 ):
-    for item in payments:
+    for action in payment_actions:
         events.payment_refunded_event(
             order=order,
             user=user,
             app=app,
-            amount=item.amount,
-            payment=item.payment,
+            amount=action.amount,
+            payment=action.payment,
         )
     manager.order_updated(order)
 
     if send_notification:
         # Payments related to an order should have the same currency as the order.
-        send_order_refunded_confirmation(
-            order, user, app, payments, order.currency, manager
+        transaction.on_commit(
+            lambda: send_order_refunded_confirmation(
+                order, user, app, payment_actions, order.currency, manager
+            )
         )
 
 
@@ -1483,31 +1529,12 @@ def _process_refund(
         refund_amount, payments, order, include_shipping_costs
     )
 
-    for item in payments:
-        try_refund(
-            order=order,
-            user=user,
-            app=app,
-            payment=item.payment,
-            manager=manager,
-            channel_slug=order.channel.slug,
-            amount=item.amount,
-        )
-
-        transaction.on_commit(
-            lambda: events.payment_refunded_event(
-                order=order,
-                user=user,
-                app=app,
-                amount=item.amount,  # type: ignore
-                payment=item.payment,
-            )
-        )
-
-    transaction.on_commit(
-        lambda: send_order_refunded_confirmation(
-            order, user, app, payments, order.currency, manager  # type: ignore
-        )
+    refund_payments(
+        order,
+        payments,
+        user,
+        app,
+        manager,
     )
 
     transaction.on_commit(
