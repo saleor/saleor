@@ -462,6 +462,12 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         payments_data = {}
 
         for item in payments_to_refund:
+            amount = item.get("amount")
+
+            # We need to exclude payments that have amounts equal to 0.
+            if amount is not None and amount == 0:
+                continue
+
             data = {"amount": item.get("amount")}
             payment_pk = int(cls.get_global_id_or_error(item["payment_id"], "Payment"))
 
@@ -472,9 +478,9 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
 
         payment_objects = Payment.objects.in_bulk(payment_ids)
 
-        for item in payments_data.items():
-            payment = payment_objects[item[0]]
-            amount = item[1]["amount"]
+        for payment_id, amount_data in payments_data.items():
+            payment = payment_objects[payment_id]
+            amount = amount_data["amount"]
             has_amounts_specified.append(amount)
 
             payments.append(OrderPaymentAction(payment, amount or Decimal("0")))

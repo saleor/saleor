@@ -1063,3 +1063,75 @@ def test_fulfillment_refund_products_with_amount_to_refund_passed(
     )
     assert fulfillment.shipping_refund_amount is None
     assert fulfillment.total_refund_amount == payment_1.captured_amount
+
+
+def test_fulfillment_refund_products_exclude_payments_with_zero_amount(
+    staff_api_client,
+    fulfilled_order,
+    payment_dummy_factory,
+    permission_manage_orders,
+):
+    # given
+    payment_1 = payment_dummy_factory()
+    payment_1.captured_amount = payment_1.total
+    payment_1.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_1.save()
+
+    payment_2 = payment_dummy_factory()
+    payment_2.captured_amount = payment_2.total
+    payment_2.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_2.save()
+
+    payment_1.transactions.create(
+        amount=payment_1.captured_amount,
+        currency=payment_1.currency,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+
+    payment_2.transactions.create(
+        amount=payment_2.captured_amount,
+        currency=payment_2.currency,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+
+    amount_to_refund = payment_1.captured_amount // 2
+    variables = {
+        "order": order_id,
+        "input": {
+            "includeShippingCosts": False,
+            "paymentsToRefund": [
+                {
+                    "paymentId": graphene.Node.to_global_id("Payment", payment_1.id),
+                    "amount": amount_to_refund,
+                },
+                {
+                    "paymentId": graphene.Node.to_global_id("Payment", payment_2.id),
+                    "amount": 0,
+                },
+            ],
+        },
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentRefundProducts"]
+    fulfillment = fulfilled_order.fulfillments.filter(
+        status=FulfillmentStatus.REFUNDED
+    ).get()
+
+    # then
+    assert data["errors"] == []
+    assert data["fulfillment"]["id"] == graphene.Node.to_global_id(
+        "Fulfillment", fulfillment.id
+    )
+    assert fulfillment.shipping_refund_amount is None
+    assert fulfillment.total_refund_amount == amount_to_refund
