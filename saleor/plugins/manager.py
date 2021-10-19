@@ -1020,20 +1020,28 @@ class PluginsManager(PaymentInterface):
         )
 
     def excluded_shipping_methods_for_order(
-        self, order: "Order", available_shipping_methods: List[ShippingMethod]
+        self, order: "Order", available_shipping_methods: List[ShippingMethod], app_name
     ) -> List[ExcludedShippingMethod]:
         return self.__run_method_on_plugins(
-            "excluded_shipping_methods_for_order", [], order, available_shipping_methods
+            "excluded_shipping_methods_for_order",
+            [],
+            order,
+            available_shipping_methods,
+            app_name=app_name,
         )
 
     def excluded_shipping_methods_for_checkout(
-        self, checkout: "Checkout", available_shipping_methods: List[ShippingMethod]
+        self,
+        checkout: "Checkout",
+        available_shipping_methods: List[ShippingMethod],
+        app_name,
     ) -> List[ExcludedShippingMethod]:
         return self.__run_method_on_plugins(
             "excluded_shipping_methods_for_checkout",
             [],
             checkout,
             available_shipping_methods,
+            app_name=app_name,
         )
 
 
