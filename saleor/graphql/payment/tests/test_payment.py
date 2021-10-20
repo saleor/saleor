@@ -1262,9 +1262,9 @@ def test_payment_check_balance_mutation_validate_gateway_does_not_exist(
 
     assert len(errors) == 1
     assert errors[0]["code"] == PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value.upper()
-    assert errors[0]["field"] == "gateway"
+    assert errors[0]["field"] == "gatewayId"
     assert errors[0]["message"] == (
-        "The gateway mirumee.payments.not_existing_gateway is not available."
+        "The gateway_id mirumee.payments.not_existing_gateway is not available."
     )
 
     assert check_payment_balance_mock.call_count == 0
@@ -1286,7 +1286,7 @@ def test_payment_check_balance_validate_not_supported_currency(
 
     assert len(errors) == 1
     assert errors[0]["code"] == PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value.upper()
-    assert errors[0]["field"] == "gateway"
+    assert errors[0]["field"] == "currency"
     assert errors[0]["message"] == (
         "The currency ABSTRACT_CURRENCY is not "
         "available for mirumee.payments.gateway."
@@ -1403,7 +1403,6 @@ def test_payment_check_balance_balance_raises_error(
 
     assert len(errors) == 1
     assert errors[0]["code"] == PaymentErrorCode.BALANCE_CHECK_ERROR.value.upper()
-    assert errors[0]["field"] == "paymentData"
     assert errors[0]["message"] == "Test payment error"
 
     check_payment_balance_mock.assert_called_once_with(
