@@ -273,8 +273,9 @@ class CheckoutPaymentComplete(BaseMutation, I18nMixin):
             "This mutation does not create the order and any webhooks related "
             "to this payment will neither create the order. "
             "In case an additional confirmation step such as 3D secure is required "
-            "confirmationNeeded flag will be set to True and no authorization will be "
-            "held until the payment is confirmed with second call of this mutation."
+            "`confirmationNeeded` flag will be set to True and no authorization "
+            "will be held until the payment is confirmed with second call "
+            "of this mutation."
         )
         error_type_class = CheckoutError
 

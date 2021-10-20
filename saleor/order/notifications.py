@@ -4,8 +4,6 @@ from urllib.parse import urlencode
 from django.forms import model_to_dict
 from graphql_relay import to_global_id
 
-import saleor.order.interface
-
 from ..account.models import StaffNotificationRecipient
 from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
@@ -14,6 +12,7 @@ from ..discount import OrderDiscountType
 from ..product import ProductMediaTypes
 from ..product.models import DigitalContentUrl, Product, ProductMedia, ProductVariant
 from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
+from .interface import OrderPaymentAction
 from .models import FulfillmentLine, Order, OrderLine
 from .utils import get_active_payments
 
@@ -392,7 +391,7 @@ def send_order_refunded_confirmation(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    payments: List[saleor.order.interface.OrderPaymentAction],
+    payments: List["OrderPaymentAction"],
     currency: str,
     manager,
 ):

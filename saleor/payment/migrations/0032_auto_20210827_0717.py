@@ -2,18 +2,20 @@
 
 from django.db import migrations
 
-from saleor.payment import ChargeStatus, TransactionKind
+NOT_CHARGED = "not-charged"
+AUTH = "auth"
+AUTHORIZED = "authorized"
 
 
 def migrate_authorized_transactions(apps, schema_editor):
     Payment = apps.get_model("payment", "Payment")
 
     Payment.objects.filter(
-        charge_status=ChargeStatus.NOT_CHARGED,
+        charge_status=NOT_CHARGED,
         transactions__is_success=True,
         transactions__action_required=False,
-        transactions__kind=TransactionKind.AUTH,
-    ).update(charge_status=ChargeStatus.AUTHORIZED)
+        transactions__kind=AUTH,
+    ).update(charge_status=AUTHORIZED)
 
 
 class Migration(migrations.Migration):

@@ -94,7 +94,7 @@ def clean_payments(payments):
     if not payments:
         raise ValidationError(
             {
-                "payment": ValidationError(
+                "payments": ValidationError(
                     "There are no active payments associated with the order.",
                     code=OrderErrorCode.PAYMENT_MISSING,
                 )
@@ -141,8 +141,12 @@ def clean_void_payments(payments):
     clean_payments(payments)
     if not all([p.is_authorized for p in payments]):
         raise ValidationError(
-            "The order has active payments with status other than authorized.",
-            code=OrderErrorCode.PAYMENT_ERROR.value,
+            {
+                "payments": ValidationError(
+                    "The order has active payments with status other than authorized.",
+                    code=OrderErrorCode.PAYMENT_ERROR.value,
+                )
+            }
         )
 
 
@@ -559,7 +563,7 @@ class OrderVoid(BaseMutation):
 
 
 class OrderPaymentToRefundInput(graphene.InputObjectType):
-    payment_id = graphene.ID(required=True, description="The graphene ID of a payment.")
+    payment_id = graphene.ID(required=True, description="The GraphQL ID of a payment.")
     amount = PositiveDecimal(required=True, description="Amount of the refund.")
 
 

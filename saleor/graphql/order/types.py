@@ -185,9 +185,7 @@ class OrderEvent(CountableDjangoObjectType):
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order."
     )
-
     psp_reference = graphene.String(description="PSP reference.")
-
     grapqhl_payment_id: String = graphene.String(description="Grapqhl payment id.")
 
     class Meta:

@@ -10,8 +10,6 @@ All notable, unreleased changes to this project will be documented in this file.
     * X-Saleor-Signature -> Saleor-Signature
     * X-Saleor-HMAC-SHA256 -> Saleor-HMAC-SHA256
 - Improve draft orders and orders webhooks - #SALEOR-4008 by @jakubkuc
-# 3.1.0 [Unreleased]
-- Extend app by `AppExtension` - #7701 by @korycins
 
 # 3.0.0 [Unreleased]
 
