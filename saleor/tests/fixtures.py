@@ -1536,7 +1536,9 @@ def product_type(color_attribute, size_attribute):
         is_shipping_required=True,
     )
     product_type.product_attributes.add(color_attribute)
-    product_type.variant_attributes.add(size_attribute)
+    product_type.variant_attributes.add(
+        size_attribute, through_defaults={"variant_selection": True}
+    )
     return product_type
 
 
@@ -3061,6 +3063,18 @@ def gift_card(customer_user):
     tag, _ = GiftCardTag.objects.get_or_create(name="test-tag")
     gift_card.tags.add(tag)
     return gift_card
+
+
+@pytest.fixture
+def gift_card_with_metadata(customer_user):
+    return GiftCard.objects.create(
+        code="card_with_meta",
+        created_by=customer_user,
+        created_by_email=customer_user.email,
+        initial_balance=Money(10, "USD"),
+        current_balance=Money(10, "USD"),
+        metadata={"test": "value"},
+    )
 
 
 @pytest.fixture

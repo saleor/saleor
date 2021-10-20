@@ -148,7 +148,7 @@ def test_query_page_types(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_query_page_types_for_federation(
+def test_page_types_for_federation_query_count(
     api_client,
     django_assert_num_queries,
     count_queries,
