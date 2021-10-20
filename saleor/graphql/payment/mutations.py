@@ -357,11 +357,17 @@ class PaymentInitialize(BaseMutation):
 
 class MoneyInput(graphene.InputObjectType):
     currency = graphene.String(description="Currency code.", required=True)
-    amount = graphene.Float(description="Amount of money.", required=True)
+    amount = PositiveDecimal(description="Amount of money.", required=True)
 
 
 class CardInput(graphene.InputObjectType):
-    code = graphene.String(description="Card number.", required=True)
+    code = graphene.String(
+        description=(
+            "Payment method nonce, a token returned "
+            "by the appropriate provider's SDK."
+        ),
+        required=True,
+    )
     cvc = graphene.String(description="Card security code.", required=False)
     money = MoneyInput(
         description="Information about currency and amount.", required=True
@@ -370,9 +376,9 @@ class CardInput(graphene.InputObjectType):
 
 class PaymentCheckBalanceInput(graphene.InputObjectType):
     gateway_id = graphene.types.String(
-        description="A gateway_id to check.", required=True
+        description="An ID of a payment gateway to check.", required=True
     )
-    method = graphene.types.String(description="A method name to check.", required=True)
+    method = graphene.types.String(description="Payment method name.", required=True)
     channel = graphene.String(
         description="Slug of a channel for which the data should be returned.",
         required=True,
@@ -409,11 +415,7 @@ class PaymentCheckBalance(BaseMutation):
             data = manager.check_payment_balance(data["input"], channel)
         except PaymentError as e:
             raise ValidationError(
-                {
-                    "payment_data": ValidationError(
-                        str(e), code=PaymentErrorCode.BALANCE_CHECK_ERROR.value
-                    )
-                }
+                str(e), code=PaymentErrorCode.BALANCE_CHECK_ERROR.value
             )
 
         return PaymentCheckBalance(data=data)
@@ -425,8 +427,8 @@ class PaymentCheckBalance(BaseMutation):
         if gateway_id not in gateways_id:
             raise ValidationError(
                 {
-                    "gateway": ValidationError(
-                        f"The gateway {gateway_id} is not available.",
+                    "gateway_id": ValidationError(
+                        f"The gateway_id {gateway_id} is not available.",
                         code=PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value,
                     )
                 }
@@ -437,7 +439,7 @@ class PaymentCheckBalance(BaseMutation):
         if not is_currency_supported(currency, gateway_id, manager):
             raise ValidationError(
                 {
-                    "gateway": ValidationError(
+                    "currency": ValidationError(
                         f"The currency {currency} is not available for {gateway_id}.",
                         code=PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value,
                     )
