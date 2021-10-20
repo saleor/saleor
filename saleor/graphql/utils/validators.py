@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 
-from ..core.utils import get_duplicates_items
+from ..core.utils import get_duplicates_ids
 
 
 def check_for_duplicates(
@@ -11,15 +11,15 @@ def check_for_duplicates(
     Raise error if some of items are duplicated.
     """
     error = None
-    duplicated_items = get_duplicates_items(
+    duplicated_ids = get_duplicates_ids(
         input_data.get(add_field), input_data.get(remove_field)
     )
-    if duplicated_items:
+    if duplicated_ids:
         # add error
         error_msg = (
-            "The same object cannot be in both list for adding and removing items."
+            "The same object cannot be in both list" "for adding and removing items."
         )
-        params = {error_class_field: list(duplicated_items)}
+        params = {error_class_field: list(duplicated_ids)}
         error = ValidationError(message=error_msg, params=params)
 
     return error
