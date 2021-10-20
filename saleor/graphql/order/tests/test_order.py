@@ -4577,7 +4577,7 @@ def test_order_capture_more_than_outstanding(
     content = get_graphql_content(response)
     # then
     errors = content["data"]["orderCapture"]["errors"]
-    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG.name
+    assert errors[0]["code"] == OrderErrorCode.CAPTURE_AMOUNT_TOO_HIGH.name
     assert "outstanding balance" in errors[0]["message"]
 
 

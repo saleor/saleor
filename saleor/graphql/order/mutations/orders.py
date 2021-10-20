@@ -120,7 +120,7 @@ def clean_order_capture(order, payments, amount):
             {
                 "amount": ValidationError(
                     "Amount should less than the outstanding balance.",
-                    code=OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG,
+                    code=OrderErrorCode.CAPTURE_AMOUNT_TOO_HIGH,
                 )
             }
         )
@@ -130,7 +130,7 @@ def clean_order_capture(order, payments, amount):
             {
                 "amount": ValidationError(
                     "Amount should less than or equal the authorized amount.",
-                    code=OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG,
+                    code=OrderErrorCode.CAPTURE_AMOUNT_TOO_HIGH,
                 )
             }
         )
@@ -623,7 +623,7 @@ class OrderRefund(BaseMutation):
                         "amount": ValidationError(
                             "The total amount to refund cannot be bigger "
                             "than the total captured amount.",
-                            code=OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG,
+                            code=OrderErrorCode.REFUND_AMOUNT_TOO_HIGH,
                         )
                     }
                 )
@@ -642,7 +642,7 @@ class OrderRefund(BaseMutation):
                         "amount": ValidationError(
                             "The amount to refund cannot be bigger "
                             "than the captured amount.",
-                            code=OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG,
+                            code=OrderErrorCode.REFUND_AMOUNT_TOO_HIGH,
                             params={"payments": improper_payments_ids},
                         )
                     }
