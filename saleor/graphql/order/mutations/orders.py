@@ -695,7 +695,7 @@ class OrderRefund(BaseMutation):
             # The check still has to be performed.
             clean_refund_payment(None)
 
-        refund_payments(
+        refunded_payments, _ = refund_payments(
             order,
             payments,
             info.context.user,
@@ -703,10 +703,11 @@ class OrderRefund(BaseMutation):
             info.context.plugins,
         )
 
-        total_amount = sum([item.amount for item in payments])
-        order.fulfillments.create(
-            status=FulfillmentStatus.REFUNDED, total_refund_amount=total_amount
-        )
+        total_amount = sum([item.amount for item in refunded_payments])
+        if total_amount:
+            order.fulfillments.create(
+                status=FulfillmentStatus.REFUNDED, total_refund_amount=total_amount
+            )
 
         return OrderRefund(order=order)
 

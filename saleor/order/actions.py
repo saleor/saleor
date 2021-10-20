@@ -273,7 +273,12 @@ def __refund_payment_or_create_event(
             )
         except PaymentError as e:
             return None, events.payment_refund_failed_event(
-                order=order, user=user, app=app, message=str(e), payment=payment
+                order=order,
+                user=user,
+                app=app,
+                message=str(e),
+                payment=payment,
+                amount=amount,
             )
 
     return None, None
@@ -371,7 +376,7 @@ def refund_payments(
             manager,
         )
 
-    return failed_events
+    return payments_to_notify, failed_events
 
 
 def order_confirmed(
