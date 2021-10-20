@@ -271,7 +271,11 @@ def report_fulfillment(
                 }
             ]
         }
-        response = np_request(config, "post", "/shipments", json=data)
+        try:
+            response = np_request(config, "post", "/shipments", json=data)
+        except PaymentError as pe:
+            return psp_reference, [pe.message], False
+
         response_data = response.json()
 
         error_codes = _get_errors(response_data)
