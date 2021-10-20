@@ -58,24 +58,39 @@ def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse
 @inject_api_config
 def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None:
     order = fulfillment.order
+    payments = order.payments.all()
+    inactive_payments = [payment for payment in payments if not payment.is_active]
 
-    if not (payment := order.get_last_payment()) and not payment.is_active:
-        errors = ["Active payment for this order does not exist"]
-        already_captured = False
+    if not inactive_payments:
+        results = [
+            api.report_fulfillment(config, payment, fulfillment) for payment in payments
+        ]
     else:
-        errors, already_captured = api.report_fulfillment(config, fulfillment)
+        results = [
+            (payment.id, ["Payment is not active"], False)
+            for payment in inactive_payments
+        ]
 
-    if already_captured:
-        logger.warning("Payment was already captured")
-        notify_dashboard(
-            order, "Capture Error: Payment for this order was already captured"
+    for payment_id, errors, already_captured in results:
+        payment_name = (
+            f"Payment with psp reference {payment_id}"
+            if isinstance(payment_id, str)
+            else f"Payment with id {payment_id}"
         )
-    elif errors:
-        error = ", ".join(errors)
-        logger.warning("Could not capture payment in NP Atobarai: %s", error)
-        notify_dashboard(order, "Capture Error: Partial Fulfillment")
-    else:
-        notify_dashboard(order, "Payment Captured")
+
+        if already_captured:
+            logger.warning("Payment was already captured")
+            notify_dashboard(
+                order, f"Capture Error: {payment_name} was already captured"
+            )
+        elif errors:
+            error = ", ".join(errors)
+            logger.warning(
+                "Could not capture %s in NP Atobarai: %s", payment_name.lower(), error
+            )
+            notify_dashboard(order, f"Capture Error for {payment_name.lower()}")
+        else:
+            notify_dashboard(order, f"{payment_name} Captured")
 
 
 @inject_api_config

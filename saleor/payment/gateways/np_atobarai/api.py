@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple, Union
 
 import requests
 from django.utils import timezone
@@ -238,38 +238,34 @@ def cancel_transaction(
                 error_codes, TRANSACTION_CANCELLATION_RESULT_ERROR
             )
 
-    return PaymentResult(
-        status=status,
-        raw_response=response_data,
-        psp_reference=psp_reference,
-        errors=error_messages,
-    )
+        return PaymentResult(
+            status=status,
+            raw_response=response_data,
+            psp_reference=psp_reference,
+            errors=error_messages,
+        )
 
 
 def report_fulfillment(
-    config: ApiConfig, fulfillment: Fulfillment
-) -> Tuple[List[str], bool]:
+    config: ApiConfig, payment: Payment, fulfillment: Fulfillment
+) -> Tuple[Union[str, int], List[str], bool]:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.capture"):
-        payment = fulfillment.order.get_last_payment()
 
-        if not payment:
-            return ["Payment does not exist for this order."], False
+        psp_reference = payment.psp_reference
 
-        transaction_id = payment.psp_reference
-
-        if not transaction_id:
-            return ["Payment does not have psp reference."], False
+        if not psp_reference:
+            return payment.id, ["Payment does not have psp reference."], False
 
         shipping_company_code = config.shipping_company
         shipping_slip_number = fulfillment.tracking_number
 
         if not shipping_slip_number:
-            return ["Fulfillment does not have tracking number."], False
+            return psp_reference, ["Fulfillment does not have tracking number."], False
 
         data = {
             "transactions": [
                 {
-                    "np_transaction_id": transaction_id,
+                    "np_transaction_id": psp_reference,
                     "pd_company_code": shipping_company_code,
                     "slip_no": shipping_slip_number,
                 }
@@ -282,10 +278,10 @@ def report_fulfillment(
 
         # check if the payment was already captured
         if "E0100115" in error_codes:
-            return [], True
+            return psp_reference, [], True
 
         errors = get_error_messages_from_codes(
             _get_errors(response_data), FULFILLMENT_REPORT_RESULT_ERRORS
         )
 
-        return errors, False
+        return psp_reference, errors, False

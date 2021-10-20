@@ -13,7 +13,6 @@ def dummy_payment_line_data():
         PaymentLineData(
             gross=Decimal("100.00"),
             product_name="Product Name",
-            product_sku="PRODUCT_SKU123",
             quantity=5,
         )
     ] * 3
