@@ -18,6 +18,7 @@ from .mutations import (
     CheckoutLanguageCodeUpdate,
     CheckoutLineDelete,
     CheckoutLinesAdd,
+    CheckoutLinesDelete,
     CheckoutLinesUpdate,
     CheckoutRemovePromoCode,
     CheckoutShippingAddressUpdate,
@@ -65,7 +66,13 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_customer_attach = CheckoutCustomerAttach.Field()
     checkout_customer_detach = CheckoutCustomerDetach.Field()
     checkout_email_update = CheckoutEmailUpdate.Field()
-    checkout_line_delete = CheckoutLineDelete.Field()
+    checkout_line_delete = CheckoutLineDelete.Field(
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 4.0. "
+            "Use `checkoutLinesDelete` instead."
+        )
+    )
+    checkout_lines_delete = CheckoutLinesDelete.Field()
     checkout_lines_add = CheckoutLinesAdd.Field()
     checkout_lines_update = CheckoutLinesUpdate.Field()
     checkout_remove_promo_code = CheckoutRemovePromoCode.Field()
