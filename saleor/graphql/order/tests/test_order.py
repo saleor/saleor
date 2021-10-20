@@ -42,7 +42,7 @@ from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
-    clean_refund_payment,
+    clean_refund_payments,
 )
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import (
@@ -4547,6 +4547,16 @@ def test_order_capture(
             "captured_amount": payment.captured_amount,
             "currency": payment.currency,
         },
+        "payments": [
+            {
+                "created": payment.created,
+                "modified": payment.modified,
+                "charge_status": payment.charge_status,
+                "total": payment.total,
+                "captured_amount": payment.captured_amount,
+                "currency": payment.currency,
+            }
+        ],
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
@@ -5296,7 +5306,7 @@ def test_clean_order_refund_payment():
     payment = MagicMock(spec=Payment)
     payment.can_refund.return_value = False
     with pytest.raises(ValidationError) as e:
-        clean_refund_payment(payment)
+        clean_refund_payments([payment])
     assert e.value.error_dict["payment"][0].code == OrderErrorCode.CANNOT_REFUND
 
 

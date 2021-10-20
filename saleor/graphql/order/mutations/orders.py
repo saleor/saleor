@@ -150,17 +150,18 @@ def clean_void_payments(payments):
         )
 
 
-def clean_refund_payment(payment):
-    clean_payments(payment)
-    if not payment.can_refund():
-        raise ValidationError(
-            {
-                "payment": ValidationError(
-                    "Payment cannot be refunded.",
-                    code=OrderErrorCode.CANNOT_REFUND,
-                )
-            }
-        )
+def clean_refund_payments(payments):
+    clean_payments(payments)
+    for payment in payments:
+        if not payment.can_refund():
+            raise ValidationError(
+                {
+                    "payment": ValidationError(
+                        "Payment cannot be refunded.",
+                        code=OrderErrorCode.CANNOT_REFUND,
+                    )
+                }
+            )
 
 
 def get_webhook_handler_by_order_status(status, info):
@@ -616,41 +617,39 @@ class OrderRefund(BaseMutation):
             )
 
     @classmethod
-    def _check_amount_to_refund(cls, payments, amount=None):
-        if amount:
-            total_captured_amount = sum(
-                [item.payment.captured_amount for item in payments]
-            )
-            if amount > total_captured_amount:
-                raise ValidationError(
-                    {
-                        "amount": ValidationError(
-                            "The total amount to refund cannot be bigger "
-                            "than the total captured amount.",
-                            code=OrderErrorCode.REFUND_AMOUNT_TOO_HIGH,
-                        )
-                    }
-                )
-
-        else:
-            improper_payments_ids = []
-            for item in payments:
-                if item.payment.captured_amount < item.amount:
-                    improper_payments_ids.append(
-                        graphene.Node.to_global_id("Payment", item.payment.id)
+    def _check_total_amount_to_refund(cls, payments, amount=None):
+        total_captured_amount = sum([item.payment.captured_amount for item in payments])
+        if amount > total_captured_amount:
+            raise ValidationError(
+                {
+                    "amount": ValidationError(
+                        "The total amount to refund cannot be bigger "
+                        "than the total captured amount.",
+                        code=OrderErrorCode.REFUND_AMOUNT_TOO_HIGH,
                     )
+                }
+            )
 
-            if improper_payments_ids:
-                raise ValidationError(
-                    {
-                        "amount": ValidationError(
-                            "The amount to refund cannot be bigger "
-                            "than the captured amount.",
-                            code=OrderErrorCode.REFUND_AMOUNT_TOO_HIGH,
-                            params={"payments": improper_payments_ids},
-                        )
-                    }
+    @classmethod
+    def _check_amount_to_refund_per_payment(cls, payments):
+        improper_payments_ids = []
+        for item in payments:
+            if item.payment.captured_amount < item.amount:
+                improper_payments_ids.append(
+                    graphene.Node.to_global_id("Payment", item.payment.id)
                 )
+
+        if improper_payments_ids:
+            raise ValidationError(
+                {
+                    "amount": ValidationError(
+                        "The amount to refund cannot be bigger "
+                        "than the captured amount.",
+                        code=OrderErrorCode.REFUND_AMOUNT_TOO_HIGH,
+                        params={"payments": improper_payments_ids},
+                    )
+                }
+            )
 
     @classmethod
     def _prepare_payments(cls, info, order, amount, payments_to_refund):
@@ -663,7 +662,7 @@ class OrderRefund(BaseMutation):
                 for item in payments_to_refund
             ]
 
-            cls._check_amount_to_refund(payments)
+            cls._check_amount_to_refund_per_payment(payments)
 
         else:
             active_payments = order.payments.filter(is_active=True)
@@ -674,7 +673,7 @@ class OrderRefund(BaseMutation):
                 )
                 for payment in active_payments
             ]
-            cls._check_amount_to_refund(payments, amount)
+            cls._check_total_amount_to_refund(payments, amount)
 
         return payments
 
@@ -687,14 +686,7 @@ class OrderRefund(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         payments = cls._prepare_payments(info, order, amount, payments_to_refund)
 
-        if payments:
-            for item in payments:
-                payment = item.payment
-                clean_refund_payment(payment)
-        else:
-            # The check still has to be performed.
-            clean_refund_payment(None)
-
+        clean_refund_payments([item.payment for item in payments])
         make_refund(order, payments, info)
 
         return OrderRefund(order=order)

@@ -268,6 +268,16 @@ def test_send_email_payment_confirmation_with_single_payment(
     expected_payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
+        "payments": [
+            {
+                "created": payment_dummy.created,
+                "modified": payment_dummy.modified,
+                "charge_status": payment_dummy.charge_status,
+                "total": payment_dummy.total,
+                "captured_amount": payment_dummy.captured_amount,
+                "currency": payment_dummy.currency,
+            }
+        ],
         "payment": {
             "created": payment_dummy.created,
             "modified": payment_dummy.modified,
@@ -386,6 +396,16 @@ def test_send_confirmation_emails_without_addresses_for_payment(
             "captured_amount": payment_dummy.captured_amount,
             "currency": payment_dummy.currency,
         },
+        "payments": [
+            {
+                "created": payment_dummy.created,
+                "modified": payment_dummy.modified,
+                "charge_status": payment_dummy.charge_status,
+                "total": payment_dummy.total,
+                "captured_amount": payment_dummy.captured_amount,
+                "currency": payment_dummy.currency,
+            }
+        ],
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
