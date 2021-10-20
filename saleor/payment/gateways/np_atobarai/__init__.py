@@ -63,8 +63,8 @@ def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse
 def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None:
     order = fulfillment.order
 
-    if not fulfillment.lines.count() == order.lines.count():
-        errors = ["Cannot report tracking lines for partial fulfillments."]
+    if order.fulfillments.count() > 1:
+        errors = ["Cannot report tracking lines for multiple partial fulfillments."]
     elif not (payment := order.get_last_payment()) and not payment.is_active:
         errors = ["Active payment for this order does not exist"]
     else:
@@ -76,6 +76,7 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
         notify_dashboard(order, "Capture Error: Partial Fulfillment")
     else:
         mark_fulfillment_as_captured(fulfillment)
+        notify_dashboard(order, "Payment Captured")
 
 
 @inject_api_config
@@ -91,7 +92,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
         if not order:
             raise PaymentError(f"Order does not exist for payment with id {payment_id}")
 
-        fulfillment = order.fulfillments.order_by("fulfillment_order").first()
+        fulfillment = order.fulfillments.first()
         lines = payment_information.lines_to_refund
 
         if fulfillment and fulfillment_is_captured(fulfillment):

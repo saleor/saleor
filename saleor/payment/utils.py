@@ -46,6 +46,7 @@ def create_payment_lines_information(
         lines = fetch_checkout_lines(checkout)
         discounts = fetch_active_discounts()
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        address = checkout_info.shipping_address or checkout_info.billing_address
 
         for line_info in lines:
             total = checkout_line_total(
@@ -55,7 +56,6 @@ def create_payment_lines_information(
                 checkout_line_info=line_info,
                 discounts=discounts,
             )
-            address = checkout_info.shipping_address or checkout_info.billing_address
             unit_price = manager.calculate_checkout_line_unit_price(
                 total,
                 line_info.line.quantity,
@@ -78,6 +78,14 @@ def create_payment_lines_information(
                     gross=unit_gross,
                 )
             )
+        shipping_amount = manager.calculate_checkout_shipping(
+            checkout_info=checkout_info,
+            lines=lines,
+            address=address,
+            discounts=discounts,
+        ).gross.amount
+
+        line_items.append(create_shipping_payment_line_data(amount=shipping_amount))
 
     elif order:
         for order_line in order.lines.all():
@@ -90,8 +98,20 @@ def create_payment_lines_information(
                     gross=order_line.unit_price_gross_amount,
                 )
             )
+        line_items.append(
+            create_shipping_payment_line_data(amount=order.shipping_price_gross_amount)
+        )
 
     return line_items
+
+
+def create_shipping_payment_line_data(amount: Decimal) -> PaymentLineData:
+    return PaymentLineData(
+        quantity=1,
+        product_sku="",
+        product_name="Shipping",
+        gross=amount,
+    )
 
 
 def create_lines_to_refund(
