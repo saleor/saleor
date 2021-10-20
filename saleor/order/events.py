@@ -28,7 +28,9 @@ def _lines_per_quantity_to_line_object_list(quantities_per_order_line):
     ]
 
 
-def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> Dict:
+def _get_payment_data(amount: Optional[Decimal], payment: Optional[Payment]) -> Dict:
+    if payment is None:
+        return {"parameters": {}}
     return {
         "parameters": {
             "amount": amount,
