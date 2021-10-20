@@ -17,9 +17,7 @@ CREATE_GIFT_CARD_MUTATION = """
                 displayCode
                 isActive
                 expiryDate
-                tags {
-                    name
-                }
+                tag
                 created
                 lastUsedOn
                 initialBalance {
@@ -92,14 +90,11 @@ def test_create_never_expiry_gift_card(
     permission_manage_gift_card,
     permission_manage_users,
     permission_manage_apps,
-    gift_card_tag_list,
 ):
     # given
     initial_balance = 100
     currency = "USD"
-    new_tag = "gift-card-tag"
-    existing_tag_name = gift_card_tag_list[0].name
-    tags = [new_tag, existing_tag_name]
+    tag = "gift-card-tag"
     note = "This is gift card note that will be save in gift card event."
     variables = {
         "input": {
@@ -109,7 +104,7 @@ def test_create_never_expiry_gift_card(
             },
             "userEmail": customer_user.email,
             "channel": channel_USD.slug,
-            "addTags": tags,
+            "tag": tag,
             "note": note,
             "isActive": True,
         }
@@ -135,8 +130,7 @@ def test_create_never_expiry_gift_card(
     assert data["code"]
     assert data["displayCode"]
     assert not data["expiryDate"]
-    assert len(data["tags"]) == 2
-    assert {tag["name"] for tag in data["tags"]} == set(tags)
+    assert data["tag"] == tag
     assert data["createdBy"]["email"] == staff_api_client.user.email
     assert data["createdByEmail"] == staff_api_client.user.email
     assert not data["usedBy"]
@@ -197,7 +191,7 @@ def test_create_gift_card_by_app(
                 "amount": initial_balance,
                 "currency": currency,
             },
-            "addTags": [tag],
+            "tag": tag,
             "note": note,
             "expiryDate": None,
             "isActive": False,
@@ -220,8 +214,7 @@ def test_create_gift_card_by_app(
     assert data["code"]
     assert data["displayCode"]
     assert not data["expiryDate"]
-    assert len(data["tags"]) == 1
-    assert data["tags"][0]["name"] == tag
+    assert data["tag"] == tag
     assert not data["createdBy"]
     assert not data["createdByEmail"]
     assert not data["usedBy"]
@@ -266,7 +259,7 @@ def test_create_gift_card_by_customer(api_client, customer_user, channel_USD):
             },
             "userEmail": customer_user.email,
             "channel": channel_USD.slug,
-            "addTags": [tag],
+            "tag": tag,
             "note": "This is gift card note that will be save in gift card event.",
             "expiryDate": None,
             "isActive": True,
@@ -294,7 +287,7 @@ def test_create_gift_card_no_premissions(staff_api_client):
                 "amount": initial_balance,
                 "currency": currency,
             },
-            "addTags": [tag],
+            "tag": tag,
             "note": "This is gift card note that will be save in gift card event.",
             "expiryDate": None,
             "isActive": True,
@@ -329,7 +322,7 @@ def test_create_gift_card_with_too_many_decimal_places_in_balance_amount(
                 "currency": currency,
             },
             "userEmail": customer_user.email,
-            "addTags": [tag],
+            "tag": tag,
             "note": "This is gift card note that will be save in gift card event.",
             "isActive": True,
         }
@@ -374,7 +367,7 @@ def test_create_gift_card_with_malformed_email(
                 "currency": currency,
             },
             "userEmail": "malformed",
-            "addTags": [tag],
+            "tag": tag,
             "note": "This is gift card note that will be save in gift card event.",
             "isActive": True,
         }
@@ -421,7 +414,7 @@ def test_create_gift_card_lack_of_channel(
                 "currency": currency,
             },
             "userEmail": customer_user.email,
-            "addTags": [tag],
+            "tag": tag,
             "note": "This is gift card note that will be save in gift card event.",
             "isActive": True,
         }
@@ -467,7 +460,7 @@ def test_create_gift_card_with_zero_balance_amount(
                 "currency": currency,
             },
             "userEmail": customer_user.email,
-            "addTags": [tag],
+            "tag": tag,
             "note": "This is gift card note that will be save in gift card event.",
             "isActive": True,
         }
@@ -518,7 +511,7 @@ def test_create_gift_card_with_expiry_date(
             },
             "userEmail": customer_user.email,
             "channel": channel_USD.slug,
-            "addTags": [tag],
+            "tag": tag,
             "expiryDate": date_value,
             "isActive": True,
         }
@@ -591,7 +584,7 @@ def test_create_gift_card_with_expiry_date_type_invalid(
                 "currency": currency,
             },
             "userEmail": customer_user.email,
-            "addTags": [tag],
+            "tag": tag,
             "note": "This is gift card note that will be save in gift card event.",
             "expiryDate": date_value,
             "isActive": True,
