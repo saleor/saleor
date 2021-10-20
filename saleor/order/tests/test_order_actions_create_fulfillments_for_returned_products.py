@@ -156,11 +156,8 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
     amount = sum([line.unit_price_gross_amount * 2 for line in order_lines_to_return])
 
     mocked_refund.assert_called_with(
-        order=order_with_lines,
-        user=staff_user,
-        app=None,
-        payment=payment_dummy_fully_charged,
-        manager=ANY,
+        payment_dummy_fully_charged,
+        ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount,
     )
@@ -235,11 +232,8 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
     amount += order_with_lines.shipping_price_gross_amount
 
     mocked_refund.assert_called_with(
-        order=order_with_lines,
-        user=staff_user,
-        app=None,
-        payment=payment_dummy_fully_charged,
-        manager=ANY,
+        payment_dummy_fully_charged,
+        ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount,
     )
@@ -637,11 +631,8 @@ def test_create_return_fulfillment_with_lines_already_refunded(
     )
 
     mocked_refund.assert_called_with(
-        order=fulfilled_order,
-        user=staff_user,
-        app=None,
-        payment=payment_dummy_fully_charged,
-        manager=ANY,
+        payment_dummy_fully_charged,
+        ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
     )

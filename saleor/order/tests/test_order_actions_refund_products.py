@@ -70,11 +70,8 @@ def test_create_refund_fulfillment_only_order_lines(
     assert returned_fulfillemnt.total_refund_amount == amount
     assert returned_fulfillemnt.shipping_refund_amount is None
     mocked_refund.assert_called_with(
-        order=order_with_lines,
-        user=None,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount,
     )
@@ -132,11 +129,8 @@ def test_create_refund_fulfillment_included_shipping_costs(
     )
 
     mocked_refund.assert_called_with(
-        order=order_with_lines,
-        user=None,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount,
     )
@@ -189,11 +183,8 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
     )
 
     mocked_refund.assert_called_with(
-        order=fulfilled_order,
-        user=None,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
     )
@@ -245,11 +236,8 @@ def test_create_refund_fulfillment_custom_amount(
         assert line.quantity == original_quantity.get(line.pk) - 2
 
     mocked_refund.assert_called_with(
-        order=fulfilled_order,
-        user=None,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
     )
