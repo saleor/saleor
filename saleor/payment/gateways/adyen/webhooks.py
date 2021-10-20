@@ -438,8 +438,6 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
             None,
             None,
             payments,
-            get_plugins_manager(),
-            send_notification=False,
         )
 
 

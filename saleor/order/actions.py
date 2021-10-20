@@ -37,13 +37,6 @@ from . import (
     events,
     utils,
 )
-from .events import (
-    draft_order_created_from_replace_event,
-    fulfillment_refunded_event,
-    fulfillment_replaced_event,
-    order_replacement_created,
-    order_returned_event,
-)
 from .interface import OrderPaymentAction
 from .models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from .notifications import (
@@ -452,9 +445,7 @@ def order_refunded(
     user: Optional["User"],
     app: Optional["App"],
     payment_actions: List[OrderPaymentAction],
-    manager: "PluginsManager",
-    *,
-    send_notification: bool = True,
+    manager: Optional["PluginsManager"] = None,
 ):
     for action in payment_actions:
         events.payment_refunded_event(
@@ -464,15 +455,14 @@ def order_refunded(
             amount=action.amount,
             payment=action.payment,
         )
-    manager.order_updated(order)
 
-    if send_notification:
-        # Payments related to an order should have the same currency as the order.
-        transaction.on_commit(
-            lambda: send_order_refunded_confirmation(
-                order, user, app, payment_actions, order.currency, manager
-            )
+    transaction.on_commit(
+        lambda: send_order_refunded_confirmation(
+            order, user, app, payment_actions, order.currency, manager
         )
+    )
+
+    # note: manager.order_updated(order) should be called outside of this function
 
 
 def order_voided(
@@ -495,7 +485,9 @@ def order_returned(
     app: Optional["App"],
     returned_lines: List[Tuple[QuantityType, OrderLine]],
 ):
-    order_returned_event(order=order, user=user, app=app, returned_lines=returned_lines)
+    events.order_returned_event(
+        order=order, user=user, app=app, returned_lines=returned_lines
+    )
     update_order_status(order)
 
 
@@ -1190,7 +1182,7 @@ def create_replace_order(
 
     recalculate_order(replace_order)
 
-    draft_order_created_from_replace_event(
+    events.draft_order_created_from_replace_event(
         draft_order=replace_order,
         original_order=original_order,
         user=user,
@@ -1318,13 +1310,11 @@ def create_return_fulfillment(
                     order_line,
                 )
         returned_lines_list = list(returned_lines.values())
-        transaction.on_commit(
-            lambda: order_returned(
-                order,
-                user=user,
-                app=app,
-                returned_lines=returned_lines_list,
-            )
+        order_returned(
+            order,
+            user=user,
+            app=app,
+            returned_lines=returned_lines_list,
         )
 
     return return_fulfillment
@@ -1357,13 +1347,13 @@ def process_replace(
         fulfillment_lines_to_replace=fulfillment_lines,
     )
     replaced_lines = [(line.quantity, line) for line in new_order.lines.all()]
-    fulfillment_replaced_event(
+    events.fulfillment_replaced_event(
         order=order,
         user=user,
         app=app,
         replaced_lines=replaced_lines,
     )
-    order_replacement_created(
+    events.order_replacement_created(
         original_order=order,
         replace_order=new_order,
         user=user,
@@ -1539,25 +1529,23 @@ def _process_refund(
         refund_amount, payments, order, include_shipping_costs
     )
 
-    refunded_payments, _ = _refund_payments(
+    refunded_payments, _ = refund_payments(
         order,
         payments,
-        manager,
         user,
         app,
+        manager,
     )
 
     # Total amount refunded is updated in order to reflect responses from the PSP
     total_refund_amount = sum([p.amount for p in refunded_payments])
     if total_refund_amount:
-        transaction.on_commit(
-            lambda: fulfillment_refunded_event(
-                order=order,
-                user=user,
-                app=app,
-                refunded_lines=list(lines_to_refund.values()),
-                amount=total_refund_amount,  # type: ignore
-                shipping_costs_included=bool(shipping_refund_amount),
-            )
+        events.fulfillment_refunded_event(
+            order=order,
+            user=user,
+            app=app,
+            refunded_lines=list(lines_to_refund.values()),
+            amount=total_refund_amount,  # type: ignore
+            shipping_costs_included=bool(shipping_refund_amount),
         )
     return total_refund_amount, shipping_refund_amount

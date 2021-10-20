@@ -370,6 +370,4 @@ def handle_refund(
             None,
             None,
             payments,
-            get_plugins_manager(),
-            send_notification=False,
         )

@@ -462,7 +462,7 @@ class OrderMarkAsPaid(BaseMutation):
 
         message = "Orders with payments can not be manually marked as paid."
         events.payment_capture_failed_event(
-            order=order, user=user, app=app, message=message, payment=None
+            order=order, user=user, app=app, message=message, payment=None, amount=None
         )
         raise ValidationError(
             {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
@@ -679,6 +679,7 @@ class OrderRefund(BaseMutation):
         return payments
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(
         cls, _root, info, amount=None, payments_to_refund=None, **data
     ):
@@ -695,12 +696,13 @@ class OrderRefund(BaseMutation):
             # The check still has to be performed.
             clean_refund_payment(None)
 
+        manager = info.context.plugins
         refunded_payments, _ = refund_payments(
             order,
             payments,
             info.context.user,
             info.context.app,
-            info.context.plugins,
+            manager,
         )
 
         total_amount = sum([item.amount for item in refunded_payments])
@@ -708,6 +710,7 @@ class OrderRefund(BaseMutation):
             order.fulfillments.create(
                 status=FulfillmentStatus.REFUNDED, total_refund_amount=total_amount
             )
+            transaction.on_commit(lambda: manager.order_updated(order))
 
         return OrderRefund(order=order)
 
