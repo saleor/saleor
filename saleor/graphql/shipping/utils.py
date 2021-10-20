@@ -36,7 +36,7 @@ def convert_shipping_method_model_to_dataclass(
 
 def set_active_shipping_methods(
     excluded_methods: List[ExcludedShippingMethod],
-    available_shipping_methods: List,
+    available_shipping_methods: List[ShippingMethodDataclass],
     channel_slug: str,
 ) -> List[ChannelContext]:
     instances = [

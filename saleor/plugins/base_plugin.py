@@ -78,6 +78,8 @@ class ShippingMethod:
     minimum_order_weight: Optional[Weight]
     maximum_delivery_days: Optional[int]
     minimum_delivery_days: Optional[int]
+    active: bool
+    message: Optional[str]
 
 
 class BasePlugin:

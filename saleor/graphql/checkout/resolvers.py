@@ -80,7 +80,7 @@ def _resolve_checkout_excluded_shipping_methods(
         channel_listing.shipping_method_id: channel_listing
         for channel_listing in channel_listings
     }
-    available_with_channel_context = []
+    available_shipping_method_instances = []
     for shipping in shippings:
         shipping_channel_listing = channel_listing_map[shipping.id]
         taxed_price = info.context.plugins.apply_taxes_to_shipping(
@@ -90,18 +90,19 @@ def _resolve_checkout_excluded_shipping_methods(
             shipping.price = taxed_price.gross
         else:
             shipping.price = taxed_price.net
-        available_with_channel_context.append(shipping)
+        available_shipping_method_instances.append(shipping)
 
     app = info.context.app
     shipping_method_dataclasses = [
-        convert_shipping_method_model_to_dataclass(shipping) for shipping in shippings
+        convert_shipping_method_model_to_dataclass(shipping)
+        for shipping in available_shipping_method_instances
     ]
     excluded_shipping_methods = manager.excluded_shipping_methods_for_checkout(
         root, shipping_method_dataclasses, app_name=app
     )
     available_with_channel_context = set_active_shipping_methods(
         excluded_shipping_methods,
-        available_with_channel_context,
+        shipping_method_dataclasses,
         channel_slug,
     )
 
@@ -112,7 +113,7 @@ def _resolve_checkout_excluded_shipping_methods(
 def resolve_checkout_shipping_methods(
     root: models.Checkout, info, include_active_only=False
 ):
-    def calculate_available_shipping_methods(data):
+    def calculate_shipping_methods(data):
         address, lines, checkout_info, discounts, channel = data
         if not address:
             return []
@@ -183,5 +184,5 @@ def resolve_checkout_shipping_methods(
     discounts = DiscountsByDateTimeLoader(info.context).load(info.context.request_time)
 
     return Promise.all([address, lines, checkout_info, discounts, channel]).then(
-        calculate_available_shipping_methods
+        calculate_shipping_methods
     )
