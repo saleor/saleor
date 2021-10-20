@@ -72,6 +72,12 @@ class ShopSettingsInput(graphene.InputObjectType):
             "authenticated checkout. Enter 0 or null to disable."
         )
     )
+    limit_quantity_per_checkout = graphene.Int(
+        description=(
+            f"{ADDED_IN_31} Default number of maximum line quantity "
+            "in single checkout. Minimum possible value is 1, default value is 50."
+        )
+    )
 
 
 class SiteDomainInput(graphene.InputObjectType):
@@ -111,6 +117,17 @@ class ShopSettingsUpdate(BaseMutation):
             new_value = data["reserve_stock_duration_authenticated_user"]
             if not new_value or new_value < 1:
                 data["reserve_stock_duration_authenticated_user"] = None
+        if "limit_quantity_per_checkout" in data:
+            new_value = data["limit_quantity_per_checkout"]
+            if not new_value or new_value < 1:
+                raise ValidationError(
+                    {
+                        "quantity_limit_per_customer": ValidationError(
+                            "Quantity limit cannot be lower than 50 or null.",
+                            code=ShopErrorCode.INVALID.value,
+                        )
+                    }
+                )
 
         return data
 

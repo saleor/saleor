@@ -230,6 +230,12 @@ class Shop(graphene.ObjectType):
         )
     )
 
+    limit_quantity_per_checkout = graphene.Int(
+        description=(
+            f"{ADDED_IN_31} Default number of maximum line quantity in single checkout."
+        )
+    )
+
     default_digital_max_downloads = graphene.Int(
         description="Default number of max downloads per digital content URL."
     )
@@ -419,6 +425,12 @@ class Shop(graphene.ObjectType):
     def resolve_reserve_stock_duration_authenticated_user(_, info):
         site_settings = info.context.site.settings
         return site_settings.reserve_stock_duration_authenticated_user
+
+    @staticmethod
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
+    def resolve_limit_quantity_per_checkout(_, info):
+        site_settings = info.context.site.settings
+        return site_settings.limit_quantity_per_checkout
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)

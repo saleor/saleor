@@ -5,7 +5,7 @@ from typing import Optional
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
-from django.core.validators import MaxLengthValidator, RegexValidator
+from django.core.validators import MaxLengthValidator, MinValueValidator, RegexValidator
 from django.db import models
 
 from ..core import TimePeriodType
@@ -74,6 +74,10 @@ class SiteSettings(models.Model):
     reserve_stock_duration_anonymous_user = models.IntegerField(blank=True, null=True)
     reserve_stock_duration_authenticated_user = models.IntegerField(
         blank=True, null=True
+    )
+
+    limit_quantity_per_checkout = models.IntegerField(
+        blank=True, default=50, validators=[MinValueValidator(1)]
     )
 
     # gift card settings

@@ -1,7 +1,7 @@
 import datetime
 import uuid
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import graphene
 from django.conf import settings
@@ -182,8 +182,8 @@ def check_lines_quantity(
             raise ValidationError(
                 {
                     "quantity": ValidationError(
-                        "Cannot add more than %d times this item."
-                        "" % settings.MAX_CHECKOUT_LINE_QUANTITY,
+                        "Cannot add more than %d times this item: %s."
+                        "" % (available_quantity, variant),
                         code=CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
                     )
                 }
@@ -277,6 +277,15 @@ def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []
     return checkout
 
 
+def group_quantity_by_variants(lines: List[Dict[str, Any]]) -> List[int]:
+    variant_quantity_map: Dict[str, int] = defaultdict(int)
+
+    for quantity, variant_id in (line.values() for line in lines):
+        variant_quantity_map[variant_id] += quantity
+
+    return list(variant_quantity_map.values())
+
+
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
@@ -347,11 +356,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         # Calculates quantities/variants correctly then variant duplicated in checkout
         # TODO: Check if needed
-        variant_quantity_map: Dict[str, int] = defaultdict(int)
-        for quantity, variant_id in (line.values() for line in lines):
-            variant_quantity_map[variant_id] += quantity
-        variant_ids = {variant_id for variant_id in variant_ids}
-        quantities = list(variant_quantity_map.values())
+        quantities = group_quantity_by_variants(lines)
 
         variant_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variant_db_ids, channel.id)

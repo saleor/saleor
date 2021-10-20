@@ -873,8 +873,11 @@ class ProductVariantCreate(ModelMutation):
             raise ValidationError(
                 {
                     "quantity_limit_per_customer": ValidationError(
-                        "Product variant can't have ",
-                        "quantity_limit_per_customer lower than 1",
+                        (
+                            "Product variant can't have "
+                            "quantity_limit_per_customer lower than 1"
+                        ),
+                        code=ProductErrorCode.INVALID.value,
                     )
                 }
             )
