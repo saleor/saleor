@@ -106,7 +106,7 @@ def _resolve_order_shipping_methods(root: models.Order, info):
     )
     instances = set_active_shipping_methods(
         excluded_shipping_methods,
-        available_shipping_methods,
+        shipping_method_dataclasses,
         channel_slug,
     )
 
