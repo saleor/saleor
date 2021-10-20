@@ -17,6 +17,7 @@ from requests.exceptions import RequestException
 from ...celeryconf import app
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery, EventPayload
+from ...core.tracing import webhooks_opentracing_trace
 from ...payment import PaymentError
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
@@ -82,6 +83,7 @@ def trigger_webhooks_for_event(event_type, event_payload_id):
     webhooks = _get_webhooks_for_event(event_type)
     for webhook in webhooks:
         send_webhook_request.delay(
+            webhook.app.name,
             webhook.pk,
             webhook.target_url,
             webhook.secret_key,
@@ -104,17 +106,33 @@ def trigger_webhook_sync(event_type: str, data: str, app: "App"):
     if not webhook:
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
 
-    return send_webhook_request_sync(delivery)
+    return send_webhook_request_sync(app.name, delivery)
 
 
 def send_webhook_using_http(
     target_url, message, domain, signature, event_type, timeout=WEBHOOK_TIMEOUT
 ):
+    """Send a webhook requst using http / https protocol.
+
+    :param target_url: Target URL request will be sent to.
+    :param message: Payload that will be used.
+    :param domain: Current site domain.
+    :param signature: Webhook secret key checksum.
+    :param event_type: Webhook event type.
+    :param timeout: Request timeout.
+
+    :raises HTTPError: Requests exception class containg error message.
+    :return: HTTP response object.
+    """
     headers = {
         "Content-Type": "application/json",
+        # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
         "X-Saleor-Event": event_type,
         "X-Saleor-Domain": domain,
         "X-Saleor-Signature": signature,
+        "Saleor-Event": event_type,
+        "Saleor-Domain": domain,
+        "Saleor-Signature": signature,
     }
 
     response = requests.post(target_url, data=message, headers=headers, timeout=timeout)
@@ -258,7 +276,7 @@ def send_webhook_request(self, event_delivery_id):
         attempt_update(attempt, response, EventDeliveryStatus.FAILED, None)
 
 
-def send_webhook_request_sync(delivery):
+def send_webhook_request_sync(app_name, delivery):
     event_payload = delivery.payload
     data = event_payload.payload
     webhook = delivery.webhook
@@ -277,15 +295,18 @@ def send_webhook_request_sync(delivery):
         attempt = create_attempt(delivery=delivery, task_id=None)
         status = EventDeliveryStatus.SUCCESS
         try:
-            response = send_webhook_using_http(
-                webhook.target_url,
-                message,
-                domain,
-                signature,
-                delivery.event_type,
-                timeout=WEBHOOK_SYNC_TIMEOUT,
-            )
-            response_data = response.content.json()
+            with webhooks_opentracing_trace(
+                delivery.event_type, domain, sync=True, app_name=app_name
+            ):
+                response = send_webhook_using_http(
+                    webhook.target_url,
+                    message,
+                    domain,
+                    signature,
+                    delivery.event_type,
+                    timeout=WEBHOOK_SYNC_TIMEOUT,
+                )
+                response_data = response.coontent.json()
         except RequestException as e:
             logger.debug("[Webhook] Failed request to %r: %r.", webhook.target_url, e)
             status = EventDeliveryStatus.FAILED
@@ -303,6 +324,6 @@ def send_webhook_request_sync(delivery):
     else:
         delivery_update(delivery, EventDeliveryStatus.FAILED)
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
-    attempt_update(attempt=attempt, status=status)
+    attempt_update(attempt=attempt, status=status, duration=0)
     delivery_update(delivery, status)
     return response_data

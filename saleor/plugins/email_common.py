@@ -15,6 +15,7 @@ from babel.numbers import format_currency
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.mail.backends.smtp import EmailBackend
+from django.core.validators import validate_email
 from django_prices.utils.locale import get_locale_data
 
 from ..product.product_images import get_thumbnail_size
@@ -279,6 +280,8 @@ def validate_default_email_configuration(
                 )
             }
         )
+
+    validate_email(config.sender_address)
 
     try:
         validate_email_config(config)

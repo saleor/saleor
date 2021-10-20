@@ -506,11 +506,18 @@ DEFAULT_CHANNEL_SLUG = os.environ.get("DEFAULT_CHANNEL_SLUG", "default-channel")
 #  Sentry
 sentry_sdk.utils.MAX_STRING_LENGTH = 4096
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
-if SENTRY_DSN:
-    sentry_sdk.init(
-        dsn=SENTRY_DSN, integrations=[CeleryIntegration(), DjangoIntegration()]
-    )
+SENTRY_OPTS = {"integrations": [CeleryIntegration(), DjangoIntegration()]}
+
+
+def SENTRY_INIT(dsn: str, sentry_opts: dict):
+    """Init function for sentry.
+
+    Will only be called if SENTRY_DSN is not None, during core start, can be
+    overriden in separate settings file.
+    """
+    sentry_sdk.init(dsn, **sentry_opts)
     ignore_logger("graphql.execution.utils")
+
 
 GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
@@ -520,6 +527,12 @@ GRAPHENE = {
         "saleor.graphql.middleware.JWTMiddleware",
     ],
 }
+
+# Max number entities that can be requested in single query by Apollo Federation
+# Federation protocol implements no securities on its own part - malicious actor
+# may build a query that requests for potentially few thousands of entities.
+# Set FEDERATED_QUERY_MAX_ENTITIES=0 in env to disable (not recommended)
+FEDERATED_QUERY_MAX_ENTITIES = int(os.environ.get("FEDERATED_QUERY_MAX_ENTITIES", 100))
 
 BUILTIN_PLUGINS = [
     "saleor.plugins.avatax.plugin.AvataxPlugin",
