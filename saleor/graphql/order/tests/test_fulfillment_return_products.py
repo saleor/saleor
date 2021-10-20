@@ -149,10 +149,7 @@ def test_fulfillment_return_products_refund_raising_payment_error(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
 
-    assert (
-        data["returnFulfillment"]["status"]
-        == FulfillmentStatus.REFUNDED_AND_RETURNED.upper()
-    )
+    assert data["returnFulfillment"]["status"] == FulfillmentStatus.RETURNED.upper()
     event = OrderEvent.objects.filter(type=OrderEvents.PAYMENT_REFUND_FAILED).get()
     assert event.parameters["payment_id"] == payment_dummy.token
 
@@ -164,7 +161,9 @@ def test_fulfillment_return_products_order_lines(
     permission_manage_orders,
     order_with_lines,
     payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.total = order_with_lines.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -339,7 +338,9 @@ def test_fulfillment_return_products_order_lines_custom_amount(
     permission_manage_orders,
     order_with_lines,
     payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.total = order_with_lines.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -386,7 +387,9 @@ def test_fulfillment_return_products_fulfillment_lines(
     permission_manage_orders,
     fulfilled_order,
     payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.total = fulfilled_order.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -654,9 +657,7 @@ def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
     errors = data["errors"]
 
     assert not errors
-    assert (
-        return_fulfillment["status"] == FulfillmentStatus.REFUNDED_AND_RETURNED.upper()
-    )
+    assert return_fulfillment["status"] == FulfillmentStatus.RETURNED.upper()
     assert len(return_fulfillment["lines"]) == 1
     assert return_fulfillment["lines"][0]["orderLine"]["id"] == order_line_id
     assert return_fulfillment["lines"][0]["quantity"] == 2
@@ -745,9 +746,7 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     replace_order = data["replaceOrder"]
 
     assert not errors
-    assert (
-        return_fulfillment["status"] == FulfillmentStatus.REFUNDED_AND_RETURNED.upper()
-    )
+    assert return_fulfillment["status"] == FulfillmentStatus.RETURNED.upper()
     assert len(return_fulfillment["lines"]) == 1
     assert return_fulfillment["lines"][0]["orderLine"]["id"] == order_line_id
     assert return_fulfillment["lines"][0]["quantity"] == 2

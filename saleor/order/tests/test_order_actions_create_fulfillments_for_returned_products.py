@@ -26,7 +26,9 @@ def test_create_return_fulfillment_only_order_lines(
     order_with_lines,
     payment_dummy_fully_charged,
     staff_user,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.payments.latest("pk")
     payments = [OrderPaymentAction(payment, Decimal("0"))]
@@ -102,7 +104,9 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
     order_with_lines,
     payment_dummy_fully_charged,
     staff_user,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.payments.latest("pk")
     payments = [OrderPaymentAction(payment, Decimal("0"))]
@@ -177,7 +181,9 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
     order_with_lines,
     payment_dummy_fully_charged,
     staff_user,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.payments.latest("pk")
     payments = [OrderPaymentAction(payment, Decimal("0"))]
@@ -256,7 +262,9 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     order_with_lines,
     payment_dummy_fully_charged,
     staff_user,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.payments.latest("pk")
     payments = [OrderPaymentAction(payment, Decimal("0"))]
@@ -549,7 +557,9 @@ def test_create_return_fulfillment_with_lines_already_refunded(
     channel_USD,
     variant,
     warehouse,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.payments.latest("pk")
     payments = [OrderPaymentAction(payment, Decimal("0"))]

@@ -1539,22 +1539,25 @@ def _process_refund(
         refund_amount, payments, order, include_shipping_costs
     )
 
-    refund_payments(
+    refunded_payments, _ = _refund_payments(
         order,
         payments,
+        manager,
         user,
         app,
-        manager,
     )
 
-    transaction.on_commit(
-        lambda: fulfillment_refunded_event(
-            order=order,
-            user=user,
-            app=app,
-            refunded_lines=list(lines_to_refund.values()),
-            amount=total_refund_amount,  # type: ignore
-            shipping_costs_included=bool(shipping_refund_amount),
+    # Total amount refunded is updated in order to reflect responses from the PSP
+    total_refund_amount = sum([p.amount for p in refunded_payments])
+    if total_refund_amount:
+        transaction.on_commit(
+            lambda: fulfillment_refunded_event(
+                order=order,
+                user=user,
+                app=app,
+                refunded_lines=list(lines_to_refund.values()),
+                amount=total_refund_amount,  # type: ignore
+                shipping_costs_included=bool(shipping_refund_amount),
+            )
         )
-    )
     return total_refund_amount, shipping_refund_amount
