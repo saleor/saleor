@@ -1,10 +1,11 @@
 from typing import List
 
+from measurement.measures import Weight
+
 from ...plugins.base_plugin import ExcludedShippingMethod
 from ...plugins.base_plugin import ShippingMethod as ShippingMethodDataclass
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
-from measurement.measures import Weight
 
 
 def convert_shipping_method_model_to_dataclass(
