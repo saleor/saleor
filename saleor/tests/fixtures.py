@@ -3058,6 +3058,18 @@ def gift_card(customer_user):
 
 
 @pytest.fixture
+def gift_card_with_metadata(customer_user):
+    return GiftCard.objects.create(
+        code="card_with_meta",
+        created_by=customer_user,
+        created_by_email=customer_user.email,
+        initial_balance=Money(10, "USD"),
+        current_balance=Money(10, "USD"),
+        metadata={"test": "value"},
+    )
+
+
+@pytest.fixture
 def gift_card_expiry_date(customer_user):
     return GiftCard.objects.create(
         code="expiry_date",

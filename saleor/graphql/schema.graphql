@@ -2427,6 +2427,7 @@ enum GiftCardEventsEnum {
 
 input GiftCardFilterInput {
   isActive: Boolean
+  metadata: [MetadataFilter]
   tag: String
   tags: [String]
   products: [ID]

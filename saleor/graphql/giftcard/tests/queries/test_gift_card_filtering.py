@@ -14,6 +14,10 @@ QUERY_GIFT_CARDS = """
                     product {
                         name
                     }
+                    metadata {
+                        key
+                        value
+                    }
                 }
             }
             totalCount
@@ -471,3 +475,25 @@ def test_query_filter_gift_cards_by_code_no_gift_card(
     content = get_graphql_content(response)
     data = content["data"]["giftCards"]["edges"]
     assert len(data) == 0
+
+
+def test_query_filter_gift_cards_by_metadata(
+    staff_api_client,
+    gift_card,
+    gift_card_with_metadata,
+    permission_manage_gift_card,
+):
+    # given
+    query = QUERY_GIFT_CARDS
+    assert GiftCard.objects.count() == 2
+    variables = {"filter": {"metadata": [{"key": "test", "value": "value"}]}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCards"]["edges"]
+    assert len(data) == 1

@@ -5,6 +5,7 @@ from promise import Promise
 
 from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo, get_delivery_method_info
 from ...checkout.models import Checkout, CheckoutLine
+from ...checkout.utils import get_external_shipping_id
 from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
@@ -228,9 +229,17 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         shipping_method = shipping_method_map.get(
                             checkout.shipping_method_id
                         )
+                        external_app_shipping_id = get_external_shipping_id(checkout)
+
                         if shipping_method:
                             delivery_method = convert_to_shipping_method_data(
                                 shipping_method
+                            )
+                        elif external_app_shipping_id:
+                            delivery_method = self.context.plugins.get_shipping_method(
+                                checkout=checkout,
+                                channel_slug=checkout.channel.slug,
+                                shipping_method_id=external_app_shipping_id,
                             )
                         else:
                             delivery_method = collection_points_map.get(

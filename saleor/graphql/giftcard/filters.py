@@ -8,7 +8,7 @@ from ...account import models as account_models
 from ...giftcard import models
 from ...product import models as product_models
 from ..account import types as account_types
-from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
+from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
 from ..core.types.common import PriceRangeInput
 from ..product.types import products as product_types
@@ -74,7 +74,7 @@ def filter_code(qs, _, value):
     return qs.filter(code=value)
 
 
-class GiftCardFilter(django_filters.FilterSet):
+class GiftCardFilter(MetadataFilterBase):
     tag = django_filters.CharFilter(method=filter_gift_card_tag)
     tags = ListObjectTypeFilter(input_class=graphene.String, method=filter_tags_list)
     products = GlobalIDMultipleChoiceFilter(method=filter_products)
