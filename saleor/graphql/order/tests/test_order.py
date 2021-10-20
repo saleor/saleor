@@ -4601,7 +4601,7 @@ def test_order_capture_more_than_authorized(
     content = get_graphql_content(response)
     # then
     errors = content["data"]["orderCapture"]["errors"]
-    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG.name
+    assert errors[0]["code"] == OrderErrorCode.CAPTURE_AMOUNT_TOO_HIGH.name
     assert "authorized amount" in errors[0]["message"]
     mocked_auth_amount.assert_called_once_with(
         [payment_txn_preauth],
@@ -5085,7 +5085,7 @@ def test_order_refund_raises_error_when_total_amount_is_bigger_than_captured_amo
     message = (
         "The total amount to refund cannot be bigger than the total captured amount."
     )
-    code = OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG.name
+    code = OrderErrorCode.REFUND_AMOUNT_TOO_HIGH.name
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
@@ -5144,7 +5144,7 @@ def test_order_refund_raises_error_when_amount_is_bigger_than_captured_amount(
 
     # when
     message = "The amount to refund cannot be bigger than the captured amount."
-    code = OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG.name
+    code = OrderErrorCode.REFUND_AMOUNT_TOO_HIGH.name
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
