@@ -2,18 +2,7 @@ from contextlib import contextmanager
 
 from ....core.tracing import opentracing_trace
 from ....order.events import external_notification_event
-from ....order.models import Fulfillment, Order
-
-CAPTURED_METADATA_KEY = "np_atobarai.fulfillment_is_captured"
-
-
-def mark_fulfillment_as_captured(fulfillment: Fulfillment) -> None:
-    fulfillment.store_value_in_private_metadata({CAPTURED_METADATA_KEY: "true"})
-    fulfillment.save(update_fields=["private_metadata"])
-
-
-def fulfillment_is_captured(fulfillment: Fulfillment) -> bool:
-    return bool(fulfillment.get_value_from_private_metadata(CAPTURED_METADATA_KEY))
+from ....order.models import Order
 
 
 def notify_dashboard(order: Order, message: str):

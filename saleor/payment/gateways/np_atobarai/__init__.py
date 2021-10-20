@@ -8,11 +8,7 @@ from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from ...models import Payment
 from . import api
 from .api_types import ApiConfig, PaymentStatus, get_api_config
-from .utils import (
-    fulfillment_is_captured,
-    mark_fulfillment_as_captured,
-    notify_dashboard,
-)
+from .utils import notify_dashboard
 
 logger = logging.getLogger(__name__)
 
@@ -63,19 +59,22 @@ def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse
 def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None:
     order = fulfillment.order
 
-    if order.fulfillments.count() > 1:
-        errors = ["Cannot report tracking lines for multiple partial fulfillments."]
-    elif not (payment := order.get_last_payment()) and not payment.is_active:
+    if not (payment := order.get_last_payment()) and not payment.is_active:
         errors = ["Active payment for this order does not exist"]
+        already_captured = False
     else:
-        errors = api.report_fulfillment(config, fulfillment)
+        errors, already_captured = api.report_fulfillment(config, fulfillment)
 
-    if errors:
+    if already_captured:
+        logger.warning("Payment was already captured")
+        notify_dashboard(
+            order, "Capture Error: Payment for this order was already captured"
+        )
+    elif errors:
         error = ", ".join(errors)
         logger.warning("Could not capture payment in NP Atobarai: %s", error)
         notify_dashboard(order, "Capture Error: Partial Fulfillment")
     else:
-        mark_fulfillment_as_captured(fulfillment)
         notify_dashboard(order, "Payment Captured")
 
 
@@ -86,23 +85,10 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
 
     if not payment:
         raise PaymentError(f"Payment with id {payment_id} does not exist.")
-
     if payment_information.amount < payment.captured_amount:
-        order = payment.order
-        if not order:
-            raise PaymentError(f"Order does not exist for payment with id {payment_id}")
+        raise PaymentError(f"Cannot partially refund payment with id {payment_id}")
 
-        fulfillment = order.fulfillments.first()
-        lines = payment_information.lines_to_refund
-
-        if fulfillment and fulfillment_is_captured(fulfillment):
-            result = api.transaction_reregistration_for_partial_return(
-                config, payment, payment_information, lines
-            )
-        else:
-            result = api.change_transaction(config, payment, payment_information, lines)
-    else:
-        result = api.cancel_transaction(config, payment_information)
+    result = api.cancel_transaction(config, payment_information)
 
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,

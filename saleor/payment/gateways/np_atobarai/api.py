@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Tuple
 
 import requests
 from django.utils import timezone
@@ -9,7 +9,7 @@ from requests.auth import HTTPBasicAuth
 
 from ....order.models import Fulfillment
 from ... import PaymentError
-from ...interface import AddressData, PaymentData, PaymentLineData, RefundLineData
+from ...interface import AddressData, PaymentData
 from ...models import Payment
 from ...utils import price_to_minor_unit
 from .api_types import ApiConfig, PaymentResult, PaymentStatus
@@ -204,115 +204,10 @@ def register_transaction(
         )
 
 
-def _get_refunded_goods(
-    refund_lines: List[RefundLineData],
-    payment_information: PaymentData,
-) -> List[dict]:
-    goods = []
-
-    for payment_line in payment_information.lines:
-        for refund_line in refund_lines:
-            if refund_line.product_sku == payment_line.product_sku:
-                quantity = refund_line.quantity
-                break
-        else:
-            quantity = payment_line.quantity
-
-        goods.append(
-            {
-                "goods_name": payment_line.product_name,
-                "goods_price": _format_price(
-                    payment_line.gross, payment_information.currency
-                ),
-                "quantity": quantity,
-            }
-        )
-    return goods
-
-
-def _get_discount(
-    payment_information: PaymentData,
-) -> List[dict]:
-    return [
-        {
-            "goods_name": line.product_name,
-            "goods_price": _format_price(
-                line.gross,
-                payment_information.currency,
-            ),
-            "quantity": line.quantity,
-        }
-        for line in payment_information.lines
-        + [
-            PaymentLineData(
-                product_name="discount",
-                product_sku="",
-                gross=-payment_information.amount,
-                quantity=1,
-            )
-        ]
-    ]
-
-
-def change_transaction(
-    config: ApiConfig,
-    payment: Payment,
-    payment_information: PaymentData,
-    lines: Optional[List[RefundLineData]],
-) -> PaymentResult:
-    with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.change"):
-        if lines:
-            goods = _get_refunded_goods(lines, payment_information)
-        else:
-            goods = _get_discount(payment_information)
-        data = {
-            "transactions": [
-                {
-                    "np_transaction_id": payment.psp_reference,
-                    "billed_amount": _format_price(
-                        payment.captured_amount - payment_information.amount,
-                        payment_information.currency,
-                    ),
-                    "goods": goods,
-                }
-            ]
-        }
-
-        response = np_request(config, "patch", "/transactions/update", json=data)
-        response_data = response.json()
-
-        status = PaymentStatus.SUCCESS
-        error_messages = []
-
-        if error_codes := _get_errors(response_data):
-            status = PaymentStatus.FAILED
-            error_messages = get_error_messages_from_codes(
-                error_codes, TRANSACTION_REGISTRATION_RESULT_ERRORS
-            )
-
-        return PaymentResult(
-            status=status,
-            psp_reference=payment.psp_reference or "",
-            errors=error_messages,
-        )
-
-
 def _cancel(config: ApiConfig, transaction_id: str) -> dict:
     data = {"transactions": [{"np_transaction_id": transaction_id}]}
     response = np_request(config, "patch", "/transactions/cancel", json=data)
     return response.json()
-
-
-def transaction_reregistration_for_partial_return(
-    config: ApiConfig,
-    payment: Payment,
-    payment_information: PaymentData,
-    lines: Optional[List[RefundLineData]],
-) -> PaymentResult:
-    return PaymentResult(
-        status=PaymentStatus.FAILED,
-        errors=["NP Transaction Re-Registration is not implemented."],
-    )
 
 
 def cancel_transaction(
@@ -351,23 +246,25 @@ def cancel_transaction(
     )
 
 
-def report_fulfillment(config: ApiConfig, fulfillment: Fulfillment) -> List[str]:
+def report_fulfillment(
+    config: ApiConfig, fulfillment: Fulfillment
+) -> Tuple[List[str], bool]:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.capture"):
         payment = fulfillment.order.get_last_payment()
 
         if not payment:
-            return ["Payment does not exist for this order."]
+            return ["Payment does not exist for this order."], False
 
         transaction_id = payment.psp_reference
 
         if not transaction_id:
-            return ["Payment does not have psp reference."]
+            return ["Payment does not have psp reference."], False
 
         shipping_company_code = config.shipping_company
         shipping_slip_number = fulfillment.tracking_number
 
         if not shipping_slip_number:
-            return ["Fulfillment does not have tracking number."]
+            return ["Fulfillment does not have tracking number."], False
 
         data = {
             "transactions": [
@@ -381,6 +278,14 @@ def report_fulfillment(config: ApiConfig, fulfillment: Fulfillment) -> List[str]
         response = np_request(config, "post", "/shipments", json=data)
         response_data = response.json()
 
-        return get_error_messages_from_codes(
+        error_codes = _get_errors(response_data)
+
+        # check if the payment was already captured
+        if "E0100115" in error_codes:
+            return [], True
+
+        errors = get_error_messages_from_codes(
             _get_errors(response_data), FULFILLMENT_REPORT_RESULT_ERRORS
         )
+
+        return errors, False

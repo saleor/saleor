@@ -97,18 +97,20 @@ def test_report_fulfillment(mocked_request, config, fulfillment, payment_dummy):
     mocked_request.return_value = response
 
     # when
-    errors = api.report_fulfillment(config, fulfillment)
+    errors, already_captured = api.report_fulfillment(config, fulfillment)
 
     # then
     assert not errors
+    assert not already_captured
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.requests.request")
 def test_report_fulfillment_no_payment(_mocked_request, config, fulfillment):
     # when
-    errors = api.report_fulfillment(config, fulfillment)
+    errors, already_captured = api.report_fulfillment(config, fulfillment)
 
     # then
+    assert not already_captured
     assert errors == ["Payment does not exist for this order."]
 
 
@@ -120,9 +122,10 @@ def test_report_fulfillment_no_psp_reference(
     fulfillment.order.payments.add(payment_dummy)
 
     # when
-    errors = api.report_fulfillment(config, fulfillment)
+    errors, already_captured = api.report_fulfillment(config, fulfillment)
 
     # then
+    assert not already_captured
     assert errors == ["Payment does not have psp reference."]
 
 
@@ -138,9 +141,10 @@ def test_report_fulfillment_no_tracking_number(
     fulfillment.tracking_number = ""
 
     # when
-    errors = api.report_fulfillment(config, fulfillment)
+    errors, already_captured = api.report_fulfillment(config, fulfillment)
 
     # then
+    assert not already_captured
     assert errors == ["Fulfillment does not have tracking number."]
 
 
@@ -161,9 +165,10 @@ def test_report_fulfillment_np_errors(
     mocked_request.return_value = response
 
     # when
-    errors = api.report_fulfillment(config, fulfillment)
+    errors, already_captured = api.report_fulfillment(config, fulfillment)
 
     # then
+    assert not already_captured
     assert set(errors) == {
         "Please confirm that 1000 or fewer sets of normal transactions are set.",
         "Please confirm that at least one normal transaction is set.",
