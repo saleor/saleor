@@ -141,8 +141,12 @@ def clean_void_payments(payments):
     clean_payments(payments)
     if not all([p.is_authorized for p in payments]):
         raise ValidationError(
-            "The order has active payments with status other than authorized.",
-            code=OrderErrorCode.PAYMENT_ERROR.value,
+            {
+                "payments": ValidationError(
+                    "The order has active payments with status other than authorized.",
+                    code=OrderErrorCode.PAYMENT_ERROR.value,
+                )
+            }
         )
 
 
