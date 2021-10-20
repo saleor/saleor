@@ -144,7 +144,12 @@ def __capture_payment_or_create_event(
             )
         except PaymentError as e:
             return None, events.payment_capture_failed_event(
-                order=order, user=user, app=app, message=str(e), payment=payment
+                order=order,
+                user=user,
+                app=app,
+                message=str(e),
+                payment=payment,
+                amount=amount,
             )
 
     return None, None
