@@ -72,7 +72,7 @@ def _resolve_checkout_excluded_shipping_methods(
     manager,
     info,
 ):
-    cache_key = "__available_shipping_methods"
+    cache_key = "__fetched_shipping_methods"
     if hasattr(root, cache_key):
         return getattr(root, cache_key)
 

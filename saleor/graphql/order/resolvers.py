@@ -67,7 +67,7 @@ def resolve_order_by_token(token):
 
 def _resolve_order_shipping_methods(root: models.Order, info):
     # TODO: We should optimize it in/after PR#5819
-    cache_key = "__available_shipping_methods"
+    cache_key = "__fetched_shipping_methods"
     if hasattr(root, cache_key):
         return getattr(root, cache_key)
 
