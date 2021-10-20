@@ -15,29 +15,21 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.0.0 [Unreleased]
 
-- Make OrderConfirm mutation to trigger capture action on all active payments - #SALEOR-3677 by @stnatic
-- Extend Adyen's webhooks to create an order when total_paid covers a `checkout.total` - #SALEOR-3751 by @solartune
-- Extend Stripe's webhooks to create an order when total_paid covers a `checkout.total` - #SALEOR-3752 by @solartune
-- Extend `FulfillmentRefundProducts` mutation to be able to handle `paymentID` - #SALEOR-3669 by @solartune
-- Add celery task to release unfinished payments - #SALEOR-3674 by @stnatic
-- Update `OrderEvents` for payments - SALEOR-3782 by @pzborow
-- Extend `saleor.checkout.complete_checkout.complete_checkout` to handle mutliple payments - #SALEOR-3678 by @stnatic
-- Add `checkoutPaymentComplete` mutation - #SALEOR-3675 by @stnatic
-- Update `CheckoutPaymentCreate`  to not cancel previously assigned payments - #SALEOR-3992 by @stnatic
-- Make `RefundOrder` to handle multiple payments - #SALEOR-4193 by @solartune
-- Add new parameter `paymentID` to `checkoutComplete` mutation - #SALEOR-4087 by @stnatic
-- Handle overpaid `Orders` - #SALEOR-3824 by @stnatic
-- Add `PSP_Reference` field to the Payment object - #SALEOR-4225 by @pzborow
-- Extend PaymentData with new fields - #SALEOR-3764 by @pzborow:
-  - `partial: bool`
-  - `checkout_token: str`
-- Extend checkout type to return a list of active payments - #SALEOR-3686 by @pzborow
-- Create new enum that is separate from `ChargeStatus` - #SALEOR-4192 by @stnatic
-- Add new status to Payment - `AUTHORIZED` - #SALEOR-3776 by @stnatic
-- Rebuild `Order` resolvers for payment status - #SALEOR-3825 by @stnatic
-- Adyen - include `checkout_token` as a `merchantOrderReference` - #SALEOR-3794 by @pzborow
-- Extend `FulfillmentReturnProducts` mutation to be able to handle `paymentID` - #SALEOR-3670 by @solartune
-- Convert all usage of `get_last_payment` to multiple active payments - #SALEOR-3676 by @solartune
+- Support for partial payments:
+  - Make `OrderConfirm` mutation to trigger capture action on all active payments - by @stnatic
+  - Extend `FulfillmentRefundProducts` mutation to be able to handle `paymentID` - by @solartune
+  - Update `OrderEvents` for payments - by @pzborow
+  - Add `checkoutPaymentComplete` mutation - by @stnatic
+  - Update `CheckoutPaymentCreate`  to not cancel previously assigned payments - by @stnatic
+  - Make `RefundOrder` to handle multiple payments - by @solartune
+  - Add new parameter `paymentID` to `checkoutComplete` mutation - by @stnatic
+  - Handle overpaid `Orders` - by @stnatic
+  - Extend PaymentData with new fields - by @pzborow:
+    - `partial: bool`
+    - `checkout_token: str`
+  - Add new status to Payment - `AUTHORIZED` - by @stnatic
+  - Adyen - include `checkout_token` as a `merchantOrderReference` - by @pzborow
+  - Extend `FulfillmentReturnProducts` mutation to be able to handle `paymentID` - by @solartune
 - Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
