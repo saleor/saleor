@@ -36,7 +36,7 @@ def convert_shipping_method_model_to_dataclass(
 
 def set_active_shipping_methods(
     excluded_methods: List[ExcludedShippingMethod],
-    available_shipping_methods: List[ShippingMethodDataclass],
+    available_shipping_methods: List[shipping_models.ShippingMethod],
     channel_slug: str,
 ) -> List[ChannelContext]:
     instances = [
@@ -47,10 +47,10 @@ def set_active_shipping_methods(
         for shipping in available_shipping_methods
     ]
     for instance in instances:
-        instance.node.active = True
-        instance.node.message = ""
+        instance.node.active = True  # type: ignore
+        instance.node.message = ""  # type: ignore
         for method in excluded_methods:
             if instance.node.id == method.id:
-                instance.node.active = False
-                instance.node.message = method.reason
+                instance.node.active = False  # type: ignore
+                instance.node.message = method.reason  # type: ignore
     return instances

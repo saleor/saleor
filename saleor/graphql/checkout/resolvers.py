@@ -102,7 +102,7 @@ def _resolve_checkout_excluded_shipping_methods(
     )
     available_with_channel_context = set_active_shipping_methods(
         excluded_shipping_methods,
-        shipping_method_dataclasses,
+        available_shipping_method_instances,
         channel_slug,
     )
 
