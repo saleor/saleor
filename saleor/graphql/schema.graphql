@@ -5709,6 +5709,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   sku: String
   product: Product!
   trackInventory: Boolean!
+  quantityLimitPerCustomer: Int
   weight: Weight
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!

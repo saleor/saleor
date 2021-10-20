@@ -300,7 +300,15 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description = (
             "Represents a version of a product such as different size or color."
         )
-        only_fields = ["id", "name", "product", "sku", "track_inventory", "weight"]
+        only_fields = [
+            "id",
+            "name",
+            "product",
+            "sku",
+            "track_inventory",
+            "weight",
+            "quantity_limit_per_customer",
+        ]
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductVariant
 
@@ -334,11 +342,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if address is not None:
             country_code = address.country
 
-        variant = root.node
-        max_checkout_line_quantity = (
-            variant.quantity_limit_per_customer or settings.MAX_CHECKOUT_LINE_QUANTITY
-        )
         if root.node.is_preorder_active():
+            variant = root.node
             channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
                 info.context
             ).load((variant.id, str(root.channel_slug)))
@@ -375,7 +380,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                     return min(
                         channel_listing.preorder_quantity_threshold
                         - channel_listing.preorder_quantity_allocated,
-                        max_checkout_line_quantity,
+                        settings.MAX_CHECKOUT_LINE_QUANTITY,
                     )
                 if variant.preorder_global_threshold is not None:
                     variant_channel_listings = VariantChannelListingByVariantIdLoader(
@@ -421,28 +426,21 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
                         return min(
                             variant.preorder_global_threshold - global_sold_units,
-                            max_checkout_line_quantity,
+                            settings.MAX_CHECKOUT_LINE_QUANTITY,
                         )
 
                     return variant_channel_listings.then(calculate_available_global)
 
-                return max_checkout_line_quantity
+                return settings.MAX_CHECKOUT_LINE_QUANTITY
 
             return channel_listing.then(calculate_available_per_channel)
 
         if not root.node.track_inventory:
-            return max_checkout_line_quantity
+            return settings.MAX_CHECKOUT_LINE_QUANTITY
 
         return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             info.context
-        ).load(
-            (
-                root.node.id,
-                country_code,
-                str(root.channel_slug),
-                max_checkout_line_quantity,
-            )
-        )
+        ).load((root.node.id, country_code, str(root.channel_slug)))
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -964,16 +962,8 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             return False
 
         def load_variants_availability(variants):
-            keys = [
-                (
-                    variant.id,
-                    country_code,
-                    channel_slug,
-                    variant.quantity_limit_per_customer
-                    or settings.MAX_CHECKOUT_LINE_QUANTITY,
-                )
-                for variant in variants
-            ]
+            keys = [(variant.id, country_code, channel_slug) for variant in variants]
+
             return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 info.context
             ).load_many(keys)
