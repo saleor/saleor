@@ -130,6 +130,7 @@ def create_payment(
         "gateway": gateway,
         "total": total,
         "return_url": return_url,
+        "token": payment_token,
         "psp_reference": external_reference or "",
         "partial": partial,
         "extra_data": json.dumps(extra_data or {}),
@@ -145,8 +146,6 @@ def create_payment(
         "billing_country_area": billing_address.country_area,
     }
 
-    if payment_token:
-        return Payment.objects.get_or_create(token=payment_token, defaults=data)[0]
     return Payment.objects.create(**data)
 
 

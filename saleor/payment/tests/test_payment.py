@@ -88,8 +88,8 @@ def test_create_payment(checkout_with_item, address):
     payment = create_payment(**data)
     assert payment.gateway == "Dummy"
 
-    same_payment = create_payment(**data)
-    assert payment == same_payment
+    new_payment = create_payment(**data)
+    assert payment != new_payment
 
 
 def test_create_payment_requires_order_or_checkout(settings):
