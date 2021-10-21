@@ -1041,7 +1041,6 @@ class PluginsManager(PaymentInterface):
             [],
             checkout,
             available_shipping_methods,
-            app_name=app_name,
         )
 
 
