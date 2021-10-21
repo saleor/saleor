@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 import graphene
-from django.test import override_settings
 from django.utils import timezone
 from django_countries import countries
 
@@ -142,10 +141,11 @@ def test_variant_quantity_available_with_null_as_country_code(
     assert variant_data["byAddress"] == 7
 
 
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_with_max(
-    api_client, variant_with_many_stocks, settings, channel_USD
+    api_client, variant_with_many_stocks, site_settings, channel_USD
 ):
+    site_settings.limit_quantity_per_checkout = 15
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
     stock = variant_with_many_stocks.stocks.first()
     stock.quantity = 16
     stock.save(update_fields=["quantity"])
@@ -157,8 +157,10 @@ def test_variant_quantity_available_with_max(
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["deprecatedByCountry"] == settings.MAX_CHECKOUT_LINE_QUANTITY
-    assert variant_data["byAddress"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+    assert (
+        variant_data["deprecatedByCountry"] == site_settings.limit_quantity_per_checkout
+    )
+    assert variant_data["byAddress"] == site_settings.limit_quantity_per_checkout
 
 
 def test_variant_quantity_available_without_stocks(
@@ -253,10 +255,11 @@ def test_variant_quantity_available_with_disabled_reservations(
     assert variant_data["byAddress"] == 7
 
 
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_without_inventory_tracking(
-    api_client, variant_with_many_stocks, settings, channel_USD
+    api_client, variant_with_many_stocks, site_settings, channel_USD
 ):
+    site_settings.limit_quantity_per_checkout = 15
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
     variant_with_many_stocks.track_inventory = False
     variant_with_many_stocks.save(update_fields=["track_inventory"])
     variables = {
@@ -267,14 +270,17 @@ def test_variant_quantity_available_without_inventory_tracking(
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["deprecatedByCountry"] == settings.MAX_CHECKOUT_LINE_QUANTITY
-    assert variant_data["byAddress"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+    assert (
+        variant_data["deprecatedByCountry"] == site_settings.limit_quantity_per_checkout
+    )
+    assert variant_data["byAddress"] == site_settings.limit_quantity_per_checkout
 
 
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_without_inventory_tracking_and_stocks(
-    api_client, variant, settings, channel_USD
+    api_client, variant, site_settings, channel_USD
 ):
+    site_settings.limit_quantity_per_checkout = 15
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
     variant.track_inventory = False
     variant.save(update_fields=["track_inventory"])
     variables = {
@@ -285,16 +291,21 @@ def test_variant_quantity_available_without_inventory_tracking_and_stocks(
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["deprecatedByCountry"] == settings.MAX_CHECKOUT_LINE_QUANTITY
-    assert variant_data["byAddress"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+    assert (
+        variant_data["deprecatedByCountry"] == site_settings.limit_quantity_per_checkout
+    )
+    assert variant_data["byAddress"] == site_settings.limit_quantity_per_checkout
 
 
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_preorder_with_channel_threshold(
     api_client,
+    site_settings,
     preorder_variant_channel_threshold,
     channel_USD,
 ):
+    site_settings.limit_quantity_per_checkout = 15
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
+
     variant = preorder_variant_channel_threshold
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
@@ -312,13 +323,15 @@ def test_variant_quantity_available_preorder_with_channel_threshold(
     assert variant_data["byAddress"] == channel_listing.preorder_quantity_threshold
 
 
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_preorder_without_reservations(
     site_settings_with_reservations,
     api_client,
     preorder_variant_channel_threshold,
     channel_USD,
 ):
+    site_settings_with_reservations.limit_quantity_per_checkout = 15
+    site_settings_with_reservations.save(update_fields=["limit_quantity_per_checkout"])
+
     variant = preorder_variant_channel_threshold
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
@@ -336,7 +349,6 @@ def test_variant_quantity_available_preorder_without_reservations(
     assert variant_data["byAddress"] == channel_listing.preorder_quantity_threshold
 
 
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_preorder_with_channel_threshold_and_reservation(
     site_settings_with_reservations,
     api_client,
@@ -344,6 +356,9 @@ def test_variant_quantity_available_preorder_with_channel_threshold_and_reservat
     checkout_line_with_reserved_preorder_item,
     channel_USD,
 ):
+    site_settings_with_reservations.limit_quantity_per_checkout = 15
+    site_settings_with_reservations.save(update_fields=["limit_quantity_per_checkout"])
+
     variant = preorder_variant_channel_threshold
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
@@ -363,10 +378,11 @@ def test_variant_quantity_available_preorder_with_channel_threshold_and_reservat
     assert variant_data["byAddress"] == available_quantity
 
 
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_preorder_with_global_threshold(
-    api_client, preorder_variant_global_threshold, channel_USD
+    api_client, site_settings, preorder_variant_global_threshold, channel_USD
 ):
+    site_settings.limit_quantity_per_checkout = 15
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
     variant = preorder_variant_global_threshold
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
@@ -380,13 +396,15 @@ def test_variant_quantity_available_preorder_with_global_threshold(
     assert variant_data["byAddress"] == variant.preorder_global_threshold
 
 
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_preorder_with_global_threshold_and_reservations(
     site_settings_with_reservations,
     api_client,
     checkout_line_with_reserved_preorder_item,
     channel_USD,
 ):
+    site_settings_with_reservations.limit_quantity_per_checkout = 15
+    site_settings_with_reservations.save(update_fields=["limit_quantity_per_checkout"])
+
     variant = checkout_line_with_reserved_preorder_item.variant
     variant.channel_listings.update(preorder_quantity_threshold=None)
     variant.preorder_global_threshold = 10
@@ -409,10 +427,12 @@ def test_variant_quantity_available_preorder_with_global_threshold_and_reservati
     assert variant_data["byAddress"] == available_quantity
 
 
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_preorder_without_threshold(
-    api_client, preorder_variant_global_threshold, settings, channel_USD
+    api_client, preorder_variant_global_threshold, site_settings, channel_USD
 ):
+    site_settings.limit_quantity_per_checkout = 15
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
+
     variant = preorder_variant_global_threshold
     variant.preorder_global_threshold = None
     variant.save(update_fields=["preorder_global_threshold"])
@@ -424,16 +444,21 @@ def test_variant_quantity_available_preorder_without_threshold(
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["deprecatedByCountry"] == settings.MAX_CHECKOUT_LINE_QUANTITY
-    assert variant_data["byAddress"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+
+    assert (
+        variant_data["deprecatedByCountry"] == site_settings.limit_quantity_per_checkout
+    )
+    assert variant_data["byAddress"] == site_settings.limit_quantity_per_checkout
 
 
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_preorder_without_channel(
     api_client,
+    site_settings,
     preorder_variant_global_threshold,
     channel_USD,
 ):
+    site_settings.limit_quantity_per_checkout = 15
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
     variant = preorder_variant_global_threshold
     variant.channel_listings.all().delete()
     variables = {

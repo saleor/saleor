@@ -2007,6 +2007,46 @@ def test_update_product_variant_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
+@pytest.mark.parametrize("quantity_value", [0, -10])
+def test_update_product_variant_limit_per_customer_lower_than_1(
+    staff_api_client, product, permission_manage_products, quantity_value
+):
+    query = """
+        mutation updateVariant (
+            $id: ID!,
+            $quantityLimitPerCustomer: Int
+        ) {
+            productVariantUpdate(
+                id: $id,
+                input: {
+                    quantityLimitPerCustomer: $quantityLimitPerCustomer,
+                }
+            ){
+                productVariant {
+                    name
+                }
+                errors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "quantityLimitPerCustomer": quantity_value}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]
+    error = data["errors"][0]
+    assert error["field"] == "quantityLimitPerCustomer"
+    assert error["code"] == ProductErrorCode.INVALID.name
+
+
 QUERY_UPDATE_VARIANT_SKU = """
     mutation updateVariant (
         $id: ID!,

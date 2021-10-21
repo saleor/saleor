@@ -141,6 +141,7 @@ def check_lines_quantity(
     quantities,
     country,
     channel_slug,
+    site_settings_quantity_limit,
     allow_zero_quantity=False,
     existing_lines=None,
     replace=False,
@@ -154,7 +155,7 @@ def check_lines_quantity(
     and checkout lines with this quantity can be later removed.
     """
     for quantity, variant in zip(quantities, variants):
-        available_quantity = settings.MAX_CHECKOUT_LINE_QUANTITY
+        available_quantity = site_settings_quantity_limit
         if variant_quantity := variant.quantity_limit_per_customer:
             available_quantity = variant_quantity
 
@@ -355,7 +356,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
 
         # Calculates quantities/variants correctly then variant duplicated in checkout
-        # TODO: Check if needed
+        # TODO: During review, please check if needed
         quantities = group_quantity_by_variants(lines)
 
         variant_db_ids = {variant.id for variant in variants}
@@ -369,6 +370,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             quantities,
             country,
             channel.slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             check_reservations=is_reservation_enabled(info.context.site.settings),
         )
         return variants, quantities
@@ -529,6 +531,7 @@ class CheckoutLinesAdd(BaseMutation):
             quantities,
             country,
             channel_slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             existing_lines=lines,
             check_reservations=is_reservation_enabled(info.context.site.settings),
         )
@@ -548,6 +551,10 @@ class CheckoutLinesAdd(BaseMutation):
     ):
         channel_slug = checkout_info.channel.slug
 
+        # If validate_checkout_lines remains here, we can add as many items as we want
+        # to checkout object via checkoutLinesAdd despite of global limits,
+        # because we validate just an input, not checkout' state after mutation.
+        # Pls check "main" branch.
         cls.validate_checkout_lines(
             info,
             variants,
@@ -682,6 +689,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             quantities,
             country,
             channel_slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             allow_zero_quantity=True,
             existing_lines=lines,
             replace=True,
@@ -965,6 +973,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             quantities,
             country,
             channel_slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             # Set replace=True to avoid existing_lines and quantities from
             # being counted twice by the check_stock_quantity_bulk
             replace=True,

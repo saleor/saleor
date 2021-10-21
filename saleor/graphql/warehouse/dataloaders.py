@@ -6,7 +6,6 @@ from django.db.models import Exists, OuterRef, Q
 from django.db.models.aggregates import Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from django.conf import settings
 
 from ...channel.models import Channel
 from ...product.models import ProductVariantChannelListing
@@ -153,10 +152,14 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
 
         # Return the quantities after capping them at the maximum quantity allowed in
         # checkout. This prevent users from tracking the store's precise stock levels.
+        global_quantity_limit = (
+            self.context.site.settings.limit_quantity_per_checkout  # type: ignore
+        )
+
         return [
             (
                 variant_id,
-                min(quantity_map[variant_id], settings.MAX_CHECKOUT_LINE_QUANTITY),
+                min(quantity_map[variant_id], global_quantity_limit),
             )
             for variant_id in variant_ids
         ]

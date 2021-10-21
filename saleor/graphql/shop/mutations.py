@@ -122,7 +122,7 @@ class ShopSettingsUpdate(BaseMutation):
             if not new_value or new_value < 1:
                 raise ValidationError(
                     {
-                        "quantity_limit_per_customer": ValidationError(
+                        "limit_quantity_per_checkout": ValidationError(
                             "Quantity limit cannot be lower than 50 or null.",
                             code=ShopErrorCode.INVALID.value,
                         )

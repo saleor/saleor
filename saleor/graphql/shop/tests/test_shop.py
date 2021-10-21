@@ -464,6 +464,69 @@ def test_shop_reservation_set_negative_settings_mutation(
     assert site_settings.reserve_stock_duration_authenticated_user is None
 
 
+@pytest.mark.parametrize("quantity_value", [25, 1])
+def test_limit_quantity_per_checkout_mutation(
+    staff_api_client, site_settings, permission_manage_settings, quantity_value
+):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                shop {
+                    limitQuantityPerCheckout
+                }
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+    variables = {"input": {"limitQuantityPerCheckout": quantity_value}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shopSettingsUpdate"]["shop"]
+    site_settings.refresh_from_db()
+
+    assert data["limitQuantityPerCheckout"] == quantity_value
+    assert site_settings.limit_quantity_per_checkout == quantity_value
+
+
+@pytest.mark.parametrize("quantity_value", [0, -25, None])
+def test_limit_quantity_per_checkout_neg_zero_or_null_value(
+    staff_api_client, site_settings, permission_manage_settings, quantity_value
+):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                shop {
+                    limitQuantityPerCheckout
+                }
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+    variables = {"input": {"limitQuantityPerCheckout": quantity_value}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["shopSettingsUpdate"]["errors"]
+    site_settings.refresh_from_db()
+
+    assert len(errors) == 1
+    assert errors.pop() == {
+        "field": "limitQuantityPerCheckout",
+        "message": "Quantity limit cannot be lower than 50 or null.",
+    }
+
+    assert site_settings.limit_quantity_per_checkout == 50  # default
+
+
 MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS = """
     mutation updateDefaultSenderSettings($input: ShopSettingsInput!) {
       shopSettingsUpdate(input: $input) {
