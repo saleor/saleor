@@ -9,7 +9,11 @@ from prices import Money
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout, set_external_shipping_id
+from ....checkout.utils import (
+    add_variant_to_checkout,
+    add_voucher_to_checkout,
+    set_external_shipping_id,
+)
 from ....core.taxes import TaxedMoney
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
@@ -281,7 +285,7 @@ def test_checkout_add_voucher_code_by_token_with_external_shipment(
     voucher,
     shipping_app,
     address,
-    settings
+    settings,
 ):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     response_method_id = "abcd"
