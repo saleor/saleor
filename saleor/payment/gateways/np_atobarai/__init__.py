@@ -64,9 +64,6 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
         gateway=NPAtobaraiGatewayPlugin.PLUGIN_ID, is_active=True
     )
 
-    print("capture")
-    print(payments)
-
     if payments:
         results = [
             api.report_fulfillment(config, payment, fulfillment) for payment in payments
