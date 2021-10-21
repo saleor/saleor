@@ -218,6 +218,7 @@ def _create_lines_for_order(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
+    check_reservations: bool,
 ) -> Iterable[OrderLineData]:
     """Create a lines for the given order.
 
@@ -259,6 +260,9 @@ def _create_lines_for_order(
         quantities,
         checkout_info.channel.slug,
         additional_warehouse_lookup,
+        existing_lines=lines,
+        replace=True,
+        check_reservations=check_reservations,
     )
 
     return [
@@ -280,7 +284,8 @@ def _prepare_order_data(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts
+    discounts,
+    check_reservations: bool = False,
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
 
@@ -327,7 +332,7 @@ def _prepare_order_data(
     )
 
     order_data["lines"] = _create_lines_for_order(
-        manager, checkout_info, lines, discounts
+        manager, checkout_info, lines, discounts, check_reservations
     )
 
     # validate checkout gift cards
@@ -523,6 +528,7 @@ def _get_order_data(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: List[DiscountInfo],
+    site_settings,
 ) -> dict:
     """Prepare data that will be converted to order and its lines."""
     try:
@@ -531,6 +537,7 @@ def _get_order_data(
             checkout_info=checkout_info,
             lines=lines,
             discounts=discounts,
+            check_reservations=is_reservation_enabled(site_settings),
         )
     except InsufficientStock as e:
         error = prepare_insufficient_stock_checkout_validation_error(e)
@@ -617,8 +624,13 @@ def complete_checkout(
         payment=payment,
     )
 
+    if site_settings is None:
+        site_settings = Site.objects.get_current().settings
+
     try:
-        order_data = _get_order_data(manager, checkout_info, lines, discounts)
+        order_data = _get_order_data(
+            manager, checkout_info, lines, discounts, site_settings
+        )
     except ValidationError as exc:
         gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
         raise exc
