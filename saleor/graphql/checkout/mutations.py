@@ -355,7 +355,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             ),
         )
 
-        # Calculates quantities/variants correctly then variant duplicated in checkout
+        # Calculates quantities/variants correctly when variant
+        # id duplicated within lines in checkout.
         # TODO: During review, please check if needed
         quantities = group_quantity_by_variants(lines)
 
