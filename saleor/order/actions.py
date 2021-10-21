@@ -371,7 +371,7 @@ def refund_payments(
     app: Optional["App"],
     manager: "PluginsManager",
 ):
-    payments_to_notify, failed_events = _refund_payments(
+    payments_to_notify, payment_errors = _refund_payments(
         order, payments, manager, user, app
     )
     order.refresh_from_db()
@@ -382,7 +382,7 @@ def refund_payments(
             )
         )
 
-    return payments_to_notify, failed_events
+    return payments_to_notify, payment_errors
 
 
 def order_confirmed(
