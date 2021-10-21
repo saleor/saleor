@@ -76,6 +76,7 @@ def _resolve_order_shipping_methods(root: models.Order, info):
         return []
     available_shipping_methods = []
     manager = info.context.plugins
+    app = info.context.app
     display_gross = display_gross_prices()
     channel_slug = root.channel.slug
     for shipping_method in available:
