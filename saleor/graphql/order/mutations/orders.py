@@ -121,7 +121,7 @@ def clean_order_capture(order, payments, amount):
             {
                 "amount": ValidationError(
                     "Amount should less than the outstanding balance.",
-                    code=OrderErrorCode.CAPTURE_AMOUNT_TOO_HIGH,
+                    code=OrderErrorCode.AMOUNT_TOO_HIGH,
                 )
             }
         )
@@ -131,7 +131,7 @@ def clean_order_capture(order, payments, amount):
             {
                 "amount": ValidationError(
                     "Amount should less than or equal the authorized amount.",
-                    code=OrderErrorCode.CAPTURE_AMOUNT_TOO_HIGH,
+                    code=OrderErrorCode.AMOUNT_TOO_HIGH,
                 )
             }
         )
@@ -579,7 +579,7 @@ class OrderRefund(BaseMutation):
             description=(
                 "Amount of money to refund. "
                 "DEPRECATED: This argument will be removed in Saleor 4.0. "
-                "Use payments_to_refund instead."
+                "Use `paymentsToRefund` instead."
             ),
         )
         payments_to_refund = graphene.List(
@@ -628,7 +628,7 @@ class OrderRefund(BaseMutation):
                     "amount": ValidationError(
                         "The total amount to refund cannot be bigger "
                         "than the total captured amount.",
-                        code=OrderErrorCode.REFUND_AMOUNT_TOO_HIGH,
+                        code=OrderErrorCode.AMOUNT_TOO_HIGH,
                     )
                 }
             )
@@ -648,7 +648,7 @@ class OrderRefund(BaseMutation):
                     "amount": ValidationError(
                         "The amount to refund cannot be bigger "
                         "than the captured amount.",
-                        code=OrderErrorCode.REFUND_AMOUNT_TOO_HIGH,
+                        code=OrderErrorCode.AMOUNT_TOO_HIGH,
                         params={"payments": improper_payments_ids},
                     )
                 }
@@ -690,7 +690,7 @@ class OrderRefund(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         payments = cls._prepare_payments(info, order, amount, payments_to_refund)
         clean_refund_payments([item.payment for item in payments])
-        
+
         manager = info.context.plugins
         refunded_payments, _ = refund_payments(
             order,
