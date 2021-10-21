@@ -75,7 +75,7 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
         payment_name = get_payment_name(payment_id)
 
         if already_captured:
-            logger.warning("Payment was already captured")
+            logger.warning("%s was already captured", payment_name.capitalize())
             notify_dashboard(
                 order, f"Error: {payment_name.capitalize()} was already captured"
             )
