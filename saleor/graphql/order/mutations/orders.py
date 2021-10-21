@@ -7,6 +7,7 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
+from ....core.transactions import transaction_with_commit_on_errors
 from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
@@ -679,7 +680,7 @@ class OrderRefund(BaseMutation):
         return payments
 
     @classmethod
-    @traced_atomic_transaction()
+    @transaction_with_commit_on_errors()
     def perform_mutation(
         cls, _root, info, amount=None, payments_to_refund=None, **data
     ):

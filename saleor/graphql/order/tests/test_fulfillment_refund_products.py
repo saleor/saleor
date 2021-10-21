@@ -136,7 +136,9 @@ def test_fulfillment_refund_products_order_lines(
     permission_manage_orders,
     order_with_lines,
     payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.total = order_with_lines.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -235,7 +237,9 @@ def test_fulfillment_refund_products_fulfillment_lines(
     permission_manage_orders,
     fulfilled_order,
     payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.total = fulfilled_order.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -354,7 +358,9 @@ def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
     permission_manage_orders,
     fulfilled_order,
     payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.total = fulfilled_order.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -407,7 +413,9 @@ def test_fulfillment_refund_products_order_lines_include_shipping_costs(
     permission_manage_orders,
     order_with_lines,
     payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.total = order_with_lines.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -452,7 +460,9 @@ def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
     permission_manage_orders,
     fulfilled_order,
     payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.total = fulfilled_order.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -504,7 +514,9 @@ def test_fulfillment_refund_products_order_lines_custom_amount(
     permission_manage_orders,
     order_with_lines,
     payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.total = order_with_lines.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -551,7 +563,9 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     permission_manage_orders,
     fulfilled_order,
     payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.total = fulfilled_order.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED

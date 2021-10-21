@@ -30,12 +30,8 @@ from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
-from ....order.actions import (
-    cancel_order,
-    order_authorized,
-    order_captured,
-    order_refunded,
-)
+from ....order import events
+from ....order.actions import cancel_order, order_authorized, order_captured
 from ....order.events import external_notification_event
 from ....order.interface import OrderPaymentAction
 from ....payment.models import Payment, Transaction
@@ -432,13 +428,14 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
         payment, success_msg, failed_msg, new_transaction.is_success
     )
     if payment.order and new_transaction.is_success:
-        payments = [OrderPaymentAction(payment, new_transaction.amount)]
-        order_refunded(
-            payment.order,
-            None,
-            None,
-            payments,
+        events.payment_refunded_event(
+            order=payment.order,
+            user=None,
+            app=None,
+            amount=new_transaction.amount,
+            payment=payment,
         )
+        get_plugins_manager().order_updated(payment.order)
 
 
 def _get_kind(transaction: Optional[Transaction]) -> str:

@@ -12,7 +12,8 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....discount.utils import fetch_active_discounts
-from ....order.actions import order_captured, order_refunded, order_voided
+from ....order import events
+from ....order.actions import order_captured, order_voided
 from ....order.interface import OrderPaymentAction
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, TransactionKind
@@ -364,10 +365,12 @@ def handle_refund(
         payment, refund, TransactionKind.REFUND, refund.amount, refund.currency
     )
     if payment.order:
-        payments = [OrderPaymentAction(payment, refund_transaction.amount)]
-        order_refunded(
-            payment.order,
-            None,
-            None,
-            payments,
-        )
+        if payment.order and refund_transaction.is_success:
+            events.payment_refunded_event(
+                order=payment.order,
+                user=None,
+                app=None,
+                amount=refund_transaction.amount,
+                payment=payment,
+            )
+            get_plugins_manager().order_updated(payment.order)

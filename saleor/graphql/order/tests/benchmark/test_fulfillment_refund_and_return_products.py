@@ -17,7 +17,9 @@ def test_fulfillment_refund_products_order_lines(
     order_with_lines,
     payment_dummy,
     count_queries,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     query = """
         mutation OrderFulfillmentRefundProducts(
             $order: ID!, $input: OrderRefundProductsInput!
@@ -77,7 +79,9 @@ def test_fulfillment_return_products_order_lines(
     order_with_lines,
     payment_dummy,
     count_queries,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     query = """
         mutation OrderFulfillmentReturnProducts(
         $order: ID!, $input: OrderReturnProductsInput!
