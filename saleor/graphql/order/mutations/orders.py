@@ -576,7 +576,9 @@ class OrderRefund(BaseMutation):
         amount = PositiveDecimal(
             required=False,
             description=(
-                "Amount of money to refund. " "Use payments_to_refund instead."
+                "Amount of money to refund. "
+                "DEPRECATED: This argument will be removed in Saleor 4.0. "
+                "Use payments_to_refund instead."
             ),
         )
         payments_to_refund = graphene.List(

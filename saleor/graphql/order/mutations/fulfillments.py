@@ -376,6 +376,7 @@ class OrderRefundProductsInput(graphene.InputObjectType):
         required=False,
         description=(
             "The total amount of refund when the value is provided manually. "
+            "DEPRECATED: This argument will be removed in Saleor 4.0. "
             "Use `paymentsToRefund` instead."
         ),
     )
@@ -767,6 +768,7 @@ class OrderReturnProductsInput(graphene.InputObjectType):
         required=False,
         description=(
             "The total amount of refund when the value is provided manually. "
+            "DEPRECATED: This argument will be removed in Saleor 4.0. "
             "Use paymentsToRefund instead."
         ),
     )
