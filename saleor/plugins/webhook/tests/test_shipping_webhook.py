@@ -145,7 +145,6 @@ def test_excluded_shipping_methods_for_order(
         order=order_with_lines,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
-        app_name=shipping_app,
     )
     # then
     assert len(excluded_methods) == 2
@@ -154,7 +153,7 @@ def test_excluded_shipping_methods_for_order(
     assert webhook_reason in em.reason
     assert other_reason in em.reason
     mocked_webhook.assert_called_once_with(
-        shipping_app,
+        shipping_app.name,
         mock.ANY,
         mock.ANY,
         WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
@@ -172,7 +171,6 @@ def test_excluded_shipping_methods_id_expected_for_order(
     webhook_plugin,
     order_with_lines,
     available_shipping_methods_factory,
-    shipping_app,
 ):
     # given
     webhook_reason = "spanish-inquisition"
@@ -194,7 +192,6 @@ def test_excluded_shipping_methods_id_expected_for_order(
         order=order_with_lines,
         available_shipping_methods=available_shipping_methods,
         previous_value=[],
-        app_name=shipping_app,
     )
     # then
     assert len(excluded_methods) == 0
@@ -406,7 +403,6 @@ def test_excluded_shipping_methods_for_checkout(
         checkout=checkout_with_items,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
-        app_name=shipping_app,
     )
     # then
     assert len(excluded_methods) == 2
@@ -415,7 +411,7 @@ def test_excluded_shipping_methods_for_checkout(
     assert webhook_reason in em.reason
     assert other_reason in em.reason
     mocked_webhook.assert_called_once_with(
-        shipping_app,
+        shipping_app.name,
         mock.ANY,
         mock.ANY,
         WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,

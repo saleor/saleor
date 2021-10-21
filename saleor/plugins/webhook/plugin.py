@@ -432,7 +432,6 @@ class WebhookPlugin(BasePlugin):
         event_type: str,
         previous_value: List[ExcludedShippingMethod],
         payload: str,
-        app_name,
     ) -> List[ExcludedShippingMethod]:
         excluded_methods_map = defaultdict(list)
 
@@ -440,7 +439,11 @@ class WebhookPlugin(BasePlugin):
         webhooks = _get_webhooks_for_event(event_type)
         for webhook in webhooks:
             response_data = send_webhook_request_sync(
-                app_name, webhook.target_url, webhook.secret_key, event_type, payload
+                webhook.app.name,
+                webhook.target_url,
+                webhook.secret_key,
+                event_type,
+                payload,
             )
             if response_data:
                 for method in parse_excluded_shipping_methods_response(response_data):
@@ -465,7 +468,6 @@ class WebhookPlugin(BasePlugin):
         order: "Order",
         available_shipping_methods: List[ShippingMethod],
         previous_value: List[ExcludedShippingMethod],
-        app_name: str,
     ) -> List[ExcludedShippingMethod]:
         payload = generate_excluded_shipping_methods_for_order_payload(
             order,
@@ -475,7 +477,6 @@ class WebhookPlugin(BasePlugin):
             event_type=WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
             previous_value=previous_value,
             payload=payload,
-            app_name=app_name,
         )
 
     def excluded_shipping_methods_for_checkout(
@@ -483,7 +484,6 @@ class WebhookPlugin(BasePlugin):
         checkout: "Checkout",
         available_shipping_methods: List[ShippingMethod],
         previous_value: List[ExcludedShippingMethod],
-        app_name: str,
     ) -> List[ExcludedShippingMethod]:
         payload = generate_excluded_shipping_methods_for_checkout_payload(
             checkout,
@@ -493,5 +493,4 @@ class WebhookPlugin(BasePlugin):
             event_type=WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
             previous_value=previous_value,
             payload=payload,
-            app_name=app_name,
         )
