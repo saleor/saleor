@@ -3585,7 +3585,7 @@ type Mutation {
   orderLineDiscountUpdate(input: OrderDiscountCommonInput!, orderLineId: ID!): OrderLineDiscountUpdate
   orderLineDiscountRemove(orderLineId: ID!): OrderLineDiscountRemove
   orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
-  orderRefund(amount: PositiveDecimal, id: ID!, paymentsToRefund: [OrderPaymentToRefundInput]): OrderRefund
+  orderRefund(amount: PositiveDecimal, id: ID!, paymentsToRefund: [OrderPaymentToRefundInput!]): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
@@ -4208,7 +4208,7 @@ input OrderRefundLineInput {
 input OrderRefundProductsInput {
   orderLines: [OrderRefundLineInput!]
   fulfillmentLines: [OrderRefundFulfillmentLineInput!]
-  paymentsToRefund: [PaymentToRefundInput]
+  paymentsToRefund: [PaymentToRefundInput!]
   amountToRefund: PositiveDecimal
   includeShippingCosts: Boolean = false
 }
@@ -4228,7 +4228,7 @@ input OrderReturnLineInput {
 input OrderReturnProductsInput {
   orderLines: [OrderReturnLineInput!]
   fulfillmentLines: [OrderReturnFulfillmentLineInput!]
-  paymentsToRefund: [PaymentToRefundInput]
+  paymentsToRefund: [PaymentToRefundInput!]
   amountToRefund: PositiveDecimal
   includeShippingCosts: Boolean = false
   refund: Boolean = false

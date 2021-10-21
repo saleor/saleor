@@ -583,7 +583,7 @@ class OrderRefund(BaseMutation):
             ),
         )
         payments_to_refund = graphene.List(
-            OrderPaymentToRefundInput,
+            graphene.NonNull(OrderPaymentToRefundInput),
             required=False,
             description="Payments that need to be refunded.",
         )

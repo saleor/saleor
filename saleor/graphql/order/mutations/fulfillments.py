@@ -368,7 +368,7 @@ class OrderRefundProductsInput(graphene.InputObjectType):
         description="List of fulfilled lines to refund.",
     )
     payments_to_refund = graphene.List(
-        PaymentToRefundInput,
+        graphene.NonNull(PaymentToRefundInput),
         required=False,
         description="Payments that need to be refunded.",
     )
@@ -760,7 +760,7 @@ class OrderReturnProductsInput(graphene.InputObjectType):
     )
 
     payments_to_refund = graphene.List(
-        PaymentToRefundInput,
+        graphene.NonNull(PaymentToRefundInput),
         required=False,
         description="Payments that need to be refunded.",
     )
