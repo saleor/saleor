@@ -21,9 +21,8 @@ from ..actions import (
     cancel_order,
     fulfill_order_lines,
     handle_fully_paid_order,
-    make_refund,
     mark_order_as_paid,
-    order_refunded,
+    refund_payments,
 )
 from ..interface import OrderPaymentAction
 from ..models import Fulfillment
@@ -232,223 +231,8 @@ def test_cancel_order(
     )
 
 
-@patch("saleor.order.actions.send_order_refunded_confirmation")
-def test_order_refunded_by_user(
-    send_order_refunded_confirmation_mock,
-    order,
-    checkout_with_item,
-):
-    # given
-    payment = Payment.objects.create(
-        gateway="mirumee.payments.dummy",
-        is_active=True,
-        checkout=checkout_with_item,
-        currency=order.currency,
-    )
-    amount = order.total.gross.amount
-    payments = [OrderPaymentAction(payment, amount)]
-    app = None
-
-    # when
-    manager = get_plugins_manager()
-    order_refunded(order, order.user, app, payments, manager)
-
-    # then
-    order_event = order.events.last()
-    assert order_event.type == OrderEvents.PAYMENT_REFUNDED
-
-    send_order_refunded_confirmation_mock.assert_called_once_with(
-        order, order.user, None, payments, payment.currency, manager
-    )
-
-
-@patch("saleor.order.actions.send_order_refunded_confirmation")
-def test_order_refunded_by_app(
-    send_order_refunded_confirmation_mock,
-    order,
-    checkout_with_item,
-    app,
-):
-    # given
-    payment = Payment.objects.create(
-        gateway="mirumee.payments.dummy",
-        is_active=True,
-        checkout=checkout_with_item,
-        currency=order.currency,
-    )
-    amount = order.total.gross.amount
-    payments = [OrderPaymentAction(payment, amount)]
-
-    # when
-    manager = get_plugins_manager()
-    order_refunded(order, None, app, payments, manager)
-
-    # then
-    order_event = order.events.last()
-    assert order_event.type == OrderEvents.PAYMENT_REFUNDED
-
-    send_order_refunded_confirmation_mock.assert_called_once_with(
-        order, None, app, payments, payment.currency, manager
-    )
-
-
-@patch("saleor.order.actions.send_order_refunded_confirmation")
-def test_order_refunded_does_not_send_notification(
-    send_order_refunded_confirmation_mock,
-    order,
-    checkout_with_item,
-    app,
-):
-    # given
-    amount = order.total.gross.amount
-    payment = Payment.objects.create(
-        gateway="mirumee.payments.dummy",
-        is_active=True,
-        checkout=checkout_with_item,
-        currency=order.currency,
-        captured_amount=amount,
-        charge_status=ChargeStatus.FULLY_CHARGED,
-    )
-    payments = [OrderPaymentAction(payment, amount)]
-
-    # when
-    manager = get_plugins_manager()
-    order_refunded(order, None, app, payments, manager, send_notification=False)
-
-    # then
-    send_order_refunded_confirmation_mock.assert_not_called()
-
-
-@patch("saleor.order.events.payment_refunded_event")
-def test_order_refunded_creates_an_event_for_each_payment(
-    payment_refunded_event_mock,
-    order,
-    checkout_with_item,
-    app,
-):
-    # given
-    num_of_payments = 2
-    amount = order.total.gross.amount / 2
-    for _ in range(num_of_payments):
-        Payment.objects.create(
-            gateway="mirumee.payments.dummy",
-            is_active=True,
-            checkout=checkout_with_item,
-            currency=order.currency,
-            captured_amount=amount,
-            charge_status=ChargeStatus.FULLY_CHARGED,
-        )
-
-    payments = Payment.objects.all()
-    payments = [OrderPaymentAction(payment, amount) for payment in payments]
-
-    # when
-    manager = get_plugins_manager()
-    order_refunded(order, None, app, payments, manager)
-
-    # then
-    assert payment_refunded_event_mock.call_count == num_of_payments
-
-
-@patch("saleor.payment.actions.try_refund")
-@patch("saleor.order.actions.order_refunded")
-@pytest.mark.parametrize("transaction_kind", TransactionKind.CHOICES)
-def test_make_refund_calls_order_refunded_only_with_refunded_payments(
-    order_refunded_mock,
-    try_refund_mock,
-    transaction_kind,
-    order,
-    checkout_with_item,
-    app,
-):
-    # given
-    num_of_payments = 2
-    money = Money(amount=Decimal("60"), currency=order.currency)
-    order.total = TaxedMoney(money, money)
-    order.save()
-    amount = order.total.gross.amount / num_of_payments
-
-    for _ in range(num_of_payments):
-        Payment.objects.create(
-            gateway="mirumee.payments.dummy",
-            is_active=True,
-            checkout=checkout_with_item,
-            currency=order.currency,
-            captured_amount=amount,
-            charge_status=ChargeStatus.FULLY_CHARGED,
-        )
-
-    payments = Payment.objects.all()
-    payments = [{"payment": payment, "amount": amount} for payment in payments]
-    try_refund_mock.return_value.kind = transaction_kind
-    refunded_payments = [
-        {"payment": payment, "amount": amount}
-        for payment in payments
-        if transaction_kind == TransactionKind.REFUND
-    ]
-
-    # when
-    info = create_autospec(graphql.execution.base.ResolveInfo)
-    info.context.user = None
-    info.context.app = app
-    info.context.plugins = get_plugins_manager()
-    make_refund(order, refunded_payments, info)
-
-    # then
-    order_refunded_mock.assert_called_once_with(
-        order,
-        info.context.user,
-        info.context.app,
-        refunded_payments,
-        info.context.plugins,
-    )
-
-
-@patch("saleor.payment.actions.try_refund")
-def test_make_refund_creates_only_one_order_fullfilment_for_multiple_payments(
-    try_refund_mock, order, checkout_with_item, app
-):
-    # given
-    try_refund_mock.return_value.currency = order.currency
-    num_of_payments = 2
-    money = Money(amount=Decimal("60"), currency=order.currency)
-    order.total = TaxedMoney(money, money)
-    order.save()
-    amount = order.total.gross.amount / num_of_payments
-    for _ in range(num_of_payments):
-        payment = Payment.objects.create(
-            gateway="mirumee.payments.dummy",
-            is_active=True,
-            checkout=checkout_with_item,
-            currency=order.currency,
-            captured_amount=amount,
-            charge_status=ChargeStatus.FULLY_CHARGED,
-        )
-        payment.transactions.create(
-            amount=payment.total,
-            currency=payment.currency,
-            kind=TransactionKind.CAPTURE,
-            gateway_response={},
-            is_success=True,
-        )
-
-    payments = Payment.objects.all()
-    payments = [OrderPaymentAction(payment, amount) for payment in payments]
-
-    # when
-    info = create_autospec(graphql.execution.base.ResolveInfo)
-    info.context.user = None
-    info.context.app = app
-    info.context.plugins = get_plugins_manager()
-
-    make_refund(order, payments, info)
-
-    # then
-    assert order.fulfillments.count() == 1
-
-
-@patch("saleor.order.actions.try_refund")
-def test_make_refund_calls_try_refund_for_each_payment(
+@patch("saleor.order.actions.gateway.refund")
+def test_refund_payments_calls_gateway_refund_for_each_payment(
     try_refund_mock,
     order,
     checkout_with_item,
@@ -482,10 +266,11 @@ def test_make_refund_calls_try_refund_for_each_payment(
 
     # when
     info = create_autospec(graphql.execution.base.ResolveInfo)
-    info.context.user = None
     info.context.app = app
     info.context.plugins = get_plugins_manager()
-    make_refund(order, payments, info)
+    refund_payments(
+        order, payments, info.context.user, info.context.app, info.context.plugins
+    )
 
     # then
     assert try_refund_mock.call_count == num_of_payments

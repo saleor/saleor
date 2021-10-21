@@ -9,7 +9,7 @@ from ....tests.utils import get_graphql_content
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_refund_products_order_lines(
     mocked_refund,
     staff_api_client,
@@ -17,7 +17,9 @@ def test_fulfillment_refund_products_order_lines(
     order_with_lines,
     payment_dummy,
     count_queries,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     query = """
         mutation OrderFulfillmentRefundProducts(
             $order: ID!, $input: OrderRefundProductsInput!
@@ -77,7 +79,9 @@ def test_fulfillment_return_products_order_lines(
     order_with_lines,
     payment_dummy,
     count_queries,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     query = """
         mutation OrderFulfillmentReturnProducts(
         $order: ID!, $input: OrderReturnProductsInput!

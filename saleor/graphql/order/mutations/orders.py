@@ -7,14 +7,15 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
-from ....order import OrderLineData, OrderStatus, events, models
+from ....core.transactions import transaction_with_commit_on_errors
+from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     capture_payments,
-    make_refund,
     mark_order_as_paid,
     order_confirmed,
     order_shipping_updated,
+    refund_payments,
     void_payments,
 )
 from ....order.error_codes import OrderErrorCode
@@ -463,7 +464,7 @@ class OrderMarkAsPaid(BaseMutation):
 
         message = "Orders with payments can not be manually marked as paid."
         events.payment_capture_failed_event(
-            order=order, user=user, app=app, message=message, payment=None
+            order=order, user=user, app=app, message=message, payment=None, amount=None
         )
         raise ValidationError(
             {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
@@ -680,6 +681,7 @@ class OrderRefund(BaseMutation):
         return payments
 
     @classmethod
+    @transaction_with_commit_on_errors()
     def perform_mutation(
         cls, _root, info, amount=None, payments_to_refund=None, **data
     ):
@@ -687,9 +689,23 @@ class OrderRefund(BaseMutation):
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         payments = cls._prepare_payments(info, order, amount, payments_to_refund)
-
         clean_refund_payments([item.payment for item in payments])
-        make_refund(order, payments, info)
+        
+        manager = info.context.plugins
+        refunded_payments, _ = refund_payments(
+            order,
+            payments,
+            info.context.user,
+            info.context.app,
+            manager,
+        )
+
+        total_amount = sum([item.amount for item in refunded_payments])
+        if total_amount:
+            order.fulfillments.create(
+                status=FulfillmentStatus.REFUNDED, total_refund_amount=total_amount
+            )
+            transaction.on_commit(lambda: manager.order_updated(order))
 
         return OrderRefund(order=order)
 

@@ -12,10 +12,15 @@ from ..models import FulfillmentLine
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_create_refund_fulfillment_only_order_lines(
-    mocked_refund, mocked_order_updated, order_with_lines, payment_dummy
+    mocked_refund,
+    mocked_order_updated,
+    order_with_lines,
+    payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     payment_dummy.save()
@@ -70,11 +75,8 @@ def test_create_refund_fulfillment_only_order_lines(
     assert returned_fulfillemnt.total_refund_amount == amount
     assert returned_fulfillemnt.shipping_refund_amount is None
     mocked_refund.assert_called_with(
-        order=order_with_lines,
-        user=None,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount,
     )
@@ -82,10 +84,15 @@ def test_create_refund_fulfillment_only_order_lines(
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_create_refund_fulfillment_included_shipping_costs(
-    mocked_refund, mocked_order_updated, order_with_lines, payment_dummy
+    mocked_refund,
+    mocked_order_updated,
+    order_with_lines,
+    payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     payment_dummy.save()
@@ -132,11 +139,8 @@ def test_create_refund_fulfillment_included_shipping_costs(
     )
 
     mocked_refund.assert_called_with(
-        order=order_with_lines,
-        user=None,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount,
     )
@@ -144,10 +148,15 @@ def test_create_refund_fulfillment_included_shipping_costs(
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_create_refund_fulfillment_only_fulfillment_lines(
-    mocked_refund, mocked_order_updated, fulfilled_order, payment_dummy
+    mocked_refund,
+    mocked_order_updated,
+    fulfilled_order,
+    payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     payment_dummy.save()
@@ -189,11 +198,8 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
     )
 
     mocked_refund.assert_called_with(
-        order=fulfilled_order,
-        user=None,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
     )
@@ -204,10 +210,15 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.try_refund")
+@patch("saleor.order.actions.gateway.refund")
 def test_create_refund_fulfillment_custom_amount(
-    mocked_refund, mocked_order_updated, fulfilled_order, payment_dummy
+    mocked_refund,
+    mocked_order_updated,
+    fulfilled_order,
+    payment_dummy,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     payment_dummy.save()
@@ -245,11 +256,8 @@ def test_create_refund_fulfillment_custom_amount(
         assert line.quantity == original_quantity.get(line.pk) - 2
 
     mocked_refund.assert_called_with(
-        order=fulfilled_order,
-        user=None,
-        app=None,
-        payment=payment_dummy,
-        manager=ANY,
+        payment_dummy,
+        ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
     )

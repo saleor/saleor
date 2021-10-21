@@ -423,7 +423,13 @@ def payment_voided_event(
 
 
 def payment_capture_failed_event(
-    *, order: Order, user: UserType, app: AppType, message: str, payment: Payment
+    *,
+    order: Order,
+    user: UserType,
+    app: AppType,
+    message: str,
+    payment: Payment,
+    amount: Decimal
 ) -> OrderEvent:
     if not user_is_valid(user):
         user = None
@@ -432,12 +438,18 @@ def payment_capture_failed_event(
         type=OrderEvents.PAYMENT_CAPTURE_FAILED,
         user=user,
         app=app,
-        **_get_failed_payment_data(None, payment, message),
+        **_get_failed_payment_data(amount, payment, message),
     )
 
 
 def payment_refund_failed_event(
-    *, order: Order, user: UserType, app: AppType, message: str, payment: Payment
+    *,
+    order: Order,
+    user: UserType,
+    app: AppType,
+    message: str,
+    payment: Payment,
+    amount: Decimal,
 ) -> OrderEvent:
     if not user_is_valid(user):
         user = None
@@ -446,7 +458,7 @@ def payment_refund_failed_event(
         type=OrderEvents.PAYMENT_REFUND_FAILED,
         user=user,
         app=app,
-        **_get_failed_payment_data(None, payment, message),
+        **_get_failed_payment_data(amount, payment, message),
     )
 
 
