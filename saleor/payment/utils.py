@@ -83,6 +83,10 @@ def create_payment_lines_information(
 
         line_items.append(create_shipping_payment_line_data(amount=shipping_amount))
 
+        voucher_line_item = create_checkout_voucher_payment_line_data(checkout)
+        if voucher_line_item:
+            line_items.append(voucher_line_item)
+
     elif order:
         for order_line in order.lines.all():
             product_name = f"{order_line.product_name}, {order_line.variant_name}"
@@ -96,6 +100,9 @@ def create_payment_lines_information(
         line_items.append(
             create_shipping_payment_line_data(amount=order.shipping_price_gross_amount)
         )
+        voucher_line_item = create_order_voucher_payment_line_data(order)
+        if voucher_line_item:
+            line_items.append(voucher_line_item)
 
     return line_items
 
@@ -106,6 +113,26 @@ def create_shipping_payment_line_data(amount: Decimal) -> PaymentLineData:
         product_name="Shipping",
         gross=amount,
     )
+
+
+def create_checkout_voucher_payment_line_data(
+    checkout: Checkout,
+) -> Optional[PaymentLineData]:
+    discount_amount = -checkout.discount_amount
+    return create_voucher_payment_line_data(discount_amount)
+
+
+def create_order_voucher_payment_line_data(
+    order: Order,
+) -> Optional[PaymentLineData]:
+    discount_amount = order.total_gross_amount - order.undiscounted_total_gross_amount
+    return create_voucher_payment_line_data(discount_amount)
+
+
+def create_voucher_payment_line_data(amount: Decimal) -> Optional[PaymentLineData]:
+    if not amount:
+        return None
+    return PaymentLineData(quantity=1, product_name="Voucher", gross=amount)
 
 
 def create_payment_information(

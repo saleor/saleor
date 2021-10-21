@@ -246,6 +246,9 @@ def cancel_transaction(
         )
 
 
+ALREADY_CAPTURED_ERROR_CODE = "E0100115"
+
+
 def report_fulfillment(
     config: ApiConfig, payment: Payment, fulfillment: Fulfillment
 ) -> Tuple[Union[str, int], List[str], bool]:
@@ -281,7 +284,7 @@ def report_fulfillment(
         error_codes = _get_errors(response_data)
 
         # check if the payment was already captured
-        if "E0100115" in error_codes:
+        if ALREADY_CAPTURED_ERROR_CODE in error_codes:
             return psp_reference, [], True
 
         errors = get_error_messages_from_codes(

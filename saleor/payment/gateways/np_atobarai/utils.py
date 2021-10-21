@@ -17,8 +17,7 @@ def get_payment_name(payment_id: Union[int, str]) -> str:
         return "payment"
     if isinstance(payment_id, str):
         return f"payment with psp reference {payment_id}"
-    else:
-        return f"payment with id {payment_id}"
+    return f"payment with id {payment_id}"
 
 
 @contextmanager
