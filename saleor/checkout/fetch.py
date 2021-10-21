@@ -152,18 +152,18 @@ def get_valid_shipping_method_list_for_checkout_info(
     )
     subtotal -= checkout_info.checkout.discount
     checkout = checkout_info.checkout
-    valid_shipping_method = get_valid_shipping_methods_for_checkout(
+    valid_shipping_methods = get_valid_shipping_methods_for_checkout(
         checkout_info, lines, subtotal, country_code=country_code
     )
-    valid_shipping_method = (
-        list(valid_shipping_method) if valid_shipping_method is not None else []
+    valid_shipping_methods = (
+        list(valid_shipping_methods) if valid_shipping_methods is not None else []
     )
     excluded_shipping_methods = manager.excluded_shipping_methods_for_checkout(
-        checkout, valid_shipping_method
+        checkout, valid_shipping_methods
     )
     valid_shipping_methods_map = {
         graphene.Node.to_global_id("ShippingMethod", valid_method.id): valid_method
-        for valid_method in valid_shipping_method
+        for valid_method in valid_shipping_methods
     }
     for valid_method_id, valid_method in valid_shipping_methods_map.items():
         valid_method.active = True
@@ -172,7 +172,7 @@ def get_valid_shipping_method_list_for_checkout_info(
             if valid_method_id == excluded_method.id:
                 valid_method.active = False
                 valid_method.message = excluded_method.reason
-    return [method for method in valid_shipping_method if method.active]
+    return [method for method in valid_shipping_methods_map.values() if method.active]
 
 
 def update_checkout_info_shipping_method(
