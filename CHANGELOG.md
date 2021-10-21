@@ -3,23 +3,6 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
-# 3.1.0 [Unreleased]
-- Extend app by `AppExtension` - #7701 by @korycins
-- Deprecate interface field `PaymentData.reuse_source` - #7988 by @mateuszgrzyb
-- Add ExternalNotificationTrigger mutation - #7821 by @mstrumeck
-- Add Click&Collect feature - #7673 by @kuchichan
-- Introduce swatch attributes - #7261 by @IKarbowiak
-- Introduce gift card feature - #7827 by @IKarbowiak, @tomaszszymanski129
-- Deprecate `setup_future_usage` from `checkoutComplete.paymentData` input - will be removed in Saleor 4.0 - #7994 by @mateuszgrzyb
-- Possibility to pass metadata in input of `checkoutPaymentCreate` - #8076 by @mateuszgrzyb
-- Fix shipping address issue in `availableCollectionPoints` resolver for checkout - #8143 by @kuchichan
-- Improve draft orders and orders webhooks by @jakubkuc
-- Fix cursor-based pagination in products search - #8011 by @rafalp
-- Extend `accountRegister` mutation to consume first & last name - #8184 by @piotrgrundas
-- Introduce sales / vouchers per product variant - #8064 by @kuchichan
-
-
-# 3.0.0 [Unreleased]
 
 - Mark `X-` headers as deprecated and add headers without prefix. All deprecated headers will be removed in Saleor 4.0 - #8179 by @L3str4nge
     * X-Saleor-Event -> Saleor-Event
