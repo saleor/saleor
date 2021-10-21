@@ -1,6 +1,7 @@
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
+from unittest import mock
 
 import graphene
 from prices import Money
@@ -8,7 +9,11 @@ from prices import Money
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
+from ....checkout.utils import (
+    add_variant_to_checkout,
+    add_voucher_to_checkout,
+    set_external_shipping_id,
+)
 from ....core.taxes import TaxedMoney
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
@@ -270,6 +275,47 @@ def test_checkout_add_voucher_code_by_token(api_client, checkout_with_item, vouc
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert data["checkout"]["voucherCode"] == voucher.code
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_checkout_add_voucher_code_by_token_with_external_shipment(
+    mock_send_request,
+    api_client,
+    checkout_with_item,
+    voucher,
+    shipping_app,
+    address,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
+    external_shipping_method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    set_external_shipping_id(checkout, external_shipping_method_id)
+    checkout.save(update_fields=["shipping_address", "private_metadata"])
+
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
+    assert data["checkout"]["voucherCode"] == voucher.code
+    assert data["checkout"]["shippingMethod"]["id"] == external_shipping_method_id
 
 
 def test_checkout_add_voucher_code_with_display_gross_prices(
