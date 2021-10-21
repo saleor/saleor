@@ -465,7 +465,7 @@ class WebhookPlugin(BasePlugin):
         order: "Order",
         available_shipping_methods: List[ShippingMethod],
         previous_value: List[ExcludedShippingMethod],
-        app_name,
+        app_name: str,
     ) -> List[ExcludedShippingMethod]:
         payload = generate_excluded_shipping_methods_for_order_payload(
             order,
@@ -482,8 +482,8 @@ class WebhookPlugin(BasePlugin):
         self,
         checkout: "Checkout",
         available_shipping_methods: List[ShippingMethod],
-        previous_value,
-        app_name,
+        previous_value: List[ExcludedShippingMethod],
+        app_name: str,
     ) -> List[ExcludedShippingMethod]:
         payload = generate_excluded_shipping_methods_for_checkout_payload(
             checkout,

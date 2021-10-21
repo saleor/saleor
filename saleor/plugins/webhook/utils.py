@@ -1,4 +1,5 @@
 import decimal
+import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
@@ -11,6 +12,8 @@ if TYPE_CHECKING:
 
 
 APP_GATEWAY_ID_PREFIX = "app"
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -112,9 +115,11 @@ def parse_excluded_shipping_methods_response(
 ) -> List[ExcludedShippingMethod]:
     excluded_methods = []
     for method_data in response_data.get("excluded_methods", []):
+        method_id = method_data.get("id", "")
+        if not method_id:
+            logger.warning("ShippingMethod id cannot be blank.")
+            continue
         excluded_methods.append(
-            ExcludedShippingMethod(
-                id=method_data.get("id", ""), reason=method_data.get("reason", "")
-            )
+            ExcludedShippingMethod(id=method_id, reason=method_data.get("reason", ""))
         )
     return excluded_methods

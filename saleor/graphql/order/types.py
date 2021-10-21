@@ -601,7 +601,9 @@ class Order(CountableDjangoObjectType):
         deprecation_reason="Use `shippingMethods`, this field will be removed in 4.0",
     )
     shipping_methods = graphene.List(
-        ShippingMethod, description="Shipping methods related to this order."
+        graphene.NonNull(ShippingMethod),
+        description="Shipping methods related to this order.",
+        required=True,
     )
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
@@ -850,6 +852,9 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Order, info):
+        if not root.shipping_method_id:
+            return None
+
         def wrap_shipping_method_with_channel_context(data):
             shipping_method, channel = data
             return ChannelContext(node=shipping_method, channel_slug=channel.slug)
@@ -1037,7 +1042,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_available_shipping_methods(root: models.Order, info):
-        return resolve_order_shipping_methods(root, info)
+        return resolve_order_shipping_methods(root, info, include_active_only=True)
 
     @staticmethod
     @traced_resolver

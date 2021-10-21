@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django_countries.fields import Country
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ..payment.interface import (
@@ -73,10 +74,10 @@ class ShippingMethod:
     id: str
     price: Decimal
     name: str
-    maximum_order_weight: Decimal
-    minimum_order_weight: Decimal
-    maximum_delivery_days: int
-    minimum_delivery_days: int
+    maximum_order_weight: Optional[Weight]
+    minimum_order_weight: Optional[Weight]
+    maximum_delivery_days: Optional[int]
+    minimum_delivery_days: Optional[int]
 
 
 class BasePlugin:

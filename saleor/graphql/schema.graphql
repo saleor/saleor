@@ -944,7 +944,7 @@ type Checkout implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  availableShippingMethods: [ShippingMethod]! @deprecated(reason: "Use `shippingMethods`, this field will be removed in 4.0")
+  availableShippingMethods: [ShippingMethod]! @deprecated(reason: "Use `shippingMethods`, this field will be removed in 4.0.")
   shippingMethods: [ShippingMethod]!
   availablePaymentGateways: [PaymentGateway!]!
   email: String!
@@ -3754,7 +3754,7 @@ type Order implements Node & ObjectWithMetadata {
   lines: [OrderLine]!
   actions: [OrderAction]!
   availableShippingMethods: [ShippingMethod] @deprecated(reason: "Use `shippingMethods`, this field will be removed in 4.0")
-  shippingMethods: [ShippingMethod]
+  shippingMethods: [ShippingMethod!]!
   invoices: [Invoice]
   number: String
   original: ID

@@ -5,14 +5,16 @@ from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.tracing import traced_resolver
 from ..account.dataloaders import AddressByIdLoader
-from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
-from ..shipping.types import ShippingMethod
+from ..shipping.utils import (
+    convert_shipping_method_model_to_dataclass,
+    set_active_shipping_methods,
+)
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     CheckoutInfoByCheckoutTokenLoader,
@@ -60,8 +62,58 @@ def resolve_checkout(info, token):
     return None
 
 
-def resolve_checkout_available_shipping_methods(root: models.Checkout, info):
-    def calculate_available_shipping_methods(data):
+def _resolve_checkout_excluded_shipping_methods(
+    root,
+    channel_listings,
+    shippings,
+    address,
+    channel_slug,
+    display_gross,
+    manager,
+    info,
+):
+    cache_key = "__fetched_shipping_methods"
+    if hasattr(root, cache_key):
+        return getattr(root, cache_key)
+
+    channel_listing_map = {
+        channel_listing.shipping_method_id: channel_listing
+        for channel_listing in channel_listings
+    }
+    available_shipping_method_instances = []
+    for shipping in shippings:
+        shipping_channel_listing = channel_listing_map[shipping.id]
+        taxed_price = info.context.plugins.apply_taxes_to_shipping(
+            shipping_channel_listing.price, address, channel_slug
+        )
+        if display_gross:
+            shipping.price = taxed_price.gross
+        else:
+            shipping.price = taxed_price.net
+        available_shipping_method_instances.append(shipping)
+
+    app = info.context.app
+    shipping_method_dataclasses = [
+        convert_shipping_method_model_to_dataclass(shipping)
+        for shipping in available_shipping_method_instances
+    ]
+    excluded_shipping_methods = manager.excluded_shipping_methods_for_checkout(
+        root, shipping_method_dataclasses, app_name=app
+    )
+    available_with_channel_context = set_active_shipping_methods(
+        excluded_shipping_methods,
+        available_shipping_method_instances,
+        channel_slug,
+    )
+
+    setattr(root, cache_key, available_with_channel_context)
+    return getattr(root, cache_key)
+
+
+def resolve_checkout_shipping_methods(
+    root: models.Checkout, info, include_active_only=False
+):
+    def calculate_shipping_methods(data):
         address, lines, checkout_info, discounts, channel = data
         if not address:
             return []
@@ -83,33 +135,24 @@ def resolve_checkout_available_shipping_methods(root: models.Checkout, info):
 
         def map_shipping_method_with_channel(shippings):
             def apply_price_to_shipping_method(channel_listings):
-                channel_listing_map = {
-                    channel_listing.shipping_method_id: channel_listing
-                    for channel_listing in channel_listings
-                }
-                available_with_channel_context = []
-                for shipping in shippings:
-                    shipping_channel_listing = channel_listing_map[shipping.id]
-                    taxed_price = info.context.plugins.apply_taxes_to_shipping(
-                        shipping_channel_listing.price, address, channel_slug
+                available_with_channel_context = (
+                    _resolve_checkout_excluded_shipping_methods(
+                        root,
+                        channel_listings,
+                        shippings,
+                        address,
+                        channel_slug,
+                        display_gross,
+                        manager,
+                        info,
                     )
-                    if display_gross:
-                        shipping.price = taxed_price.gross
-                    else:
-                        shipping.price = taxed_price.net
-                    available_with_channel_context.append(
-                        ChannelContext(
-                            node=ShippingMethod(
-                                id=shipping.id,
-                                price=shipping.price,
-                                name=shipping.name,
-                                description=shipping.description,
-                                maximum_delivery_days=shipping.maximum_delivery_days,
-                                minimum_delivery_days=shipping.minimum_delivery_days,
-                            ),
-                            channel_slug=channel_slug,
-                        )
-                    )
+                )
+                if include_active_only:
+                    available_with_channel_context = [
+                        shipping
+                        for shipping in available_with_channel_context
+                        if shipping.node.active
+                    ]
                 return available_with_channel_context
 
             map_shipping_method_and_channel = (
@@ -139,6 +182,7 @@ def resolve_checkout_available_shipping_methods(root: models.Checkout, info):
     lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
     checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
     discounts = DiscountsByDateTimeLoader(info.context).load(info.context.request_time)
+
     return Promise.all([address, lines, checkout_info, discounts, channel]).then(
-        calculate_available_shipping_methods
+        calculate_shipping_methods
     )

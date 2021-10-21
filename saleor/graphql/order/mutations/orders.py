@@ -40,7 +40,7 @@ from ...order.mutations.draft_orders import (
     OrderLineInput,
 )
 from ...product.types import ProductVariant
-from ...shipping.types import ShippingMethodType
+from ...shipping.types import ShippingMethod
 from ..types import Order, OrderEvent, OrderLine
 from ..utils import (
     validate_product_is_published_in_channel,
@@ -308,7 +308,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             info,
             data["shipping_method"],
             field="shipping_method",
-            only_type=ShippingMethodType,
+            only_type=ShippingMethod,
             qs=shipping_models.ShippingMethod.objects.prefetch_related(
                 "postal_code_rules"
             ),

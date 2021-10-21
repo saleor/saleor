@@ -5,9 +5,11 @@ from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
 from ...order.utils import get_valid_shipping_methods_for_order, sum_order_totals
-from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
-from ..shipping.types import ShippingMethod
+from ..shipping.utils import (
+    convert_shipping_method_model_to_dataclass,
+    set_active_shipping_methods,
+)
 from ..utils.filters import filter_by_period
 
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
@@ -63,13 +65,18 @@ def resolve_order_by_token(token):
     )
 
 
-def resolve_order_shipping_methods(root: models.Order, info):
+def _resolve_order_shipping_methods(root: models.Order, info):
     # TODO: We should optimize it in/after PR#5819
+    cache_key = "__fetched_shipping_methods"
+    if hasattr(root, cache_key):
+        return getattr(root, cache_key)
+
     available = get_valid_shipping_methods_for_order(root)
     if available is None:
         return []
     available_shipping_methods = []
     manager = info.context.plugins
+    app = info.context.app
     display_gross = display_gross_prices()
     channel_slug = root.channel.slug
     for shipping_method in available:
@@ -89,18 +96,27 @@ def resolve_order_shipping_methods(root: models.Order, info):
             else:
                 shipping_method.price = taxed_price.net
             available_shipping_methods.append(shipping_method)
-    instances = [
-        ChannelContext(
-            node=ShippingMethod(
-                id=shipping.id,
-                price=shipping.price,
-                name=shipping.name,
-                description=shipping.description,
-                maximum_delivery_days=shipping.maximum_delivery_days,
-                minimum_delivery_days=shipping.minimum_delivery_days,
-            ),
-            channel_slug=channel_slug,
-        )
+
+    shipping_method_dataclasses = [
+        convert_shipping_method_model_to_dataclass(shipping)
         for shipping in available_shipping_methods
     ]
+    excluded_shipping_methods = manager.excluded_shipping_methods_for_order(
+        root, shipping_method_dataclasses, app_name=app
+    )
+    instances = set_active_shipping_methods(
+        excluded_shipping_methods,
+        available_shipping_methods,
+        channel_slug,
+    )
+
+    setattr(root, cache_key, instances)
+    return getattr(root, cache_key)
+
+
+def resolve_order_shipping_methods(root: models.Order, info, include_active_only=False):
+    # TODO: We should optimize it in/after PR#5819
+    instances = _resolve_order_shipping_methods(root, info)
+    if include_active_only:
+        instances = [instance for instance in instances if instance.node.active]
     return instances

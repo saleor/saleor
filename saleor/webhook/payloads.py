@@ -173,7 +173,6 @@ def generate_order_payload(order: "Order"):
 
     channel_fields = ("slug", "currency_code")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
-
     lines = order.lines.all()
 
     fulfillments_data = serializer.serialize(
