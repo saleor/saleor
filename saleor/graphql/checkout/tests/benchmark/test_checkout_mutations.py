@@ -90,7 +90,7 @@ FRAGMENT_ADDRESS = """
 
 
 FRAGMENT_SHIPPING_METHOD = """
-    fragment ShippingMethodType on ShippingMethod {
+    fragment ShippingMethod on ShippingMethod {
         id
         name
         price {
@@ -130,10 +130,10 @@ FRAGMENT_CHECKOUT = (
           }
           email
           availableShippingMethods {
-            ...ShippingMethodType
+            ...ShippingMethod
           }
           shippingMethod {
-            ...ShippingMethodType
+            ...ShippingMethod
           }
           shippingPrice {
             ...Price

@@ -852,6 +852,9 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Order, info):
+        if not root.shipping_method_id:
+            return None
+
         def wrap_shipping_method_with_channel_context(data):
             shipping_method, channel = data
             return ChannelContext(node=shipping_method, channel_slug=channel.slug)
