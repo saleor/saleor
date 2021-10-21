@@ -5,6 +5,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
+from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ..account.models import User
@@ -37,6 +38,7 @@ from . import (
     events,
     utils,
 )
+from .error_codes import OrderErrorCode
 from .interface import OrderPaymentAction
 from .models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from .notifications import (
@@ -380,6 +382,12 @@ def refund_payments(
             lambda: send_order_refunded_confirmation(
                 order, user, app, payments_to_notify, order.currency, manager
             )
+        )
+    elif payment_errors:
+        raise ValidationError(
+            f"The refund operation is not available yet "
+            f"for {len(payment_errors)} payments.",
+            code=OrderErrorCode.CANNOT_REFUND.value,
         )
 
     return payments_to_notify, payment_errors

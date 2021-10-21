@@ -3,6 +3,7 @@ from unittest.mock import create_autospec, patch
 
 import graphql
 import pytest
+from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
 from ...order import OrderLineData
@@ -24,6 +25,7 @@ from ..actions import (
     mark_order_as_paid,
     refund_payments,
 )
+from ..error_codes import OrderErrorCode
 from ..interface import OrderPaymentAction
 from ..models import Fulfillment
 from ..notifications import (
@@ -274,6 +276,108 @@ def test_refund_payments_calls_gateway_refund_for_each_payment(
 
     # then
     assert try_refund_mock.call_count == num_of_payments
+
+
+@patch("saleor.order.actions._refund_payments")
+def test_refund_payments_raises_error_if_no_payments_have_been_refunded(
+    _refund_payments_mock,
+    order,
+    checkout_with_item,
+    app,
+):
+    # given
+    num_of_payments = 2
+    money = Money(amount=Decimal("60"), currency=order.currency)
+    order.total = TaxedMoney(money, money)
+    order.save()
+    amount = order.total.gross.amount / num_of_payments
+    for _ in range(num_of_payments):
+        payment = Payment.objects.create(
+            gateway="mirumee.payments.dummy",
+            is_active=True,
+            checkout=checkout_with_item,
+            currency=order.currency,
+            captured_amount=amount,
+            charge_status=ChargeStatus.FULLY_CHARGED,
+        )
+        payment.transactions.create(
+            amount=payment.captured_amount,
+            currency=payment.currency,
+            kind=TransactionKind.CAPTURE,
+            gateway_response={},
+            is_success=True,
+        )
+
+    payments = Payment.objects.all()
+    payments = [OrderPaymentAction(payment, amount) for payment in payments]
+
+    payment_errors = ["Error 1", "Error 2"]
+    _refund_payments_mock.return_value = [], payment_errors
+
+    # when
+    info = create_autospec(graphql.execution.base.ResolveInfo)
+    info.context.app = app
+    info.context.plugins = get_plugins_manager()
+    with pytest.raises(ValidationError) as err:
+        refund_payments(
+            order, payments, info.context.user, info.context.app, info.context.plugins
+        )
+
+    # then
+    assert err.value.message == (
+        f"The refund operation is not available yet "
+        f"for {len(payment_errors)} payments."
+    )
+    assert err.value.code == OrderErrorCode.CANNOT_REFUND.value
+
+
+@patch("saleor.order.actions._refund_payments")
+def test_refund_payments_does_not_raise_error_if_one_payment_has_been_refunded(
+    _refund_payments_mock,
+    order,
+    checkout_with_item,
+    app,
+):
+    # given
+    num_of_payments = 2
+    money = Money(amount=Decimal("60"), currency=order.currency)
+    order.total = TaxedMoney(money, money)
+    order.save()
+    amount = order.total.gross.amount / num_of_payments
+    for _ in range(num_of_payments):
+        payment = Payment.objects.create(
+            gateway="mirumee.payments.dummy",
+            is_active=True,
+            checkout=checkout_with_item,
+            currency=order.currency,
+            captured_amount=amount,
+            charge_status=ChargeStatus.FULLY_CHARGED,
+        )
+        payment.transactions.create(
+            amount=payment.captured_amount,
+            currency=payment.currency,
+            kind=TransactionKind.CAPTURE,
+            gateway_response={},
+            is_success=True,
+        )
+
+    payments = Payment.objects.all()
+    payments = [OrderPaymentAction(payment, amount) for payment in payments]
+
+    payment_errors = ["Error 1", "Error 2"]
+    _refund_payments_mock.return_value = [payments[0]], payment_errors
+
+    # when
+    info = create_autospec(graphql.execution.base.ResolveInfo)
+    info.context.app = app
+    info.context.plugins = get_plugins_manager()
+    payments, errors = refund_payments(
+        order, payments, info.context.user, info.context.app, info.context.plugins
+    )
+
+    # then
+    assert payments == [payments[0]]
+    assert errors == payment_errors
 
 
 def test_fulfill_order_lines(order_with_lines):
