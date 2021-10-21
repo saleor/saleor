@@ -280,16 +280,12 @@ def fetch_checkout_info(
         valid_pick_up_points=[],
     )
 
-    valid_shipping_methods: List["ShippingMethodData"] = list(
-        itertools.chain(
-            get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, shipping_address, lines, discounts, manager
-            ),
-            get_valid_external_shipping_method_list_for_checkout_info(
-                checkout_info, shipping_address, lines, discounts, manager
-            ),
-        )
+    valid_shipping_methods: List[
+        "ShippingMethodData"
+    ] = get_valid_shipping_method_list_for_checkout_info(
+        checkout_info, shipping_address, lines, discounts, manager
     )
+
     valid_pick_up_points = get_valid_collection_points_for_checkout_info(
         shipping_address, lines, checkout_info
     )
@@ -309,15 +305,10 @@ def update_checkout_info_shipping_address(
 ):
     checkout_info.shipping_address = address
 
-    valid_shipping_methods: List["ShippingMethodData"] = list(
-        itertools.chain(
-            get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, address, lines, discounts, manager
-            ),
-            get_valid_external_shipping_method_list_for_checkout_info(
-                checkout_info, address, lines, discounts, manager
-            ),
-        )
+    valid_shipping_methods: List[
+        "ShippingMethodData"
+    ] = get_valid_shipping_method_list_for_checkout_info(
+        checkout_info, address, lines, discounts, manager
     )
 
     checkout_info.valid_shipping_methods = valid_shipping_methods
@@ -328,7 +319,7 @@ def update_checkout_info_shipping_address(
     )
 
 
-def get_valid_shipping_method_list_for_checkout_info(
+def get_valid_local_shipping_method_list_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
@@ -365,6 +356,25 @@ def get_valid_external_shipping_method_list_for_checkout_info(
 
     return manager.list_shipping_methods_for_checkout(
         checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
+    )
+
+
+def get_valid_shipping_method_list_for_checkout_info(
+    checkout_info: "CheckoutInfo",
+    shipping_address: Optional["Address"],
+    lines: Iterable[CheckoutLineInfo],
+    discounts: Iterable["DiscountInfo"],
+    manager: "PluginsManager",
+) -> List["ShippingMethodData"]:
+    return list(
+        itertools.chain(
+            get_valid_local_shipping_method_list_for_checkout_info(
+                checkout_info, shipping_address, lines, discounts, manager
+            ),
+            get_valid_external_shipping_method_list_for_checkout_info(
+                checkout_info, shipping_address, lines, discounts, manager
+            ),
+        )
     )
 
 
