@@ -34,6 +34,7 @@ from ....order import events
 from ....order.actions import cancel_order, order_authorized, order_captured
 from ....order.events import external_notification_event
 from ....order.interface import OrderPaymentAction
+from ....order.notifications import send_order_refunded_confirmation
 from ....payment.models import Payment, Transaction
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind
@@ -435,7 +436,16 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
             amount=new_transaction.amount,
             payment=payment,
         )
-        get_plugins_manager().order_updated(payment.order)
+        manager = get_plugins_manager()
+        send_order_refunded_confirmation(
+            payment.order,
+            None,
+            None,
+            [OrderPaymentAction(payment, new_transaction.amount)],
+            payment.order.currency,
+            manager,
+        )
+        manager.order_updated(payment.order)
 
 
 def _get_kind(transaction: Optional[Transaction]) -> str:
