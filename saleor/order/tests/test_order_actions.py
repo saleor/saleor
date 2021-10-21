@@ -14,8 +14,8 @@ from ...product.tests.utils import create_image
 from ...warehouse.models import Allocation, Stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
 from ..actions import (
+    _add_missing_amounts_on_payments,
     _process_refund,
-    _update_missing_amounts_on_payments,
     automatically_fulfill_digital_lines,
     cancel_fulfillment,
     cancel_order,
@@ -416,7 +416,7 @@ def test_fulfill_digital_lines(
 
 
 @patch("saleor.order.actions._calculate_refund_amount")
-@patch("saleor.order.actions._update_missing_amounts_on_payments")
+@patch("saleor.order.actions._add_missing_amounts_on_payments")
 def test_process_refund_calls_update_missing_amounts_on_payments(
     mock_update_missing_amounts_on_payments,
     mock_calculate_refund_amount,
@@ -474,7 +474,7 @@ def test_update_missing_amounts_on_payments_with_specified_payment_amounts(
     ]
 
     # when
-    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+    total_refund_amount, shipping_refund_amount = _add_missing_amounts_on_payments(
         refund_amount, payments, order_with_lines, include_shipping_costs=False
     )
 
@@ -505,7 +505,7 @@ def test_update_missing_amounts_on_payments_with_shipping_amount_multiple_paymen
     ]
 
     # when
-    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+    total_refund_amount, shipping_refund_amount = _add_missing_amounts_on_payments(
         refund_amount, payments, order_with_lines, include_shipping_costs=True
     )
 
@@ -535,7 +535,7 @@ def test_update_missing_amounts_on_payments_with_shipping_amount_and_single_paym
     payments = [OrderPaymentAction(payment_dummy_fully_charged, Decimal("0"))]
 
     # when
-    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+    total_refund_amount, shipping_refund_amount = _add_missing_amounts_on_payments(
         refund_amount, payments, order_with_lines, include_shipping_costs=True
     )
 
@@ -573,7 +573,7 @@ def test_update_missing_amounts_on_payments_without_specified_amounts(
     ]
 
     # when
-    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+    total_refund_amount, shipping_refund_amount = _add_missing_amounts_on_payments(
         refund_amount, payments, order_with_lines, include_shipping_costs=False
     )
 
@@ -607,7 +607,7 @@ def test_update_missing_amounts_on_payments_refunding_smaller_amounts(
     ]
 
     # when
-    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+    total_refund_amount, shipping_refund_amount = _add_missing_amounts_on_payments(
         refund_amount, payments, order_with_lines, include_shipping_costs=False
     )
 

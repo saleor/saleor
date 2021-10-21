@@ -357,14 +357,14 @@ def send_payment_confirmation(order, manager):
     }
 
     payments = get_active_payments(order)
-    if len(payments) == 1:
-        payload["payment"] = _prepare_payment_data(payments[0])
-    else:
-        payments_data = []
-        for payment in payments:
-            data = _prepare_payment_data(payment)
-            payments_data.append(data)
-        payload["payments"] = payments_data
+    payments_data = []
+    for payment in payments:
+        data = _prepare_payment_data(payment)
+        payments_data.append(data)
+    payload["payments"] = payments_data
+
+    if len(payments_data) == 1:
+        payload["payment"] = payments_data[0]
 
     manager.notify(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,

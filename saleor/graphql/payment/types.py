@@ -79,7 +79,7 @@ class Payment(CountableDjangoObjectType):
     )
     partial = graphene.Boolean(
         description=(
-            "Indicates whether this payment will " "be processed as a partial payment."
+            "Indicates whether this payment will be processed as a partial payment."
         ),
         required=True,
     )

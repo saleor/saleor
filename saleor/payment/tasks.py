@@ -1,9 +1,8 @@
 from celery.utils.log import get_task_logger
 
-from saleor.payment import PaymentError, gateway
-
 from ..celeryconf import app
 from ..plugins.manager import get_plugins_manager
+from . import PaymentError, gateway
 from .models import Payment
 from .utils import get_unfinished_payments
 

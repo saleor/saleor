@@ -128,6 +128,16 @@ def test_create_order_captured_payment_creates_expected_events(
             "captured_amount": payment_txn_captured.captured_amount,
             "currency": payment_txn_captured.currency,
         },
+        "payments": [
+            {
+                "created": payment_txn_captured.created,
+                "modified": payment_txn_captured.modified,
+                "charge_status": payment_txn_captured.charge_status,
+                "total": payment_txn_captured.total,
+                "captured_amount": payment_txn_captured.captured_amount,
+                "currency": payment_txn_captured.currency,
+            }
+        ],
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
@@ -276,6 +286,16 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
             "captured_amount": payment_txn_captured.captured_amount,
             "currency": payment_txn_captured.currency,
         },
+        "payments": [
+            {
+                "created": payment_txn_captured.created,
+                "modified": payment_txn_captured.modified,
+                "charge_status": payment_txn_captured.charge_status,
+                "total": payment_txn_captured.total,
+                "captured_amount": payment_txn_captured.captured_amount,
+                "currency": payment_txn_captured.currency,
+            }
+        ],
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }

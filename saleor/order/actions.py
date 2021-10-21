@@ -1459,8 +1459,8 @@ def _calculate_refund_amount(
     return refund_amount
 
 
-def _update_missing_amounts_on_payments(
-    refund_amount, payments, order, include_shipping_costs
+def _add_missing_amounts_on_payments(
+    refund_amount, payments: List[OrderPaymentAction], order, include_shipping_costs
 ):
     """Add amounts to refund to payments that were sent without specified ones.
 
@@ -1508,7 +1508,7 @@ def _process_refund(
     refund_amount = _calculate_refund_amount(
         order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
     )
-    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+    total_refund_amount, shipping_refund_amount = _add_missing_amounts_on_payments(
         refund_amount, payments, order, include_shipping_costs
     )
 
