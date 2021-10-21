@@ -8,7 +8,7 @@ from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from ...models import Payment
 from . import api
 from .api_types import ApiConfig, PaymentStatus, get_api_config
-from .utils import notify_dashboard
+from .utils import get_payment_name, notify_dashboard
 
 logger = logging.getLogger(__name__)
 
@@ -57,40 +57,39 @@ def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse
 
 @inject_api_config
 def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None:
-    order = fulfillment.order
-    payments = order.payments.all()
-    inactive_payments = [payment for payment in payments if not payment.is_active]
+    from .plugin import NPAtobaraiGatewayPlugin
 
-    if not inactive_payments:
+    order = fulfillment.order
+    payments = order.payments.filter(
+        gateway=NPAtobaraiGatewayPlugin.PLUGIN_ID, is_active=True
+    )
+
+    print("capture")
+    print(payments)
+
+    if payments:
         results = [
             api.report_fulfillment(config, payment, fulfillment) for payment in payments
         ]
     else:
-        results = [
-            (payment.id, ["Payment is not active"], False)
-            for payment in inactive_payments
-        ]
+        results = [("", ["No active payments for this order"], False)]
 
     for payment_id, errors, already_captured in results:
-        payment_name = (
-            f"Payment with psp reference {payment_id}"
-            if isinstance(payment_id, str)
-            else f"Payment with id {payment_id}"
-        )
+        payment_name = get_payment_name(payment_id)
 
         if already_captured:
             logger.warning("Payment was already captured")
             notify_dashboard(
-                order, f"Capture Error: {payment_name} was already captured"
+                order, f"Error: {payment_name.capitalize()} was already captured"
             )
         elif errors:
             error = ", ".join(errors)
             logger.warning(
-                "Could not capture %s in NP Atobarai: %s", payment_name.lower(), error
+                "Could not capture %s in NP Atobarai: %s", payment_name, error
             )
-            notify_dashboard(order, f"Capture Error for {payment_name.lower()}")
+            notify_dashboard(order, f"Capture Error for {payment_name}")
         else:
-            notify_dashboard(order, f"{payment_name} Captured")
+            notify_dashboard(order, f"Captured {payment_name}")
 
 
 @inject_api_config

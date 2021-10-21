@@ -286,6 +286,7 @@ def fulfillment_tracking_updated(
         tracking_number=tracking_number,
         fulfillment=fulfillment,
     )
+    manager.tracking_number_updated(fulfillment)
     manager.order_updated(fulfillment.order)
 
 
