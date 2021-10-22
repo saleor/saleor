@@ -341,6 +341,21 @@ def test_add_public_metadata_for_checkout(api_client, checkout):
     )
 
 
+def test_add_public_metadata_for_checkout_by_token(api_client, checkout):
+    # given
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client, None, checkout.token, "Checkout"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], checkout, checkout_id
+    )
+
+
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
 def test_add_metadata_for_checkout_triggers_checkout_updated_hook(
     mock_checkout_updated, api_client, checkout
@@ -353,7 +368,7 @@ def test_add_metadata_for_checkout_triggers_checkout_updated_hook(
     mock_checkout_updated.assert_called_once_with(checkout)
 
 
-def test_add_public_metadata_for_order(api_client, order):
+def test_add_public_metadata_for_order_by_id_raising_error(api_client, order):
     # given
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
@@ -363,18 +378,54 @@ def test_add_public_metadata_for_order(api_client, order):
     )
 
     # then
+    data = response["data"]["updateMetadata"]
+    assert not data["item"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "id"
+
+
+def test_add_public_metadata_for_order_by_token(api_client, order):
+    # given
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client, None, order.token, "Order"
+    )
+
+    # then
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], order, order_id
     )
 
 
-def test_add_public_metadata_for_draft_order(api_client, draft_order):
+def test_add_public_metadata_for_draft_order_by_id_raising_error(
+    api_client, draft_order
+):
     # given
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
         api_client, None, draft_order_id, "Order"
+    )
+
+    # then
+    data = response["data"]["updateMetadata"]
+    assert not data["item"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "id"
+
+
+def test_add_public_metadata_for_draft_order_by_token(api_client, draft_order):
+    # given
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client, None, draft_order.token, "Order"
     )
 
     # then
@@ -1080,7 +1131,24 @@ def test_delete_public_metadata_for_checkout(api_client, checkout):
     )
 
 
-def test_delete_public_metadata_for_order(api_client, order):
+def test_delete_public_metadata_for_checkout_by_token(api_client, checkout):
+    # given
+    checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["metadata"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, checkout.token, "Checkout"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], checkout, checkout_id
+    )
+
+
+def test_delete_public_metadata_for_order_by_id_raising_error(api_client, order):
     # given
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order.save(update_fields=["metadata"])
@@ -1092,12 +1160,33 @@ def test_delete_public_metadata_for_order(api_client, order):
     )
 
     # then
+    data = response["data"]["deleteMetadata"]
+    assert not data["item"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "id"
+
+
+def test_delete_public_metadata_for_order_by_token(api_client, order):
+    # given
+    order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    order.save(update_fields=["metadata"])
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, order.token, "Order"
+    )
+
+    # then
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], order, order_id
     )
 
 
-def test_delete_public_metadata_for_draft_order(api_client, draft_order):
+def test_delete_public_metadata_for_draft_order_by_id_raising_error(
+    api_client, draft_order
+):
     # given
     draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     draft_order.save(update_fields=["metadata"])
@@ -1106,6 +1195,25 @@ def test_delete_public_metadata_for_draft_order(api_client, draft_order):
     # when
     response = execute_clear_public_metadata_for_item(
         api_client, None, draft_order_id, "Order"
+    )
+
+    # then
+    data = response["data"]["deleteMetadata"]
+    assert not data["item"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "id"
+
+
+def test_delete_public_metadata_for_draft_order_by_token(api_client, draft_order):
+    # given
+    draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    draft_order.save(update_fields=["metadata"])
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, draft_order.token, "Order"
     )
 
     # then
@@ -1834,7 +1942,24 @@ def test_add_private_metadata_for_checkout(
     )
 
 
-def test_add_private_metadata_for_order(
+def test_add_private_metadata_for_checkout_by_token(
+    staff_api_client, checkout, permission_manage_checkouts
+):
+    # given
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_checkouts, checkout.token, "Checkout"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], checkout, checkout_id
+    )
+
+
+def test_add_private_metadata_for_order_by_id_raising_error(
     staff_api_client, order, permission_manage_orders
 ):
     # given
@@ -1846,12 +1971,31 @@ def test_add_private_metadata_for_order(
     )
 
     # then
+    data = response["data"]["updatePrivateMetadata"]
+    assert not data["item"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "id"
+
+
+def test_add_private_metadata_for_order_by_token(
+    staff_api_client, order, permission_manage_orders
+):
+    # given
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, order.token, "Order"
+    )
+
+    # then
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], order, order_id
     )
 
 
-def test_add_private_metadata_for_draft_order(
+def test_add_private_metadata_for_draft_order_by_id_raising_error(
     staff_api_client, draft_order, permission_manage_orders
 ):
     # given
@@ -1860,6 +2004,25 @@ def test_add_private_metadata_for_draft_order(
     # when
     response = execute_update_private_metadata_for_item(
         staff_api_client, permission_manage_orders, draft_order_id, "Order"
+    )
+
+    # then
+    data = response["data"]["updatePrivateMetadata"]
+    assert not data["item"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "id"
+
+
+def test_add_private_metadata_for_draft_order_by_token(
+    staff_api_client, draft_order, permission_manage_orders
+):
+    # given
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, draft_order.token, "Order"
     )
 
     # then
@@ -2630,7 +2793,26 @@ def test_delete_private_metadata_for_checkout(
     )
 
 
-def test_delete_private_metadata_for_order(
+def test_delete_private_metadata_for_checkout_by_token(
+    staff_api_client, checkout, permission_manage_checkouts
+):
+    # given
+    checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    checkout.save(update_fields=["private_metadata"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_checkouts, checkout.token, "Checkout"
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], checkout, checkout_id
+    )
+
+
+def test_delete_private_metadata_for_order_by_id_raising_error(
     staff_api_client, order, permission_manage_orders
 ):
     # given
@@ -2644,12 +2826,33 @@ def test_delete_private_metadata_for_order(
     )
 
     # then
+    data = response["data"]["deletePrivateMetadata"]
+    assert not data["item"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "id"
+
+
+def test_delete_private_metadata_for_order_by_token(
+    staff_api_client, order, permission_manage_orders
+):
+    # given
+    order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    order.save(update_fields=["private_metadata"])
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, order.token, "Order"
+    )
+
+    # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], order, order_id
     )
 
 
-def test_delete_private_metadata_for_draft_order(
+def test_delete_private_metadata_for_draft_order_by_id_raising_error(
     staff_api_client, draft_order, permission_manage_orders
 ):
     # given
@@ -2660,6 +2863,27 @@ def test_delete_private_metadata_for_draft_order(
     # when
     response = execute_clear_private_metadata_for_item(
         staff_api_client, permission_manage_orders, draft_order_id, "Order"
+    )
+
+    # then
+    data = response["data"]["deletePrivateMetadata"]
+    assert not data["item"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "id"
+
+
+def test_delete_private_metadata_for_draft_order_by_token(
+    staff_api_client, draft_order, permission_manage_orders
+):
+    # given
+    draft_order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    draft_order.save(update_fields=["private_metadata"])
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, draft_order.token, "Order"
     )
 
     # then
