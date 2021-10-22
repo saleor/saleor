@@ -152,7 +152,7 @@ TRANSACTION_REGISTRATION_RESULT_ERRORS = {
 TRANSACTION_CANCELLATION_RESULT_ERROR = {
     "EPRO0101": "Please confirm that at least one normal transaction is set.",
     "EPRO0102": (
-        "Please confirm that 1, 000 or fewer sets of normal transactions are set."
+        "Please confirm that 1000 or fewer sets of normal transactions are set."
     ),
     "EPRO0105": "Please check if the NP Transaction ID has been entered.",
     "EPRO0106": "Please check if the same NP Transaction ID is duplicated.",
@@ -169,6 +169,55 @@ TRANSACTION_CANCELLATION_RESULT_ERROR = {
         "Please confirm that the transaction is prior to returning to the merchant."
     ),
     "E0100132": "Please confirm that the payment method is as expected.",
+}
+
+FULFILLMENT_REPORT_RESULT_ERRORS = {
+    "EPRO0101": "Please confirm that at least one normal transaction is set.",
+    "EPRO0102": (
+        "Please confirm that 1000 or fewer sets of normal transactions are set."
+    ),
+    "EPRO0105": "Please check if the NP Transaction ID has been entered.",
+    "EPRO0106": "Please check if the same NP Transaction ID is duplicated.",
+    "E0100002": (
+        "Please check if the NP Transaction ID "
+        "is in half-width alphanumeric characters."
+    ),
+    "E0100003": "Please check if the NP Transaction ID is 11 digits.",
+    "E0100113": "Please check if transaction in question exists.",
+    "EPRO0107": "Please check if this is an NP card transaction.",
+    "E0100132": "Please check if the payment method is as assumed.",
+    "E0100105": "Please check if shipping company code has been entered.",
+    "E0100106": "Please check if shipping company code is in half-width numbers.",
+    "E0100107": "Please check if shipping company code is 5 digits.",
+    "E0100108": (
+        "Please check if shipping company code is "
+        "listed in shipping company master list."
+    ),
+    "E0100109": "Please check if delivery number slip has been entered.",
+    "E0100110": (
+        "Please check if delivery slip number is less than 20, consisting of "
+        'half-width alphanumeric characters and "-" (half-width hyphens).'
+    ),
+    "EPRO0109": (
+        "Please check if invoice issued date is valid and in a yyyy-MM-dd format."
+    ),
+    "E0100143": "Please check if invoice issued date is not specified for NP Atobarai.",
+    "E0100111": "Please check if invoice issued date is specified for NP Atobarai wiz.",
+    "E0100124": (
+        "Please check if the invoice issued date is set to a date earlier than "
+        "the creation date of the printed data."
+    ),
+    "E0100126": (
+        "Please check if the invoice issued date is set within 10 days of "
+        "the fulfillment report date (system date)."
+    ),
+    "E0100114": "Please check if transaction is not cancelled.",
+    "E0100115": "Please check if this is a pre-fulfillment report.",
+    "E0100118": "Please check if transaction is prior to customer payment.",
+    "E0100120": "Please check that the credit result is OK.",
+    "E0100121": "Please check if the invoice print data was downloaded.",
+    "E0109002": "NP system error - NP Transaction Fee.",
+    "E0109003": "NP system error - Invoice Issuance Fee.",
 }
 
 

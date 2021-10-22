@@ -5,6 +5,7 @@ from .....plugins.models import PluginConfiguration
 from ..const import (
     FILL_MISSING_ADDRESS,
     MERCHANT_CODE,
+    SHIPPING_COMPANY,
     SP_CODE,
     TERMINAL_ID,
     USE_SANDBOX,
@@ -20,6 +21,7 @@ def np_atobarai_plugin(settings, monkeypatch, channel_USD):
         terminal_id="terminal-id",
         use_sandbox=True,
         fill_missing_address=True,
+        shipping_company="50000",
         active=True,
     ):
         settings.PLUGINS = [
@@ -32,6 +34,7 @@ def np_atobarai_plugin(settings, monkeypatch, channel_USD):
             {"name": TERMINAL_ID, "value": terminal_id},
             {"name": USE_SANDBOX, "value": use_sandbox},
             {"name": FILL_MISSING_ADDRESS, "value": fill_missing_address},
+            {"name": SHIPPING_COMPANY, "value": shipping_company},
         ]
         PluginConfiguration.objects.create(
             identifier=NPAtobaraiGatewayPlugin.PLUGIN_ID,

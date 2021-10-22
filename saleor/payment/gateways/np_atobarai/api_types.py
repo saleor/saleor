@@ -5,6 +5,7 @@ from typing import Dict, List
 from .const import (
     FILL_MISSING_ADDRESS,
     MERCHANT_CODE,
+    SHIPPING_COMPANY,
     SP_CODE,
     TERMINAL_ID,
     USE_SANDBOX,
@@ -18,6 +19,7 @@ class ApiConfig:
     merchant_code: str
     terminal_id: str
     sp_code: str
+    shipping_company: str
 
 
 class PaymentStatus(str, Enum):
@@ -41,4 +43,5 @@ def get_api_config(connection_params: dict) -> ApiConfig:
         merchant_code=connection_params[MERCHANT_CODE],
         sp_code=connection_params[SP_CODE],
         terminal_id=connection_params[TERMINAL_ID],
+        shipping_company=connection_params[SHIPPING_COMPANY],
     )

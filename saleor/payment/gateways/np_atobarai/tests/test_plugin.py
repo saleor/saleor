@@ -11,7 +11,9 @@ from ....interface import AddressData, PaymentLineData
 def dummy_payment_line_data():
     return [
         PaymentLineData(
-            gross=Decimal("100.00"), product_name="Product Name", quantity=5
+            gross=Decimal("100.00"),
+            product_name="Product Name",
+            quantity=5,
         )
     ] * 3
 

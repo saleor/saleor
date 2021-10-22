@@ -10,3 +10,25 @@ FILL_MISSING_ADDRESS = "fill_missing_address"
 SP_CODE = "sp_code"
 TERMINAL_ID = "terminal_id"
 USE_SANDBOX = "use_sandbox"
+SHIPPING_COMPANY = "shipping_company"
+
+SHIPPING_COMPANY_CODES = [
+    "50000",
+    "59010",
+    "59020",
+    "59030",
+    "59040",
+    "59041",
+    "59042",
+    "59043",
+    "59050",
+    "59060",
+    "59080",
+    "59090",
+    "59110",
+    "59140",
+    "59150",
+    "59100",
+    "59160",
+    "55555",
+]
