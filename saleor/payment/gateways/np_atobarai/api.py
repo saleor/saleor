@@ -1,11 +1,13 @@
 import logging
-from typing import Iterable, Optional
+from decimal import Decimal
+from typing import Iterable, List, Optional, Tuple, Union
 
 import requests
 from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
+from ....order.models import Fulfillment
 from ... import PaymentError
 from ...interface import AddressData, PaymentData
 from ...models import Payment
@@ -13,6 +15,7 @@ from ...utils import price_to_minor_unit
 from .api_types import ApiConfig, PaymentResult, PaymentStatus
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL
 from .errors import (
+    FULFILLMENT_REPORT_RESULT_ERRORS,
     TRANSACTION_CANCELLATION_RESULT_ERROR,
     TRANSACTION_REGISTRATION_RESULT_ERRORS,
     get_error_messages_from_codes,
@@ -62,6 +65,12 @@ def np_request(
         raise PaymentError(msg)
 
 
+def _get_errors(response_data: dict) -> Iterable[str]:
+    if "errors" not in response_data:
+        return []
+    return set(response_data["errors"][0]["codes"])
+
+
 def health_check(config: ApiConfig) -> bool:
     try:
         _request(config, "post", "/authorizations/find")
@@ -97,6 +106,10 @@ def _format_address(config: ApiConfig, ad: AddressData):
             )
 
 
+def _format_price(price: Decimal, currency: str) -> int:
+    return int(price_to_minor_unit(price, currency))
+
+
 def register_transaction(
     config: ApiConfig, payment_information: "PaymentData"
 ) -> PaymentResult:
@@ -121,10 +134,8 @@ def register_transaction(
                     "shop_transaction_id": payment_information.payment_id,
                     "shop_order_date": order_date,
                     "settlement_type": NP_ATOBARAI,
-                    "billed_amount": int(
-                        price_to_minor_unit(
-                            payment_information.amount, payment_information.currency
-                        )
+                    "billed_amount": _format_price(
+                        payment_information.amount, payment_information.currency
                     ),
                     "customer": {
                         "customer_name": billing.first_name,
@@ -145,10 +156,8 @@ def register_transaction(
                         {
                             "quantity": line.quantity,
                             "goods_name": line.product_name,
-                            "goods_price": int(
-                                price_to_minor_unit(
-                                    line.gross, payment_information.currency
-                                )
+                            "goods_price": _format_price(
+                                line.gross, payment_information.currency
                             ),
                         }
                         for line in payment_information.lines
@@ -201,12 +210,6 @@ def _cancel(config: ApiConfig, transaction_id: str) -> dict:
     return response.json()
 
 
-def _get_errors(response_data: dict) -> Iterable[str]:
-    if "errors" not in response_data:
-        return []
-    return set(response_data["errors"][0]["codes"])
-
-
 def cancel_transaction(
     config: ApiConfig, payment_information: PaymentData
 ) -> PaymentResult:
@@ -241,3 +244,51 @@ def cancel_transaction(
             psp_reference=psp_reference,
             errors=error_messages,
         )
+
+
+ALREADY_CAPTURED_ERROR_CODE = "E0100115"
+
+
+def report_fulfillment(
+    config: ApiConfig, payment: Payment, fulfillment: Fulfillment
+) -> Tuple[Union[str, int], List[str], bool]:
+    with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.capture"):
+
+        psp_reference = payment.psp_reference
+
+        if not psp_reference:
+            return payment.id, ["Payment does not have psp reference."], False
+
+        shipping_company_code = config.shipping_company
+        shipping_slip_number = fulfillment.tracking_number
+
+        if not shipping_slip_number:
+            return psp_reference, ["Fulfillment does not have tracking number."], False
+
+        data = {
+            "transactions": [
+                {
+                    "np_transaction_id": psp_reference,
+                    "pd_company_code": shipping_company_code,
+                    "slip_no": shipping_slip_number,
+                }
+            ]
+        }
+        try:
+            response = np_request(config, "post", "/shipments", json=data)
+        except PaymentError as pe:
+            return psp_reference, [pe.message], False
+
+        response_data = response.json()
+
+        error_codes = _get_errors(response_data)
+
+        # check if the payment was already captured
+        if ALREADY_CAPTURED_ERROR_CODE in error_codes:
+            return psp_reference, [], True
+
+        errors = get_error_messages_from_codes(
+            _get_errors(response_data), FULFILLMENT_REPORT_RESULT_ERRORS
+        )
+
+        return psp_reference, errors, False

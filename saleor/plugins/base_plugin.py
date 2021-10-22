@@ -211,6 +211,9 @@ class BasePlugin:
         ["Address", Union[str, NoneType], Union["User", NoneType], "Address"], "Address"
     ]
 
+    #  Trigger when tracking number is updated.
+    tracking_number_updated: Callable[["Fulfillment", Any], Any]
+
     #  Trigger when checkout is created.
     #
     #  Overwrite this method if you need to trigger specific logic when a checkout is

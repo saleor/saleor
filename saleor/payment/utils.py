@@ -44,6 +44,7 @@ def create_payment_lines_information(
         lines = fetch_checkout_lines(checkout)
         discounts = fetch_active_discounts()
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        address = checkout_info.shipping_address or checkout_info.billing_address
 
         for line_info in lines:
             total = checkout_line_total(
@@ -53,7 +54,6 @@ def create_payment_lines_information(
                 checkout_line_info=line_info,
                 discounts=discounts,
             )
-            address = checkout_info.shipping_address or checkout_info.billing_address
             unit_price = manager.calculate_checkout_line_unit_price(
                 total,
                 line_info.line.quantity,
@@ -74,6 +74,18 @@ def create_payment_lines_information(
                     gross=unit_gross,
                 )
             )
+        shipping_amount = manager.calculate_checkout_shipping(
+            checkout_info=checkout_info,
+            lines=lines,
+            address=address,
+            discounts=discounts,
+        ).gross.amount
+
+        line_items.append(create_shipping_payment_line_data(amount=shipping_amount))
+
+        voucher_line_item = create_checkout_voucher_payment_line_data(checkout)
+        if voucher_line_item:
+            line_items.append(voucher_line_item)
 
     elif order:
         for order_line in order.lines.all():
@@ -82,11 +94,45 @@ def create_payment_lines_information(
                 PaymentLineData(
                     quantity=order_line.quantity,
                     product_name=product_name,
-                    gross=order_line.total_price_gross_amount,
+                    gross=order_line.unit_price_gross_amount,
                 )
             )
+        line_items.append(
+            create_shipping_payment_line_data(amount=order.shipping_price_gross_amount)
+        )
+        voucher_line_item = create_order_voucher_payment_line_data(order)
+        if voucher_line_item:
+            line_items.append(voucher_line_item)
 
     return line_items
+
+
+def create_shipping_payment_line_data(amount: Decimal) -> PaymentLineData:
+    return PaymentLineData(
+        quantity=1,
+        product_name="Shipping",
+        gross=amount,
+    )
+
+
+def create_checkout_voucher_payment_line_data(
+    checkout: Checkout,
+) -> Optional[PaymentLineData]:
+    discount_amount = -checkout.discount_amount
+    return create_voucher_payment_line_data(discount_amount)
+
+
+def create_order_voucher_payment_line_data(
+    order: Order,
+) -> Optional[PaymentLineData]:
+    discount_amount = order.total_gross_amount - order.undiscounted_total_gross_amount
+    return create_voucher_payment_line_data(discount_amount)
+
+
+def create_voucher_payment_line_data(amount: Decimal) -> Optional[PaymentLineData]:
+    if not amount:
+        return None
+    return PaymentLineData(quantity=1, product_name="Voucher", gross=amount)
 
 
 def create_payment_information(

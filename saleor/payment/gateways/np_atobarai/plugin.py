@@ -2,12 +2,24 @@ from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 
+from ....order.models import Fulfillment
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ....plugins.error_codes import PluginErrorCode
-from . import GatewayConfig, api, capture, get_api_config, process_payment, refund, void
+from . import (
+    GatewayConfig,
+    api,
+    capture,
+    get_api_config,
+    process_payment,
+    refund,
+    tracking_number_updated,
+    void,
+)
 from .const import (
     FILL_MISSING_ADDRESS,
     MERCHANT_CODE,
+    SHIPPING_COMPANY,
+    SHIPPING_COMPANY_CODES,
     SP_CODE,
     TERMINAL_ID,
     USE_SANDBOX,
@@ -34,6 +46,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         {"name": TERMINAL_ID, "value": None},
         {"name": USE_SANDBOX, "value": True},
         {"name": FILL_MISSING_ADDRESS, "value": True},
+        {"name": SHIPPING_COMPANY, "value": "50000"},
     ]
 
     CONFIG_STRUCTURE = {
@@ -65,6 +78,11 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             ),
             "label": "Fill missing address",
         },
+        SHIPPING_COMPANY: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Determines shipping company used in fulfillment report.",
+            "label": "Shipping company",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -80,6 +98,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
                 TERMINAL_ID: configuration[TERMINAL_ID],
                 USE_SANDBOX: configuration[USE_SANDBOX],
                 FILL_MISSING_ADDRESS: configuration[FILL_MISSING_ADDRESS],
+                SHIPPING_COMPANY: configuration[SHIPPING_COMPANY],
             },
         )
 
@@ -105,6 +124,9 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return process_payment(payment_information, self._get_gateway_config())
+
+    def tracking_number_updated(self, fulfillment: "Fulfillment", previous_value):
+        tracking_number_updated(fulfillment, self._get_gateway_config())
 
     def get_supported_currencies(self, previous_value):
         return self.SUPPORTED_CURRENCIES
@@ -137,15 +159,13 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         if not plugin_configuration.active:
             return
 
-        missing_fields = []
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
-        if not configuration[MERCHANT_CODE]:
-            missing_fields.append(MERCHANT_CODE)
-        if not configuration[SP_CODE]:
-            missing_fields.append(SP_CODE)
-        if not configuration[TERMINAL_ID]:
-            missing_fields.append(TERMINAL_ID)
+        missing_fields = [
+            field
+            for field in [MERCHANT_CODE, SP_CODE, TERMINAL_ID, SHIPPING_COMPANY]
+            if not configuration[field]
+        ]
 
         if plugin_configuration.active:
             if missing_fields:
@@ -156,6 +176,15 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
                             code=PluginErrorCode.REQUIRED.value,
                         )
                         for field in missing_fields
+                    }
+                )
+            if configuration[SHIPPING_COMPANY] not in SHIPPING_COMPANY_CODES:
+                raise ValidationError(
+                    {
+                        SHIPPING_COMPANY: ValidationError(
+                            f"Shipping company code is invalid",
+                            code=PluginErrorCode.INVALID.value,
+                        )
                     }
                 )
 
