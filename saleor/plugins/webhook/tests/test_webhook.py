@@ -91,7 +91,7 @@ def test_trigger_webhooks_for_event_calls_expected_events(
     trigger_webhooks_for_event(event_name, data="")
     assert mock_request.call_count == total_webhook_calls
 
-    target_url_calls = {call[0][1] for call in mock_request.call_args_list}
+    target_url_calls = {call[0][2] for call in mock_request.call_args_list}
     assert target_url_calls == expected_target_urls
 
 
