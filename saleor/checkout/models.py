@@ -109,9 +109,6 @@ class Checkout(ModelWithMetadata):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-last_change", "pk")
-        permissions = (
-            (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
-        )
 
     def __iter__(self):
         return iter(self.lines.all())
@@ -170,7 +167,7 @@ class Checkout(ModelWithMetadata):
         return country_code
 
 
-class CheckoutLine(models.Model):
+class CheckoutLine(ModelWithMetadata):
     """A single checkout line.
 
     Multiple lines in the same checkout can refer to the same product variant if
