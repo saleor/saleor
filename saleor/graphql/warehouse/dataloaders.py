@@ -1,3 +1,4 @@
+import sys
 from collections import defaultdict
 from typing import DefaultDict, Iterable, List, Optional, Tuple
 from uuid import UUID
@@ -155,11 +156,10 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         global_quantity_limit = (
             self.context.site.settings.limit_quantity_per_checkout  # type: ignore
         )
-
         return [
             (
                 variant_id,
-                min(quantity_map[variant_id], global_quantity_limit),
+                min(quantity_map[variant_id], global_quantity_limit or sys.maxsize),
             )
             for variant_id in variant_ids
         ]

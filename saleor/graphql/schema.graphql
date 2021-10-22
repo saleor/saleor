@@ -5725,7 +5725,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]
-  quantityAvailable(address: AddressInput, countryCode: CountryCode): Int!
+  quantityAvailable(address: AddressInput, countryCode: CountryCode): Int
   preorder: PreorderData
 }
 

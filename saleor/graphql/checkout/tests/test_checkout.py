@@ -1292,6 +1292,32 @@ def test_checkout_create_check_lines_quantity_respects_site_settings(
     assert data["errors"][0]["field"] == "quantity"
 
 
+def test_checkout_create_check_lines_quantity_site_settings_no_limit(
+    user_api_client, stock, graphql_address_data, channel_USD, site_settings
+):
+    variant = stock.product_variant
+    site_settings.limit_quantity_per_checkout = None
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data
+    test_email = "test@example.com"
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 15, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+
+    assert not data["errors"]
+
+
 def test_checkout_create_check_lines_quantity_against_reservations(
     site_settings_with_reservations,
     user_api_client,

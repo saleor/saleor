@@ -464,7 +464,7 @@ def test_shop_reservation_set_negative_settings_mutation(
     assert site_settings.reserve_stock_duration_authenticated_user is None
 
 
-@pytest.mark.parametrize("quantity_value", [25, 1])
+@pytest.mark.parametrize("quantity_value", [25, 1, None])
 def test_limit_quantity_per_checkout_mutation(
     staff_api_client, site_settings, permission_manage_settings, quantity_value
 ):
@@ -493,8 +493,8 @@ def test_limit_quantity_per_checkout_mutation(
     assert site_settings.limit_quantity_per_checkout == quantity_value
 
 
-@pytest.mark.parametrize("quantity_value", [0, -25, None])
-def test_limit_quantity_per_checkout_neg_zero_or_null_value(
+@pytest.mark.parametrize("quantity_value", [0, -25])
+def test_limit_quantity_per_checkout_neg_or_zero_value(
     staff_api_client, site_settings, permission_manage_settings, quantity_value
 ):
     query = """

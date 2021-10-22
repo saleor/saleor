@@ -1,3 +1,4 @@
+import sys
 from collections import defaultdict
 from dataclasses import asdict
 from typing import List, Optional
@@ -274,7 +275,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ),
     )
     quantity_available = graphene.Int(
-        required=True,
+        required=False,
         description="Quantity of a product available for sale in one checkout.",
         address=destination_address_argument,
         country_code=graphene.Argument(
@@ -283,7 +284,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
                 "from a warehouse operating in shipping zones that contain this "
                 "country will be returned. Otherwise, it will return the maximum "
-                "quantity from all shipping zones. "
+                "quantity from all shipping zones. Field value will be `null` when "
+                "no `limitQuantityPerCheckout` in global settings has been set, and "
+                "`productVariant` stocks are not tracked."
                 f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
             ),
         ),
@@ -343,7 +346,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
         global_quantity_limit_per_checkout = (
             info.context.site.settings.limit_quantity_per_checkout
-        ) or 0
+        )
 
         if root.node.is_preorder_active():
             variant = root.node
@@ -371,7 +374,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     channel_listing.preorder_quantity_threshold
                                     - channel_listing.preorder_quantity_allocated
                                     - reserved_quantity,
-                                    global_quantity_limit_per_checkout,
+                                    global_quantity_limit_per_checkout or sys.maxsize,
                                 ),
                                 0,
                             )
@@ -383,7 +386,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                     return min(
                         channel_listing.preorder_quantity_threshold
                         - channel_listing.preorder_quantity_allocated,
-                        global_quantity_limit_per_checkout,
+                        global_quantity_limit_per_checkout or sys.maxsize,
                     )
                 if variant.preorder_global_threshold is not None:
                     variant_channel_listings = VariantChannelListingByVariantIdLoader(
@@ -418,7 +421,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                         variant.preorder_global_threshold
                                         - global_sold_units
                                         - sum(reserved_quantities),
-                                        global_quantity_limit_per_checkout,
+                                        global_quantity_limit_per_checkout
+                                        or sys.maxsize,
                                     ),
                                     0,
                                 )
@@ -429,7 +433,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
                         return min(
                             variant.preorder_global_threshold - global_sold_units,
-                            global_quantity_limit_per_checkout,
+                            global_quantity_limit_per_checkout or sys.maxsize,
                         )
 
                     return variant_channel_listings.then(calculate_available_global)

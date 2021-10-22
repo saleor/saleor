@@ -77,7 +77,7 @@ class SiteSettings(models.Model):
     )
 
     limit_quantity_per_checkout = models.IntegerField(
-        blank=True, default=50, validators=[MinValueValidator(1)]
+        blank=True, null=True, default=50, validators=[MinValueValidator(1)]
     )
 
     # gift card settings

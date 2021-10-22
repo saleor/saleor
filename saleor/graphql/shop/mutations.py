@@ -119,7 +119,7 @@ class ShopSettingsUpdate(BaseMutation):
                 data["reserve_stock_duration_authenticated_user"] = None
         if "limit_quantity_per_checkout" in data:
             new_value = data["limit_quantity_per_checkout"]
-            if not new_value or new_value < 1:
+            if new_value is not None and new_value < 1:
                 raise ValidationError(
                     {
                         "limit_quantity_per_checkout": ValidationError(
@@ -128,6 +128,8 @@ class ShopSettingsUpdate(BaseMutation):
                         )
                     }
                 )
+            if not new_value:
+                data["limit_quantity_per_checkout"] = None
 
         return data
 
