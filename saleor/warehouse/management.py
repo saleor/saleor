@@ -16,7 +16,14 @@ from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
 from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
-from .models import Allocation, PreorderAllocation, Reservation, Stock, Warehouse
+from .models import (
+    Allocation,
+    PreorderAllocation,
+    PreorderReservation,
+    Reservation,
+    Stock,
+    Warehouse,
+)
 
 if TYPE_CHECKING:
     from ..order.models import Order, OrderLine
@@ -482,7 +489,12 @@ def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
 
 
 @traced_atomic_transaction()
-def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug: str):
+def allocate_preorders(
+    order_lines_info: Iterable["OrderLineData"],
+    channel_slug: str,
+    check_reservations: bool = False,
+    checkout_lines: Optional[Iterable["CheckoutLine"]] = None,
+):
     """Allocate preorder variant for given `order_lines` in given channel."""
     order_lines_info = get_order_lines_with_preorder(order_lines_info)
     if not order_lines_info:
@@ -496,9 +508,9 @@ def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug
         .select_related("channel")
         .values("id", "channel__slug", "preorder_quantity_threshold", "variant_id")
     )
-    all_variants_channel_listings_id = (
+    all_variants_channel_listings_id = [
         channel_listing["id"] for channel_listing in all_variants_channel_listings
-    )
+    ]
 
     quantity_allocation_list = list(
         PreorderAllocation.objects.filter(
@@ -523,6 +535,31 @@ def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug
         if channel_listing["channel__slug"] == channel_slug
     }
 
+    variants_channel_listings = defaultdict(list)
+    for channel_listing in all_variants_channel_listings:
+        variants_channel_listings[channel_listing["variant_id"]].append(
+            channel_listing["id"]
+        )
+
+    if check_reservations:
+        quantity_reservation_list = (
+            PreorderReservation.objects.filter(
+                product_variant_channel_listing_id__in=all_variants_channel_listings_id,  # noqa: E501
+                quantity_reserved__gt=0,
+            )
+            .not_expired()
+            .exclude_checkout_lines(checkout_lines)
+            .values("product_variant_channel_listing")
+            .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
+        )  # type: ignore
+        listings_reservations: Dict = defaultdict(int)
+        for reservation in quantity_reservation_list:
+            listings_reservations[
+                reservation["product_variant_channel_listing"]
+            ] += reservation["quantity_reserved_sum"]
+    else:
+        listings_reservations = defaultdict(int)
+
     variants_global_allocations: Dict[int, int] = defaultdict(int)
     for channel_listing in all_variants_channel_listings:
         variants_global_allocations[
@@ -537,7 +574,9 @@ def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug
             line_info,
             variants_to_channel_listings[variant.id],
             variants_global_allocations[variant.id],
+            variants_channel_listings[variant.id],
             quantity_allocation_for_channel,
+            listings_reservations,
         )
         if allocation_item:
             allocations.append(allocation_item)
@@ -566,17 +605,28 @@ def _create_preorder_allocation(
     line_info: "OrderLineData",
     variant_channel_data: Tuple[int, Optional[int]],
     variant_global_allocation: int,
+    variants_channel_listings: Dict[int, List[int]],
     quantity_allocation_for_channel: Dict[int, int],
+    listings_reservations: Dict[int, int],
 ) -> Tuple[Optional[PreorderAllocation], Optional[InsufficientStockData]]:
     variant = cast(ProductVariant, line_info.variant)
     quantity = line_info.quantity
     channel_listing_id, channel_quantity_threshold = variant_channel_data
 
     if channel_quantity_threshold is not None:
-        channel_availability = (
-            channel_quantity_threshold
-            - quantity_allocation_for_channel[channel_listing_id]
+        print("channel_quantity_threshold", channel_quantity_threshold)
+        print(
+            "quantity_allocation_for_channel",
+            quantity_allocation_for_channel[channel_listing_id],
         )
+        print("listings_reservations", listings_reservations[channel_listing_id])
+        channel_availability = channel_quantity_threshold
+        channel_availability -= quantity_allocation_for_channel[channel_listing_id]
+        channel_availability -= listings_reservations[channel_listing_id]
+        print("listings_reservations", listings_reservations)
+        channel_availability = max(channel_availability, 0)
+        print("channel_availability", channel_availability)
+
         if quantity > channel_availability:
             return None, InsufficientStockData(
                 variant=variant,
@@ -584,9 +634,15 @@ def _create_preorder_allocation(
             )
 
     if variant.preorder_global_threshold is not None:
-        global_availability = (
-            variant.preorder_global_threshold - variant_global_allocation
-        )
+        global_availability = variant.preorder_global_threshold
+        print("variant.preorder_global_threshold", variant.preorder_global_threshold)
+        global_availability -= variant_global_allocation
+        print("variant_global_allocation", variant_global_allocation)
+        for listing_id in variants_channel_listings:
+            global_availability -= listings_reservations[listing_id]
+        global_availability = max(global_availability, 0)
+        print("global_availability", global_availability)
+
         if quantity > global_availability:
             return None, InsufficientStockData(
                 variant=variant, available_quantity=global_availability

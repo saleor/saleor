@@ -3076,7 +3076,7 @@ def checkout_line_with_reserved_preorder_item(
     checkout, product, preorder_variant_channel_threshold
 ):
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
-    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
     checkout_line = checkout.lines.last()
 
     reserved_until = timezone.now() + timedelta(minutes=5)

@@ -433,7 +433,12 @@ def _create_order(
         check_reservations=is_reservation_enabled(site_settings),
         checkout_lines=[line.line for line in checkout_lines],
     )
-    allocate_preorders(order_lines_info, checkout_info.channel.slug)
+    allocate_preorders(
+        order_lines_info,
+        checkout_info.channel.slug,
+        check_reservations=is_reservation_enabled(site_settings),
+        checkout_lines=[line.line for line in checkout_lines],
+    )
 
     add_gift_cards_to_order(checkout_info, order, total_price_left, user, app)
 

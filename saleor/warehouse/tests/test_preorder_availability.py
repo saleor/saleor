@@ -1,17 +1,22 @@
 from datetime import timedelta
+from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 from freezegun import freeze_time
 
+from ...checkout.models import Checkout
 from ...core.exceptions import InsufficientStock
+from ...product.models import ProductVariantChannelListing
 from ..availability import (
     check_preorder_threshold_bulk,
     check_stock_and_preorder_quantity,
     check_stock_and_preorder_quantity_bulk,
 )
+from ..models import PreorderReservation
 
 
 @patch("saleor.warehouse.availability.check_preorder_threshold_bulk")
@@ -103,6 +108,108 @@ def test_check_preorder_threshold_bulk_channel_threshold(
         check_preorder_threshold_bulk(
             [variant], [available_preorder_quantity + 1], channel_USD.slug
         )
+
+
+def test_check_preorder_reserved_threshold_bulk_channel_threshold(
+    checkout_line_with_reserved_preorder_item, channel_PLN, channel_USD
+):
+    variant = checkout_line_with_reserved_preorder_item.variant
+
+    # test it doesn't raise an error for available preorder variant
+    assert (
+        check_preorder_threshold_bulk(
+            [variant],
+            [5],
+            channel_USD.slug,
+            checkout_lines=[],
+            check_reservations=True,
+        )
+        is None
+    )
+
+    # test if it raises error for exceeded quantity
+    with pytest.raises(InsufficientStock):
+        check_preorder_threshold_bulk(
+            [variant],
+            [9],
+            channel_USD.slug,
+            checkout_lines=[],
+            check_reservations=True,
+        )
+
+    # Check excludes given checkout lines reservations
+    check_preorder_threshold_bulk(
+        [variant],
+        [9],
+        channel_USD.slug,
+        checkout_lines=[checkout_line_with_reserved_preorder_item],
+        check_reservations=True,
+    )
+
+    # Check excludes expired reservations
+    PreorderReservation.objects.update(
+        reserved_until=timezone.now() - timedelta(minutes=1)
+    )
+
+    check_preorder_threshold_bulk(
+        [variant],
+        [9],
+        channel_USD.slug,
+        checkout_lines=[],
+        check_reservations=True,
+    )
+
+
+def test_check_preorder_reserved_threshold_bulk_global_threshold(
+    checkout_line_with_reserved_preorder_item, channel_PLN, channel_USD
+):
+    variant = checkout_line_with_reserved_preorder_item.variant
+    variant.preorder_global_threshold = 3
+    variant.save()
+
+    # test it doesn't raise an error for available preorder variant
+    assert (
+        check_preorder_threshold_bulk(
+            [variant],
+            [1],
+            channel_USD.slug,
+            checkout_lines=[],
+            check_reservations=True,
+        )
+        is None
+    )
+
+    # test if it raises error for exceeded quantity
+    with pytest.raises(InsufficientStock):
+        check_preorder_threshold_bulk(
+            [variant],
+            [2],
+            channel_USD.slug,
+            checkout_lines=[],
+            check_reservations=True,
+        )
+
+    # Check excludes given checkout lines reservations
+    check_preorder_threshold_bulk(
+        [variant],
+        [3],
+        channel_USD.slug,
+        checkout_lines=[checkout_line_with_reserved_preorder_item],
+        check_reservations=True,
+    )
+
+    # Check excludes expired reservations
+    PreorderReservation.objects.update(
+        reserved_until=timezone.now() - timedelta(minutes=1)
+    )
+
+    check_preorder_threshold_bulk(
+        [variant],
+        [3],
+        channel_USD.slug,
+        checkout_lines=[],
+        check_reservations=True,
+    )
 
 
 def test_check_preorder_threshold_bulk_global_threshold(
