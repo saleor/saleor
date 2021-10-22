@@ -170,8 +170,6 @@ class GraphQLView(View):
                     span.set_tag(opentracing.tags.PEER_HOST_IPV6, ip)
                 else:
                     continue
-                span.set_tag("http.client_ip", ip)
-                span.set_tag("http.client_ip_originated_from", settings.REAL_IP_ENVIRON)
                 break
 
             response = self._handle_query(request)
@@ -252,6 +250,10 @@ class GraphQLView(View):
         with opentracing.global_tracer().start_active_span("graphql_query") as scope:
             span = scope.span
             span.set_tag(opentracing.tags.COMPONENT, "graphql")
+            span.set_tag(
+                opentracing.tags.HTTP_URL,
+                request.build_absolute_uri(request.get_full_path()),
+            )
 
             query, variables, operation_name = self.get_graphql_params(request, data)
 
