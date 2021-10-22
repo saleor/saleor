@@ -32,6 +32,7 @@ def test_trigger_webhook_sync(mock_request, shipping_app):
     )
     webhook = shipping_app.webhooks.first()
     mock_request.assert_called_once_with(
+        shipping_app.name,
         webhook.target_url,
         webhook.secret_key,
         WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
