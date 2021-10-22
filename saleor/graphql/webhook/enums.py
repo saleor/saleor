@@ -78,6 +78,28 @@ WebhookEventTypeEnum = graphene.Enum(
     [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventType.CHOICES],
     description=description,
 )
+
+WebhookEventTypeSync = graphene.Enum(
+    "WebhookEventTypeSync",
+    [
+        (str_to_enum(e_type[0]), e_type[0])
+        for e_type in WebhookEventType.CHOICES
+        if e_type[0] in WebhookEventType.SYNC_EVENTS
+    ],
+    description=description,
+)
+
+WebhookEventTypeAsync = graphene.Enum(
+    "WebhookEventTypeAsync",
+    [
+        (str_to_enum(e_type[0]), e_type[0])
+        for e_type in WebhookEventType.CHOICES
+        if not e_type[0] in WebhookEventType.SYNC_EVENTS
+    ],
+    description=description,
+)
+
+
 WebhookSampleEventTypeEnum = graphene.Enum(
     "WebhookSampleEventTypeEnum",
     [

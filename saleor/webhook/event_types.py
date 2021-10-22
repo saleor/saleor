@@ -178,6 +178,8 @@ class WebhookEventType:
         PAYMENT_VOID,
     ]
 
+    SYNC_EVENTS = [SHIPPING_LIST_METHODS_FOR_CHECKOUT] + PAYMENT_EVENTS
+
     PERMISSIONS = {
         ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CONFIRMED: OrderPermissions.MANAGE_ORDERS,

@@ -7260,7 +7260,9 @@ type Webhook implements Node {
   isActive: Boolean!
   secretKey: String
   id: ID!
-  events: [WebhookEvent!]!
+  events: [WebhookEvent!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `asyncEvents` or `syncEvents` instead.")
+  syncEvents: [WebhookEventSync!]!
+  asyncEvents: [WebhookEventAsync!]!
   app: App!
 }
 
@@ -7274,6 +7276,8 @@ input WebhookCreateInput {
   name: String
   targetUrl: String
   events: [WebhookEventTypeEnum]
+  asyncEvents: [WebhookEventTypeAsync!]
+  syncEvents: [WebhookEventTypeSync!]
   app: ID
   isActive: Boolean
   secretKey: String
@@ -7302,6 +7306,55 @@ enum WebhookErrorCode {
 type WebhookEvent {
   eventType: WebhookEventTypeEnum!
   name: String!
+}
+
+type WebhookEventAsync {
+  eventType: WebhookEventTypeAsync!
+  name: String!
+}
+
+type WebhookEventSync {
+  eventType: WebhookEventTypeSync!
+  name: String!
+}
+
+enum WebhookEventTypeAsync {
+  ANY_EVENTS
+  ORDER_CREATED
+  ORDER_CONFIRMED
+  ORDER_FULLY_PAID
+  ORDER_UPDATED
+  ORDER_CANCELLED
+  ORDER_FULFILLED
+  DRAFT_ORDER_CREATED
+  DRAFT_ORDER_UPDATED
+  DRAFT_ORDER_DELETED
+  SALE_CREATED
+  SALE_UPDATED
+  SALE_DELETED
+  INVOICE_REQUESTED
+  INVOICE_DELETED
+  INVOICE_SENT
+  CUSTOMER_CREATED
+  CUSTOMER_UPDATED
+  PRODUCT_CREATED
+  PRODUCT_UPDATED
+  PRODUCT_DELETED
+  PRODUCT_VARIANT_CREATED
+  PRODUCT_VARIANT_UPDATED
+  PRODUCT_VARIANT_DELETED
+  PRODUCT_VARIANT_OUT_OF_STOCK
+  PRODUCT_VARIANT_BACK_IN_STOCK
+  CHECKOUT_CREATED
+  CHECKOUT_UPDATED
+  FULFILLMENT_CREATED
+  FULFILLMENT_CANCELED
+  NOTIFY_USER
+  PAGE_CREATED
+  PAGE_UPDATED
+  PAGE_DELETED
+  TRANSLATION_CREATED
+  TRANSLATION_UPDATED
 }
 
 enum WebhookEventTypeEnum {
@@ -7349,6 +7402,17 @@ enum WebhookEventTypeEnum {
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
+}
+
+enum WebhookEventTypeSync {
+  PAYMENT_AUTHORIZE
+  PAYMENT_CAPTURE
+  PAYMENT_CONFIRM
+  PAYMENT_LIST_GATEWAYS
+  PAYMENT_PROCESS
+  PAYMENT_REFUND
+  PAYMENT_VOID
+  SHIPPING_LIST_METHODS_FOR_CHECKOUT
 }
 
 enum WebhookSampleEventTypeEnum {
@@ -7407,6 +7471,8 @@ input WebhookUpdateInput {
   name: String
   targetUrl: String
   events: [WebhookEventTypeEnum]
+  asyncEvents: [WebhookEventTypeAsync!]
+  syncEvents: [WebhookEventTypeSync!]
   app: ID
   isActive: Boolean
   secretKey: String
