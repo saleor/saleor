@@ -151,6 +151,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix GraphQL federation support. - #7771 #8107 by @rafalp
 - Remove unnecessary database lock on discount during checkout complete mutation - #8174 by @fowczarek
 - Fix cursor-based pagination in products search - #8011 #8211 by @rafalp
+- Batch loads in queries for Apollo Federation - #8362 by @rafalp
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
