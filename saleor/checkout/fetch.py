@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, List, Optional
 
+import graphene
+from django.utils.functional import SimpleLazyObject
+
 from ..shipping.models import ShippingMethodChannelListing
 
 if TYPE_CHECKING:
@@ -112,11 +115,11 @@ def fetch_checkout_info(
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=[],
     )
-    valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
-        checkout_info, shipping_address, lines, discounts, manager
-    )
-    checkout_info.valid_shipping_methods = valid_shipping_methods
-
+    checkout_info.valid_shipping_methods = SimpleLazyObject(
+        lambda: get_valid_shipping_method_list_for_checkout_info(
+            checkout_info, shipping_address, lines, discounts, manager
+        )
+    )  # type: ignore
     return checkout_info
 
 
@@ -148,13 +151,28 @@ def get_valid_shipping_method_list_for_checkout_info(
         checkout_info, lines, checkout_info.shipping_address, discounts
     )
     subtotal -= checkout_info.checkout.discount
-    valid_shipping_method = get_valid_shipping_methods_for_checkout(
+    checkout = checkout_info.checkout
+    valid_shipping_methods = get_valid_shipping_methods_for_checkout(
         checkout_info, lines, subtotal, country_code=country_code
     )
-    valid_shipping_method = (
-        list(valid_shipping_method) if valid_shipping_method is not None else []
+    valid_shipping_methods = (
+        list(valid_shipping_methods) if valid_shipping_methods is not None else []
     )
-    return valid_shipping_method
+    excluded_shipping_methods = manager.excluded_shipping_methods_for_checkout(
+        checkout, valid_shipping_methods
+    )
+    valid_shipping_methods_map = {
+        graphene.Node.to_global_id("ShippingMethod", valid_method.id): valid_method
+        for valid_method in valid_shipping_methods
+    }
+    for valid_method_id, valid_method in valid_shipping_methods_map.items():
+        valid_method.active = True
+        valid_method.message = ""
+        for excluded_method in excluded_shipping_methods:
+            if valid_method_id == excluded_method.id:
+                valid_method.active = False
+                valid_method.message = excluded_method.reason
+    return [method for method in valid_shipping_methods_map.values() if method.active]
 
 
 def update_checkout_info_shipping_method(

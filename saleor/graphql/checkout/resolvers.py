@@ -92,13 +92,12 @@ def _resolve_checkout_excluded_shipping_methods(
             shipping.price = taxed_price.net
         available_shipping_method_instances.append(shipping)
 
-    app = info.context.app
     shipping_method_dataclasses = [
         convert_shipping_method_model_to_dataclass(shipping)
         for shipping in available_shipping_method_instances
     ]
     excluded_shipping_methods = manager.excluded_shipping_methods_for_checkout(
-        root, shipping_method_dataclasses, app_name=app
+        root, shipping_method_dataclasses
     )
     available_with_channel_context = set_active_shipping_methods(
         excluded_shipping_methods,
