@@ -377,6 +377,7 @@ def refund_payments(
         order, payments, manager, user, app
     )
     order.refresh_from_db()
+
     if payments_to_notify:
         transaction.on_commit(
             lambda: send_order_refunded_confirmation(
@@ -385,9 +386,13 @@ def refund_payments(
         )
     elif payment_errors:
         raise ValidationError(
-            f"The refund operation is not available yet "
-            f"for {len(payment_errors)} payments.",
-            code=OrderErrorCode.CANNOT_REFUND.value,
+            {
+                "payments": ValidationError(
+                    f"The refund operation is not available yet "
+                    f"for {len(payment_errors)} payments.",
+                    code=OrderErrorCode.CANNOT_REFUND.value,
+                )
+            }
         )
 
     return payments_to_notify, payment_errors

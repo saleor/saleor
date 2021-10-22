@@ -4856,6 +4856,12 @@ ORDER_REFUND = """
                 isPaid
                 status
             }
+            errors {
+                field
+                code
+                message
+                payments
+            }
         }
     }
 """
@@ -4910,21 +4916,12 @@ def test_order_refund_for_failed_refund(
         ORDER_REFUND, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["orderRefund"]["order"]
-    order.refresh_from_db()
-    assert data["status"] == order.status.upper()
-    assert data["paymentStatus"] == OrderPaymentStatusEnum.PARTIALLY_CHARGED.name
-    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
-        OrderPaymentStatus.PARTIALLY_CHARGED
-    )
-    assert data["paymentStatusDisplay"] == payment_status_display
-    assert data["isPaid"] is False
+    data = content["data"]["orderRefund"]
 
-    refund_failed_order_event = order.events.filter(
-        type=order_events.OrderEvents.PAYMENT_REFUND_FAILED
-    ).first()
-    assert refund_failed_order_event.parameters["amount"] == str(amount)
-    assert refund_failed_order_event.parameters["message"] == message
+    assert data["order"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "payments"
+    assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_REFUND.name
 
     refunded_fulfillment = order.fulfillments.filter(
         status=FulfillmentStatus.REFUNDED
@@ -4939,7 +4936,7 @@ def test_order_refund_with_payments_to_refund(
     query = """
         mutation refundOrder(
             $id: ID!,
-            $paymentsToRefund: [OrderPaymentToRefundInput]
+            $paymentsToRefund: [OrderPaymentToRefundInput!]
         ) {
             orderRefund(id: $id, paymentsToRefund: $paymentsToRefund) {
                 order {
@@ -5000,7 +4997,7 @@ def test_order_refund_fails_if_both_amount_and_payments_to_refund_specified(
         mutation refundOrder(
             $id: ID!,
             $amount: PositiveDecimal!,
-            $paymentsToRefund: [OrderPaymentToRefundInput]
+            $paymentsToRefund: [OrderPaymentToRefundInput!]
         ) {
             orderRefund(id: $id, amount: $amount, paymentsToRefund: $paymentsToRefund) {
                 order {
@@ -5159,7 +5156,7 @@ def test_order_refund_raises_error_when_amount_is_bigger_than_captured_amount(
     query = """
         mutation refundOrder(
             $id: ID!,
-            $paymentsToRefund: [OrderPaymentToRefundInput],
+            $paymentsToRefund: [OrderPaymentToRefundInput!],
         ) {
             orderRefund(
                 id: $id,
@@ -5219,7 +5216,7 @@ def test_order_refund_does_not_refund_more_than_was_captured(
     query = """
         mutation refundOrder(
             $id: ID!,
-            $paymentsToRefund: [OrderPaymentToRefundInput],
+            $paymentsToRefund: [OrderPaymentToRefundInput!],
 
         ) {
             orderRefund(

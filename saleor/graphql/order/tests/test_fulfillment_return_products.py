@@ -149,7 +149,11 @@ def test_fulfillment_return_products_refund_raising_payment_error(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
 
-    assert data["returnFulfillment"]["status"] == FulfillmentStatus.RETURNED.upper()
+    assert data["returnFulfillment"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "payments"
+    assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_REFUND.name
+
     event = OrderEvent.objects.filter(type=OrderEvents.PAYMENT_REFUND_FAILED).get()
     assert event.parameters["payment_id"] == payment_dummy.token
 
@@ -1076,7 +1080,7 @@ def test_fulfillment_refund_products_exclude_payments_with_zero_amount(
     response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
-    # breakpoint()
+
     fulfillment = fulfilled_order.fulfillments.filter(
         status=FulfillmentStatus.REFUNDED_AND_RETURNED
     ).get()

@@ -324,11 +324,13 @@ def test_refund_payments_raises_error_if_no_payments_have_been_refunded(
         )
 
     # then
-    assert err.value.message == (
+    assert err.value.error_dict["payments"][0].message == (
         f"The refund operation is not available yet "
         f"for {len(payment_errors)} payments."
     )
-    assert err.value.code == OrderErrorCode.CANNOT_REFUND.value
+    assert (
+        err.value.error_dict["payments"][0].code == OrderErrorCode.CANNOT_REFUND.value
+    )
 
 
 @patch("saleor.order.actions._refund_payments")
@@ -519,11 +521,13 @@ def test_fulfill_digital_lines(
     assert mock_email_fulfillment.called
 
 
+@patch("saleor.order.actions._refund_payments")
 @patch("saleor.order.actions._calculate_refund_amount")
 @patch("saleor.order.actions._add_missing_amounts_on_payments")
-def test_process_refund_calls_update_missing_amounts_on_payments(
-    mock_update_missing_amounts_on_payments,
-    mock_calculate_refund_amount,
+def test_process_refund_calls_add_missing_amounts_on_payments(
+    _add_missing_amounts_on_payments_mock,
+    _calculate_refund_amount_mock,
+    _refund_payments_mock,
     order_with_lines,
     payment_dummy_fully_charged,
     staff_user,
@@ -535,8 +539,9 @@ def test_process_refund_calls_update_missing_amounts_on_payments(
     order_lines_to_return = order_with_lines.lines.all()
 
     refund_amount = Decimal("500")
-    mock_calculate_refund_amount.return_value = refund_amount
-    mock_update_missing_amounts_on_payments.return_value = refund_amount, None
+    _calculate_refund_amount_mock.return_value = refund_amount
+    _add_missing_amounts_on_payments_mock.return_value = refund_amount, None
+    _refund_payments_mock.return_value = payments, []
 
     _process_refund(
         user=staff_user,
@@ -551,7 +556,7 @@ def test_process_refund_calls_update_missing_amounts_on_payments(
         manager=get_plugins_manager(),
         include_shipping_costs=False,
     )
-    mock_update_missing_amounts_on_payments.assert_called_once_with(
+    _add_missing_amounts_on_payments_mock.assert_called_once_with(
         refund_amount, payments, order_with_lines, False
     )
 
