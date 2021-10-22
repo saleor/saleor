@@ -148,7 +148,6 @@ def test_fulfillment_return_products_refund_raising_payment_error(
 
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
-
     assert data["returnFulfillment"] is None
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "payments"

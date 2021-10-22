@@ -1397,7 +1397,7 @@ def create_fulfillments_for_returned_products(
     total_refund_amount = Decimal("0")
     shipping_refund_amount = None
 
-    with traced_atomic_transaction():
+    with transaction_with_commit_on_errors():
         if refund and payments:
             total_refund_amount, shipping_refund_amount = _process_refund(
                 user=user,
@@ -1434,7 +1434,6 @@ def create_fulfillments_for_returned_products(
         Fulfillment.objects.filter(
             order=order, lines=None, status=FulfillmentStatus.FULFILLED
         ).delete()
-
         transaction.on_commit(lambda: manager.order_updated(order))
     return return_fulfillment, replace_fulfillment, new_order
 
