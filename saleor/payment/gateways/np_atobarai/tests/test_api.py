@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 import pytest
 import requests
@@ -85,18 +85,42 @@ def test_refund_payment_np_errors(
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+def test_refund_payment_no_payment(
+    _mocked_request, np_atobarai_plugin, dummy_payment_data, payment_dummy
+):
+    # given
+    payment_id = -1
+    plugin = np_atobarai_plugin()
+    payment_data = dummy_payment_data
+    payment_data.payment_id = payment_id
+
+    # when
+    with pytest.raises(PaymentError) as excinfo:
+        plugin.refund_payment(payment_data, None)
+
+    # then
+    assert excinfo.value.message == f"Payment with id {payment_id} does not exist."
+
+
+@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
 def test_refund_payment_partial_refund(
     _mocked_request, np_atobarai_plugin, dummy_payment_data, payment_dummy
 ):
     # given
     plugin = np_atobarai_plugin()
     payment_data = dummy_payment_data
-    payment_data.amount -= Decimal("3.00")
+    payment_dummy.captured_amount = payment_data.amount + Decimal("3.00")
+    payment_dummy.save(update_fields=["captured_amount"])
+
+    # when
+    with pytest.raises(PaymentError) as excinfo:
+        plugin.refund_payment(payment_data, None)
 
     # then
-    with pytest.raises(PaymentError):
-        # when
-        plugin.refund_payment(payment_data, None)
+    payment_id = payment_data.payment_id
+    assert excinfo.value.message == (
+        f"Cannot partially refund payment with id {payment_id}"
+    )
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.requests.request")
@@ -182,6 +206,32 @@ def test_report_fulfillment_np_errors(
         "Please confirm that 1000 or fewer sets of normal transactions are set.",
         "Please confirm that at least one normal transaction is set.",
     }
+
+
+@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+def test_report_fulfillment_connection_errors(
+    mocked_request, config, fulfillment, payment_dummy, caplog
+):
+    # given
+    psp_reference = "18121200001"
+    payment_dummy.psp_reference = psp_reference
+    payment_dummy.save(update_fields=["psp_reference"])
+    response = Mock(
+        spec=requests.Response,
+        status_code=404,
+    )
+    mocked_request.return_value = response
+
+    # when
+    _, errors, already_captured = api.report_fulfillment(
+        config, payment_dummy, fulfillment
+    )
+
+    # then
+    assert not already_captured
+    error_message = "Cannot connect to NP Atobarai."
+    assert errors == [error_message]
+    assert caplog.record_tuples == [(ANY, logging.WARNING, error_message)]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.requests.request")
@@ -293,3 +343,28 @@ def test_tracking_number_updated_already_captured(
     assert len(caplog.records) == 1
     assert caplog.records[0].levelno == logging.WARNING
     assert caplog.records[0].message == "Payment was already captured"
+
+
+@patch("saleor.payment.gateways.np_atobarai.notify_dashboard")
+@patch("saleor.payment.gateways.np_atobarai.api.report_fulfillment")
+def test_tracking_number_updated_no_payments(
+    _mocked_report_fulfillment,
+    mocked_notify_dashboard,
+    np_atobarai_plugin,
+    fulfillment,
+    caplog,
+):
+    # given
+    plugin = np_atobarai_plugin()
+    order = fulfillment.order
+
+    # when
+    plugin.tracking_number_updated(fulfillment, None)
+
+    # then
+    mocked_notify_dashboard.assert_called_once_with(order, "Capture Error for payment")
+    assert len(caplog.records) == 1
+    assert caplog.records[0].levelno == logging.WARNING
+    assert caplog.records[0].message == (
+        "Could not capture payment in NP Atobarai: No active payments for this order"
+    )
