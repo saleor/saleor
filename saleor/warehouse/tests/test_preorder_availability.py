@@ -1,5 +1,4 @@
 from datetime import timedelta
-from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
@@ -8,9 +7,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from freezegun import freeze_time
 
-from ...checkout.models import Checkout
 from ...core.exceptions import InsufficientStock
-from ...product.models import ProductVariantChannelListing
 from ..availability import (
     check_preorder_threshold_bulk,
     check_stock_and_preorder_quantity,

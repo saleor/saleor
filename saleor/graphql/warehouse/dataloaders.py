@@ -6,7 +6,13 @@ from django.conf import settings
 from django.db.models import Exists, OuterRef
 
 from ...channel.models import Channel
-from ...warehouse.models import Reservation, ShippingZone, Stock, Warehouse
+from ...warehouse.models import (
+    PreorderReservation,
+    Reservation,
+    ShippingZone,
+    Stock,
+    Warehouse,
+)
 from ...warehouse.reservations import is_reservation_enabled
 from ..core.dataloaders import DataLoader
 
@@ -261,6 +267,13 @@ class ActiveReservationsByCheckoutLineIdLoader(DataLoader):
     def batch_load(self, keys):
         reservations_by_checkout_line = defaultdict(list)
         queryset = Reservation.objects.filter(
+            checkout_line_id__in=keys
+        ).not_expired()  # type: ignore
+        for reservation in queryset:
+            reservations_by_checkout_line[reservation.checkout_line_id].append(
+                reservation
+            )
+        queryset = PreorderReservation.objects.filter(
             checkout_line_id__in=keys
         ).not_expired()  # type: ignore
         for reservation in queryset:
