@@ -45,8 +45,8 @@ class CheckoutInfo:
     shipping_address: Optional["Address"]
     shipping_method: Optional["ShippingMethod"]
     valid_shipping_methods: List["ShippingMethod"]
-    shipping_method_channel_listing: Optional[ShippingMethodChannelListing]
-    shipping_method_channel_listings: List[ShippingMethodChannelListing]
+    shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
+    all_shipping_method_channel_listings: List[ShippingMethodChannelListing]
 
     def get_country(self) -> str:
         address = self.shipping_address or self.billing_address
@@ -108,12 +108,12 @@ def fetch_checkout_info(
     shipping_address = checkout.shipping_address
     shipping_method = checkout.shipping_method
     shipping_method_channel_listing = None
-    shipping_method_channel_listings = list(
+    all_shipping_method_channel_listings = list(
         ShippingMethodChannelListing.objects.filter(
             channel=channel,
         )
     )
-    for listing in shipping_method_channel_listings:
+    for listing in all_shipping_method_channel_listings:
         if listing.shipping_method == shipping_method:
             shipping_method_channel_listing = listing
             break
@@ -125,8 +125,8 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         shipping_method=shipping_method,
-        shipping_method_channel_listing=shipping_method_channel_listing,
-        shipping_method_channel_listings=shipping_method_channel_listings,
+        shipping_method_channel_listings=shipping_method_channel_listing,
+        all_shipping_method_channel_listings=all_shipping_method_channel_listings,
         valid_shipping_methods=[],
     )
     checkout_info.valid_shipping_methods = SimpleLazyObject(
@@ -175,7 +175,7 @@ def get_valid_shipping_method_list_for_checkout_info(
     )
     annotate_shipping_methods_with_price(
         valid_shipping_methods,
-        checkout_info.shipping_method_channel_listings,
+        checkout_info.all_shipping_method_channel_listings,
         checkout_info.shipping_address,
         checkout_info.channel.slug,
         manager,
@@ -200,7 +200,7 @@ def update_checkout_info_shipping_method(
     checkout_info: CheckoutInfo, shipping_method: Optional["ShippingMethod"]
 ):
     checkout_info.shipping_method = shipping_method
-    checkout_info.shipping_method_channel_listing = (
+    checkout_info.shipping_method_channel_listings = (
         (
             ShippingMethodChannelListing.objects.filter(
                 shipping_method=shipping_method, channel=checkout_info.channel

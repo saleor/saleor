@@ -224,12 +224,12 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                                 checkout.shipping_method_id
                             ),
                             valid_shipping_methods=[],
-                            shipping_method_channel_listing=(
+                            shipping_method_channel_listings=(
                                 shipping_method_channel_listing_map.get(
                                     (checkout.shipping_method_id, channel.id)
                                 )
                             ),
-                            shipping_method_channel_listings=(
+                            all_shipping_method_channel_listings=(
                                 shipping_method_channel_listing_map.values()
                             ),
                         )
