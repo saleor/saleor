@@ -121,7 +121,7 @@ def parse_excluded_shipping_methods_response(
             typename, method_id = graphene.Node.from_global_id(method_data["id"])
             if typename != "ShippingMethod":
                 raise ValueError
-        except (KeyError, ValueError):
+        except (KeyError, ValueError, TypeError):
             logger.warning("Malformed ShippingMethod id was provided.")
             continue
         excluded_methods.append(

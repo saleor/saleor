@@ -74,7 +74,7 @@ def annotate_active_shipping_methods(
         instance.active = True  # type: ignore
         instance.message = ""  # type: ignore
         for method in excluded_methods:
-            if instance.id == method.id:
+            if str(instance.id) == str(method.id):
                 instance.active = False  # type: ignore
                 instance.message = method.reason  # type: ignore
 
