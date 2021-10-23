@@ -7,8 +7,9 @@ from ...order.models import OrderEvent
 from ...order.utils import get_valid_shipping_methods_for_order, sum_order_totals
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..shipping.utils import (
+    annotate_active_shipping_methods,
     convert_shipping_method_model_to_dataclass,
-    set_active_shipping_methods,
+    wrap_with_channel_context,
 )
 from ..utils.filters import filter_by_period
 
@@ -103,13 +104,16 @@ def _resolve_order_shipping_methods(root: models.Order, info):
     excluded_shipping_methods = manager.excluded_shipping_methods_for_order(
         root, shipping_method_dataclasses
     )
-    instances = set_active_shipping_methods(
+    annotate_active_shipping_methods(
+        available_shipping_methods,
         excluded_shipping_methods,
+    )
+    available_with_channel_context = wrap_with_channel_context(
         available_shipping_methods,
         channel_slug,
     )
 
-    setattr(root, cache_key, instances)
+    setattr(root, cache_key, available_with_channel_context)
     return getattr(root, cache_key)
 
 

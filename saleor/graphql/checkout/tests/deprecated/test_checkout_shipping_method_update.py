@@ -55,7 +55,7 @@ def test_checkout_shipping_method_update_by_id(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     checkout_info.shipping_method = old_shipping_method
-    checkout_info.shipping_method_channel_listings = None
+    checkout_info.shipping_method_channel_listing = None
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info, lines=lines, method=shipping_method
     )
@@ -91,7 +91,7 @@ def test_checkout_shipping_method_update_by_token(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     checkout_info.shipping_method = old_shipping_method
-    checkout_info.shipping_method_channel_listings = None
+    checkout_info.shipping_method_channel_listing = None
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info, lines=lines, method=shipping_method
     )

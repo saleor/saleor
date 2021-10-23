@@ -85,16 +85,16 @@ class ShippingMethodChannelListingByShippingMethodIdLoader(DataLoader):
     context_key = "shippingmethodchannellisting_by_shippingmethod"
 
     def batch_load(self, keys):
-        shipping_method_channel_listings = ShippingMethodChannelListing.objects.filter(
+        shipping_method_channel_listing = ShippingMethodChannelListing.objects.filter(
             shipping_method_id__in=keys
         )
-        shipping_method_channel_listings_by_shipping_method_map = defaultdict(list)
-        for shipping_method_channel_listing in shipping_method_channel_listings:
-            shipping_method_channel_listings_by_shipping_method_map[
+        shipping_method_channel_listing_by_shipping_method_map = defaultdict(list)
+        for shipping_method_channel_listing in shipping_method_channel_listing:
+            shipping_method_channel_listing_by_shipping_method_map[
                 shipping_method_channel_listing.shipping_method_id
             ].append(shipping_method_channel_listing)
         return [
-            shipping_method_channel_listings_by_shipping_method_map.get(
+            shipping_method_channel_listing_by_shipping_method_map.get(
                 shipping_method_id, []
             )
             for shipping_method_id in keys
@@ -107,20 +107,20 @@ class ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(DataLoa
     def batch_load(self, keys):
         shipping_method_ids = [key[0] for key in keys]
         channel_slugs = [key[1] for key in keys]
-        shipping_method_channel_listings = ShippingMethodChannelListing.objects.filter(
+        shipping_method_channel_listing = ShippingMethodChannelListing.objects.filter(
             shipping_method_id__in=shipping_method_ids, channel__slug__in=channel_slugs
         ).annotate(channel_slug=F("channel__slug"))
-        shipping_method_channel_listings_by_shipping_method_and_channel_map = {}
-        for shipping_method_channel_listing in shipping_method_channel_listings:
+        shipping_method_channel_listing_by_shipping_method_and_channel_map = {}
+        for shipping_method_channel_listing in shipping_method_channel_listing:
             key = (
                 shipping_method_channel_listing.shipping_method_id,
                 shipping_method_channel_listing.channel_slug,
             )
-            shipping_method_channel_listings_by_shipping_method_and_channel_map[
+            shipping_method_channel_listing_by_shipping_method_and_channel_map[
                 key
             ] = shipping_method_channel_listing
         return [
-            shipping_method_channel_listings_by_shipping_method_and_channel_map.get(key)
+            shipping_method_channel_listing_by_shipping_method_and_channel_map.get(key)
             for key in keys
         ]
 

@@ -1,9 +1,13 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, List, Optional
 
-import graphene
 from django.utils.functional import SimpleLazyObject
 
+from ..graphql.shipping.utils import (
+    annotate_active_shipping_methods,
+    annotate_shipping_methods_with_price,
+    convert_shipping_method_model_to_dataclass,
+)
 from ..shipping.models import ShippingMethodChannelListing
 
 if TYPE_CHECKING:
@@ -41,7 +45,8 @@ class CheckoutInfo:
     shipping_address: Optional["Address"]
     shipping_method: Optional["ShippingMethod"]
     valid_shipping_methods: List["ShippingMethod"]
-    shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
+    shipping_method_channel_listing: Optional[ShippingMethodChannelListing]
+    shipping_method_channel_listings: List[ShippingMethodChannelListing]
 
     def get_country(self) -> str:
         address = self.shipping_address or self.billing_address
@@ -102,9 +107,17 @@ def fetch_checkout_info(
     channel = checkout.channel
     shipping_address = checkout.shipping_address
     shipping_method = checkout.shipping_method
-    shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
-        shipping_method=shipping_method, channel=channel
-    ).first()
+    shipping_method_channel_listing = None
+    shipping_method_channel_listings = list(
+        ShippingMethodChannelListing.objects.filter(
+            channel=channel,
+        )
+    )
+    for listing in shipping_method_channel_listings:
+        if listing.shipping_method == shipping_method:
+            shipping_method_channel_listing = listing
+            break
+
     checkout_info = CheckoutInfo(
         checkout=checkout,
         user=checkout.user,
@@ -112,7 +125,8 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         shipping_method=shipping_method,
-        shipping_method_channel_listings=shipping_channel_listings,
+        shipping_method_channel_listing=shipping_method_channel_listing,
+        shipping_method_channel_listings=shipping_method_channel_listings,
         valid_shipping_methods=[],
     )
     checkout_info.valid_shipping_methods = SimpleLazyObject(
@@ -152,34 +166,41 @@ def get_valid_shipping_method_list_for_checkout_info(
     )
     subtotal -= checkout_info.checkout.discount
     checkout = checkout_info.checkout
-    valid_shipping_methods = get_valid_shipping_methods_for_checkout(
-        checkout_info, lines, subtotal, country_code=country_code
-    )
+
     valid_shipping_methods = (
-        list(valid_shipping_methods) if valid_shipping_methods is not None else []
+        get_valid_shipping_methods_for_checkout(
+            checkout_info, lines, subtotal, country_code=country_code
+        )
+        or []
     )
+    annotate_shipping_methods_with_price(
+        valid_shipping_methods,
+        checkout_info.shipping_method_channel_listings,
+        checkout_info.shipping_address,
+        checkout_info.channel.slug,
+        manager,
+        display_gross=True,
+    )
+    shipping_method_dataclasses = [
+        convert_shipping_method_model_to_dataclass(shipping)
+        for shipping in valid_shipping_methods
+    ]
     excluded_shipping_methods = manager.excluded_shipping_methods_for_checkout(
-        checkout, valid_shipping_methods
+        checkout, shipping_method_dataclasses
     )
-    valid_shipping_methods_map = {
-        graphene.Node.to_global_id("ShippingMethod", valid_method.id): valid_method
-        for valid_method in valid_shipping_methods
-    }
-    for valid_method_id, valid_method in valid_shipping_methods_map.items():
-        valid_method.active = True
-        valid_method.message = ""
-        for excluded_method in excluded_shipping_methods:
-            if valid_method_id == excluded_method.id:
-                valid_method.active = False
-                valid_method.message = excluded_method.reason
-    return [method for method in valid_shipping_methods_map.values() if method.active]
+    annotate_active_shipping_methods(
+        valid_shipping_methods,
+        excluded_shipping_methods,
+    )
+
+    return [method for method in valid_shipping_methods if method.active]
 
 
 def update_checkout_info_shipping_method(
     checkout_info: CheckoutInfo, shipping_method: Optional["ShippingMethod"]
 ):
     checkout_info.shipping_method = shipping_method
-    checkout_info.shipping_method_channel_listings = (
+    checkout_info.shipping_method_channel_listing = (
         (
             ShippingMethodChannelListing.objects.filter(
                 shipping_method=shipping_method, channel=checkout_info.channel

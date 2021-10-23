@@ -535,6 +535,12 @@ def generate_list_gateways_payload(
     return json.dumps(payload)
 
 
+def _generate_payload_for_shipping_method(method: ShippingMethod):
+    payload = asdict(method)
+    payload["id"] = graphene.Node.to_global_id("ShippingMethod", payload["id"])
+    return payload
+
+
 def generate_excluded_shipping_methods_for_order_payload(
     order: "Order",
     available_shipping_methods: List[ShippingMethod],
@@ -543,7 +549,8 @@ def generate_excluded_shipping_methods_for_order_payload(
     payload = {
         "order": order_data,
         "shipping_methods": [
-            asdict(shipping_method) for shipping_method in available_shipping_methods
+            _generate_payload_for_shipping_method(shipping_method)
+            for shipping_method in available_shipping_methods
         ],
     }
     return json.dumps(payload, cls=CustomJsonEncoder)
@@ -557,7 +564,8 @@ def generate_excluded_shipping_methods_for_checkout_payload(
     payload = {
         "checkout": checkout_data,
         "shipping_methods": [
-            asdict(shipping_method) for shipping_method in available_shipping_methods
+            _generate_payload_for_shipping_method(shipping_method)
+            for shipping_method in available_shipping_methods
         ],
     }
     return json.dumps(payload, cls=CustomJsonEncoder)

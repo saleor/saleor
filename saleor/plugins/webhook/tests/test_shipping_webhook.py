@@ -16,6 +16,7 @@ from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_order_payload,
 )
 from ...base_plugin import ExcludedShippingMethod, ShippingMethod
+from ..utils import parse_excluded_shipping_methods_response
 
 ORDER_QUERY_SHIPPING_METHOD = """
     query OrdersQuery {
@@ -126,7 +127,7 @@ def test_excluded_shipping_methods_for_order(
     mocked_webhook.return_value = {
         "excluded_methods": [
             {
-                "id": "1",
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
                 "reason": webhook_reason,
             }
         ]
@@ -161,40 +162,28 @@ def test_excluded_shipping_methods_for_order(
     )
 
 
-@mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_sync")
-@mock.patch(
-    "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
-)
-def test_excluded_shipping_methods_id_expected_for_order(
-    mocked_payload,
-    mocked_webhook,
-    webhook_plugin,
-    order_with_lines,
-    available_shipping_methods_factory,
-):
+def test_parse_excluded_shipping_methods_response():
     # given
-    webhook_reason = "spanish-inquisition"
-    mocked_webhook.return_value = {
+    response = {
         "excluded_methods": [
             {
                 "id": "",
-                "reason": webhook_reason,
-            }
+            },
+            {
+                "id": "not-an-id",
+            },
+            {
+                "id": graphene.Node.to_global_id("Car", "1"),
+            },
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+            },
         ]
     }
-    payload = mock.MagicMock()
-    mocked_payload.return_value = payload
-    plugin = webhook_plugin()
-    available_shipping_methods = available_shipping_methods_factory(num_methods=2)
-
     # when
-    excluded_methods = plugin.excluded_shipping_methods_for_order(
-        order=order_with_lines,
-        available_shipping_methods=available_shipping_methods,
-        previous_value=[],
-    )
+    excluded_methods = parse_excluded_shipping_methods_response(response)
     # then
-    assert len(excluded_methods) == 0
+    assert len(excluded_methods) == 1
 
 
 @mock.patch(
@@ -385,7 +374,7 @@ def test_excluded_shipping_methods_for_checkout(
     mocked_webhook.return_value = {
         "excluded_methods": [
             {
-                "id": "1",
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
                 "reason": webhook_reason,
             }
         ]
@@ -434,9 +423,15 @@ def test_generate_excluded_shipping_methods_for_order_payload(
     )
     # then
     assert len(json_payload["shipping_methods"]) == 3
-    assert json_payload["shipping_methods"][0]["id"] == methods[0].id
-    assert json_payload["shipping_methods"][1]["id"] == methods[1].id
-    assert json_payload["shipping_methods"][2]["id"] == methods[2].id
+    assert json_payload["shipping_methods"][0]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", methods[0].id
+    )
+    assert json_payload["shipping_methods"][1]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", methods[1].id
+    )
+    assert json_payload["shipping_methods"][2]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", methods[2].id
+    )
     graphql_order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     assert json_payload["order"]["id"] == graphql_order_id
 
@@ -456,7 +451,13 @@ def test_generate_excluded_shipping_methods_for_checkout_payload(
     )
     # then
     assert len(json_payload["shipping_methods"]) == 3
-    assert json_payload["shipping_methods"][0]["id"] == methods[0].id
-    assert json_payload["shipping_methods"][1]["id"] == methods[1].id
-    assert json_payload["shipping_methods"][2]["id"] == methods[2].id
+    assert json_payload["shipping_methods"][0]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", methods[0].id
+    )
+    assert json_payload["shipping_methods"][1]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", methods[1].id
+    )
+    assert json_payload["shipping_methods"][2]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", methods[2].id
+    )
     assert "checkout" in json_payload

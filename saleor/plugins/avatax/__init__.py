@@ -219,13 +219,13 @@ def append_line_to_data(
 
 def append_shipping_to_data(
     data: List[Dict],
-    shipping_method_channel_listings: Optional["ShippingMethodChannelListing"],
+    shipping_method_channel_listing: Optional["ShippingMethodChannelListing"],
 ):
     charge_taxes_on_shipping = (
         Site.objects.get_current().settings.charge_taxes_on_shipping
     )
-    if charge_taxes_on_shipping and shipping_method_channel_listings:
-        shipping_price = shipping_method_channel_listings.price
+    if charge_taxes_on_shipping and shipping_method_channel_listing:
+        shipping_price = shipping_method_channel_listing.price
         append_line_to_data(
             data,
             quantity=1,
@@ -265,7 +265,7 @@ def get_checkout_lines_data(
 
     append_shipping_to_data(
         data,
-        checkout_info.shipping_method_channel_listings,
+        checkout_info.shipping_method_channel_listing,
     )
     return data
 
