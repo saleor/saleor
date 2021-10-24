@@ -110,6 +110,7 @@ class GraphQLView(View):
                         "Authorization-Bearer"
                     )
                     response["Access-Control-Allow-Credentials"] = "true"
+                    response["Cache-Control:"] = "no-cache"
                     break
         return response
 
