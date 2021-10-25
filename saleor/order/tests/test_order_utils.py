@@ -14,7 +14,6 @@ from ..models import Order, OrderEvent
 from ..utils import (
     add_gift_cards_to_order,
     add_variant_to_order,
-    assign_user_orders,
     change_order_line_quantity,
     get_valid_shipping_methods_for_order,
     match_orders_with_new_user,
@@ -121,18 +120,28 @@ def test_change_quantity_update_line_fields(
     assert line.undiscounted_total_price == line.undiscounted_unit_price * new_quantity
 
 
-def test_match_orders_with_new_user(customer_user, channel_USD):
-    address = customer_user.default_billing_address.get_copy()
-    order = Order.objects.create(
-        billing_address=address,
-        user=None,
-        user_email=customer_user.email,
-        channel=channel_USD,
-    )
+def test_match_orders_with_new_user(order_list, staff_user, customer_user):
+    # given
+    for order in order_list[:2]:
+        order.user = None
+        order.user_email = staff_user.email
 
-    match_orders_with_new_user(customer_user)
-    order.refresh_from_db()
-    assert order.user == customer_user
+    order_with_user = order_list[-1]
+    order_with_user.user = customer_user
+    order_with_user.user_email = staff_user.email
+
+    Order.objects.bulk_update(order_list, ["user", "user_email"])
+
+    # when
+    match_orders_with_new_user(staff_user)
+
+    # then
+    for order in order_list[:2]:
+        order.refresh_from_db()
+        assert order.user == staff_user
+
+    order_with_user.refresh_from_db()
+    assert order_with_user.user != staff_user
 
 
 def test_match_draft_order_with_new_user(customer_user, channel_USD):
@@ -391,21 +400,3 @@ def test_add_gift_cards_to_order_no_checkout_user(
         },
         "order_id": order.id,
     }
-
-
-def test_assign_user_orders(order_list, staff_user):
-    # given
-    for order in order_list[:2]:
-        order.user = None
-        order.user_email = staff_user.email
-        order.save(update_fields=["user", "user_email"])
-
-    # when
-    assign_user_orders(staff_user)
-
-    # then
-    for order in order_list[:2]:
-        order.refresh_from_db()
-        assert order.user == staff_user
-
-    assert order_list[-1].user != staff_user

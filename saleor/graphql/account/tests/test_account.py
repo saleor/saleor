@@ -3858,9 +3858,14 @@ def test_account_reset_password(
 
 
 @freeze_time("2018-05-31 12:00:01")
+@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
 @patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
 def test_account_confirmation(
-    match_orders_with_new_user_mock, api_client, customer_user, channel_USD
+    match_orders_with_new_user_mock,
+    assign_gift_cards_mock,
+    api_client,
+    customer_user,
+    channel_USD,
 ):
     customer_user.is_active = False
     customer_user.save()
@@ -3876,13 +3881,19 @@ def test_account_confirmation(
     assert content["data"]["confirmAccount"]["user"]["email"] == customer_user.email
     customer_user.refresh_from_db()
     match_orders_with_new_user_mock.assert_called_once_with(customer_user)
+    assign_gift_cards_mock.assert_called_once_with(customer_user)
     assert customer_user.is_active is True
 
 
 @freeze_time("2018-05-31 12:00:01")
+@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
 @patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
 def test_account_confirmation_invalid_user(
-    match_orders_with_new_user_mock, user_api_client, customer_user, channel_USD
+    match_orders_with_new_user_mock,
+    assign_gift_cards_mock,
+    user_api_client,
+    customer_user,
+    channel_USD,
 ):
     variables = {
         "email": "non-existing@example.com",
@@ -3897,11 +3908,17 @@ def test_account_confirmation_invalid_user(
         == AccountErrorCode.NOT_FOUND.name
     )
     match_orders_with_new_user_mock.assert_not_called()
+    assign_gift_cards_mock.assert_not_called()
 
 
+@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
 @patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
 def test_account_confirmation_invalid_token(
-    match_orders_with_new_user_mock, user_api_client, customer_user, channel_USD
+    match_orders_with_new_user_mock,
+    assign_gift_cards_mock,
+    user_api_client,
+    customer_user,
+    channel_USD,
 ):
     variables = {
         "email": customer_user.email,
@@ -3916,6 +3933,7 @@ def test_account_confirmation_invalid_token(
         == AccountErrorCode.INVALID.name
     )
     match_orders_with_new_user_mock.assert_not_called()
+    assign_gift_cards_mock.assert_not_called()
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -5137,7 +5155,7 @@ mutation emailUpdate($token: String!, $channel: String) {
 """
 
 
-@patch("saleor.graphql.account.mutations.account.assign_user_orders")
+@patch("saleor.graphql.account.mutations.account.match_orders_with_new_user")
 @patch("saleor.graphql.account.mutations.account.assign_user_gift_cards")
 def test_email_update(
     assign_gift_cards_mock,
