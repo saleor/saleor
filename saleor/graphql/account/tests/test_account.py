@@ -246,7 +246,10 @@ def test_query_customer_user(
 
 
 def test_query_customer_user_with_orders(
-    staff_api_client, customer_user, order_list, permission_manage_users
+    staff_api_client,
+    customer_user,
+    order_list,
+    permission_manage_users,
 ):
     # given
     query = FULL_USER_QUERY
@@ -4419,6 +4422,7 @@ def test_query_customers_search_without_duplications(
     query_customer_with_filter,
     staff_api_client,
     permission_manage_users,
+    permission_manage_orders,
 ):
     customer = User.objects.create(email="david@example.com")
     customer.addresses.create(first_name="David")
@@ -4427,6 +4431,16 @@ def test_query_customers_search_without_duplications(
     variables = {"filter": {"search": "David"}}
     response = staff_api_client.post_graphql(
         query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    users = content["data"]["customers"]["edges"]
+    assert len(users) == 1
+
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter,
+        variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
     )
     content = get_graphql_content(response)
     users = content["data"]["customers"]["edges"]

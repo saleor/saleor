@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import AccountPermissions
+from ...core.permissions import AccountPermissions, OrderPermissions
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
@@ -157,7 +157,9 @@ class AccountQueries(graphene.ObjectType):
             city_area=city_area,
         )
 
-    @permission_required(AccountPermissions.MANAGE_USERS)
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, AccountPermissions.MANAGE_USERS]
+    )
     def resolve_customers(self, info, **kwargs):
         return resolve_customers(info, **kwargs)
 
