@@ -461,7 +461,7 @@ class SaleorProvider(BaseProvider):
         return Weight(kg=fake.pydecimal(1, 2, positive=True))
 
 
-fake.add_provider(SaleorProvider)
+fake.add_provider(SaleorProvider)  # type: ignore
 
 
 def get_email(first_name, last_name):
