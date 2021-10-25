@@ -14,6 +14,7 @@ from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
+from ..order import FulfillmentLineData, OrderLineData
 from ..order.models import Order
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
@@ -24,6 +25,7 @@ from .interface import (
     PaymentData,
     PaymentLineData,
     PaymentMethodInfo,
+    RefundLineData,
 )
 from .models import Payment, Transaction
 
@@ -67,10 +69,12 @@ def create_payment_lines_information(
 
             quantity = line_info.line.quantity
             product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"
+            product_sku = line_info.variant.sku
             line_items.append(
                 PaymentLineData(
                     quantity=quantity,
                     product_name=product_name,
+                    product_sku=product_sku,
                     gross=unit_gross,
                 )
             )
@@ -94,6 +98,7 @@ def create_payment_lines_information(
                 PaymentLineData(
                     quantity=order_line.quantity,
                     product_name=product_name,
+                    product_sku=order_line.product_sku,
                     gross=order_line.unit_price_gross_amount,
                 )
             )
@@ -111,6 +116,7 @@ def create_shipping_payment_line_data(amount: Decimal) -> PaymentLineData:
     return PaymentLineData(
         quantity=1,
         product_name="Shipping",
+        product_sku="",
         gross=amount,
     )
 
@@ -132,7 +138,12 @@ def create_order_voucher_payment_line_data(
 def create_voucher_payment_line_data(amount: Decimal) -> Optional[PaymentLineData]:
     if not amount:
         return None
-    return PaymentLineData(quantity=1, product_name="Voucher", gross=amount)
+    return PaymentLineData(
+        quantity=1,
+        product_name="Voucher",
+        product_sku="",
+        gross=amount,
+    )
 
 
 def create_payment_information(
@@ -141,6 +152,7 @@ def create_payment_information(
     amount: Decimal = None,
     customer_id: str = None,
     store_source: bool = False,
+    lines_to_refund: Optional[List[RefundLineData]] = None,
     additional_data: Optional[dict] = None,
     manager: Optional[PluginsManager] = None,
 ) -> PaymentData:
@@ -189,10 +201,32 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
+        lines_to_refund=lines_to_refund,
         _resolve_lines=lambda: create_payment_lines_information(
             payment, manager or get_plugins_manager()
         ),
     )
+
+
+def create_refund_line_data(
+    order_lines: List[OrderLineData],
+    fulfillment_lines: List[FulfillmentLineData],
+) -> List[RefundLineData]:
+    order_refund_lines = [
+        RefundLineData(
+            product_sku=line.line.product_sku,
+            quantity=line.line.quantity - line.quantity,
+        )
+        for line in order_lines
+    ]
+    fulfillment_refund_lines = [
+        RefundLineData(
+            product_sku=(order_line := line.line.order_line).product_sku,
+            quantity=order_line.quantity - line.quantity,
+        )
+        for line in fulfillment_lines
+    ]
+    return order_refund_lines + fulfillment_refund_lines
 
 
 def create_payment(

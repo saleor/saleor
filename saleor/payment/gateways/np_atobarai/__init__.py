@@ -96,10 +96,24 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
 
     if not payment:
         raise PaymentError(f"Payment with id {payment_id} does not exist.")
-    if payment_information.amount < payment.captured_amount:
-        raise PaymentError(f"Cannot partially refund payment with id {payment_id}")
 
-    result = api.cancel_transaction(config, payment_information)
+    if payment_information.amount < payment.captured_amount:
+        order = payment.order
+
+        if not order:
+            raise PaymentError(f"Order does not exist for payment with id {payment_id}")
+
+        lines = payment_information.lines_to_refund
+
+        result = api.change_transaction(config, payment, payment_information, lines)
+
+        if not result:
+            result = api.reregister_transaction_for_partial_return(
+                config, payment, payment_information, lines
+            )
+
+    else:
+        result = api.cancel_transaction(config, payment_information)
 
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,
@@ -108,7 +122,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=result.psp_reference,
-        error=os.linesep.join(result.errors),
+        error=parse_errors(result.errors),
         raw_response=result.raw_response,
         psp_reference=result.psp_reference,
     )

@@ -63,7 +63,14 @@ class AddressData:
 @dataclass
 class PaymentLineData:
     gross: Decimal
+    product_sku: str
     product_name: str
+    quantity: int
+
+
+@dataclass
+class RefundLineData:
+    product_sku: str
     quantity: int
 
 
@@ -90,6 +97,7 @@ class PaymentData:
     reuse_source: bool = False
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
+    lines_to_refund: Optional[List[RefundLineData]] = None
     # Optional, lazy-evaluated gateway arguments
     _resolve_lines: InitVar[Callable] = None
 

@@ -2,6 +2,8 @@ from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 
+import saleor.payment.gateways.np_atobarai.api_helpers
+
 from ....order.models import Fulfillment
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ....plugins.error_codes import PluginErrorCode
@@ -140,7 +142,9 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             data["name"]: data["value"] for data in plugin_configuration.configuration
         }
         with np_atobarai_opentracing_trace("np-atobarai.utilities.ping"):
-            response = api.health_check(get_api_config(conf))
+            response = saleor.payment.gateways.np_atobarai.api_helpers.health_check(
+                get_api_config(conf)
+            )
 
         if not response:
             raise ValidationError(
