@@ -189,3 +189,6 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
                 )
 
             cls.validate_authentication(plugin_configuration)
+
+    def get_payment_config(self, previous_value):
+        return []
