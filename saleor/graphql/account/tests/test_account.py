@@ -4447,6 +4447,24 @@ def test_query_customers_search_without_duplications(
     assert len(users) == 1
 
 
+def test_query_customers_with_permission_manage_orders(
+    query_customer_with_filter,
+    customer_user,
+    staff_api_client,
+    permission_manage_orders,
+):
+    variables = {"filter": {}}
+
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter,
+        variables,
+        permissions=[permission_manage_orders],
+    )
+    content = get_graphql_content(response)
+    users = content["data"]["customers"]["totalCount"]
+    assert users == 1
+
+
 QUERY_CUSTOMERS_WITH_SORT = """
     query ($sort_by: UserSortingInput!) {
         customers(first:5, sortBy: $sort_by) {
