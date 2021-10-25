@@ -229,9 +229,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                                     (checkout.shipping_method_id, channel.id)
                                 )
                             ),
-                            all_shipping_method_channel_listings=(
-                                shipping_method_channel_listing_map.values()
-                            ),
                         )
                     return [checkout_info_map[key] for key in keys]
 

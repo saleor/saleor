@@ -842,7 +842,6 @@ def test_get_checkout_line_tax_rate(
         channel=checkout_with_item.channel,
         user=None,
         shipping_method_channel_listings=None,
-        all_shipping_method_channel_listings=[],
         valid_shipping_methods=[],
     )
     lines = fetch_checkout_lines(checkout_with_item)
@@ -896,7 +895,6 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
         channel=checkout_with_item.channel,
         user=None,
         shipping_method_channel_listings=None,
-        all_shipping_method_channel_listings=[],
         valid_shipping_methods=[],
     )
     lines = fetch_checkout_lines(checkout_with_item)
@@ -962,7 +960,6 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
         channel=checkout_with_item.channel,
         user=None,
         shipping_method_channel_listings=None,
-        all_shipping_method_channel_listings=[],
         valid_shipping_methods=[],
     )
     add_variant_to_checkout(checkout_info, variant2, 1)
@@ -1188,7 +1185,6 @@ def test_get_checkout_shipping_tax_rate(
         channel=checkout_with_item.channel,
         user=None,
         shipping_method_channel_listings=None,
-        all_shipping_method_channel_listings=[],
         valid_shipping_methods=[],
     )
 

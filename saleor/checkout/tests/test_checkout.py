@@ -147,7 +147,6 @@ def test_get_discount_for_checkout_value_voucher(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listings=None,
-        all_shipping_method_channel_listings=[],
         valid_shipping_methods=[],
     )
     lines = [
@@ -242,7 +241,6 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listings=None,
-        all_shipping_method_channel_listings=[],
         valid_shipping_methods=[],
     )
     manager = get_plugins_manager()
@@ -356,7 +354,6 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listings=None,
-        all_shipping_method_channel_listings=[],
         valid_shipping_methods=[],
     )
     with pytest.raises(NotApplicable):
@@ -428,7 +425,6 @@ def test_get_discount_for_checkout_shipping_voucher(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listings=None,
-        all_shipping_method_channel_listings=[],
         valid_shipping_methods=[],
     )
     discount = get_voucher_discount_for_checkout(
@@ -487,7 +483,6 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listings=None,
-        all_shipping_method_channel_listings=[],
         valid_shipping_methods=[],
     )
     discount = get_voucher_discount_for_checkout(
@@ -533,7 +528,6 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listings=None,
-        all_shipping_method_channel_listings=[],
         valid_shipping_methods=[],
     )
     manager = get_plugins_manager()
@@ -679,7 +673,6 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listings=None,
-        all_shipping_method_channel_listings=[],
         valid_shipping_methods=[],
     )
     with pytest.raises(NotApplicable) as e:

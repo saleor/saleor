@@ -46,7 +46,6 @@ class CheckoutInfo:
     shipping_method: Optional["ShippingMethod"]
     valid_shipping_methods: List["ShippingMethod"]
     shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
-    all_shipping_method_channel_listings: List[ShippingMethodChannelListing]
 
     def get_country(self) -> str:
         address = self.shipping_address or self.billing_address
@@ -126,12 +125,16 @@ def fetch_checkout_info(
         shipping_address=shipping_address,
         shipping_method=shipping_method,
         shipping_method_channel_listings=shipping_method_channel_listing,
-        all_shipping_method_channel_listings=all_shipping_method_channel_listings,
         valid_shipping_methods=[],
     )
     checkout_info.valid_shipping_methods = SimpleLazyObject(
         lambda: get_valid_shipping_method_list_for_checkout_info(
-            checkout_info, shipping_address, lines, discounts, manager
+            checkout_info,
+            shipping_address,
+            lines,
+            discounts,
+            manager,
+            all_shipping_method_channel_listings,
         )
     )  # type: ignore
     return checkout_info
@@ -157,8 +160,14 @@ def get_valid_shipping_method_list_for_checkout_info(
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
+    channel_listings: Optional[List["ShippingMethodChannelListing"]] = None,
 ):
     from .utils import get_valid_shipping_methods_for_checkout
+
+    if channel_listings is None:
+        channel_listings = list(
+            ShippingMethodChannelListing.objects.filter(channel=checkout_info.channel)
+        )
 
     country_code = shipping_address.country.code if shipping_address else None
     subtotal = manager.calculate_checkout_subtotal(
@@ -175,7 +184,7 @@ def get_valid_shipping_method_list_for_checkout_info(
     )
     annotate_shipping_methods_with_price(
         valid_shipping_methods,
-        checkout_info.all_shipping_method_channel_listings,
+        channel_listings,
         checkout_info.shipping_address,
         checkout_info.channel.slug,
         manager,
