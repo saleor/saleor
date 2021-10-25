@@ -1,5 +1,4 @@
-import typing
-from typing import List
+from typing import TYPE_CHECKING, List, Optional
 
 from measurement.measures import Weight
 
@@ -9,7 +8,7 @@ from ...plugins.base_plugin import ShippingMethod as ShippingMethodDataclass
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from ...plugins.manager import PluginsManager
     from ...shipping.models import ShippingMethodChannelListing
 
@@ -43,7 +42,7 @@ def convert_shipping_method_model_to_dataclass(
 def annotate_shipping_methods_with_price(
     shipping_methods: List[shipping_models.ShippingMethod],
     channel_listings: List["ShippingMethodChannelListing"],
-    address: typing.Optional["Address"],
+    address: Optional["Address"],
     channel_slug: str,
     manager: "PluginsManager",
     display_gross: bool,
