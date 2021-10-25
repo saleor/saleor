@@ -13,7 +13,7 @@ QUERY_GIFT_CARDS = """
             edges {
                 node {
                     id
-                    displayCode
+                    last4
                 }
             }
             totalCount

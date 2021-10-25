@@ -50,7 +50,7 @@ FRAGMENT_GIFT_CARD_DETAILS = (
         fragment GiftCardDetails on GiftCard {
             id
             code
-            displayCode
+            last4
             isActive
             expiryDate
             tag

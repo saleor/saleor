@@ -19,7 +19,7 @@ QUERY_GIFT_CARD_BY_ID = """
         giftCard(id: $id){
             id
             code
-            displayCode
+            last4
             isActive
             expiryDate
             tag
@@ -81,7 +81,7 @@ def test_query_gift_card_with_permissions(
     data = content["data"]["giftCard"]
     assert data["id"] == gift_card_id
     assert data["code"] == gift_card.code
-    assert data["displayCode"] == gift_card.display_code
+    assert data["last4"] == gift_card.display_code
     assert data["isActive"] == gift_card.is_active
     assert data["expiryDate"] is None
     assert data["tag"] == gift_card.tag
@@ -146,7 +146,7 @@ def test_query_gift_card_by_app(
     data = content["data"]["giftCard"]
     assert data["id"] == gift_card_id
     assert data["code"] == gift_card.code
-    assert data["displayCode"] == gift_card.display_code
+    assert data["last4"] == gift_card.display_code
     assert data["isActive"] == gift_card.is_active
     assert data["expiryDate"] is None
     assert data["tag"] == gift_card.tag
@@ -207,7 +207,7 @@ def test_query_gift_card_with_expiry_date(
     data = content["data"]["giftCard"]
     assert data["id"] == gift_card_id
     assert data["code"] == gift_card_expiry_date.code
-    assert data["displayCode"] == gift_card_expiry_date.display_code
+    assert data["last4"] == gift_card_expiry_date.display_code
     assert data["expiryDate"] == gift_card_expiry_date.expiry_date.isoformat()
 
 

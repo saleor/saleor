@@ -85,7 +85,69 @@ UPDATE_GIFT_CARD_MUTATION = (
     ){
         giftCardUpdate(id: $id, input: $input) {
             giftCard {
+<<<<<<< HEAD
                 ...GiftCardDetails
+=======
+                id
+                code
+                last4
+                isActive
+                expiryDate
+                tag
+                created
+                lastUsedOn
+                initialBalance {
+                    currency
+                    amount
+                }
+                currentBalance {
+                    currency
+                    amount
+                }
+                createdBy {
+                    email
+                }
+                usedBy {
+                    email
+                }
+                createdByEmail
+                usedByEmail
+                app {
+                    name
+                }
+                product {
+                    name
+                }
+                events {
+                    type
+                    user {
+                        email
+                    }
+                    app {
+                        name
+                    }
+                    balance {
+                        initialBalance {
+                            amount
+                            currency
+                        }
+                        oldInitialBalance {
+                            amount
+                            currency
+                        }
+                        currentBalance {
+                            amount
+                            currency
+                        }
+                        oldCurrentBalance {
+                            amount
+                            currency
+                        }
+                    }
+                    expiryDate
+                    oldExpiryDate
+                }
+>>>>>>> 3a18cb08a... Change gift card display_code field to last_4
             }
             errors {
                 field
