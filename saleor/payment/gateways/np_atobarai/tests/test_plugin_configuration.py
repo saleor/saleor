@@ -67,3 +67,14 @@ def test_validate_plugin_configuration_invalid_shipping_company_code(
 
     # then
     assert "shipping_company" in excinfo.value.error_dict
+
+
+def test_get_payment_config(np_atobarai_plugin):
+    # given
+    plugin = np_atobarai_plugin()
+
+    # when
+    config = plugin.get_payment_config(None)
+
+    # then
+    assert config == []
