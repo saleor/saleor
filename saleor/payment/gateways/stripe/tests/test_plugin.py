@@ -17,7 +17,6 @@ from ....utils import (
 from ..consts import (
     ACTION_REQUIRED_STATUSES,
     AUTHORIZED_STATUS,
-    AUTOMATIC_CAPTURE_METHOD,
     MANUAL_CAPTURE_METHOD,
     PROCESSING_STATUS,
     STRIPE_API_VERSION,
@@ -166,17 +165,10 @@ def test_process_payment(
     stripe_plugin,
     payment_stripe_for_checkout,
     channel_USD,
+    stripe_client_secret,
+    payment_intent,
 ):
-    payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
-    client_secret = "client-secret"
-    dummy_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-    payment_intent_id = "payment-intent-id"
-    payment_intent.id = payment_intent_id
-    payment_intent.client_secret = client_secret
-    payment_intent.last_response.data = dummy_response
     payment_intent.status = "requires_payment_method"
 
     plugin = stripe_plugin(auto_capture=True)
@@ -192,12 +184,12 @@ def test_process_payment(
     assert response.kind == TransactionKind.ACTION_TO_CONFIRM
     assert response.amount == payment_info.amount
     assert response.currency == payment_info.currency
-    assert response.transaction_id == payment_intent_id
+    assert response.transaction_id == payment_intent.id
     assert response.error is None
-    assert response.raw_response == dummy_response
+    assert response.raw_response == payment_intent.last_response.data
     assert response.action_required_data == {
-        "client_secret": client_secret,
-        "id": payment_intent_id,
+        "client_secret": stripe_client_secret,
+        "id": payment_intent.id,
     }
 
     api_key = plugin.config.connection_params["secret_api_key"]
@@ -205,7 +197,7 @@ def test_process_payment(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         metadata={
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
@@ -225,11 +217,11 @@ def test_process_payment_with_customer(
     payment_stripe_for_checkout,
     channel_USD,
     customer_user,
+    stripe_client_secret,
+    payment_intent,
 ):
     customer = StripeObject(id="cus_id")
     mocked_customer_create.return_value = customer
-
-    payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
 
     client_secret = "client-secret"
@@ -238,7 +230,7 @@ def test_process_payment_with_customer(
     }
     payment_intent_id = "payment-intent-id"
     payment_intent.id = payment_intent_id
-    payment_intent.client_secret = client_secret
+    payment_intent.client_secret = stripe_client_secret
     payment_intent.last_response.data = dummy_response
     payment_intent.status = "requires_payment_method"
 
@@ -272,7 +264,7 @@ def test_process_payment_with_customer(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         customer=customer,
         metadata={
             "channel": channel_USD.slug,
@@ -298,22 +290,12 @@ def test_process_payment_with_customer_and_future_usage(
     payment_stripe_for_checkout,
     channel_USD,
     customer_user,
+    stripe_client_secret,
+    payment_intent,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
-
-    payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
-
-    client_secret = "client-secret"
-    dummy_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-    payment_intent_id = "payment-intent-id"
-    payment_intent.id = payment_intent_id
-    payment_intent.client_secret = client_secret
-    payment_intent.last_response.data = dummy_response
-    payment_intent.status = SUCCESS_STATUS
 
     plugin = stripe_plugin(auto_capture=True)
 
@@ -330,15 +312,15 @@ def test_process_payment_with_customer_and_future_usage(
 
     assert response.is_success is True
     assert response.action_required is False
-    assert response.kind == TransactionKind.CAPTURE
+    assert response.kind == TransactionKind.AUTH
     assert response.amount == payment_info.amount
     assert response.currency == payment_info.currency
-    assert response.transaction_id == payment_intent_id
+    assert response.transaction_id == payment_intent.id
     assert response.error is None
-    assert response.raw_response == dummy_response
+    assert response.raw_response == payment_intent.last_response.data
     assert response.action_required_data == {
-        "client_secret": client_secret,
-        "id": payment_intent_id,
+        "client_secret": stripe_client_secret,
+        "id": payment_intent.id,
     }
 
     api_key = plugin.config.connection_params["secret_api_key"]
@@ -346,7 +328,7 @@ def test_process_payment_with_customer_and_future_usage(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         customer=customer,
         setup_future_usage="off_session",
         metadata={
@@ -364,6 +346,25 @@ def test_process_payment_with_customer_and_future_usage(
     )
 
 
+@pytest.fixture
+def stripe_client_secret():
+    return "client-secret"
+
+
+@pytest.fixture
+def payment_intent(stripe_client_secret):
+    dummy_response = {
+        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
+    }
+    payment_intent_id = "payment-intent-id"
+    intent = Mock()
+    intent.id = payment_intent_id
+    intent.client_secret = stripe_client_secret
+    intent.last_response.data = dummy_response
+    intent.status = AUTHORIZED_STATUS
+    return intent
+
+
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
 def test_process_payment_with_customer_and_payment_method(
@@ -373,22 +374,12 @@ def test_process_payment_with_customer_and_payment_method(
     payment_stripe_for_checkout,
     channel_USD,
     customer_user,
+    stripe_client_secret,
+    payment_intent,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
-
-    payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
-
-    client_secret = "client-secret"
-    dummy_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-    payment_intent_id = "payment-intent-id"
-    payment_intent.id = payment_intent_id
-    payment_intent.client_secret = client_secret
-    payment_intent.last_response.data = dummy_response
-    payment_intent.status = SUCCESS_STATUS
 
     plugin = stripe_plugin(auto_capture=True)
 
@@ -405,15 +396,15 @@ def test_process_payment_with_customer_and_payment_method(
 
     assert response.is_success is True
     assert response.action_required is False
-    assert response.kind == TransactionKind.CAPTURE
+    assert response.kind == TransactionKind.AUTH
     assert response.amount == payment_info.amount
     assert response.currency == payment_info.currency
-    assert response.transaction_id == payment_intent_id
+    assert response.transaction_id == payment_intent.id
     assert response.error is None
-    assert response.raw_response == dummy_response
+    assert response.raw_response == payment_intent.last_response.data
     assert response.action_required_data == {
-        "client_secret": client_secret,
-        "id": payment_intent_id,
+        "client_secret": stripe_client_secret,
+        "id": payment_intent.id,
     }
 
     api_key = plugin.config.connection_params["secret_api_key"]
@@ -421,7 +412,7 @@ def test_process_payment_with_customer_and_payment_method(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         customer=customer,
         payment_method="pm_ID",
         off_session=False,
@@ -449,22 +440,12 @@ def test_process_payment_with_payment_method_types(
     payment_stripe_for_checkout,
     channel_USD,
     customer_user,
+    stripe_client_secret,
+    payment_intent,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
-
-    payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
-
-    client_secret = "client-secret"
-    dummy_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-    payment_intent_id = "payment-intent-id"
-    payment_intent.id = payment_intent_id
-    payment_intent.client_secret = client_secret
-    payment_intent.last_response.data = dummy_response
-    payment_intent.status = SUCCESS_STATUS
 
     plugin = stripe_plugin(auto_capture=True)
 
@@ -482,15 +463,15 @@ def test_process_payment_with_payment_method_types(
 
     assert response.is_success is True
     assert response.action_required is False
-    assert response.kind == TransactionKind.CAPTURE
+    assert response.kind == TransactionKind.AUTH
     assert response.amount == payment_info.amount
     assert response.currency == payment_info.currency
-    assert response.transaction_id == payment_intent_id
+    assert response.transaction_id == payment_intent.id
     assert response.error is None
-    assert response.raw_response == dummy_response
+    assert response.raw_response == payment_intent.last_response.data
     assert response.action_required_data == {
-        "client_secret": client_secret,
-        "id": payment_intent_id,
+        "client_secret": stripe_client_secret,
+        "id": payment_intent.id,
     }
 
     api_key = plugin.config.connection_params["secret_api_key"]
@@ -498,7 +479,7 @@ def test_process_payment_with_payment_method_types(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         customer=customer,
         metadata={
             "channel": channel_USD.slug,
@@ -525,22 +506,13 @@ def test_process_payment_offline(
     payment_stripe_for_checkout,
     channel_USD,
     customer_user,
+    stripe_client_secret,
+    payment_intent,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
 
-    payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
-
-    client_secret = "client-secret"
-    dummy_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-    payment_intent_id = "payment-intent-id"
-    payment_intent.id = payment_intent_id
-    payment_intent.client_secret = client_secret
-    payment_intent.last_response.data = dummy_response
-    payment_intent.status = SUCCESS_STATUS
 
     plugin = stripe_plugin(auto_capture=True)
 
@@ -557,15 +529,15 @@ def test_process_payment_offline(
 
     assert response.is_success is True
     assert response.action_required is False
-    assert response.kind == TransactionKind.CAPTURE
+    assert response.kind == TransactionKind.AUTH
     assert response.amount == payment_info.amount
     assert response.currency == payment_info.currency
-    assert response.transaction_id == payment_intent_id
+    assert response.transaction_id == payment_intent.id
     assert response.error is None
-    assert response.raw_response == dummy_response
+    assert response.raw_response == payment_intent.last_response.data
     assert response.action_required_data == {
-        "client_secret": client_secret,
-        "id": payment_intent_id,
+        "client_secret": stripe_client_secret,
+        "id": payment_intent.id,
     }
 
     api_key = plugin.config.connection_params["secret_api_key"]
@@ -573,7 +545,7 @@ def test_process_payment_offline(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         customer=customer,
         payment_method="pm_ID",
         confirm=True,
@@ -602,26 +574,16 @@ def test_process_payment_with_customer_and_payment_method_raises_authentication_
     payment_stripe_for_checkout,
     channel_USD,
     customer_user,
+    stripe_client_secret,
+    payment_intent,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
-
-    payment_intent = Mock()
     stripe_error_object = StripeError()
     stripe_error_object.error = StripeError()
     stripe_error_object.code = "authentication_required"
     stripe_error_object.error.payment_intent = payment_intent
     mocked_payment_intent.side_effect = stripe_error_object
-
-    client_secret = "client-secret"
-    dummy_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-    payment_intent_id = "payment-intent-id"
-    payment_intent.id = payment_intent_id
-    payment_intent.client_secret = client_secret
-    payment_intent.last_response.data = dummy_response
-    payment_intent.status = SUCCESS_STATUS
 
     plugin = stripe_plugin(auto_capture=True)
 
@@ -639,15 +601,15 @@ def test_process_payment_with_customer_and_payment_method_raises_authentication_
 
     assert response.is_success is True
     assert response.action_required is False
-    assert response.kind == TransactionKind.CAPTURE
+    assert response.kind == TransactionKind.AUTH
     assert response.amount == payment_info.amount
     assert response.currency == payment_info.currency
-    assert response.transaction_id == payment_intent_id
+    assert response.transaction_id == payment_intent.id
     assert response.error is None
-    assert response.raw_response == dummy_response
+    assert response.raw_response == payment_intent.last_response.data
     assert response.action_required_data == {
-        "client_secret": client_secret,
-        "id": payment_intent_id,
+        "client_secret": stripe_client_secret,
+        "id": payment_intent.id,
     }
 
     api_key = plugin.config.connection_params["secret_api_key"]
@@ -655,7 +617,7 @@ def test_process_payment_with_customer_and_payment_method_raises_authentication_
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         customer=customer,
         payment_method="pm_ID",
         confirm=True,
@@ -735,7 +697,7 @@ def test_process_payment_with_customer_and_payment_method_raises_error(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         customer=customer,
         payment_method="pm_ID",
         confirm=True,
@@ -762,17 +724,10 @@ def test_process_payment_with_disabled_order_auto_confirmation(
     payment_stripe_for_checkout,
     site_settings,
     channel_USD,
+    stripe_client_secret,
+    payment_intent,
 ):
-    payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
-    client_secret = "client-secret"
-    dummy_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-    payment_intent_id = "payment-intent-id"
-    payment_intent.id = payment_intent_id
-    payment_intent.client_secret = client_secret
-    payment_intent.last_response.data = dummy_response
     payment_intent.status = "requires_payment_method"
 
     plugin = stripe_plugin(auto_capture=True)
@@ -789,12 +744,12 @@ def test_process_payment_with_disabled_order_auto_confirmation(
     assert response.kind == TransactionKind.ACTION_TO_CONFIRM
     assert response.amount == payment_info.amount
     assert response.currency == payment_info.currency
-    assert response.transaction_id == payment_intent_id
+    assert response.transaction_id == payment_intent.id
     assert response.error is None
-    assert response.raw_response == dummy_response
+    assert response.raw_response == payment_intent.last_response.data
     assert response.action_required_data == {
-        "client_secret": client_secret,
-        "id": payment_intent_id,
+        "client_secret": stripe_client_secret,
+        "id": payment_intent.id,
     }
 
     api_key = plugin.config.connection_params["secret_api_key"]
@@ -814,24 +769,53 @@ def test_process_payment_with_disabled_order_auto_confirmation(
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
 def test_process_payment_with_manual_capture(
-    mocked_payment_intent, stripe_plugin, payment_stripe_for_checkout, channel_USD
+    mocked_payment_intent,
+    stripe_plugin,
+    payment_stripe_for_checkout,
+    channel_USD,
+    payment_intent,
 ):
-    payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
-    client_secret = "client-secret"
-    dummy_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-    payment_intent_id = "payment-intent-id"
-    payment_intent.id = payment_intent_id
-    payment_intent.client_secret = client_secret
-    payment_intent.last_response.data = dummy_response
 
     plugin = stripe_plugin(auto_capture=False)
 
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
     )
+
+    plugin.process_payment(payment_info, None)
+
+    api_key = plugin.config.connection_params["secret_api_key"]
+    mocked_payment_intent.assert_called_once_with(
+        api_key=api_key,
+        amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
+        currency=payment_info.currency,
+        capture_method=MANUAL_CAPTURE_METHOD,
+        metadata={
+            "channel": channel_USD.slug,
+            "payment_id": payment_info.graphql_payment_id,
+        },
+        receipt_email=payment_stripe_for_checkout.checkout.email,
+        stripe_version=STRIPE_API_VERSION,
+    )
+
+
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
+def test_process_payment_with_partial(
+    mocked_payment_intent,
+    stripe_plugin,
+    payment_stripe_for_checkout,
+    channel_USD,
+    payment_intent,
+):
+    payment_intent = Mock()
+    mocked_payment_intent.return_value = payment_intent
+    payment_stripe_for_checkout.partial = True
+    payment_stripe_for_checkout.save()
+
+    plugin = stripe_plugin(auto_capture=True)
+
+    payment_info = create_payment_information(payment_stripe_for_checkout)
 
     plugin.process_payment(payment_info, None)
 
@@ -881,7 +865,7 @@ def test_process_payment_with_error(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         metadata={
             "channel": channel_USD.slug,
             "payment_id": payment_info.graphql_payment_id,
@@ -1178,7 +1162,7 @@ def test_refund_payment(
         payment_token=payment_intent_id,
     )
     gateway_response = GatewayResponse(
-        kind=TransactionKind.CAPTURE,
+        kind=TransactionKind.AUTH,
         action_required=False,
         transaction_id=payment_intent_id,
         is_success=True,
@@ -1191,7 +1175,7 @@ def test_refund_payment(
     create_transaction(
         payment=payment,
         payment_information=payment_info,
-        kind=TransactionKind.CAPTURE,
+        kind=TransactionKind.AUTH,
         gateway_response=gateway_response,
     )
 

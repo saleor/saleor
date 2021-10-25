@@ -3,12 +3,17 @@ from typing import TYPE_CHECKING, Iterable, Optional, Type, Union
 from django.core.exceptions import ValidationError
 
 from ..discount import DiscountInfo
-from ..payment import gateway
 from ..payment import models as payment_models
 from ..payment.error_codes import PaymentErrorCode
 from ..plugins.manager import PluginsManager
 from .error_codes import CheckoutErrorCode
-from .utils import is_fully_paid, is_shipping_required, is_valid_shipping_method
+from .utils import (
+    call_payment_refund_or_void,
+    get_active_payments,
+    is_fully_covered,
+    is_shipping_required,
+    is_valid_shipping_method,
+)
 
 if TYPE_CHECKING:
     from .fetch import CheckoutInfo, CheckoutLineInfo
@@ -70,14 +75,36 @@ def clean_checkout_payment(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     error_code: Type[CheckoutErrorCode],
-    last_payment: Optional[payment_models.Payment],
+    payment: Optional[payment_models.Payment],
 ):
     clean_billing_address(checkout_info, error_code)
-    if not is_fully_paid(manager, checkout_info, lines, discounts):
-        gateway.payment_refund_or_void(
-            last_payment, manager, channel_slug=checkout_info.channel.slug
+
+    active_payments = get_active_payments(checkout_info.checkout)
+    if len(active_payments) == 0:
+        raise ValidationError(
+            "Payment has not been initiated.",
+            code=error_code.CHECKOUT_NOT_FULLY_PAID.value,
         )
+
+    if payment is None:
+        if len(active_payments) == 1:
+            payment = active_payments[0]
+
+        # Implies partial payments
+        elif len(active_payments) > 1:
+            incomplete_payments = [p for p in active_payments if p.not_charged]
+            if len(incomplete_payments) > 1:
+                raise ValidationError(
+                    "When multiple active payments are present you have to provide "
+                    "a specific paymentID as the input parameter.",
+                    code=CheckoutErrorCode.PAYMENT_NOT_SET.value,
+                )
+
+    if not is_fully_covered(manager, checkout_info, lines, discounts, payment):
+        call_payment_refund_or_void(payment)
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",
             code=error_code.CHECKOUT_NOT_FULLY_PAID.value,
         )
+
+    return payment

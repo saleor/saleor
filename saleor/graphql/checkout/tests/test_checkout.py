@@ -2695,7 +2695,7 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
 
     clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
     clean_checkout_payment(
-        manager, checkout_info, lines, None, CheckoutErrorCode, last_payment=payment
+        manager, checkout_info, lines, None, CheckoutErrorCode, payment
     )
 
 
@@ -2755,14 +2755,19 @@ def test_clean_checkout_no_billing_address(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
-    payment = checkout.get_last_active_payment()
+    payment = checkout.payments.filter(is_active=True).last()
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     with pytest.raises(ValidationError) as e:
         clean_checkout_payment(
-            manager, checkout_info, lines, None, CheckoutErrorCode, last_payment=payment
+            manager,
+            checkout_info,
+            lines,
+            None,
+            CheckoutErrorCode,
+            payment,
         )
     msg = "Billing address is not set"
     assert e.value.error_dict["billing_address"][0].message == msg
@@ -2774,17 +2779,22 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
-    payment = checkout.get_last_active_payment()
+    payment = checkout.payments.filter(is_active=True).last()
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     with pytest.raises(ValidationError) as e:
         clean_checkout_payment(
-            manager, checkout_info, lines, None, CheckoutErrorCode, last_payment=payment
+            manager,
+            checkout_info,
+            lines,
+            None,
+            CheckoutErrorCode,
+            payment,
         )
 
-    msg = "Provided payment methods can not cover the checkout's total amount"
+    msg = "Payment has not been initiated."
     assert e.value.error_list[0].message == msg
 
 
@@ -2854,3 +2864,59 @@ def test_get_checkout_with_vatlayer_set(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["token"] == str(checkout.token)
+
+
+QUERY_ACTIVE_PAYMENTS_CHECKOUT = """
+    query getCheckout($token: UUID!){
+        checkout(token: $token) {
+            id
+            payments {
+                id
+                gateway
+                isActive
+                chargeStatus
+                total {
+                    currency
+                    amount
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "active, expected_count",
+    (
+        (True, 2),
+        (False, 0),
+    ),
+)
+def test_checkout_active_payments(
+    checkout_with_item,
+    payment_dummy_factory,
+    staff_api_client,
+    active,
+    expected_count,
+    assert_num_queries,
+):
+    payment_dummy = payment_dummy_factory()
+    payment_dummy.is_active = active
+    payment_dummy.save()
+    checkout_with_item.payments.add(payment_dummy)
+
+    second_payment_dummy = payment_dummy_factory()
+    second_payment_dummy.is_active = active
+    second_payment_dummy.save()
+    checkout_with_item.payments.add(second_payment_dummy)
+
+    with assert_num_queries(3):
+        response = staff_api_client.post_graphql(
+            QUERY_ACTIVE_PAYMENTS_CHECKOUT, {"token": checkout_with_item.token}
+        )
+        content = get_graphql_content(response)
+    checkout = content["data"]["checkout"]
+    assert checkout is not None
+
+    payments = content["data"]["checkout"]["payments"]
+    assert len(payments) == expected_count

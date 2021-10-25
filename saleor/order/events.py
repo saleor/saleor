@@ -1,6 +1,8 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Tuple, Union
 
+import graphene
+
 from ..account import events as account_events
 from ..account.models import User
 from ..app.models import App
@@ -26,14 +28,26 @@ def _lines_per_quantity_to_line_object_list(quantities_per_order_line):
     ]
 
 
-def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> Dict:
+def _get_payment_data(amount: Optional[Decimal], payment: Optional[Payment]) -> Dict:
+    if payment is None:
+        return {"parameters": {}}
     return {
         "parameters": {
             "amount": amount,
             "payment_id": payment.token,
             "payment_gateway": payment.gateway,
+            "graphql_payment_id": graphene.Node.to_global_id("Payment", payment.pk),
+            "psp_reference": payment.psp_reference,
         }
     }
+
+
+def _get_failed_payment_data(
+    amount: Optional[Decimal], payment: Payment, message: str
+) -> Dict:
+    data = _get_payment_data(amount, payment)
+    data["parameters"]["message"] = message
+    return data
 
 
 def event_order_refunded_notification(
@@ -408,23 +422,57 @@ def payment_voided_event(
     )
 
 
-def payment_failed_event(
-    *, order: Order, user: UserType, app: AppType, message: str, payment: Payment
+def payment_capture_failed_event(
+    *,
+    order: Order,
+    user: UserType,
+    app: AppType,
+    message: str,
+    payment: Payment,
+    amount: Decimal
 ) -> OrderEvent:
-
     if not user_is_valid(user):
         user = None
-    parameters = {"message": message}
-
-    if payment:
-        parameters.update({"gateway": payment.gateway, "payment_id": payment.token})
-
     return OrderEvent.objects.create(
         order=order,
-        type=OrderEvents.PAYMENT_FAILED,
+        type=OrderEvents.PAYMENT_CAPTURE_FAILED,
         user=user,
         app=app,
-        parameters=parameters,
+        **_get_failed_payment_data(amount, payment, message),
+    )
+
+
+def payment_refund_failed_event(
+    *,
+    order: Order,
+    user: UserType,
+    app: AppType,
+    message: str,
+    payment: Payment,
+    amount: Decimal,
+) -> OrderEvent:
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.PAYMENT_REFUND_FAILED,
+        user=user,
+        app=app,
+        **_get_failed_payment_data(amount, payment, message),
+    )
+
+
+def payment_void_failed_event(
+    *, order: Order, user: UserType, app: AppType, message: str, payment: Payment
+) -> OrderEvent:
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.PAYMENT_VOID_FAILED,
+        user=user,
+        app=app,
+        **_get_failed_payment_data(None, payment, message),
     )
 
 

@@ -1,4 +1,5 @@
 from collections import defaultdict
+from decimal import Decimal
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -16,7 +17,10 @@ from ....order.actions import (
     fulfillment_tracking_updated,
 )
 from ....order.error_codes import OrderErrorCode
+from ....order.interface import OrderPaymentAction
 from ....order.notifications import send_fulfillment_update
+from ....order.utils import get_active_payments
+from ....payment.models import Payment
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
@@ -349,6 +353,11 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
     )
 
 
+class PaymentToRefundInput(graphene.InputObjectType):
+    payment_id = graphene.ID(required=True, description="The GraphQL ID of a payment.")
+    amount = PositiveDecimal(required=False, description="Amount of the refund.")
+
+
 class OrderRefundProductsInput(graphene.InputObjectType):
     order_lines = graphene.List(
         graphene.NonNull(OrderRefundLineInput),
@@ -358,14 +367,23 @@ class OrderRefundProductsInput(graphene.InputObjectType):
         graphene.NonNull(OrderRefundFulfillmentLineInput),
         description="List of fulfilled lines to refund.",
     )
+    payments_to_refund = graphene.List(
+        graphene.NonNull(PaymentToRefundInput),
+        required=False,
+        description="Payments that need to be refunded.",
+    )
     amount_to_refund = PositiveDecimal(
         required=False,
-        description="The total amount of refund when the value is provided manually.",
+        description=(
+            "The total amount of refund when the value is provided manually. "
+            "DEPRECATED: This argument will be removed in Saleor 4.0. "
+            "Use `paymentsToRefund` instead."
+        ),
     )
     include_shipping_costs = graphene.Boolean(
         description=(
-            "If true, Saleor will refund shipping costs. If amountToRefund is provided"
-            "includeShippingCosts will be ignored."
+            "If true, Saleor will refund shipping costs. "
+            "If `amountToRefund` is provided `includeShippingCosts` will be ignored."
         ),
         default_value=False,
     )
@@ -376,7 +394,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         abstract = True
 
     @classmethod
-    def clean_order_payment(cls, payment, cleaned_input):
+    def clean_order_payment(cls, payment):
         if not payment or not payment.can_refund():
             raise ValidationError(
                 {
@@ -386,11 +404,10 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     )
                 }
             )
-        cleaned_input["payment"] = payment
 
     @classmethod
     def clean_amount_to_refund(cls, amount_to_refund, payment, cleaned_input):
-        if amount_to_refund is not None and amount_to_refund > payment.captured_amount:
+        if amount_to_refund > payment.captured_amount:
             raise ValidationError(
                 {
                     "amount_to_refund": ValidationError(
@@ -402,7 +419,113 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     ),
                 }
             )
-        cleaned_input["amount_to_refund"] = amount_to_refund
+
+    @classmethod
+    def _check_payments_belong_to_order(cls, order, payments_ids) -> None:
+        order_payments_ids = order.payments.filter(id__in=payments_ids).values_list(
+            "id", flat=True
+        )
+        if set(order_payments_ids) != set(payments_ids):
+            improper_payments_ids = set(payments_ids).difference(
+                set(order_payments_ids)
+            )
+            improper_payments_global_ids = [
+                graphene.Node.to_global_id("Payment", payment_id)
+                for payment_id in improper_payments_ids
+            ]
+            raise ValidationError(
+                {
+                    "payments_to_refund": ValidationError(
+                        "These payments do not belong to the order.",
+                        code=OrderErrorCode.PAYMENTS_DO_NOT_BELONG_TO_ORDER.value,
+                        params={"payments": improper_payments_global_ids},
+                    )
+                }
+            )
+
+    @classmethod
+    def _check_order_has_single_payment(cls, order):
+        if order.payments.filter(is_active=True).count() > 1:
+            raise ValidationError(
+                {
+                    "amount_to_refund": ValidationError(
+                        "It is not possible to use the amount field "
+                        "for orders with multiple payments.",
+                        code=OrderErrorCode.ORDER_HAS_MULTIPLE_PAYMENTS,
+                    )
+                }
+            )
+
+    @classmethod
+    def _prepare_multiple_payments_data(cls, order, payments_to_refund):
+        has_amounts_specified = []
+        payments = []
+        payments_data = {}
+
+        for item in payments_to_refund:
+            amount = item.get("amount")
+
+            # We need to exclude payments that have amounts equal to 0.
+            if amount is not None and amount == 0:
+                continue
+
+            data = {"amount": item.get("amount")}
+            payment_pk = int(cls.get_global_id_or_error(item["payment_id"], "Payment"))
+
+            payments_data.update({payment_pk: data})
+
+        payment_ids = payments_data.keys()
+        cls._check_payments_belong_to_order(order, payment_ids)
+
+        payment_objects = Payment.objects.in_bulk(payment_ids)
+
+        for payment_id, amount_data in payments_data.items():
+            payment = payment_objects[payment_id]
+            amount = amount_data["amount"]
+            has_amounts_specified.append(amount)
+
+            payments.append(OrderPaymentAction(payment, amount or Decimal("0")))
+
+        return payments, has_amounts_specified
+
+    @classmethod
+    def _prepare_single_payment_data(cls, order, amount_to_refund):
+        cls._check_order_has_single_payment(order)
+
+        active_payments = get_active_payments(order)
+        if not active_payments:
+            # Raise a proper error if the list is empty.
+            cls.clean_order_payment(None)
+
+        has_amounts_specified = [amount_to_refund]
+
+        payments = [
+            OrderPaymentAction(
+                active_payments[0],
+                amount_to_refund or Decimal("0"),
+            )
+        ]
+        return payments, has_amounts_specified
+
+    @classmethod
+    def _get_payments_to_refund(
+        cls, order, payments_to_refund, amount_to_refund, include_shipping_costs
+    ):
+        if payments_to_refund:
+            payments, has_amounts_specified = cls._prepare_multiple_payments_data(
+                order, payments_to_refund
+            )
+
+        else:
+            payments, has_amounts_specified = cls._prepare_single_payment_data(
+                order, amount_to_refund
+            )
+
+        # We should ignore shipping_costs if amount is specified for every payment.
+        if all(has_amounts_specified):
+            include_shipping_costs = False
+
+        return payments, include_shipping_costs
 
     @classmethod
     def _raise_error_for_line(cls, msg, type, line_id, field_name, code=None):
@@ -536,19 +659,28 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
     @classmethod
     def clean_input(cls, info, order_id, input):
         cleaned_input = {}
+        payments_to_refund = input.get("payments_to_refund")
         amount_to_refund = input.get("amount_to_refund")
-        include_shipping_costs = input["include_shipping_costs"]
+
+        include_shipping_costs = input.get("include_shipping_costs")
 
         qs = order_models.Order.objects.prefetch_related("payments")
         order = cls.get_node_or_error(
             info, order_id, field="order", only_type=Order, qs=qs
         )
-        payment = order.get_last_payment()
-        cls.clean_order_payment(payment, cleaned_input)
-        cls.clean_amount_to_refund(amount_to_refund, payment, cleaned_input)
+        payments, include_shipping_costs = cls._get_payments_to_refund(
+            order, payments_to_refund, amount_to_refund, include_shipping_costs
+        )
+        for item in payments:
+            cls.clean_order_payment(item.payment)
+            cls.clean_amount_to_refund(item.amount, item.payment, cleaned_input)
 
         cleaned_input.update(
-            {"include_shipping_costs": include_shipping_costs, "order": order}
+            {
+                "order": order,
+                "payments_to_refund": payments,
+                "include_shipping_costs": include_shipping_costs,
+            },
         )
 
         order_lines_data = input.get("order_lines", [])
@@ -571,16 +703,16 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
+
         refund_fulfillment = create_refund_fulfillment(
             info.context.user,
             info.context.app,
             order,
-            cleaned_input["payment"],
+            cleaned_input.get("payments_to_refund", []),
             cleaned_input.get("order_lines", []),
             cleaned_input.get("fulfillment_lines", []),
             info.context.plugins,
-            cleaned_input["amount_to_refund"],
-            cleaned_input["include_shipping_costs"],
+            cleaned_input.get("include_shipping_costs"),
         )
         return cls(order=order, fulfillment=refund_fulfillment)
 
@@ -626,13 +758,23 @@ class OrderReturnProductsInput(graphene.InputObjectType):
         graphene.NonNull(OrderReturnFulfillmentLineInput),
         description="List of fulfilled lines to return.",
     )
+
+    payments_to_refund = graphene.List(
+        graphene.NonNull(PaymentToRefundInput),
+        required=False,
+        description="Payments that need to be refunded.",
+    )
     amount_to_refund = PositiveDecimal(
         required=False,
-        description="The total amount of refund when the value is provided manually.",
+        description=(
+            "The total amount of refund when the value is provided manually. "
+            "DEPRECATED: This argument will be removed in Saleor 4.0. "
+            "Use paymentsToRefund instead."
+        ),
     )
     include_shipping_costs = graphene.Boolean(
         description=(
-            "If true, Saleor will refund shipping costs. If amountToRefund is provided"
+            "If true, Saleor will refund shipping costs. If amountToRefund is provided "
             "includeShippingCosts will be ignored."
         ),
         default_value=False,
@@ -674,6 +816,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
     @classmethod
     def clean_input(cls, info, order_id, input):
         cleaned_input = {}
+        payments_to_refund = input.get("payments_to_refund")
         amount_to_refund = input.get("amount_to_refund")
         include_shipping_costs = input["include_shipping_costs"]
         refund = input["refund"]
@@ -682,15 +825,19 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
         order = cls.get_node_or_error(
             info, order_id, field="order", only_type=Order, qs=qs
         )
-        payment = order.get_last_payment()
+        payments, include_shipping_costs = cls._get_payments_to_refund(
+            order, payments_to_refund, amount_to_refund, include_shipping_costs
+        )
         if refund:
-            cls.clean_order_payment(payment, cleaned_input)
-            cls.clean_amount_to_refund(amount_to_refund, payment, cleaned_input)
+            for item in payments:
+                cls.clean_order_payment(item.payment)
+                cls.clean_amount_to_refund(item.amount, item.payment, cleaned_input)
 
         cleaned_input.update(
             {
-                "include_shipping_costs": include_shipping_costs,
                 "order": order,
+                "payments_to_refund": payments,
+                "include_shipping_costs": include_shipping_costs,
                 "refund": refund,
             }
         )
@@ -719,13 +866,12 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
             info.context.user,
             info.context.app,
             order,
-            cleaned_input.get("payment"),
+            cleaned_input.get("payments_to_refund"),
             cleaned_input.get("order_lines", []),
             cleaned_input.get("fulfillment_lines", []),
             info.context.plugins,
-            cleaned_input["refund"],
-            cleaned_input.get("amount_to_refund"),
             cleaned_input["include_shipping_costs"],
+            cleaned_input["refund"],
         )
         return_fulfillment, replace_fulfillment, replace_order = response
         return cls(

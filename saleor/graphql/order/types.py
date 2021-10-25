@@ -1,11 +1,10 @@
 from decimal import Decimal
-from operator import attrgetter
 from typing import Optional
 
 import graphene
 import prices
 from django.core.exceptions import ValidationError
-from graphene import relay
+from graphene import String, relay
 from promise import Promise
 
 from ...account.models import Address
@@ -23,16 +22,11 @@ from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
-from ...order import OrderStatus, models
+from ...order import OrderPaymentStatus, OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
-from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
-from ...payment.model_helpers import (
-    get_last_payment,
-    get_subtotal,
-    get_total_authorized,
-)
+from ...payment.model_helpers import get_subtotal, get_total_authorized
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.product_images import get_product_image_thumbnail
@@ -56,7 +50,7 @@ from ..discount.enums import DiscountValueTypeEnum
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
-from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
+from ..payment.types import OrderAction, Payment
 from ..product.dataloaders import (
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
@@ -77,7 +71,13 @@ from .dataloaders import (
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
 )
-from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
+from .enums import (
+    OrderEventsEmailsEnum,
+    OrderEventsEnum,
+    OrderOriginEnum,
+    OrderPaymentStatusEnum,
+)
+from .resolvers import resolve_order_payment_status
 from .utils import validate_draft_order
 
 
@@ -185,6 +185,8 @@ class OrderEvent(CountableDjangoObjectType):
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order."
     )
+    psp_reference = graphene.String(description="PSP reference.")
+    grapqhl_payment_id: String = graphene.String(description="Grapqhl payment id.")
 
     class Meta:
         description = "History log of the order."
@@ -338,6 +340,14 @@ class OrderEvent(CountableDjangoObjectType):
         if not discount_obj:
             return None
         return get_order_discount_event(discount_obj)
+
+    @staticmethod
+    def resolve_psp_reference(root: models.OrderEvent, _info):
+        return root.parameters.get("psp_reference", None)
+
+    @staticmethod
+    def resolve_grapqhl_payment_id(root: models.OrderEvent, _info):
+        return root.parameters.get("grapqhl_payment_id", None)
 
 
 class FulfillmentLine(CountableDjangoObjectType):
@@ -610,7 +620,7 @@ class Order(CountableDjangoObjectType):
     is_paid = graphene.Boolean(
         description="Informs if an order is fully paid.", required=True
     )
-    payment_status = PaymentChargeStatusEnum(
+    payment_status = OrderPaymentStatusEnum(
         description="Internal payment status.", required=True
     )
     payment_status_display = graphene.String(
@@ -849,15 +859,15 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_actions(root: models.Order, info):
         def _resolve_actions(payments):
+            payments = [p for p in payments if p.is_active]
             actions = []
-            payment = get_last_payment(payments)
-            if root.can_capture(payment):
+            if root.can_capture(payments):
                 actions.append(OrderAction.CAPTURE)
             if root.can_mark_as_paid(payments):
                 actions.append(OrderAction.MARK_AS_PAID)
-            if root.can_refund(payment):
+            if root.can_refund(payments):
                 actions.append(OrderAction.REFUND)
-            if root.can_void(payment):
+            if root.can_void(payments):
                 actions.append(OrderAction.VOID)
             return actions
 
@@ -941,28 +951,19 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
-        def _resolve_payment_status(payments):
-            if last_payment := max(payments, default=None, key=attrgetter("pk")):
-                return last_payment.charge_status
-            return ChargeStatus.NOT_CHARGED
-
         return (
             PaymentsByOrderIdLoader(info.context)
             .load(root.id)
-            .then(_resolve_payment_status)
+            .then(lambda p: resolve_order_payment_status(root, p))
         )
 
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
-        def _resolve_payment_status(payments):
-            if last_payment := max(payments, default=None, key=attrgetter("pk")):
-                return last_payment.get_charge_status_display()
-            return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
-
+        choices = dict(OrderPaymentStatus.CHOICES)
         return (
             PaymentsByOrderIdLoader(info.context)
             .load(root.id)
-            .then(_resolve_payment_status)
+            .then(lambda p: choices.get(resolve_order_payment_status(root, p)))
         )
 
     @staticmethod

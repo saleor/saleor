@@ -11,7 +11,6 @@ from prices import Money
 
 from ..checkout.models import Checkout
 from ..core.permissions import PaymentPermissions
-from ..core.taxes import zero_money
 from . import ChargeStatus, CustomPaymentChoices, TransactionKind
 
 
@@ -31,8 +30,17 @@ class Payment(models.Model):
     """
 
     gateway = models.CharField(max_length=255)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(
+        default=True,
+        help_text=(
+            "Inactive payments do not contribute toward checkout / orders, "
+            "but saleor still manages their lifecycle to reflect the real status "
+            "in the payment service provider."
+        ),
+    )
     to_confirm = models.BooleanField(default=False)
+    complete_order = models.BooleanField(default=False)
+    partial = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
@@ -118,39 +126,18 @@ class Payment(models.Model):
     def get_total(self):
         return Money(self.total, self.currency)
 
-    def get_authorized_amount(self):
-        money = zero_money(self.currency)
+    def can_create_order(self):
+        """Indicate whether an order can be created with this payment."""
+        return False if self.partial and not self.complete_order else True
 
-        # Query all the transactions which should be prefetched
-        # to optimize db queries
-        transactions = self.transactions.all()
+    def get_covered_amount(self):
+        """Return an amount that is covered by this payment (but not necessarily captured).
 
-        # There is no authorized amount anymore when capture is succeeded
-        # since capture can only be made once, even it is a partial capture
-        if any(
-            [
-                txn.kind == TransactionKind.CAPTURE and txn.is_success
-                for txn in transactions
-            ]
-        ):
-            return money
-
-        # Filter the succeeded auth transactions
-        authorized_txns = [
-            txn
-            for txn in transactions
-            if txn.kind == TransactionKind.AUTH
-            and txn.is_success
-            and not txn.action_required
-        ]
-
-        # Calculate authorized amount from all succeeded auth transactions
-        for txn in authorized_txns:
-            money += Money(txn.amount, self.currency)
-
-        # If multiple partial capture is supported later though it's unlikely,
-        # the authorized amount should exclude the already captured amount here
-        return money
+        Partially refunded payments are included in the covered amount.
+        """
+        if self.charge_status == ChargeStatus.AUTHORIZED:
+            return self.total
+        return self.captured_amount
 
     def get_captured_amount(self):
         return Money(self.captured_amount, self.currency)
@@ -160,30 +147,21 @@ class Payment(models.Model):
         return self.total - self.captured_amount
 
     @property
-    def is_authorized(self):
-        return any(
-            [
-                txn.kind == TransactionKind.AUTH
-                and txn.is_success
-                and not txn.action_required
-                for txn in self.transactions.all()
-            ]
-        )
-
-    @property
     def not_charged(self):
         return self.charge_status == ChargeStatus.NOT_CHARGED
 
+    @property
+    def is_authorized(self):
+        return self.charge_status == ChargeStatus.AUTHORIZED
+
     def can_authorize(self):
-        return self.is_active and self.not_charged
+        return self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED
 
     def can_capture(self):
-        if not (self.is_active and self.not_charged):
-            return False
-        return True
+        return self.is_active and self.is_authorized
 
     def can_void(self):
-        return self.is_active and self.not_charged and self.is_authorized
+        return self.is_authorized
 
     def can_refund(self):
         can_refund_charge_status = (
@@ -191,10 +169,7 @@ class Payment(models.Model):
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.PARTIALLY_REFUNDED,
         )
-        return self.is_active and self.charge_status in can_refund_charge_status
-
-    def can_confirm(self):
-        return self.is_active and self.not_charged
+        return self.charge_status in can_refund_charge_status
 
     def is_manual(self):
         return self.gateway == CustomPaymentChoices.MANUAL

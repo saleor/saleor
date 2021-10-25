@@ -10,6 +10,26 @@ All notable, unreleased changes to this project will be documented in this file.
     * X-Saleor-Signature -> Saleor-Signature
     * X-Saleor-HMAC-SHA256 -> Saleor-HMAC-SHA256
 - Improve draft orders and orders webhooks - #SALEOR-4008 by @jakubkuc
+
+# 3.0.0 [Unreleased]
+
+- Support for partial payments (PR #8349):
+  - Make `OrderConfirm` mutation to trigger capture action on all active payments - by @stnatic
+  - Add new input `paymentsToRefund`, that contains required `paymentId` field and non-required `amount` field - by @solartune
+  - Add `paymentsToRefund` input to the `FulfillmentRefundProducts` mutation and deprecate the `amountToRefund` field  - by @solartune
+  - Add `paymentsToRefund` input to the `FulfillmentReturnProducts` mutation and deprecate the `amountToRefund` field  - by @solartune
+  - Update `OrderEvents` for payments - by @pzborow
+  - Add `checkoutPaymentComplete` mutation - by @stnatic
+  - Update `CheckoutPaymentCreate`  to not cancel previously assigned payments - by @stnatic
+  - Add new input `orderPaymentsToRefund`, that contains required `paymentId` and `amount` fields - by @solartune
+  - Add `orderPaymentsToRefund` input to the `RefundOrder` mutation and deprecate the `amount` field  - by @solartune
+  - Add new parameter `paymentID` to `checkoutComplete` mutation - by @stnatic
+  - Handle overpaid `Orders` - by @stnatic
+  - Extend PaymentData with new fields - by @pzborow:
+    - `partial: bool`
+    - `checkout_token: str`
+  - Add new status to Payment - `AUTHORIZED` - by @stnatic
+  - Adyen - include `checkout_token` as a `merchantOrderReference` - by @pzborow
 - Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek

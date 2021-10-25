@@ -91,16 +91,18 @@ class ChargeStatus:
     """Represents possible statuses of a payment.
 
     The following statuses are possible:
-    - NOT_CHARGED - no funds were take off the customer founding source yet.
+    - NOT_CHARGED - no successful payment has been made.
+    - AUTHORIZED - no funds have been captured from the customer funding source.
     - PARTIALLY_CHARGED - funds were taken off the customer's funding source,
     partly covering the payment amount.
-    - FULLY_CHARGED - funds were taken off the customer founding source,
+    - FULLY_CHARGED - funds were taken off the customer funding source,
     partly or completely covering the payment amount.
     - PARTIALLY_REFUNDED - part of charged funds were returned to the customer.
     - FULLY_REFUNDED - all charged funds were returned to the customer.
     """
 
     NOT_CHARGED = "not-charged"
+    AUTHORIZED = "authorized"
     PENDING = "pending"
     PARTIALLY_CHARGED = "partially-charged"
     FULLY_CHARGED = "fully-charged"
@@ -111,6 +113,7 @@ class ChargeStatus:
 
     CHOICES = [
         (NOT_CHARGED, "Not charged"),
+        (AUTHORIZED, "Authorized"),
         (PENDING, "Pending"),
         (PARTIALLY_CHARGED, "Partially charged"),
         (FULLY_CHARGED, "Fully charged"),

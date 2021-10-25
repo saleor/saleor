@@ -1,4 +1,5 @@
 {% load price from taxed_prices %}
+{% load babel %}
 <!DOCTYPE html>
 <html>
 
@@ -282,13 +283,14 @@
     </div>
     <div class="section-left">
         <div class="content-tight-padded padded-top">
-            <span class="header-title">PAYMENT METHOD</span>
+            <span class="header-title">PAYMENT METHODS</span>
             <br />
-            {% if order.get_last_payment %}
-                <span class="normal-text">{{ order.get_last_payment.gateway }}</span>
-            {% else %}
-                <span class="normal-text">Unpaid</span>
-            {% endif %}
+            {% for payment in payments_data %}
+              <span class="normal-text">{{ payment.gateway_name }} ({{ payment.captured_amount|floatformat:2|currencyfmt:payment.currency }})</span>
+              <br />
+            {% empty %}
+              <span class="normal-text">Unpaid</span>
+            {% endfor %}
             <br />
         </div>
     </div>

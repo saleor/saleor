@@ -30,13 +30,11 @@ from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
-from ....order.actions import (
-    cancel_order,
-    order_authorized,
-    order_captured,
-    order_refunded,
-)
+from ....order import events
+from ....order.actions import cancel_order, order_authorized, order_captured
 from ....order.events import external_notification_event
+from ....order.interface import OrderPaymentAction
+from ....order.notifications import send_order_refunded_confirmation
 from ....payment.models import Payment, Transaction
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind
@@ -204,7 +202,10 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
         )
 
     # Only when we confirm that notification is success we will create the order
-    if transaction.is_success and checkout:  # type: ignore
+    if (
+        transaction.is_success and checkout and payment.can_create_order()
+    ):  # type: ignore
+
         order = create_order(payment, checkout, manager)
         return order
     return None
@@ -245,8 +246,12 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                         payment.order,
                         None,
                         None,
-                        new_transaction.amount,
-                        payment,
+                        [
+                            OrderPaymentAction(
+                                amount=new_transaction.amount,
+                                payment=payment,
+                            )
+                        ],
                         manager,
                     )
                 else:
@@ -254,8 +259,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                         payment.order,
                         None,
                         None,
-                        new_transaction.amount,
-                        payment,
+                        [OrderPaymentAction(payment, new_transaction.amount)],
                         manager,
                     )
     reason = notification.get("reason", "-")
@@ -340,7 +344,11 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         if new_transaction.is_success and not capture_transaction:
             gateway_postprocess(new_transaction, payment)
             order_captured(
-                payment.order, None, None, new_transaction.amount, payment, manager
+                payment.order,
+                None,
+                None,
+                [OrderPaymentAction(payment, new_transaction.amount)],
+                manager,
             )
 
     reason = notification.get("reason", "-")
@@ -421,14 +429,23 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
         payment, success_msg, failed_msg, new_transaction.is_success
     )
     if payment.order and new_transaction.is_success:
-        order_refunded(
+        events.payment_refunded_event(
+            order=payment.order,
+            user=None,
+            app=None,
+            amount=new_transaction.amount,
+            payment=payment,
+        )
+        manager = get_plugins_manager()
+        send_order_refunded_confirmation(
             payment.order,
             None,
             None,
-            new_transaction.amount,
-            payment,
-            get_plugins_manager(),
+            [OrderPaymentAction(payment, new_transaction.amount)],
+            payment.order.currency,
+            manager,
         )
+        manager.order_updated(payment.order)
 
 
 def _get_kind(transaction: Optional[Transaction]) -> str:

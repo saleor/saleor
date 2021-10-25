@@ -206,6 +206,7 @@ def test_request_data_for_payment(dummy_payment_data, dummy_address_data):
         "browserInfo": data["browserInfo"],
         "channel": "web",
         "shopperEmail": "example@test.com",
+        "merchantOrderReference": "1-2-3-4",
         "shopperName": {
             "firstName": dummy_payment_data.billing.first_name,
             "lastName": dummy_payment_data.billing.last_name,
@@ -425,6 +426,7 @@ def test_request_data_for_payment_without_shipping(
             "stateOrProvince": "",
             "street": "Tęczowa 7",
         },
+        "merchantOrderReference": "1-2-3-4",
     }
 
 
@@ -471,6 +473,7 @@ def test_request_data_for_payment_native_3d_secure(
         "channel": "web",
         "additionalData": {"allow3DS2": "true"},
         "shopperEmail": "example@test.com",
+        "merchantOrderReference": "1-2-3-4",
         "shopperName": {
             "firstName": dummy_payment_data.billing.first_name,
             "lastName": dummy_payment_data.billing.last_name,
@@ -527,6 +530,7 @@ def test_request_data_for_payment_channel_different_than_web(
         "channel": "iOS",
         "additionalData": {"allow3DS2": "true"},
         "shopperEmail": "example@test.com",
+        "merchantOrderReference": "1-2-3-4",
         "shopperName": {
             "firstName": dummy_payment_data.billing.first_name,
             "lastName": dummy_payment_data.billing.last_name,
