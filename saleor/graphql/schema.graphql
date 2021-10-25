@@ -2327,7 +2327,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  displayCode: String!
+  last4: String!
   createdBy: User
   usedBy: User
   createdByEmail: String

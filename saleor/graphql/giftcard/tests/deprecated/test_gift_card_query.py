@@ -9,7 +9,7 @@ QUERY_GIFT_CARD_BY_ID = """
         giftCard(id: $id){
             id
             code
-            displayCode
+            last4
             user {
                 email
             }
@@ -41,7 +41,7 @@ def test_query_gift_card(
     content = get_graphql_content(response)
     data = content["data"]["giftCard"]
     assert data["id"] == gift_card_id
-    assert data["displayCode"] == gift_card.display_code
+    assert data["last4"] == gift_card.display_code
     assert data["user"]["email"] == gift_card.created_by.email
     assert data["endDate"] == end_date.isoformat()
     assert data["startDate"] is None

@@ -829,7 +829,7 @@ def test_order_query_gift_cards(
     query OrderQuery($id: ID!) {
         order(id: $id) {
             giftCards {
-                displayCode
+                last4
                 currentBalance {
                     amount
                 }
@@ -847,7 +847,7 @@ def test_order_query_gift_cards(
     content = get_graphql_content(response)
     gift_card_data = content["data"]["order"]["giftCards"][0]
 
-    assert gift_card.display_code == gift_card_data["displayCode"]
+    assert gift_card.display_code == gift_card_data["last4"]
     assert (
         gift_card.current_balance.amount == gift_card_data["currentBalance"]["amount"]
     )

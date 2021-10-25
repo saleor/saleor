@@ -14,7 +14,7 @@ UPDATE_GIFT_CARD_MUTATION = """
         giftCardUpdate(id: $id, input: $input) {
             giftCard {
                 id
-                displayCode
+                last4
                 isActive
                 expiryDate
                 tag
@@ -126,7 +126,7 @@ def test_update_gift_card(
     data = content["data"]["giftCardUpdate"]["giftCard"]
 
     assert not errors
-    assert data["displayCode"]
+    assert data["last4"]
     assert data["expiryDate"] == date_value.isoformat()
     assert data["tag"] == tag
     assert data["createdBy"]["email"] == gift_card.created_by.email
@@ -241,7 +241,7 @@ def test_update_gift_card_by_app(
     data = content["data"]["giftCardUpdate"]["giftCard"]
 
     assert not errors
-    assert data["displayCode"]
+    assert data["last4"]
     assert data["expiryDate"] == date_value.isoformat()
     assert data["tag"] == tag
     assert data["createdBy"]["email"] == gift_card.created_by.email
@@ -442,7 +442,7 @@ def test_update_gift_card_change_to_never_expire(
     data = content["data"]["giftCardUpdate"]["giftCard"]
 
     assert not errors
-    assert data["displayCode"]
+    assert data["last4"]
     assert not data["expiryDate"]
     assert data["tag"] == gift_card.tag
     assert data["createdBy"]["email"] == gift_card.created_by.email
@@ -499,7 +499,7 @@ def test_update_used_gift_card_to_expiry_date(
     data = content["data"]["giftCardUpdate"]["giftCard"]
 
     assert not errors
-    assert data["displayCode"]
+    assert data["last4"]
     assert data["expiryDate"] == date_value.isoformat()
     assert len(data["events"]) == 1
     event = data["events"][0]
@@ -541,7 +541,7 @@ def test_update_used_gift_card_to_never_expired(
     data = content["data"]["giftCardUpdate"]["giftCard"]
 
     assert not errors
-    assert data["displayCode"]
+    assert data["last4"]
     assert data["expiryDate"] is None
 
 
@@ -618,7 +618,7 @@ def test_update_gift_card_expired_card(
     data = content["data"]["giftCardUpdate"]["giftCard"]
 
     assert not errors
-    assert data["displayCode"]
+    assert data["last4"]
     assert not data["expiryDate"]
     assert data["tag"] == gift_card.tag
     assert data["createdBy"]["email"] == gift_card.created_by.email

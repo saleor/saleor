@@ -177,7 +177,7 @@ query getCheckout($token: UUID!) {
   checkout(token: $token) {
     token
     giftCards {
-      displayCode
+      last4
       currentBalance {
         amount
       }
@@ -195,7 +195,7 @@ def test_checkout_get_gift_card_code(user_api_client, checkout_with_gift_card):
     )
     content = get_graphql_content(response)
     data = content["data"]["checkout"]["giftCards"][0]
-    assert data["displayCode"] == gift_card.display_code
+    assert data["last4"] == gift_card.display_code
     assert data["currentBalance"]["amount"] == gift_card.current_balance.amount
 
 
@@ -212,9 +212,9 @@ def test_checkout_get_gift_card_codes(
     )
     content = get_graphql_content(response)
     data = content["data"]["checkout"]["giftCards"]
-    assert data[0]["displayCode"] == gift_card_first.display_code
+    assert data[0]["last4"] == gift_card_first.display_code
     assert data[0]["currentBalance"]["amount"] == gift_card_first.current_balance.amount
-    assert data[1]["displayCode"] == gift_card_last.display_code
+    assert data[1]["last4"] == gift_card_last.display_code
     assert data[1]["currentBalance"]["amount"] == gift_card_last.current_balance.amount
 
 
@@ -243,7 +243,7 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                 voucherCode
                 giftCards {
                     id
-                    displayCode
+                    last4
                 }
                 totalPrice {
                     gross {
@@ -584,7 +584,7 @@ def test_checkout_add_gift_card_code(api_client, checkout_with_item, gift_card):
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert data["checkout"]["giftCards"][0]["id"] == gift_card_id
-    assert data["checkout"]["giftCards"][0]["displayCode"] == gift_card.display_code
+    assert data["checkout"]["giftCards"][0]["last4"] == gift_card.display_code
 
 
 def test_checkout_add_many_gift_card_code(
@@ -660,9 +660,7 @@ def test_checkout_add_used_gift_card_code(
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert data["checkout"]["giftCards"][0]["id"] == gift_card_id
-    assert (
-        data["checkout"]["giftCards"][0]["displayCode"] == gift_card_used.display_code
-    )
+    assert data["checkout"]["giftCards"][0]["last4"] == gift_card_used.display_code
 
 
 def test_checkout_add_used_gift_card_code_invalid_user(
@@ -760,7 +758,7 @@ def test_checkout_add_same_gift_card_code(api_client, checkout_with_gift_card):
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_gift_card.token)
     assert data["checkout"]["giftCards"][0]["id"] == gift_card_id
-    assert data["checkout"]["giftCards"][0]["displayCode"] == gift_card.display_code
+    assert data["checkout"]["giftCards"][0]["last4"] == gift_card.display_code
     assert len(data["checkout"]["giftCards"]) == gift_card_count
 
 
@@ -859,7 +857,7 @@ MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
                 voucherCode
                 giftCards {
                     id
-                    displayCode
+                    last4
                 }
             }
         }

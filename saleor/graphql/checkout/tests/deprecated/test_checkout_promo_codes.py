@@ -21,7 +21,7 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                 }
                 giftCards {
                     id
-                    displayCode
+                    last4
                 }
                 totalPrice {
                     gross {
@@ -91,7 +91,7 @@ MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
                 voucherCode
                 giftCards {
                     id
-                    displayCode
+                    last4
                 }
             }
         }

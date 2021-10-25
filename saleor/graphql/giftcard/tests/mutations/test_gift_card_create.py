@@ -14,7 +14,7 @@ CREATE_GIFT_CARD_MUTATION = """
             giftCard {
                 id
                 code
-                displayCode
+                last4
                 isActive
                 expiryDate
                 tag
@@ -128,7 +128,7 @@ def test_create_never_expiry_gift_card(
 
     assert not errors
     assert data["code"]
-    assert data["displayCode"]
+    assert data["last4"]
     assert not data["expiryDate"]
     assert data["tag"] == tag
     assert data["createdBy"]["email"] == staff_api_client.user.email
@@ -211,7 +211,7 @@ def test_create_gift_card_by_app(
 
     assert not errors
     assert data["code"]
-    assert data["displayCode"]
+    assert data["last4"]
     assert not data["expiryDate"]
     assert data["tag"] == tag
     assert not data["createdBy"]
@@ -534,7 +534,7 @@ def test_create_gift_card_with_expiry_date(
 
     assert not errors
     assert data["code"]
-    assert data["displayCode"]
+    assert data["last4"]
     assert data["expiryDate"] == date_value.isoformat()
 
     assert len(data["events"]) == 1

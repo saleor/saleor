@@ -13,7 +13,7 @@ GIFT_CARD_BULK_CREATE_MUTATION = """
             giftCards {
                 id
                 code
-                displayCode
+                last4
                 isActive
                 expiryDate
                 tag
