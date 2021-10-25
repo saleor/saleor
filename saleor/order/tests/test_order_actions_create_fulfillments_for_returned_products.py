@@ -3,6 +3,7 @@ from unittest.mock import ANY, patch
 
 from prices import Money, TaxedMoney
 
+from ...payment.utils import create_refund_line_data
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
@@ -154,6 +155,13 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
         ANY,
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
+        lines_to_refund=create_refund_line_data(
+            fulfillment_lines=[],
+            order_lines=[
+                OrderLineData(line=line, quantity=2, replace=False)
+                for line in order_lines_to_return
+            ],
+        ),
     )
     assert not replace_order
 
@@ -228,6 +236,13 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
         ANY,
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
+        lines_to_refund=create_refund_line_data(
+            fulfillment_lines=[],
+            order_lines=[
+                OrderLineData(line=line, quantity=2, replace=False)
+                for line in order_lines_to_return
+            ],
+        ),
     )
     assert not replace_order
 
@@ -618,6 +633,10 @@ def test_create_return_fulfillment_with_lines_already_refunded(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
+        lines_to_refund=create_refund_line_data(
+            fulfillment_lines=fulfillment_lines_to_process,
+            order_lines=[],
+        ),
     )
 
     assert returned_and_refunded_fulfillment.total_refund_amount == amount

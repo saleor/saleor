@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 from decimal import Decimal
 from unittest.mock import ANY, Mock, patch
@@ -14,13 +15,18 @@ def config(np_atobarai_plugin):
     return get_api_config(np_atobarai_plugin().config.connection_params)
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@pytest.fixture
+def np_payment_data(dummy_payment_data):
+    return dataclasses.replace(dummy_payment_data, _resolve_lines=list)
+
+
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_refund_payment(
-    mocked_request, np_atobarai_plugin, dummy_payment_data, payment_dummy
+    mocked_request, np_atobarai_plugin, np_payment_data, payment_dummy
 ):
     # given
     plugin = np_atobarai_plugin()
-    payment_data = dummy_payment_data
+    payment_data = np_payment_data
     psp_reference = "18121200001"
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
@@ -39,13 +45,13 @@ def test_refund_payment(
     assert gateway_response.psp_reference == psp_reference
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_refund_payment_payment_not_created(
-    mocked_request, np_atobarai_plugin, dummy_payment_data, payment_dummy
+    mocked_request, np_atobarai_plugin, np_payment_data, payment_dummy
 ):
     # given
     plugin = np_atobarai_plugin()
-    payment_data = dummy_payment_data
+    payment_data = np_payment_data
     response = Mock(
         spec=requests.Response,
         status_code=200,
@@ -59,13 +65,13 @@ def test_refund_payment_payment_not_created(
         plugin.refund_payment(payment_data, None)
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_refund_payment_np_errors(
-    mocked_request, np_atobarai_plugin, dummy_payment_data, payment_dummy
+    mocked_request, np_atobarai_plugin, np_payment_data, payment_dummy
 ):
     # given
     plugin = np_atobarai_plugin()
-    payment_data = dummy_payment_data
+    payment_data = np_payment_data
     psp_reference = "18121200001"
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
@@ -84,14 +90,14 @@ def test_refund_payment_np_errors(
     assert gateway_response.error
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_refund_payment_no_payment(
-    _mocked_request, np_atobarai_plugin, dummy_payment_data, payment_dummy
+    _mocked_request, np_atobarai_plugin, np_payment_data, payment_dummy
 ):
     # given
     payment_id = -1
     plugin = np_atobarai_plugin()
-    payment_data = dummy_payment_data
+    payment_data = np_payment_data
     payment_data.payment_id = payment_id
 
     # when
@@ -102,28 +108,74 @@ def test_refund_payment_no_payment(
     assert excinfo.value.message == f"Payment with id {payment_id} does not exist."
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
-def test_refund_payment_partial_refund(
-    _mocked_request, np_atobarai_plugin, dummy_payment_data, payment_dummy
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+def test_refund_payment_partial_refund_change_transaction(
+    mocked_request, np_atobarai_plugin, np_payment_data, payment_dummy
 ):
     # given
     plugin = np_atobarai_plugin()
-    payment_data = dummy_payment_data
+    payment_data = np_payment_data
     payment_dummy.captured_amount = payment_data.amount + Decimal("3.00")
-    payment_dummy.save(update_fields=["captured_amount"])
+    psp_reference = "psp_reference"
+    payment_dummy.psp_reference = psp_reference
+    payment_dummy.save(update_fields=["captured_amount", "psp_reference"])
+    response = Mock(
+        spec=requests.Response,
+        status_code=200,
+        json=Mock(return_value={"results": [{"np_transaction_id": psp_reference}]}),
+    )
+    mocked_request.return_value = response
 
     # when
-    with pytest.raises(PaymentError) as excinfo:
-        plugin.refund_payment(payment_data, None)
+    gateway_response = plugin.refund_payment(payment_data, None)
 
     # then
-    payment_id = payment_data.payment_id
-    assert excinfo.value.message == (
-        f"Cannot partially refund payment with id {payment_id}"
+    assert gateway_response.is_success
+
+
+@patch("saleor.payment.gateways.np_atobarai.api.change_transaction")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+def test_refund_payment_partial_refund_reregister_transaction(
+    mocked_request,
+    mocked_change_transaction,
+    np_atobarai_plugin,
+    np_payment_data,
+    payment_dummy,
+):
+    # given
+    plugin = np_atobarai_plugin()
+    payment_data = np_payment_data
+    payment_dummy.captured_amount = payment_data.amount + Decimal("3.00")
+    psp_reference = "psp_reference"
+    payment_dummy.psp_reference = psp_reference
+    payment_dummy.save(update_fields=["captured_amount", "psp_reference"])
+    mocked_change_transaction.return_value = None
+    new_psp_reference = "new_psp_reference"
+    response = Mock(
+        spec=requests.Response,
+        status_code=200,
+        json=Mock(
+            return_value={
+                "results": [
+                    {
+                        "base_np_transaction_id": payment_dummy.psp_reference,
+                        "np_transaction_id": new_psp_reference,
+                    }
+                ]
+            }
+        ),
     )
+    mocked_request.return_value = response
+
+    # when
+    gateway_response = plugin.refund_payment(payment_data, None)
+
+    # then
+    assert gateway_response.is_success
+    assert gateway_response.psp_reference == new_psp_reference
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_report_fulfillment(mocked_request, config, fulfillment, payment_dummy):
     # given
     psp_reference = "18121200001"
@@ -146,7 +198,7 @@ def test_report_fulfillment(mocked_request, config, fulfillment, payment_dummy):
     assert not already_captured
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_report_fulfillment_no_psp_reference(
     _mocked_request, config, fulfillment, payment_dummy
 ):
@@ -160,7 +212,7 @@ def test_report_fulfillment_no_psp_reference(
     assert errors == ["Payment does not have psp reference."]
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_report_fulfillment_no_tracking_number(
     _mocked_request, config, fulfillment, payment_dummy
 ):
@@ -180,7 +232,7 @@ def test_report_fulfillment_no_tracking_number(
     assert errors == ["Fulfillment does not have tracking number."]
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_report_fulfillment_np_errors(
     mocked_request, config, fulfillment, payment_dummy
 ):
@@ -208,7 +260,7 @@ def test_report_fulfillment_np_errors(
     }
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_report_fulfillment_connection_errors(
     mocked_request, config, fulfillment, payment_dummy, caplog
 ):
@@ -234,7 +286,7 @@ def test_report_fulfillment_connection_errors(
     assert caplog.record_tuples == [(ANY, logging.WARNING, error_message)]
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_report_fulfillment_already_captured(
     mocked_request, config, fulfillment, payment_dummy
 ):

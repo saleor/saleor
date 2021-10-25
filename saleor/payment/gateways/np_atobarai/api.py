@@ -153,7 +153,8 @@ def change_transaction(
 
 
 # TODO: find code
-ALREADY_REREGISTERED_ERROR_CODE = ""
+ALREADY_REREGISTERED_ERROR_CODE = "E0131006"
+EXCEEDED_NUMBER_OF_REREGISTRATIONS_ERROR_CODE = "E0131011"
 
 
 def reregister_transaction_for_partial_return(
@@ -223,6 +224,12 @@ def reregister_transaction_for_partial_return(
             return PaymentResult(
                 status=PaymentStatus.FAILED,
                 errors=["NP Transaction was already re-registered."],
+            )
+
+        if EXCEEDED_NUMBER_OF_REREGISTRATIONS_ERROR_CODE in error_codes:
+            return PaymentResult(
+                status=PaymentStatus.FAILED,
+                errors=["Number of NP Transaction re-registrations was exceeded."],
             )
 
         error_messages = get_error_messages_from_codes(
