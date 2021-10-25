@@ -7,9 +7,9 @@ from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
-from ... import PaymentError
 from ...interface import AddressData, PaymentData, RefundLineData
 from ...utils import price_to_minor_unit
+from .api_types import NPResponse, error_np_response
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL, REQUEST_TIMEOUT
 from .utils import np_atobarai_opentracing_trace
 
@@ -47,13 +47,17 @@ def _request(
 
 def np_request(
     config: "ApiConfig", method: str, path: str = "", json: Optional[dict] = None
-) -> requests.Response:
+) -> NPResponse:
     try:
-        return _request(config, method, path, json)
+        response = _request(config, method, path, json)
+        response_data = response.json()
+        if "errors" in response_data:
+            return NPResponse({}, response_data["errors"][0]["codes"])
+        return NPResponse(response_data["results"][0], [])
     except requests.RequestException:
         msg = "Cannot connect to NP Atobarai."
         logger.warning(msg, exc_info=True)
-        raise PaymentError(msg)
+        return NPResponse({}, [msg])
 
 
 def handle_unrecoverable_state(
@@ -69,12 +73,6 @@ def handle_unrecoverable_state(
     )
 
 
-def get_errors(response_data: dict) -> Iterable[str]:
-    if "errors" not in response_data:
-        return []
-    return set(response_data["errors"][0]["codes"])
-
-
 def health_check(config: "ApiConfig") -> bool:
     try:
         _request(config, "post", "/authorizations/find")
@@ -83,12 +81,12 @@ def health_check(config: "ApiConfig") -> bool:
         return False
 
 
-def format_name(ad: AddressData):
+def format_name(ad: AddressData) -> str:
     """Follow the Japanese name guidelines."""
     return f"{ad.first_name} {ad.last_name}".strip()
 
 
-def format_address(config: "ApiConfig", ad: AddressData):
+def format_address(config: "ApiConfig", ad: AddressData) -> Optional[str]:
     """Follow the Japanese address guidelines."""
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
     if not config.fill_missing_address:
@@ -97,9 +95,7 @@ def format_address(config: "ApiConfig", ad: AddressData):
         try:
             jap_ad = pp.get(ad.postal_code)
         except KeyError:
-            raise PaymentError(
-                "Valid Japanese address is required for transaction in NP Atobarai."
-            )
+            return None
         else:
             return (
                 f"{ad.country_area}"
@@ -162,29 +158,36 @@ def get_discount(
     ]
 
 
-def cancel(config: "ApiConfig", transaction_id: str) -> dict:
+def cancel(config: "ApiConfig", transaction_id: str) -> NPResponse:
     data = {"transactions": [{"np_transaction_id": transaction_id}]}
-    response = np_request(config, "patch", "/transactions/cancel", json=data)
-    return response.json()
+    return np_request(config, "patch", "/transactions/cancel", json=data)
 
 
 def register(
     config: "ApiConfig",
     payment_information: "PaymentData",
-) -> dict:
+) -> NPResponse:
     order_date = timezone.now().strftime("%Y-%m-%d")
 
     billing = payment_information.billing
     shipping = payment_information.shipping
 
     if not billing:
-        raise PaymentError(
+        return error_np_response(
             "Billing address is required for transaction in NP Atobarai."
         )
     if not shipping:
-        raise PaymentError(
+        return error_np_response(
             "Shipping address is required for transaction in NP Atobarai."
         )
+
+    formatted_billing = format_address(config, billing)
+    formatted_shipping = format_address(config, shipping)
+
+    if not formatted_billing:
+        return error_np_response("Billing address is not a valid Japanese address.")
+    if not formatted_shipping:
+        return error_np_response("Shipping address is not a valid Japanese address.")
 
     data = {
         "transactions": [
@@ -199,7 +202,7 @@ def register(
                     "customer_name": billing.first_name,
                     "company_name": billing.company_name,
                     "zip_code": billing.postal_code,
-                    "address": format_address(config, billing),
+                    "address": formatted_billing,
                     "tel": billing.phone.replace("+81", "0"),
                     "email": payment_information.customer_email,
                 },
@@ -207,7 +210,7 @@ def register(
                     "customer_name": format_name(shipping),
                     "company_name": shipping.company_name,
                     "zip_code": shipping.postal_code,
-                    "address": format_address(config, shipping),
+                    "address": formatted_shipping,
                     "tel": shipping.phone.replace("+81", "0"),
                 },
                 "goods": [
@@ -224,5 +227,4 @@ def register(
         ]
     }
 
-    response = np_request(config, "post", "/transactions", json=data)
-    return response.json()
+    return np_request(config, "post", "/transactions", json=data)
