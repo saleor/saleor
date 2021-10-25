@@ -1,9 +1,11 @@
+import hashlib
 from typing import Union
 
 import graphene
 from django.db.models import Value
 from django.db.models.functions import Concat
 from graphene_django.registry import get_global_registry
+from graphql import GraphQLDocument
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
@@ -130,3 +132,21 @@ def get_user_or_app_from_context(context):
 def requestor_is_superuser(requestor):
     """Return True if requestor is superuser."""
     return getattr(requestor, "is_superuser", False)
+
+
+def query_fingerprint(document: GraphQLDocument) -> str:
+    """Generate a fingerprint for a GraphQL query."""
+    label = "unknown"
+    for definition in document.document_ast.definitions:
+        if getattr(definition, "operation", None) in {
+            "query",
+            "mutation",
+            "subscription",
+        }:
+            if definition.name:
+                label = f"{definition.operation}:{definition.name.value}"
+            else:
+                label = definition.operation
+            break
+    query_hash = hashlib.md5(document.document_string.encode("utf-8")).hexdigest()
+    return f"{label}:{query_hash}"

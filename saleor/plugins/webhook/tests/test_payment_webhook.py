@@ -71,6 +71,7 @@ def test_trigger_webhook_sync(mock_request, payment_app):
     trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
     webhook = payment_app.webhooks.first()
     mock_request.assert_called_once_with(
+        payment_app.name,
         webhook.target_url,
         webhook.secret_key,
         WebhookEventType.PAYMENT_CAPTURE,
@@ -94,6 +95,7 @@ def test_trigger_webhook_sync_use_first_webhook(mock_request, payment_app):
     data = {"key": "value"}
     trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
     mock_request.assert_called_once_with(
+        payment_app.name,
         webhook_1.target_url,
         webhook_1.secret_key,
         WebhookEventType.PAYMENT_CAPTURE,
@@ -117,7 +119,11 @@ def test_send_webhook_request_sync(
     mock_send_http, target_url, site_settings, webhook_data
 ):
     send_webhook_request_sync(
-        target_url, webhook_data.secret, webhook_data.event_type, webhook_data.data
+        "app_name",
+        target_url,
+        webhook_data.secret,
+        webhook_data.event_type,
+        webhook_data.data,
     )
     mock_send_http.assert_called_once_with(
         target_url,
@@ -138,6 +144,7 @@ def test_send_webhook_request_with_proper_timeout(
     mock_post, target_url, site_settings, webhook_data
 ):
     send_webhook_request(
+        "app_name",
         "ID",
         target_url,
         webhook_data.secret,
@@ -151,7 +158,7 @@ def test_send_webhook_request_with_proper_timeout(
 def test_send_webhook_request_sync_invalid_scheme():
     with pytest.raises(ValueError):
         target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
-        send_webhook_request_sync(target_url, "", "", "")
+        send_webhook_request_sync("", target_url, "", "", "")
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

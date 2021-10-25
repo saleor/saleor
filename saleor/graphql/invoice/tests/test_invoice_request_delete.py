@@ -29,7 +29,7 @@ def setup_dummy_gateways(settings):
     return settings
 
 
-@patch("saleor.plugins.base_plugin.BasePlugin.invoice_delete")
+@patch("saleor.plugins.manager.PluginsManager.invoice_delete")
 def test_invoice_request_delete(
     plugin_mock, staff_api_client, permission_manage_orders, order
 ):
@@ -38,7 +38,7 @@ def test_invoice_request_delete(
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     staff_api_client.post_graphql(INVOICE_REQUEST_DELETE_MUTATION, variables)
     invoice.refresh_from_db()
-    plugin_mock.assert_called_once_with(invoice, previous_value=None)
+    plugin_mock.assert_called_once_with(invoice)
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.REQUESTED_DELETION,
         user=staff_api_client.user,
@@ -47,7 +47,7 @@ def test_invoice_request_delete(
     ).exists()
 
 
-@patch("saleor.plugins.base_plugin.BasePlugin.invoice_delete")
+@patch("saleor.plugins.manager.PluginsManager.invoice_delete")
 def test_invoice_request_delete_invalid_id(
     plugin_mock, staff_api_client, permission_manage_orders
 ):
@@ -61,7 +61,7 @@ def test_invoice_request_delete_invalid_id(
     plugin_mock.assert_not_called()
 
 
-@patch("saleor.plugins.base_plugin.BasePlugin.invoice_delete")
+@patch("saleor.plugins.manager.PluginsManager.invoice_delete")
 def test_invoice_request_delete_no_permission(
     plugin_mock, staff_api_client, permission_manage_orders, order
 ):

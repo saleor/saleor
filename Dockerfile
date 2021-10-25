@@ -59,10 +59,10 @@ LABEL org.opencontainers.image.title="mirumee/saleor"                           
 A modular, high performance, headless e-commerce platform built with Python, \
 GraphQL, Django, and ReactJS."                                                         \
       org.opencontainers.image.url="https://saleor.io/"                                \
-      org.opencontainers.image.source="https://github.com/mirumee/saleor"              \
+      org.opencontainers.image.source="https://github.com/saleor/saleor"               \
       org.opencontainers.image.revision="$COMMIT_ID"                                   \
       org.opencontainers.image.version="$PROJECT_VERSION"                              \
-      org.opencontainers.image.authors="Mirumee Software (https://mirumee.com)"        \
+      org.opencontainers.image.authors="Saleor Commerce (https://saleor.io)"           \
       org.opencontainers.image.licenses="BSD 3"
 
 CMD ["gunicorn", "--bind", ":8000", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "saleor.asgi:application"]

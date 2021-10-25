@@ -431,7 +431,17 @@ class AdyenGatewayPlugin(BasePlugin):
         config = self._get_gateway_config()
         additional_data = payment_information.data
         if not additional_data:
-            raise PaymentError("Unable to finish the payment.")
+            return GatewayResponse(
+                is_success=False,
+                action_required=False,
+                kind=kind,
+                amount=payment_information.amount,
+                currency=payment_information.currency,
+                transaction_id="",
+                error=f"Unable to finish the payment. "
+                f"Payment ({payment_information.graphql_payment_id}) "
+                f"does not have the additional data.",
+            )
 
         with opentracing.global_tracer().start_active_span(
             "adyen.checkout.payment_details"

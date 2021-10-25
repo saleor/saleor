@@ -1,10 +1,12 @@
 import graphene
 from graphene import relay
 
+from ...core.permissions import OrderPermissions
 from ...core.tracing import traced_resolver
 from ...payment import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Money
+from ..decorators import permission_required
 from .enums import OrderAction, PaymentChargeStatusEnum
 
 
@@ -111,6 +113,12 @@ class Payment(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    def resolve_customer_ip_address(root: models.Payment, _info):
+        return root.customer_ip_address
+
+    @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_actions(root: models.Payment, _info):
         actions = []
         if root.can_capture():
@@ -131,22 +139,23 @@ class Payment(CountableDjangoObjectType):
         return root.get_captured_amount()
 
     @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_transactions(root: models.Payment, _info):
         return root.transactions.all()
 
     @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_available_refund_amount(root: models.Payment, _info):
-        # FIXME TESTME
         if not root.can_refund():
             return None
         return root.get_captured_amount()
 
     @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_available_capture_amount(root: models.Payment, _info):
-        # FIXME TESTME
         if not root.can_capture():
             return None
-        return root.get_charge_amount()
+        return Money(amount=root.get_charge_amount(), currency=root.currency)
 
     @staticmethod
     def resolve_credit_card(root: models.Payment, _info):

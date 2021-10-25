@@ -58,6 +58,11 @@ class OrderFulfillInput(graphene.InputObjectType):
         description="If true, send an email notification to the customer."
     )
 
+    allow_stock_to_be_exceeded = graphene.Boolean(
+        description="If true, then allow proceed fulfillment when stock is exceeded.",
+        default_value=False,
+    )
+
 
 class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
     tracking_number = graphene.String(description="Fulfillment tracking number.")
@@ -211,6 +216,9 @@ class OrderFulfill(BaseMutation):
         user = info.context.user
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
         notify_customer = cleaned_input.get("notify_customer", True)
+        allow_stock_to_be_exceeded = cleaned_input.get(
+            "allow_stock_to_be_exceeded", False
+        )
 
         try:
             fulfillments = create_fulfillments(
@@ -220,6 +228,7 @@ class OrderFulfill(BaseMutation):
                 dict(lines_for_warehouses),
                 info.context.plugins,
                 notify_customer,
+                allow_stock_to_be_exceeded,
             )
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)
