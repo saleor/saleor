@@ -27,11 +27,13 @@ ORDER_QUERY_SHIPPING_METHOD = """
                         id
                         name
                         active
+                        message
                     }
                     availableShippingMethods {
                         id
                         name
                         active
+                        message
                     }
                 }
             }
@@ -184,6 +186,7 @@ def test_parse_excluded_shipping_methods_response():
     excluded_methods = parse_excluded_shipping_methods_response(response)
     # then
     assert len(excluded_methods) == 1
+    assert excluded_methods[0].id == "1"
 
 
 @mock.patch(
@@ -213,6 +216,7 @@ def test_order_shipping_methods(
     # then
     assert len(shipping_methods) == 1
     assert not shipping_methods[0]["active"]
+    assert shipping_methods[0]["message"] == webhook_reason
 
 
 @pytest.mark.parametrize(
