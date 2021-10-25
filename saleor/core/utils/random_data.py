@@ -537,15 +537,19 @@ def create_fake_user(user_password, save=True):
 # We don't want to spam the console with payment confirmations sent to
 # fake customers.
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def create_fake_payment(mock_notify, order):
+def create_fake_payment(mock_notify, order, payment_amount=None, partial=False):
+    if not payment_amount:
+        payment_amount = order.total.gross.amount
+
     payment = create_payment(
         gateway="mirumee.payments.dummy",
         customer_ip_address=fake.ipv4(),
         email=order.user_email,
         order=order,
         payment_token=str(uuid.uuid4()),
-        total=order.total.gross.amount,
+        total=payment_amount,
         currency=order.total.gross.currency,
+        partial=partial,
     )
     manager = get_plugins_manager()
 
@@ -560,8 +564,8 @@ def create_fake_payment(mock_notify, order):
         return payment
     # Create capture transaction
     gateway.capture(payment, manager, order.channel.slug)
-    # 25% to refund the payment
-    if random.choice([0, 0, 0, 1]):
+    # 25% chance to refund the payment if it's not partial.
+    if random.choice([0, 0, 0, 1]) and not partial:
         gateway.refund(payment, manager, order.channel.slug)
     return payment
 
@@ -722,7 +726,18 @@ def create_fake_order(discounts, max_order_lines=5):
     order.weight = weight
     order.save()
 
-    create_fake_payment(order=order)
+    num_of_payments = 1
+    partial = False
+
+    # 25% chance to create partial payments
+    if random.choice([0, 0, 0, 1]):
+        num_of_payments = random.choice([2, 3, 4])
+        partial = True
+
+    payment_amount = order.total.gross.amount // num_of_payments
+
+    for _ in range(1, num_of_payments + 1):
+        create_fake_payment(order=order, payment_amount=payment_amount, partial=partial)
 
     if not will_be_unconfirmed:
         create_fulfillments(order)
@@ -832,7 +847,7 @@ def create_staff_users(staff_password, how_many=2, superuser=False):
     return users
 
 
-def create_orders(how_many=10):
+def create_orders(how_many=15):
     discounts = fetch_discounts(timezone.now())
     for _ in range(how_many):
         order = create_fake_order(discounts)
