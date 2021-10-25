@@ -1,7 +1,7 @@
 import pytest
 
-from saleor.order import OrderEvents
-from saleor.payment.gateways.np_atobarai import get_payment_name, notify_dashboard
+from .....order import OrderEvents
+from .. import get_payment_name, notify_dashboard
 
 
 def test_notify_dashboard(order):

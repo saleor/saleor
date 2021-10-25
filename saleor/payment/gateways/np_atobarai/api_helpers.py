@@ -56,7 +56,7 @@ def np_request(
         raise PaymentError(msg)
 
 
-def _handle_unrecoverable_state(
+def handle_unrecoverable_state(
     action: str,
     transaction_id: str,
     error_codes: Iterable[str],
@@ -69,7 +69,7 @@ def _handle_unrecoverable_state(
     )
 
 
-def _get_errors(response_data: dict) -> Iterable[str]:
+def get_errors(response_data: dict) -> Iterable[str]:
     if "errors" not in response_data:
         return []
     return set(response_data["errors"][0]["codes"])
@@ -83,12 +83,12 @@ def health_check(config: "ApiConfig") -> bool:
         return False
 
 
-def _format_name(ad: AddressData):
+def format_name(ad: AddressData):
     """Follow the Japanese name guidelines."""
     return f"{ad.first_name} {ad.last_name}".strip()
 
 
-def _format_address(config: "ApiConfig", ad: AddressData):
+def format_address(config: "ApiConfig", ad: AddressData):
     """Follow the Japanese address guidelines."""
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
     if not config.fill_missing_address:
@@ -110,11 +110,11 @@ def _format_address(config: "ApiConfig", ad: AddressData):
             )
 
 
-def _format_price(price: Decimal, currency: str) -> int:
+def format_price(price: Decimal, currency: str) -> int:
     return int(price_to_minor_unit(price, currency))
 
 
-def _get_refunded_goods(
+def get_refunded_goods(
     refund_lines: List[RefundLineData],
     payment_information: PaymentData,
 ) -> List[dict]:
@@ -125,7 +125,7 @@ def _get_refunded_goods(
     return [
         {
             "goods_name": payment_line.product_name,
-            "goods_price": _format_price(
+            "goods_price": format_price(
                 payment_line.gross, payment_information.currency
             ),
             "quantity": refund_lines_dict.get(
@@ -136,13 +136,13 @@ def _get_refunded_goods(
     ]
 
 
-def _get_discount(
+def get_discount(
     payment_information: PaymentData,
 ) -> List[dict]:
     product_lines = [
         {
             "goods_name": line.product_name,
-            "goods_price": _format_price(
+            "goods_price": format_price(
                 line.gross,
                 payment_information.currency,
             ),
@@ -153,7 +153,7 @@ def _get_discount(
     return product_lines + [
         {
             "goods_name": "Discount",
-            "goods_price": _format_price(
+            "goods_price": format_price(
                 -payment_information.amount,
                 payment_information.currency,
             ),
@@ -162,13 +162,13 @@ def _get_discount(
     ]
 
 
-def _cancel(config: "ApiConfig", transaction_id: str) -> dict:
+def cancel(config: "ApiConfig", transaction_id: str) -> dict:
     data = {"transactions": [{"np_transaction_id": transaction_id}]}
     response = np_request(config, "patch", "/transactions/cancel", json=data)
     return response.json()
 
 
-def _register(
+def register(
     config: "ApiConfig",
     payment_information: "PaymentData",
 ) -> dict:
@@ -192,29 +192,29 @@ def _register(
                 "shop_transaction_id": payment_information.payment_id,
                 "shop_order_date": order_date,
                 "settlement_type": NP_ATOBARAI,
-                "billed_amount": _format_price(
+                "billed_amount": format_price(
                     payment_information.amount, payment_information.currency
                 ),
                 "customer": {
                     "customer_name": billing.first_name,
                     "company_name": billing.company_name,
                     "zip_code": billing.postal_code,
-                    "address": _format_address(config, billing),
+                    "address": format_address(config, billing),
                     "tel": billing.phone.replace("+81", "0"),
                     "email": payment_information.customer_email,
                 },
                 "dest_customer": {
-                    "customer_name": _format_name(shipping),
+                    "customer_name": format_name(shipping),
                     "company_name": shipping.company_name,
                     "zip_code": shipping.postal_code,
-                    "address": _format_address(config, shipping),
+                    "address": format_address(config, shipping),
                     "tel": shipping.phone.replace("+81", "0"),
                 },
                 "goods": [
                     {
                         "quantity": line.quantity,
                         "goods_name": line.product_name,
-                        "goods_price": _format_price(
+                        "goods_price": format_price(
                             line.gross, payment_information.currency
                         ),
                     }

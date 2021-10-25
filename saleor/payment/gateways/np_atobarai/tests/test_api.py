@@ -122,7 +122,16 @@ def test_refund_payment_partial_refund_change_transaction(
     response = Mock(
         spec=requests.Response,
         status_code=200,
-        json=Mock(return_value={"results": [{"np_transaction_id": psp_reference}]}),
+        json=Mock(
+            return_value={
+                "results": [
+                    {
+                        "np_transaction_id": psp_reference,
+                        "authori_result": "00",
+                    }
+                ]
+            }
+        ),
     )
     mocked_request.return_value = response
 
