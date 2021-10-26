@@ -1,3 +1,4 @@
+import warnings
 from typing import List
 
 import graphene
@@ -58,13 +59,7 @@ class BaseMetadataMutation(BaseMutation):
         try:
             type_name, _ = from_global_id_or_error(object_id)
             if type_name == "Order":
-                raise ValidationError(
-                    {
-                        "id": ValidationError(
-                            "Use token for changing order metadata.", code="invalid"
-                        )
-                    }
-                )
+                warnings.warn("DEPRECATED. Use token for changing order metadata.")
             # ShippingMethod type isn't model-based class
             if type_name == "ShippingMethod":
                 qs = shipping_models.ShippingMethod.objects
