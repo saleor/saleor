@@ -11,6 +11,7 @@ import jaeger_client.config
 import pkg_resources
 import sentry_sdk
 import sentry_sdk.utils
+from celery.schedules import crontab
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from graphql.utils import schema_printer
@@ -470,6 +471,11 @@ AUTHENTICATION_BACKENDS = [
     "saleor.core.auth_backend.PluginBackend",
 ]
 
+# Expired checkouts settings - defines after what time checkouts will be deleted
+ANONYMOUS_CHECKOUTS_TIMEDELTA = {"days": 30}
+USER_CHECKOUTS_TIMEDELTA = {"days": 90}
+EMPTY_CHECKOUTS_TIMEDELTA = {"hours": 6}
+
 # CELERY SETTINGS
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = (
@@ -493,6 +499,10 @@ CELERY_BEAT_SCHEDULE = {
     "delete-expired-reservations": {
         "task": "saleor.warehouse.tasks.delete_expired_reservations_task",
         "schedule": timedelta(days=1),
+    },
+    "delete-expired-checkouts": {
+        "task": "saleor.checkout.tasks.delete_expired_checkouts",
+        "schedule": crontab(hour=0, minute=0),
     },
 }
 
