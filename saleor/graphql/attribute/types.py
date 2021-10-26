@@ -7,9 +7,10 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import PagePermissions, ProductPermissions
 from ...core.tracing import traced_resolver
 from ...graphql.utils import get_user_or_app_from_context
-from ..core.connection import CountableDjangoObjectType
+from ..attribute.dataloaders import AttributeValuesByAttributeIdLoader
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.enums import MeasurementUnitsEnum
-from ..core.fields import FilterInputConnectionField
+from ..core.fields import BaseConnectionField
 from ..core.types import File
 from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from ..decorators import check_attribute_required_permissions
@@ -19,8 +20,8 @@ from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import AttributesByAttributeId
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
-from .filters import AttributeValueFilterInput
-from .sorters import AttributeChoicesSortingInput
+from .filters import AttributeValueFilterInput, filter_attribute_values
+from .sorters import AttributeChoicesSortingInput, sort_attribute_values
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -110,6 +111,11 @@ class AttributeValue(CountableDjangoObjectType):
         return None
 
 
+class AttributeValueCountableConnection(CountableConnection):
+    class Meta:
+        node = AttributeValue
+
+
 class Attribute(CountableDjangoObjectType):
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     entity_type = AttributeEntityTypeEnum(
@@ -120,8 +126,8 @@ class Attribute(CountableDjangoObjectType):
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
-    choices = FilterInputConnectionField(
-        AttributeValue,
+    choices = BaseConnectionField(
+        AttributeValueCountableConnection,
         sort_by=AttributeChoicesSortingInput(description="Sort attribute choices."),
         filter=AttributeValueFilterInput(
             description="Filtering options for attribute choices."
@@ -164,9 +170,27 @@ class Attribute(CountableDjangoObjectType):
         model = models.Attribute
 
     @staticmethod
-    def resolve_choices(root: models.Attribute, info, **_kwargs):
+    def resolve_choices(root: models.Attribute, info, **kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
-            return root.values.all()
+
+            def _resolve_choices(attribute_values):
+                value_filter = kwargs.get("filter", {})
+                search_query = value_filter.get("search")
+
+                attribute_values = filter_attribute_values(
+                    attribute_values, search_query
+                )
+                attribute_values = sort_attribute_values(
+                    attribute_values, kwargs.get("sort_by")
+                )
+
+                return attribute_values
+
+            return (
+                AttributeValuesByAttributeIdLoader(info.context)
+                .load(root.id)
+                .then(_resolve_choices)
+            )
         return models.AttributeValue.objects.none()
 
     @staticmethod

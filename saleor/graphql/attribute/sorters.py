@@ -1,5 +1,6 @@
 import graphene
 
+from ..core.enums import OrderDirection
 from ..core.types import SortInputObjectType
 
 
@@ -73,3 +74,27 @@ class AttributeChoicesSortingInput(SortInputObjectType):
     class Meta:
         sort_enum = AttributeChoicesSortField
         type_name = "attribute choices"
+
+
+def sort_attribute_values(attribute_values, sort_by):
+    sort_reverse = False
+    direction = sort_by.get("direction", OrderDirection.ASC) if sort_by else None
+    if direction == OrderDirection.DESC:
+        sort_reverse = True
+
+    sort_field = (
+        sort_by.get("field", AttributeChoicesSortField.NAME)
+        if sort_by
+        else AttributeChoicesSortField.NAME
+    )
+
+    if sort_field == AttributeChoicesSortField.SLUG:
+        attribute_values = sorted(
+            attribute_values, key=lambda val: val.slug, reverse=sort_reverse
+        )
+    else:
+        attribute_values = sorted(
+            attribute_values, key=lambda val: (val.slug, val.name), reverse=sort_reverse
+        )
+
+    return attribute_values

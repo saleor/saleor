@@ -55,6 +55,23 @@ def filter_attribute_type(qs, _, value):
     return qs.filter(type=value)
 
 
+def filter_attribute_values(attribute_values, search_query):
+    val_fields = ["name", "slug"]
+    if search_query is not None:
+        return [
+            val
+            for val in attribute_values
+            if any(
+                [
+                    search_query.lower() in getattr(val, field).lower()
+                    for field in val_fields
+                ]
+            )
+        ]
+
+    return attribute_values
+
+
 class AttributeValueFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method="filter_search")
 
