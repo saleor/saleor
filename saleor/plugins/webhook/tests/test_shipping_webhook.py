@@ -178,7 +178,7 @@ def test_parse_excluded_shipping_methods_response():
                 "id": graphene.Node.to_global_id("Car", "1"),
             },
             {
-                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+                "id": graphene.Node.to_global_id("ShippingMethod", "2"),
             },
         ]
     }
@@ -186,7 +186,7 @@ def test_parse_excluded_shipping_methods_response():
     excluded_methods = parse_excluded_shipping_methods_response(response)
     # then
     assert len(excluded_methods) == 1
-    assert excluded_methods[0].id == "1"
+    assert excluded_methods[0].id == "2"
 
 
 @mock.patch(
