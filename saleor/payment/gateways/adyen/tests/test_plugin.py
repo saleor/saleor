@@ -643,7 +643,7 @@ def test_adyen_check_payment_balance(
         "method": "givex",
         "card": {
             "cvc": "9891",
-            "code": "603628983671049414498",
+            "code": "1234567910",
             "money": {"currency": "GBP", "amount": 100.0},
         },
     }
@@ -658,7 +658,7 @@ def test_adyen_check_payment_balance(
             "merchantAccount": "SaleorECOM",
             "paymentMethod": {
                 "type": "givex",
-                "number": "603628983671049414498",
+                "number": "1234567910",
                 "securityCode": "9891",
             },
             "amount": {"currency": "GBP", "value": 100.0},
@@ -681,7 +681,7 @@ def test_adyen_check_payment_balance_adyen_raises_error(
         "method": "givex",
         "card": {
             "cvc": "9891",
-            "code": "603628983671049414498",
+            "code": "1234567910",
             "money": {"currency": "GBP", "amount": 100.0},
         },
     }
@@ -694,7 +694,7 @@ def test_adyen_check_payment_balance_adyen_raises_error(
             "merchantAccount": "SaleorECOM",
             "paymentMethod": {
                 "type": "givex",
-                "number": "603628983671049414498",
+                "number": "1234567910",
                 "securityCode": "9891",
             },
             "amount": {"currency": "GBP", "value": 100.0},
