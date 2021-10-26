@@ -58,18 +58,23 @@ T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
 
 
 def _clean_product_attributes_filter_input(filter_value, queries):
+    attribute_slugs = []
+    value_slugs = []
+    for attr_slug, val_slugs in filter_value:
+        attribute_slugs.append(attr_slug)
+        value_slugs.extend(val_slugs)
     attributes_slug_pk_map: Dict[str, int] = {}
     attributes_pk_slug_map: Dict[int, str] = {}
     values_map: Dict[str, Dict[str, int]] = defaultdict(dict)
-    for attr_slug, attr_pk in Attribute.objects.values_list("slug", "id"):
+    for attr_slug, attr_pk in Attribute.objects.filter(
+        slug__in=attribute_slugs
+    ).values_list("slug", "id"):
         attributes_slug_pk_map[attr_slug] = attr_pk
         attributes_pk_slug_map[attr_pk] = attr_slug
 
-    for (
-        attr_pk,
-        value_pk,
-        value_slug,
-    ) in AttributeValue.objects.values_list("attribute_id", "pk", "slug"):
+    for (attr_pk, value_pk, value_slug,) in AttributeValue.objects.filter(
+        slug__in=value_slugs, attribute_id__in=attributes_pk_slug_map.keys()
+    ).values_list("attribute_id", "pk", "slug"):
         attr_slug = attributes_pk_slug_map[attr_pk]
         values_map[attr_slug][value_slug] = value_pk
 

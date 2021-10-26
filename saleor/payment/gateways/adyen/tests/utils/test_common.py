@@ -19,6 +19,7 @@ from saleor.payment.interface import PaymentMethodInfo
 from saleor.payment.utils import price_from_minor_unit, price_to_minor_unit
 
 from ......plugins.manager import get_plugins_manager
+from ...utils.common import prepare_address_request_data
 
 
 @pytest.mark.parametrize(
@@ -266,7 +267,7 @@ def test_request_data_for_payment(dummy_payment_data, dummy_address_data):
             "country": "PL",
             "houseNumberOrName": "Mirumee Software",
             "postalCode": "53-601",
-            "stateOrProvince": "",
+            "stateOrProvince": "ZZ",
             "street": "Tęczowa 7",
         },
         "billingAddress": {
@@ -274,7 +275,7 @@ def test_request_data_for_payment(dummy_payment_data, dummy_address_data):
             "country": "PL",
             "houseNumberOrName": "Mirumee Software",
             "postalCode": "53-601",
-            "stateOrProvince": "",
+            "stateOrProvince": "ZZ",
             "street": "Tęczowa 7",
         },
     }
@@ -361,7 +362,7 @@ def test_request_data_for_payment_when_missing_city_and_count_area(
         "country": "PL",
         "houseNumberOrName": "Mirumee Software",
         "postalCode": "53-601",
-        "stateOrProvince": "",
+        "stateOrProvince": "ZZ",
         "street": "Tęczowa 7",
     }
     assert result["billingAddress"] == {
@@ -369,7 +370,7 @@ def test_request_data_for_payment_when_missing_city_and_count_area(
         "country": "PL",
         "houseNumberOrName": "Mirumee Software",
         "postalCode": "53-601",
-        "stateOrProvince": "",
+        "stateOrProvince": "ZZ",
         "street": "Tęczowa 7",
     }
 
@@ -407,7 +408,7 @@ def test_request_data_for_payment_when_missing_postal_code(
         "country": "PL",
         "houseNumberOrName": "Mirumee Software",
         "postalCode": "ZZ",
-        "stateOrProvince": "",
+        "stateOrProvince": "ZZ",
         "street": "Tęczowa 7",
     }
     assert result["billingAddress"] == {
@@ -415,7 +416,7 @@ def test_request_data_for_payment_when_missing_postal_code(
         "country": "PL",
         "houseNumberOrName": "Mirumee Software",
         "postalCode": "ZZ",
-        "stateOrProvince": "",
+        "stateOrProvince": "ZZ",
         "street": "Tęczowa 7",
     }
 
@@ -472,7 +473,7 @@ def test_request_data_for_payment_without_shipping(
             "country": "PL",
             "houseNumberOrName": "Mirumee Software",
             "postalCode": "53-601",
-            "stateOrProvince": "",
+            "stateOrProvince": "ZZ",
             "street": "Tęczowa 7",
         },
     }
@@ -531,7 +532,7 @@ def test_request_data_for_payment_native_3d_secure(
             "country": "PL",
             "houseNumberOrName": "Mirumee Software",
             "postalCode": "53-601",
-            "stateOrProvince": "",
+            "stateOrProvince": "ZZ",
             "street": "Tęczowa 7",
         },
         "billingAddress": {
@@ -539,7 +540,7 @@ def test_request_data_for_payment_native_3d_secure(
             "country": "PL",
             "houseNumberOrName": "Mirumee Software",
             "postalCode": "53-601",
-            "stateOrProvince": "",
+            "stateOrProvince": "ZZ",
             "street": "Tęczowa 7",
         },
     }
@@ -587,7 +588,7 @@ def test_request_data_for_payment_channel_different_than_web(
             "country": "PL",
             "houseNumberOrName": "Mirumee Software",
             "postalCode": "53-601",
-            "stateOrProvince": "",
+            "stateOrProvince": "ZZ",
             "street": "Tęczowa 7",
         },
         "billingAddress": {
@@ -595,7 +596,7 @@ def test_request_data_for_payment_channel_different_than_web(
             "country": "PL",
             "houseNumberOrName": "Mirumee Software",
             "postalCode": "53-601",
-            "stateOrProvince": "",
+            "stateOrProvince": "ZZ",
             "street": "Tęczowa 7",
         },
     }
@@ -878,3 +879,133 @@ def test_get_payment_method_info_no_additional_data(dummy_payment_data):
 
     # then
     assert payment_method_info == PaymentMethodInfo(type="card")
+
+
+def test_prepare_address_request_data_address_is_none():
+    assert not prepare_address_request_data(None)
+
+
+def test_prepare_address_request_data_without_city_country_code_and_areas(
+    address_with_areas,
+):
+    address = address_with_areas
+    address.city = ""
+    address.country_area = ""
+    address.city_area = ""
+    address.country = ""
+    address.postal_code = ""
+    address.save(
+        update_fields=["city", "country", "postal_code", "city_area", "country_area"]
+    )
+    address.refresh_from_db()
+
+    result = prepare_address_request_data(address)
+
+    assert result["city"] == "ZZ"
+    assert result["country"] == "ZZ"
+    assert result["houseNumberOrName"] == "Mirumee Software"
+    assert result["postalCode"] == "ZZ"
+    assert result["stateOrProvince"] == "ZZ"
+    assert result["street"] == "Tęczowa 7"
+
+
+def test_prepare_address_request_data_address_fulfilled(address_with_areas):
+    result = prepare_address_request_data(address_with_areas)
+
+    assert result["city"] == "WROCŁAW"
+    assert result["country"] == "PL"
+    assert result["houseNumberOrName"] == "Mirumee Software"
+    assert result["postalCode"] == "53-601"
+    assert result["stateOrProvince"] == "test_country_area"
+    assert result["street"] == "Tęczowa 7"
+
+
+def test_prepare_address_request_data_without_company_name_and_street_addr_2(
+    address_with_areas,
+):
+    address = address_with_areas
+    address.company_name = ""
+    address.save(update_fields=["company_name"])
+    address.refresh_from_db()
+
+    result = prepare_address_request_data(address)
+
+    assert result["city"] == "WROCŁAW"
+    assert result["country"] == "PL"
+    assert result["houseNumberOrName"] == ""
+    assert result["postalCode"] == "53-601"
+    assert result["stateOrProvince"] == "test_country_area"
+    assert result["street"] == "Tęczowa 7"
+
+
+def test_prepare_address_request_data_with_company_name_and_street_addr_2(
+    address_with_areas,
+):
+    address = address_with_areas
+    address.street_address_2 = "street_address_2"
+    address.save(update_fields=["street_address_2"])
+    address.refresh_from_db()
+
+    result = prepare_address_request_data(address)
+
+    assert result["city"] == "WROCŁAW"
+    assert result["country"] == "PL"
+    assert result["houseNumberOrName"] == "Mirumee Software"
+    assert result["postalCode"] == "53-601"
+    assert result["stateOrProvince"] == "test_country_area"
+    assert result["street"] == "Tęczowa 7 street_address_2"
+
+
+def test_prepare_address_request_data_without_company_with_street_addr_2(
+    address_with_areas,
+):
+    address = address_with_areas
+    address.company_name = ""
+    address.street_address_2 = "street_address_2"
+    address.save(update_fields=["company_name", "street_address_2"])
+    address.refresh_from_db()
+
+    result = prepare_address_request_data(address)
+
+    assert result["city"] == "WROCŁAW"
+    assert result["country"] == "PL"
+    assert result["houseNumberOrName"] == "Tęczowa 7"
+    assert result["postalCode"] == "53-601"
+    assert result["stateOrProvince"] == "test_country_area"
+    assert result["street"] == "street_address_2"
+
+
+def test_prepare_address_request_data_with_country_area_without_city_area(
+    address_with_areas,
+):
+    address = address_with_areas
+    address.city_area = ""
+    address.save(update_fields=["city_area"])
+    address.refresh_from_db()
+
+    result = prepare_address_request_data(address)
+
+    assert result["city"] == "WROCŁAW"
+    assert result["country"] == "PL"
+    assert result["houseNumberOrName"] == "Mirumee Software"
+    assert result["postalCode"] == "53-601"
+    assert result["stateOrProvince"] == "test_country_area"
+    assert result["street"] == "Tęczowa 7"
+
+
+def test_prepare_address_request_data_with_city_area_without_country_area(
+    address_with_areas,
+):
+    address = address_with_areas
+    address.country_area = ""
+    address.save(update_fields=["country_area"])
+    address.refresh_from_db()
+
+    result = prepare_address_request_data(address)
+
+    assert result["city"] == "WROCŁAW"
+    assert result["country"] == "PL"
+    assert result["houseNumberOrName"] == "Mirumee Software"
+    assert result["postalCode"] == "53-601"
+    assert result["stateOrProvince"] == "ZZ"
+    assert result["street"] == "Tęczowa 7"

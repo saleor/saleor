@@ -3077,6 +3077,7 @@ def test_checkout_delivery_method_update_external_shipping(
     if is_valid_delivery_method:
         assert not errors
         assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
+        assert data["checkout"]["deliveryMethod"]["id"] == method_id
     else:
         assert len(errors) == 1
         assert errors[0]["field"] == "deliveryMethodId"
