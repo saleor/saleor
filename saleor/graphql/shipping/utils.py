@@ -47,22 +47,21 @@ def annotate_shipping_methods_with_price(
     manager: "PluginsManager",
     display_gross: bool,
 ):
+    if not address:
+        return
     channel_listing_map = {
         channel_listing.shipping_method_id: channel_listing
         for channel_listing in channel_listings
     }
     for method in shipping_methods:
         shipping_channel_listing = channel_listing_map[method.id]
-        if address:
-            taxed_price = manager.apply_taxes_to_shipping(
-                shipping_channel_listing.price, address, channel_slug
-            )
-            if display_gross:
-                method.price = taxed_price.gross  # type: ignore
-            else:
-                method.price = taxed_price.net  # type: ignore
+        taxed_price = manager.apply_taxes_to_shipping(
+            shipping_channel_listing.price, address, channel_slug
+        )
+        if display_gross:
+            method.price = taxed_price.gross  # type: ignore
         else:
-            method.price = shipping_channel_listing.price  # type: ignore
+            method.price = taxed_price.net  # type: ignore
 
 
 def annotate_active_shipping_methods(
