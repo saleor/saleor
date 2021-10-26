@@ -526,6 +526,22 @@ def address(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def address_with_areas(db):
+    return Address.objects.create(
+        first_name="John",
+        last_name="Doe",
+        company_name="Mirumee Software",
+        street_address_1="Tęczowa 7",
+        city="WROCŁAW",
+        postal_code="53-601",
+        country="PL",
+        phone="+48713988102",
+        country_area="test_country_area",
+        city_area="test_city_area",
+    )
+
+
+@pytest.fixture
 def address_other_country():
     return Address.objects.create(
         first_name="John",
