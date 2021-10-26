@@ -112,10 +112,11 @@ def fetch_checkout_info(
             channel=channel,
         )
     )
-    for listing in all_shipping_method_channel_listings:
-        if listing.shipping_method == shipping_method:
-            shipping_method_channel_listing = listing
-            break
+    if shipping_method:
+        for listing in all_shipping_method_channel_listings:
+            if listing.shipping_method_id == shipping_method.id:
+                shipping_method_channel_listing = listing
+                break
 
     checkout_info = CheckoutInfo(
         checkout=checkout,
