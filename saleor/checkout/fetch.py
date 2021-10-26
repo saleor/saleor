@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, List, Optional
 
+from django.contrib.sites.models import Site
 from django.utils.functional import SimpleLazyObject
 
 from ..graphql.shipping.utils import (
@@ -183,13 +184,14 @@ def get_valid_shipping_method_list_for_checkout_info(
         )
         or []
     )
+    site = Site.objects.get_current()
     annotate_shipping_methods_with_price(
         valid_shipping_methods,
         channel_listings,
         checkout_info.shipping_address,
         checkout_info.channel.slug,
         manager,
-        display_gross=True,
+        site.settings.display_gross_prices,
     )
     shipping_method_dataclasses = [
         convert_shipping_method_model_to_dataclass(shipping)
