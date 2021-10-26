@@ -445,7 +445,7 @@ def get_payment_method_info(
 
 
 def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dict:
-    amount = data["card"].get("money")
+    amount_input = data["card"].get("money")
     security_code = data["card"].get("cvc")
 
     request_data = {
@@ -456,9 +456,11 @@ def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dic
         },
     }
 
-    if amount:
-        amount["value"] = amount.pop("amount")  # rename `amount` key with `value`
-        request_data["amount"] = amount
+    if amount_input:
+        request_data["amount"] = {
+            "value": amount_input["amount"],
+            "currency": amount_input["currency"],
+        }
 
     if security_code:
         request_data["paymentMethod"]["securityCode"] = security_code  # type: ignore
