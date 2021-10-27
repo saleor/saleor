@@ -3,7 +3,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional
 
 import requests
-from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
@@ -122,18 +121,23 @@ def get_refunded_goods(
         line.product_sku: line.quantity for line in refund_lines if line.product_sku
     }
 
-    return [
-        {
-            "goods_name": payment_line.product_name,
-            "goods_price": format_price(
-                payment_line.gross, payment_information.currency
-            ),
-            "quantity": refund_lines_dict.get(
-                payment_line.product_sku, payment_line.quantity
-            ),
-        }
-        for payment_line in payment_information.lines
-    ]
+    goods = []
+
+    for payment_line in payment_information.lines:
+        quantity = refund_lines_dict.get(
+            payment_line.product_sku, payment_line.quantity
+        )
+        if quantity:
+            goods.append(
+                {
+                    "goods_name": payment_line.product_name,
+                    "goods_price": format_price(
+                        payment_line.gross, payment_information.currency
+                    ),
+                    "quantity": quantity,
+                }
+            )
+    return goods
 
 
 def get_discount(
@@ -172,7 +176,7 @@ def register(
     config: "ApiConfig",
     payment_information: "PaymentData",
 ) -> dict:
-    order_date = timezone.now().strftime("%Y-%m-%d")
+    payment_information.refresh_order_date()
 
     billing = payment_information.billing
     shipping = payment_information.shipping
@@ -190,7 +194,7 @@ def register(
         "transactions": [
             {
                 "shop_transaction_id": payment_information.payment_id,
-                "shop_order_date": order_date,
+                "shop_order_date": payment_information.order_date,
                 "settlement_type": NP_ATOBARAI,
                 "billed_amount": format_price(
                     payment_information.amount, payment_information.currency
@@ -224,5 +228,4 @@ def register(
         ]
     }
 
-    response = np_request(config, "post", "/transactions", json=data)
-    return response.json()
+    return np_request(config, "post", "/transactions", json=data).json()

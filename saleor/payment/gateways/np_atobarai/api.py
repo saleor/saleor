@@ -1,8 +1,6 @@
 import logging
 from typing import List, Optional, Tuple, Union
 
-from django.utils import timezone
-
 from ....order.models import Fulfillment
 from ... import PaymentError
 from ...interface import PaymentData, RefundLineData
@@ -198,9 +196,6 @@ def reregister_transaction_for_partial_return(
                 ),
             )
 
-        # TODO: probably use order date from registration?????
-        order_date = timezone.now().strftime("%Y-%m-%d")
-
         if lines:
             goods = get_refunded_goods(lines, payment_information)
         else:
@@ -211,7 +206,7 @@ def reregister_transaction_for_partial_return(
                 {
                     "base_np_transaction_id": psp_reference,
                     "shop_transaction_id": payment_id,
-                    "shop_order_date": order_date,
+                    "shop_order_date": payment_information.order_date,
                     "billed_amount": format_price(
                         payment.captured_amount - payment_information.amount,
                         payment_information.currency,

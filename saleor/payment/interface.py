@@ -1,7 +1,9 @@
-from dataclasses import InitVar, dataclass
+from dataclasses import InitVar, dataclass, field
 from decimal import Decimal
 from functools import cached_property
 from typing import Any, Callable, Dict, List, Optional, Union
+
+from django.utils import timezone
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
@@ -100,15 +102,24 @@ class PaymentData:
     lines_to_refund: Optional[List[RefundLineData]] = None
     # Optional, lazy-evaluated gateway arguments
     _resolve_lines: InitVar[Callable] = None
+    __order_date: str = field(init=False)
 
     def __post_init__(self, _resolve_lines: Callable):
         self.__resolve_lines = _resolve_lines
+        self.refresh_order_date()
 
     # Note: this field does not appear in webhook payloads,
     # because it's not visible to dataclasses.asdict
     @cached_property
     def lines(self) -> List[PaymentLineData]:
         return self.__resolve_lines()
+
+    def refresh_order_date(self) -> None:
+        self.__order_date = timezone.now().strftime("%Y-%m-%d")
+
+    @property
+    def order_date(self) -> str:
+        return self.__order_date
 
 
 @dataclass
