@@ -508,6 +508,37 @@ def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock)
     ]
 
 
+def test_checkout_lines_add_too_many_after_two_trial(
+    user_api_client, checkout_with_item, stock
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    stock.quantity = 200
+    stock.save(update_fields=["quantity"])
+
+    variables = {
+        "token": checkout_with_item.token,
+        "lines": [{"variantId": variant_id, "quantity": 26}],
+        "channelSlug": checkout_with_item.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)["data"]["checkoutLinesAdd"]
+
+    assert not content["errors"]
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)["data"]["checkoutLinesAdd"]
+
+    assert content["errors"] == [
+        {
+            "field": "quantity",
+            "message": "Cannot add more than 50 times this item: SKU_A.",
+            "code": "QUANTITY_GREATER_THAN_LIMIT",
+            "variants": None,
+        }
+    ]
+
+
 def test_checkout_lines_add_empty_checkout(user_api_client, checkout, stock):
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)

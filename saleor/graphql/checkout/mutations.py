@@ -146,6 +146,8 @@ def check_lines_quantity(
     existing_lines=None,
     replace=False,
     check_reservations=False,
+    cumulative_quantities=None,
+    cumulative_variants=None,
 ):
     """Clean quantities and check if stock is sufficient for each checkout line.
 
@@ -154,11 +156,7 @@ def check_lines_quantity(
     allow_zero_quantities can be set to True
     and checkout lines with this quantity can be later removed.
     """
-    for quantity, variant in zip(quantities, variants):
-        available_quantity = global_quantity_limit
-        if variant_quantity := variant.quantity_limit_per_customer:
-            available_quantity = variant_quantity
-
+    for quantity in quantities:
         if not allow_zero_quantity and quantity <= 0:
             raise ValidationError(
                 {
@@ -168,6 +166,18 @@ def check_lines_quantity(
                     )
                 }
             )
+
+    cumulative_quantities = (
+        cumulative_quantities if cumulative_quantities is not None else quantities
+    )
+    cumulative_variants = (
+        cumulative_variants if cumulative_variants is not None else variants
+    )
+
+    for quantity, variant in zip(cumulative_quantities, cumulative_variants):
+        available_quantity = global_quantity_limit
+        if variant_quantity := variant.quantity_limit_per_customer:
+            available_quantity = variant_quantity
 
         elif allow_zero_quantity and quantity < 0:
             raise ValidationError(
@@ -525,7 +535,15 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def validate_checkout_lines(
-        cls, info, variants, quantities, country, channel_slug, lines=None
+        cls,
+        info,
+        variants,
+        quantities,
+        country,
+        channel_slug,
+        lines=None,
+        cumulative_quantities=None,
+        cumulative_variants=None,
     ):
         check_lines_quantity(
             variants,
@@ -535,6 +553,8 @@ class CheckoutLinesAdd(BaseMutation):
             info.context.site.settings.limit_quantity_per_checkout,
             existing_lines=lines,
             check_reservations=is_reservation_enabled(info.context.site.settings),
+            cumulative_quantities=cumulative_quantities,
+            cumulative_variants=cumulative_variants,
         )
 
     @classmethod
@@ -549,6 +569,8 @@ class CheckoutLinesAdd(BaseMutation):
         manager,
         discounts,
         replace,
+        cumulative_quantities=None,
+        cumulative_variants=None,
     ):
         channel_slug = checkout_info.channel.slug
 
@@ -556,6 +578,7 @@ class CheckoutLinesAdd(BaseMutation):
         # to checkout object via checkoutLinesAdd despite of global limits,
         # because we validate just an input, not checkout' state after mutation.
         # Pls check "main" branch.
+
         cls.validate_checkout_lines(
             info,
             variants,
@@ -563,6 +586,8 @@ class CheckoutLinesAdd(BaseMutation):
             checkout.get_country(),
             channel_slug,
             lines=lines,
+            cumulative_quantities=cumulative_quantities,
+            cumulative_variants=cumulative_variants,
         )
 
         variants_ids_to_validate = {
@@ -631,21 +656,35 @@ class CheckoutLinesAdd(BaseMutation):
 
         variant_ids = [line.get("variant_id") for line in lines]
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
-        quantities = [line.get("quantity") for line in lines]
+        input_quantities = group_quantity_by_variants(lines)
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
 
-        lines = fetch_checkout_lines(checkout)
+        existing_lines = fetch_checkout_lines(checkout)
+        existing_quantity_dicts = [
+            {
+                "quantity": line.line.quantity,
+                "variant_id": graphene.Node.to_global_id(
+                    "ProductVariant", line.variant.id
+                ),
+            }
+            for line in existing_lines
+        ]
+        existing_quantity_dicts.extend(lines)
+        cumulative_quantities = group_quantity_by_variants(existing_quantity_dicts)
+        cumulative_variants = [line.variant for line in existing_lines] + variants
         lines = cls.clean_input(
             info,
             checkout,
             variants,
-            quantities,
+            input_quantities,
             checkout_info,
-            lines,
+            existing_lines,
             manager,
             discounts,
             replace,
+            cumulative_quantities,
+            cumulative_variants,
         )
 
         checkout_info.valid_shipping_methods = (
@@ -684,6 +723,8 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         country,
         channel_slug,
         lines=None,
+        cumulative_quantities=None,
+        cumulative_variants=None,
     ):
         check_lines_quantity(
             variants,
