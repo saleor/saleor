@@ -622,7 +622,7 @@ class OrderRefund(BaseMutation):
     @classmethod
     def _check_total_amount_to_refund(cls, payments, amount=None):
         total_captured_amount = sum([item.payment.captured_amount for item in payments])
-        if amount > total_captured_amount:
+        if amount and amount > total_captured_amount:
             raise ValidationError(
                 {
                     "amount": ValidationError(
@@ -663,7 +663,19 @@ class OrderRefund(BaseMutation):
                     item["amount"],
                 )
                 for item in payments_to_refund
+                if item["amount"] > 0
             ]
+
+            if not payments:
+                raise ValidationError(
+                    {
+                        "amount": ValidationError(
+                            "The total amount to refund of the specified payments "
+                            "has to be higher than zero.",
+                            code=OrderErrorCode.ZERO_QUANTITY.value,
+                        )
+                    }
+                )
 
             cls._check_amount_to_refund_per_payment(payments)
 
