@@ -111,6 +111,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
             result = api.reregister_transaction_for_partial_return(
                 config, payment, payment_information, lines
             )
+            # TODO: rereport fulfillment
 
     else:
         result = api.cancel_transaction(config, payment_information)

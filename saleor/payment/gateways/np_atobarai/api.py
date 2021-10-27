@@ -201,23 +201,15 @@ def reregister_transaction_for_partial_return(
         else:
             goods = get_discount(payment_information)
 
-        data = {
-            "transactions": [
-                {
-                    "base_np_transaction_id": psp_reference,
-                    "shop_transaction_id": payment_id,
-                    "shop_order_date": payment_information.order_date,
-                    "billed_amount": format_price(
-                        payment.captured_amount - payment_information.amount,
-                        payment_information.currency,
-                    ),
-                    "goods": goods,
-                }
-            ]
-        }
-
-        response = np_request(config, "post", "/transactions/reregister", json=data)
-        response_data = response.json()
+        response_data = register(
+            config,
+            payment_information,
+            format_price(
+                payment.captured_amount - payment_information.amount,
+                payment_information.currency,
+            ),
+            goods,
+        )
 
         error_codes = get_errors(response_data)
 
