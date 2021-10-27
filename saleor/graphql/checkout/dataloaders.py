@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Dict
 
 from django.db.models import F
 from promise import Promise
@@ -183,7 +182,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                     for checkout, channel in zip(checkouts, channels)
                     if checkout.shipping_method_id
                 ]
-                shipping_method_channel_listing = (
+                shipping_method_channel_listings = (
                     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
                         self.context
                     ).load_many(shipping_method_ids_channel_slugs)
@@ -202,7 +201,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         shipping_method.id: shipping_method
                         for shipping_method in shipping_methods
                     }
-                    shipping_method_channel_listing_map: Dict = {
+                    shipping_method_channel_listing_map = {
                         (listing.shipping_method_id, listing.channel_id): listing
                         for listing in channel_listings
                         if listing
@@ -237,7 +236,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         addresses,
                         users,
                         shipping_methods,
-                        shipping_method_channel_listing,
+                        shipping_method_channel_listings,
                     ]
                 ).then(with_checkout_info)
 
