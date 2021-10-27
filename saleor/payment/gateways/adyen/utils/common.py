@@ -462,7 +462,7 @@ def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dic
 
     if amount_input:
         request_data["amount"] = {
-            "value": amount_input["amount"],
+            "value": str(amount_input["amount"]),
             "currency": amount_input["currency"],
         }
 
