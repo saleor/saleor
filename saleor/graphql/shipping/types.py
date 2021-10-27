@@ -319,3 +319,7 @@ class ShippingMethod(ChannelContextType):
     @staticmethod
     def resolve_active(root: ChannelContext, _info):
         return root.node.active
+
+    @staticmethod
+    def resolve_message(root: ChannelContext, _info):
+        return root.node.message

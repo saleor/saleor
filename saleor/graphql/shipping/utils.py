@@ -1,11 +1,16 @@
-from typing import List
+from typing import TYPE_CHECKING, List, Optional
 
 from measurement.measures import Weight
 
+from ...account.models import Address
 from ...plugins.base_plugin import ExcludedShippingMethod
 from ...plugins.base_plugin import ShippingMethod as ShippingMethodDataclass
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
+
+if TYPE_CHECKING:
+    from ...plugins.manager import PluginsManager
+    from ...shipping.models import ShippingMethodChannelListing
 
 
 def convert_shipping_method_model_to_dataclass(
@@ -34,23 +39,53 @@ def convert_shipping_method_model_to_dataclass(
     return shipping_method_dataclass
 
 
-def set_active_shipping_methods(
+def annotate_shipping_methods_with_price(
+    shipping_methods: List[shipping_models.ShippingMethod],
+    channel_listings: List["ShippingMethodChannelListing"],
+    address: Optional["Address"],
+    channel_slug: str,
+    manager: "PluginsManager",
+    display_gross: bool,
+):
+    if not address:
+        return
+    channel_listing_map = {
+        channel_listing.shipping_method_id: channel_listing
+        for channel_listing in channel_listings
+    }
+    for method in shipping_methods:
+        shipping_channel_listing = channel_listing_map[method.id]
+        taxed_price = manager.apply_taxes_to_shipping(
+            shipping_channel_listing.price, address, channel_slug
+        )
+        if display_gross:
+            method.price = taxed_price.gross  # type: ignore
+        else:
+            method.price = taxed_price.net  # type: ignore
+
+
+def annotate_active_shipping_methods(
+    shipping_methods: List[shipping_models.ShippingMethod],
     excluded_methods: List[ExcludedShippingMethod],
-    available_shipping_methods: List[shipping_models.ShippingMethod],
+):
+    for instance in shipping_methods:
+        instance.active = True  # type: ignore
+        instance.message = ""  # type: ignore
+        for method in excluded_methods:
+            if str(instance.id) == str(method.id):
+                instance.active = False  # type: ignore
+                instance.message = method.reason  # type: ignore
+
+
+def wrap_with_channel_context(
+    shipping_methods: List[shipping_models.ShippingMethod],
     channel_slug: str,
 ) -> List[ChannelContext]:
     instances = [
         ChannelContext(
-            node=shipping,
+            node=method,
             channel_slug=channel_slug,
         )
-        for shipping in available_shipping_methods
+        for method in shipping_methods
     ]
-    for instance in instances:
-        instance.node.active = True  # type: ignore
-        instance.node.message = ""  # type: ignore
-        for method in excluded_methods:
-            if instance.node.id == method.id:
-                instance.node.active = False  # type: ignore
-                instance.node.message = method.reason  # type: ignore
     return instances

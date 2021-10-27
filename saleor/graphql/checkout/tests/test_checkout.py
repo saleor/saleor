@@ -2541,7 +2541,9 @@ def test_checkout_shipping_method_update_excluded_webhook(
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_SHIPPING_METHOD
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
-    mocked_webhook.return_value = [ExcludedShippingMethod(method_id, webhook_reason)]
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+    ]
     # when
     response = staff_api_client.post_graphql(
         query, {"token": checkout_with_item.token, "shippingMethodId": method_id}

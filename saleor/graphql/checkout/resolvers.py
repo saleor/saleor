@@ -12,8 +12,10 @@ from ..shipping.dataloaders import (
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
 from ..shipping.utils import (
+    annotate_active_shipping_methods,
+    annotate_shipping_methods_with_price,
     convert_shipping_method_model_to_dataclass,
-    set_active_shipping_methods,
+    wrap_with_channel_context,
 )
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
@@ -65,7 +67,7 @@ def resolve_checkout(info, token):
 def _resolve_checkout_excluded_shipping_methods(
     root,
     channel_listings,
-    shippings,
+    shipping_methods,
     address,
     channel_slug,
     display_gross,
@@ -76,32 +78,27 @@ def _resolve_checkout_excluded_shipping_methods(
     if hasattr(root, cache_key):
         return getattr(root, cache_key)
 
-    channel_listing_map = {
-        channel_listing.shipping_method_id: channel_listing
-        for channel_listing in channel_listings
-    }
-    available_shipping_method_instances = []
-    for shipping in shippings:
-        shipping_channel_listing = channel_listing_map[shipping.id]
-        taxed_price = info.context.plugins.apply_taxes_to_shipping(
-            shipping_channel_listing.price, address, channel_slug
-        )
-        if display_gross:
-            shipping.price = taxed_price.gross
-        else:
-            shipping.price = taxed_price.net
-        available_shipping_method_instances.append(shipping)
-
+    annotate_shipping_methods_with_price(
+        shipping_methods,
+        channel_listings,
+        address,
+        channel_slug,
+        manager,
+        display_gross,
+    )
     shipping_method_dataclasses = [
         convert_shipping_method_model_to_dataclass(shipping)
-        for shipping in available_shipping_method_instances
+        for shipping in shipping_methods
     ]
     excluded_shipping_methods = manager.excluded_shipping_methods_for_checkout(
         root, shipping_method_dataclasses
     )
-    available_with_channel_context = set_active_shipping_methods(
+    annotate_active_shipping_methods(
+        shipping_methods,
         excluded_shipping_methods,
-        available_shipping_method_instances,
+    )
+    available_with_channel_context = wrap_with_channel_context(
+        shipping_methods,
         channel_slug,
     )
 
