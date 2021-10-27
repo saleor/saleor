@@ -4628,8 +4628,8 @@ def test_query_staff_members_app_no_permission(
         ({"search": "Kowalski"}, 1),
         ({"search": "John"}, 1),  # first_name
         ({"search": "Doe"}, 1),  # last_name
-        ({"search": "wroc"}, 1),  # city
-        ({"search": "pl"}, 2),  # country
+        ({"search": "irv"}, 1),  # city
+        ({"search": "us"}, 1),  # country
     ],
 )
 def test_query_staff_members_with_filter_search(
@@ -4638,7 +4638,7 @@ def test_query_staff_members_with_filter_search(
     query_staff_users_with_filter,
     staff_api_client,
     permission_manage_staff,
-    address,
+    address_usa,
     staff_user,
 ):
     users = User.objects.bulk_create(
@@ -4664,7 +4664,7 @@ def test_query_staff_members_with_filter_search(
             ),
         ]
     )
-    users[1].addresses.set([address])
+    users[1].addresses.set([address_usa])
 
     variables = {"filter": staff_member_filter}
     response = staff_api_client.post_graphql(
