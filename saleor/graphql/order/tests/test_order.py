@@ -316,6 +316,7 @@ query OrdersQuery {
                 }
                 payments{
                     id
+                    chargeStatus
                 }
                 subtotal {
                     net {
@@ -662,6 +663,56 @@ def test_order_query_payment_status_depending_on_charge_statuses(
     # then
     assert order_data["paymentStatus"] == expected.name
     assert order_data["paymentStatusDisplay"] == expected_display
+
+
+@pytest.mark.parametrize(
+    "status,is_active,expect_payment",
+    [
+        [ChargeStatus.NOT_CHARGED, True, False],
+        [ChargeStatus.NOT_CHARGED, False, False],
+        [ChargeStatus.AUTHORIZED, False, False],
+        [ChargeStatus.AUTHORIZED, True, True],
+        [ChargeStatus.PENDING, False, False],
+        [ChargeStatus.PENDING, True, True],
+        [ChargeStatus.PARTIALLY_CHARGED, True, True],
+        [ChargeStatus.PARTIALLY_CHARGED, False, False],
+        [ChargeStatus.FULLY_CHARGED, True, True],
+        [ChargeStatus.FULLY_CHARGED, False, False],
+        [ChargeStatus.PARTIALLY_REFUNDED, True, True],
+        [ChargeStatus.PARTIALLY_REFUNDED, False, False],
+        [ChargeStatus.FULLY_REFUNDED, True, True],
+        [ChargeStatus.FULLY_REFUNDED, False, False],
+        [ChargeStatus.REFUSED, True, True],
+        [ChargeStatus.REFUSED, False, False],
+        [ChargeStatus.CANCELLED, True, True],
+        [ChargeStatus.CANCELLED, False, False],
+    ],
+)
+def test_order_returns_only_active_payments_with_right_status(
+    staff_api_client,
+    status,
+    is_active,
+    expect_payment,
+    payment_kwargs,
+    order,
+    permission_manage_orders,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    Payment.objects.create(
+        **{
+            **payment_kwargs,
+            **{"order": order, "charge_status": status, "is_active": is_active},
+        }
+    )
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    # then
+    assert bool(order_data["payments"]) == expect_payment
 
 
 @pytest.mark.parametrize(
