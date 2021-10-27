@@ -276,7 +276,12 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     quantity_available = graphene.Int(
         required=False,
-        description="Quantity of a product available for sale in one checkout.",
+        description=(
+            "Quantity of a product available for sale in one checkout. "
+            "Field value will be `null` when "
+            "no `limitQuantityPerCheckout` in global settings has been set, and "
+            "`productVariant` stocks are not tracked."
+        ),
         address=destination_address_argument,
         country_code=graphene.Argument(
             CountryCodeEnum,
@@ -284,9 +289,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
                 "from a warehouse operating in shipping zones that contain this "
                 "country will be returned. Otherwise, it will return the maximum "
-                "quantity from all shipping zones. Field value will be `null` when "
-                "no `limitQuantityPerCheckout` in global settings has been set, and "
-                "`productVariant` stocks are not tracked."
+                "quantity from all shipping zones. "
                 f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
             ),
         ),
@@ -970,7 +973,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
         def load_variants_availability(variants):
             keys = [(variant.id, country_code, channel_slug) for variant in variants]
-
             return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 info.context
             ).load_many(keys)

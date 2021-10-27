@@ -521,7 +521,7 @@ def test_limit_quantity_per_checkout_neg_or_zero_value(
     assert len(errors) == 1
     assert errors.pop() == {
         "field": "limitQuantityPerCheckout",
-        "message": "Quantity limit cannot be lower than 50 or null.",
+        "message": "Quantity limit cannot be lower than 1.",
     }
 
     assert site_settings.limit_quantity_per_checkout == 50  # default

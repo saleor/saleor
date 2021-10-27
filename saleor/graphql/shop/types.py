@@ -232,7 +232,8 @@ class Shop(graphene.ObjectType):
 
     limit_quantity_per_checkout = graphene.Int(
         description=(
-            f"{ADDED_IN_31} Default number of maximum line quantity in single checkout."
+            f"{ADDED_IN_31} Default number of maximum line quantity in single checkout "
+            "(per single checkout line)."
         )
     )
 

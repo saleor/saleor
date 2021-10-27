@@ -141,7 +141,7 @@ def check_lines_quantity(
     quantities,
     country,
     channel_slug,
-    site_settings_quantity_limit,
+    global_quantity_limit,
     allow_zero_quantity=False,
     existing_lines=None,
     replace=False,
@@ -155,7 +155,7 @@ def check_lines_quantity(
     and checkout lines with this quantity can be later removed.
     """
     for quantity, variant in zip(quantities, variants):
-        available_quantity = site_settings_quantity_limit
+        available_quantity = global_quantity_limit
         if variant_quantity := variant.quantity_limit_per_customer:
             available_quantity = variant_quantity
 
