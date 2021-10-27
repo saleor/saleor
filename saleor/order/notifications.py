@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional
 from urllib.parse import urlencode
 
@@ -15,8 +16,6 @@ from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
 from .models import FulfillmentLine, Order, OrderLine
 
 if TYPE_CHECKING:
-    from decimal import Decimal
-
     from ..account.models import User  # noqa: F401
     from ..app.models import App
 
@@ -198,7 +197,6 @@ ORDER_MODEL_FIELDS = [
     "token",
     "display_gross_prices",
     "currency",
-    "discount_amount",
     "total_gross_amount",
     "total_net_amount",
     "undiscounted_total_gross_amount",
@@ -232,7 +230,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     if redirect_url:
         order_details_url = prepare_order_details_url(order, redirect_url)
     subtotal = order.get_subtotal()
-    tax = order.total_gross_amount - order.total_net_amount
+    tax = order.total_gross_amount - order.total_net_amount or Decimal(0)
 
     lines = order.lines.prefetch_related(
         "variant__product__media",
@@ -241,6 +239,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
         "variant__product__attributes__values",
     ).all()
     quantize_price_fields(order, fields=ORDER_PRICE_FIELDS, currency=order.currency)
+    currency = order.currency
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
     order_payload.update(
         {
@@ -251,9 +250,9 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
             "shipping_price_gross_amount": order.shipping_price_gross_amount,
             "order_details_url": order_details_url,
             "email": order.get_customer_email(),
-            "subtotal_gross_amount": subtotal.gross.amount,
-            "subtotal_net_amount": subtotal.net.amount,
-            "tax_amount": tax,
+            "subtotal_gross_amount": quantize_price(subtotal.gross.amount, currency),
+            "subtotal_net_amount": quantize_price(subtotal.net.amount, currency),
+            "tax_amount": quantize_price(tax, currency),
             "lines": get_lines_payload(lines),
             "billing_address": get_address_payload(order.billing_address),
             "shipping_address": get_address_payload(order.shipping_address),
