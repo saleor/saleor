@@ -5,7 +5,13 @@ from ..core.fields import FilterInputConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .filters import PaymentFilterInput
-from .mutations import PaymentCapture, PaymentInitialize, PaymentRefund, PaymentVoid
+from .mutations import (
+    PaymentCapture,
+    PaymentCheckBalance,
+    PaymentInitialize,
+    PaymentRefund,
+    PaymentVoid,
+)
 from .resolvers import resolve_payment_by_id, resolve_payments
 from .types import Payment
 
@@ -39,3 +45,4 @@ class PaymentMutations(graphene.ObjectType):
     payment_refund = PaymentRefund.Field()
     payment_void = PaymentVoid.Field()
     payment_initialize = PaymentInitialize.Field()
+    payment_check_balance = PaymentCheckBalance.Field()

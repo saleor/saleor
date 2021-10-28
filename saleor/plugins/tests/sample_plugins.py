@@ -338,6 +338,9 @@ class ActiveDummyPaymentGateway(BasePlugin):
     def get_payment_config(self, previous_value):
         return self.CLIENT_CONFIG
 
+    def check_payment_balance(self, request_data: dict, previous_value):
+        return {"test_response": "success"}
+
 
 class InactivePaymentGateway(BasePlugin):
     PLUGIN_ID = "gateway.inactive"
