@@ -18,6 +18,8 @@ class WebhookEventType:
     ORDER_CANCELLED = "order_cancelled"
     ORDER_FULFILLED = "order_fulfilled"
 
+    ORDER_FILTER_SHIPPING_METHODS = "order_filter_shipping_methods"
+
     DRAFT_ORDER_CREATED = "draft_order_created"
     DRAFT_ORDER_UPDATED = "draft_order_updated"
     DRAFT_ORDER_DELETED = "draft_order_deleted"
@@ -41,6 +43,8 @@ class WebhookEventType:
 
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPDATED = "checkout_updated"
+
+    CHECKOUT_FILTER_SHIPPING_METHODS = "checkout_filter_shipping_methods"
 
     NOTIFY_USER = "notify_user"
 
@@ -67,6 +71,7 @@ class WebhookEventType:
         ORDER_UPDATED: "Order updated",
         ORDER_CANCELLED: "Order cancelled",
         ORDER_FULFILLED: "Order fulfilled",
+        ORDER_FILTER_SHIPPING_METHODS: "Filter order shipping methods",
         DRAFT_ORDER_CREATED: "Draft order created",
         DRAFT_ORDER_UPDATED: "Draft order updated",
         DRAFT_ORDER_DELETED: "Draft order deleted",
@@ -83,6 +88,7 @@ class WebhookEventType:
         PRODUCT_VARIANT_DELETED: "Product variant deleted",
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPDATED: "Checkout updated",
+        CHECKOUT_FILTER_SHIPPING_METHODS: "Filter checkout shipping methods",
         FULFILLMENT_CREATED: "Fulfillment_created",
         NOTIFY_USER: "Notify user",
         PAGE_CREATED: "Page Created",
@@ -107,6 +113,7 @@ class WebhookEventType:
         (ORDER_UPDATED, DISPLAY_LABELS[ORDER_UPDATED]),
         (ORDER_CANCELLED, DISPLAY_LABELS[ORDER_CANCELLED]),
         (ORDER_FULFILLED, DISPLAY_LABELS[ORDER_FULFILLED]),
+        (ORDER_FILTER_SHIPPING_METHODS, DISPLAY_LABELS[ORDER_FILTER_SHIPPING_METHODS]),
         (DRAFT_ORDER_CREATED, DISPLAY_LABELS[DRAFT_ORDER_CREATED]),
         (DRAFT_ORDER_UPDATED, DISPLAY_LABELS[DRAFT_ORDER_UPDATED]),
         (DRAFT_ORDER_DELETED, DISPLAY_LABELS[DRAFT_ORDER_DELETED]),
@@ -123,6 +130,10 @@ class WebhookEventType:
         (PRODUCT_VARIANT_DELETED, DISPLAY_LABELS[PRODUCT_VARIANT_DELETED]),
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
         (CHECKOUT_UPDATED, DISPLAY_LABELS[CHECKOUT_UPDATED]),
+        (
+            CHECKOUT_FILTER_SHIPPING_METHODS,
+            DISPLAY_LABELS[CHECKOUT_FILTER_SHIPPING_METHODS],
+        ),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
         (NOTIFY_USER, DISPLAY_LABELS[NOTIFY_USER]),
         (PAGE_CREATED, DISPLAY_LABELS[PAGE_CREATED]),
@@ -156,6 +167,7 @@ class WebhookEventType:
         ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CANCELLED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULFILLED: OrderPermissions.MANAGE_ORDERS,
+        ORDER_FILTER_SHIPPING_METHODS: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_DELETED: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
@@ -172,6 +184,7 @@ class WebhookEventType:
         PRODUCT_VARIANT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
+        CHECKOUT_FILTER_SHIPPING_METHODS: CheckoutPermissions.MANAGE_CHECKOUTS,
         FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
         NOTIFY_USER: AccountPermissions.MANAGE_USERS,
         PAGE_CREATED: PagePermissions.MANAGE_PAGES,
