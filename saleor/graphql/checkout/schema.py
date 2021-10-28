@@ -1,11 +1,12 @@
 import graphene
 
 from ...core.permissions import CheckoutPermissions
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
-from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
+from .filters import CheckoutFilterInput
 from .mutations import (
     CheckoutAddPromoCode,
     CheckoutBillingAddressUpdate,
@@ -24,6 +25,7 @@ from .mutations import (
     CheckoutShippingMethodUpdate,
 )
 from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
+from .sorters import CheckoutSortingInput
 from .types import Checkout, CheckoutLine
 
 
@@ -34,12 +36,16 @@ class CheckoutQueries(graphene.ObjectType):
         token=graphene.Argument(UUID, description="The checkout's token."),
     )
     # FIXME we could optimize the below field
-    checkouts = BaseDjangoConnectionField(
+    checkouts = FilterInputConnectionField(
         Checkout,
-        description="List of checkouts.",
+        sort_by=CheckoutSortingInput(description=f"{ADDED_IN_31} Sort checkouts."),
+        filter=CheckoutFilterInput(
+            description=f"{ADDED_IN_31} Filtering options for checkouts."
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
+        description="List of checkouts.",
     )
     checkout_lines = PrefetchingConnectionField(
         CheckoutLine, description="List of checkout lines."
