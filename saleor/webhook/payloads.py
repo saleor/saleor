@@ -7,10 +7,9 @@ from typing import TYPE_CHECKING, Iterable, List, Optional
 import graphene
 from django.db.models import F, QuerySet, Sum
 
-from saleor.core.prices import quantize_price, quantize_price_fields
-
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
+from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,

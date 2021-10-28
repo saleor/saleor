@@ -5,9 +5,8 @@ from unittest import mock
 from measurement.measures import Weight
 from prices import Money, fixed_discount
 
-from saleor.core.prices import quantize_price
-
 from ...core.notify_events import NotifyEventType
+from ...core.prices import quantize_price
 from ...discount import DiscountValueType
 from ...order import notifications
 from ...plugins.manager import get_plugins_manager

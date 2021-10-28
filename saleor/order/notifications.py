@@ -238,8 +238,8 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
         "variant__product__attributes__assignment__attribute",
         "variant__product__attributes__values",
     ).all()
-    quantize_price_fields(order, fields=ORDER_PRICE_FIELDS, currency=order.currency)
     currency = order.currency
+    quantize_price_fields(order, fields=ORDER_PRICE_FIELDS, currency=currency)
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
     order_payload.update(
         {
