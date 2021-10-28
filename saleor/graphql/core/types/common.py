@@ -137,6 +137,11 @@ class CheckoutError(Error):
         description="List of varint IDs which causes the error.",
         required=False,
     )
+    lines = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of line Ids which cause the error.",
+        required=False,
+    )
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
