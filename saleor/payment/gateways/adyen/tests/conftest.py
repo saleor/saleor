@@ -243,6 +243,6 @@ def adyen_check_balance_response():
         message={
             "pspReference": "851634546949980A",
             "resultCode": "Success",
-            "balance": {"currency": "GBP", "value": 1000},
+            "balance": {"currency": "GBP", "value": 10000},
         }
     )

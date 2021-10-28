@@ -461,9 +461,11 @@ def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dic
     }
 
     if amount_input:
+        currency = amount_input["currency"]
+        value = amount_input["amount"]
         request_data["amount"] = {
-            "value": str(amount_input["amount"]),
-            "currency": amount_input["currency"],
+            "value": price_to_minor_unit(value, currency),
+            "currency": currency,
         }
 
     if security_code:
