@@ -969,7 +969,7 @@ def test_get_request_data_for_check_payment():
             "card": {
                 "code": "1243456",
                 "cvc": "123",
-                "money": {"amount": 1000, "currency": "EUR"},
+                "money": {"amount": Decimal(10.05), "currency": "EUR"},
             },
         },
         merchant_account="TEST_ACCOUNT",
@@ -979,7 +979,7 @@ def test_get_request_data_for_check_payment():
     assert data["paymentMethod"]["type"] == "test"
     assert data["paymentMethod"]["number"] == "1243456"
     assert data["paymentMethod"]["securityCode"] == "123"
-    assert data["amount"]["value"] == "1000"
+    assert data["amount"]["value"] == "1005"
     assert data["amount"]["currency"] == "EUR"
 
 
@@ -999,7 +999,10 @@ def test_get_request_data_for_check_payment_without_cvc():
     data = get_request_data_for_check_payment(
         {
             "method": "test",
-            "card": {"code": "1243456", "money": {"amount": 1000, "currency": "EUR"}},
+            "card": {
+                "code": "1243456",
+                "money": {"amount": Decimal(10.05), "currency": "EUR"},
+            },
         },
         merchant_account="TEST_ACCOUNT",
     )
@@ -1007,7 +1010,7 @@ def test_get_request_data_for_check_payment_without_cvc():
     assert data["merchantAccount"] == "TEST_ACCOUNT"
     assert data["paymentMethod"]["type"] == "test"
     assert data["paymentMethod"]["number"] == "1243456"
-    assert data["amount"]["value"] == "1000"
+    assert data["amount"]["value"] == "1005"
     assert data["amount"]["currency"] == "EUR"
 
 

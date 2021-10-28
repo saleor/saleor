@@ -644,7 +644,7 @@ def test_adyen_check_payment_balance(
         "card": {
             "cvc": "9891",
             "code": "1234567910",
-            "money": {"currency": "GBP", "amount": 100.0},
+            "money": {"currency": "GBP", "amount": Decimal(100.0)},
         },
     }
 
@@ -652,7 +652,7 @@ def test_adyen_check_payment_balance(
 
     assert result["pspReference"] == "851634546949980A"
     assert result["resultCode"] == "Success"
-    assert result["balance"] == {"currency": "GBP", "value": 1000}
+    assert result["balance"] == {"currency": "GBP", "value": 10000}
     api_call_mock.assert_called_once_with(
         {
             "merchantAccount": "SaleorECOM",
@@ -661,7 +661,7 @@ def test_adyen_check_payment_balance(
                 "number": "1234567910",
                 "securityCode": "9891",
             },
-            "amount": {"currency": "GBP", "value": "100.0"},
+            "amount": {"currency": "GBP", "value": "10000"},
         },
         plugin.adyen.checkout.client.call_checkout_api,
         action="paymentMethods/balance",
@@ -682,7 +682,7 @@ def test_adyen_check_payment_balance_adyen_raises_error(
         "card": {
             "cvc": "9891",
             "code": "1234567910",
-            "money": {"currency": "GBP", "amount": 100.0},
+            "money": {"currency": "GBP", "amount": Decimal(100.0)},
         },
     }
 
@@ -697,7 +697,7 @@ def test_adyen_check_payment_balance_adyen_raises_error(
                 "number": "1234567910",
                 "securityCode": "9891",
             },
-            "amount": {"currency": "GBP", "value": "100.0"},
+            "amount": {"currency": "GBP", "value": "10000"},
         },
         plugin.adyen.checkout.client.call_checkout_api,
         action="paymentMethods/balance",
