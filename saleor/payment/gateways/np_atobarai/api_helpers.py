@@ -187,6 +187,9 @@ def register(
     billing = payment_information.billing
     shipping = payment_information.shipping
 
+    print(f"{billing = }")
+    print(f"{shipping = }")
+
     if not billing:
         return error_np_response(
             "Billing address is required for transaction in NP Atobarai."

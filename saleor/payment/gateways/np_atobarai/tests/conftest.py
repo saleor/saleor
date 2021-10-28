@@ -1,7 +1,11 @@
+import dataclasses
+from decimal import Decimal
+
 import pytest
 
 from .....plugins.manager import get_plugins_manager
 from .....plugins.models import PluginConfiguration
+from ....interface import AddressData, PaymentLineData
 from ..const import (
     FILL_MISSING_ADDRESS,
     MERCHANT_CODE,
@@ -49,3 +53,37 @@ def np_atobarai_plugin(settings, monkeypatch, channel_USD):
         return manager.plugins_per_channel[channel_USD.slug][0]
 
     return fun
+
+
+def _resolve_lines():
+    return [
+        PaymentLineData(
+            gross=Decimal("100.00"),
+            product_name="Product Name",
+            product_sku="PRODUCT_SKU",
+            quantity=5,
+        )
+    ] * 3
+
+
+@pytest.fixture
+def np_payment_data(dummy_payment_data):
+    address_data = AddressData(
+        first_name="John",
+        last_name="Doe",
+        company_name="",
+        phone="+81 03-1234-5678",
+        country="JP",
+        postal_code="370-2625",
+        country_area="群馬県",
+        city="甘楽郡下仁田町",
+        city_area="本宿",
+        street_address_1="2-16-3",
+        street_address_2="",
+    )
+    return dataclasses.replace(
+        dummy_payment_data,
+        billing=address_data,
+        shipping=address_data,
+        _resolve_lines=_resolve_lines,
+    )

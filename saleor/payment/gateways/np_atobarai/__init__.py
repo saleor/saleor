@@ -105,6 +105,8 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
 
         lines = payment_information.lines_to_refund
 
+        print(f"{lines = }")
+
         result = api.change_transaction(config, payment, payment_information, lines)
 
         if not result:

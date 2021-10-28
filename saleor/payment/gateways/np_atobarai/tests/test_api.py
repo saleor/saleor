@@ -1,4 +1,3 @@
-import dataclasses
 import logging
 from decimal import Decimal
 from unittest.mock import ANY, Mock, patch
@@ -13,11 +12,6 @@ from .. import api, get_api_config
 @pytest.fixture
 def config(np_atobarai_plugin):
     return get_api_config(np_atobarai_plugin().config.connection_params)
-
-
-@pytest.fixture
-def np_payment_data(dummy_payment_data):
-    return dataclasses.replace(dummy_payment_data, _resolve_lines=list)
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -42,7 +36,6 @@ def test_refund_payment(
 
     # then
     assert gateway_response.is_success
-    assert gateway_response.psp_reference == psp_reference
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -59,10 +52,11 @@ def test_refund_payment_payment_not_created(
     )
     mocked_request.return_value = response
 
+    # when
+    gateway_response = plugin.refund_payment(payment_data, None)
+
     # then
-    with pytest.raises(PaymentError):
-        # when
-        plugin.refund_payment(payment_data, None)
+    assert not gateway_response.is_success
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
