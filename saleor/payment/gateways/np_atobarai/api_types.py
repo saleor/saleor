@@ -49,6 +49,10 @@ def error_payment_result(error_message: str) -> PaymentResult:
     return PaymentResult(status=PaymentStatus.FAILED, errors=[error_message])
 
 
+def errors_payment_result(errors: List[str]) -> PaymentResult:
+    return PaymentResult(status=PaymentStatus.FAILED, errors=errors)
+
+
 def get_api_config(connection_params: dict) -> ApiConfig:
     return ApiConfig(
         test_mode=connection_params[USE_SANDBOX],

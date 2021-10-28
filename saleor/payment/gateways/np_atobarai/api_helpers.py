@@ -118,34 +118,40 @@ def get_refunded_goods(
         line.product_sku: line.quantity for line in refund_lines if line.product_sku
     }
 
+    goods = []
+
+    for payment_line in payment_information.lines:
+        quantity = refund_lines_dict.get(
+            payment_line.product_sku, payment_line.quantity
+        )
+        if quantity:
+            goods.append(
+                {
+                    "goods_name": payment_line.product_name,
+                    "goods_price": format_price(
+                        payment_line.gross, payment_information.currency
+                    ),
+                    "quantity": quantity,
+                }
+            )
+    return goods
+
+
+def get_goods(payment_information: PaymentData) -> List[dict]:
     return [
         {
-            "goods_name": payment_line.product_name,
-            "goods_price": format_price(
-                payment_line.gross, payment_information.currency
-            ),
-            "quantity": refund_lines_dict.get(
-                payment_line.product_sku, payment_line.quantity
-            ),
+            "quantity": line.quantity,
+            "goods_name": line.product_name,
+            "goods_price": format_price(line.gross, payment_information.currency),
         }
-        for payment_line in payment_information.lines
+        for line in payment_information.lines
     ]
 
 
 def get_discount(
     payment_information: PaymentData,
 ) -> List[dict]:
-    product_lines = [
-        {
-            "goods_name": line.product_name,
-            "goods_price": format_price(
-                line.gross,
-                payment_information.currency,
-            ),
-            "quantity": line.quantity,
-        }
-        for line in payment_information.lines
-    ]
+    product_lines = get_goods(payment_information)
     return product_lines + [
         {
             "goods_name": "Discount",
@@ -166,7 +172,16 @@ def cancel(config: "ApiConfig", transaction_id: str) -> NPResponse:
 def register(
     config: "ApiConfig",
     payment_information: "PaymentData",
+    billed_amount: Optional[int] = None,
+    goods: Optional[List[dict]] = None,
 ) -> NPResponse:
+    if billed_amount is None:
+        billed_amount = format_price(
+            payment_information.amount, payment_information.currency
+        )
+    if goods is None:
+        goods = get_goods(payment_information)
+
     order_date = timezone.now().strftime("%Y-%m-%d")
 
     billing = payment_information.billing
@@ -195,9 +210,7 @@ def register(
                 "shop_transaction_id": payment_information.payment_id,
                 "shop_order_date": order_date,
                 "settlement_type": NP_ATOBARAI,
-                "billed_amount": format_price(
-                    payment_information.amount, payment_information.currency
-                ),
+                "billed_amount": billed_amount,
                 "customer": {
                     "customer_name": billing.first_name,
                     "company_name": billing.company_name,
@@ -213,18 +226,35 @@ def register(
                     "address": formatted_shipping,
                     "tel": shipping.phone.replace("+81", "0"),
                 },
-                "goods": [
-                    {
-                        "quantity": line.quantity,
-                        "goods_name": line.product_name,
-                        "goods_price": format_price(
-                            line.gross, payment_information.currency
-                        ),
-                    }
-                    for line in payment_information.lines
-                ],
+                "goods": goods,
             },
         ]
     }
 
     return np_request(config, "post", "/transactions", json=data)
+
+
+def report(
+    config: "ApiConfig",
+    psp_reference: Optional[str],
+    shipping_slip_number: Optional[str],
+) -> NPResponse:
+    shipping_company_code = config.shipping_company
+
+    if not psp_reference:
+        return error_np_response("Payment does not have psp reference.")
+
+    if not shipping_slip_number:
+        return error_np_response("Fulfillment does not have tracking number.")
+
+    data = {
+        "transactions": [
+            {
+                "np_transaction_id": psp_reference,
+                "pd_company_code": shipping_company_code,
+                "slip_no": shipping_slip_number,
+            }
+        ]
+    }
+
+    return np_request(config, "post", "/shipments", json=data)

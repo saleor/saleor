@@ -108,12 +108,25 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
         result = api.change_transaction(config, payment, payment_information, lines)
 
         if not result:
+            # TODO: fix this
+            tracking_number = (
+                order.fulfillments.exclude(tracking_number="")
+                .values_list("tracking_number", flat=True)
+                .first()
+                or None
+            )
             result = api.reregister_transaction_for_partial_return(
-                config, payment, payment_information, lines
+                config, payment, payment_information, tracking_number, lines
             )
 
     else:
         result = api.cancel_transaction(config, payment_information)
+
+    # manually update psp reference if NP issued a new one
+    # TODO: should this be moved to gateway.refund?
+    if psp_reference := result.psp_reference:
+        payment.psp_reference = psp_reference
+        payment.save(update_fields=["psp_reference"])
 
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,
