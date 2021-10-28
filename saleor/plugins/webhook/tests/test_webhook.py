@@ -107,7 +107,7 @@ def test_order_created(mocked_webhook_trigger, settings, order_with_lines):
     manager.order_created(order_with_lines)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_order_payload(order_with_lines))
+    expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.ORDER_CREATED
@@ -122,7 +122,7 @@ def test_order_confirmed(mocked_webhook_trigger, settings, order_with_lines):
     manager.order_confirmed(order_with_lines)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_order_payload(order_with_lines))
+    expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.ORDER_CONFIRMED
@@ -181,7 +181,7 @@ def test_customer_created(mocked_webhook_trigger, settings, customer_user):
     manager.customer_created(customer_user)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_customer_payload(customer_user))
+    expected_data = generate_customer_payload(customer_user)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.CUSTOMER_CREATED
@@ -196,7 +196,7 @@ def test_customer_updated(mocked_webhook_trigger, settings, customer_user):
     manager.customer_updated(customer_user)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_customer_payload(customer_user))
+    expected_data = generate_customer_payload(customer_user)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.CUSTOMER_UPDATED
@@ -211,7 +211,7 @@ def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
     manager.order_fully_paid(order_with_lines)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_order_payload(order_with_lines))
+    expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.ORDER_FULLY_PAID
@@ -226,7 +226,7 @@ def test_product_created(mocked_webhook_trigger, settings, product):
     manager.product_created(product)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_product_payload(product))
+    expected_data = generate_product_payload(product)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.PRODUCT_CREATED
@@ -241,7 +241,7 @@ def test_product_updated(mocked_webhook_trigger, settings, product):
     manager.product_updated(product)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_product_payload(product))
+    expected_data = generate_product_payload(product)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.PRODUCT_UPDATED
@@ -275,7 +275,7 @@ def test_product_deleted(mocked_webhook_trigger, settings, product):
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.PRODUCT_DELETED
     )
-    assert expected_data == json.loads(event_payload.payload)
+    assert expected_data == event_payload.payload
 
 
 @mock.patch("saleor.plugins.webhook.plugin.WebhookPlugin._trigger_webhook_requests")
@@ -285,7 +285,7 @@ def test_product_variant_created(mocked_webhook_trigger, settings, variant):
     manager.product_variant_created(variant)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_product_variant_payload([variant]))
+    expected_data = generate_product_variant_payload([variant])
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.PRODUCT_VARIANT_CREATED
@@ -300,7 +300,7 @@ def test_product_variant_updated(mocked_webhook_trigger, settings, variant):
     manager.product_variant_updated(variant)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_product_variant_payload([variant]))
+    expected_data = generate_product_variant_payload([variant])
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.PRODUCT_VARIANT_UPDATED
@@ -315,7 +315,7 @@ def test_product_variant_deleted(mocked_webhook_trigger, settings, variant):
     manager.product_variant_deleted(variant)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_product_variant_payload([variant]))
+    expected_data = generate_product_variant_payload([variant])
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.PRODUCT_VARIANT_DELETED
@@ -330,7 +330,7 @@ def test_order_updated(mocked_webhook_trigger, settings, order_with_lines):
     manager.order_updated(order_with_lines)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_order_payload(order_with_lines))
+    expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.ORDER_UPDATED
@@ -345,7 +345,7 @@ def test_order_cancelled(mocked_webhook_trigger, settings, order_with_lines):
     manager.order_cancelled(order_with_lines)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_order_payload(order_with_lines))
+    expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.ORDER_CANCELLED
@@ -360,7 +360,7 @@ def test_checkout_created(mocked_webhook_trigger, settings, checkout_with_items)
     manager.checkout_created(checkout_with_items)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_checkout_payload(checkout_with_items))
+    expected_data = generate_checkout_payload(checkout_with_items)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.CHECKOUT_CREATED
@@ -375,7 +375,7 @@ def test_checkout_updated(mocked_webhook_trigger, settings, checkout_with_items)
     manager.checkout_updated(checkout_with_items)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_checkout_payload(checkout_with_items))
+    expected_data = generate_checkout_payload(checkout_with_items)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.CHECKOUT_UPDATED
@@ -390,7 +390,7 @@ def test_page_created(mocked_webhook_trigger, settings, page):
     manager.page_created(page)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_page_payload(page))
+    expected_data = generate_page_payload(page)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.PAGE_CREATED
@@ -405,7 +405,7 @@ def test_page_updated(mocked_webhook_trigger, settings, page):
     manager.page_updated(page)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_page_payload(page))
+    expected_data = generate_page_payload(page)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.PAGE_UPDATED
@@ -422,7 +422,7 @@ def test_page_deleted(mocked_webhook_trigger, settings, page):
     page.id = page_id
     manager.page_deleted(page)
 
-    expected_data = json.dumps(generate_page_payload(page))
+    expected_data = generate_page_payload(page)
     event_payload = EventPayload.objects.first()
 
     mocked_webhook_trigger.assert_called_once_with(
@@ -439,7 +439,7 @@ def test_invoice_request(mocked_webhook_trigger, settings, fulfilled_order):
     manager.invoice_request(fulfilled_order, invoice, invoice.number)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_invoice_payload(invoice))
+    expected_data = generate_invoice_payload(invoice)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.INVOICE_REQUESTED
@@ -455,7 +455,7 @@ def test_invoice_delete(mocked_webhook_trigger, settings, fulfilled_order):
     manager.invoice_delete(invoice)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_invoice_payload(invoice))
+    expected_data = generate_invoice_payload(invoice)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.INVOICE_DELETED
@@ -471,7 +471,7 @@ def test_invoice_sent(mocked_webhook_trigger, settings, fulfilled_order):
     manager.invoice_sent(invoice, fulfilled_order.user.email)
 
     event_payload = EventPayload.objects.first()
-    expected_data = json.dumps(generate_invoice_payload(invoice))
+    expected_data = generate_invoice_payload(invoice)
 
     mocked_webhook_trigger.assert_called_once_with(
         event_payload, WebhookEventType.INVOICE_SENT
@@ -532,7 +532,7 @@ def test_create_event_payload_reference_with_error(
 
     webhook.target_url = "testy"
     webhook.save()
-    expected_data = json.dumps(serialize("json", [order_with_lines]))
+    expected_data = serialize("json", [order_with_lines])
     event_payload = EventPayload.objects.create(payload=expected_data)
     WebhookPlugin._trigger_webhook_requests(
         event_payload, WebhookEventType.ORDER_CREATED

@@ -157,14 +157,23 @@ def attempt_update(
     attempt: "EventDeliveryAttempt",
     webhook_response: "WebhookResponse",
 ):
+
     attempt.duration = webhook_response.duration
     attempt.response = webhook_response.content
     attempt.response_headers = json.dumps(webhook_response.response_headers)
     attempt.request_headers = json.dumps(webhook_response.request_headers)
     attempt.status = webhook_response.status
-    attempt.save()
+    attempt.save(
+        update_fields=[
+            "duration",
+            "response",
+            "response_headers",
+            "request_headers",
+            "status",
+        ]
+    )
 
 
 def delivery_update(delivery: "EventDelivery", status: str):
     delivery.status = status
-    delivery.save()
+    delivery.save(update_fields=["status"])

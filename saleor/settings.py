@@ -486,6 +486,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.warehouse.tasks.delete_empty_allocations_task",
         "schedule": timedelta(days=1),
     },
+    "delete-outdated-event-data": {
+        "task": "saleor.core.tasks.delete_event_payloads_task",
+        "schedule": timedelta(days=1),
+    },
 }
 
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(

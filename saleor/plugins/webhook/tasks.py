@@ -223,19 +223,23 @@ def send_webhook_using_scheme_method(
     bind=True,
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
-    compression="zlib",
 )
 def send_webhook_request(self, event_delivery_id):
-    delivery = EventDelivery.objects.select_related(
-        "payload", "webhook", "webhook__app"
-    ).get(id=event_delivery_id)
-    data = json.loads(delivery.payload.payload)
+    try:
+        delivery = EventDelivery.objects.select_related("payload", "webhook__app").get(
+            id=event_delivery_id
+        )
+    except EventDelivery.DoesNotExist:
+        logger.error("Event delivery id: %r not found", event_delivery_id)
+        return
+    data = delivery.payload.payload
     webhook = delivery.webhook
-    app = webhook.app
     domain = Site.objects.get_current().domain
     attempt = create_attempt(delivery, self.request.id)
     try:
-        with webhooks_opentracing_trace(delivery.event_type, domain, app_name=app.name):
+        with webhooks_opentracing_trace(
+            delivery.event_type, domain, app_name=webhook.app.name
+        ):
             response = send_webhook_using_scheme_method(
                 webhook.target_url,
                 domain,

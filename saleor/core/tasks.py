@@ -18,4 +18,4 @@ def delete_event_payloads_task():
         created_at__lte=event_payload_delete_period
     ).delete()
     EventDelivery.objects.filter(created_at__lte=event_payload_delete_period).delete()
-    EventPayload.objects.filter(event_tasks__isnull=True).delete()
+    EventPayload.objects.filter(deliveries__isnull=True).delete()

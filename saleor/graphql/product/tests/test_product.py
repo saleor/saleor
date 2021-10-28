@@ -170,8 +170,6 @@ QUERY_PRODUCT = """
     }
     """
 
-MOCKED_EVENT_PAYLOAD = "mocked_event_payload"
-
 
 def test_product_query_by_id_available_as_staff_user(
     staff_api_client, permission_manage_products, product, channel_USD

@@ -1,4 +1,3 @@
-import json
 from unittest.mock import MagicMock, patch
 
 import boto3
@@ -48,7 +47,7 @@ def test_trigger_webhooks_with_aws_sqs(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
-    event_payload = EventPayload.objects.create(payload=json.dumps(expected_data))
+    event_payload = EventPayload.objects.create(payload=expected_data)
     WebhookPlugin._trigger_webhook_requests(
         event_payload, WebhookEventType.ORDER_CREATED
     )
@@ -101,11 +100,11 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
-    message = json.dumps(expected_data)
+    message = expected_data
     expected_signature = signature_for_payload(
-        json.loads(message).encode("utf-8"), webhook.secret_key
+        message.encode("utf-8"), webhook.secret_key
     )
-    event_payload = EventPayload.objects.create(payload=json.dumps(expected_data))
+    event_payload = EventPayload.objects.create(payload=expected_data)
     WebhookPlugin._trigger_webhook_requests(
         event_payload, WebhookEventType.ORDER_CREATED
     )
@@ -144,7 +143,7 @@ def test_trigger_webhooks_with_google_pub_sub(
     webhook.target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
     webhook.save()
 
-    expected_data = json.dumps(serialize("json", [order_with_lines]))
+    expected_data = serialize("json", [order_with_lines])
     event_payload = EventPayload.objects.create(payload=expected_data)
 
     WebhookPlugin._trigger_webhook_requests(
@@ -152,7 +151,7 @@ def test_trigger_webhooks_with_google_pub_sub(
     )
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
-        json.loads(expected_data).encode("utf-8"),
+        expected_data.encode("utf-8"),
         saleorDomain="mirumee.com",
         eventType=WebhookEventType.ORDER_CREATED,
         signature="",
@@ -178,17 +177,17 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
-    message = json.dumps(expected_data)
+    message = expected_data
     expected_signature = signature_for_payload(
-        json.loads(message).encode("utf-8"), webhook.secret_key
+        message.encode("utf-8"), webhook.secret_key
     )
-    event_payload = EventPayload.objects.create(payload=json.dumps(expected_data))
+    event_payload = EventPayload.objects.create(payload=expected_data)
     WebhookPlugin._trigger_webhook_requests(
         event_payload, WebhookEventType.ORDER_CREATED
     )
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
-        json.loads(message).encode("utf-8"),
+        message.encode("utf-8"),
         saleorDomain="mirumee.com",
         eventType=WebhookEventType.ORDER_CREATED,
         signature=expected_signature,
@@ -209,7 +208,7 @@ def test_trigger_webhooks_with_http(
     webhook.target_url = "https://webhook.site/48978b64-4efb-43d5-a334-451a1d164009"
     webhook.save()
 
-    expected_data = json.dumps(serialize("json", [order_with_lines]))
+    expected_data = serialize("json", [order_with_lines])
     event_payload = EventPayload.objects.create(payload=expected_data)
 
     WebhookPlugin._trigger_webhook_requests(
@@ -229,7 +228,7 @@ def test_trigger_webhooks_with_http(
 
     mock_request.assert_called_once_with(
         webhook.target_url,
-        data=bytes(json.loads(expected_data), "utf-8"),
+        data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
         timeout=10,
     )
@@ -245,14 +244,14 @@ def test_trigger_webhooks_with_http_and_secret_key(
     webhook.secret_key = "secret_key"
     webhook.save()
 
-    expected_data = json.dumps(serialize("json", [order_with_lines]))
+    expected_data = serialize("json", [order_with_lines])
     event_payload = EventPayload.objects.create(payload=expected_data)
     WebhookPlugin._trigger_webhook_requests(
         event_payload, WebhookEventType.ORDER_CREATED
     )
 
     expected_signature = signature_for_payload(
-        json.loads(expected_data).encode("utf-8"), webhook.secret_key
+        expected_data.encode("utf-8"), webhook.secret_key
     )
     expected_headers = {
         "Content-Type": "application/json",
@@ -267,7 +266,7 @@ def test_trigger_webhooks_with_http_and_secret_key(
 
     mock_request.assert_called_once_with(
         webhook.target_url,
-        data=bytes(json.loads(expected_data), "utf-8"),
+        data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
         timeout=10,
     )
