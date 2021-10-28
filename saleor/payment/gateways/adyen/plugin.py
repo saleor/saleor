@@ -260,6 +260,7 @@ class AdyenGatewayPlugin(BasePlugin):
                 return handle_additional_actions(
                     request,
                     self.adyen.checkout.payments_details,
+                    self.channel.slug,  # type: ignore
                 )
         return HttpResponseNotFound()
 
