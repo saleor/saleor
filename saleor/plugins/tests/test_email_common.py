@@ -4,6 +4,7 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from saleor.plugins.email_common import validate_default_email_configuration
+from saleor.plugins.error_codes import PluginErrorCode
 
 
 @pytest.mark.parametrize(
@@ -20,8 +21,11 @@ def test_validate_default_email_configuration_bad_email(
 ):
     email_configuration["sender_address"] = email
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as e:
         validate_default_email_configuration(plugin_configuration, email_configuration)
+
+    assert "sender_address" in e.value.args[0]
+    assert e.value.args[0]["sender_address"].code == PluginErrorCode.INVALID.value
 
 
 @patch("saleor.plugins.email_common.validate_email_config")
