@@ -978,8 +978,21 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_payments(root: models.Order, _info):
-        return root.payments.filter(is_active=True).exclude(
-            charge_status=ChargeStatus.NOT_CHARGED
+        def resolve_payments(payments):
+            active_payments = []
+            for payment in payments:
+
+                # Exclude inactive payments that weren't charged.
+                if (
+                    not payment.is_active
+                    and payment.charge_status == ChargeStatus.NOT_CHARGED
+                ):
+                    continue
+                active_payments.append(payment)
+            return active_payments
+
+        return (
+            PaymentsByOrderIdLoader(_info.context).load(root.pk).then(resolve_payments)
         )
 
     @staticmethod
