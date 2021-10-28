@@ -1024,3 +1024,17 @@ def test_run_method_on_single_plugin_valid_response(plugins_manager):
         )
         == plugin.SUPPORTED_CURRENCIES
     )
+
+
+def test_run_check_payment_balance(channel_USD):
+    plugins = ["saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"]
+
+    manager = PluginsManager(plugins=plugins)
+    assert manager.check_payment_balance({}, "main") == {"test_response": "success"}
+
+
+def test_run_check_payment_balance_not_implemented(channel_USD):
+    plugins = ["saleor.plugins.tests.sample_plugins.ActivePlugin"]
+
+    manager = PluginsManager(plugins=plugins)
+    assert not manager.check_payment_balance({}, "main")
