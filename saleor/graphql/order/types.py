@@ -25,6 +25,7 @@ from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderPaymentStatus, OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
+from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import get_subtotal, get_total_authorized
 from ...product import ProductMediaTypes
@@ -968,7 +969,22 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_payments(root: models.Order, _info):
-        return root.payments.all()
+        def resolve_payments(payments):
+            active_payments = []
+            for payment in payments:
+
+                # Exclude inactive payments that weren't charged.
+                if (
+                    not payment.is_active
+                    and payment.charge_status == ChargeStatus.NOT_CHARGED
+                ):
+                    continue
+                active_payments.append(payment)
+            return active_payments
+
+        return (
+            PaymentsByOrderIdLoader(_info.context).load(root.pk).then(resolve_payments)
+        )
 
     @staticmethod
     def resolve_status_display(root: models.Order, _info):
