@@ -68,7 +68,7 @@ def test_trigger_webhook_sync(mock_request, payment_app):
     data = '{"key": "value"}'
     trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
     event_delivery = EventDelivery.objects.first()
-    mock_request.assert_called_once_with(payment_app.name, event_delivery)
+    mock_request.assert_called_once_with(payment_app.name, [event_delivery])
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
@@ -87,7 +87,7 @@ def test_trigger_webhook_sync_use_first_webhook(mock_request, payment_app):
     data = {"key": "value"}
     trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
     event_delivery = EventDelivery.objects.first()
-    mock_request.assert_called_once_with(payment_app.name, event_delivery)
+    mock_request.assert_called_once_with(payment_app.name, [event_delivery])
 
     assert event_delivery.webhook.target_url == webhook_1.target_url
     assert event_delivery.webhook.secret_key == webhook_1.secret_key

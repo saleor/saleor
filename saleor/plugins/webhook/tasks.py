@@ -28,7 +28,7 @@ from .utils import (
     attempt_update,
     catch_duration_time,
     create_attempt,
-    create_event_delivery_object_for_webhook,
+    create_event_delivery_list_for_webhooks,
     delivery_update,
 )
 
@@ -82,16 +82,15 @@ def _get_webhooks_for_event(event_type, webhooks=None):
 
 def trigger_webhook_sync(event_type: str, data: str, app: "App"):
     """Send a synchronous webhook request."""
-    webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
-    webhook = webhooks.first()
+    webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())[:1]
     event_payload = EventPayload.objects.create(payload=data)
-    delivery = create_event_delivery_object_for_webhook(
+    delivery = create_event_delivery_list_for_webhooks(
         event_payload=event_payload,
-        webhook=webhook,
+        webhooks=webhooks,
         event_type=event_type,
     )
 
-    if not webhook:
+    if not webhooks:
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
 
     return send_webhook_request_sync(app.name, delivery)
@@ -100,7 +99,7 @@ def trigger_webhook_sync(event_type: str, data: str, app: "App"):
 def send_webhook_using_http(
     target_url, message, domain, signature, event_type, timeout=WEBHOOK_TIMEOUT
 ):
-    """Send a webhook requst using http / https protocol.
+    """Send a webhook request using http / https protocol.
 
     :param target_url: Target URL request will be sent to.
     :param message: Payload that will be used.
@@ -175,16 +174,17 @@ def send_webhook_using_google_cloud_pubsub(
     parts = urlparse(target_url)
     client = pubsub_v1.PublisherClient()
     topic_name = parts.path[1:]  # drop the leading slash
-    future = client.publish(
-        topic_name,
-        message,
-        saleorDomain=domain,
-        eventType=event_type,
-        signature=signature,
-    )
     with catch_duration_time() as duration:
+        future = client.publish(
+            topic_name,
+            message,
+            saleorDomain=domain,
+            eventType=event_type,
+            signature=signature,
+        )
+        response_duration = duration().total_seconds()
         response = future.result()
-        return WebhookResponse(content=response, duration=duration().total_seconds())
+        return WebhookResponse(content=response, duration=response_duration)
 
 
 def send_webhook_using_scheme_method(
@@ -236,6 +236,7 @@ def send_webhook_request(self, event_delivery_id):
     webhook = delivery.webhook
     domain = Site.objects.get_current().domain
     attempt = create_attempt(delivery, self.request.id)
+    delivery_status = EventDeliveryStatus.SUCCESS
     try:
         with webhooks_opentracing_trace(
             delivery.event_type, domain, app_name=webhook.app.name
@@ -262,8 +263,8 @@ def send_webhook_request(self, event_delivery_id):
                     "[Webhook] Failed request to %r: exceeded retry limit.",
                     webhook.target_url,
                 )
-                delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
-        delivery_update(delivery, EventDeliveryStatus.SUCCESS)
+                delivery_status = EventDeliveryStatus.FAILED
+        delivery_update(delivery, delivery_status)
         task_logger.info(
             "[Webhook ID:%r] Payload sent to %r for event %r",
             webhook.id,
@@ -308,20 +309,33 @@ def send_webhook_request_sync(app_name, delivery):
                 )
                 response_data = json.loads(response.content)
         except RequestException as e:
-            logger.warning("[Webhook] Failed request to %r: %r.", webhook.target_url, e)
+            logger.warning(
+                "[Webhook] Failed request to %r: %r. "
+                "ID of failed DeliveryAttempt: %r . ",
+                webhook.target_url,
+                e,
+                attempt.id,
+            )
             response.status = EventDeliveryStatus.FAILED
             response.content = e.response
 
         except JSONDecodeError as e:
             logger.warning(
-                "[Webhook] Failed parsing JSON response from %r: %r.",
+                "[Webhook] Failed parsing JSON response from %r: %r."
+                "ID of failed DeliveryAttempt: %r . ",
                 webhook.target_url,
                 e,
+                attempt.id,
             )
             response.status = EventDeliveryStatus.FAILED
             response.content = e.msg
         else:
-            logger.debug("[Webhook] Success response from %r.", webhook.target_url)
+            logger.debug(
+                "[Webhook] Success response from %r."
+                "Succesfull DeliveryAttempt id: %r",
+                webhook.target_url,
+                attempt.id,
+            )
 
         attempt_update(attempt, response)
     else:

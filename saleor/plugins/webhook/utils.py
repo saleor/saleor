@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, List, Optional
 
+from django.db.models import QuerySet
+
 from ...core.models import (
     EventDelivery,
     EventDeliveryAttempt,
@@ -16,7 +18,6 @@ from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodI
 if TYPE_CHECKING:
     from ...app.models import App
     from ...payment.interface import PaymentData
-    from ...webhook.models import Webhook
     from .tasks import WebhookResponse
 
 
@@ -123,18 +124,24 @@ def catch_duration_time():
     yield lambda: datetime.now() - start
 
 
-def create_event_delivery_object_for_webhook(
+def create_event_delivery_list_for_webhooks(
+    webhooks: QuerySet,
     event_payload: "EventPayload",
-    webhook: "Webhook",
     event_type: str,
-) -> EventDelivery:
-    event_delivery = EventDelivery.objects.create(
-        status=EventDeliveryStatus.PENDING,
-        event_type=event_type,
-        payload=event_payload,
-        webhook=webhook,
+) -> List[EventDelivery]:
+
+    event_deliveries = EventDelivery.objects.bulk_create(
+        [
+            EventDelivery(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
+            for webhook in webhooks
+        ]
     )
-    return event_delivery
+    return event_deliveries
 
 
 def create_attempt(

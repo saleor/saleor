@@ -40,8 +40,6 @@ PAGE_QUERY = """
     }
 """
 
-EVENT_PAYLOAD_MOCK = EventPayload()
-
 
 def test_query_published_page(user_api_client, page):
     page.is_published = True

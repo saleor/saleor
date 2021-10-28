@@ -23,7 +23,7 @@ from ...webhook.payloads import (
 from ..base_plugin import BasePlugin
 from .tasks import _get_webhooks_for_event, send_webhook_request, trigger_webhook_sync
 from .utils import (
-    create_event_delivery_object_for_webhook,
+    create_event_delivery_list_for_webhooks,
     from_payment_app_id,
     parse_list_payment_gateways_response,
     parse_payment_action_response,
@@ -456,10 +456,10 @@ class WebhookPlugin(BasePlugin):
     @staticmethod
     def _trigger_webhook_requests(payload, event_type):
         webhooks = _get_webhooks_for_event(event_type)
-        for webhook in webhooks:
-            webhook_delivery = create_event_delivery_object_for_webhook(
-                payload,
-                webhook,
-                event_type,
-            )
-            send_webhook_request.delay(webhook_delivery.id)
+        deliveries_qs = create_event_delivery_list_for_webhooks(
+            webhooks=webhooks,
+            event_payload=payload,
+            event_type=event_type,
+        )
+        for delivery in deliveries_qs:
+            send_webhook_request.delay(delivery.id)
