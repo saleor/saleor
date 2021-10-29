@@ -35,13 +35,13 @@ def test_handle_api_response_auto_capture_order_created_can_refund(
     assert payment_adyen_for_checkout.order
     assert payment_adyen_for_checkout.can_refund()
     assert not payment_adyen_for_checkout.can_void()
-    assert refund_mock.call_count == 0
-    assert void_mock.call_count == 0
+    assert not refund_mock.called
+    assert not void_mock.called
 
 
 @patch("saleor.payment.gateway.refund")
 @patch("saleor.payment.gateway.void")
-def test_handle_api_response_wo_auto_capture_order_created_can_void(
+def test_handle_api_response_auto_capture_false_order_created_can_void(
     void_mock, refund_mock, payment_adyen_for_checkout, adyen_plugin
 ):
     payment_adyen_for_checkout.to_confirm = True
@@ -67,14 +67,14 @@ def test_handle_api_response_wo_auto_capture_order_created_can_void(
     assert payment_adyen_for_checkout.order
     assert payment_adyen_for_checkout.can_void()
     assert not payment_adyen_for_checkout.can_refund()
-    assert refund_mock.call_count == 0
-    assert void_mock.call_count == 0
+    assert not refund_mock.called
+    assert not void_mock.called
 
 
 @patch("saleor.payment.gateway.void")
 @patch("saleor.payment.gateway.refund")
 @patch("saleor.checkout.complete_checkout._get_order_data")
-def test_handle_api_response_wo_auto_capture_cannot_create_order_void_payment(
+def test_handle_api_response_auto_capture_false_cannot_create_order_void_payment(
     order_data_mock, refund_mock, void_mock, payment_adyen_for_checkout, adyen_plugin
 ):
     order_data_mock.side_effect = ValidationError("Test error")
@@ -101,7 +101,7 @@ def test_handle_api_response_wo_auto_capture_cannot_create_order_void_payment(
     assert not payment_adyen_for_checkout.order
 
     assert not payment_adyen_for_checkout.can_refund()
-    assert refund_mock.call_count == 0
+    assert not refund_mock.called
 
     assert payment_adyen_for_checkout.can_void()
     assert void_mock.call_count == 2
@@ -140,4 +140,4 @@ def test_handle_api_response_auto_capture_cannot_create_order_refund_payment(
     assert refund_mock.call_count == 2
 
     assert not payment_adyen_for_checkout.can_void()
-    assert void_mock.call_count == 0
+    assert not void_mock.called
