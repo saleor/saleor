@@ -32,7 +32,7 @@ from ..order import OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import order_created
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
-from ..payment import PaymentError, gateway
+from ..payment import ChargeStatus, PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
@@ -406,8 +406,14 @@ def _create_order(
     for gift_card in checkout.gift_cards.select_for_update():
         total_price_left = add_gift_card_to_order(order, gift_card, total_price_left)
 
-    # assign checkout payments to the order
-    checkout.payments.update(order=order)
+    # assign checkout payments to the order and deactivate unused payments
+    payments = checkout.payments.all()
+    for payment in payments:
+        payment.order = order
+        if payment.charge_status == ChargeStatus.NOT_CHARGED:
+            payment.is_active = False
+
+    Payment.objects.bulk_update(payments, fields=["order", "is_active"])
 
     # copy metadata from the checkout into the new order
     order.metadata = checkout.metadata
