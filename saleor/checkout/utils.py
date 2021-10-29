@@ -152,6 +152,8 @@ def add_variants_to_checkout(
     variants,
     quantities,
     channel_slug,
+    global_quantity_limit,
+    skip_stock_check=False,
     replace=False,
     replace_reservations=False,
     reservation_length: Optional[int] = None,
@@ -163,6 +165,16 @@ def add_variants_to_checkout(
     Otherwise, quantity will be added or replaced (if replace argument is True).
     """
     country_code = checkout.get_country()
+    if not skip_stock_check:
+        check_stock_and_preorder_quantity_bulk(
+            variants,
+            country_code,
+            quantities,
+            channel_slug,
+            global_quantity_limit,
+            check_reservations=bool(reservation_length),
+        )
+
     checkout_lines = checkout.lines.select_related("variant")
     variant_ids_in_lines = {line.variant_id: line for line in checkout_lines}
     to_create = []

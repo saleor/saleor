@@ -50,6 +50,7 @@ def test_check_stock_and_preorder_quantity_bulk(
 ):
     stock_variant_quantity = 2
     preorder_quantity = 1
+    global_quantity_limit = 50
 
     with freeze_time(
         preorder_variant_with_end_date.preorder_end_date + timedelta(days=3)
@@ -63,6 +64,7 @@ def test_check_stock_and_preorder_quantity_bulk(
             "US",
             [stock_variant_quantity, preorder_quantity, stock_variant_quantity],
             channel_USD.slug,
+            global_quantity_limit=global_quantity_limit,
         )
 
     mock_check_stock_quantity_bulk.assert_called_once()

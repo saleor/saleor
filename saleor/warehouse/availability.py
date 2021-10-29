@@ -1,9 +1,11 @@
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
 
+from django.core.exceptions import ValidationError
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 
+from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock, InsufficientStockData
 from ..product.models import ProductVariantChannelListing
 from .models import PreorderReservation, Reservation, Stock, StockQuerySet
@@ -98,6 +100,7 @@ def check_stock_and_preorder_quantity_bulk(
     country_code: str,
     quantities: Iterable[int],
     channel_slug: str,
+    global_quantity_limit: Optional[int],
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
     existing_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
     replace: bool = False,
@@ -120,6 +123,7 @@ def check_stock_and_preorder_quantity_bulk(
             country_code,
             stock_quantities,
             channel_slug,
+            global_quantity_limit,
             additional_filter_lookup,
             existing_lines,
             replace,
@@ -166,6 +170,7 @@ def check_stock_quantity_bulk(
     country_code: str,
     quantities: Iterable[int],
     channel_slug: str,
+    global_quantity_limit: Optional[int],
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
     existing_lines: Iterable["CheckoutLineInfo"] = None,
     replace=False,
@@ -201,7 +206,11 @@ def check_stock_quantity_bulk(
     variants_quantities = {
         line.variant.pk: line.line.quantity for line in existing_lines or []
     }
+    quantity_limit = global_quantity_limit
     for variant, quantity in zip(variants, quantities):
+        if variant_quantity_limit := variant.quantity_limit_per_customer:
+            quantity_limit = variant_quantity_limit
+
         if not replace:
             quantity += variants_quantities.get(variant.pk, 0)
 
@@ -214,6 +223,16 @@ def check_stock_quantity_bulk(
         )
 
         if quantity > 0:
+            if quantity_limit is not None and quantity > quantity_limit:
+                raise ValidationError(
+                    {
+                        "quantity": ValidationError(
+                            "Cannot add more than %d times this item: %s."
+                            "" % (quantity_limit, variant),
+                            code=CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT.value,
+                        )
+                    }
+                )
             if not stocks:
                 insufficient_stocks.append(
                     InsufficientStockData(

@@ -74,6 +74,7 @@ from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context, resolve_global_ids_to_primary_keys
 from ..warehouse.types import Warehouse
 from .types import Checkout, CheckoutLine
+from .utils import prepare_insufficient_stock_checkout_validation_error
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
@@ -146,8 +147,6 @@ def check_lines_quantity(
     existing_lines=None,
     replace=False,
     check_reservations=False,
-    cumulative_quantities=None,
-    cumulative_variants=None,
 ):
     """Clean quantities and check if stock is sufficient for each checkout line.
 
@@ -156,6 +155,7 @@ def check_lines_quantity(
     allow_zero_quantities can be set to True
     and checkout lines with this quantity can be later removed.
     """
+
     for quantity in quantities:
         if not allow_zero_quantity and quantity <= 0:
             raise ValidationError(
@@ -167,18 +167,6 @@ def check_lines_quantity(
                 }
             )
 
-    cumulative_quantities = (
-        cumulative_quantities if cumulative_quantities is not None else quantities
-    )
-    cumulative_variants = (
-        cumulative_variants if cumulative_variants is not None else variants
-    )
-
-    for quantity, variant in zip(cumulative_quantities, cumulative_variants):
-        available_quantity = global_quantity_limit
-        if variant_quantity := variant.quantity_limit_per_customer:
-            available_quantity = variant_quantity
-
         elif allow_zero_quantity and quantity < 0:
             raise ValidationError(
                 {
@@ -188,23 +176,13 @@ def check_lines_quantity(
                     )
                 }
             )
-
-        if available_quantity is not None and quantity > available_quantity:
-            raise ValidationError(
-                {
-                    "quantity": ValidationError(
-                        "Cannot add more than %d times this item: %s."
-                        "" % (available_quantity, variant),
-                        code=CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
-                    )
-                }
-            )
     try:
         check_stock_and_preorder_quantity_bulk(
             variants,
             country,
             quantities,
             channel_slug,
+            global_quantity_limit,
             existing_lines=existing_lines,
             replace=replace,
             check_reservations=check_reservations,
@@ -458,19 +436,23 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # Set checkout country
         country = cleaned_input["country"]
         instance.set_country(country)
-
         # Create checkout lines
         channel = cleaned_input["channel"]
         variants = cleaned_input.get("variants")
         quantities = cleaned_input.get("quantities")
         if variants and quantities:
-            add_variants_to_checkout(
-                instance,
-                variants,
-                quantities,
-                channel.slug,
-                reservation_length=get_reservation_length(info.context),
-            )
+            try:
+                add_variants_to_checkout(
+                    instance,
+                    variants,
+                    quantities,
+                    channel.slug,
+                    info.context.site.settings.limit_quantity_per_checkout,
+                    reservation_length=get_reservation_length(info.context),
+                )
+            except InsufficientStock as exc:
+                error = prepare_insufficient_stock_checkout_validation_error(exc)
+                raise ValidationError({"lines": error})
 
         # Save addresses
         shipping_address = cleaned_input.get("shipping_address")
@@ -542,8 +524,6 @@ class CheckoutLinesAdd(BaseMutation):
         country,
         channel_slug,
         lines=None,
-        cumulative_quantities=None,
-        cumulative_variants=None,
     ):
         check_lines_quantity(
             variants,
@@ -553,8 +533,6 @@ class CheckoutLinesAdd(BaseMutation):
             info.context.site.settings.limit_quantity_per_checkout,
             existing_lines=lines,
             check_reservations=is_reservation_enabled(info.context.site.settings),
-            cumulative_quantities=cumulative_quantities,
-            cumulative_variants=cumulative_variants,
         )
 
     @classmethod
@@ -569,8 +547,6 @@ class CheckoutLinesAdd(BaseMutation):
         manager,
         discounts,
         replace,
-        cumulative_quantities=None,
-        cumulative_variants=None,
     ):
         channel_slug = checkout_info.channel.slug
 
@@ -586,8 +562,6 @@ class CheckoutLinesAdd(BaseMutation):
             checkout.get_country(),
             channel_slug,
             lines=lines,
-            cumulative_quantities=cumulative_quantities,
-            cumulative_variants=cumulative_variants,
         )
 
         variants_ids_to_validate = {
@@ -616,6 +590,8 @@ class CheckoutLinesAdd(BaseMutation):
                 variants,
                 quantities,
                 channel_slug,
+                info.context.site.settings.limit_quantity_per_checkout,
+                skip_stock_check=True,  # already checked by validate_checkout_lines
                 replace=replace,
                 replace_reservations=True,
                 reservation_length=get_reservation_length(info.context),
@@ -660,31 +636,17 @@ class CheckoutLinesAdd(BaseMutation):
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
 
-        existing_lines = fetch_checkout_lines(checkout)
-        existing_quantity_dicts = [
-            {
-                "quantity": line.line.quantity,
-                "variant_id": graphene.Node.to_global_id(
-                    "ProductVariant", line.variant.id
-                ),
-            }
-            for line in existing_lines
-        ]
-        existing_quantity_dicts.extend(lines)
-        cumulative_quantities = group_quantity_by_variants(existing_quantity_dicts)
-        cumulative_variants = [line.variant for line in existing_lines] + variants
+        lines = fetch_checkout_lines(checkout)
         lines = cls.clean_input(
             info,
             checkout,
             variants,
             input_quantities,
             checkout_info,
-            existing_lines,
+            lines,
             manager,
             discounts,
             replace,
-            cumulative_quantities,
-            cumulative_variants,
         )
 
         checkout_info.valid_shipping_methods = (
@@ -723,8 +685,6 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         country,
         channel_slug,
         lines=None,
-        cumulative_quantities=None,
-        cumulative_variants=None,
     ):
         check_lines_quantity(
             variants,
