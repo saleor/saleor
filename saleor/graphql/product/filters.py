@@ -32,7 +32,7 @@ from ...product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ...warehouse.models import Allocation, Stock
+from ...warehouse.models import Allocation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import (
     EnumFilter,
@@ -524,13 +524,12 @@ def filter_product_type_kind(qs, _, value):
 def filter_stocks(qs, _, value):
     warehouse_ids = value.get("warehouse_ids")
     quantity = value.get("quantity")
-    # distinct's wil be removed in separated PR
     if warehouse_ids and not quantity:
-        return filter_warehouses(qs, _, warehouse_ids).distinct()
+        return filter_warehouses(qs, _, warehouse_ids)
     if quantity and not warehouse_ids:
-        return filter_quantity(qs, quantity).distinct()
+        return filter_quantity(qs, quantity)
     if quantity and warehouse_ids:
-        return filter_quantity(qs, quantity, warehouse_ids).distinct()
+        return filter_quantity(qs, quantity, warehouse_ids)
     return qs
 
 
@@ -539,7 +538,12 @@ def filter_warehouses(qs, _, value):
         _, warehouse_pks = resolve_global_ids_to_primary_keys(
             value, warehouse_types.Warehouse
         )
-        return qs.filter(variants__stocks__warehouse__pk__in=warehouse_pks)
+        warehouses = Warehouse.objects.filter(pk__in=warehouse_pks).values("pk")
+        variant_ids = Stock.objects.filter(
+            Exists(warehouses.filter(pk=OuterRef("warehouse")))
+        ).values("product_variant_id")
+        variants = ProductVariant.objects.filter(id__in=variant_ids).values("pk")
+        return qs.filter(Exists(variants.filter(product=OuterRef("pk"))))
     return qs
 
 
@@ -558,32 +562,32 @@ def filter_is_preorder(qs, _, value):
     )
 
 
-def filter_quantity(qs, quantity_value, warehouses=None):
+def filter_quantity(qs, quantity_value, warehouse_ids=None):
     """Filter products queryset by product variants quantity.
 
     Return product queryset which contains at least one variant with aggregated quantity
     between given range. If warehouses is given, it aggregates quantity only
     from stocks which are in given warehouses.
     """
-    product_variants = ProductVariant.objects.filter(product__in=qs)
-    if warehouses:
+    variants = ProductVariant.objects.filter(product__in=qs)
+
+    if warehouse_ids:
         _, warehouse_pks = resolve_global_ids_to_primary_keys(
-            warehouses, warehouse_types.Warehouse
+            warehouse_ids, warehouse_types.Warehouse
         )
-        product_variants = product_variants.annotate(
+        variants = variants.annotate(
             total_quantity=Sum(
                 "stocks__quantity", filter=Q(stocks__warehouse__pk__in=warehouse_pks)
             )
         )
     else:
-        product_variants = product_variants.annotate(
+        variants = ProductVariant.objects.filter(product__in=qs).annotate(
             total_quantity=Sum("stocks__quantity")
         )
 
-    product_variants = filter_range_field(
-        product_variants, "total_quantity", quantity_value
-    )
-    return qs.filter(variants__in=product_variants)
+    variants = filter_range_field(variants, "total_quantity", quantity_value)
+
+    return qs.filter(Exists(variants.filter(product=OuterRef("pk"))))
 
 
 class ProductStockFilterInput(graphene.InputObjectType):
