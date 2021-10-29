@@ -343,9 +343,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             ),
         )
 
-        # Calculates quantities/variants correctly when variant
-        # id duplicated within lines in checkout.
-        # TODO: During review, please check if needed
         quantities = group_quantity_by_variants(lines)
 
         variant_db_ids = {variant.id for variant in variants}
@@ -549,11 +546,6 @@ class CheckoutLinesAdd(BaseMutation):
         replace,
     ):
         channel_slug = checkout_info.channel.slug
-
-        # If validate_checkout_lines remains here, we can add as many items as we want
-        # to checkout object via checkoutLinesAdd despite of global limits,
-        # because we validate just an input, not checkout' state after mutation.
-        # Pls check "main" branch.
 
         cls.validate_checkout_lines(
             info,
