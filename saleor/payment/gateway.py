@@ -18,7 +18,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..payment.interface import CustomerSource, PaymentGateway, RefundLineData
+    from ..payment.interface import CustomerSource, PaymentGateway, RefundData
     from ..plugins.manager import PluginsManager
 
 
@@ -195,7 +195,7 @@ def refund(
     manager: "PluginsManager",
     channel_slug: str,
     amount: Decimal = None,
-    lines_to_refund: Optional[List["RefundLineData"]] = None,
+    refund_data: Optional["RefundData"] = None,
 ) -> Transaction:
     if amount is None:
         amount = payment.captured_amount
@@ -211,7 +211,7 @@ def refund(
         manager=manager,
         payment_token=token,
         amount=amount,
-        lines_to_refund=lines_to_refund,
+        refund_data=refund_data,
     )
     if payment.is_manual():
         # for manual payment we just need to mark payment as a refunded

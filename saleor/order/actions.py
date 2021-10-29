@@ -1222,9 +1222,10 @@ def _process_refund(
                 manager,
                 amount=amount,
                 channel_slug=order.channel.slug,
-                lines_to_refund=create_refund_line_data(
+                refund_data=create_refund_line_data(
                     order_lines_to_refund,
                     fulfillment_lines_to_refund,
+                    refund_shipping_costs,
                 ),
             )
         except PaymentError:

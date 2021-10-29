@@ -7,8 +7,8 @@ from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
-from ...interface import AddressData, PaymentData, RefundLineData
-from ...utils import price_to_minor_unit
+from ...interface import AddressData, PaymentData, RefundData
+from ...utils import SHIPPING_PAYMENT_LINE_PRODUCT_SKU, price_to_minor_unit
 from .api_types import NPResponse, error_np_response
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL, REQUEST_TIMEOUT
 from .utils import np_atobarai_opentracing_trace
@@ -111,12 +111,17 @@ def format_price(price: Decimal, currency: str) -> int:
 
 
 def get_refunded_goods(
-    refund_lines: List[RefundLineData],
+    refund_data: RefundData,
     payment_information: PaymentData,
 ) -> List[dict]:
     refund_lines_dict = {
-        line.product_sku: line.quantity for line in refund_lines if line.product_sku
+        line.product_sku: line.quantity
+        for line in refund_data.lines
+        if line.product_sku
     }
+    refund_lines_dict[SHIPPING_PAYMENT_LINE_PRODUCT_SKU] = (
+        0 if refund_data.refund_shipping_costs else 1
+    )
 
     goods = []
 
@@ -134,6 +139,7 @@ def get_refunded_goods(
                     "quantity": quantity,
                 }
             )
+
     return goods
 
 
@@ -186,9 +192,6 @@ def register(
 
     billing = payment_information.billing
     shipping = payment_information.shipping
-
-    print(f"{billing = }")
-    print(f"{shipping = }")
 
     if not billing:
         return error_np_response(

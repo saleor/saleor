@@ -25,6 +25,7 @@ from .interface import (
     PaymentData,
     PaymentLineData,
     PaymentMethodInfo,
+    RefundData,
     RefundLineData,
 )
 from .models import Payment, Transaction
@@ -112,11 +113,14 @@ def create_payment_lines_information(
     return line_items
 
 
+SHIPPING_PAYMENT_LINE_PRODUCT_SKU = "6273eb3bfab5470cb721a67ea4244fd2"
+
+
 def create_shipping_payment_line_data(amount: Decimal) -> PaymentLineData:
     return PaymentLineData(
         quantity=1,
         product_name="Shipping",
-        product_sku="",
+        product_sku=SHIPPING_PAYMENT_LINE_PRODUCT_SKU,
         gross=amount,
     )
 
@@ -152,7 +156,7 @@ def create_payment_information(
     amount: Decimal = None,
     customer_id: str = None,
     store_source: bool = False,
-    lines_to_refund: Optional[List[RefundLineData]] = None,
+    refund_data: Optional[RefundData] = None,
     additional_data: Optional[dict] = None,
     manager: Optional[PluginsManager] = None,
 ) -> PaymentData:
@@ -201,7 +205,7 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
-        lines_to_refund=lines_to_refund,
+        refund_data=refund_data,
         _resolve_lines=lambda: create_payment_lines_information(
             payment, manager or get_plugins_manager()
         ),
@@ -211,7 +215,8 @@ def create_payment_information(
 def create_refund_line_data(
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
-) -> List[RefundLineData]:
+    refund_shipping_costs: bool,
+) -> RefundData:
     order_refund_lines = [
         RefundLineData(
             product_sku=line.line.product_sku,
@@ -219,6 +224,7 @@ def create_refund_line_data(
         )
         for line in order_lines
     ]
+
     fulfillment_refund_lines = [
         RefundLineData(
             product_sku=(order_line := line.line.order_line).product_sku,
@@ -226,7 +232,11 @@ def create_refund_line_data(
         )
         for line in fulfillment_lines
     ]
-    return order_refund_lines + fulfillment_refund_lines
+
+    return RefundData(
+        refund_shipping_costs=refund_shipping_costs,
+        lines=order_refund_lines + fulfillment_refund_lines,
+    )
 
 
 def create_payment(

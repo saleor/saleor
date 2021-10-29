@@ -103,9 +103,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
         if not order:
             raise PaymentError(f"Order does not exist for payment with id {payment_id}")
 
-        lines = payment_information.lines_to_refund
-
-        print(f"{lines = }")
+        lines = payment_information.refund_data
 
         result = api.change_transaction(config, payment, payment_information, lines)
 

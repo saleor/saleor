@@ -2,7 +2,7 @@ import logging
 from typing import List, Optional, Tuple, Union
 
 from ....order.models import Fulfillment
-from ...interface import PaymentData, RefundLineData
+from ...interface import PaymentData, RefundData
 from ...models import Payment
 from .api_helpers import (
     cancel,
@@ -98,7 +98,7 @@ def change_transaction(
     config: ApiConfig,
     payment: Payment,
     payment_information: PaymentData,
-    lines: Optional[List[RefundLineData]],
+    lines: Optional[RefundData],
 ) -> Optional[PaymentResult]:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.change"):
         if lines:
@@ -158,7 +158,7 @@ def reregister_transaction_for_partial_return(
     payment: Payment,
     payment_information: PaymentData,
     tracking_number: Optional[str],
-    lines: Optional[List[RefundLineData]],
+    refund_data: Optional[RefundData],
 ) -> PaymentResult:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.reregister"):
         payment_id = payment_information.payment_id
@@ -176,8 +176,8 @@ def reregister_transaction_for_partial_return(
             )
             return errors_payment_result(error_messages)
 
-        if lines:
-            goods = get_refunded_goods(lines, payment_information)
+        if refund_data:
+            goods = get_refunded_goods(refund_data, payment_information)
         else:
             goods = get_discount(payment_information)
 

@@ -75,6 +75,12 @@ class RefundLineData:
 
 
 @dataclass
+class RefundData:
+    refund_shipping_costs: bool
+    lines: List[RefundLineData]
+
+
+@dataclass
 class PaymentData:
     """Dataclass for storing all payment information.
 
@@ -97,7 +103,7 @@ class PaymentData:
     reuse_source: bool = False
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
-    lines_to_refund: Optional[List[RefundLineData]] = None
+    refund_data: Optional[RefundData] = None
     # Optional, lazy-evaluated gateway arguments
     _resolve_lines: InitVar[Callable] = None
 

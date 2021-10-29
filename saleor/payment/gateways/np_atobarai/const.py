@@ -2,7 +2,7 @@
 NP_ATOBARAI = "02"
 NP_ATOBARAI_WIZ = "03"
 
-REQUEST_TIMEOUT = 15
+REQUEST_TIMEOUT = 30
 
 NP_TEST_URL = "https://ctcp.np-payment-gateway.com/v1"
 NP_URL = "https://cp.np-payment-gateway.com/v1"
