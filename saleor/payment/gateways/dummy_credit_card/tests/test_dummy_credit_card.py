@@ -116,7 +116,7 @@ def test_void_success(payment_txn_preauth):
     payment_txn_preauth.save()
 
     assert payment_txn_preauth.is_active
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_txn_preauth.charge_status == ChargeStatus.AUTHORIZED
     txn = gateway.void(
         payment=payment_txn_preauth,
         manager=get_plugins_manager(),
@@ -127,17 +127,17 @@ def test_void_success(payment_txn_preauth):
     assert txn.payment == payment_txn_preauth
     payment_txn_preauth.refresh_from_db()
     assert not payment_txn_preauth.is_active
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_txn_preauth.charge_status == ChargeStatus.CANCELLED
 
 
 @pytest.mark.parametrize(
     "is_active, charge_status, error",
     [
-        (False, ChargeStatus.NOT_CHARGED, NO_LONGER_ACTIVE),
-        (False, ChargeStatus.PARTIALLY_CHARGED, NO_LONGER_ACTIVE),
-        (False, ChargeStatus.FULLY_CHARGED, NO_LONGER_ACTIVE),
-        (False, ChargeStatus.PARTIALLY_REFUNDED, NO_LONGER_ACTIVE),
-        (False, ChargeStatus.FULLY_REFUNDED, NO_LONGER_ACTIVE),
+        (False, ChargeStatus.NOT_CHARGED, LACK_OF_SUCCESSFUL_TRANSACTION),
+        (False, ChargeStatus.PARTIALLY_CHARGED, LACK_OF_SUCCESSFUL_TRANSACTION),
+        (False, ChargeStatus.FULLY_CHARGED, LACK_OF_SUCCESSFUL_TRANSACTION),
+        (False, ChargeStatus.PARTIALLY_REFUNDED, LACK_OF_SUCCESSFUL_TRANSACTION),
+        (False, ChargeStatus.FULLY_REFUNDED, LACK_OF_SUCCESSFUL_TRANSACTION),
         (True, ChargeStatus.PARTIALLY_CHARGED, LACK_OF_SUCCESSFUL_TRANSACTION),
         (True, ChargeStatus.FULLY_CHARGED, LACK_OF_SUCCESSFUL_TRANSACTION),
         (True, ChargeStatus.PARTIALLY_REFUNDED, LACK_OF_SUCCESSFUL_TRANSACTION),
@@ -223,8 +223,9 @@ def test_capture_success(amount, charge_status, token, payment_txn_preauth):
 @pytest.mark.parametrize(
     "amount, captured_amount, charge_status, is_active, error",
     [
-        (80, 0, ChargeStatus.NOT_CHARGED, False, NO_LONGER_ACTIVE),
-        (120, 0, ChargeStatus.NOT_CHARGED, True, CANNOT_CHARGE_MORE_THAN_UNCAPTURED),
+        (80, 0, ChargeStatus.AUTHORIZED, False, NO_LONGER_ACTIVE),
+        (120, 0, ChargeStatus.AUTHORIZED, True, CANNOT_CHARGE_MORE_THAN_UNCAPTURED),
+        (80, 0, ChargeStatus.NOT_CHARGED, True, CANNOT_BE_CAPTURED),
         (80, 20, ChargeStatus.PARTIALLY_CHARGED, True, CANNOT_BE_CAPTURED),
         (80, 80, ChargeStatus.FULLY_CHARGED, True, CANNOT_BE_CAPTURED),
         (80, 0, ChargeStatus.FULLY_REFUNDED, True, CANNOT_BE_CAPTURED),

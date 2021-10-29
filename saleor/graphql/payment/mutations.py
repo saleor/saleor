@@ -4,20 +4,30 @@ from django.core.exceptions import ValidationError
 from ...channel.models import Channel
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
+from ...checkout.complete_checkout import complete_checkout_payment
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...checkout.utils import cancel_active_payments
+from ...checkout.utils import (
+    call_payment_refund_or_void,
+    get_active_payments,
+    get_covered_balance,
+    validate_variants_in_checkout_lines,
+)
+from ...core import analytics
 from ...core.permissions import OrderPermissions
+from ...core.transactions import transaction_with_commit_on_errors
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
-from ...payment import PaymentError, gateway
+from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
+from ..channel.utils import validate_channel
 from ..checkout.mutations import get_checkout_by_token
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
+from ..core.types.common import CheckoutError
 from ..core.validators import validate_one_of_args_is_in_mutation
 from .types import Payment, PaymentInitialized
 
@@ -51,6 +61,14 @@ class PaymentInput(graphene.InputObjectType):
             "finished if this field is not provided."
         ),
     )
+    partial = graphene.Boolean(
+        required=False,
+        description=(
+            "When set to True, multiple payments can be attached to "
+            "a single checkout. Creating a payment with partial=False will cancel "
+            "all previous payments."
+        ),
+    )
 
 
 class CheckoutPaymentCreate(BaseMutation, I18nMixin):
@@ -76,14 +94,25 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         error_type_field = "payment_errors"
 
     @classmethod
-    def clean_payment_amount(cls, info, checkout_total, amount):
-        if amount != checkout_total.gross.amount:
+    def clean_payment_amount(cls, info, partial, checkout, checkout_total, amount):
+        if not partial and amount != checkout_total.gross.amount:
             raise ValidationError(
                 {
                     "amount": ValidationError(
-                        "Partial payments are not allowed, amount should be "
-                        "equal checkout's total.",
+                        "Amount does not cover checkout amount and "
+                        "the payment is not marked as partial.",
                         code=PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED,
+                    )
+                }
+            )
+
+        remaining = checkout_total.gross - get_covered_balance(checkout)
+        if amount > remaining.amount:
+            raise ValidationError(
+                {
+                    "amount": ValidationError(
+                        "Amount should not exceed checkout's remaining amount.",
+                        code=PaymentErrorCode.PARTIAL_PAYMENT_TOTAL_EXCEEDED,
                     )
                 }
             )
@@ -174,20 +203,26 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             discounts=info.context.discounts,
         )
         amount = data.get("amount", checkout_total.gross.amount)
+        partial = data.get("partial", False)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
         clean_billing_address(checkout_info, PaymentErrorCode)
-        cls.clean_payment_amount(info, checkout_total, amount)
+        cls.clean_payment_amount(info, partial, checkout, checkout_total, amount)
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
         }
 
-        cancel_active_payments(checkout)
+        payments_to_cancel = get_active_payments(checkout)
+        if partial:
+            payments_to_cancel = [p for p in payments_to_cancel if not p.partial]
+        for existing_payment in payments_to_cancel:
+            call_payment_refund_or_void(existing_payment, cancel_partial=True)
 
         payment = create_payment(
             gateway=gateway,
             payment_token=data.get("token", ""),
             total=amount,
             currency=checkout.currency,
+            partial=partial,
             email=checkout.get_customer_email(),
             extra_data=extra_data,
             # FIXME this is not a customer IP address. It is a client storefront ip
@@ -196,6 +231,99 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             return_url=data.get("return_url"),
         )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
+
+
+class CheckoutPaymentComplete(BaseMutation, I18nMixin):
+    checkout = graphene.Field(Checkout, description="Related checkout object.")
+    payment = graphene.Field(Payment, description="Related payment object.")
+    confirmation_needed = graphene.Boolean(
+        required=True,
+        default_value=False,
+        description=(
+            "Set to true if payment needs to be confirmed"
+            " before checkout is complete."
+        ),
+    )
+    confirmation_data = graphene.JSONString(
+        required=False,
+        description=(
+            "Confirmation data used to process additional authorization steps."
+        ),
+    )
+
+    class Arguments:
+        token = UUID(required=True, description="Checkout token.")
+        payment_id = graphene.ID(required=True, description="Payment ID.")
+        payment_data = graphene.JSONString(
+            required=False,
+            description=(
+                "Client-side generated data required to finalize the payment."
+            ),
+        )
+        redirect_url = graphene.String(
+            required=False,
+            description=(
+                "URL of a view where users should be redirected to "
+                "see the order details. URL in RFC 1808 format."
+            ),
+        )
+
+    class Meta:
+        description = (
+            "Completes an individual payment as part of the checkout. "
+            "This mutation does not create the order and any webhooks related "
+            "to this payment will neither create the order. "
+            "In case an additional confirmation step such as 3D secure is required "
+            "`confirmationNeeded` flag will be set to True and no authorization "
+            "will be held until the payment is confirmed with second call "
+            "of this mutation."
+        )
+        error_type_class = CheckoutError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, token, payment_id, **data):
+        tracking_code = analytics.get_client_id(info.context)
+        with transaction_with_commit_on_errors():
+            checkout = get_checkout_by_token(
+                token,
+                qs=models.Checkout.objects.select_for_update(
+                    of=["self"]
+                ).prefetch_related("payments"),
+            )
+            payment = cls.get_node_or_error(
+                info,
+                payment_id,
+                field="payment_id",
+                only_type=Payment,
+                qs=models.Payment.objects.filter(checkout=checkout),
+            )
+
+            manager = info.context.plugins
+            lines = fetch_checkout_lines(checkout)
+            validate_variants_in_checkout_lines(lines)
+            checkout_info = fetch_checkout_info(
+                checkout, lines, info.context.discounts, manager
+            )
+            action_required, action_data = complete_checkout_payment(
+                payment=payment,
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                payment_data=data.get("payment_data", {}),
+                store_source=False,  # TODO: remove later
+                discounts=info.context.discounts,
+                user=info.context.user,
+                tracking_code=tracking_code,
+                redirect_url=data.get("redirect_url"),
+            )
+        # If gateway returns information that additional steps are required we need
+        # to inform the frontend and pass all required data
+        return CheckoutPaymentComplete(
+            checkout=checkout,
+            payment=payment,
+            confirmation_needed=action_required,
+            confirmation_data=action_data,
+        )
 
 
 class PaymentCapture(BaseMutation):
@@ -352,3 +480,95 @@ class PaymentInitialize(BaseMutation):
                 }
             )
         return PaymentInitialize(initialized_payment=response)
+
+
+class MoneyInput(graphene.InputObjectType):
+    currency = graphene.String(description="Currency code.", required=True)
+    amount = PositiveDecimal(description="Amount of money.", required=True)
+
+
+class CardInput(graphene.InputObjectType):
+    code = graphene.String(
+        description=(
+            "Payment method nonce, a token returned "
+            "by the appropriate provider's SDK."
+        ),
+        required=True,
+    )
+    cvc = graphene.String(description="Card security code.", required=False)
+    money = MoneyInput(
+        description="Information about currency and amount.", required=True
+    )
+
+
+class PaymentCheckBalanceInput(graphene.InputObjectType):
+    gateway_id = graphene.types.String(
+        description="An ID of a payment gateway to check.", required=True
+    )
+    method = graphene.types.String(description="Payment method name.", required=True)
+    channel = graphene.String(
+        description="Slug of a channel for which the data should be returned.",
+        required=True,
+    )
+    card = CardInput(description="Information about card.", required=True)
+
+
+class PaymentCheckBalance(BaseMutation):
+    data = graphene.types.JSONString(description="Response from the gateway.")
+
+    class Arguments:
+        input = PaymentCheckBalanceInput(
+            description="Fields required to check payment balance.", required=True
+        )
+
+    class Meta:
+        description = "Check payment balance."
+        error_type_class = common_types.PaymentError
+        error_type_field = "payment_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        manager = info.context.plugins
+        gateway_id = data["input"]["gateway_id"]
+        money = data["input"]["card"].get("money", {})
+
+        cls.validate_gateway(gateway_id, manager)
+        cls.validate_currency(money.currency, gateway_id, manager)
+
+        channel = data["input"].pop("channel")
+        validate_channel(channel, PaymentErrorCode)
+
+        try:
+            data = manager.check_payment_balance(data["input"], channel)
+        except PaymentError as e:
+            raise ValidationError(
+                str(e), code=PaymentErrorCode.BALANCE_CHECK_ERROR.value
+            )
+
+        return PaymentCheckBalance(data=data)
+
+    @classmethod
+    def validate_gateway(cls, gateway_id, manager):
+        gateways_id = [gateway.id for gateway in manager.list_payment_gateways()]
+
+        if gateway_id not in gateways_id:
+            raise ValidationError(
+                {
+                    "gateway_id": ValidationError(
+                        f"The gateway_id {gateway_id} is not available.",
+                        code=PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def validate_currency(cls, currency, gateway_id, manager):
+        if not is_currency_supported(currency, gateway_id, manager):
+            raise ValidationError(
+                {
+                    "currency": ValidationError(
+                        f"The currency {currency} is not available for {gateway_id}.",
+                        code=PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value,
+                    )
+                }
+            )

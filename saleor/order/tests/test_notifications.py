@@ -2,14 +2,17 @@ from decimal import Decimal
 from functools import partial
 from unittest import mock
 
+from graphql_relay import to_global_id
 from measurement.measures import Weight
 from prices import Money, fixed_discount
 
 from ...core.notify_events import NotifyEventType
 from ...discount import DiscountValueType
 from ...order import notifications
+from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContentUrl
+from ..interface import OrderPaymentAction
 from ..notifications import (
     get_address_payload,
     get_default_fulfillment_line_payload,
@@ -257,12 +260,24 @@ def test_get_default_fulfillment_payload(
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_dummy):
+def test_send_email_payment_confirmation_with_single_payment(
+    mocked_notify, site_settings, payment_dummy
+):
     manager = get_plugins_manager()
     order = payment_dummy.order
     expected_payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
+        "payments": [
+            {
+                "created": payment_dummy.created,
+                "modified": payment_dummy.modified,
+                "charge_status": payment_dummy.charge_status,
+                "total": payment_dummy.total,
+                "captured_amount": payment_dummy.captured_amount,
+                "currency": payment_dummy.currency,
+            }
+        ],
         "payment": {
             "created": payment_dummy.created,
             "modified": payment_dummy.modified,
@@ -279,6 +294,47 @@ def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_d
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
         expected_payload,
         channel_slug=order.channel.slug,
+    )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_email_payment_confirmation_with_multiple_payments(
+    mocked_notify, site_settings, payment_dummy_factory, fulfilled_order
+):
+    manager = get_plugins_manager()
+
+    payment_1 = payment_dummy_factory()
+    payment_2 = payment_dummy_factory()
+    fulfilled_order.payments.set([payment_1, payment_2])
+    expected_payload = {
+        "order": get_default_order_payload(fulfilled_order),
+        "recipient_email": fulfilled_order.get_customer_email(),
+        "payments": [
+            {
+                "created": payment_1.created,
+                "modified": payment_1.modified,
+                "charge_status": payment_1.charge_status,
+                "total": payment_1.total,
+                "captured_amount": payment_1.captured_amount,
+                "currency": payment_1.currency,
+            },
+            {
+                "created": payment_2.created,
+                "modified": payment_2.modified,
+                "charge_status": payment_2.charge_status,
+                "total": payment_2.total,
+                "captured_amount": payment_2.captured_amount,
+                "currency": payment_2.currency,
+            },
+        ],
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
+    }
+    notifications.send_payment_confirmation(fulfilled_order, manager)
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
+        expected_payload,
+        channel_slug=fulfilled_order.channel.slug,
     )
 
 
@@ -340,6 +396,16 @@ def test_send_confirmation_emails_without_addresses_for_payment(
             "captured_amount": payment_dummy.captured_amount,
             "currency": payment_dummy.currency,
         },
+        "payments": [
+            {
+                "created": payment_dummy.created,
+                "modified": payment_dummy.modified,
+                "charge_status": payment_dummy.charge_status,
+                "total": payment_dummy.total,
+                "captured_amount": payment_dummy.captured_amount,
+                "currency": payment_dummy.currency,
+            }
+        ],
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
@@ -515,15 +581,19 @@ def test_send_email_order_canceled_by_app(mocked_notify, order, site_settings, a
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_order_refunded_by_user(
-    mocked_notify, order, site_settings, staff_user
+    mocked_notify, order, site_settings, staff_user, checkout_with_item
 ):
     # given
     manager = get_plugins_manager()
     amount = order.total.gross.amount
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout_with_item
+    )
+    payments = [OrderPaymentAction(payment, amount)]
 
     # when
     notifications.send_order_refunded_confirmation(
-        order, staff_user, None, amount, order.currency, manager
+        order, staff_user, None, payments, order.currency, manager
     )
 
     # then
@@ -533,6 +603,14 @@ def test_send_email_order_refunded_by_user(
         "order": get_default_order_payload(order),
         "amount": amount,
         "currency": order.currency,
+        "refunds": [
+            {
+                "payment_id": to_global_id("Payment", item.payment.id),
+                "amount": item.amount,
+                "gateway": item.payment.gateway,
+            }
+            for item in payments
+        ],
         "recipient_email": order.get_customer_email(),
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
@@ -546,14 +624,20 @@ def test_send_email_order_refunded_by_user(
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_send_email_order_refunded_by_app(mocked_notify, order, site_settings, app):
+def test_send_email_order_refunded_by_app(
+    mocked_notify, order, site_settings, app, checkout_with_item
+):
     # given
     manager = get_plugins_manager()
     amount = order.total.gross.amount
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout_with_item
+    )
+    payments = [OrderPaymentAction(payment, amount)]
 
     # when
     notifications.send_order_refunded_confirmation(
-        order, None, app, amount, order.currency, manager
+        order, None, app, payments, order.currency, manager
     )
 
     # then
@@ -563,6 +647,14 @@ def test_send_email_order_refunded_by_app(mocked_notify, order, site_settings, a
         "order": get_default_order_payload(order),
         "amount": amount,
         "currency": order.currency,
+        "refunds": [
+            {
+                "payment_id": to_global_id("Payment", item.payment.id),
+                "amount": item.amount,
+                "gateway": item.payment.gateway,
+            }
+            for item in payments
+        ],
         "recipient_email": order.get_customer_email(),
         "site_name": "mirumee.com",
         "domain": "mirumee.com",

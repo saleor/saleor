@@ -4,7 +4,7 @@ from ...core.permissions import CheckoutPermissions
 from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..decorators import permission_required
-from ..payment.mutations import CheckoutPaymentCreate
+from ..payment.mutations import CheckoutPaymentComplete, CheckoutPaymentCreate
 from .mutations import (
     CheckoutAddPromoCode,
     CheckoutBillingAddressUpdate,
@@ -16,6 +16,7 @@ from .mutations import (
     CheckoutLanguageCodeUpdate,
     CheckoutLineDelete,
     CheckoutLinesAdd,
+    CheckoutLinesDelete,
     CheckoutLinesUpdate,
     CheckoutRemovePromoCode,
     CheckoutShippingAddressUpdate,
@@ -63,11 +64,18 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_customer_attach = CheckoutCustomerAttach.Field()
     checkout_customer_detach = CheckoutCustomerDetach.Field()
     checkout_email_update = CheckoutEmailUpdate.Field()
-    checkout_line_delete = CheckoutLineDelete.Field()
+    checkout_line_delete = CheckoutLineDelete.Field(
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 4.0. "
+            "Use `checkoutLinesDelete` instead."
+        )
+    )
+    checkout_lines_delete = CheckoutLinesDelete.Field()
     checkout_lines_add = CheckoutLinesAdd.Field()
     checkout_lines_update = CheckoutLinesUpdate.Field()
     checkout_remove_promo_code = CheckoutRemovePromoCode.Field()
     checkout_payment_create = CheckoutPaymentCreate.Field()
+    checkout_payment_complete = CheckoutPaymentComplete.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
     checkout_language_code_update = CheckoutLanguageCodeUpdate.Field()

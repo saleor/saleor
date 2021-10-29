@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytz
 
+from ....payment.gateways.dummy.plugin import DummyGatewayPlugin
 from ....plugins.invoicing.utils import (
     chunk_products,
     generate_invoice_number,
@@ -32,8 +33,21 @@ def test_get_product_limit_first_page(product):
 @patch("saleor.plugins.invoicing.utils.get_template")
 @patch("saleor.plugins.invoicing.utils.os")
 def test_generate_invoice_pdf_for_order(
-    os_mock, get_template_mock, HTML_mock, fulfilled_order
+    os_mock, get_template_mock, HTML_mock, fulfilled_order, payment_dummy
 ):
+    plugin = DummyGatewayPlugin
+    payment_dummy.gateway = plugin.PLUGIN_ID
+    payment_dummy.save()
+
+    fulfilled_order.payments.add(payment_dummy)
+    payments_data = [
+        {
+            "gateway_name": plugin.PLUGIN_NAME,
+            "captured_amount": payment_dummy.captured_amount,
+            "currency": payment_dummy.currency,
+        }
+    ]
+
     get_template_mock.return_value.render = Mock(return_value="<html></html>")
     os_mock.path.join.return_value = "test"
 
@@ -44,6 +58,7 @@ def test_generate_invoice_pdf_for_order(
             "invoice": fulfilled_order.invoices.first(),
             "creation_date": datetime.now(tz=pytz.utc).strftime("%d %b %Y"),
             "order": fulfilled_order,
+            "payments_data": payments_data,
             "font_path": "file://test",
             "products_first_page": list(fulfilled_order.lines.all()),
             "rest_of_products": [],

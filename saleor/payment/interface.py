@@ -90,6 +90,7 @@ class PaymentData:
     reuse_source: bool = False
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
+    checkout_token: Optional[str] = None
     # Optional, lazy-evaluated gateway arguments
     _resolve_lines: InitVar[Callable] = None
 

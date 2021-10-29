@@ -77,6 +77,12 @@ class Payment(CountableDjangoObjectType):
         ),
         required=True,
     )
+    partial = graphene.Boolean(
+        description=(
+            "Indicates whether this payment will be processed as a partial payment."
+        ),
+        required=True,
+    )
     total = graphene.Field(Money, description="Total amount of the payment.")
     captured_amount = graphene.Field(
         Money, description="Total amount captured for this payment."
@@ -93,6 +99,10 @@ class Payment(CountableDjangoObjectType):
     credit_card = graphene.Field(
         CreditCard, description="The details of the card used for this payment."
     )
+    gateway_name = graphene.String(
+        description="A human-readable name of the payment gateway plugin.",
+        required=True,
+    )
 
     class Meta:
         description = "Represents a payment of a given type."
@@ -102,6 +112,7 @@ class Payment(CountableDjangoObjectType):
         only_fields = [
             "id",
             "gateway",
+            "gateway_name",
             "is_active",
             "created",
             "modified",
@@ -110,6 +121,7 @@ class Payment(CountableDjangoObjectType):
             "order",
             "customer_ip_address",
             "payment_method_type",
+            "psp_reference",
         ]
 
     @staticmethod
@@ -169,6 +181,10 @@ class Payment(CountableDjangoObjectType):
         if not any(data.values()):
             return None
         return CreditCard(**data)
+
+    @staticmethod
+    def resolve_gateway_name(root: models.Payment, _info):
+        return _info.context.plugins.get_plugin_name(root.gateway)
 
 
 class PaymentInitialized(graphene.ObjectType):

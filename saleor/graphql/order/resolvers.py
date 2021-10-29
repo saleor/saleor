@@ -1,10 +1,13 @@
+from typing import List
+
 from ...channel.models import Channel
 from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
-from ...order import OrderStatus, models
+from ...order import OrderPaymentStatus, OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
 from ...order.utils import get_valid_shipping_methods_for_order, sum_order_totals
+from ...payment import ChargeStatus
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..shipping.utils import (
     annotate_active_shipping_methods,
@@ -123,3 +126,34 @@ def resolve_order_shipping_methods(root: models.Order, info, include_active_only
     if include_active_only:
         instances = [instance for instance in instances if instance.node.active]
     return instances
+
+
+def resolve_order_payment_status(order: models.Order, payments: List[models.Payment]):
+    def _map_payment_has_status(payments, status_list):
+        return map(lambda p: p.charge_status in status_list, payments)
+
+    if order.total_paid_amount > order.total_gross_amount:
+        return OrderPaymentStatus.OVERPAID
+
+    if order.total_paid_amount == order.total_gross_amount:
+        return OrderPaymentStatus.FULLY_CHARGED
+
+    if any(
+        _map_payment_has_status(
+            payments,
+            [ChargeStatus.FULLY_REFUNDED, ChargeStatus.PARTIALLY_REFUNDED],
+        )
+    ):
+        if all(_map_payment_has_status(payments, [ChargeStatus.FULLY_REFUNDED])):
+            return OrderPaymentStatus.FULLY_REFUNDED
+        return OrderPaymentStatus.PARTIALLY_REFUNDED
+
+    if any(
+        _map_payment_has_status(
+            payments,
+            [ChargeStatus.FULLY_CHARGED, ChargeStatus.PARTIALLY_CHARGED],
+        )
+    ):
+        return OrderPaymentStatus.PARTIALLY_CHARGED
+
+    return OrderPaymentStatus.NOT_CHARGED

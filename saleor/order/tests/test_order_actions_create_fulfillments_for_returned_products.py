@@ -14,6 +14,7 @@ from .. import (
     OrderOrigin,
 )
 from ..actions import create_fulfillments_for_returned_products
+from ..interface import OrderPaymentAction
 from ..models import Fulfillment, FulfillmentLine
 
 
@@ -25,9 +26,12 @@ def test_create_return_fulfillment_only_order_lines(
     order_with_lines,
     payment_dummy_fully_charged,
     staff_user,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     order_with_lines.payments.add(payment_dummy_fully_charged)
-    payment = order_with_lines.get_last_payment()
+    payment = order_with_lines.payments.latest("pk")
+    payments = [OrderPaymentAction(payment, Decimal("0"))]
 
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
@@ -43,13 +47,14 @@ def test_create_return_fulfillment_only_order_lines(
         user=staff_user,
         app=None,
         order=order_with_lines,
-        payment=payment,
+        payments=payments,
         order_lines=[
             OrderLineData(line=line, quantity=2, replace=False)
             for line in order_lines_to_return
         ],
         fulfillment_lines=[],
         manager=get_plugins_manager(),
+        include_shipping_costs=False,
     )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 
@@ -99,9 +104,12 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
     order_with_lines,
     payment_dummy_fully_charged,
     staff_user,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     order_with_lines.payments.add(payment_dummy_fully_charged)
-    payment = order_with_lines.get_last_payment()
+    payment = order_with_lines.payments.latest("pk")
+    payments = [OrderPaymentAction(payment, Decimal("0"))]
 
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
@@ -117,13 +125,14 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
         user=staff_user,
         app=None,
         order=order_with_lines,
-        payment=payment,
+        payments=payments,
         order_lines=[
             OrderLineData(line=line, quantity=2, replace=False)
             for line in order_lines_to_return
         ],
         fulfillment_lines=[],
         manager=get_plugins_manager(),
+        include_shipping_costs=False,
         refund=True,
     )
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -149,11 +158,12 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
         )
 
     amount = sum([line.unit_price_gross_amount * 2 for line in order_lines_to_return])
-    mocked_refund.assert_called_once_with(
+
+    mocked_refund.assert_called_with(
         payment_dummy_fully_charged,
         ANY,
-        amount=amount,
         channel_slug=order_with_lines.channel.slug,
+        amount=amount,
     )
     assert not replace_order
 
@@ -171,9 +181,12 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
     order_with_lines,
     payment_dummy_fully_charged,
     staff_user,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     order_with_lines.payments.add(payment_dummy_fully_charged)
-    payment = order_with_lines.get_last_payment()
+    payment = order_with_lines.payments.latest("pk")
+    payments = [OrderPaymentAction(payment, Decimal("0"))]
 
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
@@ -189,15 +202,15 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
         user=staff_user,
         app=None,
         order=order_with_lines,
-        payment=payment,
+        payments=payments,
         order_lines=[
             OrderLineData(line=line, quantity=2, replace=False)
             for line in order_lines_to_return
         ],
         fulfillment_lines=[],
         manager=get_plugins_manager(),
+        include_shipping_costs=True,
         refund=True,
-        refund_shipping_costs=True,
     )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 
@@ -223,11 +236,12 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
 
     amount = sum([line.unit_price_gross_amount * 2 for line in order_lines_to_return])
     amount += order_with_lines.shipping_price_gross_amount
-    mocked_refund.assert_called_once_with(
+
+    mocked_refund.assert_called_with(
         payment_dummy_fully_charged,
         ANY,
-        amount=amount,
         channel_slug=order_with_lines.channel.slug,
+        amount=amount,
     )
     assert not replace_order
 
@@ -248,9 +262,12 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     order_with_lines,
     payment_dummy_fully_charged,
     staff_user,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     order_with_lines.payments.add(payment_dummy_fully_charged)
-    payment = order_with_lines.get_last_payment()
+    payment = order_with_lines.payments.latest("pk")
+    payments = [OrderPaymentAction(payment, Decimal("0"))]
 
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
@@ -280,10 +297,11 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
         user=staff_user,
         app=None,
         order=order_with_lines,
-        payment=payment,
+        payments=payments,
         order_lines=order_lines_data,
         fulfillment_lines=[],
         manager=get_plugins_manager(),
+        include_shipping_costs=False,
     )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 
@@ -380,7 +398,8 @@ def test_create_return_fulfillment_only_fulfillment_lines(
     staff_user,
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
-    payment = fulfilled_order.get_last_payment()
+    payment = fulfilled_order.payments.latest("pk")
+    payments = [OrderPaymentAction(payment, Decimal("0"))]
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
     original_quantity = {line.id: line.quantity for line in fulfillment_lines}
@@ -389,13 +408,14 @@ def test_create_return_fulfillment_only_fulfillment_lines(
         user=staff_user,
         app=None,
         order=fulfilled_order,
-        payment=payment,
+        payments=payments,
         order_lines=[],
         fulfillment_lines=[
             FulfillmentLineData(line=line, quantity=2, replace=False)
             for line in fulfillment_lines
         ],
         manager=get_plugins_manager(),
+        include_shipping_costs=False,
     )
 
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -428,7 +448,8 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
     staff_user,
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
-    payment = fulfilled_order.get_last_payment()
+    payment = fulfilled_order.payments.latest("pk")
+    payments = [OrderPaymentAction(payment, Decimal("0"))]
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
     original_quantity = {line.id: line.quantity for line in fulfillment_lines}
@@ -447,10 +468,11 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
         user=staff_user,
         app=None,
         order=fulfilled_order,
-        payment=payment,
+        payments=payments,
         order_lines=[],
         fulfillment_lines=fulfillment_lines_to_return,
         manager=get_plugins_manager(),
+        include_shipping_costs=False,
     )
 
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -535,9 +557,12 @@ def test_create_return_fulfillment_with_lines_already_refunded(
     channel_USD,
     variant,
     warehouse,
+    mock_refund_response,
 ):
+    mock_refund_response(mocked_refund)
     fulfilled_order.payments.add(payment_dummy_fully_charged)
-    payment = fulfilled_order.get_last_payment()
+    payment = fulfilled_order.payments.latest("pk")
+    payments = [OrderPaymentAction(payment, Decimal("0"))]
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
     original_quantity = {line.id: line.quantity for line in fulfillment_lines}
@@ -585,10 +610,11 @@ def test_create_return_fulfillment_with_lines_already_refunded(
         user=staff_user,
         app=None,
         order=fulfilled_order,
-        payment=payment,
+        payments=payments,
         order_lines=[],
         fulfillment_lines=fulfillment_lines_to_process,
         manager=get_plugins_manager(),
+        include_shipping_costs=False,
         refund=True,
     )
 
@@ -613,11 +639,12 @@ def test_create_return_fulfillment_with_lines_already_refunded(
             for line in fulfillment_lines_to_return
         ]
     )
-    mocked_refund.assert_called_once_with(
+
+    mocked_refund.assert_called_with(
         payment_dummy_fully_charged,
         ANY,
-        amount=amount,
         channel_slug=fulfilled_order.channel.slug,
+        amount=amount,
     )
 
     assert returned_and_refunded_fulfillment.total_refund_amount == amount

@@ -20,13 +20,19 @@ from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
-from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
+from ....order import (
+    FulfillmentStatus,
+    OrderEvents,
+    OrderOrigin,
+    OrderPaymentStatus,
+    OrderStatus,
+)
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
 from ....order.models import Order, OrderEvent, OrderLine
 from ....order.notifications import get_default_order_payload
-from ....payment import ChargeStatus, PaymentError
+from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
 from ....product.models import ProductVariant, ProductVariantChannelListing
@@ -36,8 +42,7 @@ from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
-    clean_refund_payment,
-    try_payment_action,
+    clean_refund_payments,
 )
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import (
@@ -45,6 +50,7 @@ from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
+from ..enums import OrderPaymentStatusEnum
 from ..utils import validate_draft_order
 from .utils import assert_order_and_payment_ids
 
@@ -319,6 +325,7 @@ query OrdersQuery {
                 }
                 payments{
                     id
+                    chargeStatus
                 }
                 subtotal {
                     net {
@@ -583,6 +590,168 @@ def test_order_query_in_pln_channel(
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
+
+
+@pytest.mark.parametrize(
+    "p1,p2,expected",
+    [
+        [
+            ChargeStatus.NOT_CHARGED,
+            ChargeStatus.NOT_CHARGED,
+            OrderPaymentStatusEnum.NOT_CHARGED,
+        ],
+        [
+            ChargeStatus.NOT_CHARGED,
+            ChargeStatus.PARTIALLY_CHARGED,
+            OrderPaymentStatusEnum.PARTIALLY_CHARGED,
+        ],
+        [
+            ChargeStatus.NOT_CHARGED,
+            ChargeStatus.PENDING,
+            OrderPaymentStatusEnum.NOT_CHARGED,
+        ],
+        [
+            ChargeStatus.PARTIALLY_CHARGED,
+            ChargeStatus.PARTIALLY_CHARGED,
+            OrderPaymentStatusEnum.PARTIALLY_CHARGED,
+        ],
+        [
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.PARTIALLY_CHARGED,
+            OrderPaymentStatusEnum.PARTIALLY_CHARGED,
+        ],
+        [
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.NOT_CHARGED,
+            OrderPaymentStatusEnum.PARTIALLY_CHARGED,
+        ],
+        [
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.PENDING,
+            OrderPaymentStatusEnum.PARTIALLY_CHARGED,
+        ],
+        [
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.PARTIALLY_REFUNDED,
+            OrderPaymentStatusEnum.PARTIALLY_REFUNDED,
+        ],
+        [
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.FULLY_REFUNDED,
+            OrderPaymentStatusEnum.PARTIALLY_REFUNDED,
+        ],
+        [
+            ChargeStatus.FULLY_REFUNDED,
+            ChargeStatus.FULLY_REFUNDED,
+            OrderPaymentStatusEnum.FULLY_REFUNDED,
+        ],
+    ],
+)
+def test_order_query_payment_status_depending_on_charge_statuses(
+    staff_api_client, p1, p2, expected, payment_kwargs, order, permission_manage_orders
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    Payment.objects.create(
+        **{**payment_kwargs, **{"order": order, "charge_status": p1}}
+    )
+    Payment.objects.create(
+        **{**payment_kwargs, **{"order": order, "charge_status": p2}}
+    )
+    choices = dict(OrderPaymentStatus.CHOICES)
+    expected_display = choices.get(getattr(OrderPaymentStatus, expected.name))
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    # then
+    assert order_data["paymentStatus"] == expected.name
+    assert order_data["paymentStatusDisplay"] == expected_display
+
+
+@pytest.mark.parametrize(
+    "status,is_active,expect_payment",
+    [
+        [ChargeStatus.NOT_CHARGED, True, True],
+        [ChargeStatus.NOT_CHARGED, False, False],
+        [ChargeStatus.AUTHORIZED, False, True],
+        [ChargeStatus.AUTHORIZED, True, True],
+        [ChargeStatus.PENDING, False, True],
+        [ChargeStatus.PENDING, True, True],
+        [ChargeStatus.PARTIALLY_CHARGED, True, True],
+        [ChargeStatus.PARTIALLY_CHARGED, False, True],
+        [ChargeStatus.FULLY_CHARGED, True, True],
+        [ChargeStatus.FULLY_CHARGED, False, True],
+        [ChargeStatus.PARTIALLY_REFUNDED, True, True],
+        [ChargeStatus.PARTIALLY_REFUNDED, False, True],
+        [ChargeStatus.FULLY_REFUNDED, True, True],
+        [ChargeStatus.FULLY_REFUNDED, False, True],
+        [ChargeStatus.REFUSED, True, True],
+        [ChargeStatus.REFUSED, False, True],
+        [ChargeStatus.CANCELLED, True, True],
+        [ChargeStatus.CANCELLED, False, True],
+    ],
+)
+def test_order_returns_only_active_payments_with_right_status(
+    staff_api_client,
+    status,
+    is_active,
+    expect_payment,
+    payment_kwargs,
+    order,
+    permission_manage_orders,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    Payment.objects.create(
+        **{
+            **payment_kwargs,
+            **{"order": order, "charge_status": status, "is_active": is_active},
+        }
+    )
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    # then
+    assert bool(order_data["payments"]) == expect_payment
+
+
+@pytest.mark.parametrize(
+    "total_paid_amount,total_gross_amount,expected",
+    [
+        [Decimal("200"), Decimal("100"), OrderPaymentStatusEnum.OVERPAID],
+        [Decimal("100"), Decimal("100"), OrderPaymentStatusEnum.FULLY_CHARGED],
+    ],
+)
+def test_order_query_payment_status_depending_on_balance(
+    staff_api_client,
+    total_paid_amount,
+    total_gross_amount,
+    expected,
+    order,
+    permission_manage_orders,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    order.total_paid_amount = total_paid_amount
+    order.total_gross_amount = total_gross_amount
+    order.save()
+    choices = dict(OrderPaymentStatus.CHOICES)
+    expected_display = choices.get(getattr(OrderPaymentStatus, expected.name))
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    # then
+    assert order_data["paymentStatus"] == expected.name
+    assert order_data["paymentStatusDisplay"] == expected_display
 
 
 ORDERS_QUERY_SHIPPING_METHODS = """
@@ -861,6 +1030,59 @@ ORDER_CONFIRM_MUTATION = """
 """
 
 
+@pytest.mark.parametrize(
+    (
+        "payment_totals,"
+        "triggered_events,"
+        "payment_to_test_idx,"
+        "expected_exists,"
+        "expected_amount"
+    ),
+    [
+        (
+            [Decimal("98.400")],
+            ["payment_captured", "order_fully_paid", "confirmed"],
+            0,
+            True,
+            Decimal("98.400"),
+        ),
+        (
+            [Decimal("98.400"), Decimal("88.400")],
+            ["payment_captured", "order_fully_paid", "confirmed"],
+            0,
+            True,
+            Decimal("98.400"),
+        ),
+        (
+            [Decimal("98.400"), Decimal("88.400")],
+            ["payment_captured", "order_fully_paid", "confirmed"],
+            1,
+            False,
+            None,
+        ),
+        (
+            [Decimal("88.400"), Decimal("20.000")],
+            ["payment_captured", "payment_captured", "order_fully_paid", "confirmed"],
+            0,
+            True,
+            Decimal("88.400"),
+        ),
+        (
+            [Decimal("88.400"), Decimal("20.000")],
+            ["payment_captured", "payment_captured", "order_fully_paid", "confirmed"],
+            1,
+            True,
+            Decimal("10.000"),
+        ),
+        (
+            [Decimal("88.400"), Decimal("5.000")],
+            ["payment_captured", "payment_captured", "confirmed"],
+            1,
+            True,
+            Decimal("5.000"),
+        ),
+    ],
+)
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch("saleor.payment.gateway.capture")
 def test_order_confirm(
@@ -869,38 +1091,91 @@ def test_order_confirm(
     staff_api_client,
     order_unconfirmed,
     permission_manage_orders,
-    payment_txn_preauth,
+    payment_txn_preauth_factory,
+    payment_totals,
+    triggered_events,
+    payment_to_test_idx,
+    expected_exists,
+    expected_amount,
 ):
-    payment_txn_preauth.order = order_unconfirmed
-    payment_txn_preauth.save()
+    # given
+    def _simulate_capture(
+        payment: Payment,
+        manager: "PluginsManager",
+        channel_slug: str,
+        amount: Decimal = None,
+        customer_id: str = None,
+        store_source: bool = False,
+    ):
+        payment.captured_amount = amount
+        payment.save()
+        payment.order.update_total_paid()
+        return payment.transactions.create(
+            amount=amount,
+            currency=payment.currency,
+            kind=TransactionKind.CAPTURE,
+            gateway_response={},
+            is_success=True,
+        )
+
+    capture_mock.side_effect = _simulate_capture
+
+    payments = []
+    for payment_total in payment_totals:
+        payment_txn_preauth = payment_txn_preauth_factory()
+        payment_txn_preauth.order = order_unconfirmed
+        payment_txn_preauth.total = payment_total
+        payment_txn_preauth.currency = "USD"
+        payment_txn_preauth.save()
+        payments.append(payment_txn_preauth)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     assert not OrderEvent.objects.exists()
+
+    # when
     response = staff_api_client.post_graphql(
         ORDER_CONFIRM_MUTATION,
         {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
     )
     order_data = get_graphql_content(response)["data"]["orderConfirm"]["order"]
 
+    # then
     assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
     order_unconfirmed.refresh_from_db()
     assert order_unconfirmed.status == OrderStatus.UNFULFILLED
-    assert OrderEvent.objects.count() == 2
+    assert list(OrderEvent.objects.values_list("type", flat=True)) == triggered_events
     assert OrderEvent.objects.filter(
         order=order_unconfirmed,
         user=staff_api_client.user,
         type=order_events.OrderEvents.CONFIRMED,
     ).exists()
 
-    assert OrderEvent.objects.filter(
-        order=order_unconfirmed,
-        user=staff_api_client.user,
-        type=order_events.OrderEvents.PAYMENT_CAPTURED,
-        parameters__amount=payment_txn_preauth.get_total().amount,
-    ).exists()
-
-    capture_mock.assert_called_once_with(
-        payment_txn_preauth, ANY, channel_slug=order_unconfirmed.channel.slug
+    payment_txn_preauth_to_test = payments[payment_to_test_idx]
+    assert (
+        OrderEvent.objects.filter(
+            order=order_unconfirmed,
+            user=staff_api_client.user,
+            type=order_events.OrderEvents.PAYMENT_CAPTURED,
+            parameters__amount=expected_amount,
+        ).exists()
+        == expected_exists
     )
+
+    if expected_exists:
+        capture_mock.assert_any_call(
+            payment_txn_preauth_to_test,
+            ANY,
+            channel_slug=order_unconfirmed.channel.slug,
+            amount=expected_amount,
+        )
+    else:
+        with pytest.raises(AssertionError):
+            capture_mock.assert_any_call(
+                payment_txn_preauth_to_test,
+                ANY,
+                channel_slug=order_unconfirmed.channel.slug,
+                amount=expected_amount,
+            )
+
     expected_payload = {
         "order": get_default_order_payload(order_unconfirmed, ""),
         "recipient_email": order_unconfirmed.user.email,
@@ -909,7 +1184,7 @@ def test_order_confirm(
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
-    mocked_notify.assert_called_once_with(
+    mocked_notify.assert_any_call(
         NotifyEventType.ORDER_CONFIRMED,
         expected_payload,
         channel_slug=order_unconfirmed.channel.slug,
@@ -4240,6 +4515,26 @@ def test_order_cancel_as_app(
     )
 
 
+MUTATION_ORDER_CAPTURE = """
+mutation captureOrder($id: ID!, $amount: PositiveDecimal!) {
+    orderCapture(id: $id, amount: $amount) {
+        order {
+            paymentStatus
+            paymentStatusDisplay
+            isPaid
+            totalCaptured {
+                amount
+            }
+        }
+        errors {
+            code
+            message
+        }
+    }
+}
+"""
+
+
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_order_capture(
     mocked_notify,
@@ -4250,31 +4545,22 @@ def test_order_capture(
     staff_user,
 ):
     order = payment_txn_preauth.order
-    query = """
-        mutation captureOrder($id: ID!, $amount: PositiveDecimal!) {
-            orderCapture(id: $id, amount: $amount) {
-                order {
-                    paymentStatus
-                    paymentStatusDisplay
-                    isPaid
-                    totalCaptured {
-                        amount
-                    }
-                }
-            }
-        }
-    """
+    payment_txn_preauth.transactions.update(amount=order.total.gross.amount)
+    payment_txn_preauth.total = order.total.gross.amount
+    payment_txn_preauth.save(update_fields=["total"])
     order_id = graphene.Node.to_global_id("Order", order.id)
-    amount = float(payment_txn_preauth.total)
-    variables = {"id": order_id, "amount": amount}
+    amount = payment_txn_preauth.total
+    variables = {"id": order_id, "amount": float(amount)}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCapture"]["order"]
     order.refresh_from_db()
-    assert data["paymentStatus"] == PaymentChargeStatusEnum.FULLY_CHARGED.name
-    payment_status_display = dict(ChargeStatus.CHOICES).get(ChargeStatus.FULLY_CHARGED)
+    assert data["paymentStatus"] == OrderPaymentStatusEnum.FULLY_CHARGED.name
+    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
+        OrderPaymentStatus.FULLY_CHARGED
+    )
     assert data["paymentStatusDisplay"] == payment_status_display
     assert data["isPaid"]
     assert data["totalCaptured"]["amount"] == float(amount)
@@ -4287,6 +4573,10 @@ def test_order_capture(
         "amount": str(amount),
         "payment_gateway": "mirumee.payments.dummy",
         "payment_id": "",
+        "graphql_payment_id": graphene.Node.to_global_id(
+            "Payment", payment_txn_preauth.pk
+        ),
+        "psp_reference": None,
     }
 
     assert event_order_fully_paid.type == order_events.OrderEvents.ORDER_FULLY_PAID
@@ -4304,6 +4594,16 @@ def test_order_capture(
             "captured_amount": payment.captured_amount,
             "currency": payment.currency,
         },
+        "payments": [
+            {
+                "created": payment.created,
+                "modified": payment.modified,
+                "charge_status": payment.charge_status,
+                "total": payment.total,
+                "captured_amount": payment.captured_amount,
+                "currency": payment.currency,
+            }
+        ],
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
@@ -4312,6 +4612,100 @@ def test_order_capture(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
         expected_payment_payload,
         channel_slug=order.channel.slug,
+    )
+
+
+def test_order_capture_more_than_outstanding(
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+):
+    # given
+    order = payment_txn_preauth.order
+    amount = payment_txn_preauth.total
+    order.total_paid_amount = order.total_gross_amount - amount + Decimal("1")
+    order.save()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    # when
+    variables = {"id": order_id, "amount": float(amount)}
+    response = staff_api_client.post_graphql(
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    # then
+    errors = content["data"]["orderCapture"]["errors"]
+    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TOO_HIGH.name
+    assert "outstanding balance" in errors[0]["message"]
+
+
+@patch("saleor.graphql.order.mutations.orders.get_total_authorized")
+def test_order_capture_more_than_authorized(
+    mocked_auth_amount,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+):
+    # given
+    order = payment_txn_preauth.order
+    amount = payment_txn_preauth.total
+    mocked_auth_amount.return_value = Money(amount - Decimal("1"), order.currency)
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    # when
+    variables = {"id": order_id, "amount": float(amount)}
+    response = staff_api_client.post_graphql(
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    # then
+    errors = content["data"]["orderCapture"]["errors"]
+    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TOO_HIGH.name
+    assert "authorized amount" in errors[0]["message"]
+    mocked_auth_amount.assert_called_once_with(
+        [payment_txn_preauth],
+        order.currency,
+    )
+
+
+@patch("saleor.payment.gateway.capture")
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_order_capture_payment_error(
+    mocked_notify,
+    mocked_capture,
+    channel_USD,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+    staff_user,
+):
+    # given
+    msg = "Oops! Something went wrong."
+    mocked_capture.side_effect = PaymentError(msg)
+    order = payment_txn_preauth.order
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = payment_txn_preauth.total
+    variables = {"id": order_id, "amount": float(amount)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_ORDER_CAPTURE, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["orderCapture"]["errors"]
+    assert errors[0]["message"] == msg
+
+    order_errors = content["data"]["orderCapture"]["errors"]
+    assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
+
+    assert (
+        OrderEvent.objects.filter(
+            type=OrderEvents.PAYMENT_CAPTURE_FAILED,
+            order=order,
+            user=staff_api_client.user,
+            parameters__message__contains=msg,
+        ).count()
+        == 1
     )
 
 
@@ -4356,6 +4750,15 @@ def test_paid_order_mark_as_paid(
 
     order_errors = content["data"]["orderMarkAsPaid"]["errors"]
     assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
+
+    assert (
+        OrderEvent.objects.filter(
+            order=order,
+            type=OrderEvents.PAYMENT_CAPTURE_FAILED,
+            parameters__message__icontains=msg,
+        ).count()
+        == 1
+    )
 
 
 def test_order_mark_as_paid_with_external_reference(
@@ -4458,8 +4861,10 @@ def test_order_void(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderVoid"]["order"]
-    assert data["paymentStatus"] == PaymentChargeStatusEnum.NOT_CHARGED.name
-    payment_status_display = dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
+    assert data["paymentStatus"] == OrderPaymentStatusEnum.NOT_CHARGED.name
+    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
+        OrderPaymentStatus.NOT_CHARGED
+    )
     assert data["paymentStatusDisplay"] == payment_status_display
     event_payment_voided = order.events.last()
     assert event_payment_voided.type == order_events.OrderEvents.PAYMENT_VOIDED
@@ -4474,13 +4879,13 @@ def test_order_void_payment_error(
     order = payment_txn_preauth.order
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    mock_void_payment.side_effect = ValueError(msg)
+    mock_void_payment.side_effect = PaymentError(msg)
     response = staff_api_client.post_graphql(
         ORDER_VOID, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     errors = content["data"]["orderVoid"]["errors"]
-    assert errors[0]["field"] == "payment"
+    assert errors[0]["field"] is None
     assert errors[0]["message"] == msg
 
     order_errors = content["data"]["orderVoid"]["errors"]
@@ -4489,32 +4894,42 @@ def test_order_void_payment_error(
     mock_void_payment.assert_called_once()
 
 
-def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
-    order = payment_txn_captured.order
-    query = """
-        mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
-            orderRefund(id: $id, amount: $amount) {
-                order {
-                    paymentStatus
-                    paymentStatusDisplay
-                    isPaid
-                    status
-                }
+ORDER_REFUND = """
+    mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
+        orderRefund(id: $id, amount: $amount) {
+            order {
+                paymentStatus
+                paymentStatusDisplay
+                isPaid
+                status
+            }
+            errors {
+                field
+                code
+                message
+                payments
             }
         }
-    """
+    }
+"""
+
+
+def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
+    order = payment_txn_captured.order
     order_id = graphene.Node.to_global_id("Order", order.id)
-    amount = float(payment_txn_captured.total)
+    amount = payment_txn_captured.total
     variables = {"id": order_id, "amount": amount}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        ORDER_REFUND, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["orderRefund"]["order"]
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
-    assert data["paymentStatus"] == PaymentChargeStatusEnum.FULLY_REFUNDED.name
-    payment_status_display = dict(ChargeStatus.CHOICES).get(ChargeStatus.FULLY_REFUNDED)
+    assert data["paymentStatus"] == OrderPaymentStatusEnum.FULLY_REFUNDED.name
+    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
+        OrderPaymentStatus.FULLY_REFUNDED
+    )
     assert data["paymentStatusDisplay"] == payment_status_display
     assert data["isPaid"] is False
 
@@ -4531,12 +4946,552 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
     assert refunded_fulfillment.shipping_refund_amount is None
 
 
+@patch("saleor.order.actions.gateway.refund")
+def test_order_refund_for_failed_refund(
+    mocked_refund,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_captured,
+):
+    message = "Error"
+    mocked_refund.side_effect = PaymentError(message)
+    order = payment_txn_captured.order
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = payment_txn_captured.total
+    variables = {"id": order_id, "amount": amount}
+    response = staff_api_client.post_graphql(
+        ORDER_REFUND, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]
+
+    assert data["order"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "payments"
+    assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_REFUND.name
+
+    refunded_fulfillment = order.fulfillments.filter(
+        status=FulfillmentStatus.REFUNDED
+    ).first()
+    assert not refunded_fulfillment
+
+
+def test_order_refund_with_payments_to_refund(
+    staff_api_client, permission_manage_orders, payment_txn_captured
+):
+    order = payment_txn_captured.order
+    query = """
+        mutation refundOrder(
+            $id: ID!,
+            $paymentsToRefund: [OrderPaymentToRefundInput!]
+        ) {
+            orderRefund(id: $id, paymentsToRefund: $paymentsToRefund) {
+                order {
+                    paymentStatus
+                    paymentStatusDisplay
+                    isPaid
+                    status
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = float(payment_txn_captured.total)
+    variables = {
+        "id": order_id,
+        "paymentsToRefund": [
+            {
+                "paymentId": graphene.Node.to_global_id(
+                    "Payment", payment_txn_captured.id
+                ),
+                "amount": amount,
+            }
+        ],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]["order"]
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    assert data["paymentStatus"] == OrderPaymentStatusEnum.FULLY_REFUNDED.name
+    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
+        OrderPaymentStatus.FULLY_REFUNDED
+    )
+    assert data["paymentStatusDisplay"] == payment_status_display
+    assert data["isPaid"] is False
+
+    refund_order_event = order.events.filter(
+        type=order_events.OrderEvents.PAYMENT_REFUNDED
+    ).first()
+    assert refund_order_event.parameters["amount"] == str(amount)
+
+    refunded_fulfillment = order.fulfillments.filter(
+        status=FulfillmentStatus.REFUNDED
+    ).first()
+    assert refunded_fulfillment
+    assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
+    assert refunded_fulfillment.shipping_refund_amount is None
+
+
+def test_order_refund_excludes_payments_to_refund_with_zero_amounts(
+    staff_api_client, permission_manage_orders, payment_txn_captured
+):
+    # given
+    order = payment_txn_captured.order
+    payment_txn_captured.captured_amount = order.total.gross.amount // 2
+    payment_txn_captured.save()
+    payment_2 = order.payments.create(
+        gateway="mirumee.payments.dummy",
+        charge_status=ChargeStatus.FULLY_CHARGED,
+        total=order.total.gross.amount // 2,
+        captured_amount=order.total.gross.amount // 2,
+        currency=order.total.gross.currency,
+    )
+    query = """
+        mutation refundOrder(
+            $id: ID!,
+            $paymentsToRefund: [OrderPaymentToRefundInput!]
+        ) {
+            orderRefund(id: $id, paymentsToRefund: $paymentsToRefund) {
+                order {
+                    paymentStatus
+                    paymentStatusDisplay
+                    isPaid
+                    status
+                },
+                errors {
+                    field,
+                    message,
+                    variants,
+                    code
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {
+        "id": order_id,
+        "paymentsToRefund": [
+            {
+                "paymentId": graphene.Node.to_global_id(
+                    "Payment", payment_txn_captured.id
+                ),
+                "amount": payment_txn_captured.captured_amount,
+            },
+            {
+                "paymentId": graphene.Node.to_global_id("Payment", payment_2.id),
+                "amount": 0,
+            },
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]["order"]
+    order.refresh_from_db()
+
+    # then
+    assert data["status"] == order.status.upper()
+    assert data["paymentStatus"] == OrderPaymentStatusEnum.PARTIALLY_REFUNDED.name
+    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
+        OrderPaymentStatus.PARTIALLY_REFUNDED
+    )
+    assert data["paymentStatusDisplay"] == payment_status_display
+    assert data["isPaid"] is False
+
+    refunded_fulfillment = order.fulfillments.filter(
+        status=FulfillmentStatus.REFUNDED
+    ).first()
+    assert refunded_fulfillment
+    assert (
+        refunded_fulfillment.total_refund_amount == payment_txn_captured.captured_amount
+    )
+    assert refunded_fulfillment.shipping_refund_amount is None
+
+
+def test_order_refund_raises_error_if_all_payments_to_refund_have_zero_amounts(
+    staff_api_client, permission_manage_orders, payment_txn_captured
+):
+    # given
+    order = payment_txn_captured.order
+    query = """
+        mutation refundOrder(
+            $id: ID!,
+            $paymentsToRefund: [OrderPaymentToRefundInput!]
+        ) {
+            orderRefund(id: $id, paymentsToRefund: $paymentsToRefund) {
+                order {
+                    paymentStatus
+                    paymentStatusDisplay
+                    isPaid
+                    status
+                },
+                errors {
+                    field,
+                    message,
+                    variants,
+                    code
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {
+        "id": order_id,
+        "paymentsToRefund": [
+            {
+                "paymentId": graphene.Node.to_global_id(
+                    "Payment", payment_txn_captured.id
+                ),
+                "amount": 0,
+            }
+        ],
+    }
+
+    # when
+    message = (
+        "The total amount to refund of the specified payments "
+        "has to be higher than zero."
+    )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    order_refund_data = content["data"]["orderRefund"]
+
+    # then
+    assert len(order_refund_data["errors"]) == 1
+    assert order_refund_data["errors"][0]["message"] == message
+    assert order_refund_data["errors"][0]["code"] == OrderErrorCode.ZERO_QUANTITY.name
+    assert order_refund_data["errors"][0]["field"] == "amount"
+    assert order_refund_data["order"] is None
+
+
+def test_order_refund_fails_if_both_amount_and_payments_to_refund_specified(
+    staff_api_client, permission_manage_orders, payment_txn_captured
+):
+    # given
+    order = payment_txn_captured.order
+    query = """
+        mutation refundOrder(
+            $id: ID!,
+            $amount: PositiveDecimal!,
+            $paymentsToRefund: [OrderPaymentToRefundInput!]
+        ) {
+            orderRefund(id: $id, amount: $amount, paymentsToRefund: $paymentsToRefund) {
+                order {
+                    paymentStatus
+                    paymentStatusDisplay
+                    isPaid
+                    status
+                },
+                errors {
+                    field,
+                    message,
+                    variants,
+                    code
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = float(payment_txn_captured.total)
+    variables = {
+        "id": order_id,
+        "amount": amount,
+        "paymentsToRefund": [{"paymentId": "asd", "amount": amount}],
+    }
+
+    # when
+    message = "Either amount or payments_to_refund should be specified."
+    code = OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED.name
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content_from_response(response)
+    order_refund_data = content["data"]["orderRefund"]
+
+    # then
+    assert len(order_refund_data["errors"]) == 2
+    assert order_refund_data["errors"][0]["message"] == message
+    assert order_refund_data["errors"][0]["code"] == code
+    assert order_refund_data["errors"][0]["field"] == "amount"
+    assert order_refund_data["errors"][1]["message"] == message
+    assert order_refund_data["errors"][1]["code"] == code
+    assert order_refund_data["errors"][1]["field"] == "paymentsToRefund"
+    assert order_refund_data["order"] is None
+
+
+def test_order_refund_fails_if_both_amount_and_payments_to_refund_missing(
+    staff_api_client, permission_manage_orders, payment_txn_captured
+):
+    # given
+    order = payment_txn_captured.order
+    query = """
+        mutation refundOrder(
+            $id: ID!,
+        ) {
+            orderRefund(
+                id: $id,
+            ) {
+                order {
+                    paymentStatus
+                    paymentStatusDisplay
+                    isPaid
+                    status
+                },
+                errors {
+                    field,
+                    message,
+                    variants,
+                    code
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    message = "Either amount or payments_to_refund should be specified."
+    code = OrderErrorCode.TOO_MANY_OR_NONE_FIELDS_SPECIFIED.name
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content_from_response(response)
+    order_refund_data = content["data"]["orderRefund"]
+
+    # then
+    assert len(order_refund_data["errors"]) == 2
+    assert order_refund_data["errors"][0]["message"] == message
+    assert order_refund_data["errors"][0]["code"] == code
+    assert order_refund_data["errors"][0]["field"] == "amount"
+    assert order_refund_data["errors"][1]["message"] == message
+    assert order_refund_data["errors"][1]["code"] == code
+    assert order_refund_data["errors"][1]["field"] == "paymentsToRefund"
+    assert order_refund_data["order"] is None
+
+
+def test_order_refund_raises_error_when_total_amount_is_bigger_than_captured_amount(
+    staff_api_client, permission_manage_orders, payment_txn_captured
+):
+    # given
+    order = payment_txn_captured.order
+    query = """
+        mutation refundOrder(
+            $id: ID!,
+            $amount: PositiveDecimal!,
+        ) {
+            orderRefund(
+                id: $id,
+                amount: $amount,
+            ) {
+                order {
+                    paymentStatus
+                    paymentStatusDisplay
+                    isPaid
+                    status
+                },
+                errors {
+                    field,
+                    message,
+                    variants,
+                    code
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = float(payment_txn_captured.total + 50)
+    variables = {
+        "id": order_id,
+        "amount": amount,
+    }
+
+    # when
+    message = (
+        "The total amount to refund cannot be bigger than the total captured amount."
+    )
+    code = OrderErrorCode.AMOUNT_TOO_HIGH.name
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content_from_response(response)
+    order_refund_data = content["data"]["orderRefund"]
+
+    # then
+    assert len(order_refund_data["errors"]) == 1
+    assert order_refund_data["errors"][0]["message"] == message
+    assert order_refund_data["errors"][0]["code"] == code
+    assert order_refund_data["errors"][0]["field"] == "amount"
+    assert order_refund_data["order"] is None
+
+
+def test_order_refund_raises_error_when_amount_is_bigger_than_captured_amount(
+    staff_api_client, permission_manage_orders, payment_txn_captured
+):
+    # given
+    order = payment_txn_captured.order
+    query = """
+        mutation refundOrder(
+            $id: ID!,
+            $paymentsToRefund: [OrderPaymentToRefundInput!],
+        ) {
+            orderRefund(
+                id: $id,
+                paymentsToRefund: $paymentsToRefund,
+            ) {
+                order {
+                    paymentStatus
+                    paymentStatusDisplay
+                    isPaid
+                    status
+                },
+                errors {
+                    field,
+                    message,
+                    payments,
+                    code,
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = float(payment_txn_captured.total + 50)
+    payment_global_id = graphene.Node.to_global_id("Payment", payment_txn_captured.id)
+    variables = {
+        "id": order_id,
+        "paymentsToRefund": [
+            {
+                "paymentId": payment_global_id,
+                "amount": amount,
+            },
+        ],
+    }
+
+    # when
+    message = "The amount to refund cannot be bigger than the captured amount."
+    code = OrderErrorCode.AMOUNT_TOO_HIGH.name
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content_from_response(response)
+    order_refund_data = content["data"]["orderRefund"]
+
+    # then
+    assert len(order_refund_data["errors"]) == 1
+    assert order_refund_data["errors"][0]["message"] == message
+    assert order_refund_data["errors"][0]["code"] == code
+    assert order_refund_data["errors"][0]["field"] == "amount"
+    assert order_refund_data["errors"][0]["payments"] == [payment_global_id]
+    assert order_refund_data["order"] is None
+
+
+def test_order_refund_does_not_refund_more_than_was_captured(
+    staff_api_client, permission_manage_orders, payment_txn_captured
+):
+    # given
+    order = payment_txn_captured.order
+    query = """
+        mutation refundOrder(
+            $id: ID!,
+            $paymentsToRefund: [OrderPaymentToRefundInput!],
+
+        ) {
+            orderRefund(
+                id: $id,
+                paymentsToRefund: $paymentsToRefund,
+            ) {
+                order {
+                    paymentStatus
+                    paymentStatusDisplay
+                    isPaid
+                    status
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = float(payment_txn_captured.total)
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy",
+        is_active=True,
+        order=order,
+        currency=order.currency,
+        captured_amount=amount,
+        charge_status=ChargeStatus.FULLY_CHARGED,
+    )
+    payment.transactions.create(
+        amount=payment.total,
+        currency=payment.currency,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+    variables = {
+        "id": order_id,
+        "paymentsToRefund": [
+            {
+                "paymentId": graphene.Node.to_global_id(
+                    "Payment", payment_txn_captured.id
+                ),
+                "amount": amount,
+            },
+            {
+                "paymentId": graphene.Node.to_global_id("Payment", payment.id),
+                "amount": amount,
+            },
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]["order"]
+    order.refresh_from_db()
+
+    # then
+    assert data["status"] == order.status.upper()
+    assert data["paymentStatus"] == OrderPaymentStatusEnum.FULLY_REFUNDED.name
+    payment_status_display = dict(OrderPaymentStatus.CHOICES).get(
+        OrderPaymentStatus.FULLY_REFUNDED
+    )
+    assert data["paymentStatusDisplay"] == payment_status_display
+    assert data["isPaid"] is False
+
+    refund_order_event = order.events.filter(
+        type=order_events.OrderEvents.PAYMENT_REFUNDED
+    ).first()
+    assert refund_order_event.parameters["amount"] == str(amount)
+
+    refunded_fulfillment = order.fulfillments.filter(
+        status=FulfillmentStatus.REFUNDED
+    ).first()
+    assert refunded_fulfillment
+
+
+@patch(
+    "saleor.graphql.order.mutations.orders.OrderRefund._prepare_payments",
+    return_value=[],
+)
 @pytest.mark.parametrize(
     "requires_amount, mutation_name",
     ((True, "orderRefund"), (False, "orderVoid"), (True, "orderCapture")),
 )
 def test_clean_payment_without_payment_associated_to_order(
-    staff_api_client, permission_manage_orders, order, requires_amount, mutation_name
+    mock__prepare_payments,
+    staff_api_client,
+    permission_manage_orders,
+    order,
+    requires_amount,
+    mutation_name,
 ):
 
     assert not OrderEvent.objects.exists()
@@ -4555,7 +5510,6 @@ def test_clean_payment_without_payment_associated_to_order(
         "mutationName": mutation_name,
         "args": additional_arguments,
     }
-
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
@@ -4563,80 +5517,26 @@ def test_clean_payment_without_payment_associated_to_order(
     )
     errors = get_graphql_content(response)["data"][mutation_name].get("errors")
 
-    message = "There's no payment associated with the order."
+    message = "There are no active payments associated with the order."
 
     assert errors, "expected an error"
-    assert errors == [{"field": "payment", "message": message}]
+    assert errors == [{"field": "payments", "message": message}]
     assert not OrderEvent.objects.exists()
-
-
-def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
-    message = "The payment did a oopsie!"
-    assert not OrderEvent.objects.exists()
-
-    def _test_operation():
-        raise PaymentError(message)
-
-    with pytest.raises(ValidationError) as exc:
-        try_payment_action(
-            order=order,
-            user=staff_user,
-            app=None,
-            payment=payment_dummy,
-            func=_test_operation,
-        )
-
-    assert exc.value.args[0]["payment"].message == message
-
-    error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
-    assert error_event.user == staff_user
-    assert not error_event.app
-    assert error_event.parameters == {
-        "message": message,
-        "gateway": payment_dummy.gateway,
-        "payment_id": payment_dummy.token,
-    }
-
-
-def test_try_payment_action_generates_app_event(order, app, payment_dummy):
-    message = "The payment did a oopsie!"
-    assert not OrderEvent.objects.exists()
-
-    def _test_operation():
-        raise PaymentError(message)
-
-    with pytest.raises(ValidationError) as exc:
-        try_payment_action(
-            order=order, user=None, app=app, payment=payment_dummy, func=_test_operation
-        )
-
-    assert exc.value.args[0]["payment"].message == message
-
-    error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
-    assert not error_event.user
-    assert error_event.app == app
-    assert error_event.parameters == {
-        "message": message,
-        "gateway": payment_dummy.gateway,
-        "payment_id": payment_dummy.token,
-    }
 
 
 def test_clean_order_refund_payment():
     payment = MagicMock(spec=Payment)
     payment.can_refund.return_value = False
     with pytest.raises(ValidationError) as e:
-        clean_refund_payment(payment)
+        clean_refund_payments([payment])
     assert e.value.error_dict["payment"][0].code == OrderErrorCode.CANNOT_REFUND
 
 
 def test_clean_order_capture():
     with pytest.raises(ValidationError) as e:
-        clean_order_capture(None)
-    msg = "There's no payment associated with the order."
-    assert e.value.error_dict["payment"][0].message == msg
+        clean_order_capture(None, None, Decimal("10"))
+    msg = "There are no active payments associated with the order."
+    assert e.value.error_dict["payments"][0].message == msg
 
 
 @pytest.mark.parametrize(
@@ -5787,6 +6687,57 @@ def test_order_query_with_filter_status(
     assert order_id in orders_ids_from_response
 
 
+def test_order_query_with_ready_to_fulfill_filter_status(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    order_fully_paid,
+    order_overpaid,
+    order_underpaid,
+    channel_USD,
+):
+    order_underpaid.status = OrderStatus.UNFULFILLED
+    order_underpaid.save()
+    order_fully_paid.status = OrderStatus.UNFULFILLED
+    order_fully_paid.save()
+    order_overpaid.status = OrderStatus.PARTIALLY_FULFILLED
+    order_overpaid.save()
+    Order.objects.create(channel=channel_USD, total_gross_amount=Decimal("10"))
+
+    variables = {"filter": {"status": "READY_TO_FULFILL"}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    order_id = graphene.Node.to_global_id("Order", order_overpaid.pk)
+
+    orders_ids_from_response = [o["node"]["id"] for o in orders]
+    assert len(orders) == 2
+    assert order_id in orders_ids_from_response
+
+
+def test_order_query_with_overpaid_filter_status(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    order_fully_paid,
+    order_overpaid,
+    channel_USD,
+):
+    Order.objects.create(channel=channel_USD)
+
+    variables = {"filter": {"status": "OVERPAID"}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    order_id = graphene.Node.to_global_id("Order", order_overpaid.pk)
+
+    orders_ids_from_response = [o["node"]["id"] for o in orders]
+    assert len(orders) == 1
+    assert order_id in orders_ids_from_response
+
+
 @pytest.mark.parametrize(
     "orders_filter, user_field, user_value",
     [
@@ -6828,3 +7779,39 @@ def test_order_by_token_query_payment_details_available_fields_with_permissions(
     content = get_graphql_content(response)
 
     assert_order_and_payment_ids(content, payment_txn_captured)
+
+
+@pytest.mark.parametrize(
+    "is_active, excpected_in",
+    [
+        (True, True),
+        (False, False),
+    ],
+)
+def test_order_active_payments(order, payment_dummy, is_active, excpected_in):
+    # given
+    payment_dummy.order = order
+    payment_dummy.is_active = is_active
+    payment_dummy.save()
+
+    # when
+    payments = order.payments.filter(is_active=True)
+
+    # then
+    assert (payment_dummy in payments) == excpected_in
+
+
+def test_order_outstanding_balance(order):
+    # given
+    order.total = TaxedMoney(
+        net=Money(amount=50, currency="USD"), gross=Money(amount=100, currency="USD")
+    )
+    order.total_paid = Money(amount=70, currency="USD")
+    order.save()
+    order.refresh_from_db()
+
+    # when
+    to_pay = order.outstanding_balance
+
+    # then
+    assert to_pay == Money(amount=30, currency="USD")

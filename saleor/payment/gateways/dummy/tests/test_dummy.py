@@ -71,7 +71,7 @@ def test_authorize_gateway_error(payment_dummy, monkeypatch):
 
 def test_void_success(payment_txn_preauth):
     assert payment_txn_preauth.is_active
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_txn_preauth.charge_status == ChargeStatus.AUTHORIZED
     txn = gateway.void(
         payment=payment_txn_preauth,
         manager=get_plugins_manager(),
@@ -82,7 +82,7 @@ def test_void_success(payment_txn_preauth):
     assert txn.payment == payment_txn_preauth
     payment_txn_preauth.refresh_from_db()
     assert not payment_txn_preauth.is_active
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_txn_preauth.charge_status == ChargeStatus.CANCELLED
 
 
 @pytest.mark.parametrize(

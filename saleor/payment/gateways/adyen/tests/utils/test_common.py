@@ -10,6 +10,7 @@ from saleor.payment import PaymentError
 from saleor.payment.gateways.adyen.utils.common import (
     append_checkout_details,
     get_payment_method_info,
+    get_request_data_for_check_payment,
     get_shopper_locale_value,
     request_data_for_gateway_config,
     request_data_for_payment,
@@ -207,6 +208,7 @@ def test_request_data_for_payment(dummy_payment_data, dummy_address_data):
         "browserInfo": data["browserInfo"],
         "channel": "web",
         "shopperEmail": "example@test.com",
+        "merchantOrderReference": "1-2-3-4",
         "shopperName": {
             "firstName": dummy_payment_data.billing.first_name,
             "lastName": dummy_payment_data.billing.last_name,
@@ -426,6 +428,7 @@ def test_request_data_for_payment_without_shipping(
             "stateOrProvince": "ZZ",
             "street": "Tęczowa 7",
         },
+        "merchantOrderReference": "1-2-3-4",
     }
 
 
@@ -472,6 +475,7 @@ def test_request_data_for_payment_native_3d_secure(
         "channel": "web",
         "additionalData": {"allow3DS2": "true"},
         "shopperEmail": "example@test.com",
+        "merchantOrderReference": "1-2-3-4",
         "shopperName": {
             "firstName": dummy_payment_data.billing.first_name,
             "lastName": dummy_payment_data.billing.last_name,
@@ -528,6 +532,7 @@ def test_request_data_for_payment_channel_different_than_web(
         "channel": "iOS",
         "additionalData": {"allow3DS2": "true"},
         "shopperEmail": "example@test.com",
+        "merchantOrderReference": "1-2-3-4",
         "shopperName": {
             "firstName": dummy_payment_data.billing.first_name,
             "lastName": dummy_payment_data.billing.last_name,
@@ -959,3 +964,65 @@ def test_prepare_address_request_data_with_city_area_without_country_area(
     assert result["postalCode"] == "53-601"
     assert result["stateOrProvince"] == "ZZ"
     assert result["street"] == "Tęczowa 7"
+
+
+def test_get_request_data_for_check_payment():
+    data = get_request_data_for_check_payment(
+        {
+            "method": "test",
+            "card": {
+                "code": "1243456",
+                "cvc": "123",
+                "money": {"amount": Decimal(10.05), "currency": "EUR"},
+            },
+        },
+        merchant_account="TEST_ACCOUNT",
+    )
+
+    assert data["merchantAccount"] == "TEST_ACCOUNT"
+    assert data["paymentMethod"]["type"] == "test"
+    assert data["paymentMethod"]["number"] == "1243456"
+    assert data["paymentMethod"]["securityCode"] == "123"
+    assert data["amount"]["value"] == "1005"
+    assert data["amount"]["currency"] == "EUR"
+
+
+def test_get_request_data_for_check_payment_without_money():
+    data = get_request_data_for_check_payment(
+        {"method": "test", "card": {"code": "1243456", "cvc": "123"}},
+        merchant_account="TEST_ACCOUNT",
+    )
+
+    assert data["merchantAccount"] == "TEST_ACCOUNT"
+    assert data["paymentMethod"]["type"] == "test"
+    assert data["paymentMethod"]["number"] == "1243456"
+    assert data["paymentMethod"]["securityCode"] == "123"
+
+
+def test_get_request_data_for_check_payment_without_cvc():
+    data = get_request_data_for_check_payment(
+        {
+            "method": "test",
+            "card": {
+                "code": "1243456",
+                "money": {"amount": Decimal(10.05), "currency": "EUR"},
+            },
+        },
+        merchant_account="TEST_ACCOUNT",
+    )
+
+    assert data["merchantAccount"] == "TEST_ACCOUNT"
+    assert data["paymentMethod"]["type"] == "test"
+    assert data["paymentMethod"]["number"] == "1243456"
+    assert data["amount"]["value"] == "1005"
+    assert data["amount"]["currency"] == "EUR"
+
+
+def test_get_request_data_for_check_payment_without_cvc_and_money():
+    data = get_request_data_for_check_payment(
+        {"method": "test", "card": {"code": "1243456"}}, merchant_account="TEST_ACCOUNT"
+    )
+
+    assert data["merchantAccount"] == "TEST_ACCOUNT"
+    assert data["paymentMethod"]["type"] == "test"
+    assert data["paymentMethod"]["number"] == "1243456"

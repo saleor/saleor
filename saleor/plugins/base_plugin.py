@@ -232,6 +232,9 @@ class BasePlugin:
     #  Trigger when tracking number is updated.
     tracking_number_updated: Callable[["Fulfillment", Any], Any]
 
+    #  Retrieves the balance remaining on a shopper's gift card
+    check_payment_balance: Callable[[dict, str], dict]
+
     #  Trigger when checkout is created.
     #
     #  Overwrite this method if you need to trigger specific logic when a checkout is

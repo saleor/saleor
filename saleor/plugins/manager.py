@@ -147,6 +147,11 @@ class PluginsManager(PaymentInterface):
             return previous_value
         return returned_value
 
+    def check_payment_balance(self, details: dict, channel_slug: str) -> dict:
+        return self.__run_method_on_plugins(
+            "check_payment_balance", None, details, channel_slug=channel_slug
+        )
+
     def change_user_address(
         self, address: "Address", address_type: Optional[str], user: Optional["User"]
     ) -> "Address":
@@ -776,6 +781,13 @@ class PluginsManager(PaymentInterface):
         if active_only:
             plugins = [plugin for plugin in plugins if plugin.active]
         return plugins
+
+    def get_plugin_name(self, plugin_id: str):
+        """Return a human-readable plugin name by its id."""
+        for plugin in self.all_plugins:
+            if plugin_id == plugin.PLUGIN_ID:
+                return plugin.PLUGIN_NAME
+        return plugin_id
 
     def list_payment_gateways(
         self,
