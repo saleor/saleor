@@ -222,36 +222,3 @@ def test_app_query_with_permission(
     assert app_data["supportUrl"] == app.support_url
     assert app_data["configurationUrl"] == app.configuration_url
     assert app_data["appUrl"] == app.app_url
-
-
-def test_query_app_for_federation(api_client, app):
-    app_id = graphene.Node.to_global_id("App", app.pk)
-    variables = {
-        "representations": [
-            {
-                "__typename": "App",
-                "id": app_id,
-            },
-        ],
-    }
-    query = """
-      query GetAppInFederation($representations: [_Any]) {
-        _entities(representations: $representations) {
-          __typename
-          ... on App {
-            id
-            name
-          }
-        }
-      }
-    """
-
-    response = api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["_entities"] == [
-        {
-            "__typename": "App",
-            "id": app_id,
-            "name": app.name,
-        }
-    ]

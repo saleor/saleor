@@ -1,6 +1,7 @@
 from decimal import Decimal
 from unittest import mock
 
+import Adyen
 import pytest
 
 from .....checkout import calculations
@@ -234,3 +235,14 @@ def adyen_additional_data_for_klarna():
             "timeZoneOffset": -120,
         },
     }
+
+
+@pytest.fixture
+def adyen_check_balance_response():
+    return Adyen.client.AdyenResult(
+        message={
+            "pspReference": "851634546949980A",
+            "resultCode": "Success",
+            "balance": {"currency": "GBP", "value": 10000},
+        }
+    )
