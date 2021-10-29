@@ -411,6 +411,41 @@ def test_checkout_add_payment_bad_partial_amount(
     )
 
 
+def test_checkout_add_full_payment_with_already_covered_partial(
+    user_api_client, checkout_without_shipping_required, address, create_payment_input
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    half_total = total.gross / 2
+    assert half_total.amount > 0
+
+    Payment.objects.create(
+        is_active=True,
+        charge_status=ChargeStatus.FULLY_CHARGED,
+        total=half_total.amount,
+        captured_amount=half_total.amount,
+        checkout=checkout,
+    )
+
+    # when
+    variables = create_payment_input(checkout, total.gross.amount, partial=False)
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+
+    # then
+    assert data["payment"]
+
+
 def test_checkout_add_payment_not_supported_gateways(
     user_api_client, checkout_without_shipping_required, address, create_payment_input
 ):
