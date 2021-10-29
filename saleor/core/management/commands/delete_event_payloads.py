@@ -11,4 +11,4 @@ class Command(BaseCommand):
     )
 
     def handle(self, **options):
-        delete_event_payloads_task.delay()
+        delete_event_payloads_task()

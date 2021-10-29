@@ -55,7 +55,6 @@ class WebhookResponse:
     duration: float = 0.0
 
 
-@app.task(compression="zlib")
 def _get_webhooks_for_event(event_type, webhooks=None):
     """Get active webhooks from the database for an event."""
     permissions = {}
@@ -80,11 +79,23 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     return webhooks
 
 
+def trigger_webhooks_async(data, event_type):
+    payload = EventPayload.objects.create(payload=data)
+    webhooks = _get_webhooks_for_event(event_type)
+    deliveries = create_event_delivery_list_for_webhooks(
+        webhooks=webhooks,
+        event_payload=payload,
+        event_type=event_type,
+    )
+    for delivery in deliveries:
+        send_webhook_request.delay(delivery.id)
+
+
 def trigger_webhook_sync(event_type: str, data: str, app: "App"):
     """Send a synchronous webhook request."""
     webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())[:1]
     event_payload = EventPayload.objects.create(payload=data)
-    delivery = create_event_delivery_list_for_webhooks(
+    delivery_list = create_event_delivery_list_for_webhooks(
         event_payload=event_payload,
         webhooks=webhooks,
         event_type=event_type,
@@ -93,7 +104,7 @@ def trigger_webhook_sync(event_type: str, data: str, app: "App"):
     if not webhooks:
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
 
-    return send_webhook_request_sync(app.name, delivery)
+    return send_webhook_request_sync(app.name, delivery_list[0])
 
 
 def send_webhook_using_http(
