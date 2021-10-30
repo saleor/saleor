@@ -574,6 +574,9 @@ def _complete_checkout_payment(
     if not payment:
         return {}, False
 
+    if not payment.to_confirm and payment.charge_status != ChargeStatus.NOT_CHARGED:
+        return {}, False
+
     if user.is_authenticated:
         customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
 

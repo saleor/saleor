@@ -756,6 +756,42 @@ def test_checkout_payment_complete(
     ).exists(), "Checkout should be present until completed"
 
 
+@pytest.mark.integration
+def test_checkout_payment_complete_for_a_charged_payment(
+    checkout_with_item,
+    user_api_client,
+    payment_dummy_fully_charged,
+):
+    # given
+    payment = payment_dummy_fully_charged
+    payment.is_active = True
+    payment.order = None
+    payment.checkout = checkout_with_item
+    payment.save()
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    orders_count_before = Order.objects.count()
+    variables = {
+        "token": checkout_with_item.token,
+        "paymentId": payment_id,
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        CHECKOUT_PAYMENT_COMPLETE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentComplete"]
+    assert not data["errors"]
+
+    # then
+    assert Order.objects.count() == orders_count_before
+
+    payment.refresh_from_db()
+    assert payment.captured_amount == payment.total
+
+
 @patch.object(PluginsManager, "process_payment")
 def test_checkout_payment_complete_confirmation_needed(
     mocked_process_payment,
