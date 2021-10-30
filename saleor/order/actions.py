@@ -40,7 +40,7 @@ from . import (
 )
 from .error_codes import OrderErrorCode
 from .interface import OrderPaymentAction
-from .models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
+from .models import Fulfillment, FulfillmentLine, Order, OrderLine
 from .notifications import (
     send_fulfillment_confirmation_to_customer,
     send_order_canceled_confirmation,
@@ -124,7 +124,7 @@ def __capture_payment_or_create_event(
     user: Optional[User],
     app: Optional["App"],
     to_pay: Decimal,
-) -> Tuple[Optional[Transaction], Optional[OrderEvent]]:
+) -> Tuple[Optional[Transaction], Optional[PaymentError]]:
     if payment and payment.can_capture():
         amount = min(to_pay, payment.get_charge_amount())
         try:
@@ -138,7 +138,7 @@ def __capture_payment_or_create_event(
                 None,
             )
         except PaymentError as e:
-            return None, events.payment_capture_failed_event(
+            events.payment_capture_failed_event(
                 order=order,
                 user=user,
                 app=app,
@@ -146,6 +146,7 @@ def __capture_payment_or_create_event(
                 payment=payment,
                 amount=amount,
             )
+            return None, e
 
     return None, None
 
@@ -156,10 +157,10 @@ def _capture_payments(
     user: Optional[User],
     app: Optional["App"],
     amount: Decimal = None,
-) -> Tuple[List[OrderPaymentAction], List[OrderEvent]]:
+) -> Tuple[List[OrderPaymentAction], List[PaymentError]]:
     to_pay = amount or order.outstanding_balance.amount
     payments_to_notify = []
-    failed_events = []
+    payment_errors = []
 
     # We iterate over payments in the order in which they were created
     authorized_payments = sorted(
@@ -184,12 +185,12 @@ def _capture_payments(
                         )
                     )
             elif event:
-                failed_events.append(event)
+                payment_errors.append(event)
 
         else:
             break
 
-    return payments_to_notify, failed_events
+    return payments_to_notify, payment_errors
 
 
 def __void_payment_or_create_event(
@@ -198,7 +199,7 @@ def __void_payment_or_create_event(
     manager: "PluginsManager",
     user: Optional[User],
     app: Optional["App"],
-) -> Tuple[Optional[Transaction], Optional[OrderEvent]]:
+) -> Tuple[Optional[Transaction], Optional[PaymentError]]:
     if payment and payment.can_void():
         try:
             return (
@@ -210,9 +211,10 @@ def __void_payment_or_create_event(
                 None,
             )
         except PaymentError as e:
-            return None, events.payment_void_failed_event(
+            events.payment_void_failed_event(
                 order=order, user=user, app=app, message=str(e), payment=payment
             )
+            return None, e
 
     return None, None
 
@@ -222,9 +224,9 @@ def _void_payments(
     manager: "PluginsManager",
     user: Optional[User],
     app: Optional["App"],
-) -> Tuple[List[OrderPaymentAction], List[OrderEvent]]:
+) -> Tuple[List[OrderPaymentAction], List[PaymentError]]:
     payments_to_notify = []
-    failed_events = []
+    payment_errors = []
 
     # We iterate over payments in the order in which they were created
     authorized_payments = sorted(
@@ -247,9 +249,9 @@ def _void_payments(
                     )
                 )
         elif event:
-            failed_events.append(event)
+            payment_errors.append(event)
 
-    return payments_to_notify, failed_events
+    return payments_to_notify, payment_errors
 
 
 def __refund_payment_or_create_event(
@@ -331,7 +333,7 @@ def capture_payments(
     user: "User",
     app: Optional["App"],
     manager: "PluginsManager",
-) -> List[OrderEvent]:
+) -> List[PaymentError]:
     payments_to_notify, failed_events = _capture_payments(order, manager, user, app)
     order.refresh_from_db()
     if payments_to_notify:
@@ -351,7 +353,7 @@ def void_payments(
     user: "User",
     app: Optional["App"],
     manager: "PluginsManager",
-) -> List[OrderEvent]:
+) -> List[PaymentError]:
     payments_to_notify, failed_events = _void_payments(order, manager, user, app)
     order.refresh_from_db()
     if payments_to_notify:
