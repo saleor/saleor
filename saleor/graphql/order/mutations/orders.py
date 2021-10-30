@@ -511,14 +511,14 @@ class OrderCapture(BaseMutation):
         payments = get_authorized_payments(order)
         clean_order_capture(order, payments, amount)
         manager = info.context.plugins
-        failed_events = capture_payments(
+        payment_errors = capture_payments(
             order,
             info.context.user,
             info.context.app,
             manager,
         )
-        if failed_events:
-            messages = [e.parameters["message"] for e in failed_events]
+        if payment_errors:
+            messages = [e.message for e in payment_errors]
             raise ValidationError(
                 " ".join(messages),
                 code=OrderErrorCode.PAYMENT_ERROR.value,
@@ -549,14 +549,14 @@ class OrderVoid(BaseMutation):
         payments = [p for p in get_active_payments(order)]
         clean_void_payments(payments)
         manager = info.context.plugins
-        failed_events = void_payments(
+        payment_errors = void_payments(
             order,
             info.context.user,
             info.context.app,
             manager,
         )
-        if failed_events:
-            messages = [e.parameters["message"] for e in failed_events]
+        if payment_errors:
+            messages = [e.message for e in payment_errors]
             raise ValidationError(
                 " ".join(messages),
                 code=OrderErrorCode.PAYMENT_ERROR.value,
