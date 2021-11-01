@@ -52,7 +52,10 @@
   ],
   "buildpacks": [
     {
-      "url": "https://github.com/heroku/heroku-buildpack-python.git"
+      "url": "heroku/nodejs"
+    },
+    {
+      "url": "heroku/python"
     }
   ],
   "success_url": "/"
