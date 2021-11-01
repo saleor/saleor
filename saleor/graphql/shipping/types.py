@@ -74,14 +74,14 @@ class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
         ]
 
 
-class ShippingMethodType(
-    ChannelContextTypeWithMetadataForObjectType, CountableDjangoObjectType
-):
+class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     """An internal representation of a shipping method used in private API.
 
     Used to manage and configure available shipping methods.
     """
-
+    id = graphene.ID(required=True, description="Shipping method ID.")
+    name = graphene.String(required=True, description="Shipping method name.")
+    description = graphene.JSONString(description="Shipping method description.")
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
         ShippingMethodTranslation,
@@ -91,6 +91,15 @@ class ShippingMethodType(
     channel_listings = graphene.List(
         graphene.NonNull(ShippingMethodChannelListing),
         description="List of channels available for the method.",
+    )
+    price = graphene.Field(
+        Money, description="The price of the cheapest variant (including discounts)."
+    )
+    maximum_order_price = graphene.Field(
+        Money, description="The price of the cheapest variant (including discounts)."
+    )
+    minimum_order_price = graphene.Field(
+        Money, description="The price of the cheapest variant (including discounts)."
     )
     postal_code_rules = graphene.List(
         ShippingMethodPostalCodeRule,
