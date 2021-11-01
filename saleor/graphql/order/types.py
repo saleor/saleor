@@ -647,7 +647,6 @@ class Order(CountableDjangoObjectType):
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
-
     shipping_method = graphene.Field(
         ShippingMethod,
         description="The shipping method related with order.",
@@ -656,9 +655,6 @@ class Order(CountableDjangoObjectType):
 
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
-    )
-    shipping_method = graphene.Field(
-        ShippingMethod, description="Shipping method for this order."
     )
     subtotal = graphene.Field(
         TaxedMoney,
