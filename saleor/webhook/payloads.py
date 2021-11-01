@@ -21,6 +21,7 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
+from ..plugins.base_plugin import ShippingMethod
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
@@ -193,7 +194,6 @@ def generate_order_payload(order: "Order"):
 
     channel_fields = ("slug", "currency_code")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
-
     lines = order.lines.all()
 
     fulfillments_data = serializer.serialize(
@@ -315,6 +315,7 @@ def generate_checkout_payload(checkout: "Checkout"):
         "channel",
     )
     user_fields = ("email", "first_name", "last_name")
+    channel_fields = ("slug", "currency_code")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
     lines_dict_data = serialize_checkout_lines(checkout)
 
@@ -330,6 +331,7 @@ def generate_checkout_payload(checkout: "Checkout"):
         fields=checkout_fields,
         obj_id_name="token",
         additional_fields={
+            "channel": (lambda o: o.channel, channel_fields),
             "user": (lambda c: c.user, user_fields),
             "billing_address": (lambda c: c.billing_address, ADDRESS_FIELDS),
             "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
@@ -659,6 +661,42 @@ def generate_list_gateways_payload(
         checkout_data = None
     payload = {"checkout": checkout_data, "currency": currency}
     return json.dumps(payload)
+
+
+def _generate_payload_for_shipping_method(method: ShippingMethod):
+    payload = asdict(method)
+    payload["id"] = graphene.Node.to_global_id("ShippingMethod", payload["id"])
+    return payload
+
+
+def generate_excluded_shipping_methods_for_order_payload(
+    order: "Order",
+    available_shipping_methods: List[ShippingMethod],
+):
+    order_data = json.loads(generate_order_payload(order))[0]
+    payload = {
+        "order": order_data,
+        "shipping_methods": [
+            _generate_payload_for_shipping_method(shipping_method)
+            for shipping_method in available_shipping_methods
+        ],
+    }
+    return json.dumps(payload, cls=CustomJsonEncoder)
+
+
+def generate_excluded_shipping_methods_for_checkout_payload(
+    checkout: "Checkout",
+    available_shipping_methods: List[ShippingMethod],
+):
+    checkout_data = json.loads(generate_checkout_payload(checkout))[0]
+    payload = {
+        "checkout": checkout_data,
+        "shipping_methods": [
+            _generate_payload_for_shipping_method(shipping_method)
+            for shipping_method in available_shipping_methods
+        ],
+    }
+    return json.dumps(payload, cls=CustomJsonEncoder)
 
 
 def _get_sample_object(qs: QuerySet):

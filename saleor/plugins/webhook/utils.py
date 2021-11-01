@@ -1,12 +1,15 @@
 import base64
 import decimal
+import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
+import graphene
 from prices import Money
 
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ...shipping.interface import ShippingMethodData
+from ..base_plugin import ExcludedShippingMethod
 
 if TYPE_CHECKING:
     from ...app.models import App
@@ -14,6 +17,8 @@ if TYPE_CHECKING:
 
 
 APP_ID_PREFIX = "app"
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -138,3 +143,23 @@ def parse_list_shipping_methods_response(
             )
         )
     return shipping_methods
+
+
+def parse_excluded_shipping_methods_response(
+    response_data: dict,
+) -> List[ExcludedShippingMethod]:
+    excluded_methods = []
+    for method_data in response_data.get("excluded_methods", []):
+        try:
+            typename, method_id = graphene.Node.from_global_id(method_data["id"])
+            if typename != "ShippingMethod":
+                raise ValueError(
+                    f"Invalid type received. Expected ShippingMethod, got {typename}"
+                )
+        except (KeyError, ValueError, TypeError) as e:
+            logger.warning(f"Malformed ShippingMethod id was provided: {e}")
+            continue
+        excluded_methods.append(
+            ExcludedShippingMethod(id=method_id, reason=method_data.get("reason", ""))
+        )
+    return excluded_methods

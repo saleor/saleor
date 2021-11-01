@@ -5,13 +5,11 @@ from ...checkout import calculations, models
 from ...checkout.utils import (
     get_external_shipping_id,
     get_valid_collection_points_for_checkout,
-    get_valid_shipping_methods_for_checkout,
 )
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
-from ...shipping.utils import convert_to_shipping_method_data
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
@@ -31,10 +29,7 @@ from ..product.dataloaders import (
     ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
 )
-from ..shipping.dataloaders import (
-    ShippingMethodByIdLoader,
-    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
-)
+from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import (
@@ -48,6 +43,7 @@ from .dataloaders import (
     CheckoutLinesByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
+from .resolvers import resolve_checkout_shipping_methods
 
 
 class GatewayConfigLine(graphene.ObjectType):
@@ -186,7 +182,13 @@ class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod,
         required=True,
-        description="Shipping methods that can be used with this order.",
+        description="Shipping methods that can be used with this checkout.",
+        deprecation_reason="Use `shippingMethods`, this field will be removed in 4.0.",
+    )
+    shipping_methods = graphene.List(
+        ShippingMethod,
+        required=True,
+        description="Shipping methods that can be used with this checkout.",
     )
     available_collection_points = graphene.List(
         graphene.NonNull(Warehouse),
@@ -293,6 +295,16 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_email(root: models.Checkout, _info):
         return root.get_customer_email()
+
+    @staticmethod
+    @traced_resolver
+    def resolve_available_shipping_methods(root: models.Checkout, info):
+        return resolve_checkout_shipping_methods(root, info, include_active_only=True)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_shipping_methods(root: models.Checkout, info):
+        return resolve_checkout_shipping_methods(root, info)
 
     @staticmethod
     def resolve_shipping_method(root: models.Checkout, info):
@@ -436,103 +448,6 @@ class Checkout(CountableDjangoObjectType):
         return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
 
     @staticmethod
-    @traced_resolver
-    # TODO: We should optimize it in/after PR#5819
-    def resolve_available_shipping_methods(root: models.Checkout, info):
-        def calculate_available_shipping_methods(data):
-            address, lines, checkout_info, discounts, channel = data
-            channel_slug = channel.slug
-            display_gross = info.context.site.settings.display_gross_prices
-            manager = info.context.plugins
-            subtotal = manager.calculate_checkout_subtotal(
-                checkout_info, lines, address, discounts
-            )
-            if not address:
-                return []
-            available = get_valid_shipping_methods_for_checkout(
-                checkout_info,
-                lines,
-                subtotal=subtotal,
-                country_code=address.country.code,
-            )
-            if available is None:
-                return []
-            available_ids = available.values_list("id", flat=True)
-
-            def map_shipping_method_with_channel(shippings):
-                def apply_price_to_shipping_method(channel_listings):
-                    channel_listing_map = {
-                        channel_listing.shipping_method_id: channel_listing
-                        for channel_listing in channel_listings
-                    }
-                    available_with_channel_context = []
-                    for shipping in shippings:
-                        shipping_channel_listing = channel_listing_map[shipping.id]
-                        taxed_price = info.context.plugins.apply_taxes_to_shipping(
-                            shipping_channel_listing.price, address, channel_slug
-                        )
-                        if display_gross:
-                            shipping.price = taxed_price.gross
-                        else:
-                            shipping.price = taxed_price.net
-
-                        node = convert_to_shipping_method_data(shipping)
-                        available_with_channel_context.append(
-                            ChannelContext(node=node, channel_slug=channel_slug)
-                        )
-                    return available_with_channel_context
-
-                map_shipping_method_and_channel = (
-                    (shipping_method_id, channel_slug)
-                    for shipping_method_id in available_ids
-                )
-                return (
-                    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
-                        info.context
-                    )
-                    .load_many(map_shipping_method_and_channel)
-                    .then(apply_price_to_shipping_method)
-                )
-
-            return (
-                ShippingMethodByIdLoader(info.context)
-                .load_many(available_ids)
-                .then(map_shipping_method_with_channel)
-            )
-
-        channel = ChannelByIdLoader(info.context).load(root.channel_id)
-        address = (
-            AddressByIdLoader(info.context).load(root.shipping_address_id)
-            if root.shipping_address_id
-            else None
-        )
-        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
-        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-        discounts = DiscountsByDateTimeLoader(info.context).load(
-            info.context.request_time
-        )
-
-        shipping_methods = Promise.all(
-            [address, lines, checkout_info, discounts, channel]
-        ).then(calculate_available_shipping_methods)
-
-        def with_external_shipping_methods(shipping_methods):
-            external_shipping_methods = (
-                info.context.plugins.list_shipping_methods_for_checkout(
-                    checkout=root, channel_slug=root.channel.slug
-                )
-            )
-
-            if external_shipping_methods:
-                shipping_methods += [
-                    ChannelContext(node=shipping, channel_slug=root.channel.slug)
-                    for shipping in external_shipping_methods
-                ]
-
-            return shipping_methods
-
-        return shipping_methods.then(with_external_shipping_methods)
-
     @staticmethod
     @traced_resolver
     def resolve_available_collection_points(root: models.Checkout, info):

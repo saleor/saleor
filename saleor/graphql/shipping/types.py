@@ -35,6 +35,7 @@ from .dataloaders import (
     ShippingMethodsByShippingZoneIdLoader,
 )
 from .enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
+from .resolvers import resolve_shipping_minimum_order_price, resolve_shipping_price
 
 
 class ShippingMethodChannelListing(CountableDjangoObjectType):
@@ -73,10 +74,14 @@ class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
         ]
 
 
-class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
-    id = graphene.ID(required=True, description="Shipping method ID.")
-    name = graphene.String(required=True, description="Shipping method name.")
-    description = graphene.JSONString(description="Shipping method description.")
+class ShippingMethodType(
+    ChannelContextTypeWithMetadataForObjectType, CountableDjangoObjectType
+):
+    """An internal representation of a shipping method used in private API.
+
+    Used to manage and configure available shipping methods.
+    """
+
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
         ShippingMethodTranslation,
@@ -86,15 +91,6 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     channel_listings = graphene.List(
         graphene.NonNull(ShippingMethodChannelListing),
         description="List of channels available for the method.",
-    )
-    price = graphene.Field(
-        Money, description="The price of the cheapest variant (including discounts)."
-    )
-    maximum_order_price = graphene.Field(
-        Money, description="The price of the cheapest variant (including discounts)."
-    )
-    minimum_order_price = graphene.Field(
-        Money, description="The price of the cheapest variant (including discounts)."
     )
     postal_code_rules = graphene.List(
         ShippingMethodPostalCodeRule,
@@ -126,6 +122,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
             "them. They are directly exposed to the customers."
         )
         interfaces = [relay.Node, ObjectWithMetadata]
+        model = models.ShippingMethod
 
     @staticmethod
     def resolve_id(root: ChannelContext, _info):
@@ -267,7 +264,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         CountryDisplay, description="List of countries available for the method."
     )
     shipping_methods = graphene.List(
-        ShippingMethod,
+        ShippingMethodType,
         description=(
             "List of shipping methods available for orders"
             " shipped to countries within this shipping zone."
@@ -340,3 +337,69 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_channels(root: ChannelContext[models.ShippingZone], info, **_kwargs):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
+
+
+class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
+    id = graphene.ID(
+        required=True, description="Unique ID of ShippingMethod available for Order."
+    )
+    name = graphene.String(required=True, description="Shipping method name.")
+    description = graphene.JSONString(description="Shipping method description (JSON).")
+    maximum_delivery_days = graphene.Int(
+        description="Maximum delivery days for this shipping method."
+    )
+    minimum_delivery_days = graphene.Int(
+        description="Minimum delivery days for this shipping method."
+    )
+    translation = TranslationField(
+        ShippingMethodTranslation,
+        type_name="shipping method",
+        resolver=ChannelContextType.resolve_translation,
+    )
+    price = graphene.Field(
+        Money, required=True, description="The price of selected shipping method."
+    )
+    minimum_order_price = graphene.Field(
+        Money, description="Minimal order price for this shipping method."
+    )
+    active = graphene.Boolean(
+        required=True,
+        description="Describes if this shipping method is active and can be selected.",
+    )
+    message = graphene.String(description="Message connected to this shipping method.")
+
+    class Meta:
+        interfaces = [relay.Node, ObjectWithMetadata]
+        description = (
+            (
+                "Shipping methods that can be used as means of shipping"
+                "for orders and checkouts."
+            ),
+        )
+
+    @staticmethod
+    def resolve_minimum_order_price(
+        root: ChannelContext[models.ShippingMethod], info, **_kwargs
+    ):
+        return resolve_shipping_minimum_order_price(root, info, **_kwargs)
+
+    @staticmethod
+    def resolve_price(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
+        # Price field are dynamically generated in available_shipping_methods resolver
+        return resolve_shipping_price(root, info, **_kwargs)
+
+    @staticmethod
+    def resolve_name(root: ChannelContext[models.ShippingMethod], info, **kwargs):
+        return root.node.name
+
+    @staticmethod
+    def resolve_id(root: ChannelContext, _info):
+        return graphene.Node.to_global_id("ShippingMethod", root.node.id)
+
+    @staticmethod
+    def resolve_active(root: ChannelContext, _info):
+        return root.node.active
+
+    @staticmethod
+    def resolve_message(root: ChannelContext, _info):
+        return root.node.message

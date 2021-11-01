@@ -20,6 +20,8 @@ class ShippingMethodData:
     price: Optional[Money]
     description: Optional[str] = None
     type: Optional[str] = None
+    active: Optional[bool] = False
+    message: Optional[str] = ""
     maximum_order_price: Optional[Money] = None
     minimum_order_price: Optional[Money] = None
     excluded_products: Optional["RelatedManager"] = None

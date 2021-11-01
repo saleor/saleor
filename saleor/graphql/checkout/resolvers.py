@@ -1,7 +1,28 @@
+from promise import Promise
+
 from ...checkout import models
+from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.tracing import traced_resolver
+from ..account.dataloaders import AddressByIdLoader
+from ..channel import ChannelContext
+from ..channel.dataloaders import ChannelByIdLoader
+from ..discount.dataloaders import DiscountsByDateTimeLoader
+from ..shipping.dataloaders import (
+    ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+)
+from ..shipping.utils import (
+    annotate_active_shipping_methods,
+    annotate_shipping_methods_with_price,
+    convert_shipping_method_model_to_dataclass,
+    wrap_with_channel_context,
+)
 from ..utils import get_user_or_app_from_context
+from .dataloaders import (
+    CheckoutInfoByCheckoutTokenLoader,
+    CheckoutLinesInfoByCheckoutTokenLoader,
+)
 
 
 def resolve_checkout_lines():
@@ -42,3 +63,140 @@ def resolve_checkout(info, token):
         return checkout
 
     return None
+
+
+def _resolve_checkout_excluded_shipping_methods(
+    root,
+    channel_listings,
+    shipping_methods,
+    address,
+    channel_slug,
+    display_gross,
+    manager,
+    info,
+):
+    cache_key = "__fetched_shipping_methods"
+    if hasattr(root, cache_key):
+        return getattr(root, cache_key)
+
+    annotate_shipping_methods_with_price(
+        shipping_methods,
+        channel_listings,
+        address,
+        channel_slug,
+        manager,
+        display_gross,
+    )
+    shipping_method_dataclasses = [
+        convert_shipping_method_model_to_dataclass(shipping)
+        for shipping in shipping_methods
+    ]
+    excluded_shipping_methods = manager.excluded_shipping_methods_for_checkout(
+        root, shipping_method_dataclasses
+    )
+    annotate_active_shipping_methods(
+        shipping_methods,
+        excluded_shipping_methods,
+    )
+    available_with_channel_context = wrap_with_channel_context(
+        shipping_methods,
+        channel_slug,
+    )
+
+    setattr(root, cache_key, available_with_channel_context)
+    return getattr(root, cache_key)
+
+
+def resolve_checkout_shipping_methods(
+    root: models.Checkout, info, include_active_only=False
+):
+    def calculate_shipping_methods(data):
+        address, lines, checkout_info, discounts, channel = data
+        if not address:
+            return []
+        channel_slug = channel.slug
+        display_gross = info.context.site.settings.display_gross_prices
+        manager = info.context.plugins
+        subtotal = manager.calculate_checkout_subtotal(
+            checkout_info, lines, address, discounts
+        )
+        available = get_valid_shipping_methods_for_checkout(
+            checkout_info,
+            lines,
+            subtotal=subtotal,
+            country_code=address.country.code,
+        )
+        if available is None:
+            return []
+        available_ids = available.values_list("id", flat=True)
+
+        def map_shipping_method_with_channel(shippings):
+            def apply_price_to_shipping_method(channel_listings):
+                available_with_channel_context = (
+                    _resolve_checkout_excluded_shipping_methods(
+                        root,
+                        channel_listings,
+                        shippings,
+                        address,
+                        channel_slug,
+                        display_gross,
+                        manager,
+                        info,
+                    )
+                )
+                if include_active_only:
+                    available_with_channel_context = [
+                        shipping
+                        for shipping in available_with_channel_context
+                        if shipping.node.active
+                    ]
+                return available_with_channel_context
+
+            map_shipping_method_and_channel = (
+                (shipping_method_id, channel_slug)
+                for shipping_method_id in available_ids
+            )
+            return (
+                ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                    info.context
+                )
+                .load_many(map_shipping_method_and_channel)
+                .then(apply_price_to_shipping_method)
+            )
+
+        return (
+            ShippingMethodByIdLoader(info.context)
+            .load_many(available_ids)
+            .then(map_shipping_method_with_channel)
+        )
+
+    channel = ChannelByIdLoader(info.context).load(root.channel_id)
+    address = (
+        AddressByIdLoader(info.context).load(root.shipping_address_id)
+        if root.shipping_address_id
+        else None
+    )
+    lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+    checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
+    discounts = DiscountsByDateTimeLoader(info.context).load(info.context.request_time)
+
+    shipping_methods = Promise.all(
+        [address, lines, checkout_info, discounts, channel]
+    ).then(calculate_shipping_methods)
+
+    def with_external_shipping_methods(shipping_methods):
+        external_shipping_methods = (
+            info.context.plugins.list_shipping_methods_for_checkout(
+                checkout=root, channel_slug=root.channel.slug
+            )
+        )
+
+        if external_shipping_methods:
+            shipping_methods += [
+                ChannelContext(node=shipping, channel_slug=root.channel.slug)
+                for shipping in external_shipping_methods
+            ]
+
+        return shipping_methods
+
+    return shipping_methods.then(with_external_shipping_methods)

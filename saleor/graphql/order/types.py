@@ -20,7 +20,6 @@ from ...core.permissions import (
     ProductPermissions,
     has_one_of_permissions,
 )
-from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
@@ -28,11 +27,7 @@ from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
-from ...order.utils import (
-    get_order_country,
-    get_valid_collection_points_for_order,
-    get_valid_shipping_methods_for_order,
-)
+from ...order.utils import get_order_country, get_valid_collection_points_for_order
 from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import (
@@ -86,6 +81,7 @@ from .dataloaders import (
     OrderLinesByOrderIdLoader,
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
+from .resolvers import resolve_order_shipping_methods
 from .utils import validate_draft_order
 
 
@@ -615,6 +611,12 @@ class Order(CountableDjangoObjectType):
         ShippingMethod,
         required=False,
         description="Shipping methods that can be used with this order.",
+        deprecation_reason="Use `shippingMethods`, this field will be removed in 4.0",
+    )
+    shipping_methods = graphene.List(
+        graphene.NonNull(ShippingMethod),
+        description="Shipping methods related to this order.",
+        required=True,
     )
     available_collection_points = graphene.List(
         graphene.NonNull(Warehouse),
@@ -654,6 +656,9 @@ class Order(CountableDjangoObjectType):
 
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
+    )
+    shipping_method = graphene.Field(
+        ShippingMethod, description="Shipping method for this order."
     )
     subtotal = graphene.Field(
         TaxedMoney,
@@ -1085,38 +1090,13 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, info):
-        instances = []
-        manager = info.context.plugins
-        available = get_valid_shipping_methods_for_order(root)
-        if available is not None:
-            available_shipping_methods = []
-            display_gross = display_gross_prices()
-            channel_slug = root.channel.slug
-            for shipping_method in available:
-                # Ignore typing check because it is checked in
-                # get_valid_shipping_methods_for_order
-                shipping_channel_listing = shipping_method.channel_listings.filter(
-                    channel=root.channel
-                ).first()
-                if shipping_channel_listing:
-                    taxed_price = manager.apply_taxes_to_shipping(
-                        shipping_channel_listing.price,
-                        root.shipping_address,  # type: ignore
-                        channel_slug,
-                    )
-                    if display_gross:
-                        shipping_method.price = taxed_price.gross
-                    else:
-                        shipping_method.price = taxed_price.net
-                    available_shipping_methods.append(shipping_method)
-            instances = [
-                ChannelContext(node=shipping, channel_slug=channel_slug)
-                for shipping in available_shipping_methods
-            ]
+        return resolve_order_shipping_methods(root, info, include_active_only=True)
 
-        return instances
+    @staticmethod
+    @traced_resolver
+    def resolve_shipping_methods(root: models.Order, info):
+        return resolve_order_shipping_methods(root, info)
 
     @classmethod
     @traced_resolver

@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from prices import TaxedMoney
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
@@ -29,6 +30,7 @@ from ....order.utils import (
     update_order_prices,
 )
 from ....payment import PaymentError, TransactionKind, gateway
+from ....plugins.manager import PluginsManager
 from ....shipping import models as shipping_models
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
@@ -42,6 +44,7 @@ from ...order.mutations.draft_orders import (
 )
 from ...product.types import ProductVariant
 from ...shipping.types import ShippingMethod
+from ...shipping.utils import convert_shipping_method_model_to_dataclass
 from ..types import Order, OrderEvent, OrderLine
 from ..utils import (
     validate_product_is_published_in_channel,
@@ -51,14 +54,19 @@ from ..utils import (
 ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
-def clean_order_update_shipping(order, method):
+def clean_order_update_shipping(
+    order: Order,
+    method: ShippingMethod,
+    shipping_price: TaxedMoney,
+    manager: PluginsManager,
+):
     if not order.shipping_address:
         raise ValidationError(
             {
                 "order": ValidationError(
                     "Cannot choose a shipping method for an order without "
                     "the shipping address.",
-                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS,
+                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value,
                 )
             }
         )
@@ -71,7 +79,20 @@ def clean_order_update_shipping(order, method):
             {
                 "shipping_method": ValidationError(
                     "Shipping method cannot be used with this order.",
-                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+                )
+            }
+        )
+
+    method.price = shipping_price  # type: ignore
+    if manager.excluded_shipping_methods_for_order(
+        order, [convert_shipping_method_model_to_dataclass(method)]
+    ):
+        raise ValidationError(
+            {
+                "shipping_method": ValidationError(
+                    "Shipping method cannot be used with this order.",
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
                 )
             }
         )
@@ -357,10 +378,10 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             ),
         )
 
-        clean_order_update_shipping(order, method)
+        shipping_price = info.context.plugins.calculate_order_shipping(order)
+        clean_order_update_shipping(order, method, shipping_price, info.context.plugins)
 
         order.shipping_method = method
-        shipping_price = info.context.plugins.calculate_order_shipping(order)
         order.shipping_price = shipping_price
         order.shipping_tax_rate = info.context.plugins.get_order_shipping_tax_rate(
             order, shipping_price
