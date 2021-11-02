@@ -1100,6 +1100,7 @@ class Order(CountableDjangoObjectType):
                 shipping_channel_listing = shipping_method.channel_listings.filter(
                     channel=root.channel
                 ).first()
+                # TODO 1: nie chcemy tego wołać
                 if shipping_channel_listing:
                     taxed_price = manager.apply_taxes_to_shipping(
                         shipping_channel_listing.price,

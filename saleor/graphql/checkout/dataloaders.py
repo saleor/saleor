@@ -1,11 +1,16 @@
 from collections import defaultdict
 
 from django.db.models import F
+from django.utils.functional import SimpleLazyObject
 from promise import Promise
 
 from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo, get_delivery_method_info
 from ...checkout.models import Checkout, CheckoutLine
-from ...checkout.utils import get_external_shipping_id
+from ...checkout.utils import (
+    get_external_shipping_id,
+    get_valid_external_shipping_methods_for_checkout,
+    get_valid_saleor_shipping_methods_for_checkout,
+)
 from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
@@ -150,7 +155,8 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
     context_key = "checkoutinfo_by_checkout"
 
     def batch_load(self, keys):
-        def with_checkout(checkouts):
+        def with_checkout(data):
+            checkouts, checkout_line_infos = data
             from ..channel.dataloaders import ChannelByIdLoader
 
             channel_pks = [checkout.channel_id for checkout in checkouts]
@@ -225,7 +231,9 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                     }
 
                     checkout_info_map = {}
-                    for key, checkout, channel in zip(keys, checkouts, channels):
+                    for key, checkout, channel, checkout_lines in zip(
+                        keys, checkouts, channels, checkout_line_infos
+                    ):
                         shipping_method = shipping_method_map.get(
                             checkout.shipping_method_id
                         )
@@ -245,14 +253,12 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             delivery_method = collection_points_map.get(
                                 checkout.collection_point_id
                             )
-                        shipping_address = (
-                            address_map.get(checkout.shipping_address_id),
-                        )
+                        shipping_address = address_map.get(checkout.shipping_address_id)
                         delivery_method_info = get_delivery_method_info(
                             delivery_method, shipping_address
                         )
 
-                        checkout_info_map[key] = CheckoutInfo(
+                        checkout_info = CheckoutInfo(
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
                             channel=channel,
@@ -272,6 +278,47 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             ),
                         )
 
+                        def fetch_valid_shipping_methods():
+                            if not shipping_address:
+                                return []
+
+                            channel_listings_in_channel = [
+                                listing
+                                for listing in (
+                                    shipping_method_channel_listing_map.values()
+                                )
+                                if listing.channel_id == checkout.channel_id
+                            ]
+                            manager = self.context.plugins
+                            discounts = self.context.discounts
+                            subtotal = manager.calculate_checkout_subtotal(
+                                checkout_info,
+                                checkout_lines,
+                                shipping_address,
+                                discounts,
+                            )
+                            return [
+                                *get_valid_saleor_shipping_methods_for_checkout(
+                                    checkout_info,
+                                    checkout_lines,
+                                    subtotal,
+                                    channel_listings_in_channel,
+                                    country_code=shipping_address.country,
+                                ),
+                                *get_valid_external_shipping_methods_for_checkout(
+                                    checkout_info,
+                                    checkout_lines,
+                                    subtotal,
+                                    manager,
+                                    country_code=shipping_address.country,
+                                ),
+                            ]
+
+                        checkout_info.valid_shipping_methods = SimpleLazyObject(
+                            fetch_valid_shipping_methods
+                        )
+                        checkout_info_map[key] = checkout_info
+
                     return [checkout_info_map[key] for key in keys]
 
                 return Promise.all(
@@ -290,7 +337,11 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                 .then(with_channel)
             )
 
-        return CheckoutByTokenLoader(self.context).load_many(keys).then(with_checkout)
+        checkouts = CheckoutByTokenLoader(self.context).load_many(keys)
+        checkout_line_infos = CheckoutLinesInfoByCheckoutTokenLoader(
+            self.context
+        ).load_many(keys)
+        return Promise.all([checkouts, checkout_line_infos]).then(with_checkout)
 
 
 class CheckoutLineByIdLoader(DataLoader):

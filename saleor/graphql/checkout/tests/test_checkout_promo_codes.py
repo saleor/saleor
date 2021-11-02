@@ -252,9 +252,15 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                 }
                 availableShippingMethods {
                     id
+                    price {
+                        amount
+                    }
                 }
                 shippingMethod {
                     id
+                    price {
+                        amount
+                    }
                 }
             }
         }

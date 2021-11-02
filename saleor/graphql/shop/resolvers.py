@@ -29,6 +29,7 @@ def resolve_available_shipping_methods(info, channel_slug: str, address):
         )
         for shipping_method in available:
             shipping_price = shipping_mapping[shipping_method.pk]
+            # TODO 3: nie chcemy tego wołać
             taxed_price = manager.apply_taxes_to_shipping(
                 shipping_price, address, channel_slug
             )

@@ -620,6 +620,9 @@ ORDERS_QUERY_SHIPPING_METHODS = """
                 node {
                     availableShippingMethods {
                         name
+                        price {
+                            amount
+                        }
                     }
                 }
             }

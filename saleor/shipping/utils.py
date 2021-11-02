@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Optional
 
 from django_countries import countries
+from prices import Money
 
 from .interface import ShippingMethodData
 
@@ -26,6 +27,7 @@ def get_countries_without_shipping_zone():
 
 def convert_to_shipping_method_data(
     shipping_method: Optional["ShippingMethod"],
+    price: Optional[Money] = None,
 ) -> Optional["ShippingMethodData"]:
     if not shipping_method:
         return None
@@ -33,7 +35,7 @@ def convert_to_shipping_method_data(
     return ShippingMethodData(
         id=str(shipping_method.id),
         name=shipping_method.name,
-        price=getattr(shipping_method, "price", None),
+        price=price or getattr(shipping_method, "price", None),
         description=shipping_method.description,
         type=shipping_method.type,
         excluded_products=shipping_method.excluded_products,

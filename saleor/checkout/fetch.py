@@ -123,8 +123,10 @@ class ShippingMethodInfo(DeliveryMethodBase):
 
     def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
         valid_delivery_methods = checkout_info.valid_delivery_methods
+        # TODO: use me to check pricing inconsitencies
         return bool(
-            valid_delivery_methods and self.delivery_method in valid_delivery_methods
+            valid_delivery_methods
+            and self.delivery_method.id in {m.id for m in valid_delivery_methods}
         )
 
     def update_channel_listings(self, checkout_info: "CheckoutInfo") -> None:
@@ -319,6 +321,7 @@ def update_checkout_info_shipping_address(
     )
 
 
+# TODO: rename as this suggests local delivery (Glovo) rather than saleor internal logic
 def get_valid_local_shipping_method_list_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
@@ -326,24 +329,21 @@ def get_valid_local_shipping_method_list_for_checkout_info(
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
 ) -> List["ShippingMethodData"]:
-    from .utils import get_valid_shipping_methods_for_checkout
+    from .utils import get_valid_saleor_shipping_methods_for_checkout
 
     country_code = shipping_address.country.code if shipping_address else None
     subtotal = manager.calculate_checkout_subtotal(
         checkout_info, lines, checkout_info.shipping_address, discounts
     )
     subtotal -= checkout_info.checkout.discount
-    valid_shipping_method = get_valid_shipping_methods_for_checkout(
+    valid_shipping_method = get_valid_saleor_shipping_methods_for_checkout(
         checkout_info, lines, subtotal, country_code=country_code
     )
 
     if valid_shipping_method is None:
         return []
 
-    return [
-        convert_to_shipping_method_data(shipping)  # type: ignore
-        for shipping in valid_shipping_method
-    ]
+    return valid_shipping_method
 
 
 def get_valid_external_shipping_method_list_for_checkout_info(

@@ -133,6 +133,7 @@ def parse_list_shipping_methods_response(
             ShippingMethodData(
                 id=to_shipping_app_id(app, method_id),
                 name=method_name,
+                # TODO: return Taxed money if app is able to return it
                 price=Money(method_amount, method_currency),
                 maximum_delivery_days=method_maximum_delivery_days,
             )

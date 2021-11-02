@@ -26,7 +26,9 @@ from ..giftcard.utils import (
 )
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
-from ..shipping.models import ShippingMethod
+from ..shipping.interface import ShippingMethodData
+from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.availability import (
     check_stock_and_preorder_quantity,
     check_stock_and_preorder_quantity_bulk,
@@ -637,22 +639,59 @@ def remove_voucher_from_checkout(checkout: Checkout):
     )
 
 
-def get_valid_shipping_methods_for_checkout(
+def get_valid_saleor_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     subtotal: "TaxedMoney",
+    channel_listings: Optional[List["ShippingMethodChannelListing"]] = None,
     country_code: Optional[str] = None,
-):
+) -> List[ShippingMethodData]:
     if not is_shipping_required(lines):
-        return None
+        return []
     if not checkout_info.shipping_address:
-        return None
-    return ShippingMethod.objects.applicable_shipping_methods_for_instance(
+        return []
+
+    # TODO: optimize me
+    if channel_listings is None:
+        channel_listings = list(
+            ShippingMethodChannelListing.objects.filter(channel=checkout_info.channel)
+        )
+
+    saleor_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,
         price=subtotal.gross,
-        country_code=country_code,  # type: ignore
+        country_code=country_code,
         lines=lines,
+    )
+
+    channel_listings_map = {
+        listing.shipping_method_id: listing
+        for listing in channel_listings
+        if channel_listings
+    }
+
+    def get_price(method):
+        listing = channel_listings_map.get(method.pk)
+        if listing:
+            return listing.price
+
+    return [
+        convert_to_shipping_method_data(shipping, get_price(shipping))  # type: ignore
+        for shipping in saleor_methods
+    ]
+
+
+def get_valid_external_shipping_methods_for_checkout(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    subtotal: "TaxedMoney",
+    manager: "PluginsManager",
+    country_code: Optional[str] = None,
+) -> List[ShippingMethodData]:
+    return manager.list_shipping_methods_for_checkout(
+        checkout=checkout_info.checkout,
+        channel_slug=checkout_info.channel.slug,
     )
 
 
