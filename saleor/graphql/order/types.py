@@ -212,7 +212,9 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_app(root: models.OrderEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
+        if requestor_has_access(
+            requestor, root.user, AppPermission.MANAGE_APPS
+        ) | requestor_has_access(requestor, root.user, OrderPermissions.MANAGE_ORDERS):
             return (
                 AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
             )
@@ -1030,7 +1032,9 @@ class Order(CountableDjangoObjectType):
     def resolve_user(root: models.Order, info):
         def _resolve_user(user):
             requester = get_user_or_app_from_context(info.context)
-            if requestor_has_access(requester, user, AccountPermissions.MANAGE_USERS):
+            if requestor_has_access(
+                requester, user, AccountPermissions.MANAGE_USERS
+            ) | requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
                 return user
             raise PermissionDenied()
 
