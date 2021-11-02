@@ -1330,16 +1330,22 @@ query getCheckout($token: UUID!) {
 def test_checkout_available_shipping_methods(
     api_client, checkout_with_item, address, shipping_zone
 ):
+    # given
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_method.minimum_order_weight = Weight(kg=0)
+    shipping_method.maximum_order_weight = Weight(kg=0)
+    shipping_method.save()
 
+    # when
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    shipping_method = shipping_zone.shipping_methods.first()
+    # then
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
 
 
