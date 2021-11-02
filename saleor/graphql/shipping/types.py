@@ -263,6 +263,7 @@ class ShippingMethod(ChannelContextType):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
+    type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     name = graphene.String(required=True, description="Shipping method name.")
     description = graphene.JSONString(description="Shipping method description (JSON).")
     maximum_delivery_days = graphene.Int(

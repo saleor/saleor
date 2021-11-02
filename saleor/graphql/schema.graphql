@@ -5780,6 +5780,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  type: ShippingMethodTypeEnum
   name: String!
   description: JSONString
   maximumDeliveryDays: Int
