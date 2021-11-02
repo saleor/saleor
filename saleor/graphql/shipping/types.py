@@ -265,7 +265,7 @@ class ShippingMethod(ChannelContextType):
     )
     type = ShippingMethodTypeEnum(
         description="Type of the shipping method.",
-        deprecation_reason="This field will be removed in 4.0.",
+        deprecation_reason="This field will be removed in Saleor 4.0.",
     )
 
     name = graphene.String(required=True, description="Shipping method name.")
