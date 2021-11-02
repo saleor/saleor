@@ -299,6 +299,10 @@ class ShippingMethod(ChannelContextType):
         )
 
     @staticmethod
+    def resolve_type(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
+        return root.node.type
+
+    @staticmethod
     def resolve_minimum_order_price(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
