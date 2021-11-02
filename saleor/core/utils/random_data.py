@@ -564,8 +564,8 @@ def create_fake_payment(mock_notify, order, payment_amount=None, partial=False):
         return payment
     # Create capture transaction
     gateway.capture(payment, manager, order.channel.slug)
-    # 25% chance to refund the payment if it's not partial.
-    if random.choice([0, 0, 0, 1]) and not partial:
+    # 25% chance to refund the payment.
+    if random.choice([0, 0, 0, 1]):
         gateway.refund(payment, manager, order.channel.slug)
     return payment
 
@@ -736,7 +736,7 @@ def create_fake_order(discounts, max_order_lines=5):
 
     payment_amount = order.total.gross.amount // num_of_payments
 
-    for _ in range(1, num_of_payments + 1):
+    for _ in range(num_of_payments):
         create_fake_payment(order=order, payment_amount=payment_amount, partial=partial)
 
     if not will_be_unconfirmed:
