@@ -263,6 +263,11 @@ class ShippingMethod(ChannelContextType):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
+    type = ShippingMethodTypeEnum(
+        description="Type of the shipping method.",
+        deprecation_reason="This field will be removed in Saleor 4.0.",
+    )
+
     name = graphene.String(required=True, description="Shipping method name.")
     description = graphene.JSONString(description="Shipping method description (JSON).")
     maximum_delivery_days = graphene.Int(
@@ -296,6 +301,10 @@ class ShippingMethod(ChannelContextType):
                 "for orders and checkouts."
             ),
         )
+
+    @staticmethod
+    def resolve_type(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
+        return root.node.type
 
     @staticmethod
     def resolve_minimum_order_price(
