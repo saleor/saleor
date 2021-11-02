@@ -85,7 +85,6 @@ def test_check_stock_and_preorder_quantity_bulk(
 def test_check_preorder_threshold_bulk_channel_threshold(
     preorder_variant_channel_threshold, channel_USD
 ):
-
     variant = preorder_variant_channel_threshold
     # test it doesn't raise an error for available preorder variant
     channel_listings = variant.channel_listings.all()

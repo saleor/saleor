@@ -3,9 +3,12 @@ from typing import DefaultDict, Iterable, List, Optional, Tuple
 from uuid import UUID
 
 from django.conf import settings
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Q
+from django.db.models.aggregates import Sum
+from django.utils import timezone
 
 from ...channel.models import Channel
+from ...product.models import ProductVariantChannelListing
 from ...warehouse.models import (
     PreorderReservation,
     Reservation,
@@ -281,6 +284,25 @@ class ActiveReservationsByCheckoutLineIdLoader(DataLoader):
                 reservation
             )
         return [reservations_by_checkout_line[key] for key in keys]
+
+
+class PreorderQuantityReservedByVariantChannelListingIdLoader(DataLoader):
+    context_key = "preorder_quantity_reserved_by_variant_channel_listing_id"
+
+    def batch_load(self, keys):
+        queryset = (
+            ProductVariantChannelListing.objects.filter(id__in=keys)
+            .annotate(
+                quantity_reserved=Sum("preorder_reservations__quantity_reserved"),
+                where=Q(preorder_reservations__reserved_until__gt=timezone.now()),
+            )
+            .values("id", "quantity_reserved")
+        )
+
+        reservations_by_listing_id = defaultdict(int)
+        for listing in queryset:
+            reservations_by_listing_id[listing["id"]] += listing["quantity_reserved"]
+        return [reservations_by_listing_id[key] for key in keys]
 
 
 class WarehouseByIdLoader(DataLoader):
