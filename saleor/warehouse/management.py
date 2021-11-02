@@ -605,7 +605,7 @@ def _create_preorder_allocation(
     line_info: "OrderLineData",
     variant_channel_data: Tuple[int, Optional[int]],
     variant_global_allocation: int,
-    variants_channel_listings: Dict[int, List[int]],
+    variants_channel_listings: List[int],
     quantity_allocation_for_channel: Dict[int, int],
     listings_reservations: Dict[int, int],
 ) -> Tuple[Optional[PreorderAllocation], Optional[InsufficientStockData]]:
@@ -614,18 +614,10 @@ def _create_preorder_allocation(
     channel_listing_id, channel_quantity_threshold = variant_channel_data
 
     if channel_quantity_threshold is not None:
-        print("channel_quantity_threshold", channel_quantity_threshold)
-        print(
-            "quantity_allocation_for_channel",
-            quantity_allocation_for_channel[channel_listing_id],
-        )
-        print("listings_reservations", listings_reservations[channel_listing_id])
         channel_availability = channel_quantity_threshold
         channel_availability -= quantity_allocation_for_channel[channel_listing_id]
         channel_availability -= listings_reservations[channel_listing_id]
-        print("listings_reservations", listings_reservations)
         channel_availability = max(channel_availability, 0)
-        print("channel_availability", channel_availability)
 
         if quantity > channel_availability:
             return None, InsufficientStockData(
@@ -635,13 +627,10 @@ def _create_preorder_allocation(
 
     if variant.preorder_global_threshold is not None:
         global_availability = variant.preorder_global_threshold
-        print("variant.preorder_global_threshold", variant.preorder_global_threshold)
         global_availability -= variant_global_allocation
-        print("variant_global_allocation", variant_global_allocation)
         for listing_id in variants_channel_listings:
             global_availability -= listings_reservations[listing_id]
         global_availability = max(global_availability, 0)
-        print("global_availability", global_availability)
 
         if quantity > global_availability:
             return None, InsufficientStockData(

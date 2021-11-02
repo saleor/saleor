@@ -317,7 +317,7 @@ def _create_preorder_reservation(
     reserved_until: datetime,
 ):
     if listing.preorder_quantity_threshold is not None:
-        available_channel_quantity = listing.available_preorder_quantity
+        available_channel_quantity = listing.available_preorder_quantity  # type: ignore
         available_channel_quantity = max(
             available_channel_quantity - listings_reservations[listing.id], 0
         )
