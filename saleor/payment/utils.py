@@ -1,7 +1,9 @@
 import json
 import logging
+from collections import defaultdict
 from decimal import Decimal
-from typing import Dict, List, Optional
+from itertools import chain
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -15,7 +17,7 @@ from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentLineData, OrderLineData
-from ..order.models import Order
+from ..order.models import Order, OrderLine
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
@@ -25,8 +27,6 @@ from .interface import (
     PaymentData,
     PaymentLineData,
     PaymentMethodInfo,
-    RefundData,
-    RefundLineData,
 )
 from .models import Payment, Transaction
 
@@ -156,7 +156,7 @@ def create_payment_information(
     amount: Decimal = None,
     customer_id: str = None,
     store_source: bool = False,
-    refund_data: Optional[RefundData] = None,
+    refund_data: Optional[Dict[str, int]] = None,
     additional_data: Optional[dict] = None,
     manager: Optional[PluginsManager] = None,
 ) -> PaymentData:
@@ -212,31 +212,48 @@ def create_payment_information(
     )
 
 
-def create_refund_line_data(
+def create_refund_data(
+    order: Order,
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
     refund_shipping_costs: bool,
-) -> RefundData:
-    order_refund_lines = [
-        RefundLineData(
-            product_sku=line.line.product_sku,
-            quantity=line.line.quantity - line.quantity,
-        )
-        for line in order_lines
-    ]
+) -> Dict[str, int]:
+    lines = {line.product_sku: line.quantity for line in order.lines.all()}
 
-    fulfillment_refund_lines = [
-        RefundLineData(
-            product_sku=(order_line := line.line.order_line).product_sku,
-            quantity=order_line.quantity - line.quantity,
+    current_refund_lines: Iterator[Tuple[Any, OrderLine]] = chain.from_iterable(
+        (
+            (line, line.order_line)
+            for line in f.lines.filter(fulfillment__status="refunded")
         )
-        for line in fulfillment_lines
-    ]
-
-    return RefundData(
-        refund_shipping_costs=refund_shipping_costs,
-        lines=order_refund_lines + fulfillment_refund_lines,
+        for f in order.fulfillments.all()
     )
+    order_refund_lines: Iterator[Tuple[Any, OrderLine]] = (
+        (line, line.line) for line in order_lines
+    )
+    fulfillment_refund_lines: Iterator[Tuple[Any, OrderLine]] = (
+        (line, line.line.order_line) for line in fulfillment_lines
+    )
+
+    refund_lines: Dict[str, int] = defaultdict(int)
+
+    for line, order_line in chain(
+        current_refund_lines, order_refund_lines, fulfillment_refund_lines
+    ):
+        product_sku = order_line.product_sku
+        quantity = line.quantity
+        refund_lines[product_sku] += quantity
+
+    lines = {
+        product_sku: lines[product_sku] - refund_lines[product_sku]
+        for product_sku in refund_lines
+    }
+
+    if order.fulfillments.exclude(shipping_refund_amount__isnull=True).exists():
+        refund_shipping_costs = True
+
+    lines[SHIPPING_PAYMENT_LINE_PRODUCT_SKU] = 0 if refund_shipping_costs else 1
+
+    return lines
 
 
 def create_payment(

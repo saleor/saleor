@@ -21,7 +21,7 @@ from ..payment import (
     gateway,
 )
 from ..payment.models import Payment, Transaction
-from ..payment.utils import create_payment, create_refund_line_data
+from ..payment.utils import create_payment, create_refund_data
 from ..warehouse.management import (
     deallocate_stock,
     deallocate_stock_for_order,
@@ -1222,7 +1222,8 @@ def _process_refund(
                 manager,
                 amount=amount,
                 channel_slug=order.channel.slug,
-                refund_data=create_refund_line_data(
+                refund_data=create_refund_data(
+                    order,
                     order_lines_to_refund,
                     fulfillment_lines_to_refund,
                     refund_shipping_costs,

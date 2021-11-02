@@ -1,8 +1,8 @@
 import logging
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from ....order.models import Fulfillment
-from ...interface import PaymentData, RefundData
+from ...interface import PaymentData
 from ...models import Payment
 from .api_helpers import (
     cancel,
@@ -98,7 +98,7 @@ def change_transaction(
     config: ApiConfig,
     payment: Payment,
     payment_information: PaymentData,
-    lines: Optional[RefundData],
+    lines: Optional[Dict[str, int]],
 ) -> Optional[PaymentResult]:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.change"):
         if lines:
@@ -158,7 +158,7 @@ def reregister_transaction_for_partial_return(
     payment: Payment,
     payment_information: PaymentData,
     tracking_number: Optional[str],
-    refund_data: Optional[RefundData],
+    refund_data: Optional[Dict[str, int]],
 ) -> PaymentResult:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.reregister"):
         payment_id = payment_information.payment_id

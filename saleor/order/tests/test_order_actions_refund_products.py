@@ -2,7 +2,6 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 from ...payment import ChargeStatus
-from ...payment.utils import create_refund_line_data
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation
@@ -73,13 +72,7 @@ def test_create_refund_fulfillment_only_order_lines(
         ANY,
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
-        refund_data=create_refund_line_data(
-            fulfillment_lines=[],
-            order_lines=[
-                OrderLineData(line=line, quantity=2) for line in order_lines_to_refund
-            ],
-            refund_shipping_costs=False,
-        ),
+        refund_data=ANY,
     )
     mocked_order_updated.assert_called_once_with(order_with_lines)
 
@@ -137,13 +130,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
         ANY,
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
-        refund_data=create_refund_line_data(
-            fulfillment_lines=[],
-            order_lines=[
-                OrderLineData(line=line, quantity=2) for line in order_lines_to_refund
-            ],
-            refund_shipping_costs=True,
-        ),
+        refund_data=ANY,
     )
     mocked_order_updated.assert_called_once_with(order_with_lines)
 
@@ -194,14 +181,7 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
-        refund_data=create_refund_line_data(
-            fulfillment_lines=[
-                FulfillmentLineData(line=line, quantity=2)
-                for line in fulfillment_lines_to_refund
-            ],
-            order_lines=[],
-            refund_shipping_costs=False,
-        ),
+        refund_data=ANY,
     )
     mocked_order_updated.assert_called_once_with(fulfilled_order)
 
@@ -254,14 +234,7 @@ def test_create_refund_fulfillment_custom_amount(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
-        refund_data=create_refund_line_data(
-            fulfillment_lines=[
-                FulfillmentLineData(line=line, quantity=2)
-                for line in fulfillment_lines_to_refund
-            ],
-            order_lines=[],
-            refund_shipping_costs=False,
-        ),
+        refund_data=ANY,
     )
     mocked_order_updated.assert_called_once_with(fulfilled_order)
 

@@ -144,8 +144,11 @@ def test_refund_payment_partial_refund_reregister_transaction(
     np_atobarai_plugin,
     np_payment_data,
     payment_dummy,
+    fulfillment,
 ):
     # given
+    fulfillment.tracking_number = "123123"
+    fulfillment.save(update_fields=["tracking_number"])
     plugin = np_atobarai_plugin()
     payment_data = np_payment_data
     payment_dummy.captured_amount = payment_data.amount + Decimal("3.00")

@@ -8,7 +8,7 @@ from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from ...models import Payment
 from . import api
 from .api_types import ApiConfig, PaymentStatus, get_api_config
-from .utils import get_payment_name, notify_dashboard
+from .utils import get_payment_name, get_tracking_number_for_order, notify_dashboard
 
 logger = logging.getLogger(__name__)
 
@@ -103,20 +103,16 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
         if not order:
             raise PaymentError(f"Order does not exist for payment with id {payment_id}")
 
-        lines = payment_information.refund_data
+        refund_data = payment_information.refund_data
 
-        result = api.change_transaction(config, payment, payment_information, lines)
+        result = api.change_transaction(
+            config, payment, payment_information, refund_data
+        )
 
         if not result:
-            # TODO: fix this
-            tracking_number = (
-                order.fulfillments.exclude(tracking_number="")
-                .values_list("tracking_number", flat=True)
-                .first()
-                or None
-            )
+            tracking_number = get_tracking_number_for_order(order)
             result = api.reregister_transaction_for_partial_return(
-                config, payment, payment_information, tracking_number, lines
+                config, payment, payment_information, tracking_number, refund_data
             )
 
     else:

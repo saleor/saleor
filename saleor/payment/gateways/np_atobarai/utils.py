@@ -1,9 +1,13 @@
 from contextlib import contextmanager
 from typing import Union
 
+from django.db.models import Q
+
 from ....core.tracing import opentracing_trace
+from ....order import FulfillmentStatus
 from ....order.events import external_notification_event
 from ....order.models import Order
+from ... import PaymentError
 
 
 def notify_dashboard(order: Order, message: str):
@@ -18,6 +22,33 @@ def get_payment_name(payment_id: Union[int, str]) -> str:
     if isinstance(payment_id, str):
         return f"payment with psp reference {payment_id}"
     return f"payment with id {payment_id}"
+
+
+STATUSES_NOT_ALLOWED_TO_REFUND = [
+    FulfillmentStatus.CANCELED,
+    FulfillmentStatus.REFUNDED,
+    FulfillmentStatus.REPLACED,
+    FulfillmentStatus.REFUNDED_AND_RETURNED,
+    FulfillmentStatus.RETURNED,
+]
+
+
+def get_tracking_number_for_order(order: Order) -> str:
+    fulfillments = order.fulfillments.exclude(
+        Q(tracking_number="") | Q(status__in=STATUSES_NOT_ALLOWED_TO_REFUND)
+    )
+
+    if fulfillments.count() == 0:
+        raise PaymentError(
+            "Fulfillment with tracking number does not exist for this order"
+        )
+
+    if fulfillments.count() > 1:
+        raise PaymentError(
+            "More than one fulfillment with tracking number " "exist for this order"
+        )
+
+    return fulfillments[0].tracking_number
 
 
 @contextmanager

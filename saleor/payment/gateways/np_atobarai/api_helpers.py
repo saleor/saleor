@@ -1,14 +1,14 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
 
 import requests
 from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
-from ...interface import AddressData, PaymentData, RefundData
-from ...utils import SHIPPING_PAYMENT_LINE_PRODUCT_SKU, price_to_minor_unit
+from ...interface import AddressData, PaymentData
+from ...utils import price_to_minor_unit
 from .api_types import NPResponse, error_np_response
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL, REQUEST_TIMEOUT
 from .utils import np_atobarai_opentracing_trace
@@ -111,36 +111,22 @@ def format_price(price: Decimal, currency: str) -> int:
 
 
 def get_refunded_goods(
-    refund_data: RefundData,
+    refund_data: Dict[str, int],
     payment_information: PaymentData,
 ) -> List[dict]:
-    refund_lines_dict = {
-        line.product_sku: line.quantity
-        for line in refund_data.lines
-        if line.product_sku
-    }
-    refund_lines_dict[SHIPPING_PAYMENT_LINE_PRODUCT_SKU] = (
-        0 if refund_data.refund_shipping_costs else 1
-    )
-
-    goods = []
-
-    for payment_line in payment_information.lines:
-        quantity = refund_lines_dict.get(
-            payment_line.product_sku, payment_line.quantity
+    return [
+        {
+            "goods_name": payment_line.product_name,
+            "goods_price": format_price(
+                payment_line.gross, payment_information.currency
+            ),
+            "quantity": quantity,
+        }
+        for payment_line in payment_information.lines
+        if (
+            quantity := refund_data.get(payment_line.product_sku, payment_line.quantity)
         )
-        if quantity:
-            goods.append(
-                {
-                    "goods_name": payment_line.product_name,
-                    "goods_price": format_price(
-                        payment_line.gross, payment_information.currency
-                    ),
-                    "quantity": quantity,
-                }
-            )
-
-    return goods
+    ]
 
 
 def get_goods(payment_information: PaymentData) -> List[dict]:

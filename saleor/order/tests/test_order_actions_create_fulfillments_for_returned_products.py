@@ -3,7 +3,6 @@ from unittest.mock import ANY, patch
 
 from prices import Money, TaxedMoney
 
-from ...payment.utils import create_refund_line_data
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
@@ -155,14 +154,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
         ANY,
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
-        refund_data=create_refund_line_data(
-            fulfillment_lines=[],
-            order_lines=[
-                OrderLineData(line=line, quantity=2, replace=False)
-                for line in order_lines_to_return
-            ],
-            refund_shipping_costs=False,
-        ),
+        refund_data=ANY,
     )
     assert not replace_order
 
@@ -237,14 +229,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
         ANY,
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
-        refund_data=create_refund_line_data(
-            fulfillment_lines=[],
-            order_lines=[
-                OrderLineData(line=line, quantity=2, replace=False)
-                for line in order_lines_to_return
-            ],
-            refund_shipping_costs=True,
-        ),
+        refund_data=ANY,
     )
     assert not replace_order
 
@@ -590,6 +575,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
     refunded_fulfillment_line = refunded_fulfillment.lines.create(
         order_line=order_line, quantity=2
     )
+    fulfilled_order.fulfillments.add(refunded_fulfillment)
 
     fulfillment_lines_to_process = [
         FulfillmentLineData(line=line, quantity=2)
@@ -635,11 +621,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
-        refund_data=create_refund_line_data(
-            fulfillment_lines=fulfillment_lines_to_process,
-            order_lines=[],
-            refund_shipping_costs=False,
-        ),
+        refund_data=ANY,
     )
 
     assert returned_and_refunded_fulfillment.total_refund_amount == amount
