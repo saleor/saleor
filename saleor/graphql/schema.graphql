@@ -5780,6 +5780,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  type: ShippingMethodTypeEnum @deprecated(reason: "This field will be removed in Saleor 4.0.")
   name: String!
   description: JSONString
   maximumDeliveryDays: Int
