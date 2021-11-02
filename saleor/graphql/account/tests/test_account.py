@@ -1061,9 +1061,16 @@ ACCOUNT_REGISTER_MUTATION = """
 )
 @patch("saleor.account.notifications.default_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def test_customer_register(mocked_notify, mocked_generator, api_client, channel_PLN):
+def test_customer_register(
+    mocked_notify,
+    mocked_generator,
+    api_client,
+    channel_PLN,
+    order,
+):
     mocked_generator.return_value = "token"
     email = "customer@example.com"
+
     redirect_url = "http://localhost:3000"
     variables = {
         "email": email,
@@ -1551,6 +1558,56 @@ def test_customer_update_generates_event_when_changing_email_by_app(
     assert email_changed_event.type == account_events.CustomerEvents.EMAIL_ASSIGNED
     assert email_changed_event.user is None
     assert email_changed_event.parameters == {"message": "mirumee@example.com"}
+
+
+def test_customer_update_assign_gift_cards_and_orders(
+    staff_api_client,
+    staff_user,
+    customer_user,
+    address,
+    gift_card,
+    order,
+    permission_manage_users,
+):
+    # given
+    query = UPDATE_CUSTOMER_EMAIL_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
+
+    new_street_address = "Updated street address"
+    address_data["streetAddress1"] = new_street_address
+    new_email = "mirumee@example.com"
+
+    gift_card.created_by = None
+    gift_card.created_by_email = new_email
+    gift_card.save(update_fields=["created_by", "created_by_email"])
+
+    order.user = None
+    order.user_email = new_email
+    order.save(update_fields=["user_email", "user"])
+
+    variables = {
+        "id": user_id,
+        "firstName": customer_user.first_name,
+        "lastName": customer_user.last_name,
+        "email": new_email,
+    }
+
+    # when
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    email_changed_event = account_events.CustomerEvent.objects.get()
+    assert email_changed_event.type == account_events.CustomerEvents.EMAIL_ASSIGNED
+    gift_card.refresh_from_db()
+    customer_user.refresh_from_db()
+    assert gift_card.created_by == customer_user
+    assert gift_card.created_by_email == customer_user.email
+    order.refresh_from_db()
+    assert order.user == customer_user
 
 
 ACCOUNT_UPDATE_QUERY = """
@@ -2831,6 +2888,45 @@ def test_staff_update_deactivate_with_manage_staff_all_perms_manageable(
     assert staff_user1.is_active is False
 
 
+def test_staff_update_update_email_assign_gift_cards_and_orders(
+    staff_api_client, permission_manage_staff, gift_card, order
+):
+    # given
+    query = STAFF_UPDATE_MUTATIONS
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+
+    new_email = "testuser@example.com"
+
+    gift_card.created_by = None
+    gift_card.created_by_email = new_email
+    gift_card.save(update_fields=["created_by", "created_by_email"])
+
+    order.user = None
+    order.user_email = new_email
+    order.save(update_fields=["user_email", "user"])
+
+    id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"id": id, "input": {"email": new_email}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    assert data["errors"] == []
+    assert data["user"]["userPermissions"] == []
+    assert data["user"]["email"] == new_email
+    gift_card.refresh_from_db()
+    staff_user.refresh_from_db()
+    assert gift_card.created_by == staff_user
+    assert gift_card.created_by_email == staff_user.email
+    order.refresh_from_db()
+    assert order.user == staff_user
+
+
 STAFF_DELETE_MUTATION = """
         mutation DeleteStaff($id: ID!) {
             staffDelete(id: $id) {
@@ -3762,9 +3858,14 @@ def test_account_reset_password(
 
 
 @freeze_time("2018-05-31 12:00:01")
+@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
 @patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
 def test_account_confirmation(
-    match_orders_with_new_user_mock, api_client, customer_user, channel_USD
+    match_orders_with_new_user_mock,
+    assign_gift_cards_mock,
+    api_client,
+    customer_user,
+    channel_USD,
 ):
     customer_user.is_active = False
     customer_user.save()
@@ -3780,13 +3881,19 @@ def test_account_confirmation(
     assert content["data"]["confirmAccount"]["user"]["email"] == customer_user.email
     customer_user.refresh_from_db()
     match_orders_with_new_user_mock.assert_called_once_with(customer_user)
+    assign_gift_cards_mock.assert_called_once_with(customer_user)
     assert customer_user.is_active is True
 
 
 @freeze_time("2018-05-31 12:00:01")
+@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
 @patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
 def test_account_confirmation_invalid_user(
-    match_orders_with_new_user_mock, user_api_client, customer_user, channel_USD
+    match_orders_with_new_user_mock,
+    assign_gift_cards_mock,
+    user_api_client,
+    customer_user,
+    channel_USD,
 ):
     variables = {
         "email": "non-existing@example.com",
@@ -3801,11 +3908,17 @@ def test_account_confirmation_invalid_user(
         == AccountErrorCode.NOT_FOUND.name
     )
     match_orders_with_new_user_mock.assert_not_called()
+    assign_gift_cards_mock.assert_not_called()
 
 
+@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
 @patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
 def test_account_confirmation_invalid_token(
-    match_orders_with_new_user_mock, user_api_client, customer_user, channel_USD
+    match_orders_with_new_user_mock,
+    assign_gift_cards_mock,
+    user_api_client,
+    customer_user,
+    channel_USD,
 ):
     variables = {
         "email": customer_user.email,
@@ -3820,6 +3933,7 @@ def test_account_confirmation_invalid_token(
         == AccountErrorCode.INVALID.name
     )
     match_orders_with_new_user_mock.assert_not_called()
+    assign_gift_cards_mock.assert_not_called()
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -5041,7 +5155,15 @@ mutation emailUpdate($token: String!, $channel: String) {
 """
 
 
-def test_email_update(user_api_client, customer_user, channel_PLN):
+@patch("saleor.graphql.account.mutations.account.match_orders_with_new_user")
+@patch("saleor.graphql.account.mutations.account.assign_user_gift_cards")
+def test_email_update(
+    assign_gift_cards_mock,
+    assign_orders_mock,
+    user_api_client,
+    customer_user,
+    channel_PLN,
+):
     new_email = "new_email@example.com"
     payload = {
         "old_email": customer_user.email,
@@ -5056,6 +5178,8 @@ def test_email_update(user_api_client, customer_user, channel_PLN):
     content = get_graphql_content(response)
     data = content["data"]["confirmEmailChange"]
     assert data["user"]["email"] == new_email
+    assign_gift_cards_mock.assert_called_once_with(customer_user)
+    assign_orders_mock.assert_called_once_with(customer_user)
 
 
 def test_email_update_to_existing_email(user_api_client, customer_user, staff_user):
