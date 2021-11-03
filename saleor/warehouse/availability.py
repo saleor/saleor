@@ -227,8 +227,10 @@ def check_stock_quantity_bulk(
                 raise ValidationError(
                     {
                         "quantity": ValidationError(
-                            "Cannot add more than %d times this item: %s."
-                            "" % (quantity_limit, variant),
+                            (
+                                f"Cannot add more than {quantity_limit} "
+                                f"times this item: {variant}."
+                            ),
                             code=CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT.value,
                         )
                     }
