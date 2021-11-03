@@ -160,10 +160,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_maximum_order_price(
-        # root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
-        root: ChannelContext[ShippingMethodData],
-        info,
-        **_kwargs
+        root: ChannelContext[ShippingMethodData], info, **_kwargs
     ):
         maximum_order_price = getattr(root.node, "maximum_order_price", None)
         if maximum_order_price is not None:
@@ -185,9 +182,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_minimum_order_price(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
-        info,
-        **_kwargs
+        root: ChannelContext[Union[ShippingMethodData]], info, **_kwargs
     ):
         minimum_order_price = getattr(root.node, "minimum_order_price", None)
         if minimum_order_price is not None:
@@ -209,15 +204,13 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_maximum_order_weight(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], *_args
+        root: ChannelContext[Union[ShippingMethodData]], *_args
     ):
         return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
 
     @staticmethod
     def resolve_postal_code_rules(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
-        info,
-        **_kwargs
+        root: ChannelContext[Union[ShippingMethodData]], info, **_kwargs
     ):
         if getattr(root.node, "is_external", False):
             return None
@@ -226,16 +219,14 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_minimum_order_weight(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]], *_args
+        root: ChannelContext[Union[ShippingMethodData]], *_args
     ):
         return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
 
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_channel_listings(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
-        info,
-        **_kwargs
+        root: ChannelContext[Union[ShippingMethodData]], info, **_kwargs
     ):
         if getattr(root.node, "is_external", False):
             return None
@@ -247,9 +238,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_excluded_products(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
-        _info,
-        **_kwargs
+        root: ChannelContext[Union[ShippingMethodData]], _info, **_kwargs
     ):
         if root.node.excluded_products is None:
             return None
@@ -313,7 +302,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         root: ChannelContext[models.ShippingZone], info, **_kwargs
     ):
         def wrap_shipping_method_with_channel_context(shipping_methods):
-            # TODO: ShippingMethodType has no price attribute
+            # TODO: ShippingMethodType will have no price attribute
             for shipping in shipping_methods:
                 shipping.price = None
 
