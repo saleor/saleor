@@ -6,6 +6,7 @@ from unittest import mock
 
 import graphene
 import pytest
+from measurement.measures import Weight
 
 from ....app.models import App
 from ....graphql.tests.utils import get_graphql_content
@@ -73,8 +74,8 @@ def available_shipping_methods_factory():
                     id=str(i),
                     price=Decimal("10.0"),
                     name=uuid.uuid4().hex,
-                    maximum_order_weight=Decimal("0"),
-                    minimum_order_weight=Decimal("100"),
+                    maximum_order_weight=Weight(kg=0),
+                    minimum_order_weight=Weight(kg=0),
                     maximum_delivery_days=0,
                     minimum_delivery_days=5,
                 )
