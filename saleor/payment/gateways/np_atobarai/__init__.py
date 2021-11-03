@@ -118,8 +118,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
     else:
         result = api.cancel_transaction(config, payment_information)
 
-    # manually update psp reference if NP issued a new one
-    # TODO: should this be moved to gateway.refund?
+    # NP may issue a new psp reference on partial refunds
     if psp_reference := result.psp_reference:
         payment.psp_reference = psp_reference
         payment.save(update_fields=["psp_reference"])
