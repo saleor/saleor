@@ -16,7 +16,7 @@ from .test_checkout import (
     MUTATION_UPDATE_SHIPPING_METHOD,
 )
 from .test_checkout_lines import (
-    MUTATION_CHECKOUT_LINES_DELETE,
+    MUTATION_CHECKOUT_LINE_DELETE,
     MUTATION_CHECKOUT_LINES_UPDATE,
 )
 
@@ -211,7 +211,7 @@ def test_checkout_line_delete_remove_shipping_if_removed_product_with_shipping(
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
 
     variables = {"token": checkout.token, "lineId": line_id}
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINE_DELETE, variables)
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLineDelete"]

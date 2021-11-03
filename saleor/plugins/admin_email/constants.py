@@ -34,7 +34,7 @@ CSV_EXPORT_FAILED_SUBJECT_FIELD = "csv_export_failed_subject"
 STAFF_PASSWORD_RESET_SUBJECT_FIELD = "staff_password_reset_subject"
 
 
-STAFF_ORDER_CONFIRMATION_DEFAULT_SUBJECT = "Order {{ order.id }} details"
+STAFF_ORDER_CONFIRMATION_DEFAULT_SUBJECT = "Order {{ order.number }} details"
 SET_STAFF_PASSWORD_DEFAULT_SUBJECT = "Set password e-mail"
 CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_SUBJECT = "Export products data"
 CSV_EXPORT_FAILED_DEFAULT_SUBJECT = "Export products data"

@@ -1,3 +1,5 @@
+from typing import List
+
 import graphene
 from graphene_federation import key
 
@@ -7,6 +9,7 @@ from ...page import models
 from ..attribute.filters import AttributeFilterInput
 from ..attribute.types import Attribute, SelectedAttribute
 from ..core.connection import CountableDjangoObjectType
+from ..core.federation import resolve_federation_references
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -109,3 +112,7 @@ class PageType(CountableDjangoObjectType):
             .load(root.pk)
             .then(lambda pages: bool(pages))
         )
+
+    @staticmethod
+    def __resolve_references(roots: List["PageType"], info, **_kwargs):
+        return resolve_federation_references(PageType, roots, models.PageType.objects)
