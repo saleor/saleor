@@ -779,7 +779,7 @@ class ProductVariantInput(graphene.InputObjectType):
     quantity_limit_per_customer = graphene.Int(
         required=False,
         description=(
-            f"{ADDED_IN_31} Determines maximum quantity of `ProductVariant`."
+            f"{ADDED_IN_31} Determines maximum quantity of `ProductVariant`,"
             "that can be bought in a single checkout."
         ),
     )
@@ -875,7 +875,7 @@ class ProductVariantCreate(ModelMutation):
                     "quantity_limit_per_customer": ValidationError(
                         (
                             "Product variant can't have "
-                            "quantity_limit_per_customer lower than 1"
+                            "quantity_limit_per_customer lower than 1."
                         ),
                         code=ProductErrorCode.INVALID.value,
                     )

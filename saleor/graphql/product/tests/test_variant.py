@@ -2022,9 +2022,6 @@ def test_update_product_variant_limit_per_customer_lower_than_1(
                     quantityLimitPerCustomer: $quantityLimitPerCustomer,
                 }
             ){
-                productVariant {
-                    name
-                }
                 errors {
                     field
                     message

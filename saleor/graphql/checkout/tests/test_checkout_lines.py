@@ -508,7 +508,7 @@ def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock)
     ]
 
 
-def test_checkout_lines_add_too_many_after_two_trial(
+def test_checkout_lines_add_too_many_after_two_trials(
     user_api_client, checkout_with_item, stock
 ):
     variant = stock.product_variant
@@ -1270,35 +1270,6 @@ def tests_checkout_lines_delete_invalid_lines_ids(user_api_client, checkout_with
                 {"quantity": 1, "variantId": "def"},
             ],
             [12, 2],
-        ),
-        (
-            [
-                {"quantity": 8, "variantId": "ghi"},
-                {"quantity": 2, "variantId": "ghi"},
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 1, "variantId": "def"},
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 1, "variantId": "def"},
-            ],
-            [10, 12, 2],
-        ),
-        (
-            [
-                {"quantity": 8, "variantId": "ghi"},
-                {"quantity": 2, "variantId": "ghi"},
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 1, "variantId": "def"},
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 1, "variantId": "def"},
-                {"quantity": 8, "variantId": "ghi"},
-                {"quantity": 2, "variantId": "ghi"},
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 1, "variantId": "def"},
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 1, "variantId": "def"},
-                {"quantity": 1000, "variantId": "jkl"},
-            ],
-            [20, 24, 4, 1000],
         ),
         (
             [

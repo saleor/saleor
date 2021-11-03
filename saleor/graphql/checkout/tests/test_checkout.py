@@ -1316,6 +1316,7 @@ def test_checkout_create_check_lines_quantity_site_settings_no_limit(
     data = content["data"]["checkoutCreate"]
 
     assert not data["errors"]
+    assert Checkout.objects.first()
 
 
 def test_checkout_create_check_lines_quantity_against_reservations(
