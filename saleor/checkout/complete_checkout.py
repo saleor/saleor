@@ -405,8 +405,9 @@ def _create_order(
     for gift_card in checkout.gift_cards.select_for_update():
         total_price_left = add_gift_card_to_order(order, gift_card, total_price_left)
 
-    # assign checkout payments to the order and deactivate unused payments
-    payments = checkout.payments.all()
+    # Payments are refetched in order to reflect the latest payment status
+    payments = Payment.objects.filter(checkout=checkout)
+    # Assign checkout payments to the order and deactivate unused payments
     for payment in payments:
         payment.order = order
         if payment.charge_status == ChargeStatus.NOT_CHARGED:
