@@ -144,11 +144,13 @@ def _finalize_checkout(
     checkout_info = fetch_checkout_info(
         checkout, lines, discounts, manager  # type: ignore
     )
+
     order, _, _ = complete_checkout(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         payment_data={},
+        payment=payment,
         store_source=False,
         discounts=discounts,
         user=checkout.user or AnonymousUser(),  # type: ignore
