@@ -1,4 +1,4 @@
-from itertools import zip_longest
+from itertools import chain, zip_longest
 from typing import List
 from unittest.mock import Mock, patch
 
@@ -19,16 +19,17 @@ def create_refund_fulfillment_helper(payment_dummy):
         fulfillment_lines: List[FulfillmentLineData] = None,
         refund_shipping_costs: bool = False,
     ):
-        return create_refund_fulfillment(
-            None,
-            None,
-            order,
-            payment_dummy,
-            order_lines or [],
-            fulfillment_lines or [],
-            get_plugins_manager(),
-            refund_shipping_costs,
-        )
+        with patch("saleor.order.actions.gateway.refund"):
+            return create_refund_fulfillment(
+                user=None,
+                app=None,
+                order=order,
+                payment=payment_dummy,
+                order_lines_to_refund=order_lines or [],
+                fulfillment_lines_to_refund=fulfillment_lines or [],
+                manager=get_plugins_manager(),
+                refund_shipping_costs=refund_shipping_costs,
+            )
 
     return factory
 
@@ -130,13 +131,24 @@ def test_create_refund_data_shipping_only(
 
 @patch("saleor.order.actions.gateway.refund")
 @pytest.mark.parametrize(
-    ["refund_shipping_costs", "shipping_line_quantity"], [(True, 0), (False, 1)]
+    [
+        "previous_refund_shipping_costs",
+        "current_refund_shipping_costs",
+        "shipping_line_quantity",
+    ],
+    [
+        (True, True, 0),
+        (True, False, 0),
+        (False, True, 0),
+        (False, False, 1),
+    ],
 )
 def test_create_refund_data_previously_refunded_order_lines(
     _mocked_refund,
     order_with_lines,
     create_refund_fulfillment_helper,
-    refund_shipping_costs,
+    previous_refund_shipping_costs,
+    current_refund_shipping_costs,
     shipping_line_quantity,
 ):
     # given
@@ -150,6 +162,7 @@ def test_create_refund_data_previously_refunded_order_lines(
     create_refund_fulfillment_helper(
         order_with_lines,
         order_lines=previous_order_refund_lines,
+        refund_shipping_costs=previous_refund_shipping_costs,
     )
     current_order_refund_lines = [
         OrderLineData(
@@ -168,7 +181,7 @@ def test_create_refund_data_previously_refunded_order_lines(
         order_with_lines,
         current_order_refund_lines,
         fulfillment_refund_lines,
-        refund_shipping_costs,
+        current_refund_shipping_costs,
     )
 
     # then
@@ -189,25 +202,39 @@ def test_create_refund_data_previously_refunded_order_lines(
     }
 
 
-# TODO: fix???
 @patch("saleor.order.actions.gateway.refund")
 @pytest.mark.parametrize(
-    ["refund_shipping_costs", "shipping_line_quantity"], [(True, 0), (False, 1)]
+    [
+        "previous_refund_shipping_costs",
+        "current_refund_shipping_costs",
+        "shipping_line_quantity",
+    ],
+    [
+        (True, True, 0),
+        (True, False, 0),
+        (False, True, 0),
+        (False, False, 1),
+    ],
 )
 def test_create_refund_data_previously_refunded_fulfillment_lines(
     _mocked_refund,
     fulfilled_order,
     create_refund_fulfillment_helper,
-    refund_shipping_costs,
+    previous_refund_shipping_costs,
+    current_refund_shipping_costs,
     shipping_line_quantity,
 ):
     # given
-    fulfillment_lines = fulfilled_order.fulfillments.first().lines.all()
+    fulfillment_lines = list(
+        chain.from_iterable(f.lines.all() for f in fulfilled_order.fulfillments.all())
+    )
     previous_fulfillment_refund_lines = [
         FulfillmentLineData(line=fulfillment_lines[0], quantity=1)
     ]
     create_refund_fulfillment_helper(
-        fulfilled_order, fulfillment_lines=previous_fulfillment_refund_lines
+        fulfilled_order,
+        fulfillment_lines=previous_fulfillment_refund_lines,
+        refund_shipping_costs=previous_refund_shipping_costs,
     )
     order_refund_lines = []
     current_fulfillment_refund_lines = [
@@ -226,7 +253,7 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
         fulfilled_order,
         order_refund_lines,
         current_fulfillment_refund_lines,
-        refund_shipping_costs,
+        current_refund_shipping_costs,
     )
 
     # then
@@ -240,14 +267,15 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
     ]
     assert refund_data == {
         **{
-            line.order_line.product_sku: line.quantity - refund_line.quantity
-            for line, refund_line in zip(fulfillment_lines, fulfillment_refund_lines)
+            line.product_sku: line.quantity - refund_line.quantity
+            for line, refund_line in zip(
+                fulfilled_order.lines.all(), fulfillment_refund_lines
+            )
         },
         SHIPPING_PAYMENT_LINE_PRODUCT_SKU: shipping_line_quantity,
     }
 
 
-# TODO: fix???
 @patch("saleor.order.actions.gateway.refund")
 @pytest.mark.parametrize(
     [
@@ -256,10 +284,10 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
         "shipping_line_quantity",
     ],
     [
-        (True, True, 1),
-        (True, False, 1),
-        (False, True, 1),
-        (False, False, 0),
+        (True, True, 0),
+        (True, False, 0),
+        (False, True, 0),
+        (False, False, 1),
     ],
 )
 def test_create_refund_data_previously_refunded_shipping_only(
@@ -274,7 +302,6 @@ def test_create_refund_data_previously_refunded_shipping_only(
     create_refund_fulfillment_helper(
         order, refund_shipping_costs=previous_refund_shipping_costs
     )
-    order.refresh_from_db()
     order_refund_lines = []
     fulfillment_refund_lines = []
 

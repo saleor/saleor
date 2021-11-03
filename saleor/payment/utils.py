@@ -212,46 +212,66 @@ def create_payment_information(
     )
 
 
-def create_refund_data(
-    order: Order,
-    order_lines: List[OrderLineData],
-    fulfillment_lines: List[FulfillmentLineData],
-    refund_shipping_costs: bool,
-) -> Dict[str, int]:
-    lines = {line.product_sku: line.quantity for line in order.lines.all()}
+RefundLines = Iterator[Tuple[Any, OrderLine]]
 
-    current_refund_lines: Iterator[Tuple[Any, OrderLine]] = chain.from_iterable(
+
+def _prepare_refund_lines(
+    order: Order,
+    order_lines_to_refund: List[OrderLineData],
+    fulfillment_lines_to_refund: List[FulfillmentLineData],
+) -> RefundLines:
+    previous_refund_lines: Iterator[Tuple[Any, OrderLine]] = chain.from_iterable(
         (
             (line, line.order_line)
             for line in f.lines.filter(fulfillment__status="refunded")
         )
         for f in order.fulfillments.all()
     )
-    order_refund_lines: Iterator[Tuple[Any, OrderLine]] = (
-        (line, line.line) for line in order_lines
-    )
-    fulfillment_refund_lines: Iterator[Tuple[Any, OrderLine]] = (
-        (line, line.line.order_line) for line in fulfillment_lines
+
+    current_order_refund_lines: Iterator[Tuple[Any, OrderLine]] = (
+        (line, line.line) for line in order_lines_to_refund
     )
 
-    refund_lines: Dict[str, int] = defaultdict(int)
+    current_fulfillment_refund_lines: Iterator[Tuple[Any, OrderLine]] = (
+        (line, line.line.order_line) for line in fulfillment_lines_to_refund
+    )
 
-    for line, order_line in chain(
-        current_refund_lines, order_refund_lines, fulfillment_refund_lines
-    ):
-        product_sku = order_line.product_sku
-        quantity = line.quantity
-        refund_lines[product_sku] += quantity
+    return chain(
+        previous_refund_lines,
+        current_order_refund_lines,
+        current_fulfillment_refund_lines,
+    )
+
+
+def create_refund_data(
+    order: Order,
+    order_lines_to_refund: List[OrderLineData],
+    fulfillment_lines_to_refund: List[FulfillmentLineData],
+    refund_shipping_costs: bool,
+) -> Dict[str, int]:
+    order_lines = {line.product_sku: line.quantity for line in order.lines.all()}
+
+    refund_lines = _prepare_refund_lines(
+        order, order_lines_to_refund, fulfillment_lines_to_refund
+    )
+
+    summed_refund_lines: Dict[str, int] = defaultdict(int)
+
+    for line, order_line in refund_lines:
+        summed_refund_lines[order_line.product_sku] += line.quantity
 
     lines = {
-        product_sku: lines[product_sku] - refund_lines[product_sku]
-        for product_sku in refund_lines
+        product_sku: order_lines[product_sku] - summed_refund_lines[product_sku]
+        for product_sku in summed_refund_lines
     }
 
-    if order.fulfillments.exclude(shipping_refund_amount__isnull=True).exists():
-        refund_shipping_costs = True
+    shipping_previously_refunded = order.fulfillments.exclude(
+        shipping_refund_amount__isnull=True
+    ).exists()
 
-    lines[SHIPPING_PAYMENT_LINE_PRODUCT_SKU] = 0 if refund_shipping_costs else 1
+    lines[SHIPPING_PAYMENT_LINE_PRODUCT_SKU] = (
+        0 if shipping_previously_refunded or refund_shipping_costs else 1
+    )
 
     return lines
 
