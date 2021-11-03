@@ -32,7 +32,7 @@ from ....webhook.payloads import (
     generate_product_variant_payload,
 )
 from ...manager import get_plugins_manager
-from ...webhook.tasks import send_webhook_request, trigger_webhooks_async
+from ...webhook.tasks import send_webhook_request_async, trigger_webhooks_async
 
 first_url = "http://www.example.com/first/"
 third_url = "http://www.example.com/third/"
@@ -51,7 +51,7 @@ third_url = "http://www.example.com/third/"
         (WebhookEventType.CUSTOMER_CREATED, 0, set()),
     ],
 )
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request.delay")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.delay")
 def test_trigger_webhooks_for_event_calls_expected_events(
     mock_request,
     event_name,
@@ -464,7 +464,7 @@ def test_create_event_payload_reference_with_error(
     event_payload = EventPayload.objects.create(payload=expected_data)
     trigger_webhooks_async(event_payload, WebhookEventType.ORDER_CREATED)
     delivery = EventDelivery.objects.first()
-    send_webhook_request(delivery.id)
+    send_webhook_request_async(delivery.id)
     attempt = EventDeliveryAttempt.objects.first()
 
     assert delivery.webhook == webhook

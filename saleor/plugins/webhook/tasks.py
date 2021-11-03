@@ -88,23 +88,24 @@ def trigger_webhooks_async(data, event_type):
         event_type=event_type,
     )
     for delivery in deliveries:
-        send_webhook_request.delay(delivery.id)
+        send_webhook_request_async.delay(delivery.id)
 
 
 def trigger_webhook_sync(event_type: str, data: str, app: "App"):
     """Send a synchronous webhook request."""
-    webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())[:1]
+    webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
+    webhook = webhooks.first()
     event_payload = EventPayload.objects.create(payload=data)
-    delivery_list = create_event_delivery_list_for_webhooks(
-        event_payload=event_payload,
-        webhooks=webhooks,
+    delivery = EventDelivery.objects.create(
+        status=EventDeliveryStatus.PENDING,
         event_type=event_type,
+        payload=event_payload,
+        webhook=webhook,
     )
-
     if not webhooks:
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
 
-    return send_webhook_request_sync(app.name, delivery_list[0])
+    return send_webhook_request_sync(app.name, delivery)
 
 
 def send_webhook_using_http(
@@ -235,7 +236,7 @@ def send_webhook_using_scheme_method(
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
 )
-def send_webhook_request(self, event_delivery_id):
+def send_webhook_request_async(self, event_delivery_id):
     try:
         delivery = EventDelivery.objects.select_related("payload", "webhook__app").get(
             id=event_delivery_id
@@ -262,25 +263,33 @@ def send_webhook_request(self, event_delivery_id):
         attempt_update(attempt, response)
         if response.status == EventDeliveryStatus.FAILED:
             task_logger.info(
-                "[Webhook] Failed request to %r: %r.",
+                "[Webhook ID: %r] Failed request to %r: %r for event: %r."
+                " Delivery attempt id: %r",
+                webhook.id,
                 webhook.target_url,
                 response.content,
+                delivery.event_type,
+                attempt.id,
             )
             try:
                 countdown = self.retry_backoff * (2 ** self.request.retries)
                 self.retry(countdown=countdown, **self.retry_kwargs)
             except MaxRetriesExceededError:
                 task_logger.warning(
-                    "[Webhook] Failed request to %r: exceeded retry limit.",
+                    "[Webhook ID: %r] Failed request to %r: exceeded retry limit."
+                    "Delivery id: %r",
+                    webhook.id,
                     webhook.target_url,
+                    delivery.id,
                 )
                 delivery_status = EventDeliveryStatus.FAILED
         delivery_update(delivery, delivery_status)
         task_logger.info(
-            "[Webhook ID:%r] Payload sent to %r for event %r",
+            "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
             webhook.id,
             webhook.target_url,
             delivery.event_type,
+            delivery.id,
         )
     except ValueError as e:
         response = WebhookResponse(content=str(e))
@@ -354,3 +363,70 @@ def send_webhook_request_sync(app_name, delivery):
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
     delivery_update(delivery, response.status)
     return response_data
+
+
+# DEPRECATED
+# to be removed in task: #1q2x7xw
+@app.task(compression="zlib")
+def trigger_webhooks_for_event(event_type, data):
+    """Send a webhook request for an event as an async task."""
+    webhooks = _get_webhooks_for_event(event_type)
+    for webhook in webhooks:
+        send_webhook_request.delay(
+            webhook.app.name,
+            webhook.pk,
+            webhook.target_url,
+            webhook.secret_key,
+            event_type,
+            data,
+        )
+
+
+# to be removed in task: #1q2x7xw
+@app.task(
+    bind=True,
+    retry_backoff=10,
+    retry_kwargs={"max_retries": 5},
+    compression="zlib",
+)
+def send_webhook_request(
+    self, app_name, webhook_id, target_url, secret, event_type, data
+):
+    parts = urlparse(target_url)
+    domain = Site.objects.get_current().domain
+    message = data.encode("utf-8")
+    signature = signature_for_payload(message, secret)
+
+    scheme_matrix = {
+        WebhookSchemes.HTTP: (send_webhook_using_http, RequestException),
+        WebhookSchemes.HTTPS: (send_webhook_using_http, RequestException),
+        WebhookSchemes.AWS_SQS: (send_webhook_using_aws_sqs, ClientError),
+        WebhookSchemes.GOOGLE_CLOUD_PUBSUB: (
+            send_webhook_using_google_cloud_pubsub,
+            pubsub_v1.publisher.exceptions.MessageTooLargeError,
+        ),
+    }
+
+    if methods := scheme_matrix.get(parts.scheme.lower()):
+        send_method, send_exception = methods
+        try:
+            with webhooks_opentracing_trace(event_type, domain, app_name=app_name):
+                send_method(target_url, message, domain, signature, event_type)
+        except send_exception as e:
+            task_logger.info("[Webhook] Failed request to %r: %r.", target_url, e)
+            try:
+                countdown = self.retry_backoff * (2 ** self.request.retries)
+                self.retry(countdown=countdown, **self.retry_kwargs)
+            except MaxRetriesExceededError:
+                task_logger.warning(
+                    "[Webhook] Failed request to %r: exceeded retry limit.",
+                    target_url,
+                )
+        task_logger.info(
+            "[Webhook ID:%r] Payload sent to %r for event %r",
+            webhook_id,
+            target_url,
+            event_type,
+        )
+    else:
+        raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))

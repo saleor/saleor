@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 from ...app.models import App
 from ...core.models import EventPayload
+from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
 from ...webhook.event_types import WebhookEventType
 from ...webhook.payloads import (
@@ -223,7 +224,9 @@ class WebhookPlugin(BasePlugin):
     def notify(self, event: "NotifyEventType", payload: dict, previous_value) -> Any:
         if not self.active:
             return previous_value
-        data = json.dumps({"notify_event": event, "payload": payload})
+        data = json.dumps(
+            {"notify_event": event, "payload": payload}, cls=CustomJsonEncoder
+        )
         trigger_webhooks_async(data, WebhookEventType.NOTIFY_USER)
 
     def page_created(self, page: "Page", previous_value: Any) -> Any:
@@ -394,14 +397,3 @@ class WebhookPlugin(BasePlugin):
             previous_value,
             **kwargs,
         )
-
-    # @staticmethod
-    # def trigger_webhooks_async(payload, event_type):
-    #     webhooks = _get_webhooks_for_event(event_type)
-    #     deliveries = create_event_delivery_list_for_webhooks(
-    #         webhooks=webhooks,
-    #         event_payload=payload,
-    #         event_type=event_type,
-    #     )
-    #     for delivery in deliveries:
-    #         send_webhook_request.delay(delivery.id)

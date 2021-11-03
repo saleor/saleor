@@ -11,6 +11,7 @@ def delete_from_storage_task(path):
     default_storage.delete(path)
 
 
+@app.task
 def delete_event_payloads_task():
     event_payload_delete_period = timezone.now() - EVENT_PAYLOAD_DELETE_PERIOD
     EventDeliveryAttempt.objects.filter(

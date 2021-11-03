@@ -493,7 +493,7 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
-    seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "7 days"))
+    seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
 )
 
 # Change this value if your application is running behind a proxy,
