@@ -943,6 +943,46 @@ def test_checkout_complete_with_payment_id(
     assert new_orders_count == orders_count + 1
 
 
+def test_checkout_complete_with_payment_id_of_a_charged_payment(
+    user_api_client,
+    checkout_with_item,
+    address,
+    shipping_method,
+    payment_dummy_fully_charged,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_dummy_fully_charged
+    payment.order = None
+    payment.checkout = checkout
+    payment.save()
+
+    # when
+    variables = {
+        "token": checkout.token,
+        "redirectUrl": "https://www.example.com",
+        "paymentId": graphene.Node.to_global_id("Payment", payment.pk),
+    }
+    orders_count = Order.objects.count()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    assert not data["confirmationNeeded"]
+    new_orders_count = Order.objects.count()
+    assert new_orders_count == orders_count + 1
+
+    payment.refresh_from_db()
+    assert payment.total == payment.captured_amount
+
+
 def test_checkout_complete_multiple_payments_not_covering_checkout(
     user_api_client, checkout_with_item, address, shipping_method, payment_kwargs
 ):

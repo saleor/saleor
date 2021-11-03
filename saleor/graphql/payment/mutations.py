@@ -14,6 +14,7 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.permissions import OrderPermissions
+from ...core.taxes import zero_money
 from ...core.transactions import transaction_with_commit_on_errors
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
@@ -106,7 +107,12 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 }
             )
 
-        remaining = checkout_total.gross - get_covered_balance(checkout)
+        # for non-partial payments, already covered balance will be released
+        covered_amount = zero_money(checkout.currency)
+        if partial:
+            covered_amount = get_covered_balance(checkout)
+
+        remaining = checkout_total.gross - covered_amount
         if amount > remaining.amount:
             raise ValidationError(
                 {

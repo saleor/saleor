@@ -412,6 +412,41 @@ def test_checkout_add_payment_bad_partial_amount(
     )
 
 
+def test_checkout_add_full_payment_with_already_covered_partial(
+    user_api_client, checkout_without_shipping_required, address, create_payment_input
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    half_total = total.gross / 2
+    assert half_total.amount > 0
+
+    Payment.objects.create(
+        is_active=True,
+        charge_status=ChargeStatus.FULLY_CHARGED,
+        total=half_total.amount,
+        captured_amount=half_total.amount,
+        checkout=checkout,
+    )
+
+    # when
+    variables = create_payment_input(checkout, total.gross.amount, partial=False)
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+
+    # then
+    assert data["payment"]
+
+
 def test_checkout_add_payment_not_supported_gateways(
     user_api_client, checkout_without_shipping_required, address, create_payment_input
 ):
@@ -720,6 +755,42 @@ def test_checkout_payment_complete(
     assert Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should be present until completed"
+
+
+@pytest.mark.integration
+def test_checkout_payment_complete_for_a_charged_payment(
+    checkout_with_item,
+    user_api_client,
+    payment_dummy_fully_charged,
+):
+    # given
+    payment = payment_dummy_fully_charged
+    payment.is_active = True
+    payment.order = None
+    payment.checkout = checkout_with_item
+    payment.save()
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    orders_count_before = Order.objects.count()
+    variables = {
+        "token": checkout_with_item.token,
+        "paymentId": payment_id,
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        CHECKOUT_PAYMENT_COMPLETE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentComplete"]
+    assert not data["errors"]
+
+    # then
+    assert Order.objects.count() == orders_count_before
+
+    payment.refresh_from_db()
+    assert payment.captured_amount == payment.total
 
 
 @patch.object(PluginsManager, "process_payment")

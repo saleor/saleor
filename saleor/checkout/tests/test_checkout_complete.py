@@ -12,6 +12,7 @@ from ...core.taxes import zero_money, zero_taxed_money
 from ...order import OrderEvents
 from ...order.models import OrderEvent
 from ...order.notifications import get_default_order_payload
+from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductTranslation, ProductVariantTranslation
 from ...tests.utils import flush_post_commit_hooks
@@ -923,3 +924,44 @@ def test_create_order_use_translations(
 
     assert order_line.translated_product_name == translated_product_name
     assert order_line.translated_variant_name == translated_variant_name
+
+
+def test_create_order_deactivates_unused_payments(
+    checkout_with_item, address, customer_user, payment_kwargs
+):
+    # given
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+
+    unused_payment = Payment.objects.create(
+        **{
+            **payment_kwargs,
+            **{
+                "checkout": checkout_with_item,
+                "order": None,
+            },
+        }
+    )
+    payments_count = Payment.objects.count()
+
+    # when
+    order = _create_order(
+        checkout_info=checkout_info,
+        order_data=_prepare_order_data(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            discounts=None,
+        ),
+        user=customer_user,
+        app=None,
+        manager=manager,
+    )
+
+    # then
+    assert order.payments.count() == payments_count
+    unused_payment.refresh_from_db()
+    assert not unused_payment.is_active
