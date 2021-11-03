@@ -6,6 +6,7 @@ import pytest
 from .....plugins.manager import get_plugins_manager
 from .....plugins.models import PluginConfiguration
 from ....interface import AddressData, PaymentLineData
+from .. import get_api_config
 from ..const import (
     FILL_MISSING_ADDRESS,
     MERCHANT_CODE,
@@ -87,3 +88,8 @@ def np_payment_data(dummy_payment_data):
         shipping=address_data,
         _resolve_lines=_resolve_lines,
     )
+
+
+@pytest.fixture
+def config(np_atobarai_plugin):
+    return get_api_config(np_atobarai_plugin().config.connection_params)

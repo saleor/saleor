@@ -6,12 +6,7 @@ import pytest
 import requests
 
 from .... import PaymentError
-from .. import api, get_api_config
-
-
-@pytest.fixture
-def config(np_atobarai_plugin):
-    return get_api_config(np_atobarai_plugin().config.connection_params)
+from .. import api
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
