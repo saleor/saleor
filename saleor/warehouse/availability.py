@@ -39,7 +39,7 @@ def check_stock_and_preorder_quantity(
     country_code: str,
     channel_slug: str,
     quantity: int,
-    checkout_lines: Optional[List["CheckoutLineInfo"]] = None,
+    checkout_lines: Optional[List["CheckoutLine"]] = None,
     check_reservations: bool = False,
 ):
     """Validate if there is stock/preorder available for given variant.
