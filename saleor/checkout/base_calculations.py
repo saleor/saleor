@@ -26,7 +26,9 @@ def base_checkout_shipping_price(
     delivery_method_info = checkout_info.delivery_method_info
 
     if isinstance(delivery_method_info, ShippingMethodInfo):
-        return delivery_method_info.delivery_method.price
+        return calculate_price_for_shipping_method(
+            checkout_info, delivery_method_info, lines
+        )
 
     return zero_taxed_money(checkout_info.checkout.currency)
 
@@ -37,7 +39,6 @@ def calculate_price_for_shipping_method(
     lines=None,
 ) -> TaxedMoney:
     """Return checkout shipping price."""
-    raise NotImplementedError
     # FIXME: Optimize checkout.is_shipping_required
     shipping_method = shipping_method_info.delivery_method
 
@@ -51,17 +52,7 @@ def calculate_price_for_shipping_method(
     if not shipping_method or not shipping_required:
         return zero_taxed_money(checkout_info.checkout.currency)
 
-    # external shipping methods have the price field,
-    # while internal methods use channel listings
-    shipping_price = shipping_method.price
-    if shipping_price is None:
-        shipping_price = shipping_method.channel_listings.get(  # type: ignore
-            channel_id=checkout_info.checkout.channel_id,
-        ).get_total()
-
-    return quantize_price(
-        TaxedMoney(net=shipping_price, gross=shipping_price), shipping_price.currency
-    )
+    return shipping_method.price
 
 
 def base_checkout_total(
