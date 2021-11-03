@@ -17,7 +17,6 @@ class ShippingMethodData:
 
     id: str
     name: str
-    # TODO: Convert to TaxedMoney
     price: TaxedMoney
     description: Optional[str] = None
     type: Optional[str] = None
