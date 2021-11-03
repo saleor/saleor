@@ -130,6 +130,8 @@ def check_stock_and_preorder_quantity_bulk(
             preorder_variants,
             preorder_quantities,
             channel_slug,
+            # Unpack lines from LineInfo objects
+            # This is for compat with check_stock_and_preorder_quantity
             [line.line for line in existing_lines],
             check_reservations,
         )

@@ -399,11 +399,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                             def calculate_available_global_quantity_with_reservations(
                                 reserved_quantities,
                             ):
-                                available_quantity = variant.preorder_global_threshold
-                                available_quantity -= global_sold_units
-                                available_quantity -= sum(reserved_quantities)
                                 return min(
-                                    available_quantity,
+                                    variant.preorder_global_threshold
+                                    - global_sold_units
+                                    - sum(reserved_quantities),
                                     settings.MAX_CHECKOUT_LINE_QUANTITY,
                                 )
 
