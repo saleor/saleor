@@ -16,7 +16,7 @@ CREATE_GIFT_CARD_MUTATION = """
             giftCard {
                 id
                 code
-                last4
+                last4CodeChars
                 isActive
                 startDate
                 endDate
@@ -87,7 +87,7 @@ def test_create_never_expiry_gift_card(
     data = content["data"]["giftCardCreate"]["giftCard"]
 
     assert not errors
-    assert data["last4"]
+    assert data["last4CodeChars"]
     assert data["user"]["email"] == staff_api_client.user.email
     assert data["startDate"] is None
     assert data["endDate"] is None

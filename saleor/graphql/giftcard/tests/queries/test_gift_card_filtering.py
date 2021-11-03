@@ -10,7 +10,7 @@ QUERY_GIFT_CARDS = """
             edges {
                 node {
                     id
-                    last4
+                    last4CodeChars
                     product {
                         name
                     }

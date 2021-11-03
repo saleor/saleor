@@ -178,7 +178,7 @@ class GiftCardEvent(CountableDjangoObjectType):
 
 
 class GiftCard(CountableDjangoObjectType):
-    last_4 = graphene.String(
+    last_4_code_chars = graphene.String(
         description="Last 4 characters of gift card code.",
         required=True,
     )
@@ -269,7 +269,7 @@ class GiftCard(CountableDjangoObjectType):
         model = models.GiftCard
 
     @staticmethod
-    def resolve_last_4(root: models.GiftCard, *_args, **_kwargs):
+    def resolve_last_4_code_chars(root: models.GiftCard, *_args, **_kwargs):
         return root.display_code
 
     @staticmethod
