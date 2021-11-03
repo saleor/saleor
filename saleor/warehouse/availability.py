@@ -130,7 +130,7 @@ def check_stock_and_preorder_quantity_bulk(
             preorder_variants,
             preorder_quantities,
             channel_slug,
-            existing_lines,
+            [line.line for line in existing_lines],
             check_reservations,
         )
 
