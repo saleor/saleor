@@ -17,6 +17,7 @@ from .. import FulfillmentStatus, OrderEvents, OrderStatus
 from ..actions import (
     _add_missing_amounts_on_payments,
     _process_refund,
+    _refund_payments,
     automatically_fulfill_digital_lines,
     cancel_fulfillment,
     cancel_order,
@@ -558,6 +559,28 @@ def test_process_refund_calls_add_missing_amounts_on_payments(
     )
     _add_missing_amounts_on_payments_mock.assert_called_once_with(
         refund_amount, payments, order_with_lines, False
+    )
+
+
+@patch("saleor.order.actions.__refund_payment_or_create_event")
+def test_refunding_is_not_called_for_payments_with_zero_amounts(
+    refund_mock, order_with_lines, payment_dummy_fully_charged, payment_txn_captured
+):
+    refund_mock.return_value = None, None
+    order_with_lines.payments.add(payment_dummy_fully_charged)
+    order_with_lines.payments.add(payment_txn_captured)
+    payment_1 = OrderPaymentAction(
+        payment=payment_dummy_fully_charged,
+        amount=payment_dummy_fully_charged.captured_amount,
+    )
+    payment_2 = OrderPaymentAction(payment=payment_txn_captured, amount=Decimal("0"))
+    payments = [payment_1, payment_2]
+    manager = get_plugins_manager()
+
+    _refund_payments(order_with_lines, payments, manager, None, None)
+
+    refund_mock.assert_called_once_with(
+        order_with_lines, payment_1.payment, payment_1.amount, manager, None, None
     )
 
 
