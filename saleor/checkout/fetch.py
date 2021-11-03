@@ -324,8 +324,7 @@ def update_checkout_info_shipping_address(
     )
 
 
-# TODO: rename as this suggests local delivery (Glovo) rather than saleor internal logic
-def get_valid_local_shipping_method_list_for_checkout_info(
+def get_valid_saleor_shipping_method_list_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
@@ -368,7 +367,7 @@ def get_valid_shipping_method_list_for_checkout_info(
 ) -> List["ShippingMethodData"]:
     return list(
         itertools.chain(
-            get_valid_local_shipping_method_list_for_checkout_info(
+            get_valid_saleor_shipping_method_list_for_checkout_info(
                 checkout_info, shipping_address, lines, discounts, manager
             ),
             get_valid_external_shipping_method_list_for_checkout_info(
