@@ -527,13 +527,23 @@ class CheckoutLinesAdd(BaseMutation):
             channel_slug,
             lines=lines,
         )
-        variants_db_ids = {variant.id for variant in variants}
-        validate_variants_available_for_purchase(variants_db_ids, checkout.channel_id)
-        validate_variants_available_in_channel(
-            variants_db_ids,
-            checkout.channel_id,
-            CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
-        )
+
+        variants_ids_to_validate = {
+            variant.id
+            for variant, quantity in zip(variants, quantities)
+            if quantity != 0
+        }
+
+        # validate variant only when line quantity is bigger than 0
+        if variants_ids_to_validate:
+            validate_variants_available_for_purchase(
+                variants_ids_to_validate, checkout.channel_id
+            )
+            validate_variants_available_in_channel(
+                variants_ids_to_validate,
+                checkout.channel_id,
+                CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
+            )
 
         if variants and quantities:
             try:

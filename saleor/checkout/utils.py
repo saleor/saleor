@@ -174,10 +174,11 @@ def add_variants_to_checkout(
     channel_listings_by_product_id = {cl.product_id: cl for cl in channel_listings}
 
     # check if variants are published
-    for variant in variants:
-        product_channel_listing = channel_listings_by_product_id[variant.product_id]
-        if not product_channel_listing or not product_channel_listing.is_published:
-            raise ProductNotPublished()
+    for variant, quantity in zip(variants, quantities):
+        if quantity > 0:
+            product_channel_listing = channel_listings_by_product_id[variant.product_id]
+            if not product_channel_listing or not product_channel_listing.is_published:
+                raise ProductNotPublished()
 
     checkout_lines = checkout.lines.select_related("variant")
     variant_ids_in_lines = {line.variant_id: line for line in checkout_lines}
