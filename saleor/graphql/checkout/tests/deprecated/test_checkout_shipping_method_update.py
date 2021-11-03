@@ -66,7 +66,7 @@ def test_checkout_shipping_method_update_by_id(
         ),
         None,
     )
-    checkout_info.shipping_method_channel_listings = None
+    checkout_info.shipping_method_channel_listing = None
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info,
         lines=lines,
@@ -111,7 +111,7 @@ def test_checkout_shipping_method_update_by_token(
         ),
         None,
     )
-    checkout_info.shipping_method_channel_listings = None
+    checkout_info.shipping_method_channel_listing = None
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info,
         lines=lines,

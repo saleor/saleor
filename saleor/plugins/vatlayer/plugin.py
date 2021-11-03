@@ -224,8 +224,8 @@ class VatlayerPlugin(BasePlugin):
             checkout_info.delivery_method_info.delivery_method, "price", None
         )
         if shipping_price is None:
-            if checkout_info.shipping_method_channel_listings:
-                shipping_price = checkout_info.shipping_method_channel_listings.price
+            if checkout_info.shipping_method_channel_listing:
+                shipping_price = checkout_info.shipping_method_channel_listing.price
             else:
                 shipping_price = previous_value
 

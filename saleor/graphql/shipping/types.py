@@ -136,27 +136,12 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_price(root: ChannelContext[ShippingMethodData], info, **_kwargs):
-        # Price field are dynamically generated in available_shipping_methods resolver
         price = root.node.price
         if price is not None:
             if info.context.site.settings.display_gross_prices:
                 return price.gross
             else:
                 return price.net
-
-        if not root.channel_slug:
-            return None
-
-        if getattr(root.node, "is_external", False):
-            return None
-
-        return (
-            ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
-                info.context
-            )
-            .load((root.node.id, root.channel_slug))
-            .then(lambda channel_listing: channel_listing.price)
-        )
 
     @staticmethod
     def resolve_maximum_order_price(

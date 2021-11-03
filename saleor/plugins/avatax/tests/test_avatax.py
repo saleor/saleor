@@ -969,7 +969,8 @@ def test_get_checkout_line_tax_rate(
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listing=None,
+        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -1028,7 +1029,8 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listing=None,
+        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -1101,7 +1103,8 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listing=None,
+        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -1332,7 +1335,8 @@ def test_get_checkout_shipping_tax_rate(
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listing=None,
+        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )

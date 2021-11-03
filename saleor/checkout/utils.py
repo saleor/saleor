@@ -643,7 +643,6 @@ def get_valid_saleor_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     subtotal: "TaxedMoney",
-    channel_listings: Optional[List["ShippingMethodChannelListing"]] = None,
     country_code: Optional[str] = None,
 ) -> List[ShippingMethodData]:
     if not is_shipping_required(lines):
@@ -651,13 +650,7 @@ def get_valid_saleor_shipping_methods_for_checkout(
     if not checkout_info.shipping_address:
         return []
 
-    # TODO: optimize me
-    if channel_listings is None:
-        channel_listings = list(
-            ShippingMethodChannelListing.objects.filter(channel=checkout_info.channel)
-        )
-
-    saleor_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
+    queryset = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,
         price=subtotal.gross,
@@ -667,19 +660,22 @@ def get_valid_saleor_shipping_methods_for_checkout(
 
     channel_listings_map = {
         listing.shipping_method_id: listing
-        for listing in channel_listings
-        if channel_listings
+        for listing in checkout_info.shipping_method_channel_listings
     }
 
-    def get_price(method):
+    saleor_methods = []
+    for method in queryset:
         listing = channel_listings_map.get(method.pk)
-        if listing:
-            return identical_taxed_money(listing.price)
+        if not listing:
+            continue
 
-    return [
-        convert_to_shipping_method_data(shipping, get_price(shipping))  # type: ignore
-        for shipping in saleor_methods
-    ]
+        saleor_methods.append(
+            convert_to_shipping_method_data(
+                method, identical_taxed_money(listing.price)
+            )
+        )
+
+    return saleor_methods
 
 
 def get_valid_external_shipping_methods_for_checkout(

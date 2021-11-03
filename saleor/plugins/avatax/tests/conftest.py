@@ -85,8 +85,8 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
     shipping_address = checkout.shipping_address
     shipping_method = checkout.shipping_method
     shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
-        shipping_method=shipping_method, channel=channel
-    ).first()
+        channel=channel
+    )
     checkout_info = CheckoutInfo(
         checkout=checkout,
         user=checkout.user,
@@ -98,6 +98,9 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
                 shipping_method, zero_taxed_money(checkout.currency)
             ),
             shipping_address,
+        ),
+        shipping_method_channel_listing=shipping_channel_listings.get(
+            shipping_method=shipping_method
         ),
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=[],

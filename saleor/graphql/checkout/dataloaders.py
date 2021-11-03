@@ -25,7 +25,7 @@ from ..product.dataloaders import (
 )
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
-    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+    ShippingMethodChannelListingByChannelSlugLoader,
 )
 from ..warehouse.dataloaders import WarehouseByIdLoader
 
@@ -188,15 +188,11 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                 shipping_methods = ShippingMethodByIdLoader(self.context).load_many(
                     shipping_method_ids
                 )
-                shipping_method_ids_channel_slugs = [
-                    (checkout.shipping_method_id, channel.slug)
-                    for checkout, channel in zip(checkouts, channels)
-                    if checkout.shipping_method_id
-                ]
+                channel_slugs = [channel.slug for channel in channels]
                 shipping_method_channel_listings = (
-                    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                    ShippingMethodChannelListingByChannelSlugLoader(
                         self.context
-                    ).load_many(shipping_method_ids_channel_slugs)
+                    ).load_many(channel_slugs)
                 )
                 collection_point_ids = [
                     checkout.collection_point_id
@@ -212,7 +208,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         addresses,
                         users,
                         shipping_methods,
-                        channel_listings,
+                        listings_for_channels,
                         collection_points,
                     ) = results
                     address_map = {address.id: address for address in addresses}
@@ -223,6 +219,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                     }
                     shipping_method_channel_listing_map = {
                         (listing.shipping_method_id, listing.channel_id): listing
+                        for channel_listings in listings_for_channels
                         for listing in channel_listings
                         if listing
                     }
@@ -264,7 +261,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         delivery_method_info = get_delivery_method_info(
                             delivery_method, shipping_address
                         )
-
                         checkout_info = CheckoutInfo(
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
@@ -278,11 +274,17 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             delivery_method_info=delivery_method_info,
                             valid_shipping_methods=[],
                             valid_pick_up_points=[],
-                            shipping_method_channel_listings=(
+                            shipping_method_channel_listing=(
                                 shipping_method_channel_listing_map.get(
                                     (checkout.shipping_method_id, channel.id)
                                 )
                             ),
+                            shipping_method_channel_listings=[
+                                listing
+                                for channel_listings in listings_for_channels
+                                for listing in channel_listings
+                                if listing.channel_id == channel.id
+                            ],
                         )
 
                         def fetch_valid_shipping_methods():

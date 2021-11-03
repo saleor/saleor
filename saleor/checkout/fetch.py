@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 from django.utils.encoding import smart_text
 
-from ..core.taxes import identical_taxed_money
+from ..core.taxes import identical_taxed_money, zero_taxed_money
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
@@ -47,7 +47,8 @@ class CheckoutInfo:
     delivery_method_info: "DeliveryMethodBase"
     valid_shipping_methods: List["ShippingMethodData"]
     valid_pick_up_points: List["Warehouse"]
-    shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
+    shipping_method_channel_listing: Optional[ShippingMethodChannelListing]
+    shipping_method_channel_listings: List[ShippingMethodChannelListing]
 
     @property
     def valid_delivery_methods(
@@ -101,7 +102,7 @@ class DeliveryMethodBase:
         return False
 
     def update_channel_listings(self, checkout_info: "CheckoutInfo") -> None:
-        checkout_info.shipping_method_channel_listings = None
+        checkout_info.shipping_method_channel_listing = None
 
 
 @dataclass(frozen=True)
@@ -132,7 +133,7 @@ class ShippingMethodInfo(DeliveryMethodBase):
 
     def update_channel_listings(self, checkout_info: "CheckoutInfo") -> None:
         if not self.delivery_method.is_external:
-            checkout_info.shipping_method_channel_listings = (
+            checkout_info.shipping_method_channel_listing = (
                 ShippingMethodChannelListing.objects.filter(
                     shipping_method_id=int(self.delivery_method.id),
                     channel=checkout_info.channel,
@@ -249,19 +250,30 @@ def fetch_checkout_info(
 
     channel = checkout.channel
     shipping_address = checkout.shipping_address
+    shipping_channel_listings = list(
+        ShippingMethodChannelListing.objects.filter(channel=channel)
+    )
 
     shipping_method = checkout.shipping_method
+    shipping_channel_listing = None
     if shipping_method:
-        shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
-            shipping_method=shipping_method, channel=channel
-        ).get()
+        # Find listing for the currently selected shipping method
+        for listing in shipping_channel_listings:
+            if listing.shipping_method_id == shipping_method.id:
+                shipping_channel_listing = listing
+                price = listing.price
+                break
+
+        # Price cannot be undefined for a selected shipping method
+        else:
+            price = zero_taxed_money(checkout.currency)
+
         delivery_method: Optional[
             Union["ShippingMethodData", "Warehouse"]
         ] = convert_to_shipping_method_data(
-            shipping_method, identical_taxed_money(shipping_channel_listings.price)
+            shipping_method, identical_taxed_money(price)
         )
     else:
-        shipping_channel_listings = None  # type: ignore
         delivery_method = checkout.collection_point
 
     if not delivery_method:
@@ -280,6 +292,7 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
+        shipping_method_channel_listing=shipping_channel_listing,
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=[],
         valid_pick_up_points=[],

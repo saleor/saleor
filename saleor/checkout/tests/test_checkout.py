@@ -116,7 +116,7 @@ def test_clear_delivery_method(checkout, shipping_method):
     checkout.refresh_from_db()
     assert not checkout.shipping_method
     assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
-    assert not checkout_info.shipping_method_channel_listings
+    assert not checkout_info.shipping_method_channel_listing
 
 
 def test_last_change_update(checkout):
@@ -188,7 +188,8 @@ def test_get_discount_for_checkout_value_voucher(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listing=None,
+        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
         delivery_method_info=get_delivery_method_info(None, None),
@@ -284,7 +285,8 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listing=None,
+        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -398,7 +400,8 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listing=None,
+        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -474,7 +477,8 @@ def test_get_discount_for_checkout_shipping_voucher(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listing=None,
+        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -534,7 +538,8 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listing=None,
+        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -580,7 +585,8 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listing=None,
+        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -724,7 +730,8 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
+        shipping_method_channel_listing=None,
+        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )

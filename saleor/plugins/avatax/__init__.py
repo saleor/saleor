@@ -269,7 +269,7 @@ def get_checkout_lines_data(
 
     append_shipping_to_data(
         data,
-        checkout_info.shipping_method_channel_listings,
+        checkout_info.shipping_method_channel_listing,
     )
     return data
 
