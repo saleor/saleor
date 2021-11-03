@@ -39,7 +39,7 @@ def check_stock_and_preorder_quantity(
     country_code: str,
     channel_slug: str,
     quantity: int,
-    checkout_lines: Optional[List["CheckoutLine"]] = None,
+    checkout_lines: Optional[List["CheckoutLineInfo"]] = None,
     check_reservations: bool = False,
 ):
     """Validate if there is stock/preorder available for given variant.
@@ -234,7 +234,7 @@ def check_preorder_threshold_bulk(
     variants: Iterable["ProductVariant"],
     quantities: Iterable[int],
     channel_slug: str,
-    checkout_lines: Optional[List["CheckoutLineInfo"]] = None,
+    checkout_lines: Optional[List["CheckoutLine"]] = None,
     check_reservations: bool = False,
 ):
     """Validate if there is enough preordered variants according to thresholds.
@@ -279,7 +279,7 @@ def check_preorder_threshold_bulk(
                 quantity_reserved__gt=0,
             )
             .not_expired()
-            .exclude_checkout_lines([line.line for line in checkout_lines])
+            .exclude_checkout_lines(checkout_lines)
             .values("product_variant_channel_listing")
             .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
         )  # type: ignore
