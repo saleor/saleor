@@ -957,13 +957,6 @@ def test_checkout_complete_with_payment_id_of_a_charged_payment(
     checkout.billing_address = address
     checkout.save()
 
-    # manager = get_plugins_manager()
-    # lines = fetch_checkout_lines(checkout)
-    # checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    # total = calculations.calculate_checkout_total_with_gift_cards(
-    #     manager, checkout_info, lines, address
-    # )
-
     payment = payment_dummy_fully_charged
     payment.order = None
     payment.checkout = checkout

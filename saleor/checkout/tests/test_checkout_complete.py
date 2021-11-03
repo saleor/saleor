@@ -946,6 +946,7 @@ def test_create_order_deactivates_unused_payments(
         }
     )
     payments_count = Payment.objects.count()
+
     # when
     order = _create_order(
         checkout_info=checkout_info,
@@ -959,6 +960,7 @@ def test_create_order_deactivates_unused_payments(
         app=None,
         manager=manager,
     )
+
     # then
     assert order.payments.count() == payments_count
     unused_payment.refresh_from_db()

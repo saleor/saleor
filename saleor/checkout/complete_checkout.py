@@ -413,7 +413,7 @@ def _create_order(
         if payment.charge_status == ChargeStatus.NOT_CHARGED:
             payment.is_active = False
 
-    Payment.objects.bulk_update(payments, fields=["order", "is_active"])
+    Payment.objects.bulk_update(payments, fields=["order", "is_active", "modified"])
 
     # copy metadata from the checkout into the new order
     order.metadata = checkout.metadata
