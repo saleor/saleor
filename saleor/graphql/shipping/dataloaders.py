@@ -125,22 +125,18 @@ class ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(DataLoa
     def batch_load(self, keys):
         shipping_method_ids = [key[0] for key in keys]
         channel_slugs = [key[1] for key in keys]
-        shipping_method_channel_listings = ShippingMethodChannelListing.objects.filter(
-            shipping_method_id__in=shipping_method_ids, channel__slug__in=channel_slugs
-        ).annotate(channel_slug=F("channel__slug"))
-        shipping_method_channel_listings_by_shipping_method_and_channel_map = {}
-        for shipping_method_channel_listing in shipping_method_channel_listings:
-            key = (
-                shipping_method_channel_listing.shipping_method_id,
-                shipping_method_channel_listing.channel_slug,
-            )
-            shipping_method_channel_listings_by_shipping_method_and_channel_map[
-                key
-            ] = shipping_method_channel_listing
-        return [
-            shipping_method_channel_listings_by_shipping_method_and_channel_map.get(key)
-            for key in keys
-        ]
+
+        def _find_listing_by_shipping_method_id(listings_by_channel):
+            for method_id, listings in zip(shipping_method_ids, listings_by_channel):
+                for listing in listings:
+                    if method_id == listing.shipping_method_id:
+                        return listing
+
+        return (
+            ShippingMethodChannelListingByChannelSlugLoader(self.context)
+            .load_many(channel_slugs)
+            .then(_find_listing_by_shipping_method_id)
+        )
 
 
 class ChannelsByShippingZoneIdLoader(DataLoader):

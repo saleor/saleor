@@ -32,7 +32,7 @@ from ..product.dataloaders import (
 )
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
-    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+    ShippingMethodChannelListingByChannelSlugLoader,
 )
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
@@ -314,19 +314,24 @@ class Checkout(CountableDjangoObjectType):
         def with_shipping_method_and_channel(data):
             shipping_method, channel = data
 
-            def wrap_shipping_method_with_channel_context(listing):
+            def wrap_shipping_method_with_channel_context(listings):
+                for listing in listings:
+                    if listing.shipping_method_id == shipping_method.id:
+                        price = listing.price
+                        break
+                else:
+                    price = 0
+
                 return ChannelContext(
                     node=convert_to_shipping_method_data(
-                        shipping_method, identical_taxed_money(listing.price)
+                        shipping_method, identical_taxed_money(price)
                     ),
                     channel_slug=channel.slug,
                 )
 
             return (
-                ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
-                    info.context
-                )
-                .load((root.shipping_method_id, channel.slug))
+                ShippingMethodChannelListingByChannelSlugLoader(info.context)
+                .load(channel.slug)
                 .then(wrap_shipping_method_with_channel_context)
             )
 

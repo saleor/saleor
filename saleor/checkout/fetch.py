@@ -4,6 +4,7 @@ from functools import singledispatch
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 from django.utils.encoding import smart_text
+from django.utils.functional import SimpleLazyObject
 
 from ..core.taxes import identical_taxed_money, zero_taxed_money
 from ..shipping.interface import ShippingMethodData
@@ -250,8 +251,8 @@ def fetch_checkout_info(
 
     channel = checkout.channel
     shipping_address = checkout.shipping_address
-    shipping_channel_listings = list(
-        ShippingMethodChannelListing.objects.filter(channel=channel)
+    shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
+        channel=channel
     )
 
     shipping_method = checkout.shipping_method
@@ -293,7 +294,9 @@ def fetch_checkout_info(
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
         shipping_method_channel_listing=shipping_channel_listing,
-        shipping_method_channel_listings=shipping_channel_listings,
+        shipping_method_channel_listings=SimpleLazyObject(
+            lambda: list(shipping_channel_listings),
+        ),  # type: ignore
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
