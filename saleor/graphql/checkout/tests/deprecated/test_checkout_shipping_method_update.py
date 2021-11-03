@@ -2,6 +2,8 @@ from unittest.mock import patch
 
 import graphene
 
+from saleor.core.taxes import zero_taxed_money
+
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import (
     fetch_checkout_info,
@@ -60,13 +62,18 @@ def test_checkout_shipping_method_update_by_id(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     checkout_info.delivery_method_info = get_delivery_method_info(
-        convert_to_shipping_method_data(old_shipping_method), None
+        convert_to_shipping_method_data(
+            old_shipping_method, zero_taxed_money(checkout.currency)
+        ),
+        None,
     )
     checkout_info.shipping_method_channel_listings = None
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info,
         lines=lines,
-        method=convert_to_shipping_method_data(shipping_method),
+        method=convert_to_shipping_method_data(
+            shipping_method, zero_taxed_money(checkout.currency)
+        ),
     )
     errors = data["errors"]
     assert not errors
@@ -100,13 +107,18 @@ def test_checkout_shipping_method_update_by_token(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     checkout_info.delivery_method_info = get_delivery_method_info(
-        convert_to_shipping_method_data(old_shipping_method), None
+        convert_to_shipping_method_data(
+            old_shipping_method, zero_taxed_money(checkout.currency)
+        ),
+        None,
     )
     checkout_info.shipping_method_channel_listings = None
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info,
         lines=lines,
-        method=convert_to_shipping_method_data(shipping_method),
+        method=convert_to_shipping_method_data(
+            shipping_method, zero_taxed_money(checkout.currency)
+        ),
     )
     errors = data["errors"]
     assert not errors

@@ -135,15 +135,14 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
         return graphene.Node.to_global_id("ShippingMethod", root.node.id)
 
     @staticmethod
-    def resolve_price(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
-        info,
-        **_kwargs
-    ):
+    def resolve_price(root: ChannelContext[ShippingMethodData], info, **_kwargs):
         # Price field are dynamically generated in available_shipping_methods resolver
-        price = getattr(root.node, "price", None)
+        price = root.node.price
         if price is not None:
-            return price
+            if info.context.site.settings.display_gross_prices:
+                return price.gross
+            else:
+                return price.net
 
         if not root.channel_slug:
             return None
@@ -161,7 +160,8 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_maximum_order_price(
-        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
+        # root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
+        root: ChannelContext[ShippingMethodData],
         info,
         **_kwargs
     ):
@@ -313,6 +313,10 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         root: ChannelContext[models.ShippingZone], info, **_kwargs
     ):
         def wrap_shipping_method_with_channel_context(shipping_methods):
+            # TODO: ShippingMethodType has no price attribute
+            for shipping in shipping_methods:
+                shipping.price = None
+
             shipping_methods = [
                 ChannelContext(node=shipping, channel_slug=root.channel_slug)
                 for shipping in shipping_methods

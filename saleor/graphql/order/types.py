@@ -20,7 +20,6 @@ from ...core.permissions import (
     ProductPermissions,
     has_one_of_permissions,
 )
-from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
@@ -1092,7 +1091,6 @@ class Order(CountableDjangoObjectType):
         available = get_valid_shipping_methods_for_order(root)
         if available is not None:
             available_shipping_methods = []
-            display_gross = display_gross_prices()
             channel_slug = root.channel.slug
             for shipping_method in available:
                 # Ignore typing check because it is checked in
@@ -1107,10 +1105,7 @@ class Order(CountableDjangoObjectType):
                         root.shipping_address,  # type: ignore
                         channel_slug,
                     )
-                    if display_gross:
-                        shipping_method.price = taxed_price.gross
-                    else:
-                        shipping_method.price = taxed_price.net
+                    shipping_method.price = taxed_price
                     available_shipping_methods.append(shipping_method)
             instances = [
                 ChannelContext(node=shipping, channel_slug=channel_slug)

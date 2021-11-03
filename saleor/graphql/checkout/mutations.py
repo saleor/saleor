@@ -9,6 +9,8 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 from graphql.error import GraphQLError
 
+from saleor.core.taxes import identical_taxed_money
+
 from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
@@ -1260,7 +1262,17 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 "postal_code_rules"
             ),
         )
-        delivery_method = convert_to_shipping_method_data(shipping_method)
+        delivery_method = convert_to_shipping_method_data(
+            shipping_method,
+            identical_taxed_money(
+                shipping_models.ShippingMethodChannelListing.objects.filter(
+                    shipping_method=shipping_method,
+                    channel=checkout_info.checkout.channel,
+                )
+                .get()
+                .price
+            ),
+        )
 
         cls._check_delivery_method(
             checkout_info, lines, delivery_method=delivery_method
@@ -1336,7 +1348,17 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             ),
         )
 
-        delivery_method = convert_to_shipping_method_data(shipping_method)
+        delivery_method = convert_to_shipping_method_data(
+            shipping_method,
+            identical_taxed_money(
+                shipping_models.ShippingMethodChannelListing.objects.filter(
+                    shipping_method=shipping_method,
+                    channel=checkout_info.checkout.channel,
+                )
+                .get()
+                .price
+            ),
+        )
         cls._check_delivery_method(
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )

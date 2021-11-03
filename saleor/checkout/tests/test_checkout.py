@@ -9,15 +9,16 @@ from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
+from saleor.shipping.interface import ShippingMethodData
+
 from ...account.models import Address, User
 from ...account.utils import store_user_address
-from ...core.taxes import zero_money
+from ...core.taxes import identical_taxed_money, zero_money
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
-from ...shipping.models import ShippingMethod, ShippingZone
-from ...shipping.utils import convert_to_shipping_method_data
+from ...shipping.models import ShippingZone
 from .. import AddressType, calculations
 from ..fetch import (
     CheckoutInfo,
@@ -428,6 +429,7 @@ def test_get_discount_for_checkout_shipping_voucher(
     monkeypatch,
     channel_USD,
     shipping_method,
+    shipping_method_data,
 ):
     manager = get_plugins_manager()
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
@@ -468,7 +470,7 @@ def test_get_discount_for_checkout_shipping_voucher(
         checkout=checkout,
         shipping_address=shipping_address,
         delivery_method_info=get_delivery_method_info(
-            convert_to_shipping_method_data(shipping_method), shipping_address
+            shipping_method_data, shipping_address
         ),
         billing_address=None,
         channel=channel_USD,
@@ -485,7 +487,7 @@ def test_get_discount_for_checkout_shipping_voucher(
 
 
 def test_get_discount_for_checkout_shipping_voucher_all_countries(
-    monkeypatch, channel_USD, shipping_method
+    monkeypatch, channel_USD, shipping_method, shipping_method_data
 ):
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
@@ -528,9 +530,7 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     manager = get_plugins_manager()
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        delivery_method_info=get_delivery_method_info(
-            convert_to_shipping_method_data(shipping_method), None
-        ),
+        delivery_method_info=get_delivery_method_info(shipping_method_data),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
@@ -591,17 +591,13 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
 
 
 @pytest.mark.parametrize(
-    "is_shipping_required, shipping_method, discount_value, discount_type,"
+    "is_shipping_required, shipping_method_data, discount_value, discount_type,"
     "countries, min_spent_amount, min_checkout_items_quantity, subtotal,"
     "total_quantity, error_msg",
     [
         (
             True,
-            Mock(
-                spec=ShippingMethod,
-                get_total=Mock(return_value=Money(10, "USD")),
-                shipping_zone=Mock(countries=["PL"]),
-            ),
+            ShippingMethodData("1", "test", identical_taxed_money(Money(10, "USD"))),
             10,
             DiscountValueType.FIXED,
             ["US"],
@@ -637,7 +633,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            Mock(spec=ShippingMethod, price=Money(10, "USD")),
+            ShippingMethodData("1", "test", identical_taxed_money(Money(10, "USD"))),
             10,
             DiscountValueType.FIXED,
             [],
@@ -649,7 +645,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            Mock(spec=ShippingMethod, price=Money(10, "USD")),
+            ShippingMethodData("1", "test", identical_taxed_money(Money(10, "USD"))),
             10,
             DiscountValueType.FIXED,
             [],
@@ -661,7 +657,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            Mock(spec=ShippingMethod, price=Money(10, "USD")),
+            ShippingMethodData("1", "test", identical_taxed_money(Money(10, "USD"))),
             10,
             DiscountValueType.FIXED,
             [],
@@ -676,6 +672,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
 def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     is_shipping_required,
     shipping_method,
+    shipping_method_data,
     discount_value,
     discount_type,
     countries,
@@ -723,9 +720,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        delivery_method_info=get_delivery_method_info(
-            convert_to_shipping_method_data(shipping_method)
-        ),
+        delivery_method_info=get_delivery_method_info(shipping_method_data),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,

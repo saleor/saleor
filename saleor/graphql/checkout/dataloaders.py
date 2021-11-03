@@ -4,13 +4,16 @@ from django.db.models import F
 from django.utils.functional import SimpleLazyObject
 from promise import Promise
 
-from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo, get_delivery_method_info
-from ...checkout.models import Checkout, CheckoutLine
-from ...checkout.utils import (
-    get_external_shipping_id,
-    get_valid_external_shipping_methods_for_checkout,
-    get_valid_saleor_shipping_methods_for_checkout,
+from saleor.core.taxes import identical_taxed_money
+
+from ...checkout.fetch import (
+    CheckoutInfo,
+    CheckoutLineInfo,
+    get_delivery_method_info,
+    get_valid_shipping_method_list_for_checkout_info,
 )
+from ...checkout.models import Checkout, CheckoutLine
+from ...checkout.utils import get_external_shipping_id
 from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
@@ -241,7 +244,12 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
 
                         if shipping_method:
                             delivery_method = convert_to_shipping_method_data(
-                                shipping_method
+                                shipping_method,
+                                identical_taxed_money(
+                                    shipping_method_channel_listing_map.get(
+                                        (checkout.shipping_method_id, channel.id)
+                                    ).price
+                                ),
                             )
                         elif external_app_shipping_id:
                             delivery_method = self.context.plugins.get_shipping_method(
@@ -282,37 +290,15 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             if not shipping_address:
                                 return []
 
-                            channel_listings_in_channel = [
-                                listing
-                                for listing in (
-                                    shipping_method_channel_listing_map.values()
-                                )
-                                if listing.channel_id == checkout.channel_id
-                            ]
                             manager = self.context.plugins
                             discounts = self.context.discounts
-                            subtotal = manager.calculate_checkout_subtotal(
+                            return get_valid_shipping_method_list_for_checkout_info(
                                 checkout_info,
-                                checkout_lines,
                                 shipping_address,
+                                checkout_lines,
                                 discounts,
+                                manager,
                             )
-                            return [
-                                *get_valid_saleor_shipping_methods_for_checkout(
-                                    checkout_info,
-                                    checkout_lines,
-                                    subtotal,
-                                    channel_listings_in_channel,
-                                    country_code=shipping_address.country,
-                                ),
-                                *get_valid_external_shipping_methods_for_checkout(
-                                    checkout_info,
-                                    checkout_lines,
-                                    subtotal,
-                                    manager,
-                                    country_code=shipping_address.country,
-                                ),
-                            ]
 
                         checkout_info.valid_shipping_methods = SimpleLazyObject(
                             fetch_valid_shipping_methods

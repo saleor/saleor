@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 from django.utils.encoding import smart_text
 
+from ..core.taxes import identical_taxed_money
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
@@ -248,17 +249,19 @@ def fetch_checkout_info(
 
     channel = checkout.channel
     shipping_address = checkout.shipping_address
-    shipping_channel_listings = None
 
     shipping_method = checkout.shipping_method
     if shipping_method:
         shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
             shipping_method=shipping_method, channel=channel
-        ).first()
+        ).get()
         delivery_method: Optional[
             Union["ShippingMethodData", "Warehouse"]
-        ] = convert_to_shipping_method_data(shipping_method)
+        ] = convert_to_shipping_method_data(
+            shipping_method, identical_taxed_money(shipping_channel_listings.price)
+        )
     else:
+        shipping_channel_listings = None  # type: ignore
         delivery_method = checkout.collection_point
 
     if not delivery_method:
@@ -339,9 +342,6 @@ def get_valid_local_shipping_method_list_for_checkout_info(
     valid_shipping_method = get_valid_saleor_shipping_methods_for_checkout(
         checkout_info, lines, subtotal, country_code=country_code
     )
-
-    if valid_shipping_method is None:
-        return []
 
     return valid_shipping_method
 

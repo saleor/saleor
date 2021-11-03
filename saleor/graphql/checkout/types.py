@@ -1,6 +1,8 @@
 import graphene
 from promise import Promise
 
+from saleor.shipping.utils import convert_to_shipping_method_data
+
 from ...checkout import calculations, models
 from ...checkout.utils import (
     get_external_shipping_id,
@@ -8,7 +10,7 @@ from ...checkout.utils import (
 )
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
-from ...core.taxes import zero_taxed_money
+from ...core.taxes import identical_taxed_money, zero_taxed_money
 from ...core.tracing import traced_resolver
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
@@ -29,7 +31,10 @@ from ..product.dataloaders import (
     ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
 )
-from ..shipping.dataloaders import ShippingMethodByIdLoader
+from ..shipping.dataloaders import (
+    ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+)
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import (
@@ -307,9 +312,24 @@ class Checkout(CountableDjangoObjectType):
         if not root.shipping_method_id:
             return None
 
-        def wrap_shipping_method_with_channel_context(data):
+        def with_shipping_method_and_channel(data):
             shipping_method, channel = data
-            return ChannelContext(node=shipping_method, channel_slug=channel.slug)
+
+            def wrap_shipping_method_with_channel_context(listing):
+                return ChannelContext(
+                    node=convert_to_shipping_method_data(
+                        shipping_method, identical_taxed_money(listing.price)
+                    ),
+                    channel_slug=channel.slug,
+                )
+
+            return (
+                ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                    info.context
+                )
+                .load((root.shipping_method_id, channel.slug))
+                .then(wrap_shipping_method_with_channel_context)
+            )
 
         shipping_method = ShippingMethodByIdLoader(info.context).load(
             root.shipping_method_id
@@ -317,7 +337,7 @@ class Checkout(CountableDjangoObjectType):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 
         return Promise.all([shipping_method, channel]).then(
-            wrap_shipping_method_with_channel_context
+            with_shipping_method_and_channel
         )
 
     @staticmethod

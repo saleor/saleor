@@ -26,9 +26,7 @@ def base_checkout_shipping_price(
     delivery_method_info = checkout_info.delivery_method_info
 
     if isinstance(delivery_method_info, ShippingMethodInfo):
-        return calculate_price_for_shipping_method(
-            checkout_info, delivery_method_info, lines
-        )
+        return delivery_method_info.delivery_method.price
 
     return zero_taxed_money(checkout_info.checkout.currency)
 
@@ -39,6 +37,7 @@ def calculate_price_for_shipping_method(
     lines=None,
 ) -> TaxedMoney:
     """Return checkout shipping price."""
+    raise NotImplementedError
     # FIXME: Optimize checkout.is_shipping_required
     shipping_method = shipping_method_info.delivery_method
 

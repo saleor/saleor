@@ -8,7 +8,7 @@ from prices import Money
 
 from ..account.models import User
 from ..core.exceptions import ProductNotPublished
-from ..core.taxes import zero_taxed_money
+from ..core.taxes import identical_taxed_money, zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
     promo_code_is_gift_card,
@@ -674,7 +674,7 @@ def get_valid_saleor_shipping_methods_for_checkout(
     def get_price(method):
         listing = channel_listings_map.get(method.pk)
         if listing:
-            return listing.price
+            return identical_taxed_money(listing.price)
 
     return [
         convert_to_shipping_method_data(shipping, get_price(shipping))  # type: ignore

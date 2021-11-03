@@ -16,6 +16,8 @@ from django_countries.fields import Country
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
+from saleor.core.taxes import zero_taxed_money
+
 from ....account.models import User
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
 from ....checkout import AddressType, calculations
@@ -65,7 +67,9 @@ def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    delivery_method = convert_to_shipping_method_data(shipping_method)
+    delivery_method = convert_to_shipping_method_data(
+        shipping_method, zero_taxed_money(checkout.currency)
+    )
     is_valid_method = clean_delivery_method(checkout_info, lines, delivery_method)
     assert is_valid_method is True
 
@@ -2905,13 +2909,18 @@ def test_checkout_shipping_method_update(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     checkout_info.delivery_method_info = get_delivery_method_info(
-        convert_to_shipping_method_data(old_shipping_method), None
+        convert_to_shipping_method_data(
+            old_shipping_method, zero_taxed_money(checkout)
+        ),
+        None,
     )
     checkout_info.shipping_method_channel_listings = None
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info,
         lines=lines,
-        method=convert_to_shipping_method_data(shipping_method),
+        method=convert_to_shipping_method_data(
+            shipping_method, zero_taxed_money(checkout.currency)
+        ),
     )
     errors = data["errors"]
     if is_valid_shipping_method:
@@ -2994,8 +3003,12 @@ def test_checkout_delivery_method_update(
     old_delivery_method = getattr(checkout, attribute_name)
     shipping_method_data = delivery_method
     if attribute_name == "shipping_method":
-        old_delivery_method = convert_to_shipping_method_data(old_delivery_method)
-        shipping_method_data = convert_to_shipping_method_data(delivery_method)
+        old_delivery_method = convert_to_shipping_method_data(
+            old_delivery_method, zero_taxed_money(checkout.currency)
+        )
+        shipping_method_data = convert_to_shipping_method_data(
+            delivery_method, zero_taxed_money(checkout.currency)
+        )
     query = MUTATION_UPDATE_DELIVERY_METHOD
     mock_clean_delivery.return_value = is_valid_delivery_method
 

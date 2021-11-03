@@ -109,6 +109,7 @@ from ..shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
+from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
@@ -912,6 +913,16 @@ def shipping_method(shipping_zone, channel_USD):
         price=Money(10, "USD"),
     )
     return method
+
+
+@pytest.fixture
+def shipping_method_data(shipping_method, channel_USD):
+    listing = ShippingMethodChannelListing.objects.filter(
+        channel=channel_USD, shipping_method=shipping_method
+    ).get()
+    return convert_to_shipping_method_data(
+        shipping_method, TaxedMoney(net=listing.price, gross=listing.price)
+    )
 
 
 @pytest.fixture

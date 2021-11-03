@@ -1,5 +1,7 @@
 import pytest
 
+from saleor.core.taxes import zero_taxed_money
+
 from ....account.models import Address
 from ....checkout.fetch import CheckoutInfo, get_delivery_method_info
 from ....shipping.models import ShippingMethodChannelListing
@@ -93,7 +95,10 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=get_delivery_method_info(
-            convert_to_shipping_method_data(shipping_method), shipping_address
+            convert_to_shipping_method_data(
+                shipping_method, zero_taxed_money(checkout.currency)
+            ),
+            shipping_address,
         ),
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=[],
