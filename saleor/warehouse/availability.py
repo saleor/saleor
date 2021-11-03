@@ -99,7 +99,7 @@ def check_stock_and_preorder_quantity_bulk(
     quantities: Iterable[int],
     channel_slug: str,
     additional_filter_lookup: Optional[Dict[str, Any]] = None,
-    existing_lines: Iterable["CheckoutLineInfo"] = None,
+    existing_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
     replace: bool = False,
     check_reservations: bool = False,
 ):
@@ -132,7 +132,7 @@ def check_stock_and_preorder_quantity_bulk(
             channel_slug,
             # Unpack lines from LineInfo objects
             # This is for compat with check_stock_and_preorder_quantity
-            [line.line for line in existing_lines],
+            [line.line for line in existing_lines or []],
             check_reservations,
         )
 
