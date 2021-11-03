@@ -4,8 +4,6 @@ from django.db.models import F
 from django.utils.functional import SimpleLazyObject
 from promise import Promise
 
-from saleor.core.taxes import identical_taxed_money
-
 from ...checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
@@ -14,6 +12,7 @@ from ...checkout.fetch import (
 )
 from ...checkout.models import Checkout, CheckoutLine
 from ...checkout.utils import get_external_shipping_id
+from ...core.taxes import identical_taxed_money
 from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader

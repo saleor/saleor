@@ -9,8 +9,6 @@ from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from saleor.shipping.interface import ShippingMethodData
-
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...core.taxes import identical_taxed_money, zero_money
@@ -18,6 +16,7 @@ from ...discount import DiscountValueType, VoucherType
 from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
+from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingZone
 from .. import AddressType, calculations
 from ..fetch import (

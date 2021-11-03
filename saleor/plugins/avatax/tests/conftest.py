@@ -1,9 +1,8 @@
 import pytest
 
-from saleor.core.taxes import zero_taxed_money
-
 from ....account.models import Address
 from ....checkout.fetch import CheckoutInfo, get_delivery_method_info
+from ....core.taxes import zero_taxed_money
 from ....shipping.models import ShippingMethodChannelListing
 from ....shipping.utils import convert_to_shipping_method_data
 from ...models import PluginConfiguration

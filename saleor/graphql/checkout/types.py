@@ -1,8 +1,6 @@
 import graphene
 from promise import Promise
 
-from saleor.shipping.utils import convert_to_shipping_method_data
-
 from ...checkout import calculations, models
 from ...checkout.utils import (
     get_external_shipping_id,
@@ -12,6 +10,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import identical_taxed_money, zero_taxed_money
 from ...core.tracing import traced_resolver
+from ...shipping.utils import convert_to_shipping_method_data
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access

@@ -9,8 +9,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 from graphql.error import GraphQLError
 
-from saleor.core.taxes import identical_taxed_money
-
 from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
@@ -39,6 +37,7 @@ from ...checkout.utils import (
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
 from ...core.permissions import AccountPermissions
+from ...core.taxes import identical_taxed_money
 from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models

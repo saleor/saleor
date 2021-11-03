@@ -2,14 +2,13 @@ from unittest.mock import patch
 
 import graphene
 
-from saleor.core.taxes import zero_taxed_money
-
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
     get_delivery_method_info,
 )
+from .....core.taxes import zero_taxed_money
 from .....plugins.manager import get_plugins_manager
 from .....shipping.utils import convert_to_shipping_method_data
 from ....tests.utils import get_graphql_content

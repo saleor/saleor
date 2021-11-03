@@ -16,8 +16,6 @@ from django_countries.fields import Country
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from saleor.core.taxes import zero_taxed_money
-
 from ....account.models import User
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
 from ....checkout import AddressType, calculations
@@ -38,6 +36,7 @@ from ....checkout.utils import (
     calculate_checkout_quantity,
 )
 from ....core.payments import PaymentInterface
+from ....core.taxes import zero_taxed_money
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager, get_plugins_manager

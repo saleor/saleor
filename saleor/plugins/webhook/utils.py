@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 from prices import Money
 
-from saleor.core.taxes import identical_taxed_money
-
+from ...core.taxes import identical_taxed_money
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ...shipping.interface import ShippingMethodData
 
