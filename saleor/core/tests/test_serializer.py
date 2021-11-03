@@ -23,14 +23,11 @@ def test_custom_json_encoder_dumps_money_objects():
 
 def test_custom_json_encoder_dumps_weight_objects():
     # given
-    weight = 5
-    input = {"weight": Weight(kg=weight)}
+    input = {"weight": Weight(kg=5)}
 
     # when
     serialized_data = json.dumps(input, cls=CustomJsonEncoder)
 
     # then
     data = json.loads(serialized_data)
-    assert data["weight"]["_type"] == "Weight"
-    assert data["weight"]["unit"] == "kg"
-    assert data["weight"]["value"] == weight
+    assert data["weight"] == "5.0:kg"

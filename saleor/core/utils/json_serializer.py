@@ -18,8 +18,9 @@ class CustomJsonEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, Money):
             return {"_type": MONEY_TYPE, "amount": obj.amount, "currency": obj.currency}
+        # Mirror implementation of django_measurement.MeasurementField.value_to_string
         if isinstance(obj, Weight):
-            return {"_type": WEIGHT_TYPE, "unit": obj.unit, "value": obj.value}
+            return "%s:%s" % (obj.value, obj.unit)
         return super().default(obj)
 
 
