@@ -45,7 +45,7 @@ def get_tracking_number_for_order(order: Order) -> str:
 
     if fulfillments.count() > 1:
         raise PaymentError(
-            "More than one fulfillment with tracking number " "exist for this order"
+            "More than one fulfillment with tracking number exist for this order"
         )
 
     return fulfillments[0].tracking_number
