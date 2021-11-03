@@ -1,9 +1,11 @@
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.serializers.json import Serializer as JsonSerializer
 from draftjs_sanitizer import SafeJSONEncoder
+from measurement.measures import Weight
 from prices import Money
 
 MONEY_TYPE = "Money"
+WEIGHT_TYPE = "Weight"
 
 
 class Serializer(JsonSerializer):
@@ -16,6 +18,8 @@ class CustomJsonEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, Money):
             return {"_type": MONEY_TYPE, "amount": obj.amount, "currency": obj.currency}
+        if isinstance(obj, Weight):
+            return {"_type": WEIGHT_TYPE, "unit": obj.unit, "value": obj.value}
         return super().default(obj)
 
 
