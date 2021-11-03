@@ -47,6 +47,7 @@ from .utils import get_voucher_for_checkout
 if TYPE_CHECKING:
     from ..app.models import App
     from ..plugins.manager import PluginsManager
+    from ..site.models import SiteSettings
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
@@ -284,7 +285,7 @@ def _prepare_order_data(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts,
+    discounts: Iterable[DiscountInfo],
     check_reservations: bool = False,
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
@@ -533,7 +534,7 @@ def _get_order_data(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: List[DiscountInfo],
-    site_settings,
+    site_settings: "SiteSettings",
 ) -> dict:
     """Prepare data that will be converted to order and its lines."""
     try:

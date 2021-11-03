@@ -25,7 +25,7 @@ def reserve_stocks_and_preorders(
     channel_slug: str,
     length_in_minutes: int,
     *,
-    replace=True,
+    replace: bool = True,
 ):
     stock_variants, stock_lines = [], []
     preorder_variants, preorder_lines = [], []
@@ -70,7 +70,7 @@ def reserve_stocks(
     channel_slug: str,
     length_in_minutes: int,
     *,
-    replace=True,
+    replace: bool = True,
 ):
     """Reserve stocks for given `checkout_lines` in given country."""
     variants_ids = [line.variant_id for line in checkout_lines]
@@ -215,7 +215,7 @@ def reserve_preorders(
     channel_slug: str,
     length_in_minutes: int,
     *,
-    replace=True,
+    replace: bool = True,
 ):
     """Reserve preorders for given `checkout_lines` in given country."""
     variants_ids = [line.variant_id for line in checkout_lines]
