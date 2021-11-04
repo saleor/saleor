@@ -173,6 +173,7 @@ def create_order(payment, checkout, manager):
             store_source=False,
             discounts=discounts,
             user=checkout.user or AnonymousUser(),
+            payment=payment,
             app=None,
         )
     except ValidationError:
@@ -414,7 +415,11 @@ def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
 def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/refund#refund-notification
     transaction_id = notification.get("pspReference")
-    payment = get_payment(notification.get("merchantReference"), transaction_id)
+    payment = get_payment(
+        notification.get("merchantReference"),
+        transaction_id,
+        check_if_active=False,
+    )
     if not payment:
         return
     transaction = get_transaction(payment, transaction_id, TransactionKind.REFUND)
