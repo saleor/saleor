@@ -1,5 +1,3 @@
-from typing import Union
-
 import graphene
 from graphene import relay
 
@@ -167,7 +165,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_minimum_order_price(
-        root: ChannelContext[Union[ShippingMethodData]], info, **_kwargs
+        root: ChannelContext[ShippingMethodData], info, **_kwargs
     ):
         minimum_order_price = getattr(root.node, "minimum_order_price", None)
         if minimum_order_price is not None:
@@ -188,14 +186,12 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
         )
 
     @staticmethod
-    def resolve_maximum_order_weight(
-        root: ChannelContext[Union[ShippingMethodData]], *_args
-    ):
+    def resolve_maximum_order_weight(root: ChannelContext[ShippingMethodData], *_args):
         return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
 
     @staticmethod
     def resolve_postal_code_rules(
-        root: ChannelContext[Union[ShippingMethodData]], info, **_kwargs
+        root: ChannelContext[ShippingMethodData], info, **_kwargs
     ):
         if getattr(root.node, "is_external", False):
             return None
@@ -203,15 +199,13 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
         return PostalCodeRulesByShippingMethodIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_minimum_order_weight(
-        root: ChannelContext[Union[ShippingMethodData]], *_args
-    ):
+    def resolve_minimum_order_weight(root: ChannelContext[ShippingMethodData], *_args):
         return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
 
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_channel_listings(
-        root: ChannelContext[Union[ShippingMethodData]], info, **_kwargs
+        root: ChannelContext[ShippingMethodData], info, **_kwargs
     ):
         if getattr(root.node, "is_external", False):
             return None
@@ -223,7 +217,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_excluded_products(
-        root: ChannelContext[Union[ShippingMethodData]], _info, **_kwargs
+        root: ChannelContext[ShippingMethodData], _info, **_kwargs
     ):
         if root.node.excluded_products is None:
             return None
