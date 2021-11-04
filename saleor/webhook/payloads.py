@@ -322,7 +322,7 @@ def generate_checkout_payload(checkout: "Checkout"):
     warehouse = None
     if checkout.shipping_address:
         warehouse = Warehouse.objects.for_country(
-            checkout.shipping_address.country.code
+            checkout.channel.default_country.code
         ).first()
 
     checkout_data = serializer.serialize(
