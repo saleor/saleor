@@ -27,14 +27,12 @@ def convert_shipping_method_model_to_dataclass(
     )
     if max_weight := shipping_method.maximum_order_weight:
         shipping_method_dataclass.maximum_order_weight = Weight(
-            unit=max_weight.unit,
-            value=max_weight.value,
+            **{max_weight.unit: max_weight.value}
         )
 
-    if min_weight := shipping_method.maximum_order_weight:
+    if min_weight := shipping_method.minimum_order_weight:
         shipping_method_dataclass.minimum_order_weight = Weight(
-            unit=min_weight.unit,
-            value=min_weight.value,
+            **{min_weight.unit: min_weight.value}
         )
     return shipping_method_dataclass
 
