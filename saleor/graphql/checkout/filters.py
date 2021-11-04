@@ -68,6 +68,8 @@ def filter_checkout_search(qs, _, value):
 
     filter_option = Q(Exists(users.filter(id=OuterRef("user_id"))))
 
+    filter_option |= Q(metadata__icontains=value)
+
     if checkout_id := get_checkout_token_from_query(value):
         filter_option |= Q(token=checkout_id)
 

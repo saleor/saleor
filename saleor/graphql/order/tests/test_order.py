@@ -6966,6 +6966,9 @@ def test_query_draft_orders_with_sort(
         ({"search": ""}, 3),
         ({"search": "ExternalID"}, 1),
         ({"search": "SKU_A"}, 1),
+        ({"search": "metadata_key"}, 1),
+        ({"search": "metadata_value"}, 1),
+        ({"search": "metadata"}, 2),
     ],
 )
 def test_orders_query_with_filter_search(
@@ -6991,11 +6994,13 @@ def test_orders_query_with_filter_search(
                 token=str(uuid.uuid4()),
                 user_email="user_email1@example.com",
                 channel=channel_USD,
+                metadata={"metadata_key": "test"},
             ),
             Order(
                 token=str(uuid.uuid4()),
                 user_email="user_email2@example.com",
                 channel=channel_USD,
+                metadata={"test": "metadata_value"},
             ),
         ]
     )

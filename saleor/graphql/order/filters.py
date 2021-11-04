@@ -77,14 +77,14 @@ def filter_order_search(qs, _, value):
         return filter_order_by_payment(qs, payment_id)
 
     users = User.objects.filter(
-        Q(email__trigram_similar=value)
-        | Q(first_name__trigram_similar=value)
-        | Q(last_name__trigram_similar=value)
+        Q(email__ilike=value) | Q(first_name__ilike=value) | Q(last_name__ilike=value)
     ).values("pk")
 
-    filter_option = Q(user_email__trigram_similar=value) | Q(
+    filter_option = Q(user_email__ilike=value) | Q(
         Exists(users.filter(pk=OuterRef("user_id")))
     )
+
+    filter_option |= Q(metadata__icontains=value)
 
     if order_id := get_order_id_from_query(value):
         filter_option |= Q(pk=order_id)
