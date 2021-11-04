@@ -10,6 +10,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
+from django.utils import timezone
 from freezegun import freeze_time
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
@@ -6823,6 +6824,83 @@ def test_order_query_with_filter_is_click_and_collect(
         assert len(returned_orders) == len(cc_orders)
         assert {order["node"]["id"] for order in returned_orders} == {
             graphene.Node.to_global_id("Order", order.pk) for order in cc_orders
+        }
+    else:
+        expected_order_ids = {
+            graphene.Node.to_global_id("Order", order.pk)
+            for order in orders[3:]
+            if order.status != OrderStatus.DRAFT
+        }
+        assert len(returned_orders) == len(expected_order_ids)
+        assert {order["node"]["id"] for order in returned_orders} == expected_order_ids
+
+
+@freeze_time("2021-11-01 12:00:01")
+@pytest.mark.parametrize("is_preorder", [True, False])
+def test_order_query_with_filter_is_preorder(
+    is_preorder,
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders,
+    product,
+    other_channel_USD,
+):
+    # given
+    variants = [
+        ProductVariant(
+            product=product,
+            is_preorder=True,
+            sku=f"Preorder product variant #{i}",
+        )
+        for i in (1, 2, 3, 4)
+    ]
+    variants[1].preorder_end_date = timezone.now() + timedelta(days=1)
+    variants[2].preorder_end_date = timezone.now()
+    variants[3].preorder_end_date = timezone.now() - timedelta(days=1)
+    ProductVariant.objects.bulk_create(variants)
+
+    lines = [
+        OrderLine(
+            order=order,
+            product_name=str(product),
+            variant_name=str(variant),
+            product_sku=variant.sku,
+            product_variant_id=variant.get_global_id(),
+            is_shipping_required=variant.is_shipping_required(),
+            is_gift_card=variant.is_gift_card(),
+            quantity=1,
+            variant=variant,
+            unit_price_net_amount=Decimal("10.0"),
+            unit_price_gross_amount=Decimal("10.0"),
+            currency="USD",
+            total_price_net_amount=Decimal("10.0"),
+            total_price_gross_amount=Decimal("10.0"),
+            undiscounted_unit_price_net_amount=Decimal("10.0"),
+            undiscounted_unit_price_gross_amount=Decimal("10.0"),
+            undiscounted_total_price_net_amount=Decimal("10.0"),
+            undiscounted_total_price_gross_amount=Decimal("10.0"),
+        )
+        for variant, order in zip(variants, orders)
+    ]
+    OrderLine.objects.bulk_create(lines)
+
+    preorders = orders[: len(variants) - 1]
+
+    variables = {"filter": {"isPreorder": is_preorder}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    returned_orders = content["data"]["orders"]["edges"]
+    if is_preorder:
+        assert len(returned_orders) == len(preorders)
+        assert {order["node"]["id"] for order in returned_orders} == {
+            graphene.Node.to_global_id("Order", order.pk) for order in preorders
         }
     else:
         expected_order_ids = {
