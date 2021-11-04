@@ -109,6 +109,15 @@ def filter_channels(qs, _, values):
     return qs
 
 
+def filter_is_click_and_collect(qs, _, values):
+    if values is not None:
+        lookup = Q(collection_point__isnull=False) | Q(
+            collection_point_name__isnull=False
+        )
+        qs = qs.filter(lookup) if values is True else qs.exclude(lookup)
+    return qs
+
+
 class DraftOrderFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
@@ -129,6 +138,9 @@ class OrderFilter(DraftOrderFilter):
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
     search = django_filters.CharFilter(method=filter_order_search)
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
+    is_click_and_collect = django_filters.BooleanFilter(
+        method=filter_is_click_and_collect
+    )
 
     class Meta:
         model = Order

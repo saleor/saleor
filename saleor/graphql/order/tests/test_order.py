@@ -6784,6 +6784,56 @@ def test_draft_order_query_with_filter_created_(
     assert len(orders) == count
 
 
+@pytest.mark.parametrize("is_click_and_collect", [True, False])
+def test_order_query_with_filter_is_click_and_collect(
+    is_click_and_collect,
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders,
+    other_channel_USD,
+    warehouse_for_cc,
+):
+    # given
+    order_1 = orders[0]
+    order_1.collection_point = warehouse_for_cc
+    order_1.collection_point_name = warehouse_for_cc.name
+
+    order_2 = orders[1]
+    order_2.collection_point_name = warehouse_for_cc.name
+
+    order_3 = orders[2]
+    order_3.collection_point = warehouse_for_cc
+
+    cc_orders = [order_1, order_2, order_3]
+
+    Order.objects.bulk_update(cc_orders, ["collection_point", "collection_point_name"])
+
+    variables = {"filter": {"isClickAndCollect": is_click_and_collect}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    returned_orders = content["data"]["orders"]["edges"]
+    if is_click_and_collect:
+        assert len(returned_orders) == len(cc_orders)
+        assert {order["node"]["id"] for order in returned_orders} == {
+            graphene.Node.to_global_id("Order", order.pk) for order in cc_orders
+        }
+    else:
+        expected_order_ids = {
+            graphene.Node.to_global_id("Order", order.pk)
+            for order in orders[3:]
+            if order.status != OrderStatus.DRAFT
+        }
+        assert len(returned_orders) == len(expected_order_ids)
+        assert {order["node"]["id"] for order in returned_orders} == expected_order_ids
+
+
 QUERY_ORDER_WITH_SORT = """
     query ($sort_by: OrderSortingInput!) {
         orders(first:5, sortBy: $sort_by) {
