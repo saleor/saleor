@@ -310,6 +310,11 @@ def _refund_payments(
     for item in payments:
         payment = item.payment
         amount = item.amount
+
+        # Do not trigger the refund for a payment with zero amount.
+        if amount == 0:
+            continue
+
         transaction, event = __refund_payment_or_create_event(
             order, payment, amount, manager, user, app
         )
