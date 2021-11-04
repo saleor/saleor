@@ -13,6 +13,8 @@ from freezegun import freeze_time
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
+from saleor.plugins.base_plugin import ExcludedShippingMethod
+
 from ....account.models import CustomerEvent
 from ....checkout import AddressType
 from ....core.anonymize import obfuscate_email
@@ -4748,6 +4750,45 @@ def test_order_update_shipping(
     assert order.shipping_price_gross == shipping_price.gross
     assert order.shipping_tax_rate == Decimal("0.0")
     assert order.shipping_method_name == shipping_method.name
+
+
+@mock.patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_order"
+)
+def test_order_update_shipping_with_excluded_method(
+    mocked_webhook,
+    webhook_plugin,
+    order_with_lines,
+    shipping_method,
+    staff_api_client,
+    permission_manage_orders,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    webhook_reason = "archives-are-incomplete"
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+    ]
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save()
+    assert order.shipping_method != shipping_method
+
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    print(content)
+    data = content["data"]["orderUpdateShipping"]
+    assert data["errors"][0]["field"] == "shippingMethod"
+    assert (
+        data["errors"][0]["code"]
+        == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value.upper()
+    )
 
 
 def test_order_update_shipping_tax_included(
