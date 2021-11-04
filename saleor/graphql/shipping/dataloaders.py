@@ -127,10 +127,16 @@ class ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(DataLoa
         channel_slugs = [key[1] for key in keys]
 
         def _find_listing_by_shipping_method_id(listings_by_channel):
+            listings_by_method = []
             for method_id, listings in zip(shipping_method_ids, listings_by_channel):
                 for listing in listings:
                     if method_id == listing.shipping_method_id:
-                        return listing
+                        listings_by_method.append(listing)
+                        break
+                else:
+                    listings_by_method.append(None)
+
+            return listings_by_method
 
         return (
             ShippingMethodChannelListingByChannelSlugLoader(self.context)
