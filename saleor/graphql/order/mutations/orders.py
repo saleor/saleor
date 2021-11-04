@@ -334,11 +334,17 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "postal_code_rules"
             ),
         )
-
-        shipping_price = info.context.plugins.calculate_order_shipping(order)
-        clean_order_update_shipping(order, method, shipping_price, info.context.plugins)
+        shipping_channel_listing = (
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=method, channel=order.channel
+            ).first()
+        )
+        clean_order_update_shipping(
+            order, method, shipping_channel_listing.price, info.context.plugins
+        )
 
         order.shipping_method = method
+        shipping_price = info.context.plugins.calculate_order_shipping(order)
         order.shipping_price = shipping_price
         order.shipping_tax_rate = info.context.plugins.get_order_shipping_tax_rate(
             order, shipping_price
