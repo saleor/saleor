@@ -182,8 +182,11 @@ class CheckoutLine(ModelWithMetadata):
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
 
-    class Meta:
-        ordering = ("id",)
+    class Meta(ModelWithMetadata.Meta):
+        ordering = ("pk",)
+        permissions = (
+            (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
+        )
 
     def __str__(self):
         return smart_str(self.variant)

@@ -296,6 +296,9 @@ def test_query_checkout_with_sort(
         ({"search": "Wade"}, 1),
         ({"search": ""}, 4),
         ({"search": "ExternalID"}, 1),
+        ({"search": "metadata_key"}, 1),
+        ({"search": "metadata_value"}, 1),
+        ({"search": "metadata"}, 2),
     ],
 )
 def test_checkouts_query_with_filter_search(
@@ -318,11 +321,13 @@ def test_checkouts_query_with_filter_search(
                 user=customer_user,
                 token=str(uuid.uuid4()),
                 channel=channel_USD,
+                metadata={"metadata_key": "test"},
             ),
             Checkout(
                 token=str(uuid.uuid4()),
                 user=user1,
                 channel=channel_USD,
+                metadata={"test": "metadata_value"},
             ),
             Checkout(
                 token=str(uuid.uuid4()),

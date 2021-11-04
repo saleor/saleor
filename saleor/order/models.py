@@ -537,8 +537,9 @@ class OrderLine(ModelWithMetadata):
 
     objects = models.Manager.from_queryset(OrderLineQueryset)()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)
+        permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders"),)
 
     def __str__(self):
         return (
