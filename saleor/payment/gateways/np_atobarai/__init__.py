@@ -108,7 +108,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=result.psp_reference,
-        error=os.linesep.join(result.errors),
+        error=parse_errors(result.errors),
         raw_response=result.raw_response,
         psp_reference=result.psp_reference,
     )
