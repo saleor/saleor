@@ -6785,17 +6785,8 @@ def test_draft_order_query_with_filter_created_(
     assert len(orders) == count
 
 
-@pytest.mark.parametrize("is_click_and_collect", [True, False])
-def test_order_query_with_filter_is_click_and_collect(
-    is_click_and_collect,
-    orders_query_with_filter,
-    staff_api_client,
-    permission_manage_orders,
-    orders,
-    other_channel_USD,
-    warehouse_for_cc,
-):
-    # given
+@pytest.fixture
+def order_list_with_cc_orders(orders, warehouse_for_cc):
     order_1 = orders[0]
     order_1.collection_point = warehouse_for_cc
     order_1.collection_point_name = warehouse_for_cc.name
@@ -6809,8 +6800,18 @@ def test_order_query_with_filter_is_click_and_collect(
     cc_orders = [order_1, order_2, order_3]
 
     Order.objects.bulk_update(cc_orders, ["collection_point", "collection_point_name"])
+    return orders
 
-    variables = {"filter": {"isClickAndCollect": is_click_and_collect}}
+
+def test_order_query_with_filter_is_click_and_collect_true(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    order_list_with_cc_orders,
+):
+    # given
+    orders = order_list_with_cc_orders
+    variables = {"filter": {"isClickAndCollect": True}}
 
     # when
     response = staff_api_client.post_graphql(
@@ -6820,33 +6821,51 @@ def test_order_query_with_filter_is_click_and_collect(
     # then
     content = get_graphql_content(response)
     returned_orders = content["data"]["orders"]["edges"]
-    if is_click_and_collect:
-        assert len(returned_orders) == len(cc_orders)
-        assert {order["node"]["id"] for order in returned_orders} == {
-            graphene.Node.to_global_id("Order", order.pk) for order in cc_orders
-        }
-    else:
-        expected_order_ids = {
-            graphene.Node.to_global_id("Order", order.pk)
-            for order in orders[3:]
-            if order.status != OrderStatus.DRAFT
-        }
-        assert len(returned_orders) == len(expected_order_ids)
-        assert {order["node"]["id"] for order in returned_orders} == expected_order_ids
+    expected_orders = {
+        order
+        for order in orders
+        if order.collection_point or order.collection_point_name
+    }
+    assert len(returned_orders) == len(expected_orders)
+    assert {order["node"]["id"] for order in returned_orders} == {
+        graphene.Node.to_global_id("Order", order.pk) for order in expected_orders
+    }
 
 
-@freeze_time("2021-11-01 12:00:01")
-@pytest.mark.parametrize("is_preorder", [True, False])
-def test_order_query_with_filter_is_preorder(
-    is_preorder,
+def test_order_query_with_filter_is_click_and_collect_false(
     orders_query_with_filter,
     staff_api_client,
     permission_manage_orders,
-    orders,
-    product,
-    other_channel_USD,
+    order_list_with_cc_orders,
 ):
     # given
+    orders = order_list_with_cc_orders
+    variables = {"filter": {"isClickAndCollect": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    returned_orders = content["data"]["orders"]["edges"]
+    expected_orders = {
+        order
+        for order in orders
+        if not order.collection_point
+        and not order.collection_point_name
+        and order.status != OrderStatus.DRAFT
+    }
+    assert len(returned_orders) == len(expected_orders)
+    assert {order["node"]["id"] for order in returned_orders} == {
+        graphene.Node.to_global_id("Order", order.pk) for order in expected_orders
+    }
+
+
+@pytest.fixture
+@freeze_time("2021-11-01 12:00:01")
+def preorders(orders, product):
     variants = [
         ProductVariant(
             product=product,
@@ -6884,10 +6903,19 @@ def test_order_query_with_filter_is_preorder(
         for variant, order in zip(variants, orders)
     ]
     OrderLine.objects.bulk_create(lines)
-
     preorders = orders[: len(variants) - 1]
+    return preorders
 
-    variables = {"filter": {"isPreorder": is_preorder}}
+
+@freeze_time("2021-11-01 12:00:01")
+def test_order_query_with_filter_is_preorder_true(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    preorders,
+):
+    # given
+    variables = {"filter": {"isPreorder": True}}
 
     # when
     response = staff_api_client.post_graphql(
@@ -6897,19 +6925,36 @@ def test_order_query_with_filter_is_preorder(
     # then
     content = get_graphql_content(response)
     returned_orders = content["data"]["orders"]["edges"]
-    if is_preorder:
-        assert len(returned_orders) == len(preorders)
-        assert {order["node"]["id"] for order in returned_orders} == {
-            graphene.Node.to_global_id("Order", order.pk) for order in preorders
-        }
-    else:
-        expected_order_ids = {
-            graphene.Node.to_global_id("Order", order.pk)
-            for order in orders[3:]
-            if order.status != OrderStatus.DRAFT
-        }
-        assert len(returned_orders) == len(expected_order_ids)
-        assert {order["node"]["id"] for order in returned_orders} == expected_order_ids
+    assert len(returned_orders) == len(preorders)
+    assert {order["node"]["id"] for order in returned_orders} == {
+        graphene.Node.to_global_id("Order", order.pk) for order in preorders
+    }
+
+
+@freeze_time("2021-11-01 12:00:01")
+def test_order_query_with_filter_is_preorder_false(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    preorders,
+):
+    # given
+    variables = {"filter": {"isPreorder": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    returned_orders = content["data"]["orders"]["edges"]
+    preorders_ids = {
+        graphene.Node.to_global_id("Order", order.pk) for order in preorders
+    }
+    preorder_ids = {order["node"]["id"] for order in returned_orders}
+    for order_id in preorders_ids:
+        assert order_id not in preorder_ids
 
 
 QUERY_ORDER_WITH_SORT = """
