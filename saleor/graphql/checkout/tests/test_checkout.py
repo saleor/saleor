@@ -39,7 +39,7 @@ from ....core.payments import PaymentInterface
 from ....core.taxes import identical_taxed_money, zero_taxed_money
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
-from ....plugins.manager import PluginsManager, get_plugins_manager
+from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
@@ -1563,7 +1563,9 @@ def test_checkout_available_shipping_methods_excluded_postal_codes(
     "expected_price_type, expected_price, display_gross_prices",
     (("gross", 13, True), ("net", 10, False)),
 )
+@patch("saleor.checkout.utils.identical_taxed_money")
 def test_checkout_available_shipping_methods_with_price_displayed(
+    mocked_money,
     expected_price_type,
     expected_price,
     display_gross_prices,
@@ -1574,11 +1576,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     shipping_zone,
     site_settings,
 ):
-    taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
-    apply_taxes_to_shipping_mock = mock.Mock(return_value=taxed_price)
-    monkeypatch.setattr(
-        PluginsManager, "apply_taxes_to_shipping", apply_taxes_to_shipping_mock
-    )
+    mocked_money.return_value = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
     site_settings.display_gross_prices = display_gross_prices
     site_settings.save()
     checkout_with_item.shipping_address = address
@@ -2991,23 +2989,22 @@ def test_checkout_delivery_method_update(
     delivery_method,
     node_name,
     attribute_name,
-    checkout_with_item_and_shipping_method,
+    checkout_with_item_for_cc,
     is_valid_delivery_method,
 ):
-    checkout = checkout_with_item_and_shipping_method
-    old_delivery_method = getattr(checkout, attribute_name)
+    # given
+    mock_clean_delivery.return_value = is_valid_delivery_method
+
+    checkout = checkout_with_item_for_cc
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    shipping_method_price = checkout_info.shipping_method_channel_listing.price
 
     shipping_method_data = delivery_method
     if attribute_name == "shipping_method":
-        old_delivery_method = convert_to_shipping_method_data(
-            old_delivery_method, identical_taxed_money(shipping_method_price)
-        )
         shipping_method_data = convert_to_shipping_method_data(
-            delivery_method, identical_taxed_money(shipping_method_price)
+            delivery_method,
+            identical_taxed_money(delivery_method.channel_listings.get().price),
         )
     query = MUTATION_UPDATE_DELIVERY_METHOD
     mock_clean_delivery.return_value = is_valid_delivery_method
@@ -3033,7 +3030,8 @@ def test_checkout_delivery_method_update(
         assert (
             errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
         )
-        assert checkout.shipping_method == old_delivery_method
+        assert checkout.shipping_method is None
+        assert checkout.collection_point is None
 
 
 @pytest.mark.parametrize("is_valid_delivery_method", (True, False))
