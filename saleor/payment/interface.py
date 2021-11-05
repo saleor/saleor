@@ -63,7 +63,7 @@ class AddressData:
 @dataclass
 class PaymentLineData:
     gross: Decimal
-    product_sku: str
+    variant_id: int
     product_name: str
     quantity: int
 
@@ -91,7 +91,7 @@ class PaymentData:
     reuse_source: bool = False
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
-    refund_data: Optional[Dict[str, int]] = None
+    refund_data: Optional[Dict[int, int]] = None
     # Optional, lazy-evaluated gateway arguments
     _resolve_lines: InitVar[Callable] = None
 

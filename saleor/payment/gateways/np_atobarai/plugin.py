@@ -2,14 +2,11 @@ from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 
-import saleor.payment.gateways.np_atobarai.api_helpers
-
 from ....order.models import Fulfillment
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ....plugins.error_codes import PluginErrorCode
 from . import (
     GatewayConfig,
-    api,
     capture,
     get_api_config,
     process_payment,
@@ -17,6 +14,7 @@ from . import (
     tracking_number_updated,
     void,
 )
+from .api_helpers import health_check
 from .const import (
     FILL_MISSING_ADDRESS,
     MERCHANT_CODE,
@@ -40,7 +38,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.np-atobarai"
     PLUGIN_NAME = GATEWAY_NAME
     CONFIGURATION_PER_CHANNEL = True
-    SUPPORTED_CURRENCIES = "JPY"
+    SUPPORTED_CURRENCIES = "JPY,PLN,USD"
 
     DEFAULT_CONFIGURATION = [
         {"name": MERCHANT_CODE, "value": None},
@@ -142,9 +140,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             data["name"]: data["value"] for data in plugin_configuration.configuration
         }
         with np_atobarai_opentracing_trace("np-atobarai.utilities.ping"):
-            response = saleor.payment.gateways.np_atobarai.api_helpers.health_check(
-                get_api_config(conf)
-            )
+            response = health_check(get_api_config(conf))
 
         if not response:
             raise ValidationError(

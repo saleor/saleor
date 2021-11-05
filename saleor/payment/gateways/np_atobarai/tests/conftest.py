@@ -61,7 +61,7 @@ def _resolve_lines():
         PaymentLineData(
             gross=Decimal("100.00"),
             product_name="Product Name",
-            product_sku="PRODUCT_SKU",
+            variant_id=33,
             quantity=5,
         )
     ] * 3

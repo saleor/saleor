@@ -195,7 +195,7 @@ def refund(
     manager: "PluginsManager",
     channel_slug: str,
     amount: Decimal = None,
-    refund_data: Optional[Dict[str, int]] = None,
+    refund_data: Optional[Dict[int, int]] = None,
 ) -> Transaction:
     if amount is None:
         amount = payment.captured_amount

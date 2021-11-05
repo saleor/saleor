@@ -7,7 +7,7 @@ import pytest
 from saleor.order import FulfillmentLineData, OrderLineData
 from saleor.order.actions import create_refund_fulfillment
 from saleor.order.models import Order
-from saleor.payment.utils import SHIPPING_PAYMENT_LINE_PRODUCT_SKU, create_refund_data
+from saleor.payment.utils import SHIPPING_PAYMENT_LINE_ID, create_refund_data
 from saleor.plugins.manager import get_plugins_manager
 
 
@@ -65,10 +65,10 @@ def test_create_refund_data_order_lines(
     # then
     assert refund_data == {
         **{
-            line.product_sku: line.quantity - refund_line.quantity
+            line.variant_id: line.quantity - refund_line.quantity
             for line, refund_line in zip(order_lines, order_refund_lines)
         },
-        SHIPPING_PAYMENT_LINE_PRODUCT_SKU: shipping_line_quantity,
+        SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity,
     }
 
 
@@ -103,10 +103,10 @@ def test_create_refund_data_fulfillment_lines(
     # then
     assert refund_data == {
         **{
-            line.order_line.product_sku: line.quantity - refund_line.quantity
+            line.order_line.variant_id: line.quantity - refund_line.quantity
             for line, refund_line in zip(fulfillment_lines, fulfillment_refund_lines)
         },
-        SHIPPING_PAYMENT_LINE_PRODUCT_SKU: shipping_line_quantity,
+        SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity,
     }
 
 
@@ -126,7 +126,7 @@ def test_create_refund_data_shipping_only(
     )
 
     # then
-    assert refund_data == {SHIPPING_PAYMENT_LINE_PRODUCT_SKU: shipping_line_quantity}
+    assert refund_data == {SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity}
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -195,10 +195,10 @@ def test_create_refund_data_previously_refunded_order_lines(
     ]
     assert refund_data == {
         **{
-            line.product_sku: line.quantity - refund_line.quantity
+            line.variant_id: line.quantity - refund_line.quantity
             for line, refund_line in zip(order_lines, order_refund_lines)
         },
-        SHIPPING_PAYMENT_LINE_PRODUCT_SKU: shipping_line_quantity,
+        SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity,
     }
 
 
@@ -267,12 +267,12 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
     ]
     assert refund_data == {
         **{
-            line.product_sku: line.quantity - refund_line.quantity
+            line.variant_id: line.quantity - refund_line.quantity
             for line, refund_line in zip(
                 fulfilled_order.lines.all(), fulfillment_refund_lines
             )
         },
-        SHIPPING_PAYMENT_LINE_PRODUCT_SKU: shipping_line_quantity,
+        SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity,
     }
 
 
@@ -314,4 +314,4 @@ def test_create_refund_data_previously_refunded_shipping_only(
     )
 
     # then
-    assert refund_data == {SHIPPING_PAYMENT_LINE_PRODUCT_SKU: shipping_line_quantity}
+    assert refund_data == {SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity}

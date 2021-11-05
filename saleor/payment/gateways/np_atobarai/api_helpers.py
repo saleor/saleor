@@ -111,7 +111,7 @@ def format_price(price: Decimal, currency: str) -> int:
 
 
 def get_refunded_goods(
-    refund_data: Dict[str, int],
+    refund_data: Dict[int, int],
     payment_information: PaymentData,
 ) -> List[dict]:
     return [
@@ -123,9 +123,7 @@ def get_refunded_goods(
             "quantity": quantity,
         }
         for payment_line in payment_information.lines
-        if (
-            quantity := refund_data.get(payment_line.product_sku, payment_line.quantity)
-        )
+        if (quantity := refund_data.get(payment_line.variant_id, payment_line.quantity))
     ]
 
 
