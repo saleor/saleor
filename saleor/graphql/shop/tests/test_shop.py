@@ -1556,13 +1556,11 @@ def test_get_shop_limit_info_returns_null_by_default(staff_api_client):
     query = LIMIT_INFO_QUERY
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
-    assert content == {
-        "data": {
-            "shop": {
-                "limits": {
-                    "currentUsage": {"channels": None},
-                    "allowedUsage": {"channels": None},
-                }
+    assert content["data"] == {
+        "shop": {
+            "limits": {
+                "currentUsage": {"channels": None},
+                "allowedUsage": {"channels": None},
             }
         }
     }
