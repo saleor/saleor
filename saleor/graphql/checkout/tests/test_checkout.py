@@ -2053,7 +2053,7 @@ def test_checkout_billing_address_update(
 
 
 @mock.patch(
-    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
+    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
 )
 def test_checkout_shipping_address_update_exclude_shipping_method(
     mocked_webhook,

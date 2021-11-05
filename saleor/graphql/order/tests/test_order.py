@@ -4752,12 +4752,9 @@ def test_order_update_shipping(
     assert order.shipping_method_name == shipping_method.name
 
 
-@mock.patch(
-    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_order"
-)
+@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
 def test_order_update_shipping_with_excluded_method(
     mocked_webhook,
-    webhook_plugin,
     order_with_lines,
     shipping_method,
     staff_api_client,
