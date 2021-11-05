@@ -36,7 +36,7 @@ from ....checkout.utils import (
     calculate_checkout_quantity,
 )
 from ....core.payments import PaymentInterface
-from ....core.taxes import zero_taxed_money
+from ....core.taxes import identical_taxed_money, zero_taxed_money
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager, get_plugins_manager
@@ -1574,10 +1574,6 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     shipping_zone,
     site_settings,
 ):
-    # shipping_method = shipping_zone.shipping_methods.first()
-    # shipping_price = shipping_method.channel_listings.get(
-    #     channel_id=checkout_with_item.channel_id
-    # ).price
     taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
     apply_taxes_to_shipping_mock = mock.Mock(return_value=taxed_price)
     monkeypatch.setattr(
@@ -2888,10 +2884,10 @@ def test_checkout_shipping_method_update(
     mock_clean_shipping,
     staff_api_client,
     shipping_method,
-    checkout_with_item,
+    checkout_with_item_and_shipping_method,
     is_valid_shipping_method,
 ):
-    checkout = checkout_with_item
+    checkout = checkout_with_item_and_shipping_method
     old_shipping_method = checkout.shipping_method
     query = MUTATION_UPDATE_SHIPPING_METHOD
     mock_clean_shipping.return_value = is_valid_shipping_method
@@ -2899,7 +2895,7 @@ def test_checkout_shipping_method_update(
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
     response = staff_api_client.post_graphql(
-        query, {"token": checkout_with_item.token, "shippingMethodId": method_id}
+        query, {"token": checkout.token, "shippingMethodId": method_id}
     )
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
     checkout.refresh_from_db()
@@ -2907,24 +2903,24 @@ def test_checkout_shipping_method_update(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    shipping_method_price = checkout_info.shipping_method_channel_listing.price
     checkout_info.delivery_method_info = get_delivery_method_info(
         convert_to_shipping_method_data(
-            old_shipping_method, zero_taxed_money(checkout)
+            old_shipping_method, identical_taxed_money(shipping_method_price)
         ),
         None,
     )
-    checkout_info.shipping_method_channel_listing = None
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info,
         lines=lines,
         method=convert_to_shipping_method_data(
-            shipping_method, zero_taxed_money(checkout.currency)
+            shipping_method, identical_taxed_money(shipping_method_price)
         ),
     )
     errors = data["errors"]
     if is_valid_shipping_method:
         assert not errors
-        assert data["checkout"]["token"] == str(checkout_with_item.token)
+        assert data["checkout"]["token"] == str(checkout.token)
         assert checkout.shipping_method == shipping_method
     else:
         assert len(errors) == 1
@@ -2932,7 +2928,7 @@ def test_checkout_shipping_method_update(
         assert (
             errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
         )
-        assert checkout.shipping_method is None
+        assert checkout.shipping_method == old_shipping_method
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
@@ -2995,18 +2991,23 @@ def test_checkout_delivery_method_update(
     delivery_method,
     node_name,
     attribute_name,
-    checkout_with_item_for_cc,
+    checkout_with_item_and_shipping_method,
     is_valid_delivery_method,
 ):
-    checkout = checkout_with_item_for_cc
+    checkout = checkout_with_item_and_shipping_method
     old_delivery_method = getattr(checkout, attribute_name)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    shipping_method_price = checkout_info.shipping_method_channel_listing.price
+
     shipping_method_data = delivery_method
     if attribute_name == "shipping_method":
         old_delivery_method = convert_to_shipping_method_data(
-            old_delivery_method, zero_taxed_money(checkout.currency)
+            old_delivery_method, identical_taxed_money(shipping_method_price)
         )
         shipping_method_data = convert_to_shipping_method_data(
-            delivery_method, zero_taxed_money(checkout.currency)
+            delivery_method, identical_taxed_money(shipping_method_price)
         )
     query = MUTATION_UPDATE_DELIVERY_METHOD
     mock_clean_delivery.return_value = is_valid_delivery_method
@@ -3019,13 +3020,6 @@ def test_checkout_delivery_method_update(
     data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
     checkout.refresh_from_db()
 
-    manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    checkout_info.delivery_method_info = get_delivery_method_info(
-        old_delivery_method, None
-    )
-    checkout_info.shipping_method_channel_listing = None
     mock_clean_delivery.assert_called_once_with(
         checkout_info=checkout_info, lines=lines, method=shipping_method_data
     )
@@ -3039,7 +3033,7 @@ def test_checkout_delivery_method_update(
         assert (
             errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
         )
-        assert checkout.shipping_method is None
+        assert checkout.shipping_method == old_delivery_method
 
 
 @pytest.mark.parametrize("is_valid_delivery_method", (True, False))
