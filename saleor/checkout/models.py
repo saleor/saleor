@@ -109,6 +109,9 @@ class Checkout(ModelWithMetadata):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-last_change", "pk")
+        permissions = (
+            (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
+        )
 
     def __iter__(self):
         return iter(self.lines.all())
@@ -182,11 +185,8 @@ class CheckoutLine(ModelWithMetadata):
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
 
-    class Meta(ModelWithMetadata.Meta):
-        ordering = ("pk",)
-        permissions = (
-            (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
-        )
+    class Meta:
+        ordering = ("id",)
 
     def __str__(self):
         return smart_str(self.variant)

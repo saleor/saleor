@@ -5,7 +5,7 @@ from django.db.models import Exists, OuterRef, Q
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...account.models import User
-from ...checkout.models import Checkout
+from ...checkout.models import Checkout, CheckoutLine
 from ...payment.models import Payment
 from ..channel.types import Channel
 from ..core.filters import MetadataFilterBase, ObjectTypeFilter
@@ -72,6 +72,9 @@ def filter_checkout_search(qs, _, value):
 
     if checkout_id := get_checkout_token_from_query(value):
         filter_option |= Q(token=checkout_id)
+
+    lines = CheckoutLine.objects.filter(metadata__icontains=value).values("id")
+    filter_option |= Q(Exists(lines.filter(checkout_id=OuterRef("token"))))
 
     payments = Payment.objects.filter(psp_reference=value).values("id")
     filter_option |= Q(Exists(payments.filter(checkout_id=OuterRef("token"))))

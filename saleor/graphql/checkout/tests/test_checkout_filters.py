@@ -6,7 +6,7 @@ import pytest
 from freezegun import freeze_time
 
 from ....account.models import User
-from ....checkout.models import Checkout
+from ....checkout.models import Checkout, CheckoutLine
 from ....payment.models import ChargeStatus, Payment
 from ...tests.utils import get_graphql_content
 
@@ -299,6 +299,9 @@ def test_query_checkout_with_sort(
         ({"search": "metadata_key"}, 1),
         ({"search": "metadata_value"}, 1),
         ({"search": "metadata"}, 2),
+        ({"search": "line_key"}, 1),
+        ({"search": "line_value"}, 1),
+        ({"search": "line"}, 2),
     ],
 )
 def test_checkouts_query_with_filter_search(
@@ -309,6 +312,7 @@ def test_checkouts_query_with_filter_search(
     permission_manage_checkouts,
     customer_user,
     channel_USD,
+    product_variant_list,
 ):
 
     user1 = User.objects.create(email="user_email1@example.com")
@@ -340,6 +344,19 @@ def test_checkouts_query_with_filter_search(
                 channel=channel_USD,
             ),
         ]
+    )
+
+    CheckoutLine.objects.create(
+        checkout=checkouts[0],
+        metadata={"test": "line_value"},
+        variant=product_variant_list[0],
+        quantity=1,
+    )
+    CheckoutLine.objects.create(
+        checkout=checkouts[1],
+        metadata={"line_key": "test"},
+        variant=product_variant_list[0],
+        quantity=1,
     )
 
     checkout_with_payment = checkouts[1]

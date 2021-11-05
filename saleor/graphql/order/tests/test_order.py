@@ -6969,6 +6969,9 @@ def test_query_draft_orders_with_sort(
         ({"search": "metadata_key"}, 1),
         ({"search": "metadata_value"}, 1),
         ({"search": "metadata"}, 2),
+        ({"search": "line_key"}, 1),
+        ({"search": "line_value"}, 1),
+        ({"search": "line"}, 2),
     ],
 )
 def test_orders_query_with_filter_search(
@@ -7003,6 +7006,31 @@ def test_orders_query_with_filter_search(
                 metadata={"test": "metadata_value"},
             ),
         ]
+    )
+
+    OrderLine.objects.create(
+        order=orders[0],
+        metadata={"test": "line_value"},
+        variant=variant,
+        quantity=1,
+        unit_price_net_amount=5,
+        is_gift_card=False,
+        unit_price_gross_amount=6,
+        total_price_net_amount=5,
+        total_price_gross_amount=6,
+        is_shipping_required=False,
+    )
+    OrderLine.objects.create(
+        order=orders[1],
+        metadata={"line_key": "test"},
+        variant=variant,
+        quantity=1,
+        unit_price_net_amount=5,
+        is_gift_card=False,
+        unit_price_gross_amount=6,
+        total_price_net_amount=5,
+        total_price_gross_amount=6,
+        is_shipping_required=False,
     )
 
     OrderDiscount.objects.bulk_create(

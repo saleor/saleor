@@ -97,8 +97,11 @@ def filter_order_search(qs, _, value):
     ).values("id")
     filter_option |= Q(Exists(discounts.filter(order_id=OuterRef("id"))))
 
-    lines = OrderLine.objects.filter(product_sku=value).values("id")
+    lines = OrderLine.objects.filter(
+        Q(product_sku=value) | Q(metadata__icontains=value)
+    ).values("id")
     filter_option |= Q(Exists(lines.filter(order_id=OuterRef("id"))))
+
     return qs.filter(filter_option)
 
 
