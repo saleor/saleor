@@ -26,6 +26,7 @@ CostAwareNode = Union[
     Field,
     FragmentDefinition,
     FragmentSpread,
+    InlineFragment,
     OperationDefinition,
 ]
 
