@@ -41,6 +41,7 @@ from ..checkout.fetch import fetch_checkout_info
 from ..checkout.models import Checkout, CheckoutLine
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus, TimePeriodType
+from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
@@ -81,6 +82,7 @@ from ..payment.models import Payment
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
+from ..plugins.webhook.tasks import WebhookResponse
 from ..plugins.webhook.utils import to_payment_app_id
 from ..product import ProductMediaTypes, ProductTypeKind
 from ..product.models import (
@@ -5320,6 +5322,42 @@ def app_manifest():
         "configurationUrl": "http://127.0.0.1:5000/configuration/",
         "tokenTargetUrl": "http://127.0.0.1:5000/configuration/install",
     }
+
+
+@pytest.fixture
+def event_payload():
+    """Return event payload."""
+    return EventPayload.objects.create(payload='{"payload_key": "payload_value"}')
+
+
+@pytest.fixture
+def event_delivery(event_payload, webhook, app):
+    """Return event delivery object"""
+    return EventDelivery.objects.create(
+        event_type=WebhookEventType.ANY,
+        payload=event_payload,
+        webhook=webhook,
+    )
+
+
+@pytest.fixture
+def event_attempt(event_delivery):
+    """Return event delivery attempt object"""
+    return EventDeliveryAttempt.objects.create(
+        delivery=event_delivery,
+        task_id="example_task_id",
+        duration=None,
+        response="example_response",
+        response_headers=None,
+        request_headers=None,
+    )
+
+
+@pytest.fixture
+def webhook_response():
+    return WebhookResponse(
+        content="example_content_response",
+    )
 
 
 @pytest.fixture

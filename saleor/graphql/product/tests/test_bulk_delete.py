@@ -487,7 +487,7 @@ def test_delete_products_with_images(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products_trigger_webhook(
     mocked_recalculate_orders_task,
@@ -518,7 +518,7 @@ def test_delete_products_trigger_webhook(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_products_without_variants(
     mocked_webhook_trigger,
     staff_api_client,
