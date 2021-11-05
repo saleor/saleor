@@ -333,6 +333,7 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
+        info.context.is_mutation = True
         if not cls.check_permissions(info.context):
             raise PermissionDenied()
 
