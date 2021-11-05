@@ -4384,7 +4384,7 @@ def webhook_response():
         content="example_content_response",
     )
 
-  
+
 @pytest.fixture
 def check_payment_balance_input():
     return {
