@@ -73,24 +73,25 @@ def test_query_below_cost_limit_passes_validation(
     assert len(json_response["data"]) == 20
 
 
+VARIANTS_QUERY = """
+    query variantsQueryCost($ids: [ID], $channel: String, $first: Int) {
+        productVariants(ids: $ids, channel: $channel, first: $first) {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
 @override_settings(GRAPHQL_QUERY_MAX_COMPLEXITY=10)
 def test_query_exceeding_cost_limit_due_to_multiplied_complexity_fails_validation(
     api_client,
     variant_with_many_stocks,
     channel_USD,
 ):
-    query = """
-        query variantsQueryCost($ids: [ID], $channel: String, $first: Int) {
-            productVariants(ids: $ids, channel: $channel, first: $first) {
-                edges {
-                    node {
-                        id
-                    }
-                }
-            }
-        }
-    """
-
     variables = {
         "ids": [
             graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk)
@@ -99,7 +100,7 @@ def test_query_exceeding_cost_limit_due_to_multiplied_complexity_fails_validatio
         "first": 100,
     }
 
-    response = api_client.post_graphql(query, variables)
+    response = api_client.post_graphql(VARIANTS_QUERY, variables)
     json_response = response.json()
     assert "data" not in json_response
     query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
@@ -136,7 +137,7 @@ def test_query_below_cost_limit_with_multiplied_complexity_passes_validation(
         "first": 5,
     }
 
-    response = api_client.post_graphql(query, variables)
+    response = api_client.post_graphql(VARIANTS_QUERY, variables)
     json_response = response.json()
     assert "errors" not in json_response
     query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
