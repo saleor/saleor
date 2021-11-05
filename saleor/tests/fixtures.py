@@ -4383,3 +4383,17 @@ def webhook_response():
     return WebhookResponse(
         content="example_content_response",
     )
+
+  
+@pytest.fixture
+def check_payment_balance_input():
+    return {
+        "gatewayId": "mirumee.payments.gateway",
+        "channel": "channel_default",
+        "method": "givex",
+        "card": {
+            "cvc": "9891",
+            "code": "12345678910",
+            "money": {"currency": "GBP", "amount": 100.0},
+        },
+    }
