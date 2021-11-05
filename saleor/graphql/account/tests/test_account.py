@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 import uuid
@@ -13,6 +14,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.test import override_settings
+from django.utils import timezone
 from freezegun import freeze_time
 
 from ....account import events as account_events
@@ -23,6 +25,7 @@ from ....checkout import AddressType
 from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType
 from ....core.permissions import AccountPermissions, OrderPermissions
+from ....core.tokens import account_delete_token_generator
 from ....core.utils.url import prepare_url
 from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
@@ -1679,18 +1682,15 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
         accountRequestDeletion(redirectUrl: $redirectUrl, channel: $channel) {
             errors {
                 field
-                message
-            }
-            errors {
                 code
-                field
+                message
             }
         }
     }
 """
 
 
-@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.account.notifications.account_delete_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion(
     mocked_notify, mocked_token, user_api_client, channel_PLN
@@ -1730,7 +1730,7 @@ def test_account_request_deletion_token_validation(
     mocked_notify, user_api_client, channel_PLN
 ):
     user = user_api_client.user
-    token = default_token_generator.make_token(user)
+    token = account_delete_token_generator.make_token(user)
     redirect_url = "https://www.example.com"
     variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
     response = user_api_client.post_graphql(
@@ -1791,7 +1791,10 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
     mocked_notify, user_api_client, settings, channel_PLN
 ):
     user = user_api_client.user
-    token = default_token_generator.make_token(user)
+    user.last_login = timezone.now()
+    user.save(update_fields=["last_login"])
+
+    token = account_delete_token_generator.make_token(user)
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     redirect_url = "https://www.test.com"
     variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
@@ -1827,7 +1830,7 @@ def test_account_request_deletion_subdomain(
     mocked_notify, user_api_client, settings, channel_PLN
 ):
     user = user_api_client.user
-    token = default_token_generator.make_token(user)
+    token = account_delete_token_generator.make_token(user)
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     redirect_url = "https://sub.example.com"
     variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
@@ -1871,7 +1874,43 @@ ACCOUNT_DELETE_MUTATION = """
 @freeze_time("2018-05-31 12:00:01")
 def test_account_delete(user_api_client):
     user = user_api_client.user
-    token = default_token_generator.make_token(user)
+    user.last_login = timezone.now()
+    user.save(update_fields=["last_login"])
+    token = account_delete_token_generator.make_token(user)
+    variables = {"token": token}
+
+    response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["accountDelete"]
+    assert not data["errors"]
+    assert not User.objects.filter(pk=user.id).exists()
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_account_delete_user_never_log_in(user_api_client):
+    user = user_api_client.user
+    token = account_delete_token_generator.make_token(user)
+    variables = {"token": token}
+
+    response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["accountDelete"]
+    assert not data["errors"]
+    assert not User.objects.filter(pk=user.id).exists()
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_account_delete_log_out_after_deletion_request(user_api_client):
+    user = user_api_client.user
+    user.last_login = timezone.now()
+    user.save(update_fields=["last_login"])
+
+    token = account_delete_token_generator.make_token(user)
+
+    # simulate re-login
+    user.last_login = timezone.now() + datetime.timedelta(hours=1)
+    user.save(update_fields=["last_login"])
+
     variables = {"token": token}
 
     response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
@@ -1916,7 +1955,7 @@ def test_account_delete_staff_user(staff_api_client):
 def test_account_delete_other_customer_token(user_api_client):
     user = user_api_client.user
     other_user = User.objects.create(email="temp@example.com")
-    token = default_token_generator.make_token(other_user)
+    token = account_delete_token_generator.make_token(other_user)
     variables = {"token": token}
 
     response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
@@ -4568,8 +4607,8 @@ def test_query_staff_members_app_no_permission(
         ({"search": "Kowalski"}, 1),
         ({"search": "John"}, 1),  # first_name
         ({"search": "Doe"}, 1),  # last_name
-        ({"search": "wroc"}, 1),  # city
-        ({"search": "pl"}, 2),  # country
+        ({"search": "irv"}, 1),  # city
+        ({"search": "us"}, 1),  # country
     ],
 )
 def test_query_staff_members_with_filter_search(
@@ -4578,7 +4617,7 @@ def test_query_staff_members_with_filter_search(
     query_staff_users_with_filter,
     staff_api_client,
     permission_manage_staff,
-    address,
+    address_usa,
     staff_user,
 ):
     users = User.objects.bulk_create(
@@ -4604,7 +4643,7 @@ def test_query_staff_members_with_filter_search(
             ),
         ]
     )
-    users[1].addresses.set([address])
+    users[1].addresses.set([address_usa])
 
     variables = {"filter": staff_member_filter}
     response = staff_api_client.post_graphql(

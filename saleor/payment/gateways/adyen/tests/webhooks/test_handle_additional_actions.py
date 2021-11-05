@@ -15,12 +15,14 @@ ERROR_MSG_MISSING_CHECKOUT = (
 )
 
 
+@mock.patch("saleor.payment.gateways.adyen.webhooks.payment_refund_or_void")
 @mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
 def test_handle_additional_actions_post(
-    api_call_mock, payment_adyen_for_checkout, adyen_plugin
+    api_call_mock, _, payment_adyen_for_checkout, adyen_plugin
 ):
     # given
-    adyen_plugin()
+    plugin = adyen_plugin()
+    channel_slug = plugin.channel.slug
     payment_adyen_for_checkout.to_confirm = True
     payment_adyen_for_checkout.extra_data = json.dumps(
         [{"payment_data": "test_data", "parameters": ["payload"]}]
@@ -45,7 +47,9 @@ def test_handle_additional_actions_post(
     api_call_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, channel_slug
+    )
 
     # then
     payment_adyen_for_checkout.refresh_from_db()
@@ -67,7 +71,8 @@ def test_handle_additional_actions_order_already_created(
     api_call_mock, payment_adyen_for_order, adyen_plugin, order
 ):
     # given
-    adyen_plugin()
+    plugin = adyen_plugin()
+    channel_slug = plugin.channel.slug
     payment_adyen_for_order.to_confirm = True
     payment_adyen_for_order.extra_data = json.dumps(
         [{"payment_data": "test_data", "parameters": ["payload"]}]
@@ -89,7 +94,9 @@ def test_handle_additional_actions_order_already_created(
     api_call_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, channel_slug
+    )
 
     # then
     payment_adyen_for_order.refresh_from_db()
@@ -115,7 +122,8 @@ def test_handle_additional_actions_handles_return_urls(
     api_call_mock, custom_url, payment_adyen_for_checkout, adyen_plugin
 ):
     # given
-    adyen_plugin()
+    plugin = adyen_plugin()
+    channel_slug = plugin.channel.slug
     payment_adyen_for_checkout.return_url = custom_url
     payment_adyen_for_checkout.to_confirm = True
     payment_adyen_for_checkout.extra_data = json.dumps(
@@ -140,7 +148,9 @@ def test_handle_additional_actions_handles_return_urls(
     api_call_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, channel_slug
+    )
 
     # then
     payment_adyen_for_checkout.refresh_from_db()
@@ -152,7 +162,8 @@ def test_handle_additional_actions_get(
     api_call_mock, payment_adyen_for_checkout, adyen_plugin
 ):
     # given
-    adyen_plugin()
+    plugin = adyen_plugin()
+    channel_slug = plugin.channel.slug
     payment_adyen_for_checkout.to_confirm = True
     payment_adyen_for_checkout.extra_data = json.dumps(
         {"payment_data": "test_data", "parameters": ["payload"]}
@@ -180,7 +191,9 @@ def test_handle_additional_actions_get(
     api_call_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, channel_slug
+    )
 
     # then
     payment_adyen_for_checkout.refresh_from_db()
@@ -225,7 +238,7 @@ def test_handle_additional_actions_more_action_required(payment_adyen_for_checko
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock, "channel")
 
     # then
     assert response.status_code == 302
@@ -267,7 +280,7 @@ def test_handle_additional_actions_payment_does_not_exist(payment_adyen_for_chec
     payment_adyen_for_checkout.delete()
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock, "channel")
 
     # then
     assert response.status_code == 404
@@ -298,7 +311,7 @@ def test_handle_additional_actions_payment_lack_of_return_url(
     }
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock, "channel")
 
     # then
     assert response.status_code == 404
@@ -326,7 +339,7 @@ def test_handle_additional_actions_no_payment_id_in_get(payment_adyen_for_checko
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock, "channel")
 
     # then
     assert response.status_code == 404
@@ -354,7 +367,7 @@ def test_handle_additional_actions_checkout_not_related_to_payment(
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock, "channel")
 
     # then
     assert response.status_code == 404
@@ -384,7 +397,7 @@ def test_handle_additional_actions_payment_does_not_have_checkout(
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock, "channel")
 
     # then
     assert response.status_code == 404
@@ -421,7 +434,7 @@ def test_handle_additional_actions_api_call_error(
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock, "channel")
 
     # then
     assert response.status_code == 400
@@ -450,7 +463,7 @@ def test_handle_additional_actions_payment_not_active(payment_adyen_for_checkout
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock, "channel")
 
     # then
     assert response.status_code == 404
@@ -481,7 +494,7 @@ def test_handle_additional_actions_payment_with_no_adyen_gateway(
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock, "channel")
 
     # then
     assert response.status_code == 404
@@ -512,7 +525,7 @@ def test_handle_additional_actions_lack_of_parameter_in_request(
     api_call_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock, "channel")
 
     # then
     payment_adyen_for_checkout.refresh_from_db()
