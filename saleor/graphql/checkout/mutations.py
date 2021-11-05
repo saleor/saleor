@@ -56,12 +56,12 @@ from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context, resolve_global_ids_to_primary_keys
 from .types import Checkout, CheckoutLine
 from .utils import prepare_insufficient_stock_checkout_validation_error
+from ...account.models import Address, User
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
 
 if TYPE_CHECKING:
-    from ...account.models import Address
     from ...checkout.fetch import CheckoutInfo
 
 
@@ -1036,6 +1036,7 @@ class CheckoutEmailUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, email, checkout_id=None, token=None):
+        user = info.context.user
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
             CheckoutErrorCode, "checkout_id", checkout_id, "token", token
@@ -1049,9 +1050,13 @@ class CheckoutEmailUpdate(BaseMutation):
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
 
+        if user.is_anonymous or email != user.email:
+            user = User.objects.filter(email=email).first()
+
+        checkout.user = user
         checkout.email = email
         cls.clean_instance(info, checkout)
-        checkout.save(update_fields=["email", "last_change"])
+        checkout.save(update_fields=["email", "user", "last_change"])
         info.context.plugins.checkout_updated(checkout)
         return CheckoutEmailUpdate(checkout=checkout)
 
