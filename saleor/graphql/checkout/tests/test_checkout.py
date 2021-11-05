@@ -2052,6 +2052,32 @@ def test_checkout_billing_address_update(
     assert checkout.billing_address.city == billing_address["city"].upper()
 
 
+@mock.patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
+)
+def test_checkout_shipping_address_update_exclude_shipping_method(
+    mocked_webhook,
+    user_api_client,
+    checkout_with_items_and_shipping,
+    graphql_address_data,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    checkout = checkout_with_items_and_shipping
+    shipping_method = checkout.shipping_method
+    assert shipping_method is not None
+    webhook_reason = "hello-there"
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+    ]
+    shipping_address = graphql_address_data
+    variables = {"token": checkout.token, "shippingAddress": shipping_address}
+
+    user_api_client.post_graphql(MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables)
+    checkout.refresh_from_db()
+    assert checkout.shipping_method is None
+
+
 CHECKOUT_EMAIL_UPDATE_MUTATION = """
     mutation checkoutEmailUpdate($token: UUID, $email: String!) {
         checkoutEmailUpdate(token: $token, email: $email) {
