@@ -21,6 +21,7 @@ from ...utils import (
     create_transaction,
     gateway_postprocess,
     price_from_minor_unit,
+    update_payment_charge_status,
     update_payment_method_details,
 )
 from .consts import (
@@ -127,7 +128,7 @@ def _finalize_checkout(
         psp_reference=payment_intent.id,
     )
 
-    create_transaction(
+    transaction = create_transaction(
         payment,
         kind=kind,
         payment_information=None,  # type: ignore
@@ -135,12 +136,20 @@ def _finalize_checkout(
         gateway_response=gateway_response,
     )
 
+    # To avoid zombie payments we have to update payment `charge_status` without
+    # changing `to_confirm` flag. In case when order cannot be created then
+    # payment will be refunded.
+    update_payment_charge_status(payment, transaction)
+    payment.refresh_from_db()
+    checkout.refresh_from_db()
+
     manager = get_plugins_manager()
     discounts = fetch_active_discounts()
     lines = fetch_checkout_lines(checkout)  # type: ignore
     checkout_info = fetch_checkout_info(
         checkout, lines, discounts, manager  # type: ignore
     )
+
     order, _, _ = complete_checkout(
         manager=manager,
         checkout_info=checkout_info,
