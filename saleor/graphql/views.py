@@ -29,7 +29,7 @@ from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from .api import schema
 from .core.validators import validate_query_cost
-from .costs_map import COST_MAP
+from .query_cost_map import COST_MAP
 from .utils import query_fingerprint
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
