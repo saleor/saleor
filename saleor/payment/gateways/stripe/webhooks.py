@@ -15,7 +15,7 @@ from ....discount.utils import fetch_active_discounts
 from ....order import events
 from ....order.actions import order_captured, order_voided
 from ....order.interface import OrderPaymentAction
-from ....plugins.manager import get_plugins_manager
+from ....plugins.manager import PluginsManager
 from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
 from ...models import Payment
@@ -81,7 +81,12 @@ def handle_webhook(
             "Processing new Stripe webhook",
             extra={"event_type": event.type, "event_id": event.id},
         )
-        webhook_handlers[event.type](event.data.object, gateway_config, channel_slug)
+        webhook_handlers[event.type](
+            event.data.object,
+            gateway_config,
+            channel_slug,
+            request.plugins,  # type: ignore
+        )
     else:
         logger.warning(
             "Received unhandled webhook events", extra={"event_type": event.type}
@@ -101,44 +106,11 @@ def _get_payment(payment_intent_id: str) -> Optional[Payment]:
     )
 
 
-def _get_checkout(payment_id: int) -> Optional[Checkout]:
-    return (
-        Checkout.objects.prefetch_related("payments")
-        .select_for_update(of=("self",))
-        .filter(payments__id=payment_id, payments__is_active=True)
-        .first()
-    )
-
-
 def _finalize_checkout(
     checkout: Checkout,
     payment: Payment,
-    payment_intent: StripeObject,
-    kind: str,
-    amount: str,
-    currency: str,
+    manager: PluginsManager,
 ):
-    gateway_response = GatewayResponse(
-        kind=kind,
-        action_required=False,
-        transaction_id=payment_intent.id,
-        is_success=True,
-        amount=price_from_minor_unit(amount, currency),
-        currency=payment_intent.currency,
-        error=None,
-        raw_response=payment_intent.last_response,
-        psp_reference=payment_intent.id,
-    )
-
-    create_transaction(
-        payment,
-        kind=kind,
-        payment_information=None,  # type: ignore
-        action_required=False,
-        gateway_response=gateway_response,
-    )
-
-    manager = get_plugins_manager()
     discounts = fetch_active_discounts()
     lines = fetch_checkout_lines(checkout)  # type: ignore
     checkout_info = fetch_checkout_info(
@@ -158,6 +130,27 @@ def _finalize_checkout(
     )
 
 
+def _get_checkout(payment_id: int) -> Optional[Checkout]:
+    return (
+        Checkout.objects.prefetch_related("payments")
+        .select_for_update(of=("self",))
+        .filter(payments__id=payment_id, payments__is_active=True)
+        .first()
+    )
+
+
+def _get_transaction_id_by_kind(
+    payment: Payment,
+    stripe_object: StripeObject,
+    kind: str,
+):
+    # stripe_object is Refund type
+    if kind == TransactionKind.REFUND:
+        return stripe_object.id
+    # stripe_object is a PaymentIntent type
+    return stripe_object.id
+
+
 def _update_payment_with_new_transaction(
     payment: Payment, stripe_object: StripeObject, kind: str, amount: str, currency: str
 ):
@@ -172,75 +165,81 @@ def _update_payment_with_new_transaction(
         raw_response=stripe_object.last_response,
         psp_reference=stripe_object.id,
     )
-    transaction = create_transaction(
-        payment,
-        kind=kind,
-        payment_information=None,  # type: ignore
-        action_required=False,
-        gateway_response=gateway_response,
-    )
-    gateway_postprocess(transaction, payment)
 
-    return transaction
+    transaction_id = _get_transaction_id_by_kind(
+        payment,
+        stripe_object,
+        kind,
+    )
+    if not payment.transactions.filter(token=transaction_id, kind=kind).exists():
+        transaction = create_transaction(
+            payment,
+            kind=kind,
+            payment_information=None,  # type: ignore
+            action_required=False,
+            gateway_response=gateway_response,
+        )
+        gateway_postprocess(transaction, payment)
+        return transaction
 
 
 def _process_payment_with_checkout(
     payment: Payment,
-    payment_intent: StripeObject,
-    kind: str,
-    amount: str,
-    currency: str,
+    manager: PluginsManager,
 ):
     checkout = _get_checkout(payment.id)
 
     if checkout and payment.can_create_order():
-        _finalize_checkout(checkout, payment, payment_intent, kind, amount, currency)
+        _finalize_checkout(checkout, payment, manager)
 
 
 def handle_authorized_payment_intent(
-    payment_intent: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
+    payment_intent: StripeObject,
+    gateway_config: "GatewayConfig",
+    _channel_slug: str,
+    manager: "PluginsManager",
 ):
     payment = _get_payment(payment_intent.id)
-
     if not payment:
         logger.warning(
             "Payment for PaymentIntent was not found",
             extra={"payment_intent": payment_intent.id},
         )
         return
+
+    _update_payment_with_new_transaction(
+        payment,
+        payment_intent,
+        TransactionKind.AUTH,
+        payment_intent.amount,
+        payment_intent.currency,
+    )
+
     if payment.order_id:
-        if payment.charge_status == ChargeStatus.PENDING:
-            _update_payment_with_new_transaction(
-                payment,
-                payment_intent,
-                TransactionKind.AUTH,
-                payment_intent.amount,
-                payment_intent.currency,
-            )
         # Order already created
         return
 
     if payment.checkout_id:
         _process_payment_with_checkout(
             payment,
-            payment_intent,
-            kind=TransactionKind.AUTH,
-            amount=payment_intent.amount,
-            currency=payment_intent.currency,
+            manager,
         )
 
 
 def handle_failed_payment_intent(
-    payment_intent: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
+    payment_intent: StripeObject,
+    gateway_config: "GatewayConfig",
+    _channel_slug: str,
+    manager: "PluginsManager",
 ):
     payment = _get_payment(payment_intent.id)
-
     if not payment:
         logger.warning(
             "Payment for PaymentIntent was not found",
             extra={"payment_intent": payment_intent.id},
         )
         return
+
     transaction = _update_payment_with_new_transaction(
         payment,
         payment_intent,
@@ -248,22 +247,34 @@ def handle_failed_payment_intent(
         payment_intent.amount,
         payment_intent.currency,
     )
+
     if payment.order:
         actions = [OrderPaymentAction(payment, transaction.amount)]
-        order_voided(payment.order, None, None, actions, get_plugins_manager())
+        order_voided(payment.order, None, None, actions, manager)
 
 
 def handle_processing_payment_intent(
-    payment_intent: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
+    payment_intent: StripeObject,
+    gateway_config: "GatewayConfig",
+    _channel_slug: str,
+    manager: "PluginsManager",
 ):
     payment = _get_payment(payment_intent.id)
-
     if not payment:
         logger.warning(
             "Payment for PaymentIntent was not found",
             extra={"payment_intent": payment_intent.id},
         )
         return
+
+    _update_payment_with_new_transaction(
+        payment,
+        payment_intent,
+        TransactionKind.PENDING,
+        payment_intent.amount,
+        payment_intent.currency,
+    )
+
     if payment.order_id:
         # Order already created
         return
@@ -271,18 +282,17 @@ def handle_processing_payment_intent(
     if payment.checkout_id:
         _process_payment_with_checkout(
             payment,
-            payment_intent,
-            TransactionKind.PENDING,
-            amount=payment_intent.amount,
-            currency=payment_intent.currency,
+            manager,
         )
 
 
 def handle_successful_payment_intent(
-    payment_intent: StripeObject, gateway_config: "GatewayConfig", channel_slug: str
+    payment_intent: StripeObject,
+    gateway_config: "GatewayConfig",
+    channel_slug: str,
+    manager: "PluginsManager",
 ):
     payment = _get_payment(payment_intent.id)
-
     if not payment:
         logger.warning(
             "Payment for PaymentIntent was not found",
@@ -302,36 +312,37 @@ def handle_successful_payment_intent(
         if changed_fields:
             payment.save(update_fields=changed_fields)
 
+    capture_transaction = _update_payment_with_new_transaction(
+        payment,
+        payment_intent,
+        TransactionKind.CAPTURE,
+        payment_intent.amount_received,
+        payment_intent.currency,
+    )
+
     if payment.order_id:
-        if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:
-            capture_transaction = _update_payment_with_new_transaction(
-                payment,
-                payment_intent,
-                TransactionKind.CAPTURE,
-                payment_intent.amount_received,
-                payment_intent.currency,
-            )
+        if capture_transaction:
             order_captured(
                 payment.order,  # type: ignore
                 None,
                 None,
                 [OrderPaymentAction(payment, capture_transaction.amount)],
-                get_plugins_manager(),
+                manager,
             )
         return
 
     if payment.checkout_id:
         _process_payment_with_checkout(
             payment,
-            payment_intent,
-            TransactionKind.CAPTURE,
-            amount=payment_intent.amount_received,
-            currency=payment_intent.currency,
+            manager,
         )
 
 
 def handle_refund(
-    charge: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
+    charge: StripeObject,
+    gateway_config: "GatewayConfig",
+    _channel_slug: str,
+    manager: "PluginsManager",
 ):
     payment_intent_id = charge.payment_intent
     payment = _get_payment(payment_intent_id)
@@ -375,4 +386,4 @@ def handle_refund(
                 amount=refund_transaction.amount,
                 payment=payment,
             )
-            get_plugins_manager().order_updated(payment.order)
+            manager.order_updated(payment.order)
