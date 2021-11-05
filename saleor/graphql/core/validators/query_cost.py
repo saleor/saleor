@@ -11,16 +11,11 @@ from graphql import (
 )
 from graphql.execution.values import get_argument_values
 from graphql.language.ast import (
-    BooleanValue,
     Field,
     FragmentDefinition,
     FragmentSpread,
     InlineFragment,
-    IntValue,
-    ListValue,
-    Node,
     OperationDefinition,
-    StringValue,
 )
 from graphql.type import GraphQLField
 from graphql.validation import validate
@@ -236,14 +231,15 @@ def validate_cost_map(cost_map: Dict[str, Dict[str, Any]], schema: GraphQLSchema
     for type_name, type_fields in cost_map.items():
         if type_name not in type_map:
             raise GraphQLError(
-                "The query cost could not be calculated because cost map specifies a type "
-                f"{type_name} that is not defined by the schema."
+                "The query cost could not be calculated because cost map specifies "
+                f"a type {type_name} that is not defined by the schema."
             )
 
         if not isinstance(type_map[type_name], GraphQLObjectType):
             raise GraphQLError(
-                "The query cost could not be calculated because cost map specifies a type "
-                f"{type_name} that is defined by the schema, but is not an object type."
+                "The query cost could not be calculated because cost map specifies "
+                f"a type {type_name} that is defined by the schema, but is not an "
+                "object type."
             )
 
         for field_name in type_fields:

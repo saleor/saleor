@@ -117,18 +117,6 @@ def test_query_below_cost_limit_with_multiplied_complexity_passes_validation(
     variant_with_many_stocks,
     channel_USD,
 ):
-    query = """
-        query variantsQueryCost($ids: [ID], $channel: String, $first: Int) {
-            productVariants(ids: $ids, channel: $channel, first: $first) {
-                edges {
-                    node {
-                        id
-                    }
-                }
-            }
-        }
-    """
-
     variables = {
         "ids": [
             graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk)

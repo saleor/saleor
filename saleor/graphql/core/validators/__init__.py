@@ -6,7 +6,6 @@ from django_prices.utils.formatting import get_currency_fraction
 from graphql.error import GraphQLError
 
 from ....product.models import ProductVariantChannelListing
-from .query_cost import validate_query_cost
 
 if TYPE_CHECKING:
     from decimal import Decimal

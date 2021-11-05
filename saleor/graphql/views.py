@@ -28,7 +28,7 @@ from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from .api import schema
-from .core.validators import validate_query_cost
+from .core.validators.query_cost import validate_query_cost
 from .query_cost_map import COST_MAP
 from .utils import query_fingerprint
 
@@ -286,7 +286,6 @@ class GraphQLView(View):
                         COST_MAP,
                         settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
                     )
-                    request.graphql_query_cost = query_cost
                     if cost_errors:
                         result = ExecutionResult(errors=cost_errors, invalid=True)
                         return set_query_cost_on_result(result, query_cost)
