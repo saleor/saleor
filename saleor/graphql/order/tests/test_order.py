@@ -4782,7 +4782,6 @@ def test_order_update_shipping_with_excluded_method(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    print(content)
     data = content["data"]["orderUpdateShipping"]
     assert data["errors"][0]["field"] == "shippingMethod"
     assert (
