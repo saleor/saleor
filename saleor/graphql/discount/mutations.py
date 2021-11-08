@@ -21,9 +21,8 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import DiscountError
 from ..core.validators import validate_end_is_after_start, validate_price_precision
-from ..product.types import Category, Collection, Product, ProductVariant
 from ..discount.dataloaders import SaleChannelListingBySaleIdLoader
-from ..product.types import Category, Collection, Product
+from ..product.types import Category, Collection, Product, ProductVariant
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 from .types import Sale, Voucher
 
