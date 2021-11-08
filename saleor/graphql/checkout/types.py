@@ -34,7 +34,7 @@ from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByChannelSlugLoader,
 )
-from ..shipping.types import ShippingMethod
+from ..shipping.types import ShippingMethodType
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import (
     StocksReservationsByCheckoutTokenLoader,
@@ -170,20 +170,20 @@ class DeliveryMethod(graphene.Union):
         description = (
             "Represents a delivery method chosen for the checkout. `Warehouse` "
             'type is used when checkout is marked as "click and collect" and '
-            "`ShippingMethod` otherwise."
+            "`ShippingMethodType` otherwise."
         )
-        types = (Warehouse, ShippingMethod)
+        types = (Warehouse, ShippingMethodType)
 
     @classmethod
     def resolve_type(cls, instance, info):
         if isinstance(instance, ChannelContext):
-            return ShippingMethod
+            return ShippingMethodType
         return super(DeliveryMethod, cls).resolve_type(instance, info)
 
 
 class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
-        ShippingMethod,
+        ShippingMethodType,
         required=True,
         description="Shipping methods that can be used with this order.",
     )
@@ -223,7 +223,7 @@ class Checkout(CountableDjangoObjectType):
         description="The price of the shipping, with all the taxes included.",
     )
     shipping_method = graphene.Field(
-        ShippingMethod,
+        ShippingMethodType,
         description="The shipping method related with checkout.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )

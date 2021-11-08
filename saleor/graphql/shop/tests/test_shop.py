@@ -787,7 +787,7 @@ def test_query_available_shipping_methods_no_address(
     data = content["data"]["shop"]["availableShippingMethods"]
     assert len(data) > 0
     assert {ship_meth["id"] for ship_meth in data} == {
-        graphene.Node.to_global_id("ShippingMethod", ship_meth.pk)
+        graphene.Node.to_global_id("ShippingMethodType", ship_meth.pk)
         for ship_meth in ShippingMethod.objects.filter(
             shipping_zone__channels__slug=channel_USD.slug,
             channel_listings__channel__slug=channel_USD.slug,
@@ -834,7 +834,8 @@ def test_query_available_shipping_methods_for_given_address(
     data = content["data"]["shop"]["availableShippingMethods"]
     assert len(data) == shipping_method_count - 1
     assert graphene.Node.to_global_id(
-        "ShippingMethod", shipping_zone_without_countries.shipping_methods.first().pk
+        "ShippingMethodType",
+        shipping_zone_without_countries.shipping_methods.first().pk,
     ) not in {ship_meth["id"] for ship_meth in data}
 
 
@@ -855,7 +856,7 @@ def test_query_available_shipping_methods_no_address_vatlayer_set(
     content = get_graphql_content(response)
     data = content["data"]["shop"]["availableShippingMethods"]
     assert {ship_meth["id"] for ship_meth in data} == {
-        graphene.Node.to_global_id("ShippingMethod", ship_meth.pk)
+        graphene.Node.to_global_id("ShippingMethodType", ship_meth.pk)
         for ship_meth in ShippingMethod.objects.filter(
             channel_listings__channel__slug=channel_USD.slug
         )
@@ -886,7 +887,7 @@ def test_query_available_shipping_methods_for_given_address_vatlayer_set(
     data = content["data"]["shop"]["availableShippingMethods"]
     assert len(data) == shipping_method_count - 1
     assert graphene.Node.to_global_id(
-        "ShippingMethod", shipping_zone_without_countries.pk
+        "ShippingMethodType", shipping_zone_without_countries.pk
     ) not in {ship_meth["id"] for ship_meth in data}
 
 
@@ -909,7 +910,7 @@ def test_query_available_shipping_methods_for_excluded_postal_code(
     # then
     content = get_graphql_content(response)
     data = content["data"]["shop"]["availableShippingMethods"]
-    assert graphene.Node.to_global_id("ShippingMethod", shipping_method.pk) not in {
+    assert graphene.Node.to_global_id("ShippingMethodType", shipping_method.pk) not in {
         ship_meth["id"] for ship_meth in data
     }
 
@@ -933,7 +934,7 @@ def test_query_available_shipping_methods_for_included_postal_code(
     # then
     content = get_graphql_content(response)
     data = content["data"]["shop"]["availableShippingMethods"]
-    assert graphene.Node.to_global_id("ShippingMethod", shipping_method.pk) in {
+    assert graphene.Node.to_global_id("ShippingMethodType", shipping_method.pk) in {
         ship_meth["id"] for ship_meth in data
     }
 

@@ -71,7 +71,7 @@ class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
         ]
 
 
-class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
+class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     id = graphene.ID(required=True, description="Shipping method ID.")
     name = graphene.String(required=True, description="Shipping method name.")
     description = graphene.JSONString(description="Shipping method description.")
@@ -130,7 +130,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
         if getattr(root.node, "is_external", False):
             # todo external shipping to base64
             return root.node.id
-        return graphene.Node.to_global_id("ShippingMethod", root.node.id)
+        return graphene.Node.to_global_id("ShippingMethodType", root.node.id)
 
     @staticmethod
     def resolve_price(root: ChannelContext[ShippingMethodData], info, **_kwargs):
@@ -235,7 +235,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         CountryDisplay, description="List of countries available for the method."
     )
     shipping_methods = graphene.List(
-        ShippingMethod,
+        ShippingMethodType,
         description=(
             "List of shipping methods available for orders"
             " shipped to countries within this shipping zone."

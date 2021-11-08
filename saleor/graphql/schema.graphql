@@ -1022,7 +1022,7 @@ type Checkout implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  availableShippingMethods: [ShippingMethod]!
+  availableShippingMethods: [ShippingMethodType]!
   availableCollectionPoints: [Warehouse!]!
   availablePaymentGateways: [PaymentGateway!]!
   email: String!
@@ -1031,7 +1031,7 @@ type Checkout implements Node & ObjectWithMetadata {
   stockReservationExpires: DateTime
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
-  shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
+  shippingMethod: ShippingMethodType @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
   deliveryMethod: DeliveryMethod
   subtotalPrice: TaxedMoney
   token: UUID!
@@ -1851,7 +1851,7 @@ type DeletePrivateMetadata {
   item: ObjectWithMetadata
 }
 
-union DeliveryMethod = Warehouse | ShippingMethod
+union DeliveryMethod = Warehouse | ShippingMethodType
 
 type DigitalContent implements Node & ObjectWithMetadata {
   useDefaultSettings: Boolean!
@@ -4075,7 +4075,7 @@ type Order implements Node & ObjectWithMetadata {
   fulfillments: [Fulfillment]!
   lines: [OrderLine]!
   actions: [OrderAction]!
-  availableShippingMethods: [ShippingMethod]
+  availableShippingMethods: [ShippingMethodType]
   availableCollectionPoints: [Warehouse!]!
   invoices: [Invoice]
   number: String
@@ -4087,7 +4087,7 @@ type Order implements Node & ObjectWithMetadata {
   payments: [Payment]
   total: TaxedMoney!
   undiscountedTotal: TaxedMoney!
-  shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
+  shippingMethod: ShippingMethodType @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
   subtotal: TaxedMoney!
   statusDisplay: String
   canFinalize: Boolean!
@@ -6188,26 +6188,6 @@ enum ShippingErrorCode {
   DUPLICATED_INPUT_ITEM
 }
 
-type ShippingMethod implements Node & ObjectWithMetadata {
-  id: ID!
-  privateMetadata: [MetadataItem]!
-  metadata: [MetadataItem]!
-  name: String!
-  description: JSONString
-  type: ShippingMethodTypeEnum
-  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
-  channelListings: [ShippingMethodChannelListing!]
-  price: Money
-  maximumOrderPrice: Money
-  minimumOrderPrice: Money
-  postalCodeRules: [ShippingMethodPostalCodeRule]
-  excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  minimumOrderWeight: Weight
-  maximumOrderWeight: Weight
-  maximumDeliveryDays: Int
-  minimumDeliveryDays: Int
-}
-
 type ShippingMethodChannelListing implements Node {
   id: ID!
   channel: Channel!
@@ -6229,7 +6209,7 @@ input ShippingMethodChannelListingInput {
 }
 
 type ShippingMethodChannelListingUpdate {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
@@ -6246,7 +6226,7 @@ type ShippingMethodTranslatableContent implements Node {
   name: String!
   description: JSONString
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
-  shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+  shippingMethod: ShippingMethodType @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
 type ShippingMethodTranslation implements Node {
@@ -6254,6 +6234,26 @@ type ShippingMethodTranslation implements Node {
   name: String
   description: JSONString
   language: LanguageDisplay!
+}
+
+type ShippingMethodType implements Node & ObjectWithMetadata {
+  id: ID!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  name: String!
+  description: JSONString
+  type: ShippingMethodTypeEnum
+  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
+  channelListings: [ShippingMethodChannelListing!]
+  price: Money
+  maximumOrderPrice: Money
+  minimumOrderPrice: Money
+  postalCodeRules: [ShippingMethodPostalCodeRule]
+  excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  minimumOrderWeight: Weight
+  maximumOrderWeight: Weight
+  maximumDeliveryDays: Int
+  minimumDeliveryDays: Int
 }
 
 enum ShippingMethodTypeEnum {
@@ -6274,20 +6274,20 @@ type ShippingPriceBulkDelete {
 
 type ShippingPriceCreate {
   shippingZone: ShippingZone
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
 
 type ShippingPriceDelete {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingZone: ShippingZone
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
 
 type ShippingPriceExcludeProducts {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
@@ -6311,7 +6311,7 @@ input ShippingPriceInput {
 }
 
 type ShippingPriceRemoveProductFromExclude {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
@@ -6319,7 +6319,7 @@ type ShippingPriceRemoveProductFromExclude {
 type ShippingPriceTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
 }
 
 input ShippingPriceTranslationInput {
@@ -6329,7 +6329,7 @@ input ShippingPriceTranslationInput {
 
 type ShippingPriceUpdate {
   shippingZone: ShippingZone
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
@@ -6342,7 +6342,7 @@ type ShippingZone implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   priceRange: MoneyRange
   countries: [CountryDisplay]
-  shippingMethods: [ShippingMethod]
+  shippingMethods: [ShippingMethodType]
   warehouses: [Warehouse!]!
   channels: [Channel!]!
   description: String
@@ -6411,7 +6411,7 @@ input ShippingZoneUpdateInput {
 type Shop {
   availablePaymentGateways(currency: String, channel: String): [PaymentGateway!]!
   availableExternalAuthentications: [ExternalAuthentication!]!
-  availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
+  availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethodType]
   channelCurrencies: [String!]!
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
   defaultCountry: CountryDisplay

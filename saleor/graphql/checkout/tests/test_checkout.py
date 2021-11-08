@@ -2855,7 +2855,7 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
             id
             deliveryMethod {
                 __typename
-                ... on ShippingMethod {
+                ... on ShippingMethodType {
                     name
                     id
                 }
@@ -2890,7 +2890,7 @@ def test_checkout_shipping_method_update(
     query = MUTATION_UPDATE_SHIPPING_METHOD
     mock_clean_shipping.return_value = is_valid_shipping_method
 
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
 
     response = staff_api_client.post_graphql(
         query, {"token": checkout.token, "shippingMethodId": method_id}
@@ -2978,7 +2978,7 @@ def test_checkout_shipping_method_update_external_shipping_method(
     "delivery_method, node_name, attribute_name",
     [
         ("warehouse", "Warehouse", "collection_point"),
-        ("shipping_method", "ShippingMethod", "shipping_method"),
+        ("shipping_method", "ShippingMethodType", "shipping_method"),
     ],
     indirect=("delivery_method",),
 )
@@ -3164,7 +3164,7 @@ def test_checkout_shipping_method_update_excluded_postal_code(
     query = MUTATION_UPDATE_SHIPPING_METHOD
     mock_is_shipping_method_available.return_value = False
 
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
 
     response = staff_api_client.post_graphql(
         query, {"token": checkout_with_item.token, "shippingMethodId": method_id}
@@ -3198,7 +3198,7 @@ def test_checkout_delivery_method_update_excluded_postal_code(
     query = MUTATION_UPDATE_DELIVERY_METHOD
     mock_is_shipping_method_available.return_value = False
 
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
 
     response = staff_api_client.post_graphql(
         query, {"token": checkout.token, "deliveryMethodId": method_id}
@@ -3231,7 +3231,7 @@ def test_checkout_shipping_method_update_shipping_zone_without_channel(
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_SHIPPING_METHOD
 
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
 
     response = staff_api_client.post_graphql(
         query, {"token": checkout_with_item.token, "shippingMethodId": method_id}
@@ -3259,7 +3259,7 @@ def test_checkout_delivery_method_update_shipping_zone_without_channel(
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_DELIVERY_METHOD
 
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
 
     response = api_client.post_graphql(
         query, {"token": checkout.token, "deliveryMethodId": method_id}
@@ -3287,7 +3287,7 @@ def test_checkout_shipping_method_update_shipping_zone_with_channel(
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_SHIPPING_METHOD
 
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
 
     response = staff_api_client.post_graphql(
         query, {"token": checkout_with_item.token, "shippingMethodId": method_id}
@@ -3315,7 +3315,7 @@ def test_checkout_delivery_method_update_shipping_zone_with_channel(
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_DELIVERY_METHOD
 
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    method_id = graphene.Node.to_global_id("ShippingMethodType", shipping_method.id)
 
     response = staff_api_client.post_graphql(
         query, {"token": checkout.token, "deliveryMethodId": method_id}

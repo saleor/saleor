@@ -344,7 +344,9 @@ class ShippingPriceTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(
             required=True,
-            description="ShippingMethod ID or ShippingMethodTranslatableContent ID.",
+            description=(
+                "ShippingMethodType ID or ShippingMethodTranslatableContent ID.",
+            ),
         )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
@@ -366,7 +368,7 @@ class ShippingPriceTranslate(BaseTranslateMutation):
 
     @classmethod
     def get_type_for_model(cls):
-        return shipping_types.ShippingMethod
+        return shipping_types.ShippingMethodType
 
     @classmethod
     def get_node_or_error(cls, info, node_id, field="id", only_type=None, qs=None):
