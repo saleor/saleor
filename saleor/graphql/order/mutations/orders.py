@@ -9,7 +9,6 @@ from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events
-from ....order import models
 from ....order import models as order_models
 from ....order.actions import (
     cancel_order,
@@ -201,7 +200,7 @@ class OrderUpdate(DraftOrderCreate):
 
     class Meta:
         description = "Updates an order."
-        model = models.Order
+        model = order_models.Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -297,7 +296,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             info,
             data.get("id"),
             only_type=Order,
-            qs=models.Order.objects.prefetch_related("lines"),
+            qs=order_models.Order.objects.prefetch_related("lines"),
         )
         cls.validate_order(order)
         data = data.get("input")
@@ -657,7 +656,7 @@ class OrderConfirm(ModelMutation):
 
     class Meta:
         description = "Confirms an unconfirmed order by changing status to unfulfilled."
-        model = models.Order
+        model = order_models.Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -895,7 +894,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
 
     class Meta:
         description = "Updates an order line of an order."
-        model = models.OrderLine
+        model = order_models.OrderLine
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
