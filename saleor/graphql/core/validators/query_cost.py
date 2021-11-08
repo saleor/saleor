@@ -182,11 +182,11 @@ class CostValidator(ValidationRule):
         for accessor in accessors:
             val = field_args
             for key in accessor:
-                try:
-                    val = int(val.get(key) or 0)
-                except (TypeError, ValueError):
-                    val = 0
-            multipliers.append(val)
+                val = val.get(key)
+            try:
+                multipliers.append(int(val))  # type: ignore
+            except (ValueError, TypeError):
+                pass
         multipliers = [
             len(multiplier) if isinstance(multiplier, (list, tuple)) else multiplier
             for multiplier in multipliers
