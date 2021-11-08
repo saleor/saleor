@@ -274,6 +274,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - drop `channel` field from filters and sorters
 - Drop top-level `checkoutLine` query from the schema with related resolver, use `checkout` query instead - #7623 by @dexon44
 - Make SKU an optional field on `ProductVariant` - #7633 by @rafalp
+- Change metadata mutations to use token for order and checkout as identifier - #8426 by @IKarbowiak
+  - After changes, using the order `id` for changing order metadata is deprecated
 
 ### Other
 
