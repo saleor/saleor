@@ -179,7 +179,8 @@ def _finalize_checkout(
             user=checkout.user or AnonymousUser(),  # type: ignore
             app=None,
         )
-    except ValidationError:
+    except ValidationError as e:
+        logger.info("Failed to complete checkout %s.", checkout.pk, extra={"error": e})
         return None
 
 
