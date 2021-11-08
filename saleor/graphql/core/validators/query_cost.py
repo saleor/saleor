@@ -178,7 +178,7 @@ class CostValidator(ValidationRule):
 
     def get_multipliers_from_string(self, multipliers: List[str], field_args):
         accessors = [s.split(".") for s in multipliers]
-        multipliers = []
+        multipliers: Any = []
         for accessor in accessors:
             val = field_args
             for key in accessor:
@@ -188,7 +188,7 @@ class CostValidator(ValidationRule):
             except (ValueError, TypeError):
                 pass
         multipliers = [
-            len(multiplier) if isinstance(multiplier, (list, tuple)) else multiplier  # type: ignore
+            len(multiplier) if isinstance(multiplier, (list, tuple)) else multiplier
             for multiplier in multipliers
         ]
         return [m for m in multipliers if m > 0]
