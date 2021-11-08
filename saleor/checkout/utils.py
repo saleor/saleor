@@ -26,6 +26,7 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
+from ..payment import ChargeStatus
 from ..payment.models import Payment
 from ..payment.tasks import refund_or_void_inactive_payment
 from ..plugins.manager import PluginsManager
@@ -654,7 +655,10 @@ def is_fully_covered(
     """
     checkout = checkout_info.checkout
     total_covered = get_covered_balance(checkout).amount
-    if current_payment and current_payment.not_charged:
+    if current_payment and current_payment.charge_status in (
+        ChargeStatus.NOT_CHARGED,
+        ChargeStatus.PENDING,
+    ):
         total_covered += current_payment.total
 
     address = checkout_info.shipping_address or checkout_info.billing_address
