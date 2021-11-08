@@ -188,9 +188,9 @@ class CostValidator(ValidationRule):
             except (ValueError, TypeError):
                 pass
         multipliers = [
-            len(multiplier) if isinstance(multiplier, (list, tuple)) else multiplier
+            len(multiplier) if isinstance(multiplier, (list, tuple)) else multiplier  # type: ignore
             for multiplier in multipliers
-        ]  # type: ignore
+        ]
         return [m for m in multipliers if m > 0]
 
     def get_cost_exceeded_error(self) -> GraphQLError:
