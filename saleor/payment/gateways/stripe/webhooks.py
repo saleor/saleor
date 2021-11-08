@@ -139,18 +139,6 @@ def _get_checkout(payment_id: int) -> Optional[Checkout]:
     )
 
 
-def _get_transaction_id_by_kind(
-    payment: Payment,
-    stripe_object: StripeObject,
-    kind: str,
-):
-    # stripe_object is Refund type
-    if kind == TransactionKind.REFUND:
-        return stripe_object.id
-    # stripe_object is a PaymentIntent type
-    return stripe_object.id
-
-
 def _update_payment_with_new_transaction(
     payment: Payment, stripe_object: StripeObject, kind: str, amount: str, currency: str
 ):
@@ -166,12 +154,12 @@ def _update_payment_with_new_transaction(
         psp_reference=stripe_object.id,
     )
 
-    transaction_id = _get_transaction_id_by_kind(
-        payment,
-        stripe_object,
-        kind,
-    )
-    if not payment.transactions.filter(token=transaction_id, kind=kind).exists():
+    transaction_id = stripe_object.id
+    if not payment.transactions.filter(
+        token=transaction_id,
+        kind=kind,
+        is_success=True,
+    ).exists():
         transaction = create_transaction(
             payment,
             kind=kind,

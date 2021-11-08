@@ -181,6 +181,52 @@ def test_handle_successful_payment_intent_for_order_with_auth_payment(
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
+def test_handle_successful_payment_intent_for_order_with_captured_payment(
+    wrapped_checkout_complete,
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
+):
+    # given
+    token = "afd4g2"
+    payment = payment_stripe_for_order
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+    payment.transactions.filter(kind=TransactionKind.CAPTURE).delete()
+    payment.transactions.create(
+        token=token,
+        kind=TransactionKind.CAPTURE,
+        is_success=True,
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    payment_intent = StripeObject(id=token, last_response={})
+    payment_intent["amount_received"] = price_to_minor_unit(
+        payment.total, payment.currency
+    )
+    payment_intent["currency"] = payment.currency
+    payment_intent["setup_future_usage"] = None
+    payment_intent["status"] = SUCCESS_STATUS
+
+    # when
+    handle_successful_payment_intent(
+        payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
+
+    # then
+    payment.refresh_from_db()
+    assert payment.is_active
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert payment.captured_amount == payment.total
+    assert payment.transactions.filter(kind=TransactionKind.CAPTURE).count() == 1
+    assert wrapped_checkout_complete.called is False
+
+
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
 def test_handle_successful_payment_intent_for_order_with_pending_payment(
     wrapped_checkout_complete,
     payment_stripe_for_order,
