@@ -8,7 +8,9 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
-from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
+from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events
+from ....order import models
+from ....order import models as order_models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -54,8 +56,8 @@ ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
 def clean_order_update_shipping(
-    order: Order,
-    method: ShippingMethod,
+    order: order_models.Order,
+    method: shipping_models.ShippingMethod,
     shipping_price: TaxedMoney,
     manager: PluginsManager,
 ):
