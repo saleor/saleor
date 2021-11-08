@@ -75,7 +75,7 @@ def test_handle_successful_payment_intent_for_checkout(
 
 @patch("saleor.payment.gateway.refund")
 @patch("saleor.checkout.complete_checkout._get_order_data")
-def test_handle_successful_payment_intent_for_checkout_order_creation_raises(
+def test_handle_successful_payment_intent_when_order_creation_raises_exception(
     order_data_mock,
     refund_mock,
     payment_stripe_for_checkout,
@@ -99,10 +99,9 @@ def test_handle_successful_payment_intent_for_checkout_order_creation_raises(
     )
     plugin = stripe_plugin()
 
-    with pytest.raises(ValidationError):
-        handle_successful_payment_intent(
-            stripe_payment_intent, plugin.config, channel_USD.slug
-        )
+    handle_successful_payment_intent(
+        stripe_payment_intent, plugin.config, channel_USD.slug
+    )
 
     payment.refresh_from_db()
     assert not payment.order
@@ -272,7 +271,7 @@ def test_handle_authorized_payment_intent_for_checkout(
 
 @patch("saleor.checkout.complete_checkout._get_order_data")
 @patch("saleor.payment.gateway.void")
-def test_handle_authorized_payment_intent_for_checkout_order_creation_raises(
+def test_handle_authorized_payment_intent_when_order_creation_raises_exception(
     void_mock,
     order_data_mock,
     payment_stripe_for_checkout,
@@ -296,10 +295,9 @@ def test_handle_authorized_payment_intent_for_checkout_order_creation_raises(
     )
     plugin = stripe_plugin()
 
-    with pytest.raises(ValidationError):
-        handle_authorized_payment_intent(
-            stripe_payment_intent, plugin.config, channel_USD.slug
-        )
+    handle_authorized_payment_intent(
+        stripe_payment_intent, plugin.config, channel_USD.slug
+    )
 
     payment.refresh_from_db()
 
@@ -414,7 +412,11 @@ def test_handle_processing_payment_intent_for_checkout(
 
 
 @patch("saleor.checkout.complete_checkout._get_order_data")
-def test_handle_processing_payment_intent_for_checkout_order_creation_raises(
+@patch("saleor.payment.gateway.void")
+@patch("saleor.payment.gateway.refund")
+def test_handle_processing_payment_intent_when_order_creation_raises_exception(
+    refund_mock,
+    void_mock,
     order_data_mock,
     payment_stripe_for_checkout,
     checkout_with_items,
@@ -438,14 +440,16 @@ def test_handle_processing_payment_intent_for_checkout_order_creation_raises(
     plugin = stripe_plugin()
 
     stripe_payment_intent["status"] = PROCESSING_STATUS
-    with pytest.raises(ValidationError):
-        handle_processing_payment_intent(
-            stripe_payment_intent, plugin.config, channel_USD.slug
-        )
+
+    handle_processing_payment_intent(
+        stripe_payment_intent, plugin.config, channel_USD.slug
+    )
 
     payment.refresh_from_db()
 
     assert not payment.order
+    assert not void_mock.called
+    assert not refund_mock.called
 
 
 def test_handle_failed_payment_intent_for_checkout(
@@ -680,15 +684,14 @@ def test_finalize_checkout_not_created_order_payment_refund(
     stripe_plugin()
     checkout = payment_stripe_for_checkout.checkout
 
-    with pytest.raises(ValidationError):
-        _finalize_checkout(
-            checkout,
-            payment_stripe_for_checkout,
-            stripe_payment_intent,
-            TransactionKind.CAPTURE,
-            payment_stripe_for_checkout.total,
-            payment_stripe_for_checkout.currency,
-        )
+    _finalize_checkout(
+        checkout,
+        payment_stripe_for_checkout,
+        stripe_payment_intent,
+        TransactionKind.CAPTURE,
+        payment_stripe_for_checkout.total,
+        payment_stripe_for_checkout.currency,
+    )
 
     payment_stripe_for_checkout.refresh_from_db()
 
@@ -710,15 +713,14 @@ def test_finalize_checkout_not_created_order_payment_void(
     stripe_plugin()
     checkout = payment_stripe_for_checkout.checkout
 
-    with pytest.raises(ValidationError):
-        _finalize_checkout(
-            checkout,
-            payment_stripe_for_checkout,
-            stripe_payment_intent,
-            TransactionKind.AUTH,
-            payment_stripe_for_checkout.total,
-            payment_stripe_for_checkout.currency,
-        )
+    _finalize_checkout(
+        checkout,
+        payment_stripe_for_checkout,
+        stripe_payment_intent,
+        TransactionKind.AUTH,
+        payment_stripe_for_checkout.total,
+        payment_stripe_for_checkout.currency,
+    )
 
     payment_stripe_for_checkout.refresh_from_db()
 
