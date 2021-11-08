@@ -43,14 +43,8 @@ def test_create_refund_data_order_lines(
     # given
     order_lines = order_with_lines.lines.all()
     order_refund_lines = [
-        OrderLineData(
-            line=order_lines[0],
-            quantity=2,
-        ),
-        OrderLineData(
-            line=order_lines[1],
-            quantity=1,
-        ),
+        OrderLineData(line=(line := order_lines[0]), quantity=2, variant=line.variant),
+        OrderLineData(line=(line := order_lines[1]), quantity=1, variant=line.variant),
     ]
     fulfillment_refund_lines = []
 
@@ -154,10 +148,7 @@ def test_create_refund_data_previously_refunded_order_lines(
     # given
     order_lines = order_with_lines.lines.all()
     previous_order_refund_lines = [
-        OrderLineData(
-            line=order_lines[0],
-            quantity=1,
-        )
+        OrderLineData(line=(line := order_lines[0]), quantity=1, variant=line.variant)
     ]
     create_refund_fulfillment_helper(
         order_with_lines,
@@ -165,14 +156,8 @@ def test_create_refund_data_previously_refunded_order_lines(
         refund_shipping_costs=previous_refund_shipping_costs,
     )
     current_order_refund_lines = [
-        OrderLineData(
-            line=order_lines[0],
-            quantity=1,
-        ),
-        OrderLineData(
-            line=order_lines[1],
-            quantity=1,
-        ),
+        OrderLineData(line=(line := order_lines[0]), quantity=1, variant=line.variant),
+        OrderLineData(line=(line := order_lines[1]), quantity=1, variant=line.variant),
     ]
     fulfillment_refund_lines = []
 
