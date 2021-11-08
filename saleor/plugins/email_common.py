@@ -2,7 +2,7 @@ import logging
 import operator
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from decimal import Decimal, InvalidOperation
 from email.headerregistry import Address
 from typing import List, Optional
@@ -294,15 +294,16 @@ def validate_default_email_configuration(
     except Exception as e:
         logger.warning("Unable to connect to email backend.", exc_info=e)
         error_msg = (
-            "Unable to connect to email backend. Make sure that you provided "
-            "correct values."
+            f"Unable to connect to email backend. Make sure that you provided "
+            f"correct values. {e}"
         )
+
         raise ValidationError(
             {
                 c: ValidationError(
                     error_msg, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value
                 )
-                for c in configuration.keys()
+                for c in asdict(config).keys()
             }
         )
 
