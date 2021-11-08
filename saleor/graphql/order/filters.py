@@ -1,11 +1,13 @@
 import django_filters
 from django.db.models import Exists, OuterRef, Q, Sum
+from django.utils import timezone
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...account.models import User
 from ...discount.models import OrderDiscount
 from ...order.models import Order, OrderLine
 from ...payment.models import Payment
+from ...product.models import ProductVariant
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_or_error
@@ -109,6 +111,32 @@ def filter_channels(qs, _, values):
     return qs
 
 
+def filter_is_click_and_collect(qs, _, values):
+    if values is not None:
+        lookup = Q(collection_point__isnull=False) | Q(
+            collection_point_name__isnull=False
+        )
+        qs = qs.filter(lookup) if values is True else qs.exclude(lookup)
+    return qs
+
+
+def filter_is_preorder(qs, _, values):
+    if values is not None:
+        variants = ProductVariant.objects.filter(
+            Q(is_preorder=True)
+            & (
+                Q(preorder_end_date__isnull=True)
+                | Q(preorder_end_date__gte=timezone.now())
+            )
+        ).values("id")
+        lines = OrderLine.objects.filter(
+            Exists(variants.filter(id=OuterRef("variant_id")))
+        )
+        lookup = Exists(lines.filter(order_id=OuterRef("id")))
+        qs = qs.filter(lookup) if values is True else qs.exclude(lookup)
+    return qs
+
+
 class DraftOrderFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
@@ -129,6 +157,10 @@ class OrderFilter(DraftOrderFilter):
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
     search = django_filters.CharFilter(method=filter_order_search)
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
+    is_click_and_collect = django_filters.BooleanFilter(
+        method=filter_is_click_and_collect
+    )
+    is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
 
     class Meta:
         model = Order
