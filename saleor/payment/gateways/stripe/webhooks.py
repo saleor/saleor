@@ -2,6 +2,7 @@ import logging
 from typing import List, Optional
 
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from stripe.error import SignatureVerificationError
@@ -150,16 +151,19 @@ def _finalize_checkout(
         checkout, lines, discounts, manager  # type: ignore
     )
 
-    order, _, _ = complete_checkout(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        payment_data={},
-        store_source=False,
-        discounts=discounts,
-        user=checkout.user or AnonymousUser(),  # type: ignore
-        app=None,
-    )
+    try:
+        order, _, _ = complete_checkout(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            payment_data={},
+            store_source=False,
+            discounts=discounts,
+            user=checkout.user or AnonymousUser(),  # type: ignore
+            app=None,
+        )
+    except ValidationError:
+        return None
 
 
 def _update_payment_with_new_transaction(
