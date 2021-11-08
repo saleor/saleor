@@ -7,7 +7,7 @@ import pytest
 from stripe.stripe_object import StripeObject
 
 from .....checkout.complete_checkout import complete_checkout
-from .....order.actions import order_captured, order_refunded, order_voided
+from .....order.actions import order_captured, order_voided
 from .....plugins.manager import get_plugins_manager
 from .... import ChargeStatus, TransactionKind
 from ....utils import price_to_minor_unit
@@ -197,7 +197,53 @@ def test_handle_successful_payment_intent_for_order_with_auth_payment(
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
+def test_handle_successful_payment_intent_for_order_with_captured_payment(
+    wrapped_checkout_complete,
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
+):
+    # given
+    token = "afd4g2"
+    payment = payment_stripe_for_order
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+    payment.transactions.filter(kind=TransactionKind.CAPTURE).delete()
+    payment.transactions.create(
+        token=token,
+        kind=TransactionKind.CAPTURE,
+        is_success=True,
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    payment_intent = StripeObject(id=token, last_response={})
+    payment_intent["amount_received"] = price_to_minor_unit(
+        payment.total, payment.currency
+    )
+    payment_intent["currency"] = payment.currency
+    payment_intent["setup_future_usage"] = None
+    payment_intent["status"] = SUCCESS_STATUS
+
+    # when
+    handle_successful_payment_intent(
+        payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
+
+    # then
+    payment.refresh_from_db()
+    assert payment.is_active
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert payment.captured_amount == payment.total
+    assert payment.transactions.filter(kind=TransactionKind.CAPTURE).count() == 1
+    assert wrapped_checkout_complete.called is False
+
+
 @patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
 def test_handle_successful_payment_intent_for_order_with_pending_payment(
     _wrapped_update_payment_method,
     wrapped_checkout_complete,
@@ -275,7 +321,9 @@ def test_handle_successful_payment_intent_different_checkout_channel_slug(
     payment_intent["payment_method"] = StripeObject()
 
     # when
-    handle_successful_payment_intent(payment_intent, plugin.config, channel.slug)
+    handle_successful_payment_intent(
+        payment_intent, plugin.config, channel.slug, get_plugins_manager()
+    )
 
     # then
     assert wrapped_process_payment_with_checkout.called == called
@@ -305,7 +353,9 @@ def test_handle_successful_payment_intent_different_order_channel_slug(
     payment_intent["payment_method"] = StripeObject()
 
     # when
-    handle_successful_payment_intent(payment_intent, plugin.config, channel.slug)
+    handle_successful_payment_intent(
+        payment_intent, plugin.config, channel.slug, get_plugins_manager()
+    )
 
     # then
     assert wrapped_order_captured.called == called
@@ -439,7 +489,9 @@ def test_handle_authorized_payment_intent_with_metadata(
     payment_intent["currency"] = payment.currency
 
     # when
-    handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
+    handle_authorized_payment_intent(
+        payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
 
     # then
     if not called:
@@ -482,7 +534,9 @@ def test_handle_authorized_payment_intent_different_order_channel_slug(
     payment_intent["payment_method"] = StripeObject()
 
     # when
-    handle_authorized_payment_intent(payment_intent, plugin.config, channel.slug)
+    handle_authorized_payment_intent(
+        payment_intent, plugin.config, channel.slug, get_plugins_manager()
+    )
 
     # then
     assert wrapped_update_payment_with_new_transaction.called == called
@@ -525,7 +579,9 @@ def test_handle_authorized_payment_intent_different_checkout_channel_slug(
     payment_intent["payment_method"] = StripeObject()
 
     # when
-    handle_authorized_payment_intent(payment_intent, plugin.config, channel.slug)
+    handle_authorized_payment_intent(
+        payment_intent, plugin.config, channel.slug, get_plugins_manager()
+    )
 
     # then
     assert wrapped_process_payment_with_checkout.called == called
@@ -619,7 +675,9 @@ def test_handle_processing_payment_intent_different_order_channel_slug(
     payment_intent["status"] = PROCESSING_STATUS
 
     # when
-    handle_processing_payment_intent(payment_intent, plugin.config, channel.slug)
+    handle_processing_payment_intent(
+        payment_intent, plugin.config, channel.slug, get_plugins_manager()
+    )
 
     # then
     assert not wrapped_process_payment_with_checkout.called
@@ -660,7 +718,9 @@ def test_handle_processing_payment_intent_different_checkout_channel_slug(
     payment_intent["status"] = PROCESSING_STATUS
 
     # when
-    handle_processing_payment_intent(payment_intent, plugin.config, channel.slug)
+    handle_processing_payment_intent(
+        payment_intent, plugin.config, channel.slug, get_plugins_manager()
+    )
 
     # then
     assert wrapped_process_payment_with_checkout.called == called
@@ -767,7 +827,9 @@ def test_handle_failed_payment_intent_different_order_channel_slug(
     payment_intent["status"] = FAILED_STATUSES[0]
 
     # when
-    handle_failed_payment_intent(payment_intent, plugin.config, channel.slug)
+    handle_failed_payment_intent(
+        payment_intent, plugin.config, channel.slug, get_plugins_manager()
+    )
 
     # then
     assert wrapped_update_payment_with_new_transaction.called == called
@@ -810,7 +872,9 @@ def test_handle_failed_payment_intent_different_checkout_channel_slug(
     payment_intent["status"] = FAILED_STATUSES[0]
 
     # when
-    handle_failed_payment_intent(payment_intent, plugin.config, channel.slug)
+    handle_failed_payment_intent(
+        payment_intent, plugin.config, channel.slug, get_plugins_manager()
+    )
 
     # then
     assert wrapped_update_payment_with_new_transaction.called == called
@@ -929,13 +993,8 @@ def test_handle_refund_already_processed(
     "saleor.payment.gateways.stripe.webhooks._update_payment_with_new_transaction",
     wraps=_update_payment_with_new_transaction,
 )
-@patch(
-    "saleor.payment.gateways.stripe.webhooks.order_refunded",
-    wraps=order_refunded,
-)
 def test_handle_refund_different_order_channel_slug(
     wrapped_update_payment_with_new_transaction,
-    wrapped_order_refunded,
     stripe_plugin,
     payment_stripe_for_order,
     channel_USD,
@@ -969,25 +1028,19 @@ def test_handle_refund_different_order_channel_slug(
     charge["refunds"]["data"] = [refund]
 
     # when
-    handle_refund(charge, plugin.config, channel.slug)
+    handle_refund(charge, plugin.config, channel.slug, get_plugins_manager())
 
     # then
     assert wrapped_update_payment_with_new_transaction.called == called
-    assert wrapped_order_refunded.called == called
 
 
 @pytest.mark.parametrize("called", [True, False])
-@patch(
-    "saleor.payment.gateways.stripe.webhooks.order_refunded",
-    wraps=order_refunded,
-)
 @patch(
     "saleor.payment.gateways.stripe.webhooks._update_payment_with_new_transaction",
     wraps=_update_payment_with_new_transaction,
 )
 def test_handle_refund_different_checkout_channel_slug(
     wrapped_update_payment_with_new_transaction,
-    wrapped_order_refunded,
     stripe_plugin,
     payment_stripe_for_checkout,
     channel_USD,
@@ -1021,11 +1074,10 @@ def test_handle_refund_different_checkout_channel_slug(
     charge["refunds"]["data"] = [refund]
 
     # when
-    handle_refund(charge, plugin.config, channel.slug)
+    handle_refund(charge, plugin.config, channel.slug, get_plugins_manager())
 
     # then
     assert wrapped_update_payment_with_new_transaction.called == called
-    assert not wrapped_order_refunded.called
 
 
 @pytest.mark.parametrize(
