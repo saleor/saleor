@@ -63,7 +63,7 @@ def test_handle_api_response_auto_capture_false_order_created_can_void(
 
     payment_adyen_for_checkout.refresh_from_db()
 
-    assert payment_adyen_for_checkout.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_adyen_for_checkout.charge_status == ChargeStatus.AUTHORIZED
     assert payment_adyen_for_checkout.order
     assert payment_adyen_for_checkout.can_void()
     assert not payment_adyen_for_checkout.can_refund()
@@ -97,14 +97,14 @@ def test_handle_api_response_auto_capture_false_cannot_create_order_void_payment
 
     payment_adyen_for_checkout.refresh_from_db()
 
-    assert payment_adyen_for_checkout.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_adyen_for_checkout.charge_status == ChargeStatus.AUTHORIZED
     assert not payment_adyen_for_checkout.order
 
     assert not payment_adyen_for_checkout.can_refund()
     assert not refund_mock.called
 
     assert payment_adyen_for_checkout.can_void()
-    assert void_mock.call_count == 2
+    assert void_mock.call_count == 1
 
 
 @patch("saleor.payment.gateway.void")
@@ -137,7 +137,7 @@ def test_handle_api_response_auto_capture_cannot_create_order_refund_payment(
     assert not payment_adyen_for_checkout.order
 
     assert payment_adyen_for_checkout.can_refund()
-    assert refund_mock.call_count == 2
+    assert refund_mock.call_count == 1
 
     assert not payment_adyen_for_checkout.can_void()
     assert not void_mock.called

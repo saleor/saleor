@@ -13,6 +13,7 @@ from ......order import OrderEvents, OrderStatus
 from ......plugins.manager import get_plugins_manager
 from ..... import ChargeStatus, TransactionKind
 from .....utils import price_to_minor_unit
+from ...plugin import AdyenGatewayPlugin
 from ...webhooks import (
     confirm_payment_and_set_back_to_confirm,
     create_new_transaction,
@@ -1016,11 +1017,17 @@ def test_handle_not_created_order_creates_order(
     mock_can_create_order,
     notification,
     payment_adyen_for_checkout,
+    adyen_plugin,
 ):
     mock_can_create_order.return_value = True
     payment = payment_adyen_for_checkout
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.save()
+    payment.transactions.create(
+        kind=TransactionKind.CAPTURE, is_success=True, gateway_response={}
+    )
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-
+    adyen_plugin()
     notification = notification(
         merchant_reference=payment_id,
         value=price_to_minor_unit(payment.total, payment.currency),
@@ -1088,16 +1095,24 @@ def test_handle_not_created_order_order_created(
 
 
 @patch("saleor.payment.gateway.refund")
+@patch.object(AdyenGatewayPlugin, "capture_payment")
 @patch("saleor.checkout.complete_checkout._get_order_data")
 def test_handle_not_created_order_refund_when_create_order_raises(
-    order_data_mock, refund_mock, payment_adyen_for_checkout, adyen_plugin, notification
+    order_data_mock,
+    capture_mock,
+    refund_mock,
+    payment_adyen_for_checkout,
+    adyen_plugin,
+    notification,
+    gateway_response,
 ):
+    capture_mock.return_value = gateway_response
     order_data_mock.side_effect = ValidationError("Test error")
 
     payment_adyen_for_checkout.charge_status = ChargeStatus.FULLY_CHARGED
     payment_adyen_for_checkout.save(update_fields=["charge_status"])
 
-    adyen_plugin()
+    adyen_plugin(auto_capture=True)
     handle_not_created_order(
         notification(),
         payment_adyen_for_checkout,
@@ -1107,7 +1122,7 @@ def test_handle_not_created_order_refund_when_create_order_raises(
     )
 
     assert payment_adyen_for_checkout.can_refund()
-    assert refund_mock.call_count == 2
+    assert refund_mock.call_count == 1
 
 
 @patch("saleor.payment.gateway.void")
@@ -1130,7 +1145,7 @@ def test_handle_not_created_order_void_when_create_order_raises(
     )
 
     assert payment_adyen_for_checkout.can_void()
-    assert void_mock.call_count == 2
+    assert void_mock.call_count == 1
 
 
 @pytest.mark.parametrize(
@@ -1183,17 +1198,25 @@ def test_handle_not_created_order_create_new_success_transaction(
 
 
 @patch("saleor.payment.gateway.refund")
+@patch.object(AdyenGatewayPlugin, "capture_payment")
 @patch("saleor.checkout.complete_checkout._get_order_data")
 def test_handle_not_created_order_success_transaction_create_order_raises_and_refund(
-    order_data_mock, refund_mock, payment_adyen_for_checkout, adyen_plugin, notification
+    order_data_mock,
+    capture_mock,
+    refund_mock,
+    payment_adyen_for_checkout,
+    adyen_plugin,
+    notification,
+    gateway_response,
 ):
     order_data_mock.side_effect = ValidationError("Test error")
+    capture_mock.return_value = gateway_response
 
-    payment_adyen_for_checkout.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_adyen_for_checkout.charge_status = ChargeStatus.NOT_CHARGED
     payment_adyen_for_checkout.save(update_fields=["charge_status"])
     payment_adyen_for_checkout.transactions.all().delete()
 
-    adyen_plugin()
+    adyen_plugin(auto_capture=True)
     handle_not_created_order(
         notification(),
         payment_adyen_for_checkout,
@@ -1208,10 +1231,10 @@ def test_handle_not_created_order_success_transaction_create_order_raises_and_re
     all_payment_transactions = payment_adyen_for_checkout.transactions.all()
     assert len(all_payment_transactions) == 2
     assert all_payment_transactions[0].kind == TransactionKind.ACTION_TO_CONFIRM
-    assert all_payment_transactions[1].kind == TransactionKind.AUTH
+    assert all_payment_transactions[1].kind == TransactionKind.CAPTURE
 
     assert payment_adyen_for_checkout.can_refund()
-    assert refund_mock.call_count == 2
+    assert refund_mock.call_count == 1
 
 
 @patch("saleor.payment.gateway.void")
@@ -1243,7 +1266,7 @@ def test_handle_not_created_order_success_transaction_create_order_raises_and_vo
     assert all_payment_transactions[1].kind == TransactionKind.AUTH
 
     assert payment_adyen_for_checkout.can_void()
-    assert void_mock.call_count == 2
+    assert void_mock.call_count == 1
 
 
 def test_confirm_payment_and_set_back_to_confirm(
