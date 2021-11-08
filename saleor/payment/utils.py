@@ -120,6 +120,9 @@ def create_payment_lines_information(
     return line_items
 
 
+# Values are outside of model's pk range to resolve
+# any collision with actual product variant pk
+VOUCHER_PAYMENT_LINE_ID = 0
 SHIPPING_PAYMENT_LINE_ID = -1
 
 
@@ -152,7 +155,7 @@ def create_voucher_payment_line_data(amount: Decimal) -> Optional[PaymentLineDat
     return PaymentLineData(
         quantity=1,
         product_name="Voucher",
-        variant_id=0,
+        variant_id=VOUCHER_PAYMENT_LINE_ID,
         gross=amount,
     )
 
@@ -237,9 +240,9 @@ def _prepare_refund_lines(
     )
 
     current_order_refund_lines = (
-        (o_variant_id, line.quantity)
+        (variant.pk, line.quantity)
         for line in order_lines_to_refund
-        if (o_variant_id := line.line.variant_id)
+        if (variant := line.variant)
     )
 
     current_fulfillment_refund_lines = (
@@ -282,8 +285,8 @@ def create_refund_data(
         summed_refund_lines[variant_id] += quantity
 
     lines = {
-        product_id: order_lines[product_id] - summed_refund_lines[product_id]
-        for product_id in summed_refund_lines
+        variant_id: order_lines[variant_id] - summed_refund_lines[variant_id]
+        for variant_id in summed_refund_lines
     }
 
     shipping_previously_refunded = fulfillments.exclude(

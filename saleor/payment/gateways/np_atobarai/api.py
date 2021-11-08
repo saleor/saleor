@@ -148,7 +148,6 @@ def change_transaction(
         return errors_payment_result(error_messages)
 
 
-# TODO: find code
 ALREADY_REREGISTERED_ERROR_CODE = "E0131006"
 EXCEEDED_NUMBER_OF_REREGISTRATIONS_ERROR_CODE = "E0131011"
 
