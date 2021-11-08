@@ -27,7 +27,6 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...product.types import ProductVariant
-from ...shipping.utils import convert_shipping_method_model_to_dataclass
 from ..types import Order
 from ..utils import (
     prepare_insufficient_stock_order_validation_errors,
@@ -421,7 +420,7 @@ class DraftOrderComplete(BaseMutation):
     def perform_mutation(cls, _root, info, id):
         order = cls.get_node_or_error(info, id, only_type=Order)
         country = get_order_country(order)
-        validate_draft_order(order, country)
+        validate_draft_order(order, country, info.context.plugins)
         cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
 
@@ -432,20 +431,6 @@ class DraftOrderComplete(BaseMutation):
                 order.shipping_address.delete()
                 order.shipping_address = None
 
-        method = order.shipping_method
-        manager = info.context.plugins
-        method.price = order.shipping_price  # type: ignore
-        if manager.excluded_shipping_methods_for_order(
-            order, [convert_shipping_method_model_to_dataclass(method)]
-        ):
-            raise ValidationError(
-                {
-                    "shipping_method": ValidationError(
-                        "Shipping method cannot be used with this order.",
-                        code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
-                    )
-                }
-            )
         order.save()
 
         for line in order.lines.all():
