@@ -109,7 +109,7 @@ class GiftCard(ModelWithMetadata):
 
     @property
     def display_code(self):
-        return "****%s" % self.code[-4:]
+        return self.code[-4:]
 
 
 class GiftCardEvent(models.Model):
