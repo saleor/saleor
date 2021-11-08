@@ -1,6 +1,6 @@
 from unittest.mock import DEFAULT, Mock, patch, sentinel
 
-from saleor.payment.gateways.np_atobarai import api_helpers
+from .. import api_helpers
 
 
 def assert_invalid_np_response(np_response, error_keywords):
