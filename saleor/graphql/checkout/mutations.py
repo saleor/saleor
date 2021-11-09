@@ -70,7 +70,7 @@ from ..discount.types import Voucher
 from ..giftcard.types import GiftCard
 from ..order.types import Order
 from ..product.types import ProductVariant
-from ..shipping.types import ShippingMethodType
+from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context, resolve_global_ids_to_primary_keys
 from ..warehouse.types import Warehouse
 from .types import Checkout, CheckoutLine
@@ -607,7 +607,7 @@ class CheckoutLinesAdd(BaseMutation):
             replace,
         )
 
-        checkout_info.valid_shipping_methods = (
+        checkout_info.valid_shipping_methxzods = (
             get_valid_shipping_method_list_for_checkout_info(
                 checkout_info, checkout_info.shipping_address, lines, discounts, manager
             )
@@ -1168,7 +1168,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         if id_ is None:
             return None
 
-        possible_types = ("ShippingMethodType", "app")
+        possible_types = ("ShippingMethod", "app")
         type_, id_ = from_global_id_or_error(id_)
         str_type = str(type_)
 
@@ -1218,7 +1218,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         type_name = cls._resolve_delivery_method_type(shipping_method_id)
 
-        if type_name == "ShippingMethodType":
+        if type_name == "ShippingMethod":
             return cls.perform_on_shipping_method(
                 info, shipping_method_id, checkout_info, lines, checkout, manager
             )
@@ -1255,7 +1255,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         shipping_method = cls.get_node_or_error(
             info,
             shipping_method_id,
-            only_type=ShippingMethodType,
+            only_type=ShippingMethod,
             field="shipping_method_id",
             qs=shipping_models.ShippingMethod.objects.prefetch_related(
                 "postal_code_rules"
@@ -1322,9 +1322,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     class Arguments:
         token = UUID(description="Checkout token.", required=False)
         delivery_method_id = graphene.ID(
-            description=(
-                "Delivery Method ID (`Warehouse` ID or `ShippingMethodType` ID)."
-            ),
+            description=("Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID)."),
             required=False,
         )
 
@@ -1342,7 +1340,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         shipping_method = cls.get_node_or_error(
             info,
             shipping_method_id,
-            only_type=ShippingMethodType,
+            only_type=ShippingMethod,
             field="delivery_method_id",
             qs=shipping_models.ShippingMethod.objects.prefetch_related(
                 "postal_code_rules"
@@ -1461,7 +1459,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         manager,
         checkout: Checkout,
         *,
-        shipping_method: Optional[ShippingMethodType],
+        shipping_method: Optional[ShippingMethod],
         external_shipping_method: Optional[shipping_interface.ShippingMethodData],
         collection_point: Optional[Warehouse]
     ) -> None:
@@ -1488,7 +1486,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         if id_ is None:
             return None
 
-        possible_types = ("Warehouse", "ShippingMethodType", "app")
+        possible_types = ("Warehouse", "ShippingMethod", "app")
         type_, id_ = from_global_id_or_error(id_)
         str_type = str(type_)
 
@@ -1496,7 +1494,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             raise ValidationError(
                 {
                     "delivery_method_id": ValidationError(
-                        "ID does not belong to Warehouse or ShippingMethodType",
+                        "ID does not belong to Warehouse or ShippingMethod",
                         code=CheckoutErrorCode.INVALID.value,
                     )
                 }
@@ -1535,7 +1533,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             return cls.perform_on_collection_point(
                 info, delivery_method_id, checkout_info, lines, checkout, manager
             )
-        if type_name == "ShippingMethodType":
+        if type_name == "ShippingMethod":
             return cls.perform_on_shipping_method(
                 info, delivery_method_id, checkout_info, lines, checkout, manager
             )

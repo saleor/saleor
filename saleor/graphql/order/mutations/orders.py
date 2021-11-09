@@ -5,7 +5,7 @@ from django.db import transaction
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....core.taxes import TaxError, zero_taxed_money
+from ....core.taxes import TaxError, identical_taxed_money, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards, order_has_gift_card_lines
 from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
@@ -30,6 +30,8 @@ from ....order.utils import (
 )
 from ....payment import PaymentError, TransactionKind, gateway
 from ....shipping import models as shipping_models
+from ....shipping.interface import ShippingMethodData
+from ....shipping.utils import convert_to_shipping_method_data
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
@@ -41,7 +43,7 @@ from ...order.mutations.draft_orders import (
     OrderLineInput,
 )
 from ...product.types import ProductVariant
-from ...shipping.types import ShippingMethodType
+from ...shipping.types import ShippingMethod
 from ..types import Order, OrderEvent, OrderLine
 from ..utils import (
     validate_product_is_published_in_channel,
@@ -51,27 +53,27 @@ from ..utils import (
 ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
-def clean_order_update_shipping(order, method):
+def clean_order_update_shipping(order, method: ShippingMethodData):
     if not order.shipping_address:
         raise ValidationError(
             {
                 "order": ValidationError(
                     "Cannot choose a shipping method for an order without "
                     "the shipping address.",
-                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS,
+                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value,
                 )
             }
         )
 
-    valid_methods = get_valid_shipping_methods_for_order(order)
-    if valid_methods is None or method.pk not in valid_methods.values_list(
-        "id", flat=True
-    ):
+    valid_methods_ids = {
+        method.id for method in get_valid_shipping_methods_for_order(order)
+    }
+    if valid_methods_ids is None or method.id not in valid_methods_ids:
         raise ValidationError(
             {
                 "shipping_method": ValidationError(
                     "Shipping method cannot be used with this order.",
-                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
                 )
             }
         )
@@ -351,13 +353,23 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             info,
             data["shipping_method"],
             field="shipping_method",
-            only_type=ShippingMethodType,
+            only_type=ShippingMethod,
             qs=shipping_models.ShippingMethod.objects.prefetch_related(
                 "postal_code_rules"
             ),
         )
-
-        clean_order_update_shipping(order, method)
+        shipping_method_data = convert_to_shipping_method_data(
+            method,
+            identical_taxed_money(
+                shipping_models.ShippingMethodChannelListing.objects.filter(
+                    shipping_method=method,
+                    channel=order.channel,
+                )
+                .get()
+                .price
+            ),
+        )
+        clean_order_update_shipping(order, shipping_method_data)
 
         order.shipping_method = method
         shipping_price = info.context.plugins.calculate_order_shipping(order)

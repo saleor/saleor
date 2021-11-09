@@ -34,7 +34,7 @@ from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByChannelSlugLoader,
 )
-from ..shipping.types import ShippingMethodType
+from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import (
     StocksReservationsByCheckoutTokenLoader,
@@ -172,20 +172,26 @@ class DeliveryMethod(graphene.Union):
             'type is used when checkout is marked as "click and collect" and '
             "`ShippingMethodType` otherwise."
         )
-        types = (Warehouse, ShippingMethodType)
+        types = (Warehouse, ShippingMethod)
 
     @classmethod
     def resolve_type(cls, instance, info):
         if isinstance(instance, ChannelContext):
-            return ShippingMethodType
+            return ShippingMethod
         return super(DeliveryMethod, cls).resolve_type(instance, info)
 
 
 class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
-        ShippingMethodType,
+        ShippingMethod,
         required=True,
-        description="Shipping methods that can be used with this order.",
+        description="Shipping methods that can be used with this checkout.",
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `shippingMethods` instead."),
+    )
+    shipping_methods = graphene.List(
+        ShippingMethod,
+        required=True,
+        description="Shipping methods that can be used with this checkout.",
     )
     available_collection_points = graphene.List(
         graphene.NonNull(Warehouse),
@@ -223,7 +229,7 @@ class Checkout(CountableDjangoObjectType):
         description="The price of the shipping, with all the taxes included.",
     )
     shipping_method = graphene.Field(
-        ShippingMethodType,
+        ShippingMethod,
         description="The shipping method related with checkout.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
@@ -293,8 +299,8 @@ class Checkout(CountableDjangoObjectType):
     def resolve_email(root: models.Checkout, _info):
         return root.get_customer_email()
 
-    @staticmethod
-    def resolve_shipping_method(root: models.Checkout, info):
+    @classmethod
+    def resolve_shipping_method(cls, root: models.Checkout, info):
         external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
@@ -343,6 +349,11 @@ class Checkout(CountableDjangoObjectType):
         return Promise.all([shipping_method, channel]).then(
             with_shipping_method_and_channel
         )
+
+    @classmethod
+    @traced_resolver
+    def resolve_shipping_methods(cls, root: models.Checkout, info):
+        return cls.resolve_available_shipping_methods(root, info)
 
     @staticmethod
     def resolve_delivery_method(root: models.Checkout, info):

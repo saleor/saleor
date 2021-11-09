@@ -72,6 +72,11 @@ class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
 
 
 class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
+    """An internal representation of a shipping method used in private API.
+
+    Used to manage and configure available shipping methods.
+    """
+
     id = graphene.ID(required=True, description="Shipping method ID.")
     name = graphene.String(required=True, description="Shipping method name.")
     description = graphene.JSONString(description="Shipping method description.")
@@ -84,9 +89,6 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     channel_listings = graphene.List(
         graphene.NonNull(ShippingMethodChannelListing),
         description="List of channels available for the method.",
-    )
-    price = graphene.Field(
-        Money, description="The price of the cheapest variant (including discounts)."
     )
     maximum_order_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
@@ -124,6 +126,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
             "them. They are directly exposed to the customers."
         )
         interfaces = [relay.Node, ObjectWithMetadata]
+        model = models.ShippingMethod
 
     @staticmethod
     def resolve_id(root: ChannelContext, _info):
@@ -133,17 +136,8 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         return graphene.Node.to_global_id("ShippingMethodType", root.node.id)
 
     @staticmethod
-    def resolve_price(root: ChannelContext[ShippingMethodData], info, **_kwargs):
-        price = root.node.price
-        if price is not None:
-            if info.context.site.settings.display_gross_prices:
-                return price.gross
-            else:
-                return price.net
-
-    @staticmethod
     def resolve_maximum_order_price(
-        root: ChannelContext[ShippingMethodData], info, **_kwargs
+        root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
         maximum_order_price = getattr(root.node, "maximum_order_price", None)
         if maximum_order_price is not None:
@@ -165,7 +159,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_minimum_order_price(
-        root: ChannelContext[ShippingMethodData], info, **_kwargs
+        root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
         minimum_order_price = getattr(root.node, "minimum_order_price", None)
         if minimum_order_price is not None:
@@ -186,12 +180,14 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         )
 
     @staticmethod
-    def resolve_maximum_order_weight(root: ChannelContext[ShippingMethodData], *_args):
+    def resolve_maximum_order_weight(
+        root: ChannelContext[models.ShippingMethod], *_args
+    ):
         return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
 
     @staticmethod
     def resolve_postal_code_rules(
-        root: ChannelContext[ShippingMethodData], info, **_kwargs
+        root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
         if getattr(root.node, "is_external", False):
             return None
@@ -199,13 +195,15 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         return PostalCodeRulesByShippingMethodIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_minimum_order_weight(root: ChannelContext[ShippingMethodData], *_args):
+    def resolve_minimum_order_weight(
+        root: ChannelContext[models.ShippingMethod], *_args
+    ):
         return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
 
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_channel_listings(
-        root: ChannelContext[ShippingMethodData], info, **_kwargs
+        root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
         if getattr(root.node, "is_external", False):
             return None
@@ -217,7 +215,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_excluded_products(
-        root: ChannelContext[ShippingMethodData], _info, **_kwargs
+        root: ChannelContext[models.ShippingMethod], _info, **_kwargs
     ):
         if root.node.excluded_products is None:
             return None
@@ -312,3 +310,62 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_channels(root: ChannelContext[models.ShippingZone], info, **_kwargs):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
+
+
+class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
+    id = graphene.ID(
+        required=True, description="Unique ID of ShippingMethod available for Order."
+    )
+    name = graphene.String(required=True, description="Shipping method name.")
+    description = graphene.JSONString(description="Shipping method description (JSON).")
+    maximum_delivery_days = graphene.Int(
+        description="Maximum delivery days for this shipping method."
+    )
+    minimum_delivery_days = graphene.Int(
+        description="Minimum delivery days for this shipping method."
+    )
+    translation = TranslationField(
+        ShippingMethodTranslation,
+        type_name="shipping method",
+        resolver=ChannelContextType.resolve_translation,
+    )
+    price = graphene.Field(
+        Money, required=True, description="The price of selected shipping method."
+    )
+    minimum_order_price = graphene.Field(
+        Money, description="Minimal order price for this shipping method."
+    )
+    active = graphene.Boolean(
+        required=True,
+        description="Describes if this shipping method is active and can be selected.",
+    )
+    message = graphene.String(description="Message connected to this shipping method.")
+
+    class Meta:
+        interfaces = [relay.Node, ObjectWithMetadata]
+        description = (
+            (
+                "Shipping methods that can be used as means of shipping"
+                "for orders and checkouts."
+            ),
+        )
+
+    @staticmethod
+    def resolve_minimum_order_price(
+        root: ChannelContext[ShippingMethodData], info, **_kwargs
+    ):
+        return root.node.minimum_order_price
+
+    @staticmethod
+    def resolve_price(root: ChannelContext[ShippingMethodData], info, **_kwargs):
+        if info.context.site.settings.display_gross_prices:
+            return root.node.price.gross
+        return root.node.price.net
+
+    @staticmethod
+    def resolve_name(root: ChannelContext[ShippingMethodData], info, **kwargs):
+        return root.node.name
+
+    @staticmethod
+    def resolve_id(root: ChannelContext[ShippingMethodData], _info):
+        return graphene.Node.to_global_id("ShippingMethod", root.node.id)

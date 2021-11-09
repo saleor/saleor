@@ -8,7 +8,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..account.models import User
-from ..core.taxes import zero_money
+from ..core.taxes import identical_taxed_money, zero_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.weight import zero_weight
 from ..discount import DiscountValueType, OrderDiscountType
@@ -19,7 +19,9 @@ from ..giftcard.models import GiftCard
 from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
+from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod
+from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.management import (
     deallocate_stock,
     decrease_allocations,
@@ -616,17 +618,30 @@ def sum_order_totals(qs, currency_code):
     return sum([order.total for order in qs], taxed_zero)
 
 
-def get_valid_shipping_methods_for_order(order: Order):
+def get_valid_shipping_methods_for_order(order: Order) -> List[ShippingMethodData]:
     if not order.is_shipping_required():
-        return None
+        return []
+
     if not order.shipping_address:
-        return None
-    return ShippingMethod.objects.applicable_shipping_methods_for_instance(
+        return []
+
+    valid_methods = []
+
+    queryset = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         order,
         channel_id=order.channel_id,
         price=order.get_subtotal().gross,
         country_code=order.shipping_address.country.code,
     )
+
+    for method in queryset:
+        # TODO fix price
+        method.price = Money(0, "usd")
+        valid_methods.append(
+            convert_to_shipping_method_data(method, identical_taxed_money(method.price))
+        )
+
+    return valid_methods
 
 
 def is_shipping_required(lines: Iterable["OrderLine"]):

@@ -276,6 +276,10 @@ class ShippingMethodTypeMixin:
 
 class ShippingPriceMixin:
     @classmethod
+    def get_type_for_model(cls):
+        return ShippingMethodType
+
+    @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         errors = {}

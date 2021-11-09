@@ -1843,6 +1843,10 @@ SHIPPING_PRICE_TRANSLATE = """
                     }
                 }
             }
+            errors {
+                message
+                code
+            }
         }
     }
 """
