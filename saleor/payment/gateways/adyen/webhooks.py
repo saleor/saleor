@@ -854,6 +854,7 @@ def handle_api_response(payment: Payment, response: Adyen.Adyen, channel_slug: s
         payment_information=payment_data,
         gateway_response=gateway_response,
     )
+    # TODO: check payment.complete order
     if is_success and not action_required and not payment.order:
         manager = get_plugins_manager()
 
