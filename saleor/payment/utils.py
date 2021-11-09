@@ -8,7 +8,6 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple
 import graphene
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Prefetch, QuerySet
 
 from ..account.models import User
 from ..checkout.calculations import checkout_line_total
@@ -18,7 +17,7 @@ from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentLineData, FulfillmentStatus, OrderLineData
-from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
+from ..order.models import FulfillmentLine, Order, OrderLine
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
@@ -226,23 +225,31 @@ RefundLines = Iterator[Tuple[Any, OrderLine]]
 
 
 def _prepare_refund_lines(
-    fulfillments: QuerySet[Fulfillment],
+    order: Order,
     order_lines_to_refund: List[OrderLineData],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
 ) -> Iterator[Tuple[int, int]]:
-    previous_refund_lines = chain.from_iterable(
-        (
-            (p_variant_id, line.quantity)
-            for line in f.lines.filter(order_line__variant_id__isnull=False)
-            if (p_variant_id := line.order_line.variant_id)
-        )
-        for f in fulfillments.all()
+    previous_fulfillment_lines = FulfillmentLine.objects.prefetch_related(
+        "order_line"
+    ).filter(
+        fulfillment__order_id=order.pk,
+        fulfillment__status__in=[
+            FulfillmentStatus.REFUNDED,
+            FulfillmentStatus.REFUNDED_AND_RETURNED,
+        ],
+        order_line__variant_id__isnull=False,
+    )
+
+    previous_refund_lines = (
+        (p_variant_id, line.quantity)
+        for line in previous_fulfillment_lines
+        if (p_variant_id := line.order_line.variant_id)
     )
 
     current_order_refund_lines = (
-        (variant.pk, line.quantity)
+        (o_variant_id, line.quantity)
         for line in order_lines_to_refund
-        if (variant := line.variant)
+        if (o_variant_id := line.line.variant_id)
     )
 
     current_fulfillment_refund_lines = (
@@ -250,6 +257,8 @@ def _prepare_refund_lines(
         for line in fulfillment_lines_to_refund
         if (f_variant_id := line.line.order_line.variant_id)
     )
+
+    print(order_lines_to_refund)
 
     return chain(
         previous_refund_lines,
@@ -264,19 +273,10 @@ def create_refund_data(
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     refund_shipping_costs: bool,
 ) -> Dict[int, int]:
-    fulfillments = order.fulfillments.filter(
-        status__in=[FulfillmentStatus.REFUNDED, FulfillmentStatus.REFUNDED_AND_RETURNED]
-    ).prefetch_related(
-        Prefetch(
-            "lines",
-            queryset=FulfillmentLine.objects.select_related("order_line"),
-        )
-    )
-
     order_lines = {line.variant_id: line.quantity for line in order.lines.all()}
 
     refund_lines = _prepare_refund_lines(
-        fulfillments, order_lines_to_refund, fulfillment_lines_to_refund
+        order, order_lines_to_refund, fulfillment_lines_to_refund
     )
 
     summed_refund_lines: Dict[int, int] = defaultdict(int)
@@ -289,7 +289,7 @@ def create_refund_data(
         for variant_id in summed_refund_lines
     }
 
-    shipping_previously_refunded = fulfillments.exclude(
+    shipping_previously_refunded = order.fulfillments.exclude(
         shipping_refund_amount__isnull=True
     ).exists()
 

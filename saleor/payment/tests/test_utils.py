@@ -4,11 +4,11 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from saleor.order import FulfillmentLineData, OrderLineData
-from saleor.order.actions import create_refund_fulfillment
-from saleor.order.models import Order
-from saleor.payment.utils import SHIPPING_PAYMENT_LINE_ID, create_refund_data
-from saleor.plugins.manager import get_plugins_manager
+from ...order import FulfillmentLineData, OrderLineData
+from ...order.actions import create_refund_fulfillment
+from ...order.models import Order
+from ...plugins.manager import get_plugins_manager
+from ..utils import SHIPPING_PAYMENT_LINE_ID, create_refund_data
 
 
 @pytest.fixture

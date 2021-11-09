@@ -138,7 +138,7 @@ def get_goods(payment_information: PaymentData) -> List[dict]:
     ]
 
 
-def get_discount(
+def get_goods_with_discount(
     payment_information: PaymentData,
 ) -> List[dict]:
     product_lines = get_goods(payment_information)
