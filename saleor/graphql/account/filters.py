@@ -38,6 +38,7 @@ def filter_user_search(qs, _, value):
             | Q(city__ilike=value)
             | Q(country__ilike=value)
             | Q(phone=value)
+            | Q(metadata__icontains=value)
         ).values("id")
         user_addresses = UserAddress.objects.filter(
             Exists(addresses.filter(pk=OuterRef("address_id")))

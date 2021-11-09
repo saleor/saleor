@@ -4646,6 +4646,9 @@ def test_query_customers_with_sort(
         ({"search": "wroc"}, 1),  # city
         ({"search": "pl"}, 1),  # country
         ({"search": "+48713988102"}, 1),
+        ({"search": "address_key"}, 1),
+        ({"search": "address_value"}, 1),
+        ({"search": "address"}, 2),
     ],
 )
 def test_query_customer_members_with_filter_search(
@@ -4671,7 +4674,13 @@ def test_query_customer_members_with_filter_search(
             ),
         ]
     )
+
+    address.metadata = {"test": "address_value"}
+    address.save()
     users[1].addresses.set([address])
+
+    address_new = Address.objects.create(metadata={"address_key": "test"})
+    users[0].addresses.set([address_new])
 
     variables = {"filter": customer_filter}
     response = staff_api_client.post_graphql(
