@@ -1936,6 +1936,56 @@ type DraftOrderUpdate {
   order: Order
 }
 
+type EventDelivery implements Node {
+  id: ID!
+  createdAt: DateTime!
+  status: EventDeliveryStatusEnum!
+  eventType: WebhookEventTypeEnum!
+  attempts: [EventDeliveryAttempt!]!
+}
+
+type EventDeliveryAttempt {
+  id: ID!
+  createdAt: DateTime!
+  taskId: String
+  duration: Float
+  response: String
+  responseHeaders: String
+  requestHeaders: String
+  status: EventDeliveryStatusEnum!
+}
+
+type EventDeliveryCountableConnection {
+  pageInfo: PageInfo!
+  edges: [EventDeliveryCountableEdge!]!
+  totalCount: Int
+}
+
+type EventDeliveryCountableEdge {
+  node: EventDelivery!
+  cursor: String!
+}
+
+input EventDeliveryFilterInput {
+  status: EventDeliveryStatusEnum
+  eventType: WebhookEventTypeEnum
+}
+
+enum EventDeliverySortField {
+  CREATED_AT
+}
+
+input EventDeliverySortingInput {
+  direction: OrderDirection!
+  field: EventDeliverySortField!
+}
+
+enum EventDeliveryStatusEnum {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 type ExportError {
   field: String
   message: String
@@ -6825,6 +6875,7 @@ type Webhook implements Node {
   id: ID!
   events: [WebhookEvent!]!
   app: App!
+  deliveries(sortBy: EventDeliverySortingInput, filter: EventDeliveryFilterInput, before: String, after: String, first: Int, last: Int): EventDeliveryCountableConnection
 }
 
 type WebhookCreate {

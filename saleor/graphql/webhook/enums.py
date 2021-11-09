@@ -84,3 +84,9 @@ WebhookSampleEventTypeEnum = graphene.Enum(
         if e_type[0] != WebhookEventType.ANY
     ],
 )
+
+
+class EventDeliveryStatusEnum(graphene.Enum):
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"
