@@ -210,7 +210,7 @@ def test_get_valid_shipping_methods_for_order_no_shipping_address(
     valid_shipping_methods = get_valid_shipping_methods_for_order(order)
 
     # then
-    assert valid_shipping_methods is None
+    assert valid_shipping_methods == []
 
 
 def test_get_valid_shipping_methods_for_order_shipping_not_required(
@@ -229,7 +229,7 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
     valid_shipping_methods = get_valid_shipping_methods_for_order(order)
 
     # then
-    assert valid_shipping_methods is None
+    assert valid_shipping_methods == []
 
 
 def test_update_taxes_for_order_lines(order_with_lines):

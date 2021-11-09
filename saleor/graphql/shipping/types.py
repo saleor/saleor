@@ -368,4 +368,6 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_id(root: ChannelContext[ShippingMethodData], _info):
+        if getattr(root.node, "is_external", False):
+            return root.node.id
         return graphene.Node.to_global_id("ShippingMethod", root.node.id)
