@@ -420,7 +420,7 @@ class DraftOrderComplete(BaseMutation):
     def perform_mutation(cls, _root, info, id):
         order = cls.get_node_or_error(info, id, only_type=Order)
         country = get_order_country(order)
-        validate_draft_order(order, country)
+        validate_draft_order(order, country, info.context.plugins)
         cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
 

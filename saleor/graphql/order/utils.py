@@ -6,9 +6,11 @@ from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
 from ...order.error_codes import OrderErrorCode
+from ...plugins.manager import PluginsManager
 from ...product.models import Product, ProductChannelListing, ProductVariant
 from ...warehouse.availability import check_stock_quantity
 from ..core.validators import validate_variants_available_in_channel
+from ..shipping.utils import convert_shipping_method_model_to_dataclass
 
 if TYPE_CHECKING:
     from ...channel.models import Channel
@@ -27,7 +29,7 @@ def validate_total_quantity(order: "Order", errors: T_ERRORS):
         )
 
 
-def validate_shipping_method(order: "Order", errors: T_ERRORS):
+def validate_shipping_method(order: "Order", errors: T_ERRORS, manager: PluginsManager):
     error = None
     if not order.shipping_method:
         error = ValidationError(
@@ -48,6 +50,16 @@ def validate_shipping_method(order: "Order", errors: T_ERRORS):
             "Shipping method not available in given channel.",
             code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
         )
+    elif order.shipping_method:
+        method = order.shipping_method
+        method.price = order.shipping_price  # type: ignore
+        if manager.excluded_shipping_methods_for_order(
+            order, [convert_shipping_method_model_to_dataclass(method)]
+        ):
+            error = ValidationError(
+                "Shipping method cannot be used with this order.",
+                code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+            )
     if error:
         errors["shipping"].append(error)
 
@@ -205,11 +217,12 @@ def validate_channel_is_active(channel: "Channel", errors: T_ERRORS):
         )
 
 
-def validate_draft_order(order: "Order", country: str):
+def validate_draft_order(order: "Order", country: str, manager: PluginsManager):
     """Check if the given order contains the proper data.
 
     - Has proper customer data,
     - Shipping address and method are set up,
+    - Selected shipping method isn't excluded by a plugin,
     - Product variants for order lines still exists in database.
     - Product variants are available in requested quantity.
     - Product variants are published.
@@ -220,7 +233,7 @@ def validate_draft_order(order: "Order", country: str):
     validate_billing_address(order, errors)
     if order.is_shipping_required():
         validate_shipping_address(order, errors)
-        validate_shipping_method(order, errors)
+        validate_shipping_method(order, errors, manager)
     validate_total_quantity(order, errors)
     validate_order_lines(order, country, errors)
     validate_channel_is_active(order.channel, errors)
