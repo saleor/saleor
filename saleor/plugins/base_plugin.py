@@ -211,6 +211,9 @@ class BasePlugin:
         ["Address", Union[str, NoneType], Union["User", NoneType], "Address"], "Address"
     ]
 
+    #  Retrieves the balance remaining on a shopper's gift card
+    check_payment_balance: Callable[[dict, str], dict]
+
     #  Trigger when checkout is created.
     #
     #  Overwrite this method if you need to trigger specific logic when a checkout is

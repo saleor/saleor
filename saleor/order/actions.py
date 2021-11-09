@@ -496,7 +496,11 @@ def _create_fulfillment_lines(
         order_line = line["order_line"]
         if quantity > 0:
             line_stocks = variant_to_stock.get(order_line.variant_id)
-            if line_stocks is None:
+            stock = line_stocks[0] if line_stocks else None
+
+            # If there is no stock but allow_stock_to_be_exceeded == True
+            # we proceed with fulfilling the order, treat as error otherwise
+            if stock is None and not allow_stock_to_be_exceeded:
                 error_data = InsufficientStockData(
                     variant=order_line.variant,
                     order_line=order_line,
@@ -504,7 +508,7 @@ def _create_fulfillment_lines(
                 )
                 insufficient_stocks.append(error_data)
                 continue
-            stock = line_stocks[0]
+
             lines_info.append(
                 OrderLineData(
                     line=order_line,

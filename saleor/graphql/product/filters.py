@@ -30,7 +30,7 @@ from ...product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ...warehouse.models import Allocation, Stock
+from ...warehouse.models import Allocation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import (
     EnumFilter,
@@ -55,18 +55,23 @@ T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
 
 
 def _clean_product_attributes_filter_input(filter_value, queries):
+    attribute_slugs = []
+    value_slugs = []
+    for attr_slug, val_slugs in filter_value:
+        attribute_slugs.append(attr_slug)
+        value_slugs.extend(val_slugs)
     attributes_slug_pk_map: Dict[str, int] = {}
     attributes_pk_slug_map: Dict[int, str] = {}
     values_map: Dict[str, Dict[str, int]] = defaultdict(dict)
-    for attr_slug, attr_pk in Attribute.objects.values_list("slug", "id"):
+    for attr_slug, attr_pk in Attribute.objects.filter(
+        slug__in=attribute_slugs
+    ).values_list("slug", "id"):
         attributes_slug_pk_map[attr_slug] = attr_pk
         attributes_pk_slug_map[attr_pk] = attr_slug
 
-    for (
-        attr_pk,
-        value_pk,
-        value_slug,
-    ) in AttributeValue.objects.values_list("attribute_id", "pk", "slug"):
+    for (attr_pk, value_pk, value_slug,) in AttributeValue.objects.filter(
+        slug__in=value_slugs, attribute_id__in=attributes_pk_slug_map.keys()
+    ).values_list("attribute_id", "pk", "slug"):
         attr_slug = attributes_pk_slug_map[attr_pk]
         values_map[attr_slug][value_slug] = value_pk
 
@@ -490,13 +495,12 @@ def filter_product_type(qs, _, value):
 def filter_stocks(qs, _, value):
     warehouse_ids = value.get("warehouse_ids")
     quantity = value.get("quantity")
-    # distinct's wil be removed in separated PR
     if warehouse_ids and not quantity:
-        return filter_warehouses(qs, _, warehouse_ids).distinct()
+        return filter_warehouses(qs, _, warehouse_ids)
     if quantity and not warehouse_ids:
-        return filter_quantity(qs, quantity).distinct()
+        return filter_quantity(qs, quantity)
     if quantity and warehouse_ids:
-        return filter_quantity(qs, quantity, warehouse_ids).distinct()
+        return filter_quantity(qs, quantity, warehouse_ids)
     return qs
 
 
@@ -505,7 +509,12 @@ def filter_warehouses(qs, _, value):
         _, warehouse_pks = resolve_global_ids_to_primary_keys(
             value, warehouse_types.Warehouse
         )
-        return qs.filter(variants__stocks__warehouse__pk__in=warehouse_pks)
+        warehouses = Warehouse.objects.filter(pk__in=warehouse_pks).values("pk")
+        variant_ids = Stock.objects.filter(
+            Exists(warehouses.filter(pk=OuterRef("warehouse")))
+        ).values("product_variant_id")
+        variants = ProductVariant.objects.filter(id__in=variant_ids).values("pk")
+        return qs.filter(Exists(variants.filter(product=OuterRef("pk"))))
     return qs
 
 
@@ -513,32 +522,32 @@ def filter_sku_list(qs, _, value):
     return qs.filter(sku__in=value)
 
 
-def filter_quantity(qs, quantity_value, warehouses=None):
+def filter_quantity(qs, quantity_value, warehouse_ids=None):
     """Filter products queryset by product variants quantity.
 
     Return product queryset which contains at least one variant with aggregated quantity
     between given range. If warehouses is given, it aggregates quantity only
     from stocks which are in given warehouses.
     """
-    product_variants = ProductVariant.objects.filter(product__in=qs)
-    if warehouses:
+    variants = ProductVariant.objects.filter(product__in=qs)
+
+    if warehouse_ids:
         _, warehouse_pks = resolve_global_ids_to_primary_keys(
-            warehouses, warehouse_types.Warehouse
+            warehouse_ids, warehouse_types.Warehouse
         )
-        product_variants = product_variants.annotate(
+        variants = variants.annotate(
             total_quantity=Sum(
                 "stocks__quantity", filter=Q(stocks__warehouse__pk__in=warehouse_pks)
             )
         )
     else:
-        product_variants = product_variants.annotate(
+        variants = ProductVariant.objects.filter(product__in=qs).annotate(
             total_quantity=Sum("stocks__quantity")
         )
 
-    product_variants = filter_range_field(
-        product_variants, "total_quantity", quantity_value
-    )
-    return qs.filter(variants__in=product_variants)
+    variants = filter_range_field(variants, "total_quantity", quantity_value)
+
+    return qs.filter(Exists(variants.filter(product=OuterRef("pk"))))
 
 
 class ProductStockFilterInput(graphene.InputObjectType):
