@@ -141,3 +141,37 @@ def test_handle_api_response_auto_capture_cannot_create_order_refund_payment(
 
     assert not payment_adyen_for_checkout.can_void()
     assert not void_mock.called
+
+
+@patch("saleor.payment.gateway.refund")
+@patch("saleor.payment.gateway.void")
+def test_handle_api_response_does_not_create_order_for_partial_payment(
+    void_mock, refund_mock, payment_adyen_for_checkout, adyen_plugin
+):
+    payment_adyen_for_checkout.to_confirm = True
+    payment_adyen_for_checkout.complete_order = False
+    payment_adyen_for_checkout.partial = True
+    payment_adyen_for_checkout.save()
+
+    plugin = adyen_plugin(adyen_auto_capture=True)
+
+    adyen_response = AdyenResult(
+        {
+            "additionalData": {"paymentMethod": "visa"},
+            "pspReference": "882635241694695D",
+            "resultCode": "Authorised",
+            "amount": {"currency": "USD", "value": 4211},
+            "merchantReference": "UGF5bWVudDoxMDU=",
+        }
+    )
+
+    handle_api_response(payment_adyen_for_checkout, adyen_response, plugin.channel.slug)
+
+    payment_adyen_for_checkout.refresh_from_db()
+
+    assert payment_adyen_for_checkout.charge_status == ChargeStatus.FULLY_CHARGED
+    assert payment_adyen_for_checkout.can_refund()
+    assert not payment_adyen_for_checkout.order
+    assert not payment_adyen_for_checkout.can_void()
+    assert not refund_mock.called
+    assert not void_mock.called
