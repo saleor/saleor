@@ -1197,6 +1197,9 @@ def test_handle_not_created_order_create_new_success_transaction(
     assert all_payment_transactions[1].kind == TransactionKind.AUTH
 
 
+@pytest.mark.parametrize(
+    "plugin_flag,manual_capture_count", [("auto_capture", 1), ("adyen_auto_capture", 0)]
+)
 @patch("saleor.payment.gateway.refund")
 @patch.object(AdyenGatewayPlugin, "capture_payment")
 @patch("saleor.checkout.complete_checkout._get_order_data")
@@ -1208,6 +1211,8 @@ def test_handle_not_created_order_success_transaction_create_order_raises_and_re
     adyen_plugin,
     notification,
     gateway_response,
+    plugin_flag,
+    manual_capture_count,
 ):
     order_data_mock.side_effect = ValidationError("Test error")
     capture_mock.return_value = gateway_response
@@ -1216,7 +1221,7 @@ def test_handle_not_created_order_success_transaction_create_order_raises_and_re
     payment_adyen_for_checkout.save(update_fields=["charge_status"])
     payment_adyen_for_checkout.transactions.all().delete()
 
-    adyen_plugin(auto_capture=True)
+    adyen_plugin(**{plugin_flag: True})
     handle_not_created_order(
         notification(),
         payment_adyen_for_checkout,
@@ -1235,6 +1240,7 @@ def test_handle_not_created_order_success_transaction_create_order_raises_and_re
 
     assert payment_adyen_for_checkout.can_refund()
     assert refund_mock.call_count == 1
+    assert capture_mock.call_count == manual_capture_count
 
 
 @patch("saleor.payment.gateway.void")
