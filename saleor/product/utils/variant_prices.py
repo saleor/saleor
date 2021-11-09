@@ -73,7 +73,7 @@ def update_products_discounted_prices(products, discounts=None):
 
 
 def update_products_discounted_prices_of_catalogues(
-    product_ids=None, category_ids=None, collection_ids=None
+    product_ids=None, category_ids=None, collection_ids=None, variant_ids=None
 ):
     # Building the matching products query
     q_list = []
@@ -84,6 +84,8 @@ def update_products_discounted_prices_of_catalogues(
     if collection_ids:
         q_list.append(Q(collectionproduct__collection_id__in=collection_ids))
     # Asserting that the function was called with some ids
+    if variant_ids:
+        q_list.append(Q(variants__id__in=variant_ids))
     if q_list:
         # Querying the products
         q_or = reduce(operator.or_, q_list)
@@ -97,4 +99,5 @@ def update_products_discounted_prices_of_discount(discount):
         product_ids=discount.products.all().values_list("id", flat=True),
         category_ids=discount.categories.all().values_list("id", flat=True),
         collection_ids=discount.collections.all().values_list("id", flat=True),
+        variant_ids=discount.variants.all().values_list("id", flat=True),
     )
