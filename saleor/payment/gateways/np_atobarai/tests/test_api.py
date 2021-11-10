@@ -35,6 +35,20 @@ def test_refund_payment(
     assert gateway_response.is_success
 
 
+def test_refund_payment_no_order(np_atobarai_plugin, np_payment_data, payment_dummy):
+    # given
+    plugin = np_atobarai_plugin()
+    payment_data = np_payment_data
+    payment_dummy.captured_amount = payment_data.amount + Decimal("3.00")
+    payment_dummy.order = None
+    payment_dummy.save(update_fields=["order", "captured_amount"])
+
+    # then
+    with pytest.raises(PaymentError, match=rf"Order.*{payment_dummy.id}.*"):
+        # when
+        plugin.refund_payment(payment_data, None)
+
+
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_refund_payment_payment_not_created(
     mocked_request, np_atobarai_plugin, np_payment_data, payment_dummy
@@ -611,3 +625,42 @@ def test_reregister_transaction_cancel_error(
     # then
     assert payment_response.status == PaymentStatus.FAILED
     assert payment_response.errors == error_codes
+
+
+@patch("saleor.payment.gateways.np_atobarai.api.cancel")
+@patch("saleor.payment.gateways.np_atobarai.api.register")
+def test_register_transaction_pending(
+    mocked_register, mocked_cancel, config, np_payment_data
+):
+    # given
+    transaction_id = "123123123"
+    register_result = {
+        "authori_result": "10",
+        "np_transaction_id": transaction_id,
+        "authori_hold": ["RE009", "RE015"],
+    }
+    mocked_register.return_value = NPResponse(result=register_result, error_codes=[])
+    mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
+
+    # when
+    payment_response = api.register_transaction(config, np_payment_data)
+
+    # then
+    mocked_register.assert_called_once()
+    mocked_cancel.assert_called_once_with(config, transaction_id)
+    assert payment_response.status == PaymentStatus.PENDING
+    assert len(payment_response.errors) == 2
+    for error in payment_response.errors:
+        assert "address" in error
+
+
+def test_cancel_transaction_no_payment(np_payment_data):
+    # given
+    payment_id = -1
+    np_payment_data.payment_id = payment_id
+
+    # when
+    payment_response = api.cancel_transaction(Mock(), np_payment_data)
+
+    # then
+    assert payment_response.errors == [f"Payment with id {payment_id} does not exist."]

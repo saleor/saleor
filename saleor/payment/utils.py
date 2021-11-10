@@ -258,8 +258,6 @@ def _prepare_refund_lines(
         if (f_variant_id := line.line.order_line.variant_id)
     )
 
-    print(order_lines_to_refund)
-
     return chain(
         previous_refund_lines,
         current_order_refund_lines,

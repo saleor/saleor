@@ -68,8 +68,8 @@ def _resolve_lines():
 
 
 @pytest.fixture
-def np_payment_data(dummy_payment_data):
-    address_data = AddressData(
+def np_address_data():
+    return AddressData(
         first_name="John",
         last_name="Doe",
         company_name="",
@@ -82,10 +82,14 @@ def np_payment_data(dummy_payment_data):
         street_address_1="2-16-3",
         street_address_2="",
     )
+
+
+@pytest.fixture
+def np_payment_data(np_address_data, dummy_payment_data):
     return dataclasses.replace(
         dummy_payment_data,
-        billing=address_data,
-        shipping=address_data,
+        billing=np_address_data,
+        shipping=np_address_data,
         _resolve_lines=_resolve_lines,
     )
 
