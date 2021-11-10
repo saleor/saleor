@@ -35,7 +35,7 @@ from ...checkout.utils import (
     validate_variants_in_checkout_lines,
 )
 from ...core import analytics
-from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
+from ...core.exceptions import InsufficientStock, PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
@@ -73,7 +73,6 @@ from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context, resolve_global_ids_to_primary_keys
 from ..warehouse.types import Warehouse
 from .types import Checkout, CheckoutLine
-from .utils import prepare_insufficient_stock_checkout_validation_error
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
@@ -223,12 +222,34 @@ def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
             graphene.Node.to_global_id("ProductVariant", pk)
             for pk in not_available_variants
         ]
-        error_code = CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE
+        error_code = CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.value
         raise ValidationError(
             {
                 "lines": ValidationError(
                     "Cannot add lines for unavailable for purchase variants.",
-                    code=error_code,  # type: ignore
+                    code=error_code,
+                    params={"variants": variant_ids},
+                )
+            }
+        )
+
+
+def validate_variants_are_published(variants_id: set, channel_id: int):
+    published_variants = product_models.ProductChannelListing.objects.filter(
+        channel_id=channel_id, product__variants__id__in=variants_id, is_published=True
+    ).values_list("product__variants__id", flat=True)
+    not_published_variants = variants_id.difference(set(published_variants))
+    if not_published_variants:
+        variant_ids = [
+            graphene.Node.to_global_id("ProductVariant", pk)
+            for pk in not_published_variants
+        ]
+        error_code = CheckoutErrorCode.PRODUCT_NOT_PUBLISHED.value
+        raise ValidationError(
+            {
+                "lines": ValidationError(
+                    "Cannot add lines for unpublished variants.",
+                    code=error_code,
                     params={"variants": variant_ids},
                 )
             }
@@ -326,6 +347,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         validate_variants_available_in_channel(
             variant_db_ids, channel.id, CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
         )
+        validate_variants_are_published(variant_db_ids, channel.id)
         check_lines_quantity(
             variants,
             quantities,
@@ -401,7 +423,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     @traced_atomic_transaction()
     def save(cls, info, instance: models.Checkout, cleaned_input):
-        channel = cleaned_input["channel"]
         # Create the checkout object
         instance.save()
 
@@ -410,25 +431,17 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         instance.set_country(country)
 
         # Create checkout lines
+        channel = cleaned_input["channel"]
         variants = cleaned_input.get("variants")
         quantities = cleaned_input.get("quantities")
         if variants and quantities:
-            try:
-                add_variants_to_checkout(
-                    instance,
-                    variants,
-                    quantities,
-                    channel.slug,
-                    reservation_length=get_reservation_length(info.context),
-                )
-            except InsufficientStock as exc:
-                error = prepare_insufficient_stock_checkout_validation_error(exc)
-                raise ValidationError({"lines": error})
-            except ProductNotPublished as exc:
-                raise ValidationError(
-                    "Can't create checkout with unpublished product.",
-                    code=exc.code,
-                )
+            add_variants_to_checkout(
+                instance,
+                variants,
+                quantities,
+                channel.slug,
+                reservation_length=get_reservation_length(info.context),
+            )
 
         # Save addresses
         shipping_address = cleaned_input.get("shipping_address")
@@ -527,31 +540,37 @@ class CheckoutLinesAdd(BaseMutation):
             channel_slug,
             lines=lines,
         )
-        variants_db_ids = {variant.id for variant in variants}
-        validate_variants_available_for_purchase(variants_db_ids, checkout.channel_id)
-        validate_variants_available_in_channel(
-            variants_db_ids,
-            checkout.channel_id,
-            CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
-        )
+
+        variants_ids_to_validate = {
+            variant.id
+            for variant, quantity in zip(variants, quantities)
+            if quantity != 0
+        }
+
+        # validate variant only when line quantity is bigger than 0
+        if variants_ids_to_validate:
+            validate_variants_available_for_purchase(
+                variants_ids_to_validate, checkout.channel_id
+            )
+            validate_variants_available_in_channel(
+                variants_ids_to_validate,
+                checkout.channel_id,
+                CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
+            )
+            validate_variants_are_published(
+                variants_ids_to_validate, checkout.channel_id
+            )
 
         if variants and quantities:
-            try:
-                checkout = add_variants_to_checkout(
-                    checkout,
-                    variants,
-                    quantities,
-                    channel_slug,
-                    skip_stock_check=True,  # already checked by validate_checkout_lines
-                    replace=replace,
-                    replace_reservations=True,
-                    reservation_length=get_reservation_length(info.context),
-                )
-            except ProductNotPublished as exc:
-                raise ValidationError(
-                    "Can't add unpublished product.",
-                    code=exc.code,
-                )
+            checkout = add_variants_to_checkout(
+                checkout,
+                variants,
+                quantities,
+                channel_slug,
+                replace=replace,
+                replace_reservations=True,
+                reservation_length=get_reservation_length(info.context),
+            )
 
         lines = fetch_checkout_lines(checkout)
         checkout_info.valid_shipping_methods = (
