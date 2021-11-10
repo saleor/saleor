@@ -3,6 +3,7 @@ import os
 from typing import List
 
 from ....order.models import Fulfillment
+from ....order.utils import get_active_payments
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from ...models import Payment
@@ -60,9 +61,11 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
     from .plugin import NPAtobaraiGatewayPlugin
 
     order = fulfillment.order
-    payments = order.payments.filter(
-        gateway=NPAtobaraiGatewayPlugin.PLUGIN_ID, is_active=True
-    )
+    payments = [
+        p
+        for p in get_active_payments(order)
+        if p.gateway == NPAtobaraiGatewayPlugin.PLUGIN_ID
+    ]
 
     if payments:
         results = [
