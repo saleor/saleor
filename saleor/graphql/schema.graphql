@@ -4378,6 +4378,7 @@ input OrderFilterInput {
   channels: [ID]
   isClickAndCollect: Boolean
   isPreorder: Boolean
+  ids: [ID]
 }
 
 type OrderFulfill {

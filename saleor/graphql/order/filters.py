@@ -137,6 +137,13 @@ def filter_is_preorder(qs, _, values):
     return qs
 
 
+def filter_order_ids(qs, _, values):
+    if values:
+        _, order_ids = resolve_global_ids_to_primary_keys(values, "Order")
+        qs = qs.filter(id__in=order_ids)
+    return qs
+
+
 class DraftOrderFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
@@ -161,6 +168,7 @@ class OrderFilter(DraftOrderFilter):
         method=filter_is_click_and_collect
     )
     is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
+    ids = GlobalIDMultipleChoiceFilter(method=filter_order_ids)
 
     class Meta:
         model = Order
