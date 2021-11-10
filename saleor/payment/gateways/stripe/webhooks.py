@@ -22,6 +22,7 @@ from ...utils import (
     create_transaction,
     gateway_postprocess,
     price_from_minor_unit,
+    try_void_or_refund_inactive_payment,
     update_payment_charge_status,
     update_payment_method_details,
 )
@@ -95,7 +96,7 @@ def _get_payment(payment_intent_id: str) -> Optional[Payment]:
             "checkout",
         )
         .select_for_update(of=("self",))
-        .filter(transactions__token=payment_intent_id, is_active=True)
+        .filter(transactions__token=payment_intent_id)
         .first()
     )
 
@@ -217,6 +218,19 @@ def handle_authorized_payment_intent(
             extra={"payment_intent": payment_intent.id},
         )
         return
+
+    if not payment.is_active:
+        transaction = _update_payment_with_new_transaction(
+            payment,
+            payment_intent,
+            TransactionKind.AUTH,
+            payment_intent.amount,
+            payment_intent.currency,
+        )
+        manager = get_plugins_manager()
+        try_void_or_refund_inactive_payment(payment, transaction, manager)
+        return
+
     if payment.order_id:
         if payment.charge_status == ChargeStatus.PENDING:
             _update_payment_with_new_transaction(
@@ -272,6 +286,11 @@ def handle_processing_payment_intent(
             extra={"payment_intent": payment_intent.id},
         )
         return
+
+    if not payment.is_active:
+        # we can't cancel/refund processing payment
+        return
+
     if payment.order_id:
         # Order already created
         return
@@ -309,6 +328,17 @@ def handle_successful_payment_intent(
         update_payment_method_details(payment, payment_method_info, changed_fields)
         if changed_fields:
             payment.save(update_fields=changed_fields)
+
+    if not payment.is_active:
+        transaction = _update_payment_with_new_transaction(
+            payment,
+            payment_intent,
+            TransactionKind.CAPTURE,
+            payment_intent.amount_received,
+            payment_intent.currency,
+        )
+        try_void_or_refund_inactive_payment(payment, transaction, get_plugins_manager())
+        return
 
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:
