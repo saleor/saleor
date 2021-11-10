@@ -191,7 +191,7 @@ class Payment(ModelWithMetadata):
         return True
 
     def can_void(self):
-        return self.is_active and self.not_charged and self.is_authorized
+        return self.not_charged and self.is_authorized
 
     def can_refund(self):
         can_refund_charge_status = (
@@ -199,7 +199,7 @@ class Payment(ModelWithMetadata):
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.PARTIALLY_REFUNDED,
         )
-        return self.is_active and self.charge_status in can_refund_charge_status
+        return self.charge_status in can_refund_charge_status
 
     def can_confirm(self):
         return self.is_active and self.not_charged
