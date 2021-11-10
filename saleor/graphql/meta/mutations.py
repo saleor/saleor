@@ -169,7 +169,7 @@ class ShippingMethodMetadataMixin:
         qs = data.get("qs", None)
 
         type_name, _ = from_global_id_or_error(object_id)
-        # ShippingMethodType type isn't model-based class
+        # ShippingMethod type isn't model-based class
         if type_name == "ShippingMethodType":
             qs = shipping_models.ShippingMethod.objects
 
@@ -177,7 +177,7 @@ class ShippingMethodMetadataMixin:
 
     @classmethod
     def get_model_for_type_name(cls, info, type_name):
-        # ShippingMethodType type isn't model-based class
+        # ShippingMethod type isn't model-based class
         if type_name == "ShippingMethodType":
             return shipping_models.ShippingMethod
         graphene_type = info.schema.get_type(type_name).graphene_type

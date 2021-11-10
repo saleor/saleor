@@ -1,4 +1,5 @@
 from ...account.models import Address
+from ...core.taxes import identical_taxed_money
 from ...core.tracing import traced_resolver
 from ...shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ...shipping.postal_codes import filter_shipping_methods_by_postal_code_rules
@@ -8,7 +9,6 @@ from ..channel import ChannelContext
 @traced_resolver
 def resolve_available_shipping_methods(info, channel_slug: str, address):
     instances = []
-    manager = info.context.plugins
     available = ShippingMethod.objects.for_channel(channel_slug)
     if address and address.country:
         available = available.filter(
@@ -23,21 +23,12 @@ def resolve_available_shipping_methods(info, channel_slug: str, address):
         address = Address()
 
     if available is not None:
-        display_gross = info.context.site.settings.display_gross_prices
         shipping_mapping = get_shipping_method_to_shipping_price_mapping(
             available, channel_slug
         )
         for shipping_method in available:
             shipping_price = shipping_mapping[shipping_method.pk]
-            # TODO 3: nie chcemy tego wołać
-            taxed_price = manager.apply_taxes_to_shipping(
-                shipping_price, address, channel_slug
-            )
-            if display_gross:
-                shipping_method.price = taxed_price.gross
-            else:
-                shipping_method.price = taxed_price.net
-
+            shipping_method.price = identical_taxed_money(shipping_price)
         instances += [
             ChannelContext(node=shipping, channel_slug=channel_slug)
             for shipping in available

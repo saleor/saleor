@@ -371,3 +371,19 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
         if getattr(root.node, "is_external", False):
             return root.node.id
         return graphene.Node.to_global_id("ShippingMethod", root.node.id)
+
+    @staticmethod
+    def resolve_message(root: ChannelContext[ShippingMethodData], _info):
+        return root.node.message
+
+    @staticmethod
+    def resolve_active(root: ChannelContext[ShippingMethodData], _info):
+        return root.node.active
+
+    @staticmethod
+    def resolve_minimum_delivery_days(root: ChannelContext[ShippingMethodData], _info):
+        return root.node.minimum_delivery_days
+
+    @staticmethod
+    def resolve_maximum_delivery_days(root: ChannelContext[ShippingMethodData], _info):
+        return root.node.maximum_delivery_days

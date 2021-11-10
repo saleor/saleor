@@ -30,6 +30,8 @@ class ShippingMethodData:
     minimum_delivery_days: Optional[int] = None
     metadata: Dict[str, str] = field(default_factory=dict)
     private_metadata: Dict[str, str] = field(default_factory=dict)
+    active: bool = True
+    message: Optional[str] = ""
 
     @property
     def is_external(self) -> bool:

@@ -354,11 +354,11 @@ def get_valid_saleor_shipping_method_list_for_checkout_info(
         checkout_info, lines, checkout_info.shipping_address, discounts
     )
     subtotal -= checkout_info.checkout.discount
-    valid_shipping_method = get_valid_saleor_shipping_methods_for_checkout(
+    valid_shipping_methods = get_valid_saleor_shipping_methods_for_checkout(
         checkout_info, lines, subtotal, country_code=country_code
     )
 
-    return valid_shipping_method
+    return valid_shipping_methods
 
 
 def get_valid_external_shipping_method_list_for_checkout_info(
