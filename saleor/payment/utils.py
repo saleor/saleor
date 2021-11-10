@@ -51,6 +51,9 @@ def create_payment_lines_information(
         discounts = fetch_active_discounts()
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
         address = checkout_info.shipping_address or checkout_info.billing_address
+        checkout_total = manager.calculate_checkout_total(
+            checkout_info, lines, address, discounts
+        )
 
         for line_info in lines:
             total = checkout_line_total(
@@ -94,6 +97,14 @@ def create_payment_lines_information(
         if voucher_line_item:
             line_items.append(voucher_line_item)
 
+        partial_payment_difference_line_item = (
+            create_partial_payment_difference_line_data(
+                payment.total - checkout_total.gross.amount
+            )
+        )
+        if partial_payment_difference_line_item:
+            line_items.append(partial_payment_difference_line_item)
+
     elif order:
         for order_line in order.lines.all():
             product_name = f"{order_line.product_name}, {order_line.variant_name}"
@@ -119,6 +130,14 @@ def create_payment_lines_information(
         if voucher_line_item:
             line_items.append(voucher_line_item)
 
+        partial_payment_difference_line_item = (
+            create_partial_payment_difference_line_data(
+                payment.total - order.total_gross_amount
+            )
+        )
+        if partial_payment_difference_line_item:
+            line_items.append(partial_payment_difference_line_item)
+
     return line_items
 
 
@@ -126,6 +145,7 @@ def create_payment_lines_information(
 # any collision with actual product variant pk
 VOUCHER_PAYMENT_LINE_ID = 0
 SHIPPING_PAYMENT_LINE_ID = -1
+PARTIAL_PAYMENT_DIFFERENCE_LINE_ID = -2
 
 
 def create_shipping_payment_line_data(amount: Decimal) -> PaymentLineData:
@@ -158,6 +178,20 @@ def create_voucher_payment_line_data(amount: Decimal) -> Optional[PaymentLineDat
         quantity=1,
         product_name="Voucher",
         variant_id=VOUCHER_PAYMENT_LINE_ID,
+        gross=amount,
+    )
+
+
+def create_partial_payment_difference_line_data(
+    amount: Decimal,
+) -> Optional[PaymentLineData]:
+    print(f"partial payment amount: {amount}")
+    if not amount:
+        return None
+    return PaymentLineData(
+        quantity=1,
+        product_name="Partial payment difference",
+        variant_id=PARTIAL_PAYMENT_DIFFERENCE_LINE_ID,
         gross=amount,
     )
 
