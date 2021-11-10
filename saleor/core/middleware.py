@@ -9,6 +9,7 @@ from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language
 
 from ..discount.utils import fetch_discounts
+from ..graphql.utils import get_user_or_app_from_context
 from ..plugins.manager import get_plugins_manager
 from . import analytics
 from .jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, jwt_decode_with_exception_handler
@@ -81,11 +82,16 @@ def site(get_response):
 def plugins(get_response):
     """Assign plugins manager."""
 
-    def _get_manager():
+    def _get_manager(requestor):
         return get_plugins_manager()
 
+    def _get_requestor(request):
+        return get_user_or_app_from_context(request)
+
     def _plugins_middleware(request):
-        request.plugins = SimpleLazyObject(lambda: _get_manager())
+        request.plugins = SimpleLazyObject(
+            lambda: _get_manager(_get_requestor(request))
+        )
         return get_response(request)
 
     return _plugins_middleware

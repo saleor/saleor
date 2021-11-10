@@ -91,11 +91,13 @@ class BasePlugin:
         *,
         configuration: PluginConfigurationType,
         active: bool,
-        channel: Optional["Channel"] = None
+        channel: Optional["Channel"] = None,
+        requestor=None
     ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
         self.channel = channel
+        self.requestor = requestor
 
     def __str__(self):
         return self.PLUGIN_NAME
