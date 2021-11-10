@@ -12,6 +12,7 @@ from ...discount import DiscountValueType, OrderDiscountType
 from ...order import OrderLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.models import Order
+from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
 from ..payloads import (
@@ -162,19 +163,15 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
 
 
 def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
-
     # given
     fulfillment = order_with_lines.fulfillments.create(tracking_number="123")
     line = order_with_lines.lines.first()
     stock = line.allocations.get().stock
     warehouse_pk = stock.warehouse.pk
-    fulfillment_line = fulfillment.lines.create(
-        order_line=line, quantity=line.quantity, stock=stock
-    )
+    fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
-        [
-            OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk),
-        ]
+        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        get_plugins_manager(),
     )
 
     # when
@@ -182,29 +179,8 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
 
     # then
-    assert payload == {
-        "currency": "USD",
-        "product_name": line.product_name,
-        "variant_name": line.variant_name,
-        "product_sku": line.product_sku,
-        "id": graphene.Node.to_global_id("FulfillmentLine", fulfillment_line.id),
-        "product_type": None,
-        "quantity": fulfillment_line.quantity,
-        "total_price_gross_amount": str(
-            line.unit_price.gross.amount * fulfillment_line.quantity
-        ),
-        "total_price_net_amount": str(
-            line.unit_price.net.amount * fulfillment_line.quantity
-        ),
-        "type": "FulfillmentLine",
-        "undiscounted_unit_price_gross": str(line.undiscounted_unit_price.gross.amount),
-        "undiscounted_unit_price_net": str(line.undiscounted_unit_price.net.amount),
-        "unit_price_gross": str(line.unit_price.gross.amount),
-        "unit_price_net": str(line.unit_price.net.amount),
-        "weight": None,
-        "weight_unit": "gram",
-        "warehouse_id": None,
-    }
+    assert payload["product_type"] is None
+    assert payload["weight"] is None
 
 
 def test_order_lines_have_all_required_fields(order, order_line_with_one_allocation):

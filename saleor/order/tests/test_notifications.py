@@ -105,41 +105,9 @@ def test_get_order_line_payload(order_line):
 def test_get_order_line_payload_deleted_variant(order_line):
     order_line.variant = None
     payload = get_order_line_payload(order_line)
-    unit_tax_amount = (
-        order_line.unit_price_gross_amount - order_line.unit_price_net_amount
-    )
-    total_gross = order_line.unit_price_gross * order_line.quantity
-    total_net = order_line.unit_price_net * order_line.quantity
-    total_tax = total_gross - total_net
-    assert payload == {
-        "variant": None,
-        "product": None,
-        "translated_product_name": order_line.translated_product_name
-        or order_line.product_name,
-        "translated_variant_name": order_line.translated_variant_name
-        or order_line.variant_name,
-        "id": order_line.id,
-        "product_name": order_line.product_name,
-        "variant_name": order_line.variant_name,
-        "product_sku": order_line.product_sku,
-        "is_shipping_required": order_line.is_shipping_required,
-        "quantity": order_line.quantity,
-        "quantity_fulfilled": order_line.quantity_fulfilled,
-        "currency": order_line.currency,
-        "unit_price_net_amount": order_line.unit_price_net_amount,
-        "unit_price_gross_amount": order_line.unit_price_gross_amount,
-        "unit_tax_amount": unit_tax_amount,
-        "total_gross_amount": total_gross.amount,
-        "total_net_amount": total_net.amount,
-        "total_tax_amount": total_tax.amount,
-        "tax_rate": order_line.tax_rate,
-        "is_digital": order_line.is_digital,
-        "digital_url": "",
-        "unit_discount_amount": order_line.unit_discount_amount,
-        "unit_discount_reason": order_line.unit_discount_reason,
-        "unit_discount_type": order_line.unit_discount_type,
-        "unit_discount_value": order_line.unit_discount_value,
-    }
+
+    assert payload["variant"] is None
+    assert payload["product"] is None
 
 
 def test_get_address_payload(address):
