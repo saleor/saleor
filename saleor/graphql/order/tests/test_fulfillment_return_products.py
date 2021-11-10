@@ -116,6 +116,7 @@ def test_fulfillment_return_products_amount_and_shipping_costs(
         ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=quantize_price(amount_to_refund, fulfilled_order.currency),
+        refund_data=ANY,
     )
 
 
@@ -270,6 +271,7 @@ def test_fulfillment_return_products_order_lines(
         ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount,
+        refund_data=ANY,
     )
 
 
@@ -380,6 +382,7 @@ def test_fulfillment_return_products_order_lines_custom_amount(
         ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount_to_refund,
+        refund_data=ANY,
     )
 
 
@@ -508,6 +511,7 @@ def test_fulfillment_return_products_fulfillment_lines(
         ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
+        refund_data=ANY,
     )
 
 
@@ -674,8 +678,9 @@ def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
     mocked_refund.assert_called_with(
         payment_dummy,
         ANY,
-        channel_slug=fulfilled_order.channel.slug,
         amount=amount,
+        channel_slug=fulfilled_order.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -788,6 +793,7 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
         ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
+        refund_data=ANY,
     )
 
 

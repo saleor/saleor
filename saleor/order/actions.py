@@ -21,7 +21,7 @@ from ..payment import (
     gateway,
 )
 from ..payment.models import Payment, Transaction
-from ..payment.utils import create_payment
+from ..payment.utils import create_payment, create_refund_data
 from ..warehouse.management import (
     deallocate_stock,
     deallocate_stock_for_order,
@@ -259,6 +259,7 @@ def __refund_payment_or_create_event(
     manager: "PluginsManager",
     user: Optional[User],
     app: Optional["App"],
+    refund_data: Optional[Dict[int, int]] = None,
 ) -> Tuple[Optional[Transaction], Optional[PaymentError]]:
     if payment and payment.can_refund():
         try:
@@ -267,6 +268,7 @@ def __refund_payment_or_create_event(
                 manager,
                 channel_slug=order.channel.slug,
                 amount=amount,
+                refund_data=refund_data,
             )
 
             # Confirm that we changed the status to refund. Some payments
@@ -302,6 +304,7 @@ def _refund_payments(
     manager: "PluginsManager",
     user: Optional[User],
     app: Optional["App"],
+    refund_data: Optional[Dict[int, int]] = None,
 ) -> Tuple[List[OrderPaymentAction], List[PaymentError]]:
     payments_to_notify = []
     payment_errors = []
@@ -309,7 +312,7 @@ def _refund_payments(
         payment = item.payment
         amount = item.amount
         transaction, event = __refund_payment_or_create_event(
-            order, payment, amount, manager, user, app
+            order, payment, amount, manager, user, app, refund_data
         )
         # Process only successful refunds
         if transaction and transaction.is_success:
@@ -372,9 +375,10 @@ def refund_payments(
     user: Optional["User"],
     app: Optional["App"],
     manager: "PluginsManager",
+    refund_data: Optional[Dict[int, int]] = None,
 ):
     payments_to_notify, payment_errors = _refund_payments(
-        order, payments, manager, user, app
+        order, payments, manager, user, app, refund_data
     )
     order.refresh_from_db()
 
@@ -1535,6 +1539,12 @@ def _process_refund(
         user,
         app,
         manager,
+        refund_data=create_refund_data(
+            order,
+            order_lines_to_refund,
+            fulfillment_lines_to_refund,
+            include_shipping_costs,
+        ),
     )
 
     # Total amount refunded is updated in order to reflect responses from the PSP

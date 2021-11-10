@@ -224,7 +224,7 @@ FULFILLMENT_REPORT_RESULT_ERRORS = {
 def get_error_messages_from_codes(
     error_codes: Iterable[str], error_map: Dict[str, str]
 ) -> List[str]:
-    return [error_map.get(code, f"#{code}: {UNKNOWN_ERROR}") for code in error_codes]
+    return [error_map.get(code, code) for code in error_codes]
 
 
 UNKNOWN_REASON = "Unknown pending reason while processing the payment."
@@ -281,8 +281,5 @@ PendingReason = {
 def get_reason_messages_from_codes(
     reason_codes: Iterable[str],
 ) -> List[str]:
-    return [
-        # The number of pending codes may increase in the future.
-        PendingReason.get(code, f"#{code}: {UNKNOWN_REASON}")
-        for code in reason_codes
-    ]
+    # The number of pending codes may increase in the future.
+    return [PendingReason.get(code, code) for code in reason_codes]

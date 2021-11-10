@@ -1,45 +1,9 @@
-from decimal import Decimal
 from unittest.mock import Mock, patch
 
-import pytest
 import requests
 
-from ....interface import AddressData, PaymentLineData
 
-
-@pytest.fixture
-def dummy_payment_line_data():
-    return [
-        PaymentLineData(
-            gross=Decimal("100.00"),
-            product_name="Product Name",
-            quantity=5,
-        )
-    ] * 3
-
-
-@pytest.fixture
-def np_payment_data(dummy_payment_data, dummy_payment_line_data):
-    address_data = AddressData(
-        first_name="John",
-        last_name="Doe",
-        company_name="",
-        phone="+81 03-1234-5678",
-        country="JP",
-        postal_code="370-2625",
-        country_area="群馬県",
-        city="甘楽郡下仁田町",
-        city_area="本宿",
-        street_address_1="2-16-3",
-        street_address_2="",
-    )
-    dummy_payment_data.billing = address_data
-    dummy_payment_data.shipping = address_data
-    dummy_payment_data.lines = dummy_payment_line_data
-    return dummy_payment_data
-
-
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_process_payment_authorized(
     mocked_request, np_atobarai_plugin, np_payment_data
 ):
@@ -72,7 +36,7 @@ def test_process_payment_authorized(
     assert not gateway_response.error
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_process_payment_refused(mocked_request, np_atobarai_plugin, np_payment_data):
     # given
     plugin = np_atobarai_plugin()
@@ -102,7 +66,7 @@ def test_process_payment_refused(mocked_request, np_atobarai_plugin, np_payment_
     assert not gateway_response.is_success
 
 
-@patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_process_payment_error(mocked_request, np_atobarai_plugin, np_payment_data):
     # given
     plugin = np_atobarai_plugin()

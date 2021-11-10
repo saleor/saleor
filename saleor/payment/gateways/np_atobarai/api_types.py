@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, NamedTuple
 
 from .const import (
     FILL_MISSING_ADDRESS,
@@ -10,6 +10,15 @@ from .const import (
     TERMINAL_ID,
     USE_SANDBOX,
 )
+
+
+class NPResponse(NamedTuple):
+    result: dict
+    error_codes: List[str]
+
+
+def error_np_response(error_message: str) -> NPResponse:
+    return NPResponse({}, [error_message])
 
 
 @dataclass
@@ -34,6 +43,14 @@ class PaymentResult:
     psp_reference: str = ""
     raw_response: Dict[str, str] = field(default_factory=dict)
     errors: List[str] = field(default_factory=list)
+
+
+def error_payment_result(error_message: str) -> PaymentResult:
+    return PaymentResult(status=PaymentStatus.FAILED, errors=[error_message])
+
+
+def errors_payment_result(errors: List[str]) -> PaymentResult:
+    return PaymentResult(status=PaymentStatus.FAILED, errors=errors)
 
 
 def get_api_config(connection_params: dict) -> ApiConfig:

@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from ..plugin import NPAtobaraiGatewayPlugin
 
 
-@mock.patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@mock.patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 @pytest.mark.parametrize("status_code", [200, 400])
 def test_validate_plugin_configuration_valid_credentials(
     mocked_request, np_atobarai_plugin, status_code
@@ -22,7 +22,7 @@ def test_validate_plugin_configuration_valid_credentials(
     # then: no exception
 
 
-@mock.patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@mock.patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 @pytest.mark.parametrize("status_code", [401, 403])
 def test_validate_plugin_configuration_invalid_credentials(
     mocked_request, np_atobarai_plugin, status_code
@@ -37,7 +37,7 @@ def test_validate_plugin_configuration_invalid_credentials(
         NPAtobaraiGatewayPlugin.validate_plugin_configuration(plugin)
 
 
-@mock.patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@mock.patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_validate_plugin_configuration_missing_data(mocked_request, np_atobarai_plugin):
     # given
     plugin = np_atobarai_plugin(merchant_code=None, sp_code=None, terminal_id=None)
@@ -52,7 +52,7 @@ def test_validate_plugin_configuration_missing_data(mocked_request, np_atobarai_
     assert len(excinfo.value.error_dict) == 3
 
 
-@mock.patch("saleor.payment.gateways.np_atobarai.api.requests.request")
+@mock.patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_validate_plugin_configuration_invalid_shipping_company_code(
     mocked_request, np_atobarai_plugin
 ):

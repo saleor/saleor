@@ -1,7 +1,9 @@
 import json
 import logging
+from collections import defaultdict
 from decimal import Decimal
-from typing import Dict, List, Optional
+from itertools import chain
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -17,7 +19,8 @@ from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
-from ..order.models import Order
+from ..order import FulfillmentLineData, FulfillmentStatus, OrderLineData
+from ..order.models import FulfillmentLine, Order, OrderLine
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
@@ -74,6 +77,7 @@ def create_payment_lines_information(
                 PaymentLineData(
                     quantity=quantity,
                     product_name=product_name,
+                    variant_id=line_info.variant.id,
                     gross=unit_gross,
                 )
             )
@@ -93,16 +97,24 @@ def create_payment_lines_information(
     elif order:
         for order_line in order.lines.all():
             product_name = f"{order_line.product_name}, {order_line.variant_name}"
+
+            variant_id = order_line.variant_id
+            if variant_id is None:
+                continue
+
             line_items.append(
                 PaymentLineData(
                     quantity=order_line.quantity,
                     product_name=product_name,
+                    variant_id=variant_id,
                     gross=order_line.unit_price_gross_amount,
                 )
             )
+
         line_items.append(
             create_shipping_payment_line_data(amount=order.shipping_price_gross_amount)
         )
+
         voucher_line_item = create_order_voucher_payment_line_data(order)
         if voucher_line_item:
             line_items.append(voucher_line_item)
@@ -110,10 +122,17 @@ def create_payment_lines_information(
     return line_items
 
 
+# Values are outside of model's pk range to resolve
+# any collision with actual product variant pk
+VOUCHER_PAYMENT_LINE_ID = 0
+SHIPPING_PAYMENT_LINE_ID = -1
+
+
 def create_shipping_payment_line_data(amount: Decimal) -> PaymentLineData:
     return PaymentLineData(
         quantity=1,
         product_name="Shipping",
+        variant_id=SHIPPING_PAYMENT_LINE_ID,
         gross=amount,
     )
 
@@ -135,7 +154,12 @@ def create_order_voucher_payment_line_data(
 def create_voucher_payment_line_data(amount: Decimal) -> Optional[PaymentLineData]:
     if not amount:
         return None
-    return PaymentLineData(quantity=1, product_name="Voucher", gross=amount)
+    return PaymentLineData(
+        quantity=1,
+        product_name="Voucher",
+        variant_id=VOUCHER_PAYMENT_LINE_ID,
+        gross=amount,
+    )
 
 
 def create_payment_information(
@@ -144,6 +168,7 @@ def create_payment_information(
     amount: Decimal = None,
     customer_id: str = None,
     store_source: bool = False,
+    refund_data: Optional[Dict[int, int]] = None,
     additional_data: Optional[dict] = None,
     manager: Optional[PluginsManager] = None,
 ) -> PaymentData:
@@ -196,10 +221,88 @@ def create_payment_information(
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
         checkout_token=checkout_token,
+        refund_data=refund_data,
         _resolve_lines=lambda: create_payment_lines_information(
             payment, manager or get_plugins_manager()
         ),
     )
+
+
+RefundLines = Iterator[Tuple[Any, OrderLine]]
+
+
+def _prepare_refund_lines(
+    order: Order,
+    order_lines_to_refund: List[OrderLineData],
+    fulfillment_lines_to_refund: List[FulfillmentLineData],
+) -> Iterator[Tuple[int, int]]:
+    previous_fulfillment_lines = FulfillmentLine.objects.prefetch_related(
+        "order_line"
+    ).filter(
+        fulfillment__order_id=order.pk,
+        fulfillment__status__in=[
+            FulfillmentStatus.REFUNDED,
+            FulfillmentStatus.REFUNDED_AND_RETURNED,
+        ],
+        order_line__variant_id__isnull=False,
+    )
+
+    previous_refund_lines = (
+        (p_variant_id, line.quantity)
+        for line in previous_fulfillment_lines
+        if (p_variant_id := line.order_line.variant_id)
+    )
+
+    current_order_refund_lines = (
+        (o_variant_id, line.quantity)
+        for line in order_lines_to_refund
+        if (o_variant_id := line.line.variant_id)
+    )
+
+    current_fulfillment_refund_lines = (
+        (f_variant_id, line.quantity)
+        for line in fulfillment_lines_to_refund
+        if (f_variant_id := line.line.order_line.variant_id)
+    )
+
+    return chain(
+        previous_refund_lines,
+        current_order_refund_lines,
+        current_fulfillment_refund_lines,
+    )
+
+
+def create_refund_data(
+    order: Order,
+    order_lines_to_refund: List[OrderLineData],
+    fulfillment_lines_to_refund: List[FulfillmentLineData],
+    refund_shipping_costs: bool,
+) -> Dict[int, int]:
+    order_lines = {line.variant_id: line.quantity for line in order.lines.all()}
+
+    refund_lines = _prepare_refund_lines(
+        order, order_lines_to_refund, fulfillment_lines_to_refund
+    )
+
+    summed_refund_lines: Dict[int, int] = defaultdict(int)
+
+    for variant_id, quantity in refund_lines:
+        summed_refund_lines[variant_id] += quantity
+
+    lines = {
+        variant_id: order_lines[variant_id] - summed_refund_lines[variant_id]
+        for variant_id in summed_refund_lines
+    }
+
+    shipping_previously_refunded = order.fulfillments.exclude(
+        shipping_refund_amount__isnull=True
+    ).exists()
+
+    lines[SHIPPING_PAYMENT_LINE_ID] = (
+        0 if shipping_previously_refunded or refund_shipping_costs else 1
+    )
+
+    return lines
 
 
 def create_payment(

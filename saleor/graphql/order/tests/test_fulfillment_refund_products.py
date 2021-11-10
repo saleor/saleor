@@ -92,6 +92,7 @@ def test_fulfillment_refund_products_amount_and_shipping_costs(
             fulfilled_order.currency,
         ),
         channel_slug=fulfilled_order.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -172,6 +173,7 @@ def test_fulfillment_refund_products_order_lines(
         ANY,
         amount=line_to_refund.unit_price_gross_amount * 2,
         channel_slug=order_with_lines.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -283,6 +285,7 @@ def test_fulfillment_refund_products_fulfillment_lines(
         ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=fulfillment_line_to_refund.order_line.unit_price_gross_amount * 2,
+        refund_data=ANY,
     )
 
 
@@ -407,6 +410,7 @@ def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -454,6 +458,7 @@ def test_fulfillment_refund_products_order_lines_include_shipping_costs(
         ANY,
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -508,6 +513,7 @@ def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
         ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount_to_refund,
+        refund_data=ANY,
     )
 
 
@@ -554,6 +560,7 @@ def test_fulfillment_refund_products_order_lines_custom_amount(
         ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount_to_refund,
+        refund_data=ANY,
     )
 
 
@@ -649,6 +656,7 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
         ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
+        refund_data=ANY,
     )
 
 

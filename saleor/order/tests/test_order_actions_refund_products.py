@@ -74,11 +74,12 @@ def test_create_refund_fulfillment_only_order_lines(
 
     assert returned_fulfillemnt.total_refund_amount == amount
     assert returned_fulfillemnt.shipping_refund_amount is None
-    mocked_refund.assert_called_with(
+    mocked_refund.assert_called_once_with(
         payment_dummy,
         ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount,
+        refund_data=ANY,
     )
     mocked_order_updated.assert_called_once_with(order_with_lines)
 
@@ -138,11 +139,12 @@ def test_create_refund_fulfillment_included_shipping_costs(
         == order_with_lines.shipping_price_gross_amount
     )
 
-    mocked_refund.assert_called_with(
+    mocked_refund.assert_called_once_with(
         payment_dummy,
         ANY,
         channel_slug=order_with_lines.channel.slug,
         amount=amount,
+        refund_data=ANY,
     )
     mocked_order_updated.assert_called_once_with(order_with_lines)
 
@@ -197,11 +199,12 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
         [line.order_line.unit_price_gross_amount * 2 for line in fulfillment_lines]
     )
 
-    mocked_refund.assert_called_with(
+    mocked_refund.assert_called_once_with(
         payment_dummy,
         ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
+        refund_data=ANY,
     )
     mocked_order_updated.assert_called_once_with(fulfilled_order)
 
@@ -255,11 +258,12 @@ def test_create_refund_fulfillment_custom_amount(
     for line in fulfillment_lines:
         assert line.quantity == original_quantity.get(line.pk) - 2
 
-    mocked_refund.assert_called_with(
+    mocked_refund.assert_called_once_with(
         payment_dummy,
         ANY,
         channel_slug=fulfilled_order.channel.slug,
         amount=amount,
+        refund_data=ANY,
     )
     mocked_order_updated.assert_called_once_with(fulfilled_order)
 
