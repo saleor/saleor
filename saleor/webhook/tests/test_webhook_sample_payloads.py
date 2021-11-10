@@ -46,7 +46,7 @@ def test_generate_sample_payload_order(
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     payload = generate_sample_payload(event_name)
-    order_payload = json.loads(generate_order_payload(fulfilled_order))
+    order_payload = json.loads(generate_order_payload(order))
     # Check anonymized data differ
     assert order_id == payload[0]["id"]
     assert order.user_email != payload[0]["user_email"]

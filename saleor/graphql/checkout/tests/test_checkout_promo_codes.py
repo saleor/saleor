@@ -20,7 +20,7 @@ from ....plugins.manager import get_plugins_manager
 from ....warehouse.models import Stock
 from ...tests.utils import get_graphql_content
 from .test_checkout import MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE
-from .test_checkout_lines import MUTATION_CHECKOUT_LINES_DELETE
+from .test_checkout_lines import MUTATION_CHECKOUT_LINE_DELETE
 
 
 def test_checkout_lines_delete_with_not_applicable_voucher(
@@ -47,7 +47,7 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
 
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
     variables = {"token": checkout_with_item.token, "lineId": line_id}
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINE_DELETE, variables)
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLineDelete"]

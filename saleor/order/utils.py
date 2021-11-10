@@ -462,7 +462,11 @@ def set_gift_card_user(
 ):
     """Set user when the gift card is used for the first time."""
     if gift_card.used_by_email is None:
-        gift_card.used_by = used_by_user
+        gift_card.used_by = (
+            used_by_user
+            if used_by_user
+            else User.objects.filter(email=used_by_email).first()
+        )
         gift_card.used_by_email = used_by_email
 
 

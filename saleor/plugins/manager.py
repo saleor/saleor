@@ -150,6 +150,11 @@ class PluginsManager(PaymentInterface):
             return previous_value
         return returned_value
 
+    def check_payment_balance(self, details: dict, channel_slug: str) -> dict:
+        return self.__run_method_on_plugins(
+            "check_payment_balance", None, details, channel_slug=channel_slug
+        )
+
     def change_user_address(
         self, address: "Address", address_type: Optional[str], user: Optional["User"]
     ) -> "Address":

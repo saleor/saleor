@@ -1,6 +1,7 @@
 import re
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import datetime
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
@@ -9,6 +10,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import truncatechars
+from django.utils import timezone
 from django.utils.text import slugify
 from graphql.error import GraphQLError
 
@@ -208,16 +210,18 @@ class AttributeAssignmentMixin:
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
     ):
-        value = (
-            attr_values.date
-            if attribute.input_type == AttributeInputType.DATE
-            else attr_values.date_time
-        )
+        is_date_attr = attribute.input_type == AttributeInputType.DATE
+        value = attr_values.date if is_date_attr else attr_values.date_time
 
-        defaults = {
-            "date_time": value,
-            "name": value,
-        }
+        tz = timezone.get_current_timezone()
+        date_time = (
+            datetime(
+                value.year, value.month, value.day, 0, 0, tzinfo=tz  # type: ignore
+            )
+            if is_date_attr
+            else value
+        )
+        defaults = {"name": value, "date_time": date_time}
         return (
             cls._update_or_create_value(instance, attribute, defaults) if value else ()
         )

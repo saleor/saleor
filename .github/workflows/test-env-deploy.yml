@@ -4,7 +4,7 @@ name: TEST-ENV-DEPLOYMENT
 on:
   pull_request:
     types: [reopened, synchronize, labeled]
-    branches: ["*"]
+    branches: ["**"]
 
 jobs:
   deploy:
