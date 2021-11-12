@@ -8,7 +8,7 @@ from ...checkout.utils import (
 )
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
-from ...core.taxes import identical_taxed_money, zero_taxed_money
+from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
 from ...shipping.utils import convert_to_shipping_method_data
 from ...warehouse.reservations import is_reservation_enabled
@@ -323,14 +323,12 @@ class Checkout(CountableDjangoObjectType):
             def wrap_shipping_method_with_channel_context(listings):
                 for listing in listings:
                     if listing.shipping_method_id == shipping_method.id:
-                        price = listing.price
+                        shipping_method_channel_listing = listing
                         break
-                else:
-                    price = 0
 
                 return ChannelContext(
                     node=convert_to_shipping_method_data(
-                        shipping_method, identical_taxed_money(price)
+                        shipping_method, shipping_method_channel_listing
                     ),
                     channel_slug=channel.slug,
                 )

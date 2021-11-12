@@ -5,7 +5,7 @@ from django.db import transaction
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....core.taxes import TaxError, identical_taxed_money, zero_taxed_money
+from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards, order_has_gift_card_lines
 from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
@@ -360,14 +360,10 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         )
         shipping_method_data = convert_to_shipping_method_data(
             method,
-            identical_taxed_money(
-                shipping_models.ShippingMethodChannelListing.objects.filter(
-                    shipping_method=method,
-                    channel=order.channel,
-                )
-                .get()
-                .price
-            ),
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=method,
+                channel=order.channel,
+            ).get(),
         )
         clean_order_update_shipping(order, shipping_method_data)
 

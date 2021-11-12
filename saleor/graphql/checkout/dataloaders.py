@@ -12,7 +12,6 @@ from ...checkout.fetch import (
 )
 from ...checkout.models import Checkout, CheckoutLine
 from ...checkout.utils import get_external_shipping_id
-from ...core.taxes import identical_taxed_money
 from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
@@ -241,10 +240,8 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         if shipping_method:
                             delivery_method = convert_to_shipping_method_data(
                                 shipping_method,
-                                identical_taxed_money(
-                                    shipping_method_channel_listing_map.get(
-                                        (checkout.shipping_method_id, channel.id)
-                                    ).price
+                                shipping_method_channel_listing_map.get(
+                                    (checkout.shipping_method_id, channel.id)
                                 ),
                             )
                         elif external_app_shipping_id:

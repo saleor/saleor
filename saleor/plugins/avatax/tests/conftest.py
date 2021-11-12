@@ -2,7 +2,6 @@ import pytest
 
 from ....account.models import Address
 from ....checkout.fetch import CheckoutInfo, get_delivery_method_info
-from ....core.taxes import zero_taxed_money
 from ....shipping.models import ShippingMethodChannelListing
 from ....shipping.utils import convert_to_shipping_method_data
 from ...models import PluginConfiguration
@@ -95,7 +94,7 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
         shipping_address=shipping_address,
         delivery_method_info=get_delivery_method_info(
             convert_to_shipping_method_data(
-                shipping_method, zero_taxed_money(checkout.currency)
+                shipping_method, shipping_channel_listings.first()
             ),
             shipping_address,
         ),

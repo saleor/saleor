@@ -8,7 +8,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..account.models import User
-from ..core.taxes import identical_taxed_money, zero_money
+from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.weight import zero_weight
 from ..discount import DiscountValueType, OrderDiscountType
@@ -632,16 +632,11 @@ def get_valid_shipping_methods_for_order(order: Order) -> List[ShippingMethodDat
         channel_id=order.channel_id,
         price=order.get_subtotal().gross,
         country_code=order.shipping_address.country.code,
-    )
+    ).prefetch_related("channel_listings")
 
     for method in queryset:
         valid_methods.append(
-            convert_to_shipping_method_data(
-                method,
-                identical_taxed_money(
-                    Money(order.shipping_price_gross_amount, order.currency)
-                ),
-            )
+            convert_to_shipping_method_data(method, method.channel_listings.get())
         )
 
     return valid_methods

@@ -8,7 +8,6 @@ from .....checkout.fetch import (
     fetch_checkout_lines,
     get_delivery_method_info,
 )
-from .....core.taxes import identical_taxed_money
 from .....plugins.manager import get_plugins_manager
 from .....shipping.utils import convert_to_shipping_method_data
 from ....tests.utils import get_graphql_content
@@ -60,10 +59,9 @@ def test_checkout_shipping_method_update_by_id(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    shipping_method_price = checkout_info.shipping_method_channel_listing.price
     checkout_info.delivery_method_info = get_delivery_method_info(
         convert_to_shipping_method_data(
-            old_shipping_method, identical_taxed_money(shipping_method_price)
+            old_shipping_method, old_shipping_method.channel_listings.first()
         ),
         None,
     )
@@ -72,7 +70,7 @@ def test_checkout_shipping_method_update_by_id(
         checkout_info=checkout_info,
         lines=lines,
         method=convert_to_shipping_method_data(
-            shipping_method, identical_taxed_money(shipping_method_price)
+            shipping_method, shipping_method.channel_listings.first()
         ),
     )
     errors = data["errors"]
@@ -106,10 +104,9 @@ def test_checkout_shipping_method_update_by_token(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    shipping_method_price = checkout_info.shipping_method_channel_listing.price
     checkout_info.delivery_method_info = get_delivery_method_info(
         convert_to_shipping_method_data(
-            old_shipping_method, identical_taxed_money(shipping_method_price)
+            old_shipping_method, old_shipping_method.channel_listings.first()
         ),
         None,
     )
@@ -117,7 +114,7 @@ def test_checkout_shipping_method_update_by_token(
         checkout_info=checkout_info,
         lines=lines,
         method=convert_to_shipping_method_data(
-            shipping_method, identical_taxed_money(shipping_method_price)
+            shipping_method, shipping_method.channel_listings.first()
         ),
     )
     errors = data["errors"]

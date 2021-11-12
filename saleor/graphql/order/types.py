@@ -20,7 +20,6 @@ from ...core.permissions import (
     ProductPermissions,
     has_one_of_permissions,
 )
-from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
@@ -1072,19 +1071,13 @@ class Order(CountableDjangoObjectType):
             )
 
             def calculate_price(data):
-                shipping_method, channel, listing = data
-                if listing:
-                    price = listing.price
-                else:
-                    price = zero_taxed_money(root.currency)
+                listing = data
                 return ChannelContext(
-                    node=convert_to_shipping_method_data(shipping_method, price),
+                    node=convert_to_shipping_method_data(shipping_method, listing),
                     channel_slug=channel.slug,
                 )
 
-            return Promise.all([shipping_method, channel, listing]).then(
-                calculate_price
-            )
+            return listing.then(calculate_price)
 
         shipping_method = ShippingMethodByIdLoader(info.context).load(
             root.shipping_method_id

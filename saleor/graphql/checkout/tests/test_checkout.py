@@ -36,7 +36,6 @@ from ....checkout.utils import (
     calculate_checkout_quantity,
 )
 from ....core.payments import PaymentInterface
-from ....core.taxes import identical_taxed_money, zero_taxed_money
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import get_plugins_manager
@@ -67,7 +66,7 @@ def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     delivery_method = convert_to_shipping_method_data(
-        shipping_method, zero_taxed_money(checkout.currency)
+        shipping_method, shipping_method.channel_listings.first()
     )
     is_valid_method = clean_delivery_method(checkout_info, lines, delivery_method)
     assert is_valid_method is True
@@ -2901,10 +2900,9 @@ def test_checkout_shipping_method_update(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    shipping_method_price = checkout_info.shipping_method_channel_listing.price
     checkout_info.delivery_method_info = get_delivery_method_info(
         convert_to_shipping_method_data(
-            old_shipping_method, identical_taxed_money(shipping_method_price)
+            old_shipping_method, old_shipping_method.channel_listings.first()
         ),
         None,
     )
@@ -2912,7 +2910,7 @@ def test_checkout_shipping_method_update(
         checkout_info=checkout_info,
         lines=lines,
         method=convert_to_shipping_method_data(
-            shipping_method, identical_taxed_money(shipping_method_price)
+            shipping_method, shipping_method.channel_listings.first()
         ),
     )
     errors = data["errors"]
@@ -3004,7 +3002,7 @@ def test_checkout_delivery_method_update(
     if attribute_name == "shipping_method":
         shipping_method_data = convert_to_shipping_method_data(
             delivery_method,
-            identical_taxed_money(delivery_method.channel_listings.get().price),
+            delivery_method.channel_listings.get(),
         )
     query = MUTATION_UPDATE_DELIVERY_METHOD
     mock_clean_delivery.return_value = is_valid_delivery_method

@@ -37,7 +37,6 @@ from ...checkout.utils import (
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
 from ...core.permissions import AccountPermissions
-from ...core.taxes import identical_taxed_money
 from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
@@ -1263,14 +1262,10 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         )
         delivery_method = convert_to_shipping_method_data(
             shipping_method,
-            identical_taxed_money(
-                shipping_models.ShippingMethodChannelListing.objects.filter(
-                    shipping_method=shipping_method,
-                    channel=checkout_info.checkout.channel,
-                )
-                .get()
-                .price
-            ),
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=shipping_method,
+                channel=checkout_info.checkout.channel,
+            ).get(),
         )
 
         cls._check_delivery_method(
@@ -1349,14 +1344,10 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
 
         delivery_method = convert_to_shipping_method_data(
             shipping_method,
-            identical_taxed_money(
-                shipping_models.ShippingMethodChannelListing.objects.filter(
-                    shipping_method=shipping_method,
-                    channel=checkout_info.checkout.channel,
-                )
-                .get()
-                .price
-            ),
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=shipping_method,
+                channel=checkout_info.checkout.channel,
+            ).get(),
         )
         cls._check_delivery_method(
             checkout_info, lines, shipping_method=delivery_method, collection_point=None

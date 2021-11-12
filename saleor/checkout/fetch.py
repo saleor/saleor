@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from django.utils.encoding import smart_text
 from django.utils.functional import SimpleLazyObject
 
-from ..core.taxes import identical_taxed_money, zero_taxed_money
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
@@ -262,18 +261,11 @@ def fetch_checkout_info(
         for listing in shipping_channel_listings:
             if listing.shipping_method_id == shipping_method.id:
                 shipping_channel_listing = listing
-                price = listing.price
                 break
-
-        # Price cannot be undefined for a selected shipping method
-        else:
-            price = zero_taxed_money(checkout.currency)
 
         delivery_method: Optional[
             Union["ShippingMethodData", "Warehouse"]
-        ] = convert_to_shipping_method_data(
-            shipping_method, identical_taxed_money(price)
-        )
+        ] = convert_to_shipping_method_data(shipping_method, shipping_channel_listing)
     else:
         delivery_method = checkout.collection_point
 

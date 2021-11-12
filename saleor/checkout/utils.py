@@ -669,11 +669,7 @@ def get_valid_saleor_shipping_methods_for_checkout(
         if not listing:
             continue
 
-        saleor_methods.append(
-            convert_to_shipping_method_data(
-                method, identical_taxed_money(listing.price)
-            )
-        )
+        saleor_methods.append(convert_to_shipping_method_data(method, listing))
 
     return saleor_methods
 

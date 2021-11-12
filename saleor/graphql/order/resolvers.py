@@ -1,5 +1,4 @@
 from ...channel.models import Channel
-from ...core.taxes import identical_taxed_money
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
@@ -67,26 +66,7 @@ def resolve_order_shipping_methods(root: models.Order, info):
     available = get_valid_shipping_methods_for_order(root)
     if available is None:
         return []
-    if available is not None:
-        available_shipping_methods = []
-        channel_slug = root.channel.slug
-        for shipping_method in available:
-            # Ignore typing check because it is checked in
-            # get_valid_shipping_methods_for_order
-            shipping_channel_listing = (
-                shipping_method.channel_listings.filter(  # type: ignore
-                    channel=root.channel
-                ).first()
-            )
-            if shipping_channel_listing:
-                shipping_method.price = identical_taxed_money(
-                    shipping_channel_listing.price
-                )
-                shipping_method.minimum_order_price = (
-                    shipping_channel_listing.minimum_order_price
-                )
-                available_shipping_methods.append(shipping_method)
-    instances = [
+    channel_slug = root.channel.slug
+    return [
         ChannelContext(node=method, channel_slug=channel_slug) for method in available
     ]
-    return instances

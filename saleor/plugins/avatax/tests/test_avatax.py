@@ -18,7 +18,7 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
-from ....core.taxes import TaxError, TaxType, zero_taxed_money
+from ....core.taxes import TaxError, TaxType
 from ....product import ProductTypeKind
 from ....product.models import Product, ProductType
 from ....shipping.utils import convert_to_shipping_method_data
@@ -956,13 +956,13 @@ def test_get_checkout_line_tax_rate(
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
-
+    delivery_method = checkout_with_item.shipping_method
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
         delivery_method_info=get_delivery_method_info(
             convert_to_shipping_method_data(
-                checkout_with_item.shipping_method,
-                zero_taxed_money(checkout_with_item.currency),
+                delivery_method,
+                delivery_method.channel_listings.first(),
             )
         ),
         shipping_address=address,
@@ -1016,13 +1016,14 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+    delivery_method = checkout_with_item.shipping_method
 
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
         delivery_method_info=get_delivery_method_info(
             convert_to_shipping_method_data(
-                checkout_with_item.shipping_method,
-                zero_taxed_money(checkout_with_item.currency),
+                delivery_method,
+                delivery_method.channel_listings.first(),
             )
         ),
         shipping_address=address,
@@ -1089,14 +1090,15 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+    delivery_method = checkout_with_item.shipping_method
 
     variant2 = product2.variants.first()
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
         delivery_method_info=get_delivery_method_info(
             convert_to_shipping_method_data(
-                checkout_with_item.shipping_method,
-                zero_taxed_money(checkout_with_item.currency),
+                delivery_method,
+                delivery_method.channel_listings.first(),
             )
         ),
         shipping_address=address,
@@ -1321,14 +1323,15 @@ def test_get_checkout_shipping_tax_rate(
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+    delivery_method = checkout_with_item.shipping_method
 
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
         delivery_method_info=get_delivery_method_info(
             convert_to_shipping_method_data(
-                checkout_with_item.shipping_method,
-                zero_taxed_money(checkout_with_item.currency),
+                delivery_method,
+                delivery_method.channel_listings.first(),
             )
         ),
         shipping_address=address,
