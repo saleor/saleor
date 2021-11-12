@@ -111,27 +111,26 @@ def format_price(price: Decimal, currency: str) -> int:
 
 
 def get_refunded_goods(
+    config: "ApiConfig",
     refund_data: Dict[int, int],
     payment_information: PaymentData,
 ) -> List[dict]:
     return [
         {
-            "goods_name": payment_line.product_name,
-            "goods_price": format_price(
-                payment_line.gross, payment_information.currency
-            ),
+            "goods_name": line.product_sku if config.sku_as_name else line.product_name,
+            "goods_price": format_price(line.gross, payment_information.currency),
             "quantity": quantity,
         }
-        for payment_line in payment_information.lines
-        if (quantity := refund_data.get(payment_line.variant_id, payment_line.quantity))
+        for line in payment_information.lines
+        if (quantity := refund_data.get(line.variant_id, line.quantity))
     ]
 
 
-def get_goods(payment_information: PaymentData) -> List[dict]:
+def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dict]:
     return [
         {
             "quantity": line.quantity,
-            "goods_name": line.product_name,
+            "goods_name": line.product_sku if config.sku_as_name else line.product_name,
             "goods_price": format_price(line.gross, payment_information.currency),
         }
         for line in payment_information.lines
@@ -139,9 +138,10 @@ def get_goods(payment_information: PaymentData) -> List[dict]:
 
 
 def get_goods_with_discount(
+    config: "ApiConfig",
     payment_information: PaymentData,
 ) -> List[dict]:
-    product_lines = get_goods(payment_information)
+    product_lines = get_goods(config, payment_information)
     return product_lines + [
         {
             "goods_name": "Discount",
@@ -170,7 +170,7 @@ def register(
             payment_information.amount, payment_information.currency
         )
     if goods is None:
-        goods = get_goods(payment_information)
+        goods = get_goods(config, payment_information)
 
     order_date = timezone.now().strftime("%Y-%m-%d")
 

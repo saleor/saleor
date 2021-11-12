@@ -587,7 +587,7 @@ def test_reregister_transaction_success(
     billed_amount = format_price(
         payment_dummy.captured_amount - np_payment_data.amount, np_payment_data.currency
     )
-    goods = get_goods_with_discount(np_payment_data)
+    goods = get_goods_with_discount(config, np_payment_data)
     mocked_register.assert_called_once_with(
         config, np_payment_data, billed_amount, goods
     )

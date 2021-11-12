@@ -100,9 +100,9 @@ def change_transaction(
 ) -> Optional[PaymentResult]:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.change"):
         if refund_data:
-            goods = get_refunded_goods(refund_data, payment_information)
+            goods = get_refunded_goods(config, refund_data, payment_information)
         else:
-            goods = get_goods_with_discount(payment_information)
+            goods = get_goods_with_discount(config, payment_information)
 
         data = {
             "transactions": [
@@ -170,9 +170,9 @@ def reregister_transaction_for_partial_return(
             return errors_payment_result(error_messages)
 
         if refund_data:
-            goods = get_refunded_goods(refund_data, payment_information)
+            goods = get_refunded_goods(config, refund_data, payment_information)
         else:
-            goods = get_goods_with_discount(payment_information)
+            goods = get_goods_with_discount(config, payment_information)
 
         billed_amount = format_price(
             payment.captured_amount - payment_information.amount,

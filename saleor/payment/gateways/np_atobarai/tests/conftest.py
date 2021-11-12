@@ -60,11 +60,13 @@ def _resolve_lines():
     return [
         PaymentLineData(
             gross=Decimal("100.00"),
-            product_name="Product Name",
-            variant_id=33,
+            product_name=f"Product Name {i}",
+            product_sku=f"PRODUCT_SKU_{i}",
+            variant_id=i,
             quantity=5,
         )
-    ] * 3
+        for i in range(3)
+    ]
 
 
 @pytest.fixture

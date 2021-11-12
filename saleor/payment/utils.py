@@ -70,10 +70,12 @@ def create_payment_lines_information(
 
             quantity = line_info.line.quantity
             product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"
+            product_sku = line_info.variant.sku
             line_items.append(
                 PaymentLineData(
                     quantity=quantity,
                     product_name=product_name,
+                    product_sku=product_sku,
                     variant_id=line_info.variant.id,
                     gross=unit_gross,
                 )
@@ -103,6 +105,7 @@ def create_payment_lines_information(
                 PaymentLineData(
                     quantity=order_line.quantity,
                     product_name=product_name,
+                    product_sku=order_line.product_sku,
                     variant_id=variant_id,
                     gross=order_line.unit_price_gross_amount,
                 )
@@ -129,6 +132,7 @@ def create_shipping_payment_line_data(amount: Decimal) -> PaymentLineData:
     return PaymentLineData(
         quantity=1,
         product_name="Shipping",
+        product_sku="Shipping",
         variant_id=SHIPPING_PAYMENT_LINE_ID,
         gross=amount,
     )
@@ -154,6 +158,7 @@ def create_voucher_payment_line_data(amount: Decimal) -> Optional[PaymentLineDat
     return PaymentLineData(
         quantity=1,
         product_name="Voucher",
+        product_sku="Voucher",
         variant_id=VOUCHER_PAYMENT_LINE_ID,
         gross=amount,
     )

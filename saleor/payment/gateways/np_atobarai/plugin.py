@@ -20,6 +20,7 @@ from .const import (
     MERCHANT_CODE,
     SHIPPING_COMPANY,
     SHIPPING_COMPANY_CODES,
+    SKU_AS_NAME,
     SP_CODE,
     TERMINAL_ID,
     USE_SANDBOX,
@@ -47,6 +48,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         {"name": USE_SANDBOX, "value": True},
         {"name": FILL_MISSING_ADDRESS, "value": True},
         {"name": SHIPPING_COMPANY, "value": "50000"},
+        {"name": SKU_AS_NAME, "value": False},
     ]
 
     CONFIG_STRUCTURE = {
@@ -83,6 +85,13 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             "help_text": "Determines shipping company used in fulfillment report.",
             "label": "Shipping company",
         },
+        SKU_AS_NAME: {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": (
+                "Determines whether product sku or variant name will be used in NP."
+            ),
+            "label": "Product SKU as name",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -99,6 +108,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
                 USE_SANDBOX: configuration[USE_SANDBOX],
                 FILL_MISSING_ADDRESS: configuration[FILL_MISSING_ADDRESS],
                 SHIPPING_COMPANY: configuration[SHIPPING_COMPANY],
+                SKU_AS_NAME: configuration[SKU_AS_NAME],
             },
         )
 
