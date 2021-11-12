@@ -226,10 +226,12 @@ def register(
 
 def report(
     config: "ApiConfig",
+    shipping_company_code: Optional[str],
     psp_reference: Optional[str],
     shipping_slip_number: Optional[str],
 ) -> NPResponse:
-    shipping_company_code = config.shipping_company
+    if not shipping_company_code:
+        return error_np_response("Fulfillment has invalid shipping company code.")
 
     if not psp_reference:
         return error_np_response("Payment does not have psp reference.")

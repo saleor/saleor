@@ -2,7 +2,7 @@ import pytest
 
 from .....order import FulfillmentStatus, OrderEvents
 from .... import PaymentError
-from .. import get_payment_name, get_tracking_number_for_order, notify_dashboard
+from .. import get_fulfillment_for_order, get_payment_name, notify_dashboard
 
 
 def test_notify_dashboard(order):
@@ -34,40 +34,38 @@ def test_get_payment_name(payment_id, result):
     assert payment_name == result
 
 
-def test_get_tracking_number_for_order(order):
+def test_get_fulfillment_for_order(order):
     # given
-    expected_tracking_number = "123"
-    order.fulfillments.create(tracking_number=expected_tracking_number)
+    expected_fulfillment = order.fulfillments.create(tracking_number="123")
 
     # when
-    tracking_number = get_tracking_number_for_order(order)
+    fulfillment = get_fulfillment_for_order(order)
 
     # then
-    assert expected_tracking_number == tracking_number
+    assert expected_fulfillment == fulfillment
 
 
-def test_get_tracking_number_for_order_multiple_fulfillments_one_valid(order):
+def test_get_fulfillment_for_order_multiple_fulfillments_one_valid(order):
     # then
-    expected_tracking_number = "123"
-    order.fulfillments.create(tracking_number=expected_tracking_number)
+    expected_fulfillment = order.fulfillments.create(tracking_number="123")
     order.fulfillments.create(tracking_number="234", status=FulfillmentStatus.REFUNDED)
 
     # when
-    tracking_number = get_tracking_number_for_order(order)
+    fulfillment = get_fulfillment_for_order(order)
 
     # then
-    assert expected_tracking_number == tracking_number
+    assert expected_fulfillment == fulfillment
 
 
-def test_get_tracking_number_for_order_no_fulfillment(order):
+def test_get_fulfillment_for_order_no_fulfillment(order):
     # then
     with pytest.raises(PaymentError, match=r".* not exist .*"):
 
         # when
-        get_tracking_number_for_order(order)
+        get_fulfillment_for_order(order)
 
 
-def test_get_tracking_number_for_order_no_fulfillment_with_tracking_number(order):
+def test_get_fulfillment_for_order_no_fulfillment_with_tracking_number(order):
     # given
     order.fulfillments.create()
 
@@ -75,10 +73,10 @@ def test_get_tracking_number_for_order_no_fulfillment_with_tracking_number(order
     with pytest.raises(PaymentError, match=r".* not exist .*"):
 
         # when
-        get_tracking_number_for_order(order)
+        get_fulfillment_for_order(order)
 
 
-def test_get_tracking_number_for_order_no_refundable_fulfillment(order):
+def test_get_fulfillment_for_order_no_refundable_fulfillment(order):
     # given
     order.fulfillments.create(tracking_number="123", status=FulfillmentStatus.REFUNDED)
 
@@ -86,10 +84,10 @@ def test_get_tracking_number_for_order_no_refundable_fulfillment(order):
     with pytest.raises(PaymentError, match=r".* not exist .*"):
 
         # when
-        get_tracking_number_for_order(order)
+        get_fulfillment_for_order(order)
 
 
-def test_get_tracking_number_for_order_multiple_fulfillments(order, fulfillment):
+def test_get_fulfillment_for_order_multiple_fulfillments(order, fulfillment):
     # given
     order.fulfillments.create(tracking_number="123")
     order.fulfillments.create(tracking_number="234")
@@ -98,4 +96,4 @@ def test_get_tracking_number_for_order_multiple_fulfillments(order, fulfillment)
     with pytest.raises(PaymentError, match=r"More than one .* exist .*"):
 
         # when
-        get_tracking_number_for_order(order)
+        get_fulfillment_for_order(order)

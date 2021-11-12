@@ -567,6 +567,7 @@ def test_reregister_transaction_success(
     # given
     refund_data = None
     tracking_number = "123"
+    shipping_company_code = "50000"
     payment_dummy.psp_reference = "123"
     new_psp_reference = "234"
     mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
@@ -579,7 +580,12 @@ def test_reregister_transaction_success(
 
     # when
     payment_response = api.reregister_transaction_for_partial_return(
-        config, payment_dummy, np_payment_data, tracking_number, refund_data
+        config,
+        payment_dummy,
+        np_payment_data,
+        shipping_company_code,
+        tracking_number,
+        refund_data,
     )
 
     # then
@@ -591,7 +597,9 @@ def test_reregister_transaction_success(
     mocked_register.assert_called_once_with(
         config, np_payment_data, billed_amount, goods
     )
-    mocked_report.assert_called_once_with(config, new_psp_reference, tracking_number)
+    mocked_report.assert_called_once_with(
+        config, shipping_company_code, new_psp_reference, tracking_number
+    )
     assert payment_response.status == PaymentStatus.SUCCESS
     assert payment_response.psp_reference == new_psp_reference
 
@@ -599,7 +607,7 @@ def test_reregister_transaction_success(
 def test_reregister_transaction_no_psp_reference(payment_dummy, np_payment_data):
     # when
     payment_response = api.reregister_transaction_for_partial_return(
-        Mock(), payment_dummy, np_payment_data, Mock(), Mock()
+        Mock(), payment_dummy, np_payment_data, Mock(), Mock(), Mock()
     )
 
     # then
@@ -619,7 +627,7 @@ def test_reregister_transaction_cancel_error(
 
     # when
     payment_response = api.reregister_transaction_for_partial_return(
-        config, payment_dummy, np_payment_data, Mock(), Mock()
+        config, payment_dummy, np_payment_data, Mock(), Mock(), Mock()
     )
 
     # then
@@ -647,6 +655,7 @@ def test_reregister_transaction_general_error(
         config,
         payment_dummy,
         np_payment_data,
+        Mock(),
         Mock(),
         Mock(),
     )

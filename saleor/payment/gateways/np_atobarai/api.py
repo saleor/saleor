@@ -29,7 +29,7 @@ from .errors import (
     get_error_messages_from_codes,
     get_reason_messages_from_codes,
 )
-from .utils import np_atobarai_opentracing_trace
+from .utils import get_shipping_company_code, np_atobarai_opentracing_trace
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +150,7 @@ def reregister_transaction_for_partial_return(
     config: ApiConfig,
     payment: Payment,
     payment_information: PaymentData,
+    shipping_company_code: Optional[str],
     tracking_number: Optional[str],
     refund_data: Optional[Dict[int, int]],
 ) -> PaymentResult:
@@ -189,7 +190,7 @@ def reregister_transaction_for_partial_return(
         if not error_codes:
             new_psp_reference = result["np_transaction_id"]
 
-            report(config, new_psp_reference, tracking_number)
+            report(config, shipping_company_code, new_psp_reference, tracking_number)
 
             return PaymentResult(
                 status=PaymentStatus.SUCCESS,
@@ -211,9 +212,13 @@ def report_fulfillment(
     ):
         payment_id = payment.psp_reference or payment.id
         already_reported = False
+        shipping_company_code = get_shipping_company_code(fulfillment)
 
         result, error_codes = report(
-            config, payment.psp_reference, fulfillment.tracking_number
+            config,
+            shipping_company_code,
+            payment.psp_reference,
+            fulfillment.tracking_number,
         )
 
         if PRE_FULFILLMENT_ERROR_CODE in error_codes:
