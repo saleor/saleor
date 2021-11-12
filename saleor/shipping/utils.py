@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from django_countries import countries
 from prices import TaxedMoney
 
+from ..graphql.core.types.money import Money
 from .interface import ShippingMethodData
 
 if TYPE_CHECKING:
@@ -28,6 +29,10 @@ def get_countries_without_shipping_zone():
 def convert_to_shipping_method_data(
     shipping_method: "ShippingMethod", price: TaxedMoney
 ) -> "ShippingMethodData":
+    if listing := shipping_method.channel_listings.first():
+        minimum_order_price = listing.minimum_order_price
+    else:
+        minimum_order_price = Money(price.net, price.currency)
     return ShippingMethodData(
         id=str(shipping_method.id),
         name=shipping_method.name,
@@ -42,4 +47,5 @@ def convert_to_shipping_method_data(
         minimum_delivery_days=shipping_method.minimum_delivery_days,
         metadata=shipping_method.metadata,
         private_metadata=shipping_method.private_metadata,
+        minimum_order_price=minimum_order_price,
     )

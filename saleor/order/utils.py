@@ -20,7 +20,7 @@ from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
-from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ..shipping.models import ShippingMethod
 from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.management import (
     deallocate_stock,
@@ -635,16 +635,13 @@ def get_valid_shipping_methods_for_order(order: Order) -> List[ShippingMethodDat
     )
 
     for method in queryset:
-        price = (
-            ShippingMethodChannelListing.objects.filter(
-                shipping_method=method, channel__id=order.channel_id
-            )
-            .first()
-            .price  # type: ignore
-        )
-        method.price = price
         valid_methods.append(
-            convert_to_shipping_method_data(method, identical_taxed_money(method.price))
+            convert_to_shipping_method_data(
+                method,
+                identical_taxed_money(
+                    Money(order.shipping_price_gross_amount, order.currency)
+                ),
+            )
         )
 
     return valid_methods

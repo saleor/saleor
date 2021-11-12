@@ -70,7 +70,10 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
 )
 from ..product.types import ProductVariant
-from ..shipping.dataloaders import ShippingMethodByIdLoader
+from ..shipping.dataloaders import (
+    ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+)
 from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
@@ -1062,13 +1065,25 @@ class Order(CountableDjangoObjectType):
 
         def wrap_shipping_method_with_channel_context(data):
             shipping_method, channel = data
-            return ChannelContext(
-                node=convert_to_shipping_method_data(
-                    shipping_method,
-                    # TODO: fix price
-                    zero_taxed_money(root.currency),
-                ),
-                channel_slug=channel.slug,
+            listing = (
+                ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                    info.context
+                ).load((shipping_method.id, channel.slug))
+            )
+
+            def calculate_price(data):
+                shipping_method, channel, listing = data
+                if listing:
+                    price = listing.price
+                else:
+                    price = zero_taxed_money(root.currency)
+                return ChannelContext(
+                    node=convert_to_shipping_method_data(shipping_method, price),
+                    channel_slug=channel.slug,
+                )
+
+            return Promise.all([shipping_method, channel, listing]).then(
+                calculate_price
             )
 
         shipping_method = ShippingMethodByIdLoader(info.context).load(

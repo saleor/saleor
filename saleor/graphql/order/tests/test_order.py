@@ -437,7 +437,6 @@ def test_order_query(
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
-    assert expected_method.type.upper() == method["type"]
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
 
 
@@ -609,7 +608,6 @@ def test_order_query_in_pln_channel(
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
-    assert expected_method.type.upper() == method["type"]
 
 
 ORDERS_QUERY_SHIPPING_METHODS = """
