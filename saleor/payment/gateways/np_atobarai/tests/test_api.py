@@ -627,6 +627,35 @@ def test_reregister_transaction_cancel_error(
     assert payment_response.errors == error_codes
 
 
+@patch("saleor.payment.gateways.np_atobarai.api.register")
+@patch("saleor.payment.gateways.np_atobarai.api.cancel")
+def test_reregister_transaction_general_error(
+    mocked_cancel,
+    mocked_register,
+    config,
+    payment_dummy,
+    np_payment_data,
+):
+    # given
+    payment_dummy.psp_reference = "123"
+    mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
+    error_codes = ["1", "2", "3"]
+    mocked_register.return_value = NPResponse(result={}, error_codes=error_codes)
+
+    # when
+    payment_response = api.reregister_transaction_for_partial_return(
+        config,
+        payment_dummy,
+        np_payment_data,
+        Mock(),
+        Mock(),
+    )
+
+    # then
+    assert payment_response.status == PaymentStatus.FAILED
+    assert payment_response.errors == error_codes
+
+
 @patch("saleor.payment.gateways.np_atobarai.api.cancel")
 @patch("saleor.payment.gateways.np_atobarai.api.register")
 def test_register_transaction_pending(

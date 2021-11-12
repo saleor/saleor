@@ -200,9 +200,6 @@ def reregister_transaction_for_partial_return(
             error_codes, TRANSACTION_REGISTRATION_RESULT_ERRORS
         )
 
-        if register_error_codes := register(config, payment_information).error_codes:
-            handle_unrecoverable_state("uncancel", psp_reference, register_error_codes)
-
         return errors_payment_result(error_messages)
 
 

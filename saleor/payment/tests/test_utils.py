@@ -4,11 +4,18 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from ...checkout.calculations import checkout_line_total
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...order import FulfillmentLineData, OrderLineData
 from ...order.actions import create_refund_fulfillment
 from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
-from ..utils import SHIPPING_PAYMENT_LINE_ID, create_refund_data
+from ..interface import PaymentLineData
+from ..utils import (
+    SHIPPING_PAYMENT_LINE_ID,
+    create_payment_lines_information,
+    create_refund_data,
+)
 
 
 @pytest.fixture
@@ -300,3 +307,93 @@ def test_create_refund_data_previously_refunded_shipping_only(
 
     # then
     assert refund_data == {SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity}
+
+
+def test_create_payment_lines_information_order(payment_dummy):
+    # given
+    manager = get_plugins_manager()
+
+    # when
+    payment_lines = create_payment_lines_information(payment_dummy, manager)
+
+    # then
+    order = payment_dummy.order
+    assert payment_lines == [
+        PaymentLineData(
+            gross=line.unit_price_gross_amount,
+            variant_id=line.variant_id,
+            product_name=f"{line.product_name}, {line.variant_name}",
+            quantity=line.quantity,
+        )
+        for line in order.lines.all()
+    ] + [
+        PaymentLineData(
+            gross=order.shipping_price_gross_amount,
+            variant_id=SHIPPING_PAYMENT_LINE_ID,
+            product_name="Shipping",
+            quantity=1,
+        )
+    ]
+
+
+def test_create_payment_lines_checkout(payment_dummy, checkout_with_items):
+    # given
+    manager = get_plugins_manager()
+    payment_dummy.order = None
+    payment_dummy.checkout = checkout_with_items
+
+    # when
+    payment_lines = create_payment_lines_information(payment_dummy, manager)
+
+    # then
+    lines = fetch_checkout_lines(checkout_with_items)
+    discounts = []
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
+    address = checkout_with_items.shipping_address
+    expected_payment_lines = []
+
+    for line_info in lines:
+        total_price = checkout_line_total(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            checkout_line_info=line_info,
+            discounts=discounts,
+        )
+        unit_gross = manager.calculate_checkout_line_unit_price(
+            total_price,
+            line_info.line.quantity,
+            checkout_info,
+            lines,
+            line_info,
+            address,
+            discounts,
+        ).gross.amount
+        quantity = line_info.line.quantity
+        variant_id = line_info.variant.id
+        product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"
+        expected_payment_lines.append(
+            PaymentLineData(
+                gross=unit_gross,
+                variant_id=variant_id,
+                product_name=product_name,
+                quantity=quantity,
+            )
+        )
+
+    shipping_gross = manager.calculate_checkout_shipping(
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
+        discounts=discounts,
+    ).gross.amount
+    expected_payment_lines.append(
+        PaymentLineData(
+            gross=shipping_gross,
+            variant_id=SHIPPING_PAYMENT_LINE_ID,
+            product_name="Shipping",
+            quantity=1,
+        )
+    )
+
+    assert payment_lines == expected_payment_lines
