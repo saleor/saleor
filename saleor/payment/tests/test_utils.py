@@ -7,6 +7,7 @@ import pytest
 
 from ...checkout.calculations import checkout_line_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...discount.utils import fetch_active_discounts
 from ...order import FulfillmentLineData, OrderLineData
 from ...order.actions import create_refund_fulfillment
 from ...order.interface import OrderPaymentAction
@@ -22,7 +23,12 @@ from ..utils import (
 
 
 @pytest.fixture
-def create_refund_fulfillment_helper(payment_dummy):
+def manager():
+    return get_plugins_manager()
+
+
+@pytest.fixture
+def create_refund_fulfillment_helper(payment_dummy, manager):
     def factory(
         order: Order,
         order_lines: List[OrderLineData] = None,
@@ -41,7 +47,7 @@ def create_refund_fulfillment_helper(payment_dummy):
                 ],
                 order_lines_to_refund=order_lines or [],
                 fulfillment_lines_to_refund=fulfillment_lines or [],
-                manager=get_plugins_manager(),
+                manager=manager,
                 include_shipping_costs=include_shipping_costs,
             )
 
@@ -316,10 +322,7 @@ def test_create_refund_data_previously_refunded_shipping_only(
     assert refund_data == {SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity}
 
 
-def test_create_payment_lines_information_order(payment_dummy):
-    # given
-    manager = get_plugins_manager()
-
+def test_create_payment_lines_information_order(payment_dummy, manager):
     # when
     payment_lines = create_payment_lines_information(payment_dummy, manager)
 
@@ -343,11 +346,8 @@ def test_create_payment_lines_information_order(payment_dummy):
     ]
 
 
-def test_create_payment_lines_order_partial_payment(
-    payment_dummy,
-):
+def test_create_payment_lines_order_partial_payment(payment_dummy, manager):
     # given
-    manager = get_plugins_manager()
     payment_difference = Decimal("7.34")
     payment_dummy.partial = True
     payment_dummy.total -= payment_difference
@@ -385,20 +385,11 @@ def test_create_payment_lines_order_partial_payment(
     ]
 
 
-def test_create_payment_lines_checkout(payment_dummy, checkout_with_items):
-    # given
-    manager = get_plugins_manager()
-    payment_dummy.order = None
-    payment_dummy.checkout = checkout_with_items
-
-    # when
-    payment_lines = create_payment_lines_information(payment_dummy, manager)
-
-    # then
-    lines = fetch_checkout_lines(checkout_with_items)
+def get_expected_payment_lines(checkout, manager):
+    lines = fetch_checkout_lines(checkout)
     discounts = []
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
-    address = checkout_with_items.shipping_address
+    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    address = checkout.shipping_address
     expected_payment_lines = []
 
     for line_info in lines:
@@ -445,4 +436,57 @@ def test_create_payment_lines_checkout(payment_dummy, checkout_with_items):
         )
     )
 
+    return expected_payment_lines
+
+
+@pytest.fixture
+def payment_for_checkout(payment_dummy, checkout_with_items, manager):
+    payment_dummy.order = None
+    payment_dummy.checkout = checkout_with_items
+    lines = fetch_checkout_lines(checkout_with_items)
+    discounts = fetch_active_discounts()
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
+    address = checkout_info.shipping_address or checkout_info.billing_address
+    payment_dummy.total = manager.calculate_checkout_total(
+        checkout_info, lines, address, discounts
+    ).gross.amount
+    return payment_dummy
+
+
+def test_create_payment_lines_checkout(
+    payment_for_checkout, checkout_with_items, manager
+):
+    # given
+    payment_for_checkout.order = None
+    payment_for_checkout.checkout = checkout_with_items
+
+    # when
+    payment_lines = create_payment_lines_information(payment_for_checkout, manager)
+
+    # then
+    assert payment_lines == get_expected_payment_lines(checkout_with_items, manager)
+
+
+def test_create_payment_lines_checkout_partial_payment(
+    payment_for_checkout, checkout_with_items, manager
+):
+    # given
+    payment_difference = Decimal("7.34")
+    payment_for_checkout.partial = True
+    payment_for_checkout.total -= payment_difference
+    payment_for_checkout.captured_amount -= payment_difference
+
+    # when
+    payment_lines = create_payment_lines_information(payment_for_checkout, manager)
+
+    # then
+    expected_payment_lines = get_expected_payment_lines(checkout_with_items, manager)
+    expected_payment_lines.append(
+        PaymentLineData(
+            gross=-payment_difference,
+            variant_id=PARTIAL_PAYMENT_DIFFERENCE_LINE_ID,
+            product_name="Partial payment difference",
+            quantity=1,
+        )
+    )
     assert payment_lines == expected_payment_lines
