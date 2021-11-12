@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List, Optional, Tuple, Union
 
-from ....order.models import Fulfillment
+from ....order.models import Fulfillment, Order
 from ...interface import PaymentData
 from ...models import Payment
 from .api_helpers import (
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 def register_transaction(
-    config: ApiConfig, payment_information: "PaymentData"
+    order: Optional[Order], config: ApiConfig, payment_information: "PaymentData"
 ) -> PaymentResult:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.register"):
         result, error_codes = register(config, payment_information)
@@ -53,7 +53,9 @@ def register_transaction(
 
         if status == PaymentStatus.PENDING:
             if cancel_error_codes := cancel(config, transaction_id).error_codes:
-                handle_unrecoverable_state("cancel", transaction_id, cancel_error_codes)
+                handle_unrecoverable_state(
+                    order, "cancel", transaction_id, cancel_error_codes
+                )
             error_messages = get_reason_messages_from_codes(result["authori_hold"])
 
         return PaymentResult(
@@ -128,7 +130,7 @@ def change_transaction(
             if status == PaymentStatus.PENDING:
                 if cancel_error_codes := cancel(config, transaction_id).error_codes:
                     handle_unrecoverable_state(
-                        "cancel", transaction_id, cancel_error_codes
+                        payment.order, "cancel", transaction_id, cancel_error_codes
                     )
                 error_messages = get_reason_messages_from_codes(result["authori_hold"])
                 return errors_payment_result(error_messages)

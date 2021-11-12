@@ -30,7 +30,13 @@ def parse_errors(errors: List[str]) -> str:
 def process_payment(
     payment_information: PaymentData, config: ApiConfig
 ) -> GatewayResponse:
-    result = api.register_transaction(config, payment_information)
+    payment_id = payment_information.payment_id
+    payment = Payment.objects.filter(pk=payment_id).first()
+
+    if not payment:
+        raise PaymentError(f"Payment with id {payment_id} does not exist.")
+
+    result = api.register_transaction(payment.order, config, payment_information)
 
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,
