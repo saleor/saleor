@@ -82,6 +82,9 @@ def resolve_order_shipping_methods(root: models.Order, info):
                 shipping_method.price = identical_taxed_money(
                     shipping_channel_listing.price
                 )
+                shipping_method.minimum_order_price = (
+                    shipping_channel_listing.minimum_order_price
+                )
                 available_shipping_methods.append(shipping_method)
     instances = [
         ChannelContext(node=method, channel_slug=channel_slug) for method in available
