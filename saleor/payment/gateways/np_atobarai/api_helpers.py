@@ -83,14 +83,14 @@ def health_check(config: "ApiConfig") -> bool:
 
 def format_name(ad: AddressData) -> str:
     """Follow the Japanese name guidelines."""
-    return f"{ad.first_name} {ad.last_name}".strip()
+    return f"{ad.last_name}　{ad.first_name}".strip()
 
 
 def format_address(config: "ApiConfig", ad: AddressData) -> Optional[str]:
     """Follow the Japanese address guidelines."""
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
     if not config.fill_missing_address:
-        return f"{ad.country_area}{ad.street_address_2}{ad.street_address_1}"
+        return f"{ad.country_area}{ad.street_address_1}{ad.street_address_2}"
     with Posuto() as pp:
         try:
             jap_ad = pp.get(ad.postal_code)
@@ -101,8 +101,8 @@ def format_address(config: "ApiConfig", ad: AddressData) -> Optional[str]:
                 f"{ad.country_area}"
                 f"{jap_ad.city}"
                 f"{jap_ad.neighborhood}"
-                f"{ad.street_address_2}"
                 f"{ad.street_address_1}"
+                f"{ad.street_address_2}"
             )
 
 
