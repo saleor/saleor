@@ -12,6 +12,8 @@ from ....core.jwt import create_token, jwt_decode
 from ....core.tokens import account_delete_token_generator
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
+from ....giftcard.utils import assign_user_gift_cards
+from ....order.utils import match_orders_with_new_user
 from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
@@ -143,6 +145,7 @@ class AccountRegister(ModelMutation):
             )
         else:
             user.save()
+
         account_events.customer_account_created_event(user=user)
         info.context.plugins.customer_created(customer=user)
 
@@ -533,6 +536,9 @@ class ConfirmEmailChange(BaseMutation):
         channel_slug = clean_channel(
             data.get("channel"), error_class=AccountErrorCode
         ).slug
+
+        assign_user_gift_cards(user)
+        match_orders_with_new_user(user)
 
         notifications.send_user_change_email_notification(
             old_email, user, info.context.plugins, channel_slug=channel_slug

@@ -103,9 +103,11 @@ def test_generate_order_payload(
         "modified": ANY,
         "charge_status": payment_txn_captured.charge_status,
         "psp_reference": payment_txn_captured.psp_reference,
-        "total": str(payment_txn_captured.total),
+        "total": str(payment_txn_captured.total.quantize(Decimal("0.01"))),
         "type": "Payment",
-        "captured_amount": str(payment_txn_captured.captured_amount),
+        "captured_amount": str(
+            payment_txn_captured.captured_amount.quantize(Decimal("0.01"))
+        ),
         "currency": payment_txn_captured.currency,
         "billing_email": payment_txn_captured.billing_email,
         "billing_first_name": payment_txn_captured.billing_first_name,
@@ -137,6 +139,15 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
     )
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
 
+    undiscounted_unit_price_gross = line.undiscounted_unit_price.gross.amount.quantize(
+        Decimal("0.01")
+    )
+    undiscounted_unit_price_net = line.undiscounted_unit_price.net.amount.quantize(
+        Decimal("0.01")
+    )
+    unit_price_gross = line.unit_price.gross.amount.quantize(Decimal("0.01"))
+    unit_price_net = line.unit_price.net.amount.quantize(Decimal("0.01"))
+
     assert payload == {
         "currency": "USD",
         "product_name": line.product_name,
@@ -146,17 +157,13 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
         "id": graphene.Node.to_global_id("FulfillmentLine", fulfillment_line.id),
         "product_type": "Default Type",
         "quantity": fulfillment_line.quantity,
-        "total_price_gross_amount": str(
-            line.unit_price.gross.amount * fulfillment_line.quantity
-        ),
-        "total_price_net_amount": str(
-            line.unit_price.net.amount * fulfillment_line.quantity
-        ),
+        "total_price_gross_amount": str(unit_price_gross * fulfillment_line.quantity),
+        "total_price_net_amount": str(unit_price_net * fulfillment_line.quantity),
         "type": "FulfillmentLine",
-        "undiscounted_unit_price_gross": str(line.undiscounted_unit_price.gross.amount),
-        "undiscounted_unit_price_net": str(line.undiscounted_unit_price.net.amount),
-        "unit_price_gross": str(line.unit_price.gross.amount),
-        "unit_price_net": str(line.unit_price.net.amount),
+        "undiscounted_unit_price_gross": str(undiscounted_unit_price_gross),
+        "undiscounted_unit_price_net": str(undiscounted_unit_price_net),
+        "unit_price_gross": str(unit_price_gross),
+        "unit_price_net": str(unit_price_net),
         "weight": 0.0,
         "weight_unit": "gram",
         "warehouse_id": graphene.Node.to_global_id(
@@ -201,21 +208,21 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     assert len(lines_payload) == 1
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     line_payload = lines_payload[0]
-    unit_net_amount = line.unit_price_net_amount.quantize(Decimal("0.001"))
-    unit_gross_amount = line.unit_price_gross_amount.quantize(Decimal("0.001"))
-    unit_discount_amount = line.unit_discount_amount.quantize(Decimal("0.001"))
+    unit_net_amount = line.unit_price_net_amount.quantize(Decimal("0.01"))
+    unit_gross_amount = line.unit_price_gross_amount.quantize(Decimal("0.01"))
+    unit_discount_amount = line.unit_discount_amount.quantize(Decimal("0.01"))
     allocation = line.allocations.first()
     undiscounted_unit_price_net_amount = (
-        line.undiscounted_unit_price.net.amount.quantize(Decimal("0.001"))
+        line.undiscounted_unit_price.net.amount.quantize(Decimal("0.01"))
     )
     undiscounted_unit_price_gross_amount = (
-        line.undiscounted_unit_price.gross.amount.quantize(Decimal("0.001"))
+        line.undiscounted_unit_price.gross.amount.quantize(Decimal("0.01"))
     )
     undiscounted_total_price_net_amount = (
-        line.undiscounted_total_price.net.amount.quantize(Decimal("0.001"))
+        line.undiscounted_total_price.net.amount.quantize(Decimal("0.01"))
     )
     undiscounted_total_price_gross_amount = (
-        line.undiscounted_total_price.gross.amount.quantize(Decimal("0.001"))
+        line.undiscounted_total_price.gross.amount.quantize(Decimal("0.01"))
     )
 
     total_line = line.total_price
@@ -238,9 +245,9 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "unit_discount_reason": line.unit_discount_reason,
         "unit_price_net_amount": str(unit_net_amount),
         "unit_price_gross_amount": str(unit_gross_amount),
-        "total_price_net_amount": str(total_line.net.amount.quantize(Decimal("0.001"))),
+        "total_price_net_amount": str(total_line.net.amount.quantize(Decimal("0.01"))),
         "total_price_gross_amount": str(
-            total_line.gross.amount.quantize(Decimal("0.001"))
+            total_line.gross.amount.quantize(Decimal("0.01"))
         ),
         "tax_rate": str(line.tax_rate.quantize(Decimal("0.0001"))),
         "allocations": [
@@ -454,7 +461,12 @@ def test_generate_invoice_payload(fulfilled_order):
     fulfilled_order.save(update_fields=["origin"])
     invoice = fulfilled_order.invoices.first()
     payload = json.loads(generate_invoice_payload(invoice))[0]
-
+    undiscounted_total_net = fulfilled_order.undiscounted_total_net_amount.quantize(
+        Decimal("0.01")
+    )
+    undiscounted_total_gross = fulfilled_order.undiscounted_total_gross_amount.quantize(
+        Decimal("0.01")
+    )
     assert payload == {
         "type": "Invoice",
         "id": graphene.Node.to_global_id("Invoice", invoice.id),
@@ -469,18 +481,14 @@ def test_generate_invoice_payload(fulfilled_order):
             "user_email": "test@example.com",
             "shipping_method_name": "DHL",
             "collection_point_name": None,
-            "shipping_price_net_amount": "10.000",
-            "shipping_price_gross_amount": "12.300",
+            "shipping_price_net_amount": "10.00",
+            "shipping_price_gross_amount": "12.30",
             "shipping_tax_rate": "0.0000",
-            "total_net_amount": "80.000",
-            "total_gross_amount": "98.400",
+            "total_net_amount": "80.00",
+            "total_gross_amount": "98.40",
             "weight": "0.0:g",
-            "undiscounted_total_net_amount": str(
-                fulfilled_order.undiscounted_total_net_amount
-            ),
-            "undiscounted_total_gross_amount": str(
-                fulfilled_order.undiscounted_total_gross_amount
-            ),
+            "undiscounted_total_net_amount": str(undiscounted_total_net),
+            "undiscounted_total_gross_amount": str(undiscounted_total_gross),
         },
         "number": "01/12/2020/TEST",
         "created": ANY,
@@ -499,6 +507,9 @@ def test_generate_list_gateways_payload(checkout):
 def test_generate_payment_payload(dummy_webhook_app_payment_data):
     payload = generate_payment_payload(dummy_webhook_app_payment_data)
     expected_payload = asdict(dummy_webhook_app_payment_data)
+    expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
+        Decimal("0.01")
+    )
     expected_payload["payment_method"] = from_payment_app_id(
         dummy_webhook_app_payment_data.gateway
     ).name
