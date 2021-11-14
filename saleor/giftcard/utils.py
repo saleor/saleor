@@ -250,3 +250,8 @@ def deactivate_order_gift_cards(
 
 def order_has_gift_card_lines(order):
     return any(order.lines.filter(is_gift_card=True))
+
+
+def assign_user_gift_cards(user):
+    GiftCard.objects.filter(used_by_email=user.email).update(used_by=user)
+    GiftCard.objects.filter(created_by_email=user.email).update(created_by=user)

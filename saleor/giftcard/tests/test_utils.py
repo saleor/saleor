@@ -16,6 +16,7 @@ from .. import GiftCardEvents, GiftCardLineData, events
 from ..models import GiftCard, GiftCardEvent
 from ..utils import (
     add_gift_card_code_to_checkout,
+    assign_user_gift_cards,
     calculate_expiry_date,
     deactivate_order_gift_cards,
     fulfill_gift_card_lines,
@@ -662,3 +663,53 @@ def test_order_has_gift_card_lines_true(gift_card_shippable_order_line):
 
 def test_order_has_gift_card_lines_false(order):
     assert order_has_gift_card_lines(order) is False
+
+
+def test_assign_user_gift_cards(
+    customer_user,
+    gift_card,
+    gift_card_expiry_date,
+    gift_card_used,
+    gift_card_created_by_staff,
+):
+    # given
+    card_ids = [
+        card.id
+        for card in [
+            gift_card,
+            gift_card_expiry_date,
+            gift_card_created_by_staff,
+            gift_card_used,
+        ]
+    ]
+    GiftCard.objects.filter(id__in=card_ids).update(created_by=None)
+
+    gift_card_used.used_by = None
+    gift_card_used.save(update_fields=["used_by"])
+
+    # when
+    assign_user_gift_cards(customer_user)
+
+    # then
+    for card in [gift_card, gift_card_expiry_date]:
+        card.refresh_from_db()
+        assert card.created_by == customer_user
+
+    gift_card_used.refresh_from_db()
+    assert gift_card_used.used_by == customer_user
+    assert not gift_card_used.created_by
+
+
+def test_assign_user_gift_cards_no_gift_cards_to_assign(
+    customer_user, gift_card_created_by_staff
+):
+    # given
+    gift_card_created_by_staff.created_by = None
+    gift_card_created_by_staff.save(update_fields=["created_by"])
+
+    # when
+    assign_user_gift_cards(customer_user)
+
+    # then
+    gift_card_created_by_staff.refresh_from_db()
+    assert not gift_card_created_by_staff.created_by
