@@ -20,7 +20,7 @@ from ....order.models import Order
 from ....plugins.manager import PluginsManager
 from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
-from ...models import Payment
+from ...models import Payment, Transaction
 from ...utils import create_transaction, gateway_postprocess, price_from_minor_unit
 from .consts import (
     WEBHOOK_AUTHORIZED_EVENT,
@@ -113,8 +113,7 @@ def _get_payment(payment_intent_id: str) -> Optional[Payment]:
             Prefetch("order", queryset=Order.objects.select_related("channel")),
         )
         .select_for_update(of=("self",))
-        # TODO: inactive payments should be processed to reflect their state in PSP
-        .filter(transactions__token=payment_intent_id, is_active=True)
+        .filter(transactions__token=payment_intent_id)
         .first()
     )
 
@@ -147,14 +146,14 @@ def _get_checkout(payment_id: int) -> Optional[Checkout]:
     return (
         Checkout.objects.prefetch_related("payments")
         .select_for_update(of=("self",))
-        .filter(payments__id=payment_id, payments__is_active=True)
+        .filter(payments__id=payment_id)
         .first()
     )
 
 
-def _update_payment_with_new_transaction(
+def _create_transaction_if_not_exists(
     payment: Payment, stripe_object: StripeObject, kind: str, amount: str, currency: str
-):
+) -> Optional[Transaction]:
     gateway_response = GatewayResponse(
         kind=kind,
         action_required=False,
@@ -168,20 +167,22 @@ def _update_payment_with_new_transaction(
     )
 
     transaction_id = stripe_object.id
-    if not payment.transactions.filter(
+    if payment.transactions.filter(
         token=transaction_id,
         kind=kind,
         is_success=True,
     ).exists():
-        transaction = create_transaction(
-            payment,
-            kind=kind,
-            payment_information=None,  # type: ignore
-            action_required=False,
-            gateway_response=gateway_response,
-        )
-        gateway_postprocess(transaction, payment)
-        return transaction
+        return None
+
+    transaction = create_transaction(
+        payment,
+        kind=kind,
+        payment_information=None,  # type: ignore
+        action_required=False,
+        gateway_response=gateway_response,
+    )
+    gateway_postprocess(transaction, payment)
+    return transaction
 
 
 def _process_payment_with_checkout(
@@ -224,7 +225,7 @@ def handle_authorized_payment_intent(
         return
 
     _update_payment_method_metadata(payment, payment_intent, gateway_config)
-    _update_payment_with_new_transaction(
+    _create_transaction_if_not_exists(
         payment,
         payment_intent,
         TransactionKind.AUTH,
@@ -260,7 +261,7 @@ def handle_failed_payment_intent(
     if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
         return
 
-    transaction = _update_payment_with_new_transaction(
+    transaction = _create_transaction_if_not_exists(
         payment,
         payment_intent,
         TransactionKind.CANCEL,
@@ -268,7 +269,7 @@ def handle_failed_payment_intent(
         payment_intent.currency,
     )
 
-    if payment.order:
+    if payment.order and transaction:
         actions = [OrderPaymentAction(payment, transaction.amount)]
         order_voided(payment.order, None, None, actions, manager)
 
@@ -290,7 +291,7 @@ def handle_processing_payment_intent(
     if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
         return
 
-    _update_payment_with_new_transaction(
+    _create_transaction_if_not_exists(
         payment,
         payment_intent,
         TransactionKind.PENDING,
@@ -328,7 +329,7 @@ def handle_successful_payment_intent(
 
     _update_payment_method_metadata(payment, payment_intent, gateway_config)
 
-    capture_transaction = _update_payment_with_new_transaction(
+    capture_transaction = _create_transaction_if_not_exists(
         payment,
         payment_intent,
         TransactionKind.CAPTURE,
@@ -393,12 +394,12 @@ def handle_refund(
         )
         return
 
-    refund_transaction = _update_payment_with_new_transaction(
+    refund_transaction = _create_transaction_if_not_exists(
         payment, refund, TransactionKind.REFUND, refund.amount, refund.currency
     )
 
     if payment.order:
-        if payment.order and refund_transaction.is_success:
+        if refund_transaction and refund_transaction.is_success:
             events.payment_refunded_event(
                 order=payment.order,
                 user=None,
