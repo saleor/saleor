@@ -72,20 +72,20 @@ jobs:
         if: ${{ always() }}
 
       # Publish detected differences as comment
-      - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
-        with:
-          query_raw_dump_path: ${{ env.BENCH_PATH }}
-          diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/saleor-db-queries-bot-diff"
-          diff_results_base_url: "https://dtab784j47g1o.cloudfront.net"
-        if: ${{ github.event_name == 'pull_request' }}
+#      - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
+#        with:
+#          query_raw_dump_path: ${{ env.BENCH_PATH }}
+#          diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/saleor-db-queries-bot-diff"
+#          diff_results_base_url: "https://dtab784j47g1o.cloudfront.net"
+#        if: ${{ github.event_name == 'pull_request' }}
 
       # Save results for future comparison against pull requests
-      - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
-        with:
-          query_raw_dump_path: ${{ env.BENCH_PATH }}
-          upload_endpoint: ${{ secrets.QUERIES_UPLOAD_ENDPOINT_URL }}
-          upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
-        if: ${{ github.event_name == 'push' }}
+#      - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
+#        with:
+#          query_raw_dump_path: ${{ env.BENCH_PATH }}
+#          upload_endpoint: ${{ secrets.QUERIES_UPLOAD_ENDPOINT_URL }}
+#          upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
+#        if: ${{ github.event_name == 'push' }}
 
       # Run linters and Django related checks
       - name: Run Linters and Checks
