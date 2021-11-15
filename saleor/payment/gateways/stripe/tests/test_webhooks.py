@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
+from django.core.exceptions import ValidationError
 from stripe.stripe_object import StripeObject
 
 from .....checkout.complete_checkout import complete_checkout
@@ -21,6 +22,7 @@ from ..consts import (
     WEBHOOK_SUCCESS_EVENT,
 )
 from ..webhooks import (
+    _finalize_checkout,
     _process_payment_with_checkout,
     _update_payment_with_new_transaction,
     handle_authorized_payment_intent,
@@ -75,6 +77,41 @@ def test_handle_successful_payment_intent_for_checkout(
     assert payment.order.checkout_token == str(checkout_with_items.token)
     transaction = payment.transactions.get(kind=TransactionKind.CAPTURE)
     assert transaction.token == payment_intent.id
+
+
+@patch("saleor.payment.gateway.refund")
+@patch("saleor.checkout.complete_checkout._get_order_data")
+def test_handle_successful_payment_intent_when_order_creation_raises_exception(
+    order_data_mock,
+    refund_mock,
+    payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+    stripe_payment_intent,
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+    payment = payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.CAPTURE,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    handle_successful_payment_intent(
+        stripe_payment_intent, plugin.config, channel_USD.slug
+    )
+
+    payment.refresh_from_db()
+    assert not payment.order
+    assert refund_mock.called
 
 
 @pytest.mark.parametrize(
@@ -341,6 +378,42 @@ def test_handle_authorized_payment_intent_for_checkout(
     assert transaction.token == payment_intent.id
 
 
+@patch("saleor.checkout.complete_checkout._get_order_data")
+@patch("saleor.payment.gateway.void")
+def test_handle_authorized_payment_intent_when_order_creation_raises_exception(
+    void_mock,
+    order_data_mock,
+    payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+    stripe_payment_intent,
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+    payment = payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    handle_authorized_payment_intent(
+        stripe_payment_intent, plugin.config, channel_USD.slug
+    )
+
+    payment.refresh_from_db()
+
+    assert not payment.order
+    assert void_mock.called
+
+
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
@@ -570,6 +643,47 @@ def test_handle_processing_payment_intent_for_checkout(
     assert payment.order.checkout_token == str(checkout_with_items.token)
     transaction = payment.transactions.get(kind=TransactionKind.PENDING)
     assert transaction.token == payment_intent.id
+
+
+@patch("saleor.checkout.complete_checkout._get_order_data")
+@patch("saleor.payment.gateway.void")
+@patch("saleor.payment.gateway.refund")
+def test_handle_processing_payment_intent_when_order_creation_raises_exception(
+    refund_mock,
+    void_mock,
+    order_data_mock,
+    payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+    stripe_payment_intent,
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+    payment = payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    stripe_payment_intent["status"] = PROCESSING_STATUS
+
+    handle_processing_payment_intent(
+        stripe_payment_intent, plugin.config, channel_USD.slug
+    )
+
+    payment.refresh_from_db()
+
+    assert not payment.order
+    assert not void_mock.called
+    assert not refund_mock.called
 
 
 @pytest.mark.parametrize("called", [True, False])
@@ -1049,3 +1163,61 @@ def test_handle_webhook_events(
         endpoint_secret,
         api_key=api_key,
     )
+
+
+@patch("saleor.payment.gateway.refund")
+@patch("saleor.checkout.complete_checkout._get_order_data")
+def test_finalize_checkout_not_created_order_payment_refund(
+    order_data_mock,
+    refund_mock,
+    stripe_plugin,
+    channel_USD,
+    payment_stripe_for_checkout,
+    stripe_payment_intent,
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+    stripe_plugin()
+    checkout = payment_stripe_for_checkout.checkout
+
+    _finalize_checkout(
+        checkout,
+        payment_stripe_for_checkout,
+        stripe_payment_intent,
+        TransactionKind.CAPTURE,
+        payment_stripe_for_checkout.total,
+        payment_stripe_for_checkout.currency,
+    )
+
+    payment_stripe_for_checkout.refresh_from_db()
+
+    assert not payment_stripe_for_checkout.order
+    assert refund_mock.called
+
+
+@patch("saleor.payment.gateway.void")
+@patch("saleor.checkout.complete_checkout._get_order_data")
+def test_finalize_checkout_not_created_order_payment_void(
+    order_data_mock,
+    void_mock,
+    stripe_plugin,
+    channel_USD,
+    payment_stripe_for_checkout,
+    stripe_payment_intent,
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+    stripe_plugin()
+    checkout = payment_stripe_for_checkout.checkout
+
+    _finalize_checkout(
+        checkout,
+        payment_stripe_for_checkout,
+        stripe_payment_intent,
+        TransactionKind.AUTH,
+        payment_stripe_for_checkout.total,
+        payment_stripe_for_checkout.currency,
+    )
+
+    payment_stripe_for_checkout.refresh_from_db()
+
+    assert not payment_stripe_for_checkout.order
+    assert void_mock.called
