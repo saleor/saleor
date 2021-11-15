@@ -21,10 +21,15 @@ class UserAdminContext(HttpRequest):
         self.user = User.objects.filter(is_staff=True).first()
         self.plugins = SimpleLazyObject(lambda: get_plugins_manager())
         self.discounts = SimpleLazyObject(lambda: fetch_discounts(self.request_time))
-        self.META = {'header': 'http', 'SERVER_NAME': 'localhost', 'SERVER_PORT': '8000'}
+        self.META = {
+            "header": "http",
+            "SERVER_NAME": "localhost",
+            "SERVER_PORT": "8000",
+        }
 
 
-GET_PRODUCT_QUERY = gql("""
+GET_PRODUCT_QUERY = gql(
+    """
 query GET_PRODUCT($id: ID!, $languageCode: LanguageCodeEnum!) {
   product(id: $id, channel: "default-channel") {
     name
@@ -74,11 +79,15 @@ query GET_PRODUCT($id: ID!, $languageCode: LanguageCodeEnum!) {
     }
   }
 }
-""")
+"""
+)
 
 
 def category_page_id():
-    return ['Products', 'Categories', ]
+    return [
+        "Products",
+        "Categories",
+    ]
 
 
 def hierarchical_categories(product: Product):
@@ -87,11 +96,13 @@ def hierarchical_categories(product: Product):
     categories = product.category.get_ancestors(include_self=True)
     for index, category in enumerate(categories):
         hierarchical_list.append(str(category))
-        hierarchical.update({
-            'lvl{0}'.format(str(index)): ' > '.join(
-                hierarchical_list[:index + 1]) if index != 0 else
-            hierarchical_list[index]
-        })
+        hierarchical.update(
+            {
+                "lvl{0}".format(str(index)): " > ".join(hierarchical_list[: index + 1])
+                if index != 0
+                else hierarchical_list[index]
+            }
+        )
     return hierarchical
 
 
@@ -101,25 +112,29 @@ def get_product_data(product: "Product", locale="EN"):
     product_global_id = graphene.Node.to_global_id("Product", product.id)
     variables = {"id": product_global_id, "languageCode": locale}
 
-    product_data = schema.execute(GET_PRODUCT_QUERY, variables=variables, context=UserAdminContext())
-    product_dict = product_data.data.get('product')
-    is_available = product_dict.pop('isAvailable') if product_dict else None
+    product_data = schema.execute(
+        GET_PRODUCT_QUERY, variables=variables, context=UserAdminContext()
+    )
+    product_dict = product_data.data.get("product")
+    is_available = product_dict.pop("isAvailable") if product_dict else None
     if not product_data.errors and is_available:
-        product_dict.update({
-            "objectID": product_global_id,
-            "categoryPageId": category_page_id(),
-            "gender": get_gender_from_product_data(product_dict),
-            "hierarchicalCategories": hierarchical_categories(product)
-        })
+        product_dict.update(
+            {
+                "objectID": product_global_id,
+                "categoryPageId": category_page_id(),
+                "gender": get_gender_from_product_data(product_dict),
+                "hierarchicalCategories": hierarchical_categories(product),
+            }
+        )
         return product_dict
 
 
 def get_gender_from_product_data(product_data):
     gender = None
-    meta_data = product_data.get('metadata', None)
+    meta_data = product_data.get("metadata", None)
 
     # Get gender from meta data.
     for item in meta_data:
-        if item['key'] == 'gender':
-            gender = item['value']
+        if item["key"] == "gender":
+            gender = item["value"]
     return gender

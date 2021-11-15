@@ -60,13 +60,16 @@ class AlgoliaPlugin(BasePlugin):
             "ALGOLIA_INDEX_PREFIX": configuration["ALGOLIA_INDEX_PREFIX"],
             "ALGOLIA_APPLICATION_ID": configuration["ALGOLIA_APPLICATION_ID"],
         }
-        self.client = SearchClient.create(app_id=self.config["ALGOLIA_APPLICATION_ID"],
-                                          api_key=self.config["ALGOLIA_API_KEY"])
+        self.client = SearchClient.create(
+            app_id=self.config["ALGOLIA_APPLICATION_ID"],
+            api_key=self.config["ALGOLIA_API_KEY"],
+        )
 
         algolia_index_prefix = self.config["ALGOLIA_INDEX_PREFIX"]
         for locale in self.config["ALGOLIA_LOCALES"].split(","):
             globals()["algolia_index_" + locale] = self.client.init_index(
-                name=algolia_index_prefix + "_products" + "_" + locale)
+                name=algolia_index_prefix + "_products" + "_" + locale
+            )
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
@@ -97,18 +100,22 @@ class AlgoliaPlugin(BasePlugin):
         for locale in self.config["ALGOLIA_LOCALES"].split(","):
             product_data = get_product_data(product=product, locale=locale)
             if product_data:
-                globals().get('algolia_index_' + locale).save_object(obj=product_data, request_options={
-                    'autoGenerateObjectIDIfNotExist': False})
+                globals().get("algolia_index_" + locale).save_object(
+                    obj=product_data,
+                    request_options={"autoGenerateObjectIDIfNotExist": False},
+                )
 
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         for locale in self.config["ALGOLIA_LOCALES"].split(","):
             product_data = get_product_data(product=product, locale=locale)
             if product_data:
-                globals().get('algolia_index_' + locale).partial_update_object(obj=product_data, request_options={
-                    'createIfNotExists': True})
+                globals().get("algolia_index_" + locale).partial_update_object(
+                    obj=product_data, request_options={"createIfNotExists": True}
+                )
 
-    def product_deleted(self, product: "Product", variants: List[int],
-                        previous_value: Any) -> Any:
+    def product_deleted(
+        self, product: "Product", variants: List[int], previous_value: Any
+    ) -> Any:
         object_id = graphene.Node.to_global_id("Product", product.pk)
         for locale in self.config["ALGOLIA_LOCALES"].split(","):
-            globals().get('algolia_index_' + locale).delete_object(object_id=object_id)
+            globals().get("algolia_index_" + locale).delete_object(object_id=object_id)
