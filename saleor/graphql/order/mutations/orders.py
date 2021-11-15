@@ -20,6 +20,7 @@ from ....order.actions import (
     order_voided,
 )
 from ....order.error_codes import OrderErrorCode
+from ....order.fetch import fetch_order_info
 from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
@@ -538,7 +539,8 @@ class OrderCapture(BaseMutation):
             )
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        payment = order.get_last_payment()
+        order_info = fetch_order_info(order)
+        payment = order_info.payment
         clean_order_capture(payment)
 
         transaction = try_payment_action(
@@ -552,11 +554,12 @@ class OrderCapture(BaseMutation):
             amount=amount,
             channel_slug=order.channel.slug,
         )
+        order_info.payment.refresh_from_db()
         # Confirm that we changed the status to capture. Some payment can receive
         # asynchronous webhook with update status
         if transaction.kind == TransactionKind.CAPTURE:
             order_captured(
-                order,
+                order_info,
                 info.context.user,
                 info.context.app,
                 amount,
@@ -712,14 +715,15 @@ class OrderConfirm(ModelMutation):
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED
         order.save(update_fields=["status"])
-        payment = order.get_last_payment()
+        order_info = fetch_order_info(order)
+        payment = order_info.payment
         manager = info.context.plugins
         if payment and payment.is_authorized and payment.can_capture():
             gateway.capture(
                 payment, info.context.plugins, channel_slug=order.channel.slug
             )
             order_captured(
-                order,
+                order_info,
                 info.context.user,
                 info.context.app,
                 payment.total,

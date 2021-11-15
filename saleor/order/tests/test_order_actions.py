@@ -5,6 +5,7 @@ import pytest
 from prices import Money, TaxedMoney
 
 from ...order import OrderLineData
+from ...order.fetch import fetch_order_info
 from ...payment import ChargeStatus, PaymentError, TransactionKind
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
@@ -87,15 +88,17 @@ def test_handle_fully_paid_order_digital_lines(
     order = order_with_digital_line
     order.redirect_url = redirect_url
     order.save()
+    order_info = fetch_order_info(order)
     manager = get_plugins_manager()
-    handle_fully_paid_order(manager, order)
+
+    handle_fully_paid_order(manager, order_info)
 
     fulfillment = order.fulfillments.first()
     event_order_paid = order.events.get()
 
     assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
 
-    mock_send_payment_confirmation.assert_called_once_with(order, manager)
+    mock_send_payment_confirmation.assert_called_once_with(order_info, manager)
     send_fulfillment_confirmation_to_customer.assert_called_once_with(
         order, fulfillment, user=order.user, app=None, manager=manager
     )
@@ -109,12 +112,14 @@ def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
     manager = get_plugins_manager()
 
     order.payments.add(Payment.objects.create())
-    handle_fully_paid_order(manager, order)
-    event_order_paid = order.events.get()
+    order_info = fetch_order_info(order)
 
+    handle_fully_paid_order(manager, order_info)
+
+    event_order_paid = order.events.get()
     assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
 
-    mock_send_payment_confirmation.assert_called_once_with(order, manager)
+    mock_send_payment_confirmation.assert_called_once_with(order_info, manager)
 
 
 @patch("saleor.order.notifications.send_payment_confirmation")
@@ -122,8 +127,9 @@ def test_handle_fully_paid_order_no_email(mock_send_payment_confirmation, order)
     order.user = None
     order.user_email = ""
     manager = get_plugins_manager()
+    order_info = fetch_order_info(order)
 
-    handle_fully_paid_order(manager, order)
+    handle_fully_paid_order(manager, order_info)
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_FULLY_PAID
     assert not mock_send_payment_confirmation.called
@@ -410,6 +416,12 @@ def test_fulfill_digital_lines(
 
     image_file, image_name = create_image()
     variant = line.variant
+
+    product_type = variant.product.product_type
+    product_type.is_digital = True
+    product_type.is_shipping_required = False
+    product_type.save(update_fields=["is_digital", "is_shipping_required"])
+
     digital_content = DigitalContent.objects.create(
         content_file=image_file, product_variant=variant, use_default_settings=True
     )
@@ -419,9 +431,10 @@ def test_fulfill_digital_lines(
     line.save()
 
     order_with_lines.refresh_from_db()
+    order_info = fetch_order_info(order_with_lines)
     manager = get_plugins_manager()
 
-    automatically_fulfill_digital_lines(order_with_lines, manager)
+    automatically_fulfill_digital_lines(order_info, manager)
 
     line.refresh_from_db()
     fulfillment = Fulfillment.objects.get(order=order_with_lines)

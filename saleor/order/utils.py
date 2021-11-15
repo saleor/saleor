@@ -46,11 +46,11 @@ def get_order_country(order: Order) -> str:
     return address.country.code
 
 
-def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
+def order_line_needs_automatic_fulfillment(line_data: OrderLineData) -> bool:
     """Check if given line is digital and should be automatically fulfilled."""
     digital_content_settings = get_default_digital_content_settings()
     default_automatic_fulfillment = digital_content_settings["automatic_fulfillment"]
-    content = line.variant.digital_content if line.variant else None
+    content = line_data.digital_content
     if not content:
         return False
     if default_automatic_fulfillment and content.use_default_settings:
@@ -60,10 +60,10 @@ def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
     return False
 
 
-def order_needs_automatic_fulfillment(order: Order) -> bool:
+def order_needs_automatic_fulfillment(lines_data: Iterable["OrderLineData"]) -> bool:
     """Check if order has digital products which should be automatically fulfilled."""
-    for line in order.lines.digital():  # type: ignore
-        if order_line_needs_automatic_fulfillment(line):
+    for line_data in lines_data:
+        if line_data.is_digital and order_line_needs_automatic_fulfillment(line_data):
             return True
     return False
 
@@ -283,7 +283,6 @@ def _calculate_quantity_including_returns(order):
 
 def update_order_status(order):
     """Update order status depending on fulfillments."""
-
     (
         total_quantity,
         quantity_fulfilled,

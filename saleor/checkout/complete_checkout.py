@@ -28,7 +28,7 @@ from ..giftcard.utils import fulfill_non_shippable_gift_cards
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
-from ..order import OrderLineData, OrderOrigin, OrderStatus
+from ..order import OrderData, OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import order_created
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
@@ -204,10 +204,13 @@ def _create_line_for_order(
         total_price=total_line_price,
         tax_rate=tax_rate,
     )
+    is_digital = line.is_digital
     line_info = OrderLineData(
         line=line,
         quantity=quantity,
+        is_digital=is_digital,
         variant=variant,
+        digital_content=variant.digital_content if is_digital and variant else None,
         warehouse_pk=checkout_info.delivery_method_info.warehouse_pk,
     )
 
@@ -448,13 +451,23 @@ def _create_order(
             order, order_lines, site_settings, user, app, manager
         )
 
+    order_data = OrderData(
+        order=order,
+        customer_email=order_data["user_email"],
+        channel=checkout_info.channel,
+        payment=order.get_last_payment(),
+        lines_data=order_lines_info,
+    )
+
     transaction.on_commit(
-        lambda: order_created(order=order, user=user, app=app, manager=manager)
+        lambda: order_created(
+            order_data=order_data, user=user, app=app, manager=manager
+        )
     )
 
     # Send the order confirmation email
     transaction.on_commit(
-        lambda: send_order_confirmation(order, checkout.redirect_url, manager)
+        lambda: send_order_confirmation(order_data, checkout.redirect_url, manager)
     )
 
     return order

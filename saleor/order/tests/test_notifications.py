@@ -8,6 +8,7 @@ from prices import Money, fixed_discount
 from ...core.notify_events import NotifyEventType
 from ...discount import DiscountValueType
 from ...order import notifications
+from ...order.fetch import fetch_order_info
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContentUrl
 from ..notifications import (
@@ -299,6 +300,7 @@ def test_get_default_fulfillment_payload(
 def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_dummy):
     manager = get_plugins_manager()
     order = payment_dummy.order
+    order_info = fetch_order_info(order)
     expected_payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
@@ -313,7 +315,7 @@ def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_d
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
-    notifications.send_payment_confirmation(order, manager)
+    notifications.send_payment_confirmation(order_info, manager)
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
         expected_payload,
@@ -325,8 +327,9 @@ def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_d
 def test_send_email_order_confirmation(mocked_notify, order, site_settings):
     manager = get_plugins_manager()
     redirect_url = "https://www.example.com"
+    order_info = fetch_order_info(order)
 
-    notifications.send_order_confirmation(order, redirect_url, manager)
+    notifications.send_order_confirmation(order_info, redirect_url, manager)
 
     expected_payload = {
         "order": get_default_order_payload(order, redirect_url),
@@ -347,10 +350,9 @@ def test_send_email_order_confirmation_for_cc(
 ):
     manager = get_plugins_manager()
     redirect_url = "https://www.example.com"
+    order_info = fetch_order_info(order_with_lines_for_cc)
 
-    notifications.send_order_confirmation(
-        order_with_lines_for_cc, redirect_url, manager
-    )
+    notifications.send_order_confirmation(order_info, redirect_url, manager)
 
     expected_payload = {
         "order": get_default_order_payload(order_with_lines_for_cc, redirect_url),
@@ -390,8 +392,9 @@ def test_send_confirmation_emails_without_addresses_for_payment(
     order.shipping_method = None
     order.billing_address = None
     order.save(update_fields=["shipping_address", "shipping_method", "billing_address"])
+    order_info = fetch_order_info(order)
 
-    notifications.send_payment_confirmation(order, info.context.plugins)
+    notifications.send_payment_confirmation(order_info, info.context.plugins)
 
     expected_payload = {
         "order": get_default_order_payload(order),
@@ -435,10 +438,13 @@ def test_send_confirmation_emails_without_addresses_for_order(
     order.shipping_method = None
     order.billing_address = None
     order.save(update_fields=["shipping_address", "shipping_method", "billing_address"])
+    order_info = fetch_order_info(order)
 
     redirect_url = "https://www.example.com"
 
-    notifications.send_order_confirmation(order, redirect_url, info.context.plugins)
+    notifications.send_order_confirmation(
+        order_info, redirect_url, info.context.plugins
+    )
 
     expected_payload = {
         "order": get_default_order_payload(order, redirect_url),

@@ -67,6 +67,7 @@ if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
     from ..warehouse.models import Warehouse
+    from . import OrderData
 
 logger = logging.getLogger(__name__)
 
@@ -76,19 +77,20 @@ QuantityType = int
 
 
 def order_created(
-    order: "Order",
+    order_data: "OrderData",
     user: "User",
     app: Optional["App"],
     manager: "PluginsManager",
     from_draft: bool = False,
 ):
+    order = order_data.order
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
     manager.order_created(order)
-    payment = order.get_last_payment()
+    payment = order_data.payment
     if payment:
         if order.is_captured():
             order_captured(
-                order=order,
+                order_data=order_data,
                 user=user,
                 app=app,
                 amount=payment.total,
@@ -128,16 +130,16 @@ def order_confirmed(
 
 def handle_fully_paid_order(
     manager: "PluginsManager",
-    order: "Order",
+    order_data: "OrderData",
     user: Optional["User"] = None,
     app: Optional["App"] = None,
 ):
+    order = order_data.order
     events.order_fully_paid_event(order=order, user=user, app=app)
-    if order.get_customer_email():
-        send_payment_confirmation(order, manager)
-
-        if utils.order_needs_automatic_fulfillment(order):
-            automatically_fulfill_digital_lines(order, manager)
+    if order_data.customer_email:
+        send_payment_confirmation(order_data, manager)
+        if utils.order_needs_automatic_fulfillment(order_data.lines_data):
+            automatically_fulfill_digital_lines(order_data, manager)
     try:
         analytics.report_order(order.tracking_client_id, order)
     except Exception:
@@ -290,19 +292,20 @@ def order_authorized(
 
 
 def order_captured(
-    order: "Order",
+    order_data: "OrderData",
     user: Optional["User"],
     app: Optional["App"],
     amount: "Decimal",
     payment: "Payment",
     manager: "PluginsManager",
 ):
+    order = order_data.order
     events.payment_captured_event(
         order=order, user=user, app=app, amount=amount, payment=payment
     )
     manager.order_updated(order)
     if order.is_fully_paid():
-        handle_fully_paid_order(manager, order, user, app)
+        handle_fully_paid_order(manager, order_data, user, app)
 
 
 def fulfillment_tracking_updated(
@@ -556,42 +559,40 @@ def fulfill_order_lines(
 
 
 @traced_atomic_transaction()
-def automatically_fulfill_digital_lines(order: "Order", manager: "PluginsManager"):
+def automatically_fulfill_digital_lines(
+    order_data: "OrderData", manager: "PluginsManager"
+):
     """Fulfill all digital lines which have enabled automatic fulfillment setting.
 
     Send confirmation email afterward.
     """
-    digital_lines = order.lines.filter(
-        is_shipping_required=False, variant__digital_content__isnull=False
-    )
-    digital_lines = digital_lines.prefetch_related("variant__digital_content")
+    order = order_data.order
+    digital_lines_data = [
+        line_data
+        for line_data in order_data.lines_data
+        if not line_data.line.is_shipping_required and line_data.digital_content
+    ]
 
-    if not digital_lines:
+    if not digital_lines_data:
         return
     fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
 
     fulfillments = []
     lines_info = []
-    for line in digital_lines:
-        if not order_line_needs_automatic_fulfillment(line):
+    for line_data in digital_lines_data:
+        if not order_line_needs_automatic_fulfillment(line_data):
             continue
-        variant = line.variant
-        if variant:
-            digital_content = variant.digital_content
+        digital_content = line_data.digital_content
+        line = line_data.line
+        if digital_content:
             digital_content.urls.create(line=line)
-        quantity = line.quantity
+        quantity = line_data.quantity
         fulfillments.append(
             FulfillmentLine(fulfillment=fulfillment, order_line=line, quantity=quantity)
         )
-        warehouse_pk = line.allocations.first().stock.warehouse.pk  # type: ignore
-        lines_info.append(
-            OrderLineData(
-                line=line,
-                quantity=quantity,
-                variant=line.variant,
-                warehouse_pk=warehouse_pk,
-            )
-        )
+        allocation = line.allocations.first()
+        line_data.warehouse_pk = allocation.stock.warehouse.pk  # type: ignore
+        lines_info.append(line_data)
 
     FulfillmentLine.objects.bulk_create(fulfillments)
     fulfill_order_lines(lines_info, manager)
@@ -676,15 +677,17 @@ def _create_fulfillment_lines(
                 insufficient_stocks.append(error_data)
                 continue
 
+            is_digital = order_line.is_digital
             lines_info.append(
                 OrderLineData(
                     line=order_line,
+                    is_digital=is_digital,
                     quantity=quantity,
                     variant=variant,
                     warehouse_pk=warehouse_pk,
                 )
             )
-            if order_line.is_digital:
+            if is_digital:
                 variant.digital_content.urls.create(line=order_line)
             fulfillment_line = FulfillmentLine(
                 order_line=order_line,

@@ -1,9 +1,11 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Iterable, Optional
 
 if TYPE_CHECKING:
-    from ..product.models import ProductVariant
-    from .models import FulfillmentLine, OrderLine
+    from ..channel.models import Channel
+    from ..payment.models import Payment
+    from ..product.models import DigitalContent, ProductVariant
+    from .models import FulfillmentLine, Order, OrderLine
 
 
 class OrderStatus:
@@ -206,10 +208,21 @@ class OrderEventsEmails:
 
 
 @dataclass
+class OrderData:
+    order: "Order"
+    customer_email: "str"
+    channel: "Channel"
+    payment: "Payment"
+    lines_data: Iterable["OrderLineData"]
+
+
+@dataclass
 class OrderLineData:
     line: "OrderLine"
     quantity: int
     variant: Optional["ProductVariant"] = None
+    is_digital: Optional[bool] = None
+    digital_content: Optional["DigitalContent"] = None
     replace: bool = False
     warehouse_pk: Optional[str] = None
 
