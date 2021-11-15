@@ -23,8 +23,8 @@ from ..consts import (
     WEBHOOK_SUCCESS_EVENT,
 )
 from ..webhooks import (
+    _create_transaction_if_not_exists,
     _process_payment_with_checkout,
-    _update_payment_with_new_transaction,
     handle_authorized_payment_intent,
     handle_failed_payment_intent,
     handle_processing_payment_intent,
@@ -409,6 +409,49 @@ def test_handle_authorized_payment_intent_for_checkout(
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
+def test_handle_authorized_payment_intent_for_order_with_auth_action_required(
+    wrapped_checkout_complete,
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
+):
+    # given
+    token = "afd4g2"
+    payment = payment_stripe_for_order
+    payment.charge_status = ChargeStatus.PENDING
+    payment.save()
+    payment.transactions.filter(kind=TransactionKind.AUTH).delete()
+    payment.transactions.create(
+        token=token,
+        kind=TransactionKind.AUTH,
+        is_success=True,
+        action_required=True,
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    payment_intent = StripeObject(id=token, last_response={})
+    payment_intent["amount"] = payment.total
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = AUTHORIZED_STATUS
+
+    # when
+    handle_authorized_payment_intent(
+        payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
+
+    # then
+    payment.refresh_from_db()
+    assert payment.is_active
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
+    assert payment.captured_amount == 0.00
+    assert payment.transactions.filter(kind=TransactionKind.AUTH).count() == 2
+    assert wrapped_checkout_complete.called is False
+
+
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
 @patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_authorized_payment_intent_for_order(
     _wrapped_update_payment_method,
@@ -506,13 +549,13 @@ def test_handle_authorized_payment_intent_with_metadata(
 
 @pytest.mark.parametrize("called", [True, False])
 @patch(
-    "saleor.payment.gateways.stripe.webhooks._update_payment_with_new_transaction",
-    wraps=_update_payment_with_new_transaction,
+    "saleor.payment.gateways.stripe.webhooks._create_transaction_if_not_exists",
+    wraps=_create_transaction_if_not_exists,
 )
 @patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
 def test_handle_authorized_payment_intent_different_order_channel_slug(
     _wrapped_update_payment_method,
-    wrapped_update_payment_with_new_transaction,
+    wrapped_create_transaction_if_not_exists,
     channel_PLN,
     payment_stripe_for_order,
     checkout_with_items,
@@ -539,7 +582,7 @@ def test_handle_authorized_payment_intent_different_order_channel_slug(
     )
 
     # then
-    assert wrapped_update_payment_with_new_transaction.called == called
+    assert wrapped_create_transaction_if_not_exists.called == called
 
 
 @pytest.mark.parametrize("called", [True, False])
@@ -793,12 +836,12 @@ def test_handle_failed_payment_intent_for_order(
 
 @pytest.mark.parametrize("called", [True, False])
 @patch(
-    "saleor.payment.gateways.stripe.webhooks._update_payment_with_new_transaction",
-    wraps=_update_payment_with_new_transaction,
+    "saleor.payment.gateways.stripe.webhooks._create_transaction_if_not_exists",
+    wraps=_create_transaction_if_not_exists,
 )
 @patch("saleor.payment.gateways.stripe.webhooks.order_voided", wraps=order_voided)
 def test_handle_failed_payment_intent_different_order_channel_slug(
-    wrapped_update_payment_with_new_transaction,
+    wrapped_create_transaction_if_not_exists,
     wrapped_order_voided,
     payment_stripe_for_order,
     stripe_plugin,
@@ -832,18 +875,18 @@ def test_handle_failed_payment_intent_different_order_channel_slug(
     )
 
     # then
-    assert wrapped_update_payment_with_new_transaction.called == called
+    assert wrapped_create_transaction_if_not_exists.called == called
     assert wrapped_order_voided.called == called
 
 
 @pytest.mark.parametrize("called", [True, False])
 @patch("saleor.payment.gateways.stripe.webhooks.order_voided", wraps=order_voided)
 @patch(
-    "saleor.payment.gateways.stripe.webhooks._update_payment_with_new_transaction",
-    wraps=_update_payment_with_new_transaction,
+    "saleor.payment.gateways.stripe.webhooks._create_transaction_if_not_exists",
+    wraps=_create_transaction_if_not_exists,
 )
 def test_handle_failed_payment_intent_different_checkout_channel_slug(
-    wrapped_update_payment_with_new_transaction,
+    wrapped_create_transaction_if_not_exists,
     wrapped_order_voided,
     payment_stripe_for_checkout,
     stripe_plugin,
@@ -877,7 +920,7 @@ def test_handle_failed_payment_intent_different_checkout_channel_slug(
     )
 
     # then
-    assert wrapped_update_payment_with_new_transaction.called == called
+    assert wrapped_create_transaction_if_not_exists.called == called
     assert not wrapped_order_voided.called
 
 
@@ -990,11 +1033,11 @@ def test_handle_refund_already_processed(
 
 @pytest.mark.parametrize("called", [True, False])
 @patch(
-    "saleor.payment.gateways.stripe.webhooks._update_payment_with_new_transaction",
-    wraps=_update_payment_with_new_transaction,
+    "saleor.payment.gateways.stripe.webhooks._create_transaction_if_not_exists",
+    wraps=_create_transaction_if_not_exists,
 )
 def test_handle_refund_different_order_channel_slug(
-    wrapped_update_payment_with_new_transaction,
+    wrapped_create_transaction_if_not_exists,
     stripe_plugin,
     payment_stripe_for_order,
     channel_USD,
@@ -1031,16 +1074,16 @@ def test_handle_refund_different_order_channel_slug(
     handle_refund(charge, plugin.config, channel.slug, get_plugins_manager())
 
     # then
-    assert wrapped_update_payment_with_new_transaction.called == called
+    assert wrapped_create_transaction_if_not_exists.called == called
 
 
 @pytest.mark.parametrize("called", [True, False])
 @patch(
-    "saleor.payment.gateways.stripe.webhooks._update_payment_with_new_transaction",
-    wraps=_update_payment_with_new_transaction,
+    "saleor.payment.gateways.stripe.webhooks._create_transaction_if_not_exists",
+    wraps=_create_transaction_if_not_exists,
 )
 def test_handle_refund_different_checkout_channel_slug(
-    wrapped_update_payment_with_new_transaction,
+    wrapped_create_transaction_if_not_exists,
     stripe_plugin,
     payment_stripe_for_checkout,
     channel_USD,
@@ -1077,7 +1120,7 @@ def test_handle_refund_different_checkout_channel_slug(
     handle_refund(charge, plugin.config, channel.slug, get_plugins_manager())
 
     # then
-    assert wrapped_update_payment_with_new_transaction.called == called
+    assert wrapped_create_transaction_if_not_exists.called == called
 
 
 @pytest.mark.parametrize(
