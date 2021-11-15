@@ -7,6 +7,7 @@ import requests
 
 from .... import PaymentError
 from .. import api, get_api_config
+from ..plugin import NPAtobaraiGatewayPlugin
 
 
 @pytest.fixture
@@ -256,7 +257,7 @@ def test_report_fulfillment_already_captured(
 
 @pytest.fixture
 def payment_np(payment_dummy):
-    payment_dummy.gateway = "mirumee.payments.np-atobarai"
+    payment_dummy.gateway = NPAtobaraiGatewayPlugin.PLUGIN_ID
     payment_dummy.save(update_fields=["gateway"])
     return payment_dummy
 
