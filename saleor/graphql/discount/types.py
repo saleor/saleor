@@ -20,7 +20,7 @@ from ..core.scalars import PositiveDecimal
 from ..core.types import Money
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
-from ..product.types import Category, Collection, Product
+from ..product.types import Category, Collection, Product, ProductVariant
 from ..translations.fields import TranslationField
 from ..translations.types import SaleTranslation, VoucherTranslation
 from .dataloaders import (
@@ -53,6 +53,10 @@ class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     products = ChannelContextFilterConnectionField(
         Product, description="List of products this sale applies to."
+    )
+    variants = ChannelContextFilterConnectionField(
+        ProductVariant,
+        description="List of product variants this sale applies to.",
     )
     translation = TranslationField(
         SaleTranslation,
@@ -95,6 +99,12 @@ class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_products(root: ChannelContext[models.Sale], info, **_kwargs):
         qs = root.node.products.all()
+        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+
+    @staticmethod
+    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
+    def resolve_variants(root: ChannelContext[models.Sale], info, **_kwargs):
+        qs = root.node.variants.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
@@ -149,6 +159,10 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     products = ChannelContextFilterConnectionField(
         Product, description="List of products this voucher applies to."
+    )
+    variants = ChannelContextFilterConnectionField(
+        ProductVariant,
+        description="List of product variants this voucher applies to.",
     )
     countries = graphene.List(
         types.CountryDisplay,
@@ -215,6 +229,12 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_products(root: ChannelContext[models.Voucher], info, **_kwargs):
         qs = root.node.products.all()
+        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+
+    @staticmethod
+    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
+    def resolve_variants(root: ChannelContext[models.Voucher], info, **_kwargs):
+        qs = root.node.variants.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod

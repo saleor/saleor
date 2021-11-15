@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional
 from urllib.parse import urlencode
 
@@ -7,6 +8,7 @@ from graphql_relay import to_global_id
 from ..account.models import StaffNotificationRecipient
 from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
+from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils.url import prepare_url
 from ..discount import OrderDiscountType
 from ..product import ProductMediaTypes
@@ -98,6 +100,8 @@ def get_order_line_payload(line: "OrderLine"):
             "product": get_product_payload(line.variant.product),
             "variant": get_product_variant_payload(line.variant),
         }
+    currency = line.currency
+
     return {
         "id": line.id,
         "product": variant_dependent_fields.get("product"),  # type: ignore
@@ -109,13 +113,15 @@ def get_order_line_payload(line: "OrderLine"):
         "product_sku": line.product_sku,
         "quantity": line.quantity,
         "quantity_fulfilled": line.quantity_fulfilled,
-        "currency": line.currency,
-        "unit_price_net_amount": line.unit_price.net.amount,
-        "unit_price_gross_amount": line.unit_price.gross.amount,
-        "unit_tax_amount": line.unit_price.tax.amount,
-        "total_gross_amount": line.total_price.gross.amount,
-        "total_net_amount": line.total_price.net.amount,
-        "total_tax_amount": line.total_price.tax.amount,
+        "currency": currency,
+        "unit_price_net_amount": quantize_price(line.unit_price.net.amount, currency),
+        "unit_price_gross_amount": quantize_price(
+            line.unit_price.gross.amount, currency
+        ),
+        "unit_tax_amount": quantize_price(line.unit_price.tax.amount, currency),
+        "total_gross_amount": quantize_price(line.total_price.gross.amount, currency),
+        "total_net_amount": quantize_price(line.total_price.net.amount, currency),
+        "total_tax_amount": quantize_price(line.total_price.tax.amount, currency),
         "tax_rate": line.tax_rate,
         "is_shipping_required": line.is_shipping_required,
         "is_digital": line.is_digital,
@@ -190,7 +196,6 @@ ORDER_MODEL_FIELDS = [
     "token",
     "display_gross_prices",
     "currency",
-    "discount_amount",
     "total_gross_amount",
     "total_net_amount",
     "undiscounted_total_gross_amount",
@@ -202,13 +207,20 @@ ORDER_MODEL_FIELDS = [
     "language_code",
 ]
 
+ORDER_PRICE_FIELDS = [
+    "total_gross_amount",
+    "total_net_amount",
+    "undiscounted_total_gross_amount",
+    "undiscounted_total_net_amount",
+]
+
 
 def get_default_order_payload(order: "Order", redirect_url: str = ""):
     order_details_url = ""
     if redirect_url:
         order_details_url = prepare_order_details_url(order, redirect_url)
     subtotal = order.get_subtotal()
-    tax = order.total_gross_amount - order.total_net_amount
+    tax = order.total_gross_amount - order.total_net_amount or Decimal(0)
 
     lines = order.lines.prefetch_related(
         "variant__product__media",
@@ -216,6 +228,8 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
         "variant__product__attributes__assignment__attribute",
         "variant__product__attributes__values",
     ).all()
+    currency = order.currency
+    quantize_price_fields(order, fields=ORDER_PRICE_FIELDS, currency=currency)
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
     order_payload.update(
         {
@@ -226,9 +240,9 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
             "shipping_price_gross_amount": order.shipping_price_gross_amount,
             "order_details_url": order_details_url,
             "email": order.get_customer_email(),
-            "subtotal_gross_amount": subtotal.gross.amount,
-            "subtotal_net_amount": subtotal.net.amount,
-            "tax_amount": tax,
+            "subtotal_gross_amount": quantize_price(subtotal.gross.amount, currency),
+            "subtotal_net_amount": quantize_price(subtotal.net.amount, currency),
+            "tax_amount": quantize_price(tax, currency),
             "lines": get_lines_payload(lines),
             "billing_address": get_address_payload(order.billing_address),
             "shipping_address": get_address_payload(order.shipping_address),
@@ -335,12 +349,13 @@ def send_fulfillment_update(order, fulfillment, manager):
 
 
 def _prepare_payment_data(payment):
+    payment_currency = payment.currency
     data = {
         "created": payment.created,
         "modified": payment.modified,
         "charge_status": payment.charge_status,
-        "total": payment.total,
-        "captured_amount": payment.captured_amount,
+        "total": quantize_price(payment.total, payment_currency),
+        "captured_amount": quantize_price(payment.captured_amount, payment_currency),
         "currency": payment.currency,
     }
 
@@ -349,7 +364,6 @@ def _prepare_payment_data(payment):
 
 def send_payment_confirmation(order, manager):
     """Send notification with the payment confirmation."""
-
     payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
@@ -399,12 +413,12 @@ def send_order_refunded_confirmation(
     payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
-        "amount": total_amount,
+        "amount": quantize_price(total_amount, currency),
         "currency": currency,
         "refunds": [
             {
                 "payment_id": to_global_id("Payment", item.payment.id),
-                "amount": item.amount,
+                "amount": quantize_price(item.amount, currency),
                 "gateway": item.payment.gateway,
             }
             for item in payments

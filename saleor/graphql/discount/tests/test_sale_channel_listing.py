@@ -314,3 +314,80 @@ def test_sale_channel_listing_update_with_invalid_percentage_value(
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["field"] == "input"
     assert errors[0]["channels"] == [channel_id]
+
+
+SALE_AND_SALE_CHANNEL_LISTING_UPDATE_MUTATION = """
+mutation UpdateSaleChannelListing(
+    $id: ID!
+    $saleInput: SaleInput!
+    $channelInput: SaleChannelListingInput!
+) {
+    saleUpdate(id: $id, input: $saleInput) {
+        errors {
+            code
+        }
+        sale {
+            channelListings {
+                id
+            }
+        }
+    }
+    saleChannelListingUpdate(id: $id, input: $channelInput) {
+        errors {
+            code
+        }
+        sale {
+            channelListings {
+                id
+                channel {
+                    id
+                }
+            }
+        }
+    }
+}
+"""
+
+
+def test_invalidate_data_sale_channel_listings_update(
+    staff_api_client, sale, permission_manage_discounts, channel_USD
+):
+    # given
+    discount_value = 10
+    sale.channel_listings.all().delete()
+    sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": sale_id,
+        "saleInput": {},
+        "channelInput": {
+            "addChannels": [{"channelId": channel_id, "discountValue": discount_value}],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_AND_SALE_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    channel_listing = sale.channel_listings.first()
+    assert channel_listing.discount_value == discount_value
+    assert channel_listing.channel_id == channel_USD.id
+
+    sale_errors = content["data"]["saleUpdate"]["errors"]
+    channel_listings_errors = content["data"]["saleChannelListingUpdate"]["errors"]
+    assert not sale_errors
+    assert not channel_listings_errors
+
+    sale_data = content["data"]["saleUpdate"]["sale"]
+    channel_listings_data = content["data"]["saleChannelListingUpdate"]["sale"]
+
+    # response from the first mutation is empty
+    assert sale_data["channelListings"] == []
+
+    # response from the second mutation contains data
+    assert channel_listings_data["channelListings"][0]["channel"]["id"] == channel_id

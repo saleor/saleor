@@ -4,10 +4,12 @@ from unittest import mock
 from unittest.mock import Mock, patch
 
 import pytest
+from django.core.exceptions import ValidationError
 from stripe.stripe_object import StripeObject
 
 from .....checkout.complete_checkout import complete_checkout
 from .....plugins.manager import get_plugins_manager
+from .....tests.utils import flush_post_commit_hooks
 from .... import ChargeStatus, TransactionKind
 from ....utils import price_to_minor_unit
 from ..consts import (
@@ -74,6 +76,42 @@ def test_handle_successful_payment_intent_for_checkout(
     assert payment.order.checkout_token == str(checkout_with_items.token)
     transaction = payment.transactions.get(kind=TransactionKind.CAPTURE)
     assert transaction.token == payment_intent.id
+
+
+@patch("saleor.payment.gateway.refund")
+@patch("saleor.checkout.complete_checkout._get_order_data")
+def test_handle_successful_payment_intent_when_order_creation_raises_exception(
+    order_data_mock,
+    refund_mock,
+    payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+    stripe_payment_intent,
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+    payment = payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.CAPTURE,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    handle_successful_payment_intent(
+        stripe_payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
+
+    flush_post_commit_hooks()
+    payment.refresh_from_db()
+    assert not payment.order
+    assert refund_mock.called
 
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentMethod.modify")
@@ -345,6 +383,43 @@ def test_handle_authorized_payment_intent_for_order_with_auth_action_required(
     assert wrapped_checkout_complete.called is False
 
 
+@patch("saleor.checkout.complete_checkout._get_order_data")
+@patch("saleor.payment.gateway.void")
+def test_handle_authorized_payment_intent_when_order_creation_raises_exception(
+    void_mock,
+    order_data_mock,
+    payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+    stripe_payment_intent,
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+    payment = payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    handle_authorized_payment_intent(
+        stripe_payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
+
+    flush_post_commit_hooks()
+    payment.refresh_from_db()
+
+    assert not payment.order
+    assert void_mock.called
+
+
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
@@ -457,6 +532,47 @@ def test_handle_processing_payment_intent_for_checkout(
     assert payment.order.checkout_token == str(checkout_with_items.token)
     transaction = payment.transactions.get(kind=TransactionKind.PENDING)
     assert transaction.token == payment_intent.id
+
+
+@patch("saleor.checkout.complete_checkout._get_order_data")
+@patch("saleor.payment.gateway.void")
+@patch("saleor.payment.gateway.refund")
+def test_handle_processing_payment_intent_when_order_creation_raises_exception(
+    refund_mock,
+    void_mock,
+    order_data_mock,
+    payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+    stripe_payment_intent,
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+    payment = payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    stripe_payment_intent["status"] = PROCESSING_STATUS
+
+    handle_processing_payment_intent(
+        stripe_payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
+
+    payment.refresh_from_db()
+
+    assert not payment.order
+    assert not void_mock.called
+    assert not refund_mock.called
 
 
 def test_handle_failed_payment_intent_for_checkout(
