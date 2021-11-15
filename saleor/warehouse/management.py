@@ -259,7 +259,11 @@ def decrease_allocations(lines_info: Iterable["OrderLineData"]):
 
 
 @traced_atomic_transaction()
-def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=True):
+def decrease_stock(
+    order_lines_info: Iterable["OrderLineData"],
+    update_stocks=True,
+    allow_stock_to_be_exceeded: bool = False,
+):
     """Decrease stocks quantities for given `order_lines` in given warehouses.
 
     Function deallocate as many quantities as requested if order_line has less quantity
@@ -269,6 +273,7 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=Tr
     function decrease it by given value.
     If update_stocks is False, allocations will decrease but stocks quantities
     will stay unmodified (case of unconfirmed order editing).
+    If allow_stock_to_be_exceeded flag is True then quantity could be < 0.
     """
     variants = [line_info.variant for line_info in order_lines_info]
     warehouse_pks = [line_info.warehouse_pk for line_info in order_lines_info]
@@ -313,6 +318,7 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=Tr
             order_lines_info,
             variant_and_warehouse_to_stock,
             quantity_allocation_for_stocks,
+            allow_stock_to_be_exceeded,
         )
 
 
@@ -320,6 +326,7 @@ def _decrease_stocks_quantity(
     order_lines_info: Iterable["OrderLineData"],
     variant_and_warehouse_to_stock: Dict[int, Dict[str, Stock]],
     quantity_allocation_for_stocks: Dict[int, int],
+    allow_stock_to_be_exceeded: bool = False,
 ):
     insufficient_stocks: List[InsufficientStockData] = []
     stocks_to_update = []
@@ -330,16 +337,20 @@ def _decrease_stocks_quantity(
             warehouse_pk
         )
         if stock is None:
-            insufficient_stocks.append(
-                InsufficientStockData(
-                    variant, line_info.line, warehouse_pk  # type: ignore
+            # If there is no stock but allow_stock_to_be_exceeded == True
+            # we proceed with fulfilling the order, treat as error otherwise
+            if not allow_stock_to_be_exceeded:
+                insufficient_stocks.append(
+                    InsufficientStockData(
+                        variant, line_info.line, warehouse_pk  # type: ignore
+                    )
                 )
-            )
             continue
 
         quantity_allocated = quantity_allocation_for_stocks.get(stock.pk, 0)
 
-        if stock.quantity - quantity_allocated < line_info.quantity:
+        is_stock_exceeded = stock.quantity - quantity_allocated < line_info.quantity
+        if is_stock_exceeded and not allow_stock_to_be_exceeded:
             insufficient_stocks.append(
                 InsufficientStockData(
                     variant=variant,  # type: ignore
