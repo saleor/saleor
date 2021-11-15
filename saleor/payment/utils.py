@@ -247,9 +247,9 @@ def _prepare_refund_lines(
     )
 
     current_order_refund_lines = (
-        (o_variant_id, line.quantity)
+        (variant.id, line.quantity)
         for line in order_lines_to_refund
-        if (o_variant_id := line.line.variant_id)
+        if (variant := line.variant)
     )
 
     current_fulfillment_refund_lines = (

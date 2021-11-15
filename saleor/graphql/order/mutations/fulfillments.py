@@ -499,6 +499,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     line.pk,
                     "order_line_id",
                 )
+            variant = line.variant
             replace = line_data.get("replace", False)
             if replace and not line.variant_id:
                 cls._raise_error_for_line(
@@ -509,7 +510,9 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                 )
 
             cleaned_order_lines.append(
-                OrderLineData(line=line, quantity=quantity, replace=replace)
+                OrderLineData(
+                    line=line, quantity=quantity, variant=variant, replace=replace
+                )
             )
         cleaned_input["order_lines"] = cleaned_order_lines
 
