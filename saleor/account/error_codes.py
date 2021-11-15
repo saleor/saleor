@@ -34,6 +34,7 @@ class AccountErrorCode(Enum):
     JWT_INVALID_CSRF_TOKEN = "invalid_csrf_token"
     CHANNEL_INACTIVE = "channel_inactive"
     MISSING_CHANNEL_SLUG = "missing_channel_slug"
+    ACCOUNT_NOT_CONFIRMED = "account_not_confirmed"
 
 
 class PermissionGroupErrorCode(Enum):

@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 
 class NPAtobaraiGatewayPlugin(BasePlugin):
-    PLUGIN_ID = "mirumee.payments.np-atobarai"
+    PLUGIN_ID = "saleor.payments.np-atobarai"
     PLUGIN_NAME = GATEWAY_NAME
     CONFIGURATION_PER_CHANNEL = True
     SUPPORTED_CURRENCIES = "JPY"

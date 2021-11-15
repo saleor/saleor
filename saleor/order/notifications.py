@@ -218,6 +218,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
     order_payload.update(
         {
+            "number": order.id,
             "channel_slug": order.channel.slug,
             "created": str(order.created),
             "shipping_price_net_amount": order.shipping_price_net_amount,

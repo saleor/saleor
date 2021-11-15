@@ -55,18 +55,23 @@ T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
 
 
 def _clean_product_attributes_filter_input(filter_value, queries):
+    attribute_slugs = []
+    value_slugs = []
+    for attr_slug, val_slugs in filter_value:
+        attribute_slugs.append(attr_slug)
+        value_slugs.extend(val_slugs)
     attributes_slug_pk_map: Dict[str, int] = {}
     attributes_pk_slug_map: Dict[int, str] = {}
     values_map: Dict[str, Dict[str, int]] = defaultdict(dict)
-    for attr_slug, attr_pk in Attribute.objects.values_list("slug", "id"):
+    for attr_slug, attr_pk in Attribute.objects.filter(
+        slug__in=attribute_slugs
+    ).values_list("slug", "id"):
         attributes_slug_pk_map[attr_slug] = attr_pk
         attributes_pk_slug_map[attr_pk] = attr_slug
 
-    for (
-        attr_pk,
-        value_pk,
-        value_slug,
-    ) in AttributeValue.objects.values_list("attribute_id", "pk", "slug"):
+    for (attr_pk, value_pk, value_slug,) in AttributeValue.objects.filter(
+        slug__in=value_slugs, attribute_id__in=attributes_pk_slug_map.keys()
+    ).values_list("attribute_id", "pk", "slug"):
         attr_slug = attributes_pk_slug_map[attr_pk]
         values_map[attr_slug][value_slug] = value_pk
 
@@ -622,14 +627,18 @@ class CollectionFilter(MetadataFilterBase):
     published = EnumFilter(
         input_class=CollectionPublished, method="filter_is_published"
     )
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("slug", "name")
-    )
+    search = django_filters.CharFilter(method="collection_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = Collection
         fields = ["published", "search"]
+
+    def collection_filter_search(self, queryset, _name, value):
+        if not value:
+            return queryset
+        name_slug_qs = Q(name__ilike=value) | Q(slug__ilike=value)
+        return queryset.filter(name_slug_qs)
 
     def filter_is_published(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
@@ -641,20 +650,28 @@ class CollectionFilter(MetadataFilterBase):
 
 
 class CategoryFilter(MetadataFilterBase):
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("slug", "name", "description")
-    )
+    search = django_filters.CharFilter(method="category_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = Category
         fields = ["search"]
 
+    @classmethod
+    def category_filter_search(cls, queryset, _name, value):
+        if not value:
+            return queryset
+        name_slug_desc_qs = (
+            Q(name__ilike=value)
+            | Q(slug__ilike=value)
+            | Q(description_plaintext__ilike=value)
+        )
+
+        return queryset.filter(name_slug_desc_qs)
+
 
 class ProductTypeFilter(MetadataFilterBase):
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("name", "slug")
-    )
+    search = django_filters.CharFilter(method="filter_product_type_searchable")
 
     configurable = EnumFilter(
         input_class=ProductTypeConfigurable, method=filter_product_type_configurable
@@ -666,6 +683,13 @@ class ProductTypeFilter(MetadataFilterBase):
     class Meta:
         model = ProductType
         fields = ["search", "configurable", "product_type"]
+
+    @classmethod
+    def filter_product_type_searchable(cls, queryset, _name, value):
+        if not value:
+            return queryset
+        name_slug_qs = Q(name__ilike=value) | Q(slug__ilike=value)
+        return queryset.filter(name_slug_qs)
 
 
 class ProductFilterInput(ChannelFilterInputObjectType):

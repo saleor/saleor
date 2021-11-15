@@ -4,6 +4,12 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Mark `X-` headers as deprecated and add headers without prefix. All deprecated headers will be removed in Saleor 4.0 - #8179 by @L3str4nge
+    * X-Saleor-Event -> Saleor-Event
+    * X-Saleor-Domain -> Saleor-Domain
+    * X-Saleor-Signature -> Saleor-Signature
+    * X-Saleor-HMAC-SHA256 -> Saleor-HMAC-SHA256
+- Improve draft orders and orders webhooks - #SALEOR-4008 by @jakubkuc
 - Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
@@ -143,6 +149,9 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add new permision `IMPERSONATE_USER`
 - Fix missing transaction id in Braintree - #8110 by @fowczarek
 - Fix GraphQL federation support. - #7771 #8107 by @rafalp
+- Remove unnecessary database lock on discount during checkout complete mutation - #8174 by @fowczarek
+- Fix cursor-based pagination in products search - #8011 #8211 by @rafalp
+- Batch loads in queries for Apollo Federation - #8362 by @rafalp
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
