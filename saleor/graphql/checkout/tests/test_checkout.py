@@ -1558,26 +1558,17 @@ def test_checkout_available_shipping_methods_excluded_postal_codes(
     assert data["availableShippingMethods"] == []
 
 
-@pytest.mark.parametrize(
-    "expected_price_type, expected_price, display_gross_prices",
-    (("gross", 13, True), ("net", 10, False)),
-)
 @patch("saleor.checkout.utils.identical_taxed_money")
 def test_checkout_available_shipping_methods_with_price_displayed(
     mocked_money,
-    expected_price_type,
-    expected_price,
-    display_gross_prices,
     monkeypatch,
     api_client,
     checkout_with_item,
     address,
     shipping_zone,
-    site_settings,
 ):
-    mocked_money.return_value = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
-    site_settings.display_gross_prices = display_gross_prices
-    site_settings.save()
+    expected_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
+    mocked_money.return_value = expected_price
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
 
@@ -1589,7 +1580,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     data = content["data"]["checkout"]
 
     assert data["availableShippingMethods"] == [
-        {"name": "DHL", "price": {"amount": expected_price}}
+        {"name": "DHL", "price": {"amount": expected_price.net.amount}}
     ]
 
 
