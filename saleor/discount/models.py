@@ -63,7 +63,7 @@ class Voucher(ModelWithMetadata):
         max_length=20, choices=VoucherType.CHOICES, default=VoucherType.ENTIRE_ORDER
     )
     name = models.CharField(max_length=255, null=True, blank=True)
-    code = models.CharField(max_length=16, unique=True, db_index=True)
+    code = models.CharField(max_length=255, unique=True, db_index=True)
     usage_limit = models.PositiveIntegerField(null=True, blank=True)
     used = models.PositiveIntegerField(default=0, editable=False)
     start_date = models.DateTimeField(default=timezone.now)

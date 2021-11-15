@@ -2,6 +2,8 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+
+# 3.1.0 [Unreleased]
 # 3.1.0 [Unreleased]
 - Extend app by `AppExtension` - #7701 by @korycins
 - Deprecate interface field `PaymentData.reuse_source` - #7988 by @mateuszgrzyb
@@ -274,6 +276,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - drop `channel` field from filters and sorters
 - Drop top-level `checkoutLine` query from the schema with related resolver, use `checkout` query instead - #7623 by @dexon44
 - Make SKU an optional field on `ProductVariant` - #7633 by @rafalp
+- Change metadata mutations to use token for order and checkout as identifier - #8426 by @IKarbowiak
+  - After changes, using the order `id` for changing order metadata is deprecated
 
 ### Other
 

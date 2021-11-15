@@ -1,22 +1,34 @@
-I want to merge this change because...
+## :memo: Description
 
-<!-- Please mention all relevant issue numbers. -->
+<!-- Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change. -->
 
-# Impact
+### :dart: Relevant issues
 
-* [ ] New migrations
-* [ ] New/Updated API fields or mutations
-* [ ] Deprecated API fields or mutations
-* [ ] Removed API types, fields, or mutations
-* [ ] Documentation needs to be updated
+<!-- Please add relevant opened issues -->
 
-# Pull Request Checklist
+### :gem: Type of change
 
-<!-- Please keep this section. It will make the maintainer's life easier. -->
+<!-- Please delete options that are not relevant. -->
 
-* [ ] Privileged queries and mutations are guarded by proper permission checks
-* [ ] Database queries are optimized and the number of queries is constant
-* [ ] Database migration files are up to date
-* [ ] The changes are tested
-* [ ] GraphQL schema and type definitions are up to date
-* [ ] Changes are mentioned in the changelog
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] This change requires frontend update
+
+## :vertical_traffic_light: How Has This Been Tested?
+
+Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
+
+- [ ] Test A 
+```graphql
+
+```
+- [ ] Test B
+
+## :checkered_flag: Checklist:
+
+- [ ] My code follows the style guidelines of this project
+- [ ] I have performed a self-review of my own code
+- [ ] **I have added tests that prove my fix is effective or that my feature works**
+- [ ] **New and existing unit tests pass locally with my changes**
+- [ ] I have commented my code, particularly in hard-to-understand areas

@@ -102,12 +102,7 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
         description = "Assign attributes to a given product type."
         error_type_class = ProductError
         error_type_field = "product_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.has_perm(
-            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
-        )
+        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
 
     @classmethod
     def get_operations(cls, info, operations: List[ProductAttributeAssignInput]):
@@ -320,12 +315,7 @@ class ProductAttributeUnassign(BaseMutation):
         description = "Un-assign attributes from a given product type."
         error_type_class = ProductError
         error_type_field = "product_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.has_perm(
-            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
-        )
+        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
 
     @classmethod
     def save_field_values(cls, product_type, field, pks):

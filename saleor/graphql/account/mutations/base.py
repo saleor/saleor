@@ -15,6 +15,7 @@ from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
+from ....giftcard.utils import assign_user_gift_cards
 from ....graphql.utils import get_user_or_app_from_context
 from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
@@ -228,7 +229,10 @@ class ConfirmAccount(BaseMutation):
 
         user.is_active = True
         user.save(update_fields=["is_active"])
+
         match_orders_with_new_user(user)
+        assign_user_gift_cards(user)
+
         return ConfirmAccount(user=user)
 
 
