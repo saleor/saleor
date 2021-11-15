@@ -158,6 +158,7 @@ def _create_transaction_if_not_exists(
         token=transaction_id,
         kind=kind,
         is_success=True,
+        action_required=False,
     ).exists():
         return None
 

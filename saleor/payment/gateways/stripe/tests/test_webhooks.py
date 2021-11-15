@@ -305,6 +305,49 @@ def test_handle_authorized_payment_intent_for_checkout(
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
+def test_handle_authorized_payment_intent_for_order_with_auth_action_required(
+    wrapped_checkout_complete,
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
+):
+    # given
+    token = "afd4g2"
+    payment = payment_stripe_for_order
+    payment.charge_status = ChargeStatus.PENDING
+    payment.save()
+    payment.transactions.filter(kind=TransactionKind.AUTH).delete()
+    payment.transactions.create(
+        token=token,
+        kind=TransactionKind.AUTH,
+        is_success=True,
+        action_required=True,
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    payment_intent = StripeObject(id=token, last_response={})
+    payment_intent["amount"] = payment.total
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = AUTHORIZED_STATUS
+
+    # when
+    handle_authorized_payment_intent(
+        payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
+
+    # then
+    payment.refresh_from_db()
+    assert payment.is_active
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
+    assert payment.captured_amount == 0.00
+    assert payment.transactions.filter(kind=TransactionKind.AUTH).count() == 2
+    assert wrapped_checkout_complete.called is False
+
+
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
 def test_handle_authorized_payment_intent_for_order(
     wrapped_checkout_complete,
     payment_stripe_for_order,
