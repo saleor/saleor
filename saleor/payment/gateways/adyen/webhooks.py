@@ -208,7 +208,6 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
     ):  # type: ignore
 
         confirm_payment_and_set_back_to_confirm(payment, manager, checkout.channel.slug)
-        payment.refresh_from_db()  # refresh charge_status
         order = create_order(payment, checkout, manager)
         return order
     return None
@@ -858,9 +857,9 @@ def handle_api_response(payment: Payment, response: Adyen.Adyen, channel_slug: s
         manager = get_plugins_manager()
 
         confirm_payment_and_set_back_to_confirm(payment, manager, channel_slug)
-        payment.refresh_from_db()  # refresh charge_status
 
-        create_order(payment, checkout, manager)
+        if payment.can_create_order():
+            create_order(payment, checkout, manager)
 
 
 def confirm_payment_and_set_back_to_confirm(payment, manager, channel_slug):
@@ -881,3 +880,4 @@ def confirm_payment_and_set_back_to_confirm(payment, manager, channel_slug):
     gateway.confirm(payment, manager, channel_slug)
     payment.to_confirm = True
     payment.save(update_fields=["to_confirm"])
+    payment.refresh_from_db()  # refresh charge_status

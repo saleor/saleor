@@ -88,7 +88,7 @@ def order_created(
             app=app,
             payment_actions=[
                 OrderPaymentAction(
-                    amount=payment.captured_amount,
+                    amount=payment.total,
                     payment=payment,
                 )
                 for payment in authorized_payments
