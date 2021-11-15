@@ -8,8 +8,9 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...plugins.manager import get_plugins_manager
-from .. import OrderLineData, OrderStatus
+from .. import OrderStatus
 from ..events import OrderEvents
+from ..fetch import OrderLineInfo
 from ..models import Order, OrderEvent
 from ..utils import (
     add_gift_cards_to_order,
@@ -45,7 +46,7 @@ def test_change_quantity_generates_proper_event(
 
     line = order_with_lines.lines.last()
     line.quantity = previous_quantity
-    line_info = OrderLineData(
+    line_info = OrderLineInfo(
         line=line,
         quantity=line.quantity,
         variant=line.variant,
@@ -93,7 +94,7 @@ def test_change_quantity_update_line_fields(
 ):
     # given
     line = order_with_lines.lines.last()
-    line_info = OrderLineData(
+    line_info = OrderLineInfo(
         line=line,
         quantity=line.quantity,
         variant=line.variant,

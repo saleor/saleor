@@ -13,7 +13,7 @@ from ..core.exceptions import (
     PreorderAllocationError,
 )
 from ..core.tracing import traced_atomic_transaction
-from ..order import OrderLineData
+from ..order.fetch import OrderLineInfo
 from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
 from .models import Allocation, PreorderAllocation, Reservation, Stock, Warehouse
@@ -27,7 +27,7 @@ StockData = namedtuple("StockData", ["pk", "quantity"])
 
 @traced_atomic_transaction()
 def allocate_stocks(
-    order_lines_info: Iterable["OrderLineData"],
+    order_lines_info: Iterable["OrderLineInfo"],
     country_code: str,
     channel_slug: str,
     manager: PluginsManager,
@@ -137,7 +137,7 @@ def allocate_stocks(
 
 
 def _create_allocations(
-    line_info: "OrderLineData",
+    line_info: "OrderLineInfo",
     stocks: List[StockData],
     stocks_allocations: dict,
     stocks_reservations: dict,
@@ -178,7 +178,7 @@ def _create_allocations(
 
 @traced_atomic_transaction()
 def deallocate_stock(
-    order_lines_data: Iterable["OrderLineData"], manager: PluginsManager
+    order_lines_data: Iterable["OrderLineInfo"], manager: PluginsManager
 ):
     """Deallocate stocks for given `order_lines`.
 
@@ -294,7 +294,7 @@ def increase_stock(
 
 @traced_atomic_transaction()
 def increase_allocations(
-    lines_info: Iterable["OrderLineData"], channel_slug: str, manager: PluginsManager
+    lines_info: Iterable["OrderLineInfo"], channel_slug: str, manager: PluginsManager
 ):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
@@ -325,7 +325,7 @@ def increase_allocations(
     )
 
 
-def decrease_allocations(lines_info: Iterable["OrderLineData"], manager):
+def decrease_allocations(lines_info: Iterable["OrderLineInfo"], manager):
     """Decreate allocations for provided order lines."""
     tracked_lines = get_order_lines_with_track_inventory(lines_info)
     if not tracked_lines:
@@ -335,7 +335,7 @@ def decrease_allocations(lines_info: Iterable["OrderLineData"], manager):
 
 @traced_atomic_transaction()
 def decrease_stock(
-    order_lines_info: Iterable["OrderLineData"],
+    order_lines_info: Iterable["OrderLineInfo"],
     manager,
     update_stocks=True,
     allow_stock_to_be_exceeded: bool = False,
@@ -407,7 +407,7 @@ def decrease_stock(
 
 
 def _decrease_stocks_quantity(
-    order_lines_info: Iterable["OrderLineData"],
+    order_lines_info: Iterable["OrderLineInfo"],
     variant_and_warehouse_to_stock: Dict[int, Dict[str, Stock]],
     quantity_allocation_for_stocks: Dict[int, int],
     allow_stock_to_be_exceeded: bool = False,
@@ -453,8 +453,8 @@ def _decrease_stocks_quantity(
 
 
 def get_order_lines_with_track_inventory(
-    order_lines_info: Iterable["OrderLineData"],
-) -> Iterable["OrderLineData"]:
+    order_lines_info: Iterable["OrderLineInfo"],
+) -> Iterable["OrderLineInfo"]:
     """Return order lines with variants with track inventory set to True."""
     return [
         line_info
@@ -482,7 +482,7 @@ def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
 
 
 @traced_atomic_transaction()
-def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug: str):
+def allocate_preorders(order_lines_info: Iterable["OrderLineInfo"], channel_slug: str):
     """Allocate preorder variant for given `order_lines` in given channel."""
     order_lines_info = get_order_lines_with_preorder(order_lines_info)
     if not order_lines_info:
@@ -552,8 +552,8 @@ def allocate_preorders(order_lines_info: Iterable["OrderLineData"], channel_slug
 
 
 def get_order_lines_with_preorder(
-    order_lines_info: Iterable["OrderLineData"],
-) -> Iterable["OrderLineData"]:
+    order_lines_info: Iterable["OrderLineInfo"],
+) -> Iterable["OrderLineInfo"]:
     """Return order lines with variants with preorder flag set to True."""
     return [
         line_info
@@ -563,7 +563,7 @@ def get_order_lines_with_preorder(
 
 
 def _create_preorder_allocation(
-    line_info: "OrderLineData",
+    line_info: "OrderLineInfo",
     variant_channel_data: Tuple[int, Optional[int]],
     variant_global_allocation: int,
     quantity_allocation_for_channel: Dict[int, int],

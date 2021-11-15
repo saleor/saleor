@@ -16,7 +16,8 @@ from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
-from ..order import FulfillmentStatus, OrderLineData, OrderStatus
+from ..order import FulfillmentStatus, OrderStatus
+from ..order.fetch import OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
@@ -46,7 +47,7 @@ def get_order_country(order: Order) -> str:
     return address.country.code
 
 
-def order_line_needs_automatic_fulfillment(line_data: OrderLineData) -> bool:
+def order_line_needs_automatic_fulfillment(line_data: OrderLineInfo) -> bool:
     """Check if given line is digital and should be automatically fulfilled."""
     digital_content_settings = get_default_digital_content_settings()
     default_automatic_fulfillment = digital_content_settings["automatic_fulfillment"]
@@ -60,7 +61,7 @@ def order_line_needs_automatic_fulfillment(line_data: OrderLineData) -> bool:
     return False
 
 
-def order_needs_automatic_fulfillment(lines_data: Iterable["OrderLineData"]) -> bool:
+def order_needs_automatic_fulfillment(lines_data: Iterable["OrderLineInfo"]) -> bool:
     """Check if order has digital products which should be automatically fulfilled."""
     for line_data in lines_data:
         if line_data.is_digital and order_line_needs_automatic_fulfillment(line_data):
@@ -322,7 +323,7 @@ def add_variant_to_order(
         line = order.lines.get(variant=variant)
         old_quantity = line.quantity
         new_quantity = old_quantity + quantity
-        line_info = OrderLineData(line=line, quantity=old_quantity)
+        line_info = OrderLineInfo(line=line, quantity=old_quantity)
         change_order_line_quantity(
             user,
             app,
@@ -391,7 +392,7 @@ def add_variant_to_order(
     if allocate_stock:
         increase_allocations(
             [
-                OrderLineData(
+                OrderLineInfo(
                     line=line,
                     quantity=quantity,
                     variant=variant,
@@ -470,7 +471,7 @@ def set_gift_card_user(
 
 
 def _update_allocations_for_line(
-    line_info: OrderLineData,
+    line_info: OrderLineInfo,
     old_quantity: int,
     new_quantity: int,
     channel_slug: str,
@@ -572,12 +573,12 @@ def restock_order_lines(order, manager):
         shipping_zones__countries__contains=country
     ).first()
 
-    dellocating_stock_lines: List[OrderLineData] = []
+    dellocating_stock_lines: List[OrderLineInfo] = []
     for line in order.lines.all():
         if line.variant and line.variant.track_inventory:
             if line.quantity_unfulfilled > 0:
                 dellocating_stock_lines.append(
-                    OrderLineData(line=line, quantity=line.quantity_unfulfilled)
+                    OrderLineInfo(line=line, quantity=line.quantity_unfulfilled)
                 )
             if line.quantity_fulfilled > 0:
                 allocation = line.allocations.first()

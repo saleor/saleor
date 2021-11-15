@@ -10,9 +10,10 @@ from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
-from ....order import OrderData, OrderLineData, OrderOrigin, OrderStatus, events, models
+from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
+from ....order.fetch import OrderInfo, OrderLineInfo
 from ....order.utils import (
     add_variant_to_order,
     get_order_country,
@@ -451,7 +452,7 @@ class DraftOrderComplete(BaseMutation):
         order_lines_info = []
         for line in order.lines.all():
             if line.variant.track_inventory or line.variant.is_preorder_active():
-                line_data = OrderLineData(
+                line_data = OrderLineInfo(
                     line=line, quantity=line.quantity, variant=line.variant
                 )
                 order_lines_info.append(line_data)
@@ -471,7 +472,7 @@ class DraftOrderComplete(BaseMutation):
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})
 
-        order_data = OrderData(
+        order_info = OrderInfo(
             order=order,
             customer_email=order.get_customer_email(),
             channel=channel,
@@ -480,7 +481,7 @@ class DraftOrderComplete(BaseMutation):
         )
 
         order_created(
-            order_data=order_data,
+            order_info=order_info,
             user=info.context.user,
             app=info.context.app,
             manager=info.context.plugins,

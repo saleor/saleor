@@ -4,8 +4,7 @@ from unittest.mock import patch
 import pytest
 from prices import Money, TaxedMoney
 
-from ...order import OrderLineData
-from ...order.fetch import fetch_order_info
+from ...order.fetch import OrderLineInfo, fetch_order_info
 from ...payment import ChargeStatus, PaymentError, TransactionKind
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
@@ -304,7 +303,7 @@ def test_fulfill_order_lines(order_with_lines):
 
     fulfill_order_lines(
         [
-            OrderLineData(
+            OrderLineInfo(
                 line=line,
                 quantity=line.quantity,
                 variant=variant,
@@ -337,13 +336,13 @@ def test_fulfill_order_lines_multiple_lines(order_with_lines):
 
     fulfill_order_lines(
         [
-            OrderLineData(
+            OrderLineInfo(
                 line=lines[0],
                 quantity=lines[0].quantity,
                 variant=variant_1,
                 warehouse_pk=stock_1.warehouse.pk,
             ),
-            OrderLineData(
+            OrderLineInfo(
                 line=lines[1],
                 quantity=lines[1].quantity,
                 variant=variant_2,
@@ -373,7 +372,7 @@ def test_fulfill_order_lines_with_variant_deleted(order_with_lines):
     line.refresh_from_db()
 
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity)], get_plugins_manager()
+        [OrderLineInfo(line=line, quantity=line.quantity)], get_plugins_manager()
     )
 
 
@@ -391,7 +390,7 @@ def test_fulfill_order_lines_without_inventory_tracking(order_with_lines):
 
     fulfill_order_lines(
         [
-            OrderLineData(
+            OrderLineInfo(
                 line=line,
                 quantity=line.quantity,
                 variant=variant,

@@ -59,13 +59,14 @@ from ..discount.models import (
 from ..giftcard import GiftCardEvents
 from ..giftcard.models import GiftCard, GiftCardEvent
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
-from ..order import OrderLineData, OrderOrigin, OrderStatus
+from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
 from ..order.events import (
     OrderEvents,
     fulfillment_refunded_event,
     order_added_products_event,
 )
+from ..order.fetch import OrderLineInfo
 from ..order.models import (
     FulfillmentLine,
     FulfillmentStatus,
@@ -3335,7 +3336,7 @@ def order_fulfill_data(order_with_lines, warehouse):
 @pytest.fixture
 def lines_info(order_with_lines):
     return [
-        OrderLineData(
+        OrderLineInfo(
             line=line,
             quantity=line.quantity,
             variant=line.variant,
@@ -3642,10 +3643,10 @@ def fulfilled_order(order_with_lines):
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity, stock=stock_2)
     fulfill_order_lines(
         [
-            OrderLineData(
+            OrderLineInfo(
                 line=line_1, quantity=line_1.quantity, warehouse_pk=warehouse_1_pk
             ),
-            OrderLineData(
+            OrderLineInfo(
                 line=line_2, quantity=line_2.quantity, warehouse_pk=warehouse_2_pk
             ),
         ],
@@ -3667,7 +3668,7 @@ def fulfilled_order_without_inventory_tracking(
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
         get_plugins_manager(),
     )
     order.status = OrderStatus.FULFILLED

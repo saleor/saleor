@@ -8,7 +8,7 @@ from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards, order_has_gift_card_lines
-from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
+from ....order import FulfillmentStatus, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -20,7 +20,7 @@ from ....order.actions import (
     order_voided,
 )
 from ....order.error_codes import OrderErrorCode
-from ....order.fetch import fetch_order_info
+from ....order.fetch import OrderLineInfo, fetch_order_info
 from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
@@ -886,7 +886,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             if order.is_unconfirmed()
             else None
         )
-        line_info = OrderLineData(
+        line_info = OrderLineInfo(
             line=line,
             quantity=line.quantity,
             variant=line.variant,
@@ -965,7 +965,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
             if instance.order.is_unconfirmed()
             else None
         )
-        line_info = OrderLineData(
+        line_info = OrderLineInfo(
             line=instance,
             quantity=instance.quantity,
             variant=instance.variant,
