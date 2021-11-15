@@ -241,7 +241,10 @@ class WebhookPlugin(BasePlugin):
     ) -> Any:
         if not self.active:
             return previous_value
-        product_variant_data = generate_product_variant_payload([product_variant])
+
+        product_variant_data = generate_product_variant_payload(
+            [product_variant], self.requestor
+        )
         trigger_webhooks_for_event.delay(
             WebhookEventType.PRODUCT_VARIANT_CREATED, product_variant_data
         )
@@ -251,7 +254,9 @@ class WebhookPlugin(BasePlugin):
     ) -> Any:
         if not self.active:
             return previous_value
-        product_variant_data = generate_product_variant_payload([product_variant])
+        product_variant_data = generate_product_variant_payload(
+            [product_variant], self.requestor
+        )
         trigger_webhooks_for_event.delay(
             WebhookEventType.PRODUCT_VARIANT_UPDATED, product_variant_data
         )
@@ -261,7 +266,9 @@ class WebhookPlugin(BasePlugin):
     ) -> Any:
         if not self.active:
             return previous_value
-        product_variant_data = generate_product_variant_payload([product_variant])
+        product_variant_data = generate_product_variant_payload(
+            [product_variant], self.requestor
+        )
         trigger_webhooks_for_event.delay(
             WebhookEventType.PRODUCT_VARIANT_DELETED, product_variant_data
         )
@@ -277,7 +284,9 @@ class WebhookPlugin(BasePlugin):
     def product_variant_back_in_stock(self, stock: "Stock", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        product_variant_data = generate_product_variant_with_stock_payload([stock])
+        product_variant_data = generate_product_variant_with_stock_payload(
+            [stock], self.requestor
+        )
         trigger_webhooks_for_event.delay(
             WebhookEventType.PRODUCT_VARIANT_BACK_IN_STOCK, product_variant_data
         )

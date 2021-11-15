@@ -9,6 +9,7 @@ import graphene
 
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
+from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.models import Order
@@ -24,10 +25,12 @@ from ..payloads import (
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
+    generate_meta,
     generate_order_payload,
     generate_payment_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
+    generate_requestor,
     generate_sale_payload,
     generate_translation_payload,
 )
@@ -309,6 +312,7 @@ def test_generate_base_product_variant_payload(product_with_two_variants):
                 "Warehouse", first_stock.warehouse_id
             ),
             "product_slug": "test-product-with-two-variant",
+            "meta": {"issuing_principal": {"id": None, "type": None}},
         },
         {
             "type": "Stock",
@@ -323,19 +327,23 @@ def test_generate_base_product_variant_payload(product_with_two_variants):
                 "Warehouse", second_stock.warehouse_id
             ),
             "product_slug": "test-product-with-two-variant",
+            "meta": {"issuing_principal": {"id": None, "type": None}},
         },
     ]
     assert payload == expected_payload
 
 
 def test_generate_product_variant_payload(
-    product_with_variant_with_two_attributes, product_with_images, channel_USD
+    product_with_variant_with_two_attributes,
+    product_with_images,
+    channel_USD,
+    staff_user,
 ):
     variant = product_with_variant_with_two_attributes.variants.first()
-    payload = json.loads(generate_product_variant_payload([variant]))[0]
+    payload = json.loads(generate_product_variant_payload([variant], staff_user))[0]
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -358,6 +366,7 @@ def test_generate_product_variant_payload(
         "price_amount": "10.000",
         "type": "ProductVariantChannelListing",
     }
+    assert payload["meta"] == {"issuing_principal": generate_requestor(staff_user)}
     assert len(payload.keys()) == len(payload_fields)
 
 
@@ -368,7 +377,7 @@ def test_generate_product_variant_with_external_media_payload(
     payload = json.loads(generate_product_variant_payload([variant]))[0]
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -405,7 +414,7 @@ def test_generate_product_variant_without_sku_payload(
     payload = json.loads(generate_product_variant_payload([variant]))[0]
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -439,7 +448,7 @@ def test_generate_product_variant_deleted_payload(
     payload = json.loads(generate_product_variant_payload([variant]))[0]
     [_, payload_variant_id] = graphene.Node.from_global_id(payload["id"])
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -823,3 +832,35 @@ def test_genereate_sale_payload_calculates_set_differences(sale):
     assert set(payload["products_added"]) == {10, 20}
     assert set(payload["variants_added"]) == {"ddd"}
     assert set(payload["variants_removed"]) == {"ccc"}
+
+
+def test_generate_requestor_returns_dict_with_user_id_and_user_type(staff_user, rf):
+    request = rf.request()
+    request.user = staff_user
+    request.app = None
+    requestor = get_user_or_app_from_context(request)
+
+    assert generate_requestor(requestor) == {
+        "id": graphene.Node.to_global_id("User", staff_user.id),
+        "type": "user",
+    }
+
+
+def test_generate_requestor_returns_dict_with_app_id_and_app_type(app, rf):
+    request = rf.request()
+    request.user = None
+    request.app = app
+    requestor = get_user_or_app_from_context(request)
+
+    assert generate_requestor(requestor) == {"id": app.name, "type": "app"}
+
+
+def test_generate_meta(app, rf):
+    request = rf.request()
+    request.app = app
+    request.user = None
+    requestor = get_user_or_app_from_context(request)
+
+    assert generate_meta(issuing_principal=generate_requestor(requestor)) == {
+        "issuing_principal": {"id": "Sample app objects", "type": "app"}
+    }

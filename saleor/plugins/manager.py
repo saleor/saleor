@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
+    from ..core.middleware import Requestor
     from ..discount.models import Sale
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
@@ -1125,6 +1126,6 @@ class PluginsManager(PaymentInterface):
         )
 
 
-def get_plugins_manager(requestor=None) -> PluginsManager:
+def get_plugins_manager(requestor: Optional["Requestor"] = None) -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
         return PluginsManager(settings.PLUGINS, requestor)

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional
 import graphene
 from django.db.models import F, QuerySet, Sum
 
+from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price, quantize_price_fields
@@ -39,7 +40,7 @@ if TYPE_CHECKING:
 
 
 if TYPE_CHECKING:
-    from ..account.models import User
+    from ..core.middleware import Requestor
     from ..discount.models import Sale
     from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
@@ -88,6 +89,18 @@ ORDER_PRICE_FIELDS = (
     "undiscounted_total_net_amount",
     "undiscounted_total_gross_amount",
 )
+
+
+def generate_requestor(requestor: Optional["Requestor"]):
+    if requestor is None:
+        return {"id": None, "type": None}
+    if isinstance(requestor, User):
+        return {"id": graphene.Node.to_global_id("User", requestor.id), "type": "user"}
+    return {"id": requestor.name, "type": "app"}
+
+
+def generate_meta(**kwargs):
+    return {k: v for k, v in kwargs.items()}
 
 
 def prepare_order_lines_allocations_payload(line):
@@ -545,7 +558,9 @@ def generate_product_variant_media_payload(product_variant):
     ]
 
 
-def generate_product_variant_with_stock_payload(stocks: Iterable["Stock"]):
+def generate_product_variant_with_stock_payload(
+    stocks: Iterable["Stock"], requestor: Optional["Requestor"] = None
+):
     serializer = PayloadSerializer()
     extra_dict_data = {
         "product_id": lambda v: graphene.Node.to_global_id(
@@ -558,16 +573,21 @@ def generate_product_variant_with_stock_payload(stocks: Iterable["Stock"]):
             "Warehouse", v.warehouse_id
         ),
         "product_slug": lambda v: v.product_variant.product.slug,
+        "meta": generate_meta(issuing_principal=generate_requestor(requestor)),
     }
     return serializer.serialize(stocks, fields=[], extra_dict_data=extra_dict_data)
 
 
-def generate_product_variant_payload(product_variants: Iterable["ProductVariant"]):
+def generate_product_variant_payload(
+    product_variants: Iterable["ProductVariant"],
+    requestor: Optional["Requestor"] = None,
+):
     serializer = PayloadSerializer()
     payload = serializer.serialize(
         product_variants,
         fields=PRODUCT_VARIANT_FIELDS,
         extra_dict_data={
+            "meta": generate_meta(issuing_principal=generate_requestor(requestor)),
             "id": lambda v: v.get_global_id(),
             "attributes": lambda v: serialize_product_or_variant_attributes(v),
             "product_id": lambda v: graphene.Node.to_global_id("Product", v.product_id),
