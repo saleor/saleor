@@ -3,7 +3,7 @@ import graphene
 from ...core.permissions import AppPermission
 from ..decorators import permission_required
 from .enums import WebhookSampleEventTypeEnum
-from .mutations import WebhookCreate, WebhookDelete, WebhookUpdate
+from .mutations import WebhookCreate, WebhookDelete, WebhookDeliveryRetry, WebhookUpdate
 from .resolvers import resolve_sample_payload, resolve_webhook, resolve_webhook_events
 from .types import Webhook, WebhookEvent
 
@@ -50,3 +50,4 @@ class WebhookMutations(graphene.ObjectType):
     webhook_create = WebhookCreate.Field()
     webhook_delete = WebhookDelete.Field()
     webhook_update = WebhookUpdate.Field()
+    webhook_delivery_retry = WebhookDeliveryRetry.Field()
