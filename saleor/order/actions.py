@@ -263,7 +263,6 @@ def order_awaits_fulfillment_approval(
     _notify_customer=True,
 ):
     order = fulfillments[0].order
-    update_order_status(order)
     events.fulfillment_awaits_approval_event(
         order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
     )
