@@ -11,7 +11,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
-from ...core.permissions import AccountPermissions
+from ...core.permissions import AccountPermissions, has_one_of_permissions
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -463,7 +463,7 @@ def look_for_permission_in_users_with_manage_staff(
 
 
 def requestor_has_access(
-    requestor: Union["User", "App"], owner: Optional["User"], perm
+    requestor: Union["User", "App"], owner: Optional["User"], *perms
 ):
     """Check if requestor can access data.
 
@@ -473,4 +473,4 @@ def requestor_has_access(
         perm: permission which give the access to the data
 
     """
-    return requestor == owner or requestor.has_perm(perm)
+    return requestor == owner or has_one_of_permissions(requestor, perms)
