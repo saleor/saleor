@@ -5,6 +5,7 @@ import graphene
 
 from ..attribute import AttributeInputType
 from ..checkout.fetch import fetch_checkout_lines
+from ..core.prices import quantize_price
 from ..product.models import Product
 
 if TYPE_CHECKING:
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     data = []
     channel = checkout.channel
+    currency = channel.currency_code
     for line_info in fetch_checkout_lines(checkout):
         variant = line_info.variant
         channel_listing = line_info.channel_listing
@@ -27,8 +29,8 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
                 "sku": variant.sku,
                 "variant_id": variant.get_global_id(),
                 "quantity": line_info.line.quantity,
-                "base_price": str(base_price.amount),
-                "currency": channel.currency_code,
+                "base_price": str(quantize_price(base_price.amount, currency)),
+                "currency": currency,
                 "full_name": variant.display_product(),
                 "product_name": product.name,
                 "variant_name": variant.name,

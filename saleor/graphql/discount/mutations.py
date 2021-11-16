@@ -24,6 +24,7 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import DiscountError
 from ..core.validators import validate_end_is_after_start, validate_price_precision
+from ..discount.dataloaders import SaleChannelListingBySaleIdLoader
 from ..product.types import Category, Collection, Product, ProductVariant
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 from .types import Sale, Voucher
@@ -854,6 +855,10 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
             raise ValidationError(errors)
 
         cls.save(info, sale, cleaned_input)
+
+        # Invalidate dataloader for channel listings
+        SaleChannelListingBySaleIdLoader(info.context).clear(sale.id)
+
         return SaleChannelListingUpdate(
             sale=ChannelContext(node=sale, channel_slug=None)
         )
