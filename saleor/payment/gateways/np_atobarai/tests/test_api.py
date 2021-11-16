@@ -682,7 +682,7 @@ def test_register_transaction_pending(
     mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
 
     # when
-    payment_response = api.register_transaction(config, np_payment_data)
+    payment_response = api.register_transaction(None, config, np_payment_data)
 
     # then
     mocked_register.assert_called_once()

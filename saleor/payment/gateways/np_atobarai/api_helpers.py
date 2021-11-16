@@ -7,11 +7,13 @@ from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
+from saleor.order.models import Order
+
 from ...interface import AddressData, PaymentData
 from ...utils import price_to_minor_unit
 from .api_types import NPResponse, error_np_response
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL, REQUEST_TIMEOUT
-from .utils import np_atobarai_opentracing_trace
+from .utils import notify_dashboard, np_atobarai_opentracing_trace
 
 if TYPE_CHECKING:
     from . import ApiConfig
@@ -61,16 +63,15 @@ def np_request(
 
 
 def handle_unrecoverable_state(
+    order: Optional[Order],
     action: str,
     transaction_id: str,
     error_codes: Iterable[str],
 ) -> None:
-    logger.error(
-        "Payment #%s %s Unrecoverable Error: %s",
-        transaction_id,
-        action,
-        ", ".join(error_codes),
-    )
+    message = f"Payment #{transaction_id} {action.capitalize()} Unrecoverable Error"
+    logger.error("%s: %s", message, ", ".join(error_codes))
+    if order:
+        notify_dashboard(order, message)
 
 
 def health_check(config: "ApiConfig") -> bool:
