@@ -225,6 +225,12 @@ def handle_authorized_payment_intent(
     if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
         return
 
+    if payment.charge_status not in {
+        ChargeStatus.NOT_CHARGED,
+        ChargeStatus.PENDING,
+    }:
+        return
+
     _update_payment_method_metadata(payment, payment_intent, gateway_config)
     _create_transaction_if_not_exists(
         payment,
@@ -262,6 +268,13 @@ def handle_failed_payment_intent(
     if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
         return
 
+    if payment.charge_status not in {
+        ChargeStatus.NOT_CHARGED,
+        ChargeStatus.PENDING,
+        ChargeStatus.AUTHORIZED,
+    }:
+        return
+
     transaction = _create_transaction_if_not_exists(
         payment,
         payment_intent,
@@ -290,6 +303,9 @@ def handle_processing_payment_intent(
         return
 
     if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
+        return
+
+    if payment.charge_status != ChargeStatus.NOT_CHARGED:
         return
 
     _create_transaction_if_not_exists(
@@ -329,6 +345,13 @@ def handle_successful_payment_intent(
         return
 
     _update_payment_method_metadata(payment, payment_intent, gateway_config)
+
+    if payment.charge_status not in {
+        ChargeStatus.NOT_CHARGED,
+        ChargeStatus.PENDING,
+        ChargeStatus.AUTHORIZED,
+    }:
+        return
 
     capture_transaction = _create_transaction_if_not_exists(
         payment,

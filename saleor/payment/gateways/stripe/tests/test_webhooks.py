@@ -361,6 +361,47 @@ def test_handle_successful_payment_intent_different_order_channel_slug(
     assert wrapped_order_captured.called == called
 
 
+@pytest.mark.parametrize(
+    "charge_status",
+    [
+        ChargeStatus.PARTIALLY_CHARGED,
+        ChargeStatus.FULLY_CHARGED,
+        ChargeStatus.CANCELLED,
+        ChargeStatus.PARTIALLY_REFUNDED,
+        ChargeStatus.FULLY_REFUNDED,
+    ],
+)
+def test_handle_successful_payment_intent_out_of_order(
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
+    charge_status,
+):
+    # given
+    payment = payment_stripe_for_order
+    payment.charge_status = charge_status
+    payment.transactions.all().delete()
+    payment.transactions.create(
+        token="ABC", kind=TransactionKind.AUTH, gateway_response={}
+    )
+    payment.save()
+    plugin = stripe_plugin()
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount"] = payment.total
+    payment_intent["amount_received"] = payment.total
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = SUCCESS_STATUS
+    payment_intent["setup_future_usage"] = None
+
+    # when
+    handle_successful_payment_intent(
+        payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
+
+    # then
+    assert payment.transactions.count() == 1
+
+
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
@@ -630,6 +671,45 @@ def test_handle_authorized_payment_intent_different_checkout_channel_slug(
     assert wrapped_process_payment_with_checkout.called == called
 
 
+@pytest.mark.parametrize(
+    "charge_status",
+    [
+        ChargeStatus.PARTIALLY_CHARGED,
+        ChargeStatus.FULLY_CHARGED,
+        ChargeStatus.CANCELLED,
+        ChargeStatus.PARTIALLY_REFUNDED,
+        ChargeStatus.FULLY_REFUNDED,
+    ],
+)
+def test_handle_authorized_payment_intent_out_of_order(
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
+    charge_status,
+):
+    # given
+    payment = payment_stripe_for_order
+    payment.charge_status = charge_status
+    payment.transactions.all().delete()
+    payment.transactions.create(
+        token="ABC", kind=TransactionKind.AUTH, gateway_response={}
+    )
+    payment.save()
+    plugin = stripe_plugin()
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount"] = payment.total
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = AUTHORIZED_STATUS
+
+    # when
+    handle_authorized_payment_intent(
+        payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
+
+    # then
+    assert payment.transactions.count() == 1
+
+
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
 )
@@ -767,6 +847,47 @@ def test_handle_processing_payment_intent_different_checkout_channel_slug(
 
     # then
     assert wrapped_process_payment_with_checkout.called == called
+
+
+@pytest.mark.parametrize(
+    "charge_status",
+    [
+        ChargeStatus.PENDING,
+        ChargeStatus.AUTHORIZED,
+        ChargeStatus.PARTIALLY_CHARGED,
+        ChargeStatus.FULLY_CHARGED,
+        ChargeStatus.CANCELLED,
+        ChargeStatus.PARTIALLY_REFUNDED,
+        ChargeStatus.FULLY_REFUNDED,
+    ],
+)
+def test_handle_processing_payment_intent_out_of_order(
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
+    charge_status,
+):
+    # given
+    payment = payment_stripe_for_order
+    payment.charge_status = charge_status
+    payment.transactions.all().delete()
+    payment.transactions.create(
+        token="ABC", kind=TransactionKind.AUTH, gateway_response={}
+    )
+    payment.save()
+    plugin = stripe_plugin()
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount"] = payment.total
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = PROCESSING_STATUS
+
+    # when
+    handle_processing_payment_intent(
+        payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
+
+    # then
+    assert payment.transactions.count() == 1
 
 
 def test_handle_failed_payment_intent_for_checkout(
@@ -908,7 +1029,6 @@ def test_handle_failed_payment_intent_different_checkout_channel_slug(
     )
 
     plugin = stripe_plugin()
-
     payment_intent = StripeObject(id="ABC", last_response={})
     payment_intent["amount"] = payment.total
     payment_intent["currency"] = payment.currency
@@ -922,6 +1042,45 @@ def test_handle_failed_payment_intent_different_checkout_channel_slug(
     # then
     assert wrapped_create_transaction_if_not_exists.called == called
     assert not wrapped_order_voided.called
+
+
+@pytest.mark.parametrize(
+    "charge_status",
+    [
+        ChargeStatus.PARTIALLY_CHARGED,
+        ChargeStatus.FULLY_CHARGED,
+        ChargeStatus.CANCELLED,
+        ChargeStatus.PARTIALLY_REFUNDED,
+        ChargeStatus.FULLY_REFUNDED,
+    ],
+)
+def test_handle_failed_payment_intent_out_of_order(
+    payment_stripe_for_order,
+    stripe_plugin,
+    channel_USD,
+    charge_status,
+):
+    # given
+    payment = payment_stripe_for_order
+    payment.charge_status = charge_status
+    payment.transactions.all().delete()
+    payment.transactions.create(
+        token="ABC", kind=TransactionKind.AUTH, gateway_response={}
+    )
+    payment.save()
+    plugin = stripe_plugin()
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount"] = payment.total
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = FAILED_STATUSES[0]
+
+    # when
+    handle_failed_payment_intent(
+        payment_intent, plugin.config, channel_USD.slug, get_plugins_manager()
+    )
+
+    # then
+    assert payment.transactions.count() == 1
 
 
 def test_handle_fully_refund(stripe_plugin, payment_stripe_for_order, channel_USD):
