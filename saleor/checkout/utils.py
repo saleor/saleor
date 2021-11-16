@@ -113,7 +113,12 @@ def add_variant_to_checkout(
         if line is not None:
             line.delete()
     elif line is None:
-        checkout.lines.create(checkout=checkout, variant=variant, quantity=new_quantity)
+        checkout.lines.create(
+            checkout=checkout,
+            variant=variant,
+            quantity=new_quantity,
+            currency=checkout.currency,
+        )
     elif new_quantity > 0:
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
@@ -169,7 +174,12 @@ def add_variants_to_checkout(
                 to_delete.append(line)
         elif quantity > 0:
             to_create.append(
-                CheckoutLine(checkout=checkout, variant=variant, quantity=quantity)
+                CheckoutLine(
+                    checkout=checkout,
+                    variant=variant,
+                    quantity=quantity,
+                    currency=checkout.currency,
+                )
             )
     if to_delete:
         CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()

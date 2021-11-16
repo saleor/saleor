@@ -297,6 +297,8 @@ class CheckoutLine(models.Model):
         """Return `True` if the related product variant requires shipping."""
         return self.variant.is_shipping_required()
 
-    def save(self, *args, **kwargs) -> None:
-        self.currency = self.checkout.currency
-        super().save(*args, **kwargs)
+
+#     def save(self, *args, **kwargs) -> None:
+#         self.currency = self.checkout.currency
+#         super().save(*args, **kwargs)
+#

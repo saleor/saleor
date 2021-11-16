@@ -1,3 +1,4 @@
+import sys
 from decimal import Decimal
 from operator import itemgetter
 from unittest.mock import ANY
@@ -72,9 +73,17 @@ def test_serialize_product_attributes(
     ]
 
 
-@pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize(
+    "taxes_included, taxes_calculated",
+    [
+        (True, True),
+        (True, False),
+        (False, True),
+        (False, False),
+    ],
+)
 def test_serialize_checkout_lines(
-    checkout_with_items_for_cc, taxes_included, site_settings
+    checkout_with_items_for_cc, taxes_included, taxes_calculated, site_settings
 ):
     # given
     site_settings.include_taxes_in_prices = taxes_included
@@ -91,7 +100,8 @@ def test_serialize_checkout_lines(
     for line in checkout_lines:
         line.currency = (channel.currency_code,)
         line.unit_price_net_amount = Decimal("10.00")
-        line.unit_price_gross_amount = Decimal("12.30")
+        if taxes_calculated:
+            line.unit_price_gross_amount = Decimal("12.30")
 
     CheckoutLine.objects.bulk_update(
         checkout_lines,
@@ -106,8 +116,9 @@ def test_serialize_checkout_lines(
     checkout_lines_data = serialize_checkout_lines(checkout)
 
     # then
+    checkout_with_items_for_cc.refresh_from_db()
     data_len = 0
-    for data, line in zip(checkout_lines_data, checkout_lines):
+    for data, line in zip(checkout_lines_data, checkout_with_items_for_cc.lines.all()):
         variant = line.variant
         product = variant.product
         collections = list(product.collections.all())
@@ -125,13 +136,20 @@ def test_serialize_checkout_lines(
         )
         price = line.unit_price
         assert price.net != price.gross
+        print(
+            f"{taxes_calculated = } "
+            f"unit gross = {line.unit_price_gross_amount} "
+            f"voucher = {checkout.discount} ",
+            file=sys.stderr,
+        )
         assert data == {
             "id": graphene.Node.to_global_id("CheckoutLine", line.pk),
             "sku": variant.sku,
             "quantity": line.quantity,
             "charge_taxes": product.charge_taxes,
             "base_price": str(base_price.amount),
-            "price": str((price.net if not taxes_included else price.gross).amount),
+            "price_net_amount": str(line.unit_price_net_amount),
+            "price_gross_amount": str(line.unit_price_gross_amount),
             "currency": channel.currency_code,
             "full_name": variant.display_product(),
             "product_name": product.name,

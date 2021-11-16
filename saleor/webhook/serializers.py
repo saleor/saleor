@@ -5,8 +5,6 @@ import graphene
 
 from ..attribute import AttributeInputType
 from ..checkout.fetch import fetch_checkout_lines
-from ..core.prices import quantize_price
-from ..core.taxes import include_taxes_in_prices
 from ..product.models import Product
 
 if TYPE_CHECKING:
@@ -19,7 +17,6 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     data = []
     channel = checkout.channel
     currency = channel.currency_code
-    included_taxes_in_price = include_taxes_in_prices()
 
     for line_info in fetch_checkout_lines(checkout):
         line_id = graphene.Node.to_global_id("CheckoutLine", line_info.line.pk)
@@ -29,11 +26,6 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
         product = variant.product
         base_price = variant.get_price(product, collections, channel, channel_listing)
         unit_price = line_info.line.unit_price
-        price = (
-            unit_price.net.amount
-            if not included_taxes_in_price
-            else unit_price.gross.amount
-        )
 
         data.append(
             {
@@ -42,7 +34,8 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
                 "quantity": line_info.line.quantity,
                 "charge_taxes": product.charge_taxes,
                 "base_price": str(base_price.amount),
-                "price": str(quantize_price(price, currency)),
+                "price_net_amount": str(unit_price.net.amount),
+                "price_gross_amount": str(unit_price.gross.amount),
                 "currency": currency,
                 "full_name": variant.display_product(),
                 "product_name": product.name,
