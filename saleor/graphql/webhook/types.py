@@ -35,6 +35,7 @@ class EventDeliveryAttempt(CountableDjangoObjectType):
     class Meta:
         description = "Webhook delivery attempts"
         model = core_models.EventDeliveryAttempt
+        interfaces = [graphene.relay.Node]
         only_fields = [
             "id",
             "created_at",
@@ -51,10 +52,10 @@ class EventDelivery(CountableDjangoObjectType):
     status = EventDeliveryStatusEnum(
         description="Event delivery status.", required=True
     )
-    attempts = graphene.List(
-        graphene.NonNull(EventDeliveryAttempt),
-        description="Event delivery attempts.",
-        required=True,
+    attempts = FilterInputConnectionField(
+        EventDeliveryAttempt,
+        sort_by=EventDeliverySortingInput(description="Event delivery sorter"),
+        description="Webhook delivery attempts.",
     )
     event_type = WebhookEventTypeEnum(description="Webhook event type.", required=True)
 

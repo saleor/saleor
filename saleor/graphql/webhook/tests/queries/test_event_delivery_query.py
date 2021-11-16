@@ -18,13 +18,17 @@ EVENT_DELIVERY_QUERY = """
                status
                eventType
                id
-               attempts{
-                 id
-                 duration
-                 response
-                 requestHeaders
-                 responseHeaders
-                 }
+               attempts(first: $first){
+                edges{
+                  node{
+                    id
+                    duration
+                    response
+                    requestHeaders
+                    responseHeaders
+                  }
+                }
+              }
             }
           }
         }
@@ -49,14 +53,19 @@ def test_webhook_delivery_attempt_query(
     response = staff_api_client.post_graphql(EVENT_DELIVERY_QUERY, variables=variables)
     content = get_graphql_content(response)
     delivery_response = content["data"]["webhook"]["deliveries"]["edges"][0]["node"]
-    attempts_response = delivery_response["attempts"]
+    attempts_response = delivery_response["attempts"]["edges"]
 
     # then
     assert delivery_response["id"] == delivery_id
     assert delivery_response["status"] == EventDeliveryStatus.PENDING.upper()
     assert delivery_response["eventType"] == WebhookEventType.ANY.upper()
     assert len(attempts_response) == 1
-    assert attempts_response[0]["response"] == event_attempt.response
-    assert attempts_response[0]["duration"] is None
-    assert attempts_response[0]["requestHeaders"] is None
-    assert attempts_response[0]["responseHeaders"] is None
+    assert attempts_response[0]["node"]["response"] == event_attempt.response
+    assert attempts_response[0]["node"]["duration"] == event_attempt.duration
+    assert (
+        attempts_response[0]["node"]["requestHeaders"] == event_attempt.request_headers
+    )
+    assert (
+        attempts_response[0]["node"]["responseHeaders"]
+        == event_attempt.response_headers
+    )

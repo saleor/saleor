@@ -1941,10 +1941,10 @@ type EventDelivery implements Node {
   createdAt: DateTime!
   status: EventDeliveryStatusEnum!
   eventType: WebhookEventTypeEnum!
-  attempts: [EventDeliveryAttempt!]!
+  attempts(sortBy: EventDeliverySortingInput, before: String, after: String, first: Int, last: Int): EventDeliveryAttemptCountableConnection
 }
 
-type EventDeliveryAttempt {
+type EventDeliveryAttempt implements Node {
   id: ID!
   createdAt: DateTime!
   taskId: String
@@ -1953,6 +1953,17 @@ type EventDeliveryAttempt {
   responseHeaders: String
   requestHeaders: String
   status: EventDeliveryStatusEnum!
+}
+
+type EventDeliveryAttemptCountableConnection {
+  pageInfo: PageInfo!
+  edges: [EventDeliveryAttemptCountableEdge!]!
+  totalCount: Int
+}
+
+type EventDeliveryAttemptCountableEdge {
+  node: EventDeliveryAttempt!
+  cursor: String!
 }
 
 type EventDeliveryCountableConnection {
