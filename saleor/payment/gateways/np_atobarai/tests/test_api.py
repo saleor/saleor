@@ -6,8 +6,8 @@ import pytest
 import requests
 
 from .... import PaymentError
-from .. import PaymentStatus, api
-from ..api_helpers import format_price, get_goods_with_discount
+from .. import PaymentStatus, api, const
+from ..api_helpers import format_price, get_goods_with_discount, get_refunded_goods
 from ..api_types import NPResponse
 from ..plugin import NPAtobaraiGatewayPlugin
 
@@ -214,6 +214,34 @@ def test_report_fulfillment(mocked_request, config, fulfillment, payment_dummy):
     # then
     assert not errors
     assert not already_captured
+
+
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+def test_report_fulfillment_no_shipping_company_code(
+    mocked_request, config, fulfillment, payment_dummy
+):
+    # given
+    psp_reference = "18121200001"
+    payment_dummy.psp_reference = psp_reference
+    payment_dummy.save(update_fields=["psp_reference"])
+    response = Mock(
+        spec=requests.Response,
+        status_code=200,
+        json=Mock(return_value={"results": [{"np_transaction_id": psp_reference}]}),
+    )
+    mocked_request.return_value = response
+    fulfillment.store_value_in_private_metadata(
+        {const.SHIPPING_COMPANY_CODE_METADATA_KEY: "invalid_shipping_company_code"}
+    )
+
+    # when
+    _, errors, already_captured = api.report_fulfillment(
+        config, payment_dummy, fulfillment
+    )
+
+    # then
+    assert not already_captured
+    assert errors == ["Fulfillment has invalid shipping company code."]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -552,6 +580,52 @@ def test_change_transaction_failed(
     # then
     assert payment_response.status == PaymentStatus.FAILED
     assert payment_response.errors
+
+
+@patch("saleor.payment.gateways.np_atobarai.api.np_request")
+def test_change_transaction_refunded_goods(
+    mocked_request, config, payment_dummy, np_payment_data
+):
+    # given
+    refund_data = {i: i for i in range(1, 4)}
+    mocked_request.return_value = NPResponse(
+        result={
+            "authori_result": "00",
+            "np_transaction_id": "123123123",
+        },
+        error_codes=[],
+    )
+
+    # when
+    api.change_transaction(config, payment_dummy, np_payment_data, refund_data)
+
+    # then
+    data = mocked_request.call_args[1]["json"]
+    goods = data["transactions"][0]["goods"]
+    assert goods == get_refunded_goods(config, refund_data, np_payment_data)
+
+
+@patch("saleor.payment.gateways.np_atobarai.api.np_request")
+def test_change_transaction_goods_with_discount(
+    mocked_request, config, payment_dummy, np_payment_data
+):
+    # given
+    refund_data = None
+    mocked_request.return_value = NPResponse(
+        result={
+            "authori_result": "00",
+            "np_transaction_id": "123123123",
+        },
+        error_codes=[],
+    )
+
+    # when
+    api.change_transaction(config, payment_dummy, np_payment_data, refund_data)
+
+    # then
+    data = mocked_request.call_args[1]["json"]
+    goods = data["transactions"][0]["goods"]
+    assert goods == get_goods_with_discount(config, np_payment_data)
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.report")
