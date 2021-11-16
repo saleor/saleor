@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from functools import partial
 from unittest import mock
 
 import pytest
@@ -1038,3 +1039,26 @@ def test_run_check_payment_balance_not_implemented(channel_USD):
 
     manager = PluginsManager(plugins=plugins)
     assert not manager.check_payment_balance({}, "main")
+
+
+def test_create_plugin_manager_initializes_requestor_lazily(channel_USD):
+    def fake_request_getter(mock):
+        return mock()
+
+    user_mock = mock.MagicMock()
+    user_mock.return_value.id = "some id"
+    user_mock.return_value.name = "some name"
+
+    plugins = ["saleor.plugins.tests.sample_plugins.ActivePlugin"]
+
+    manager = PluginsManager(
+        plugins=plugins, requestor_getter=partial(fake_request_getter, user_mock)
+    )
+    user_mock.assert_not_called()
+
+    plugin = manager.all_plugins.pop()
+
+    assert plugin.requestor.id == "some id"
+    assert plugin.requestor.name == "some name"
+
+    user_mock.assert_called_once()

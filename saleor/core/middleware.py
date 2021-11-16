@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, Union
+from functools import partial
+from typing import TYPE_CHECKING, Callable, Union
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -89,15 +90,15 @@ def site(get_response):
 def plugins(get_response):
     """Assign plugins manager."""
 
-    def _get_manager(requestor: Requestor) -> PluginsManager:
-        return get_plugins_manager(requestor)
+    def _get_manager(requestor_getter: Callable[[], Requestor]) -> PluginsManager:
+        return get_plugins_manager(requestor_getter)
 
-    def _get_requestor(request) -> Requestor:
-        return get_user_or_app_from_context(request)
+    def _get_requestor_getter(request) -> Callable[[], Requestor]:
+        return partial(get_user_or_app_from_context, request)
 
     def _plugins_middleware(request):
         request.plugins = SimpleLazyObject(
-            lambda: _get_manager(_get_requestor(request))
+            lambda: _get_manager(_get_requestor_getter(request))
         )
         return get_response(request)
 

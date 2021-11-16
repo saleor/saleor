@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
+from django.utils.functional import SimpleLazyObject
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
@@ -23,6 +24,7 @@ if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
+    from ..core.middleware import Requestor
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo
@@ -92,12 +94,14 @@ class BasePlugin:
         configuration: PluginConfigurationType,
         active: bool,
         channel: Optional["Channel"] = None,
-        requestor=None
+        requestor_getter: Optional[Callable[[], "Requestor"]] = None
     ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
         self.channel = channel
-        self.requestor = requestor
+        self.requestor = (
+            SimpleLazyObject(requestor_getter) if requestor_getter else requestor_getter
+        )
 
     def __str__(self):
         return self.PLUGIN_NAME

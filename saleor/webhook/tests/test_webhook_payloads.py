@@ -861,6 +861,6 @@ def test_generate_meta(app, rf):
     request.user = None
     requestor = get_user_or_app_from_context(request)
 
-    assert generate_meta(issuing_principal=generate_requestor(requestor)) == {
+    assert generate_meta(requestor_data=generate_requestor(requestor)) == {
         "issuing_principal": {"id": "Sample app objects", "type": "app"}
     }

@@ -2,7 +2,7 @@ import json
 import uuid
 from collections import defaultdict
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 
 import graphene
 from django.db.models import F, QuerySet, Sum
@@ -92,15 +92,18 @@ ORDER_PRICE_FIELDS = (
 
 
 def generate_requestor(requestor: Optional["Requestor"]):
-    if requestor is None:
+    if not requestor:
         return {"id": None, "type": None}
     if isinstance(requestor, User):
         return {"id": graphene.Node.to_global_id("User", requestor.id), "type": "user"}
     return {"id": requestor.name, "type": "app"}
 
 
-def generate_meta(**kwargs):
-    return {k: v for k, v in kwargs.items()}
+def generate_meta(*, requestor_data: Dict[str, Any], **kwargs):
+    meta_result = dict(issuing_principal=requestor_data)
+    meta_result.update(kwargs)
+
+    return meta_result
 
 
 def prepare_order_lines_allocations_payload(line):
@@ -573,7 +576,7 @@ def generate_product_variant_with_stock_payload(
             "Warehouse", v.warehouse_id
         ),
         "product_slug": lambda v: v.product_variant.product.slug,
-        "meta": generate_meta(issuing_principal=generate_requestor(requestor)),
+        "meta": generate_meta(requestor_data=generate_requestor(requestor)),
     }
     return serializer.serialize(stocks, fields=[], extra_dict_data=extra_dict_data)
 
@@ -587,7 +590,7 @@ def generate_product_variant_payload(
         product_variants,
         fields=PRODUCT_VARIANT_FIELDS,
         extra_dict_data={
-            "meta": generate_meta(issuing_principal=generate_requestor(requestor)),
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "id": lambda v: v.get_global_id(),
             "attributes": lambda v: serialize_product_or_variant_attributes(v),
             "product_id": lambda v: graphene.Node.to_global_id("Product", v.product_id),
