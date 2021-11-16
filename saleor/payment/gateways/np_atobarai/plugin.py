@@ -7,7 +7,6 @@ from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ....plugins.error_codes import PluginErrorCode
 from . import (
     GatewayConfig,
-    api,
     capture,
     get_api_config,
     process_payment,
@@ -15,6 +14,7 @@ from . import (
     tracking_number_updated,
     void,
 )
+from .api_helpers import health_check
 from .const import (
     FILL_MISSING_ADDRESS,
     MERCHANT_CODE,
@@ -140,7 +140,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             data["name"]: data["value"] for data in plugin_configuration.configuration
         }
         with np_atobarai_opentracing_trace("np-atobarai.utilities.ping"):
-            response = api.health_check(get_api_config(conf))
+            response = health_check(get_api_config(conf))
 
         if not response:
             raise ValidationError(
@@ -189,3 +189,6 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
                 )
 
             cls.validate_authentication(plugin_configuration)
+
+    def get_payment_config(self, previous_value):
+        return []

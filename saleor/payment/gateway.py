@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Callable, List, Optional
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional
 
 from ..core.tracing import traced_atomic_transaction
 from . import GatewayError, PaymentError, TransactionKind
@@ -195,6 +195,7 @@ def refund(
     manager: "PluginsManager",
     channel_slug: str,
     amount: Decimal = None,
+    refund_data: Optional[Dict[int, int]] = None,
 ) -> Transaction:
     if amount is None:
         amount = payment.captured_amount
@@ -206,7 +207,11 @@ def refund(
 
     token = _get_past_transaction_token(payment, kind)
     payment_data = create_payment_information(
-        payment=payment, manager=manager, payment_token=token, amount=amount
+        payment=payment,
+        manager=manager,
+        payment_token=token,
+        amount=amount,
+        refund_data=refund_data,
     )
     if payment.is_manual():
         # for manual payment we just need to mark payment as a refunded
