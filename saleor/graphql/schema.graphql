@@ -3522,6 +3522,7 @@ type Mutation {
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
+  webhookDeliveryRetry(id: ID!): WebhookDeliveryRetry
   createWarehouse(input: WarehouseCreateInput!): WarehouseCreate
   updateWarehouse(id: ID!, input: WarehouseUpdateInput!): WarehouseUpdate
   deleteWarehouse(id: ID!): WarehouseDelete
@@ -6897,6 +6898,12 @@ type WebhookDelete {
   webhookErrors: [WebhookError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [WebhookError!]!
   webhook: Webhook
+}
+
+type WebhookDeliveryRetry {
+  delivery: EventDelivery
+  webhookErrors: [WebhookError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [WebhookError!]!
 }
 
 type WebhookError {
