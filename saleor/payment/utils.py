@@ -1,7 +1,7 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -435,13 +435,13 @@ def price_to_minor_unit(value: Decimal, currency: str):
     return str(value_without_comma.quantize(Decimal("1")))
 
 
-def get_channel_slug_from_payment(payment: Payment) -> Union[str, None]:
+def get_channel_slug_from_payment(payment: Payment) -> Optional[str]:
+    channel_slug = None
+
     if payment.checkout:
         channel_slug = payment.checkout.channel.slug
     elif payment.order:
         channel_slug = payment.order.channel.slug
-    else:
-        channel_slug = None  # type: ignore
 
     return channel_slug
 
