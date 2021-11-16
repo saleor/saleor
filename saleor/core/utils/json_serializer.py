@@ -1,9 +1,12 @@
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.serializers.json import Serializer as JsonSerializer
 from draftjs_sanitizer import SafeJSONEncoder
-from prices import Money
+from measurement.measures import Weight
+from prices import Money, TaxedMoney
 
 MONEY_TYPE = "Money"
+TAXED_MONEY_TYPE = "TaxedMoney"
+WEIGHT_TYPE = "Weight"
 
 
 class Serializer(JsonSerializer):
@@ -16,6 +19,16 @@ class CustomJsonEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, Money):
             return {"_type": MONEY_TYPE, "amount": obj.amount, "currency": obj.currency}
+        if isinstance(obj, TaxedMoney):
+            return {
+                "_type": TAXED_MONEY_TYPE,
+                "gross": obj.gross.amount,
+                "net": obj.net.amount,
+                "currency": obj.currency,
+            }
+        # Mirror implementation of django_measurement.MeasurementField.value_to_string
+        if isinstance(obj, Weight):
+            return "%s:%s" % (obj.value, obj.unit)
         return super().default(obj)
 
 
