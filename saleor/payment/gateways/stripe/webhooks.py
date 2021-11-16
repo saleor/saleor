@@ -202,6 +202,12 @@ def handle_authorized_payment_intent(
         )
         return
 
+    if payment.charge_status not in {
+        ChargeStatus.NOT_CHARGED,
+        ChargeStatus.PENDING,
+    }:
+        return
+
     _create_transaction_if_not_exists(
         payment,
         payment_intent,
@@ -235,6 +241,13 @@ def handle_failed_payment_intent(
         )
         return
 
+    if payment.charge_status not in {
+        ChargeStatus.NOT_CHARGED,
+        ChargeStatus.PENDING,
+        ChargeStatus.AUTHORIZED,
+    }:
+        return
+
     transaction = _create_transaction_if_not_exists(
         payment,
         payment_intent,
@@ -260,6 +273,9 @@ def handle_processing_payment_intent(
             "Payment for PaymentIntent was not found",
             extra={"payment_intent": payment_intent.id},
         )
+        return
+
+    if payment.charge_status != ChargeStatus.NOT_CHARGED:
         return
 
     _create_transaction_if_not_exists(
@@ -306,6 +322,13 @@ def handle_successful_payment_intent(
         update_payment_method_details(payment, payment_method_info, changed_fields)
         if changed_fields:
             payment.save(update_fields=changed_fields)
+
+    if payment.charge_status not in {
+        ChargeStatus.NOT_CHARGED,
+        ChargeStatus.PENDING,
+        ChargeStatus.AUTHORIZED,
+    }:
+        return
 
     capture_transaction = _create_transaction_if_not_exists(
         payment,
