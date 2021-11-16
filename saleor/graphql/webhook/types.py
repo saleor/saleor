@@ -8,6 +8,7 @@ from ..core.fields import FilterInputConnectionField
 from ..webhook.enums import EventDeliveryStatusEnum, WebhookEventTypeEnum
 from ..webhook.filters import EventDeliveryFilterInput
 from ..webhook.sorters import EventDeliverySortingInput
+from .dataloaders import AttemptsByDeliveryLoader
 
 
 class WebhookEvent(CountableDjangoObjectType):
@@ -33,7 +34,7 @@ class EventDeliveryAttempt(CountableDjangoObjectType):
     )
 
     class Meta:
-        description = "Webhook delivery attempts"
+        description = "Webhook delivery attempts."
         model = core_models.EventDeliveryAttempt
         interfaces = [graphene.relay.Node]
         only_fields = [
@@ -71,7 +72,8 @@ class EventDelivery(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_attempts(root: core_models.EventDelivery, *_args, **_kwargs):
+    def resolve_attempts(root: core_models.EventDelivery, info, *_args, **_kwargs):
+        AttemptsByDeliveryLoader(info.context).load(root)
         return core_models.EventDeliveryAttempt.objects.filter(delivery=root)
 
 
@@ -85,8 +87,8 @@ class Webhook(CountableDjangoObjectType):
     app = graphene.Field("saleor.graphql.app.types.App", required=True)
     deliveries = FilterInputConnectionField(
         EventDelivery,
-        sort_by=EventDeliverySortingInput(description="Event delivery sorter"),
-        filter=EventDeliveryFilterInput(description="Event delivery filter options"),
+        sort_by=EventDeliverySortingInput(description="Event delivery sorter."),
+        filter=EventDeliveryFilterInput(description="Event delivery filter options."),
         description="Webhook deliveries.",
     )
 
