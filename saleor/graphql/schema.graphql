@@ -733,6 +733,12 @@ type BulkStockError {
   index: Int
 }
 
+input CardInput {
+  code: String!
+  cvc: String
+  money: MoneyInput!
+}
+
 input CatalogueInput {
   products: [ID]
   categories: [ID]
@@ -1029,6 +1035,7 @@ type CheckoutError {
   message: String
   code: CheckoutErrorCode!
   variants: [ID!]
+  lines: [ID!]
   addressType: AddressTypeEnum
 }
 
@@ -1097,6 +1104,11 @@ input CheckoutLineInput {
 type CheckoutLinesAdd {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [CheckoutError!]!
+}
+
+type CheckoutLinesDelete {
+  checkout: Checkout
   errors: [CheckoutError!]!
 }
 
@@ -3442,6 +3454,11 @@ type Money {
   amount: Float!
 }
 
+input MoneyInput {
+  currency: String!
+  amount: PositiveDecimal!
+}
+
 type MoneyRange {
   start: Money
   stop: Money
@@ -3538,6 +3555,7 @@ type Mutation {
   paymentRefund(amount: PositiveDecimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
   paymentInitialize(channel: String, gateway: String!, paymentData: JSONString): PaymentInitialize
+  paymentCheckBalance(input: PaymentCheckBalanceInput!): PaymentCheckBalance
   pageCreate(input: PageCreateInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -3632,7 +3650,8 @@ type Mutation {
   checkoutCustomerAttach(checkoutId: ID, customerId: ID, token: UUID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID, token: UUID): CheckoutCustomerDetach
   checkoutEmailUpdate(checkoutId: ID, email: String!, token: UUID): CheckoutEmailUpdate
-  checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete
+  checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete @deprecated(reason: "DEPRECATED: Will be removed in Saleor 4.0. Use `checkoutLinesDelete` instead.")
+  checkoutLinesDelete(linesIds: [ID]!, token: UUID!): CheckoutLinesDelete
   checkoutLinesAdd(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesUpdate
   checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
@@ -4586,6 +4605,19 @@ enum PaymentChargeStatusEnum {
   CANCELLED
 }
 
+type PaymentCheckBalance {
+  data: JSONString
+  paymentErrors: [PaymentError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+  errors: [PaymentError!]!
+}
+
+input PaymentCheckBalanceInput {
+  gatewayId: String!
+  method: String!
+  channel: String!
+  card: CardInput!
+}
+
 type PaymentCountableConnection {
   pageInfo: PageInfo!
   edges: [PaymentCountableEdge!]!
@@ -4617,6 +4649,7 @@ enum PaymentErrorCode {
   PAYMENT_ERROR
   NOT_SUPPORTED_GATEWAY
   CHANNEL_INACTIVE
+  BALANCE_CHECK_ERROR
 }
 
 input PaymentFilterInput {
@@ -5780,6 +5813,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  type: ShippingMethodTypeEnum @deprecated(reason: "This field will be removed in Saleor 4.0.")
   name: String!
   description: JSONString
   maximumDeliveryDays: Int
