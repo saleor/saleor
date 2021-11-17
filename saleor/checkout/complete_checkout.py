@@ -29,8 +29,9 @@ from ..giftcard.utils import fulfill_non_shippable_gift_cards
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
-from ..order import OrderLineData, OrderOrigin, OrderStatus
+from ..order import OrderOrigin, OrderStatus
 from ..order.actions import order_created
+from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
 from ..order.search import prepare_order_search_document_value
@@ -149,7 +150,7 @@ def _create_line_for_order(
     products_translation: Dict[int, Optional[str]],
     variants_translation: Dict[int, Optional[str]],
     taxes_included_in_prices: bool,
-) -> OrderLineData:
+) -> OrderLineInfo:
     """Create a line for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
@@ -251,10 +252,13 @@ def _create_line_for_order(
         unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
     )
-    line_info = OrderLineData(
+    is_digital = line.is_digital
+    line_info = OrderLineInfo(
         line=line,
         quantity=quantity,
+        is_digital=is_digital,
         variant=variant,
+        digital_content=variant.digital_content if is_digital and variant else None,
         warehouse_pk=checkout_info.delivery_method_info.warehouse_pk,
     )
 
@@ -268,7 +272,7 @@ def _create_lines_for_order(
     discounts: Iterable[DiscountInfo],
     check_reservations: bool,
     taxes_included_in_prices: bool,
-) -> Iterable[OrderLineData]:
+) -> Iterable[OrderLineInfo]:
     """Create a lines for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
@@ -527,13 +531,23 @@ def _create_order(
             order, order_lines, site_settings, user, app, manager
         )
 
+    order_info = OrderInfo(
+        order=order,
+        customer_email=order_data["user_email"],
+        channel=checkout_info.channel,
+        payment=order.get_last_payment(),
+        lines_data=order_lines_info,
+    )
+
     transaction.on_commit(
-        lambda: order_created(order=order, user=user, app=app, manager=manager)
+        lambda: order_created(
+            order_info=order_info, user=user, app=app, manager=manager
+        )
     )
 
     # Send the order confirmation email
     transaction.on_commit(
-        lambda: send_order_confirmation(order, checkout.redirect_url, manager)
+        lambda: send_order_confirmation(order_info, checkout.redirect_url, manager)
     )
 
     return order

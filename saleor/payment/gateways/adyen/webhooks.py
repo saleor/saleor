@@ -37,6 +37,7 @@ from ....order.actions import (
     order_refunded,
 )
 from ....order.events import external_notification_event
+from ....order.fetch import fetch_order_info
 from ....payment.models import Payment, Transaction
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind, gateway
@@ -259,8 +260,9 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
             if new_transaction.is_success:
                 gateway_postprocess(new_transaction, payment)
                 if adyen_auto_capture:
+                    order_info = fetch_order_info(payment.order)
                     order_captured(
-                        payment.order,
+                        order_info,
                         None,
                         None,
                         new_transaction.amount,
@@ -357,8 +359,9 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         )
         if new_transaction.is_success and not capture_transaction:
             gateway_postprocess(new_transaction, payment)
+            order_info = fetch_order_info(payment.order)
             order_captured(
-                payment.order, None, None, new_transaction.amount, payment, manager
+                order_info, None, None, new_transaction.amount, payment, manager
             )
 
     reason = notification.get("reason", "-")
