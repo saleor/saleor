@@ -3244,8 +3244,6 @@ def test_draft_order_complete_not_available_shipping_method(
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderComplete"]["order"]
-    content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
 
     assert len(data["errors"]) == 3
@@ -3257,7 +3255,7 @@ def test_draft_order_complete_not_available_shipping_method(
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
-def test_draft_order_update_shipping_with_excluded_method(
+def test_draft_order_complete_with_excluded_shipping_method(
     mocked_webhook,
     draft_order,
     shipping_method,
@@ -4751,6 +4749,40 @@ ORDER_UPDATE_SHIPPING_QUERY = """
         }
     }
 """
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+def test_draft_order_update_shipping_with_excluded_method(
+    mocked_webhook,
+    draft_order,
+    shipping_method,
+    staff_api_client,
+    permission_manage_orders,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    webhook_reason = "archives-are-incomplete"
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+    ]
+    order = draft_order
+    order.status = OrderStatus.DRAFT
+    order.shipping_method = None
+    order.save()
+    assert order.shipping_method != shipping_method
+    query = ORDER_UPDATE_SHIPPING_QUERY
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    assert (
+        data["errors"][0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    )
 
 
 @pytest.mark.parametrize("status", [OrderStatus.UNCONFIRMED, OrderStatus.DRAFT])
