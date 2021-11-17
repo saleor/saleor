@@ -114,7 +114,6 @@ def test_handle_successful_payment_intent_for_checkout_inactive_payment(
     payment_intent["status"] = SUCCESS_STATUS
 
     handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
-
     payment.refresh_from_db()
 
     assert refund_mock.called
@@ -493,9 +492,10 @@ def test_handle_authorized_payment_intent_for_checkout_inactive_payment(
     payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = AUTHORIZED_STATUS
-    handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
+    handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
     payment.refresh_from_db()
+
     assert void_mock.called
 
 
@@ -793,6 +793,7 @@ def test_handle_processing_payment_intent_for_checkout_inactive_payment(
     payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = PROCESSING_STATUS
+
     handle_processing_payment_intent(payment_intent, plugin.config, channel_USD.slug)
 
     assert not wrapped_checkout_complete.called
