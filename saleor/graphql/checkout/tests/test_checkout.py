@@ -1558,7 +1558,7 @@ def test_checkout_available_shipping_methods_excluded_postal_codes(
     assert data["availableShippingMethods"] == []
 
 
-@patch("saleor.checkout.utils.identical_taxed_money")
+@patch("saleor.checkout.utils.convert_to_taxed_money")
 def test_checkout_available_shipping_methods_with_price_displayed(
     mocked_money,
     monkeypatch,

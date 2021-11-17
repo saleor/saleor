@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 from prices import Money
 
-from ...core.taxes import identical_taxed_money
+from ...core.taxes import convert_to_taxed_money
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ...shipping.interface import ShippingMethodData
 
@@ -135,7 +135,7 @@ def parse_list_shipping_methods_response(
                 id=to_shipping_app_id(app, method_id),
                 name=method_name,
                 # TODO: return Taxed money if app is able to return it
-                price=identical_taxed_money(Money(method_amount, method_currency)),
+                price=convert_to_taxed_money(Money(method_amount, method_currency)),
                 maximum_delivery_days=method_maximum_delivery_days,
             )
         )

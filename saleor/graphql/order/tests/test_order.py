@@ -20,7 +20,7 @@ from ....checkout import AddressType
 from ....core.anonymize import obfuscate_email
 from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
-from ....core.taxes import TaxError, identical_taxed_money, zero_taxed_money
+from ....core.taxes import TaxError, convert_to_taxed_money, zero_taxed_money
 from ....discount.models import OrderDiscount
 from ....giftcard import GiftCardEvents
 from ....giftcard.events import gift_cards_bought_event
@@ -777,7 +777,7 @@ def test_order_available_shipping_methods_query(
     shipping_price = shipping_method.channel_listings.get(
         channel_id=fulfilled_order.channel_id
     ).price
-    taxed_price = identical_taxed_money(shipping_price)
+    taxed_price = convert_to_taxed_money(shipping_price)
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query)

@@ -8,7 +8,7 @@ from prices import Money
 
 from ..account.models import User
 from ..core.exceptions import ProductNotPublished
-from ..core.taxes import identical_taxed_money, zero_taxed_money
+from ..core.taxes import convert_to_taxed_money, zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
     promo_code_is_gift_card,

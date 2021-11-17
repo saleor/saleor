@@ -22,7 +22,7 @@ def zero_taxed_money(currency: str) -> TaxedMoney:
     return TaxedMoney(net=zero, gross=zero)
 
 
-def identical_taxed_money(money: Money) -> TaxedMoney:
+def convert_to_taxed_money(money: Money) -> TaxedMoney:
     return TaxedMoney(net=money, gross=money)
 
 
