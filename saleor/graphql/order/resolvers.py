@@ -64,8 +64,6 @@ def resolve_order_by_token(token):
 # TODO: We should optimize it in/after PR#5819
 def resolve_order_shipping_methods(root: models.Order, info):
     available = get_valid_shipping_methods_for_order(root)
-    if available is None:
-        return []
     channel_slug = root.channel.slug
     return [
         ChannelContext(node=method, channel_slug=channel_slug) for method in available
