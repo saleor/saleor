@@ -1,2 +1,3 @@
 -r requirements.txt
 algoliasearch>=2.0,<3.0
+gql==2.0.0
