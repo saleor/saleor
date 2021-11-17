@@ -73,3 +73,25 @@ def test_webhook_delivery_retry_wrong_type(
     assert len(errors) == 1
     assert errors[0]["field"] == "id"
     assert errors[0]["message"] == expected_message
+
+
+def test_delivery_retry_mutation_wrong_id(
+    app_api_client, permission_manage_orders, event_delivery
+):
+    # given
+    query = WEBHOOK_DELIVERY_RETRY_MUTATION
+    variables = {"id": "/w"}
+    expected_message = "Couldn't resolve id: /w."
+    # when
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    # then
+    errors = content["data"]["webhookDeliveryRetry"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["message"] == expected_message
