@@ -72,7 +72,7 @@ class ExcludedShippingMethod:
 @dataclass
 class ShippingMethod:
     id: str
-    price: Decimal
+    price: TaxedMoney
     name: str
     maximum_order_weight: Optional[Weight]
     minimum_order_weight: Optional[Weight]
