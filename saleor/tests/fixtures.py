@@ -3702,19 +3702,23 @@ def fulfillment(fulfilled_order):
 
 @pytest.fixture
 def fulfillment_awaiting_approval(fulfilled_order):
-    order_line = fulfilled_order.lines.first()
-    order_line.quantity_fulfilled = 0
-    order_line.save(update_fields=["quantity_fulfilled"])
-
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
 
+    quantity = 1
     fulfillment_lines_to_update = []
+    order_lines_to_update = []
     for f_line in fulfillment.lines.all():
-        f_line.quantity = 1
+        f_line.quantity = quantity
         fulfillment_lines_to_update.append(f_line)
+
+        order_line = f_line.order_line
+        order_line.quantity_fulfilled = quantity
+        order_lines_to_update.append(order_line)
+
     FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
+    OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
 
     return fulfillment
 
