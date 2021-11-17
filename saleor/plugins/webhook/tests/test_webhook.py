@@ -95,6 +95,7 @@ def test_trigger_webhooks_for_event_calls_expected_events(
     assert target_url_calls == expected_target_urls
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_created(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -107,6 +108,7 @@ def test_order_created(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_confirmed(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -119,6 +121,7 @@ def test_order_confirmed(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_draft_order_created(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -131,6 +134,7 @@ def test_draft_order_created(mocked_webhook_trigger, settings, order_with_lines)
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_draft_order_deleted(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -143,6 +147,7 @@ def test_draft_order_deleted(mocked_webhook_trigger, settings, order_with_lines)
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_draft_order_updated(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -179,6 +184,7 @@ def test_customer_updated(mocked_webhook_trigger, settings, customer_user):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -191,6 +197,7 @@ def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_created(mocked_webhook_trigger, settings, product):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -203,6 +210,7 @@ def test_product_created(mocked_webhook_trigger, settings, product):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_updated(mocked_webhook_trigger, settings, product):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -215,6 +223,7 @@ def test_product_updated(mocked_webhook_trigger, settings, product):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_deleted(mocked_webhook_trigger, settings, product):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -242,6 +251,7 @@ def test_product_deleted(mocked_webhook_trigger, settings, product):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_variant_created(mocked_webhook_trigger, settings, variant):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -254,6 +264,7 @@ def test_product_variant_created(mocked_webhook_trigger, settings, variant):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_variant_updated(mocked_webhook_trigger, settings, variant):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -266,6 +277,7 @@ def test_product_variant_updated(mocked_webhook_trigger, settings, variant):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_variant_deleted(mocked_webhook_trigger, settings, variant):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -278,6 +290,7 @@ def test_product_variant_deleted(mocked_webhook_trigger, settings, variant):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_variant_out_of_stock(
     mocked_webhook_trigger, settings, variant_with_many_stocks
@@ -294,6 +307,7 @@ def test_product_variant_out_of_stock(
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_variant_back_in_stock(
     mocked_webhook_trigger, settings, variant_with_many_stocks
@@ -310,6 +324,7 @@ def test_product_variant_back_in_stock(
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_updated(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -322,6 +337,7 @@ def test_order_updated(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_cancelled(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -465,6 +481,7 @@ def test_notify_user(mocked_webhook_trigger, settings, customer_user, channel_US
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_sale_created(mocked_webhook_trigger, settings, sale):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -479,6 +496,7 @@ def test_sale_created(mocked_webhook_trigger, settings, sale):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_sale_updated(mocked_webhook_trigger, settings, sale, product_list):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -506,6 +524,7 @@ def test_sale_updated(mocked_webhook_trigger, settings, sale, product_list):
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_sale_deleted(mocked_webhook_trigger, settings, sale):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]

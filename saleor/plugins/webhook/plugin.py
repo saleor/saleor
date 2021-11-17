@@ -71,25 +71,25 @@ class WebhookPlugin(BasePlugin):
     def order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        order_data = generate_order_payload(order)
+        order_data = generate_order_payload(order, self.requestor)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CREATED, order_data)
 
     def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        order_data = generate_order_payload(order)
+        order_data = generate_order_payload(order, self.requestor)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CONFIRMED, order_data)
 
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        order_data = generate_order_payload(order)
+        order_data = generate_order_payload(order, self.requestor)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_FULLY_PAID, order_data)
 
     def order_updated(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        order_data = generate_order_payload(order)
+        order_data = generate_order_payload(order, self.requestor)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_UPDATED, order_data)
 
     def sale_created(
@@ -98,7 +98,10 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         sale_data = generate_sale_payload(
-            sale, previous_catalogue=None, current_catalogue=current_catalogue
+            sale,
+            previous_catalogue=None,
+            current_catalogue=current_catalogue,
+            requestor=self.requestor,
         )
         trigger_webhooks_for_event.delay(WebhookEventType.SALE_CREATED, sale_data)
 
@@ -111,7 +114,9 @@ class WebhookPlugin(BasePlugin):
     ) -> Any:
         if not self.active:
             return previous_value
-        sale_data = generate_sale_payload(sale, previous_catalogue, current_catalogue)
+        sale_data = generate_sale_payload(
+            sale, previous_catalogue, current_catalogue, self.requestor
+        )
         trigger_webhooks_for_event.delay(WebhookEventType.SALE_UPDATED, sale_data)
 
     def sale_deleted(
@@ -119,7 +124,9 @@ class WebhookPlugin(BasePlugin):
     ) -> Any:
         if not self.active:
             return previous_value
-        sale_data = generate_sale_payload(sale, previous_catalogue=previous_catalogue)
+        sale_data = generate_sale_payload(
+            sale, previous_catalogue=previous_catalogue, requestor=self.requestor
+        )
         trigger_webhooks_for_event.delay(WebhookEventType.SALE_DELETED, sale_data)
 
     def invoice_request(
@@ -151,19 +158,19 @@ class WebhookPlugin(BasePlugin):
     def order_cancelled(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        order_data = generate_order_payload(order)
+        order_data = generate_order_payload(order, self.requestor)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CANCELLED, order_data)
 
     def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        order_data = generate_order_payload(order)
+        order_data = generate_order_payload(order, self.requestor)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_FULFILLED, order_data)
 
     def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        order_data = generate_order_payload(order)
+        order_data = generate_order_payload(order, self.requestor)
         trigger_webhooks_for_event.delay(
             WebhookEventType.DRAFT_ORDER_CREATED, order_data
         )
@@ -171,7 +178,7 @@ class WebhookPlugin(BasePlugin):
     def draft_order_updated(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        order_data = generate_order_payload(order)
+        order_data = generate_order_payload(order, self.requestor)
         trigger_webhooks_for_event.delay(
             WebhookEventType.DRAFT_ORDER_UPDATED, order_data
         )
@@ -179,7 +186,7 @@ class WebhookPlugin(BasePlugin):
     def draft_order_deleted(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        order_data = generate_order_payload(order)
+        order_data = generate_order_payload(order, self.requestor)
         trigger_webhooks_for_event.delay(
             WebhookEventType.DRAFT_ORDER_DELETED, order_data
         )
@@ -219,13 +226,13 @@ class WebhookPlugin(BasePlugin):
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        product_data = generate_product_payload(product)
+        product_data = generate_product_payload(product, self.requestor)
         trigger_webhooks_for_event.delay(WebhookEventType.PRODUCT_CREATED, product_data)
 
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-        product_data = generate_product_payload(product)
+        product_data = generate_product_payload(product, self.requestor)
         trigger_webhooks_for_event.delay(WebhookEventType.PRODUCT_UPDATED, product_data)
 
     def product_deleted(
@@ -233,7 +240,9 @@ class WebhookPlugin(BasePlugin):
     ) -> Any:
         if not self.active:
             return previous_value
-        product_data = generate_product_deleted_payload(product, variants)
+        product_data = generate_product_deleted_payload(
+            product, variants, self.requestor
+        )
         trigger_webhooks_for_event.delay(WebhookEventType.PRODUCT_DELETED, product_data)
 
     def product_variant_created(

@@ -1,11 +1,14 @@
 import json
 from dataclasses import asdict
+from datetime import datetime
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
 from unittest.mock import ANY
 
 import graphene
+from django.utils import timezone
+from freezegun import freeze_time
 
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
@@ -312,7 +315,11 @@ def test_generate_base_product_variant_payload(product_with_two_variants):
                 "Warehouse", first_stock.warehouse_id
             ),
             "product_slug": "test-product-with-two-variant",
-            "meta": {"issuing_principal": {"id": None, "type": None}},
+            "meta": {
+                "issuing_principal": {"id": None, "type": None},
+                "issued_at": ANY,
+                "version": "dev",
+            },
         },
         {
             "type": "Stock",
@@ -327,7 +334,11 @@ def test_generate_base_product_variant_payload(product_with_two_variants):
                 "Warehouse", second_stock.warehouse_id
             ),
             "product_slug": "test-product-with-two-variant",
-            "meta": {"issuing_principal": {"id": None, "type": None}},
+            "meta": {
+                "issuing_principal": {"id": None, "type": None},
+                "issued_at": ANY,
+                "version": "dev",
+            },
         },
     ]
     assert payload == expected_payload
@@ -366,7 +377,11 @@ def test_generate_product_variant_payload(
         "price_amount": "10.000",
         "type": "ProductVariantChannelListing",
     }
-    assert payload["meta"] == {"issuing_principal": generate_requestor(staff_user)}
+    assert payload["meta"] == {
+        "issuing_principal": generate_requestor(staff_user),
+        "issued_at": ANY,
+        "version": "dev",
+    }
     assert len(payload.keys()) == len(payload_fields)
 
 
@@ -855,12 +870,19 @@ def test_generate_requestor_returns_dict_with_app_id_and_app_type(app, rf):
     assert generate_requestor(requestor) == {"id": app.name, "type": "app"}
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_meta(app, rf):
     request = rf.request()
     request.app = app
     request.user = None
     requestor = get_user_or_app_from_context(request)
 
+    timestamp = timezone.make_aware(
+        datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
+    )
+
     assert generate_meta(requestor_data=generate_requestor(requestor)) == {
-        "issuing_principal": {"id": "Sample app objects", "type": "app"}
+        "issuing_principal": {"id": "Sample app objects", "type": "app"},
+        "issued_at": timestamp,
+        "version": "dev",
     }

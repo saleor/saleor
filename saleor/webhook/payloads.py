@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 
 import graphene
 from django.db.models import F, QuerySet, Sum
+from django.utils import timezone
 
+from .. import __version__
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
@@ -40,11 +42,11 @@ if TYPE_CHECKING:
 
 
 if TYPE_CHECKING:
-    from ..core.middleware import Requestor
     from ..discount.models import Sale
     from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData
+    from ..plugins.base_plugin import RequestorOrLazyObject
     from ..translation.models import Translation
 
 
@@ -91,7 +93,7 @@ ORDER_PRICE_FIELDS = (
 )
 
 
-def generate_requestor(requestor: Optional["Requestor"]):
+def generate_requestor(requestor: Optional["RequestorOrLazyObject"]):
     if not requestor:
         return {"id": None, "type": None}
     if isinstance(requestor, User):
@@ -100,7 +102,12 @@ def generate_requestor(requestor: Optional["Requestor"]):
 
 
 def generate_meta(*, requestor_data: Dict[str, Any], **kwargs):
-    meta_result = dict(issuing_principal=requestor_data)
+    meta_result = {
+        "issued_at": timezone.now(),
+        "version": __version__,
+        "issuing_principal": requestor_data,
+    }
+
     meta_result.update(kwargs)
 
     return meta_result
@@ -186,7 +193,11 @@ def _generate_collection_point_payload(warehouse: "Warehouse"):
     return collection_point_data
 
 
-def generate_order_payload(order: "Order"):
+def generate_order_payload(
+    order: "Order",
+    requestor: Optional["RequestorOrLazyObject"] = None,
+    with_meta: bool = True,
+):
     serializer = PayloadSerializer()
     fulfillment_fields = (
         "status",
@@ -259,6 +270,21 @@ def generate_order_payload(order: "Order"):
         },
     )
 
+    extra_dict_data = {
+        "original": graphene.Node.to_global_id("Order", order.original_id),
+        "lines": json.loads(generate_order_lines_payload(lines)),
+        "fulfillments": json.loads(fulfillments_data),
+        "collection_point": json.loads(
+            _generate_collection_point_payload(order.collection_point)
+        )[0]
+        if order.collection_point
+        else None,
+    }
+    if with_meta:
+        extra_dict_data["meta"] = generate_meta(
+            requestor_data=generate_requestor(requestor)
+        )
+
     order_data = serializer.serialize(
         [order],
         fields=ORDER_FIELDS,
@@ -270,16 +296,7 @@ def generate_order_payload(order: "Order"):
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
             "discounts": (lambda _: discounts, discount_fields),
         },
-        extra_dict_data={
-            "original": graphene.Node.to_global_id("Order", order.original_id),
-            "lines": json.loads(generate_order_lines_payload(lines)),
-            "fulfillments": json.loads(fulfillments_data),
-            "collection_point": json.loads(
-                _generate_collection_point_payload(order.collection_point)
-            )[0]
-            if order.collection_point
-            else None,
-        },
+        extra_dict_data=extra_dict_data,
     )
     return order_data
 
@@ -304,6 +321,7 @@ def generate_sale_payload(
     sale: "Sale",
     previous_catalogue: Optional["NodeCatalogueInfo"] = None,
     current_catalogue: Optional["NodeCatalogueInfo"] = None,
+    requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     if previous_catalogue is None:
         previous_catalogue = defaultdict(set)
@@ -317,6 +335,7 @@ def generate_sale_payload(
         [sale],
         fields=sale_fields,
         extra_dict_data={
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "categories_added": _calculate_added(
                 previous_catalogue, current_catalogue, "categories"
             ),
@@ -474,7 +493,9 @@ def serialize_product_channel_listing_payload(channel_listings):
     return channel_listing_payload
 
 
-def generate_product_payload(product: "Product"):
+def generate_product_payload(
+    product: "Product", requestor: Optional["RequestorOrLazyObject"] = None
+):
     serializer = PayloadSerializer(
         extra_model_fields={"ProductVariant": ("quantity", "quantity_allocated")}
     )
@@ -486,6 +507,7 @@ def generate_product_payload(product: "Product"):
             "collections": (lambda p: p.collections.all(), ("name", "slug")),
         },
         extra_dict_data={
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "attributes": serialize_product_or_variant_attributes(product),
             "media": [
                 {
@@ -503,13 +525,17 @@ def generate_product_payload(product: "Product"):
                     product.channel_listings.all()  # type: ignore
                 )
             ),
-            "variants": lambda x: json.loads((generate_product_variant_payload(x))),
+            "variants": lambda x: json.loads(
+                (generate_product_variant_payload(x, with_meta=False))
+            ),
         },
     )
     return product_payload
 
 
-def generate_product_deleted_payload(product: "Product", variants_id):
+def generate_product_deleted_payload(
+    product: "Product", variants_id, requestor: Optional["RequestorOrLazyObject"] = None
+):
     serializer = PayloadSerializer()
     product_fields = PRODUCT_FIELDS
     product_variant_ids = [
@@ -518,7 +544,10 @@ def generate_product_deleted_payload(product: "Product", variants_id):
     product_payload = serializer.serialize(
         [product],
         fields=product_fields,
-        extra_dict_data={"variants": list(product_variant_ids)},
+        extra_dict_data={
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
+            "variants": list(product_variant_ids),
+        },
     )
     return product_payload
 
@@ -562,7 +591,7 @@ def generate_product_variant_media_payload(product_variant):
 
 
 def generate_product_variant_with_stock_payload(
-    stocks: Iterable["Stock"], requestor: Optional["Requestor"] = None
+    stocks: Iterable["Stock"], requestor: Optional["RequestorOrLazyObject"] = None
 ):
     serializer = PayloadSerializer()
     extra_dict_data = {
@@ -583,22 +612,29 @@ def generate_product_variant_with_stock_payload(
 
 def generate_product_variant_payload(
     product_variants: Iterable["ProductVariant"],
-    requestor: Optional["Requestor"] = None,
+    requestor: Optional["RequestorOrLazyObject"] = None,
+    with_meta: bool = True,
 ):
+    extra_dict_data = {
+        "id": lambda v: v.get_global_id(),
+        "attributes": lambda v: serialize_product_or_variant_attributes(v),
+        "product_id": lambda v: graphene.Node.to_global_id("Product", v.product_id),
+        "media": lambda v: generate_product_variant_media_payload(v),
+        "channel_listings": lambda v: json.loads(
+            generate_product_variant_listings_payload(v.channel_listings.all())
+        ),
+    }
+
+    if with_meta:
+        extra_dict_data["meta"] = generate_meta(
+            requestor_data=generate_requestor(requestor)
+        )
+
     serializer = PayloadSerializer()
     payload = serializer.serialize(
         product_variants,
         fields=PRODUCT_VARIANT_FIELDS,
-        extra_dict_data={
-            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
-            "id": lambda v: v.get_global_id(),
-            "attributes": lambda v: serialize_product_or_variant_attributes(v),
-            "product_id": lambda v: graphene.Node.to_global_id("Product", v.product_id),
-            "media": lambda v: generate_product_variant_media_payload(v),
-            "channel_listings": lambda v: json.loads(
-                generate_product_variant_listings_payload(v.channel_listings.all())
-            ),
-        },
+        extra_dict_data=extra_dict_data,
     )
     return payload
 
@@ -706,7 +742,9 @@ def generate_fulfillment_payload(fulfillment: Fulfillment):
             "warehouse_address": (lambda f: warehouse.address, ADDRESS_FIELDS),
         },
         extra_dict_data={
-            "order": json.loads(generate_order_payload(fulfillment.order))[0],
+            "order": json.loads(
+                generate_order_payload(fulfillment.order, with_meta=False)
+            )[0],
             "lines": json.loads(generate_fulfillment_lines_payload(fulfillment)),
         },
     )
