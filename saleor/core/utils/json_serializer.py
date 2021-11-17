@@ -5,8 +5,6 @@ from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 MONEY_TYPE = "Money"
-TAXED_MONEY_TYPE = "TaxedMoney"
-WEIGHT_TYPE = "Weight"
 
 
 class Serializer(JsonSerializer):
@@ -19,11 +17,13 @@ class CustomJsonEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, Money):
             return {"_type": MONEY_TYPE, "amount": obj.amount, "currency": obj.currency}
+        # Mirror implementation of other webhooks' payload structure
         if isinstance(obj, TaxedMoney):
             return {
-                "_type": TAXED_MONEY_TYPE,
-                "gross": obj.gross.amount,
-                "net": obj.net.amount,
+                "total_net_amount": obj.net.amount,
+                "undiscounted_total_net_amount": obj.net.amount,
+                "total_gross_amount": obj.gross.amount,
+                "undiscounted_total_gross_amount": obj.gross.amount,
                 "currency": obj.currency,
             }
         # Mirror implementation of django_measurement.MeasurementField.value_to_string
