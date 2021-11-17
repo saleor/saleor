@@ -1,0 +1,2 @@
+-r requirements.txt
+algoliasearch>=2.0,<3.0
