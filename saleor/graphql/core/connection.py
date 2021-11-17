@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal, InvalidOperation
+from enum import Enum
 from typing import Any, Dict, Iterable, List, Tuple, Union
 
 import graphene
@@ -140,6 +141,9 @@ def _validate_connection_args(args):
 
 def _get_sorting_fields(sort_by, qs):
     sorting_fields = sort_by.get("field")
+    if isinstance(sorting_fields, Enum):
+        sorting_fields = sorting_fields.value
+
     sorting_attribute = sort_by.get("attribute_id")
     if sorting_fields and not isinstance(sorting_fields, list):
         return [sorting_fields]
@@ -204,7 +208,6 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
             start_slice = 0
     page_info = _get_page_info(matching_records, cursor, first, last)
     matching_records = matching_records[start_slice:end_slice]
-
     edges = [
         edge_type(
             node=record,

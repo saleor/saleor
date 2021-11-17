@@ -133,10 +133,10 @@ def requestor_is_superuser(requestor):
     return getattr(requestor, "is_superuser", False)
 
 
-def query_fingerprint(document: DocumentNode) -> str:
+def query_fingerprint(document_ast: DocumentNode, document_string: str) -> str:
     """Generate a fingerprint for a GraphQL query."""
     label = "unknown"
-    for definition in document.document_ast.definitions:
+    for definition in document_ast.definitions:
         if getattr(definition, "operation", None) in {
             "query",
             "mutation",
@@ -147,5 +147,5 @@ def query_fingerprint(document: DocumentNode) -> str:
             else:
                 label = definition.operation
             break
-    query_hash = hashlib.md5(document.document_string.encode("utf-8")).hexdigest()
+    query_hash = hashlib.md5(document_string.encode("utf-8")).hexdigest()
     return f"{label}:{query_hash}"

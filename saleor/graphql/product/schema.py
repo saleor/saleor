@@ -282,6 +282,7 @@ class ProductQueries(graphene.ObjectType):
         )
 
     def resolve_collections(self, info, channel=None, *_args, **_kwargs):
+        print("resolve_collections")
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS

@@ -26,6 +26,7 @@ def _sort_queryset_by_attribute(queryset, sorting_attribute, sorting_direction):
 
 def sort_queryset_for_connection(iterable, args):
     sort_by = args.get("sort_by")
+    print(args)  # TODO: compare args value against master for test "test_fetch_all_variants"
     reversed = True if "last" in args else False
     query = getattr(iterable, "query", None)
     if sort_by:
@@ -66,9 +67,12 @@ def sort_queryset(
         sort_by - dictionary with sorting field and direction
 
     """
-    sorting_direction = sort_by.direction
+    sorting_direction = sort_by.direction.value
+    print(sort_by.direction, sorting_direction)
+    print("reversed", reversed)
     if reversed:
         sorting_direction = REVERSED_DIRECTION[sorting_direction]
+    print("sorting_direction", sorting_direction)
 
     sorting_field = sort_by.field
     sorting_attribute = getattr(sort_by, "attribute_id", None)
@@ -83,11 +87,15 @@ def sort_queryset(
 
     sort_enum = sort_by._meta.sort_enum
     sorting_fields = sort_enum.get(sorting_field)
+    print("sort_enum", sort_enum)
+    print("sorting_fields", sorting_fields)
     sorting_field_name = sorting_fields.name.lower()
+    print("sorting_field_name", sorting_field_name)
 
     custom_sort_by = getattr(sort_enum, f"qs_with_{sorting_field_name}", None)
     if custom_sort_by:
         queryset = custom_sort_by(queryset, channel_slug=channel_slug)
+        print(queryset)
 
     if sorting_field_name == "rank":
         # In rank sorting ID is sorted in opposite direction to rank
@@ -97,7 +105,9 @@ def sort_queryset(
             sorting_list = ["rank", "-id"]
     else:
         sorting_field_value = sorting_fields.value
+        print(sorting_field_value)
         sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
+    print(sorting_list)
 
     return queryset.order_by(*sorting_list)
 

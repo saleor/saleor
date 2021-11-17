@@ -69,7 +69,6 @@ class ReadOnlyMiddleware:
         "tokenRefresh",
     ]
 
-    @staticmethod
     def resolve(next_, root, info, **kwargs):
         operation = info.operation.operation
         if operation != "mutation":

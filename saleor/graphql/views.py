@@ -1,5 +1,6 @@
 import fnmatch
 import hashlib
+import inspect
 import json
 import logging
 import traceback
@@ -18,17 +19,21 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
 from django.views.generic import View
-# from graphene_django.settings import graphene_settings
-# from graphene_django.views import instantiate_middleware
-from graphql import DocumentNode
-from graphql.error import GraphQLError, GraphQLSyntaxError
-from graphql.error import format_error as format_graphql_error
-from graphql.execution import ExecutionResult
+from graphql import (
+    DocumentNode,
+    ExecutionResult,
+    MiddlewareManager,
+    execute_sync,
+    print_ast,
+)
+from graphql.error import GraphQLError, format_error as format_graphql_error
 from jwt.exceptions import PyJWTError
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
+from .api import schema
+from .django.settings import graphene_settings
 from .utils import query_fingerprint
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
@@ -63,14 +68,13 @@ class GraphQLView(View):
     # - CORS
 
     schema = None
-    executor = None
     middleware = None
     root_value = None
 
     HANDLED_EXCEPTIONS = (GraphQLError, PyJWTError, ReadOnlyException, PermissionDenied)
 
     def __init__(
-        self, schema=None, executor=None, middleware=None, root_value=None
+        self, schema=None, middleware=None, root_value=None
     ):
         super().__init__()
         if schema is None:
@@ -79,8 +83,9 @@ class GraphQLView(View):
             middleware = graphene_settings.MIDDLEWARE
         self.schema = self.schema or schema
         if middleware is not None:
-            self.middleware = list(instantiate_middleware(middleware))
-        self.executor = executor
+            self.middleware = MiddlewareManager(
+                *list(instantiate_middleware(middleware))
+            )
         self.root_value = root_value
 
     def dispatch(self, request, *args, **kwargs):
@@ -200,7 +205,6 @@ class GraphQLView(View):
             result: Optional[Dict[str, List[Any]]] = response
         else:
             result = None
-
         return result, status_code
 
     def get_root_value(self):
@@ -208,7 +212,7 @@ class GraphQLView(View):
 
     def parse_query(
         self, query: str
-    ) -> Tuple[Optional[DocumentNode], Optional[ExecutionResult]]:
+    ) -> Tuple[Optional[DocumentNode], Optional["ValidatedExecutionResult"]]:
         """Attempt to parse a query (mandatory) to a gql document object.
 
         If no query was given or query is not a string, it returns an error.
@@ -218,26 +222,25 @@ class GraphQLView(View):
         if not query or not isinstance(query, str):
             return (
                 None,
-                ExecutionResult(
+                ValidatedExecutionResult(
                     errors=[ValueError("Must provide a query string.")], invalid=True
                 ),
             )
 
         # Attempt to parse the query, if it fails, return the error
         try:
-            document = parse(source)
+            document = parse(query)
         except GraphQLError as error:
-            return None, ExecutionResult(data=None, errors=[error])
-
-        validation_errors = validate(schema, document)
+            return None, ValidatedExecutionResult(data=None, errors=[error])
+        validation_errors = validate(schema.graphql_schema, document)
         if validation_errors:
-            return None, ExecutionResult(data=None, errors=validation_errors)
+            return None, ValidatedExecutionResult(data=None, errors=validation_errors)
 
         return document, None
 
-    def check_if_query_contains_only_schema(self, document: DocumentNode):
+    def check_if_query_contains_only_schema(self, document_ast: DocumentNode):
         query_with_schema = False
-        for definition in document.document_ast.definitions:
+        for definition in document_ast.definitions:
             selections = definition.selection_set.selections
             selection_count = len(selections)
             for selection in selections:
@@ -261,22 +264,19 @@ class GraphQLView(View):
                 return error
 
             if document is not None:
-                raw_query_string = document.document_string
+                raw_query_string = print_ast(document)
                 span.set_tag("graphql.query", raw_query_string)
-                span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
+                span.set_tag(
+                    "graphql.query_fingerprint",
+                    query_fingerprint(document, raw_query_string),
+                )
                 try:
                     query_contains_schema = self.check_if_query_contains_only_schema(
                         document
                     )
                 except GraphQLError as e:
-                    return ExecutionResult(errors=[e], invalid=True)
+                    return ValidatedExecutionResult(errors=[e], invalid=True)
 
-            extra_options: Dict[str, Optional[Any]] = {}
-
-            if self.executor:
-                # We only include it optionally since
-                # executor is not a valid argument in all backends
-                extra_options["executor"] = self.executor
             try:
                 with connection.execute_wrapper(tracing_wrapper):
                     response = None
@@ -288,13 +288,19 @@ class GraphQLView(View):
                         response = cache.get(key)
 
                     if not response:
-                        response = document.execute(  # type: ignore
-                            root=self.get_root_value(),
-                            variables=variables,
+                        response = execute_sync(  # type: ignore
+                            schema.graphql_schema,
+                            document,
+                            root_value=self.get_root_value(),
+                            context_value=request,
+                            variable_values=variables,
                             operation_name=operation_name,
-                            context=request,
                             middleware=self.middleware,
-                            **extra_options,
+                        )
+                        response = ValidatedExecutionResult(
+                            data=response.data,
+                            errors=response.errors,
+                            extensions=response.extensions,
                         )
                         if should_use_cache_for_scheme:
                             cache.set(key, response)
@@ -306,7 +312,7 @@ class GraphQLView(View):
                 # As it's a validation error we want to raise GraphQLError instead.
                 if str(e).startswith(INT_ERROR_MSG) or isinstance(e, ValueError):
                     e = GraphQLError(str(e))
-                return ExecutionResult(errors=[e], invalid=True)
+                return ValidatedExecutionResult(errors=[e], invalid=True)
 
     @staticmethod
     def parse_body(request: HttpRequest):
@@ -368,6 +374,28 @@ class GraphQLView(View):
                     lines.extend(line.rstrip().splitlines())
             result["extensions"]["exception"]["stacktrace"] = lines
         return result
+
+
+class ValidatedExecutionResult(ExecutionResult):
+    invalid: bool
+
+    def __init__(
+        self,
+        data: Optional[Dict[str, Any]] = None,
+        errors: Optional[List[GraphQLError]] = None,
+        extensions: Optional[Dict[str, Any]] = None,
+        invalid: bool = False
+    ):
+        self.invalid = invalid
+        super().__init__(data, errors, extensions)
+
+
+def instantiate_middleware(middlewares):
+    for middleware in middlewares:
+        if inspect.isclass(middleware):
+            yield middleware()
+            continue
+        yield middleware
 
 
 def get_key(key):
