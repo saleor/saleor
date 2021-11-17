@@ -85,6 +85,9 @@ def test_create_fulfillments_require_approval(
     site_settings,
 ):
     order = order_with_lines
+    order_status = order.status
+    assert order_status != OrderStatus.FULFILLED
+
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [
@@ -114,7 +117,7 @@ def test_create_fulfillments_require_approval(
     assert fulfillment_lines[1].stock == order_line2.variant.stocks.get()
     assert fulfillment_lines[1].quantity == 2
 
-    assert order.status == OrderStatus.FULFILLED
+    assert order.status == order_status
     assert order.fulfillments.get() == fulfillment
 
     order_line1, order_line2 = order.lines.all()
@@ -149,6 +152,9 @@ def test_create_fulfillments_require_approval_as_app(
     site_settings,
 ):
     order = order_with_lines
+    order_status = order.status
+    assert order_status != OrderStatus.FULFILLED
+
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [
@@ -178,7 +184,7 @@ def test_create_fulfillments_require_approval_as_app(
     assert fulfillment_lines[1].stock == order_line2.variant.stocks.get()
     assert fulfillment_lines[1].quantity == 2
 
-    assert order.status == OrderStatus.FULFILLED
+    assert order.status == order_status
     assert order.fulfillments.get() == fulfillment
 
     order_line1, order_line2 = order.lines.all()
