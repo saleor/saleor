@@ -113,8 +113,7 @@ def clean_delivery_method(
         )
 
     valid_methods = checkout_info.valid_delivery_methods
-    # TODO: use me to check for price mismatches
-    return method.id in {m.id for m in valid_methods}
+    return method in valid_methods
 
 
 def update_checkout_shipping_method_if_invalid(
