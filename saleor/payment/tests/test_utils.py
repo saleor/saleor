@@ -533,6 +533,7 @@ def test_try_void_or_refund_inactive_payment_failed_transaction(
     payment_txn_capture_failed,
 ):
     transaction = payment_txn_capture_failed.transactions.first()
+
     assert not try_void_or_refund_inactive_payment(
         payment_txn_capture_failed, transaction, None
     )
@@ -551,6 +552,7 @@ def test_try_void_or_refund_inactive_payment_transaction_success(
     payment_txn_captured,
 ):
     transaction = payment_txn_captured.transactions.first()
+
     assert not try_void_or_refund_inactive_payment(
         payment_txn_captured, transaction, None
     )
