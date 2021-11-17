@@ -2,7 +2,7 @@ from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
-from graphql.error.base import GraphQLError
+from graphql.error import GraphQLError
 
 from ...core import models
 from ...core.error_codes import MetadataErrorCode
