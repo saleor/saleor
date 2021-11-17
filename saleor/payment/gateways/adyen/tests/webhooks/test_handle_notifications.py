@@ -264,15 +264,13 @@ def test_handle_authorization_without_adyen_auto_capture_and_inactive_payment(
 ):
     payment = inactive_payment_adyen_for_checkout
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-
     notification = notification(
         merchant_reference=payment_id,
         value=price_to_minor_unit(payment.total, payment.currency),
     )
-
     plugin = adyen_plugin(adyen_auto_capture=False)
-    handle_authorization(notification, plugin.config)
 
+    handle_authorization(notification, plugin.config)
     payment.refresh_from_db()
 
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
@@ -493,8 +491,8 @@ def test_handle_capture_inactive_payment(
         value=price_to_minor_unit(payment.total, payment.currency),
     )
     config = adyen_plugin().config
-    handle_capture(notification, config)
 
+    handle_capture(notification, config)
     payment.refresh_from_db()
 
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
