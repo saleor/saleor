@@ -7,6 +7,7 @@ from unittest import mock
 import graphene
 import pytest
 from measurement.measures import Weight
+from prices import Money, TaxedMoney
 
 from ....app.models import App
 from ....graphql.tests.utils import get_graphql_content
@@ -72,7 +73,10 @@ def available_shipping_methods_factory():
             methods.append(
                 ShippingMethod(
                     id=str(i),
-                    price=Decimal("10.0"),
+                    price=TaxedMoney(
+                        net=Money(Decimal("10"), "usd"),
+                        gross=Money(Decimal("12.2"), "usd"),
+                    ),
                     name=uuid.uuid4().hex,
                     maximum_order_weight=Weight(kg=0),
                     minimum_order_weight=Weight(kg=0),

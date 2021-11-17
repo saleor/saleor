@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING, List, Optional
 
-from measurement.measures import Weight
-
 from ...account.models import Address
 from ...plugins.base_plugin import ExcludedShippingMethod
 from ...plugins.base_plugin import ShippingMethod as ShippingMethodDataclass
@@ -25,15 +23,12 @@ def convert_shipping_method_model_to_dataclass(
         maximum_order_weight=None,
         minimum_order_weight=None,
     )
-    if max_weight := shipping_method.maximum_order_weight:
-        shipping_method_dataclass.maximum_order_weight = Weight(
-            **{max_weight.unit: max_weight.value}
-        )
-
-    if min_weight := shipping_method.minimum_order_weight:
-        shipping_method_dataclass.minimum_order_weight = Weight(
-            **{min_weight.unit: min_weight.value}
-        )
+    shipping_method_dataclass.maximum_order_weight = (
+        shipping_method.maximum_order_weight
+    )
+    shipping_method_dataclass.minimum_order_weight = (
+        shipping_method.minimum_order_weight
+    )
     return shipping_method_dataclass
 
 
@@ -43,7 +38,6 @@ def annotate_shipping_methods_with_price(
     address: Optional["Address"],
     channel_slug: str,
     manager: "PluginsManager",
-    display_gross: bool,
 ):
     if not address:
         return
@@ -56,10 +50,7 @@ def annotate_shipping_methods_with_price(
         taxed_price = manager.apply_taxes_to_shipping(
             shipping_channel_listing.price, address, channel_slug
         )
-        if display_gross:
-            method.price = taxed_price.gross  # type: ignore
-        else:
-            method.price = taxed_price.net  # type: ignore
+        method.price = taxed_price  # type: ignore
 
 
 def annotate_active_shipping_methods(
