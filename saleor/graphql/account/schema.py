@@ -181,7 +181,11 @@ class AccountQueries(graphene.ObjectType):
         return resolve_staff_users(info, **kwargs)
 
     @one_of_permissions_required(
-        [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
+        [
+            AccountPermissions.MANAGE_STAFF,
+            AccountPermissions.MANAGE_USERS,
+            OrderPermissions.MANAGE_ORDERS,
+        ]
     )
     def resolve_user(self, info, id=None, email=None):
         validate_one_of_args_is_in_query("id", id, "email", email)

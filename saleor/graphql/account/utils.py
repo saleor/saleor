@@ -470,7 +470,9 @@ def requestor_has_access(
     Args:
         requestor: requestor user or app
         owner: data owner
-        perm: permission which give the access to the data
+        perms: permissions which can give the access to the data.
+               Requestor needs to have at least one of given permissions
+               to get access to protected resource.
 
     """
     return requestor == owner or has_one_of_permissions(requestor, perms)
