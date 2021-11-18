@@ -3247,7 +3247,7 @@ def test_draft_order_complete_with_excluded_shipping_method(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "archives-are-incomplete"
     mocked_webhook.return_value = [
-        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+        ExcludedShippingMethod(str(shipping_method.id), webhook_reason)
     ]
     order = draft_order
     order.status = OrderStatus.DRAFT
@@ -4773,7 +4773,7 @@ def test_draft_order_update_shipping_with_excluded_method(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "archives-are-incomplete"
     mocked_webhook.return_value = [
-        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+        ExcludedShippingMethod(str(shipping_method.id), webhook_reason)
     ]
     order = draft_order
     order.status = OrderStatus.DRAFT
@@ -4844,7 +4844,7 @@ def test_order_update_shipping_with_excluded_method(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "archives-are-incomplete"
     mocked_webhook.return_value = [
-        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+        ExcludedShippingMethod(str(shipping_method.id), webhook_reason)
     ]
     order = order_with_lines
     order.status = OrderStatus.DRAFT

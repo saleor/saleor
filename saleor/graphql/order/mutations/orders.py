@@ -88,7 +88,7 @@ def clean_order_update_shipping(
     excluded_shipping_methods = manager.excluded_shipping_methods_for_order(
         order, [convert_shipping_method_model_to_dataclass(method)]
     )
-    if method.id in [
+    if str(method.id) in [
         shipping_method.id for shipping_method in excluded_shipping_methods
     ]:
         raise ValidationError(
