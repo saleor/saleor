@@ -1,5 +1,4 @@
 from ...channel.models import Channel
-from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
@@ -77,7 +76,6 @@ def _resolve_order_shipping_methods(root: models.Order, info):
         return []
     available_shipping_methods = []
     manager = info.context.plugins
-    display_gross = display_gross_prices()
     channel_slug = root.channel.slug
     for shipping_method in available:
         # Ignore typing check because it is checked in
@@ -86,15 +84,7 @@ def _resolve_order_shipping_methods(root: models.Order, info):
             channel=root.channel
         ).first()
         if shipping_channel_listing:
-            taxed_price = manager.apply_taxes_to_shipping(
-                shipping_channel_listing.price,
-                root.shipping_address,  # type: ignore
-                channel_slug,
-            )
-            if display_gross:
-                shipping_method.price = taxed_price.gross
-            else:
-                shipping_method.price = taxed_price.net
+            shipping_method.price = shipping_channel_listing.price
             available_shipping_methods.append(shipping_method)
 
     shipping_method_dataclasses = [

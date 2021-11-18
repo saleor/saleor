@@ -5,7 +5,6 @@ from measurement.measures import Weight
 from prices import Money
 
 MONEY_TYPE = "Money"
-WEIGHT_TYPE = "Weight"
 
 
 class Serializer(JsonSerializer):

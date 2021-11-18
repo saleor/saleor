@@ -50,9 +50,10 @@ def validate_shipping_method(order: "Order", errors: T_ERRORS, manager: PluginsM
             "Shipping method not available in given channel.",
             code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
         )
-    elif order.shipping_method:
-        method = order.shipping_method
-        method.price = order.shipping_price  # type: ignore
+    elif method := order.shipping_method:
+        method.price = method.channel_listings.get(  # type: ignore
+            channel=order.channel
+        ).price
         if manager.excluded_shipping_methods_for_order(
             order, [convert_shipping_method_model_to_dataclass(method)]
         ):
