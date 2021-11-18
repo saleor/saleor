@@ -218,3 +218,14 @@ def test_pagination_backward_last_page_info(books):
     page_info = content["books"]["pageInfo"]
     assert page_info["hasNextPage"]
     assert page_info["hasPreviousPage"] is False
+
+
+def test_pagination_invalid_cursor(books):
+    cursor = graphene.Node.to_global_id("BookType", -1)
+    variables = {"first": 5, "after": cursor}
+
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+
+    assert result.errors
+    assert len(result.errors) == 1
+    assert str(result.errors[0]) == "Received cursor is invalid."
