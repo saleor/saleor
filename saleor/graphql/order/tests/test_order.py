@@ -3251,7 +3251,6 @@ def test_draft_order_complete_with_excluded_shipping_method(
     ]
     order = draft_order
     order.status = OrderStatus.DRAFT
-    order.channel.shipping_zones.clear()
     order.shipping_method = shipping_method
     order.save()
 
@@ -3264,12 +3263,10 @@ def test_draft_order_complete_with_excluded_shipping_method(
     content = get_graphql_content(response)
 
     data = content["data"]["draftOrderComplete"]
-    assert len(data["errors"]) == 3
-    assert {error["code"] for error in data["errors"]} == {
-        OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name,
-        OrderErrorCode.INSUFFICIENT_STOCK.name,
-    }
-    assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
+    assert (
+        data["errors"][0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    )
+    assert data["errors"][0]["field"] == "shipping"
 
 
 def test_draft_order_complete_out_of_stock_variant(
