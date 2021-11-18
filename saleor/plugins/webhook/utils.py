@@ -1,12 +1,17 @@
 import decimal
 import logging
+from collections import defaultdict
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 import graphene
+from django.core.cache import cache
+from django.db.models import QuerySet
 
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ..base_plugin import ExcludedShippingMethod
+from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
+from .tasks import _get_webhooks_for_event, send_webhook_request_sync
 
 if TYPE_CHECKING:
     from ...app.models import App
@@ -112,9 +117,9 @@ def parse_payment_action_response(
     )
 
 
-def parse_excluded_shipping_methods_response(
+def get_excluded_shipping_methods_from_response(
     response_data: dict,
-) -> List[ExcludedShippingMethod]:
+) -> List[dict]:
     excluded_methods = []
     for method_data in response_data.get("excluded_methods", []):
         try:
@@ -127,6 +132,96 @@ def parse_excluded_shipping_methods_response(
             logger.warning(f"Malformed ShippingMethod id was provided: {e}")
             continue
         excluded_methods.append(
-            ExcludedShippingMethod(id=method_id, reason=method_data.get("reason", ""))
+            {"id": method_id, "reason": method_data.get("reason", "")}
         )
+    return excluded_methods
+
+
+def parse_excluded_shipping_methods(
+    excluded_methods: List[dict],
+) -> Dict[str, List[ExcludedShippingMethod]]:
+    excluded_methods_map = defaultdict(list)
+    for excluded_method in excluded_methods:
+        method_id = excluded_method["id"]
+        excluded_methods_map[method_id].append(
+            ExcludedShippingMethod(
+                id=method_id, reason=excluded_method.get("reason", "")
+            )
+        )
+    return excluded_methods_map
+
+
+def get_excluded_shipping_methods_or_fetch(
+    webhooks: QuerySet, event_type: str, payload: str, cache_key: str
+) -> Dict[str, List[ExcludedShippingMethod]]:
+    """Return data of all excluded shipping methods.
+
+    The data will be fetched from the cache. If missing it will fetch it from all
+    defined webhooks by calling a request to each of them one by one.
+    """
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        cached_payload, excluded_shipping_methods = cached_data
+        if payload == cached_payload:
+            return parse_excluded_shipping_methods(excluded_shipping_methods)
+
+    excluded_methods = []
+    # Gather responses from webhooks
+    for webhook in webhooks:
+        response_data = send_webhook_request_sync(
+            webhook.app.name,
+            webhook.target_url,
+            webhook.secret_key,
+            event_type,
+            payload,
+            timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        )
+        # TODO handle a case when we didn't receive a proper response
+        if response_data:
+            excluded_methods.extend(
+                get_excluded_shipping_methods_from_response(response_data)
+            )
+    cache.set(cache_key, (payload, excluded_methods), CACHE_EXCLUDED_SHIPPING_TIME)
+    return parse_excluded_shipping_methods(excluded_methods)
+
+
+def get_excluded_shipping_data(
+    event_type: str,
+    previous_value: List[ExcludedShippingMethod],
+    payload_fun: Callable[[], str],
+    cache_key: str,
+) -> List[ExcludedShippingMethod]:
+    """Exclude not allowed shipping methods by sync webhook.
+
+    Fetch excluded shipping methods from sync webhooks and return them as a list of
+    excluded shipping methods.
+    The function uses a cache_key to reduce the number of
+    requests which we call to the external APIs. In case when we have the same payload
+    in a cache as we're going to send now, we will skip an additional request and use
+    the response fetched from cache.
+    The function will fetch the payload only in the case that we have any defined
+    webhook.
+    """
+
+    excluded_methods_map: Dict[str, List[ExcludedShippingMethod]] = defaultdict(list)
+    webhooks = _get_webhooks_for_event(event_type)
+    if webhooks:
+        payload = payload_fun()
+
+        excluded_methods_map = get_excluded_shipping_methods_or_fetch(
+            webhooks, event_type, payload, cache_key
+        )
+
+    # Gather responses for previous plugins
+    for method in previous_value:
+        excluded_methods_map[method.id].append(method)
+
+    # Return a list of excluded methods, unique by id
+    excluded_methods = []
+    for method_id, methods in excluded_methods_map.items():
+        reasons = [m.reason for m in methods if m.reason]
+        reason = None
+        if reasons:
+            reason = " ".join(reasons)
+        excluded_methods.append(ExcludedShippingMethod(id=method_id, reason=reason))
     return excluded_methods
