@@ -26,14 +26,14 @@ def base_checkout_shipping_price(
     delivery_method_info = checkout_info.delivery_method_info
 
     if isinstance(delivery_method_info, ShippingMethodInfo):
-        return calculate_price_for_shipping_method(
+        return calculate_base_price_for_shipping_method(
             checkout_info, delivery_method_info, lines
         )
 
     return zero_taxed_money(checkout_info.checkout.currency)
 
 
-def calculate_price_for_shipping_method(
+def calculate_base_price_for_shipping_method(
     checkout_info: "CheckoutInfo",
     shipping_method_info: ShippingMethodInfo,
     lines=None,
@@ -52,7 +52,12 @@ def calculate_price_for_shipping_method(
     if not shipping_method or not shipping_required:
         return zero_taxed_money(checkout_info.checkout.currency)
 
-    return shipping_method.price
+    # Base price does not yet contain tax information,
+    # which can be later applied by tax plugins
+    return TaxedMoney(
+        net=shipping_method.price,
+        gross=shipping_method.price,
+    )
 
 
 def base_checkout_total(

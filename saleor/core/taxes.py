@@ -22,10 +22,6 @@ def zero_taxed_money(currency: str) -> TaxedMoney:
     return TaxedMoney(net=zero, gross=zero)
 
 
-def identical_taxed_money(money: Money) -> TaxedMoney:
-    return TaxedMoney(net=money, gross=money)
-
-
 def include_taxes_in_prices() -> bool:
     return Site.objects.get_current().settings.include_taxes_in_prices
 

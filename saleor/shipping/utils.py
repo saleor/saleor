@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING, Optional
 
 from django_countries import countries
 
-from ..core.taxes import identical_taxed_money
 from .interface import ShippingMethodData
 
 if TYPE_CHECKING:
@@ -29,7 +28,7 @@ def convert_to_shipping_method_data(
     shipping_method: "ShippingMethod", listing: Optional["ShippingMethodChannelListing"]
 ) -> "ShippingMethodData":
     if listing:
-        price = identical_taxed_money(listing.price)
+        price = listing.price
     else:
         price = None
     return ShippingMethodData(

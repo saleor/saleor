@@ -1,5 +1,4 @@
 from ...account.models import Address
-from ...core.taxes import identical_taxed_money
 from ...core.tracing import traced_resolver
 from ...shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ...shipping.postal_codes import filter_shipping_methods_by_postal_code_rules
@@ -28,7 +27,7 @@ def resolve_available_shipping_methods(info, channel_slug: str, address):
         )
         for shipping_method in available:
             shipping_price = shipping_mapping[shipping_method.pk]
-            shipping_method.price = identical_taxed_money(shipping_price)
+            shipping_method.price = shipping_price
         instances += [
             ChannelContext(node=shipping, channel_slug=channel_slug)
             for shipping in available
