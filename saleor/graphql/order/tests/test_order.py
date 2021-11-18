@@ -3269,6 +3269,38 @@ def test_draft_order_complete_with_excluded_shipping_method(
     assert data["errors"][0]["field"] == "shipping"
 
 
+@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+def test_draft_order_complete_with_not_excluded_shipping_method(
+    mocked_webhook,
+    draft_order,
+    shipping_method,
+    staff_api_client,
+    permission_manage_orders,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    webhook_reason = "archives-are-incomplete"
+    other_shipping_method_id = "1337"
+    assert other_shipping_method_id != shipping_method.id
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(other_shipping_method_id, webhook_reason)
+    ]
+    order = draft_order
+    order.status = OrderStatus.DRAFT
+    order.shipping_method = shipping_method
+    order.save()
+
+    query = DRAFT_ORDER_COMPLETE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert len(data["errors"]) == 0
+
+
 def test_draft_order_complete_out_of_stock_variant(
     staff_api_client, permission_manage_orders, staff_user, draft_order
 ):
