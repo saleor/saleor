@@ -1,7 +1,7 @@
 import graphene
-import pytest
 
-from saleor.graphql.tests.utils import get_graphql_content
+from .....core import EventDeliveryStatus
+from ....tests.utils import get_graphql_content
 
 EVENT_DELIVERY_FILTER_QUERY = """
     query webhook(
@@ -27,18 +27,17 @@ EVENT_DELIVERY_FILTER_QUERY = """
 """
 
 
-@pytest.mark.parametrize(
-    "filter_value",
-    ["SUCCESS", "PENDING", "FAILED"],
-)
 def test_delivery_status_filter(
-    filter_value, event_delivery, staff_api_client, permission_manage_apps
+    event_delivery, staff_api_client, permission_manage_apps
 ):
     # given
     webhook_id = graphene.Node.to_global_id("Webhook", event_delivery.webhook.pk)
-    variables = {"filters": {"status": filter_value}, "id": webhook_id, "first": 3}
     staff_api_client.user.user_permissions.add(permission_manage_apps)
-
+    variables = {
+        "filters": {"status": EventDeliveryStatus.PENDING.upper()},
+        "id": webhook_id,
+        "first": 3,
+    }
     # when
     response = staff_api_client.post_graphql(
         EVENT_DELIVERY_FILTER_QUERY, variables=variables
@@ -47,11 +46,27 @@ def test_delivery_status_filter(
     delivery_response = content["data"]["webhook"]["deliveries"]
 
     # then
-    if filter_value == event_delivery.status.upper():
-        delivery_response = delivery_response["edges"][0]["node"]
-        assert delivery_response["status"] == filter_value
-        assert delivery_response["id"] == graphene.Node.to_global_id(
-            "EventDelivery", event_delivery.pk
-        )
-    else:
-        assert len(delivery_response["edges"]) == 0
+    assert delivery_response["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "EventDelivery", event_delivery.pk
+    )
+
+
+def test_delivery_status_filter_no_results(
+    event_delivery, staff_api_client, permission_manage_apps
+):
+    # given
+    webhook_id = graphene.Node.to_global_id("Webhook", event_delivery.webhook.pk)
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    variables = {
+        "filters": {"status": EventDeliveryStatus.SUCCESS.upper()},
+        "id": webhook_id,
+        "first": 3,
+    }
+    # when
+    response = staff_api_client.post_graphql(
+        EVENT_DELIVERY_FILTER_QUERY, variables=variables
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert len(content["data"]["webhook"]["deliveries"]["edges"]) == 0

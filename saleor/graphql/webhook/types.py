@@ -7,8 +7,10 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.fields import FilterInputConnectionField
 from ..webhook.enums import EventDeliveryStatusEnum, WebhookEventTypeEnum
 from ..webhook.filters import EventDeliveryFilterInput
-from ..webhook.sorters import EventDeliverySortingInput
-from .dataloaders import AttemptsByDeliveryLoader
+from ..webhook.sorters import (
+    EventDeliveryAttemptSortingInput,
+    EventDeliverySortingInput,
+)
 
 
 class WebhookEvent(CountableDjangoObjectType):
@@ -28,13 +30,15 @@ class WebhookEvent(CountableDjangoObjectType):
 
 
 class EventDeliveryAttempt(CountableDjangoObjectType):
-    created_at = graphene.DateTime(required=True)
+    created_at = graphene.DateTime(
+        description="Event delivery creation date and time.", required=True
+    )
     status = EventDeliveryStatusEnum(
         description="Event delivery status.", required=True
     )
 
     class Meta:
-        description = "Webhook delivery attempts."
+        description = "Event delivery attempts."
         model = core_models.EventDeliveryAttempt
         interfaces = [graphene.relay.Node]
         only_fields = [
@@ -55,8 +59,8 @@ class EventDelivery(CountableDjangoObjectType):
     )
     attempts = FilterInputConnectionField(
         EventDeliveryAttempt,
-        sort_by=EventDeliverySortingInput(description="Event delivery sorter"),
-        description="Webhook delivery attempts.",
+        sort_by=EventDeliveryAttemptSortingInput(description="Event delivery sorter"),
+        description="Event delivery attempts.",
     )
     event_type = WebhookEventTypeEnum(description="Webhook event type.", required=True)
 
@@ -72,8 +76,7 @@ class EventDelivery(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_attempts(root: core_models.EventDelivery, info, *_args, **_kwargs):
-        AttemptsByDeliveryLoader(info.context).load(root)
+    def resolve_attempts(root: core_models.EventDelivery, *_args, **_kwargs):
         return core_models.EventDeliveryAttempt.objects.filter(delivery=root)
 
 
@@ -89,7 +92,7 @@ class Webhook(CountableDjangoObjectType):
         EventDelivery,
         sort_by=EventDeliverySortingInput(description="Event delivery sorter."),
         filter=EventDeliveryFilterInput(description="Event delivery filter options."),
-        description="Webhook deliveries.",
+        description="Event deliveries.",
     )
 
     class Meta:
