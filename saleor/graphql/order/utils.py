@@ -57,7 +57,7 @@ def validate_shipping_method(order: "Order", errors: T_ERRORS, manager: PluginsM
         excluded_shipping_methods = manager.excluded_shipping_methods_for_order(
             order, [convert_shipping_method_model_to_dataclass(method)]
         )
-        if method.id in [
+        if str(method.id) in [
             shipping_method.id for shipping_method in excluded_shipping_methods
         ]:
             error = ValidationError(
