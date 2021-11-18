@@ -358,9 +358,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_price(root: ChannelContext[ShippingMethodData], info, **_kwargs):
-        if info.context.site.settings.display_gross_prices:
-            return root.node.price.gross
-        return root.node.price.net
+        return root.node.price
 
     @staticmethod
     def resolve_name(root: ChannelContext[ShippingMethodData], info, **kwargs):

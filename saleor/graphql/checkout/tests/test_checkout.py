@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django_countries.fields import Country
 from measurement.measures import Weight
-from prices import Money, TaxedMoney
+from prices import Money
 
 from ....account.models import User
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
@@ -1558,17 +1558,14 @@ def test_checkout_available_shipping_methods_excluded_postal_codes(
     assert data["availableShippingMethods"] == []
 
 
-@patch("saleor.checkout.utils.convert_to_taxed_money")
 def test_checkout_available_shipping_methods_with_price_displayed(
-    mocked_money,
     monkeypatch,
     api_client,
     checkout_with_item,
     address,
     shipping_zone,
 ):
-    expected_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
-    mocked_money.return_value = expected_price
+    expected_price = Money(10, "USD")
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
 
@@ -1580,7 +1577,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     data = content["data"]["checkout"]
 
     assert data["availableShippingMethods"] == [
-        {"name": "DHL", "price": {"amount": expected_price.net.amount}}
+        {"name": "DHL", "price": {"amount": expected_price.amount}}
     ]
 
 

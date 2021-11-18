@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Dict, Optional
 
 import graphql
 from measurement.measures import Weight
-from prices import Money, TaxedMoney
+from prices import Money
 
 from ..graphql.core.utils import from_global_id_or_error
 
@@ -17,7 +17,7 @@ class ShippingMethodData:
 
     id: str
     name: str
-    price: TaxedMoney
+    price: Money
     description: Optional[str] = None
     type: Optional[str] = None
     maximum_order_price: Optional[Money] = None

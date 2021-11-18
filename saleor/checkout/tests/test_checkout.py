@@ -11,7 +11,7 @@ from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
-from ...core.taxes import convert_to_taxed_money, zero_money
+from ...core.taxes import zero_money
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
 from ...payment.models import Payment
@@ -602,7 +602,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
     [
         (
             True,
-            ShippingMethodData("1", "test", convert_to_taxed_money(Money(10, "USD"))),
+            ShippingMethodData("1", "test", Money(10, "USD")),
             10,
             DiscountValueType.FIXED,
             ["US"],
@@ -638,7 +638,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            ShippingMethodData("1", "test", convert_to_taxed_money(Money(10, "USD"))),
+            ShippingMethodData("1", "test", Money(10, "USD")),
             10,
             DiscountValueType.FIXED,
             [],
@@ -650,7 +650,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            ShippingMethodData("1", "test", convert_to_taxed_money(Money(10, "USD"))),
+            ShippingMethodData("1", "test", Money(10, "USD")),
             10,
             DiscountValueType.FIXED,
             [],
@@ -662,7 +662,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            ShippingMethodData("1", "test", convert_to_taxed_money(Money(10, "USD"))),
+            ShippingMethodData("1", "test", Money(10, "USD")),
             10,
             DiscountValueType.FIXED,
             [],
