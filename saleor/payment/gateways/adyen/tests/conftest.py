@@ -94,32 +94,40 @@ def payment_adyen_for_checkout(checkout_with_items, address, shipping_method):
 
 
 @pytest.fixture
-def payment_adyen_for_order(order_with_lines):
-    payment = create_payment(
-        gateway=AdyenGatewayPlugin.PLUGIN_ID,
-        payment_token="",
-        total=Decimal("80.00"),
-        currency=order_with_lines.currency,
-        email=order_with_lines.user_email,
-        customer_ip_address="",
-        checkout=None,
-        order=order_with_lines,
-        return_url="https://www.example.com",
-    )
+def payment_adyen_for_order_factory(order_with_lines):
+    def factory():
+        payment = create_payment(
+            gateway=AdyenGatewayPlugin.PLUGIN_ID,
+            payment_token="",
+            total=Decimal("80.00"),
+            currency=order_with_lines.currency,
+            email=order_with_lines.user_email,
+            customer_ip_address="",
+            checkout=None,
+            order=order_with_lines,
+            return_url="https://www.example.com",
+        )
 
-    Transaction.objects.create(
-        payment=payment,
-        action_required=False,
-        kind=TransactionKind.AUTH,
-        token="token",
-        is_success=True,
-        amount=order_with_lines.total_gross_amount,
-        currency=order_with_lines.currency,
-        error="",
-        gateway_response={},
-        action_required_data={},
-    )
-    return payment
+        Transaction.objects.create(
+            payment=payment,
+            action_required=False,
+            kind=TransactionKind.AUTH,
+            token="token",
+            is_success=True,
+            amount=order_with_lines.total_gross_amount,
+            currency=order_with_lines.currency,
+            error="",
+            gateway_response={},
+            action_required_data={},
+        )
+        return payment
+
+    return factory
+
+
+@pytest.fixture
+def payment_adyen_for_order(payment_adyen_for_order_factory):
+    return payment_adyen_for_order_factory()
 
 
 @pytest.fixture()
