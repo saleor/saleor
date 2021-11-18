@@ -5,6 +5,7 @@ from dataclasses import asdict
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 
 import graphene
+from django.contrib.auth.models import AnonymousUser
 from django.db.models import F, QuerySet, Sum
 from django.utils import timezone
 
@@ -93,17 +94,17 @@ ORDER_PRICE_FIELDS = (
 )
 
 
-def generate_requestor(requestor: Optional["RequestorOrLazyObject"]):
+def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
     if not requestor:
         return {"id": None, "type": None}
-    if isinstance(requestor, User):
+    if isinstance(requestor, (User, AnonymousUser)):
         return {"id": graphene.Node.to_global_id("User", requestor.id), "type": "user"}
-    return {"id": requestor.name, "type": "app"}
+    return {"id": requestor.name, "type": "app"}  # type: ignore
 
 
 def generate_meta(*, requestor_data: Dict[str, Any], **kwargs):
     meta_result = {
-        "issued_at": timezone.now(),
+        "issued_at": timezone.now().isoformat(),
         "version": __version__,
         "issuing_principal": requestor_data,
     }
@@ -364,7 +365,9 @@ def generate_sale_payload(
     )
 
 
-def generate_invoice_payload(invoice: "Invoice"):
+def generate_invoice_payload(
+    invoice: "Invoice", requestor: Optional["RequestorOrLazyObject"] = None
+):
     serializer = PayloadSerializer()
     invoice_fields = ("id", "number", "external_url", "created")
     if invoice.order is not None:
@@ -373,10 +376,15 @@ def generate_invoice_payload(invoice: "Invoice"):
         [invoice],
         fields=invoice_fields,
         additional_fields={"order": (lambda i: i.order, ORDER_FIELDS)},
+        extra_dict_data={
+            "meta": generate_meta(requestor_data=generate_requestor(requestor))
+        },
     )
 
 
-def generate_checkout_payload(checkout: "Checkout"):
+def generate_checkout_payload(
+    checkout: "Checkout", requestor: Optional["RequestorOrLazyObject"] = None
+):
     serializer = PayloadSerializer()
     checkout_fields = (
         "created",
@@ -427,12 +435,15 @@ def generate_checkout_payload(checkout: "Checkout"):
             )[0]
             if checkout.collection_point
             else None,
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
         },
     )
     return checkout_data
 
 
-def generate_customer_payload(customer: "User"):
+def generate_customer_payload(
+    customer: "User", requestor: Optional["RequestorOrLazyObject"] = None
+):
     serializer = PayloadSerializer()
     data = serializer.serialize(
         [customer],
@@ -458,6 +469,9 @@ def generate_customer_payload(customer: "User"):
                 lambda c: c.addresses.all(),
                 ADDRESS_FIELDS,
             ),
+        },
+        extra_dict_data={
+            "meta": generate_meta(requestor_data=generate_requestor(requestor))
         },
     )
     return data
@@ -710,7 +724,9 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
     )
 
 
-def generate_fulfillment_payload(fulfillment: Fulfillment):
+def generate_fulfillment_payload(
+    fulfillment: Fulfillment, requestor: Optional["RequestorOrLazyObject"] = None
+):
     serializer = PayloadSerializer()
 
     # fulfillment fields to serialize
@@ -746,12 +762,15 @@ def generate_fulfillment_payload(fulfillment: Fulfillment):
                 generate_order_payload(fulfillment.order, with_meta=False)
             )[0],
             "lines": json.loads(generate_fulfillment_lines_payload(fulfillment)),
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
         },
     )
     return fulfillment_data
 
 
-def generate_page_payload(page: Page):
+def generate_page_payload(
+    page: Page, requestor: Optional["RequestorOrLazyObject"] = None
+):
     serializer = PayloadSerializer()
     page_fields = [
         "private_metadata",
@@ -765,16 +784,22 @@ def generate_page_payload(page: Page):
     page_payload = serializer.serialize(
         [page],
         fields=page_fields,
+        extra_dict_data={
+            "data": generate_meta(requestor_data=generate_requestor(requestor))
+        },
     )
     return page_payload
 
 
-def generate_payment_payload(payment_data: "PaymentData"):
+def generate_payment_payload(
+    payment_data: "PaymentData", requestor: Optional["RequestorOrLazyObject"] = None
+):
     data = asdict(payment_data)
     data["amount"] = quantize_price(data["amount"], data["currency"])
     payment_app_data = from_payment_app_id(data["gateway"])
     if payment_app_data:
         data["payment_method"] = payment_app_data.name
+        data["meta"] = generate_meta(requestor_data=generate_requestor(requestor))
     return json.dumps(data, cls=CustomJsonEncoder)
 
 
@@ -893,7 +918,9 @@ def process_translation_context(context):
     return result
 
 
-def generate_translation_payload(translation: "Translation"):
+def generate_translation_payload(
+    translation: "Translation", requestor: Optional["RequestorOrLazyObject"] = None
+):
     object_type, object_id = translation.get_translated_object_id()
     translated_keys = [
         {"key": key, "value": value}
@@ -909,6 +936,7 @@ def generate_translation_payload(translation: "Translation"):
         "language_code": translation.language_code,
         "type": object_type,
         "keys": translated_keys,
+        "meta": generate_meta(requestor_data=generate_requestor(requestor)),
     }
 
     if context:

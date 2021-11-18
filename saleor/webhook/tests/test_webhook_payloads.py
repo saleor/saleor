@@ -480,6 +480,7 @@ def test_generate_product_variant_deleted_payload(
     assert len(payload.keys()) == len(payload_fields)
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_invoice_payload(fulfilled_order):
     fulfilled_order.origin = OrderOrigin.CHECKOUT
     fulfilled_order.save(update_fields=["origin"])
@@ -491,9 +492,18 @@ def test_generate_invoice_payload(fulfilled_order):
     undiscounted_total_gross = fulfilled_order.undiscounted_total_gross_amount.quantize(
         Decimal("0.01")
     )
+    timestamp = timezone.make_aware(
+        datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
+    ).isoformat()
+
     assert payload == {
         "type": "Invoice",
         "id": graphene.Node.to_global_id("Invoice", invoice.id),
+        "meta": {
+            "issued_at": timestamp,
+            "issuing_principal": {"id": None, "type": None},
+            "version": "dev",
+        },
         "order": {
             "type": "Order",
             "id": graphene.Node.to_global_id("Order", invoice.order.id),
@@ -520,6 +530,7 @@ def test_generate_invoice_payload(fulfilled_order):
     }
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_list_gateways_payload(checkout):
     currency = "USD"
     payload = generate_list_gateways_payload(currency, checkout)
@@ -528,6 +539,7 @@ def test_generate_list_gateways_payload(checkout):
     assert data["currency"] == currency
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_payment_payload(dummy_webhook_app_payment_data):
     payload = generate_payment_payload(dummy_webhook_app_payment_data)
     expected_payload = asdict(dummy_webhook_app_payment_data)
@@ -537,6 +549,8 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data):
     expected_payload["payment_method"] = from_payment_app_id(
         dummy_webhook_app_payment_data.gateway
     ).name
+    expected_payload["meta"] = generate_meta(requestor_data=generate_requestor())
+
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
 
 
@@ -674,15 +688,25 @@ def test_generate_unique_page_attribute_value_translation_payload(
     assert translation_keys["rich_text"] == translated_attribute_value.rich_text
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_customer_payload(customer_user, address_other_country, address):
 
     customer = customer_user
     customer.default_billing_address = address_other_country
     customer.save()
     payload = json.loads(generate_customer_payload(customer))[0]
+    timestamp = timezone.make_aware(
+        datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
+    ).isoformat()
+
     expected_payload = {
         "type": "User",
         "id": graphene.Node.to_global_id("User", customer.id),
+        "meta": {
+            "issuing_principal": {"id": None, "type": None},
+            "issued_at": timestamp,
+            "version": "dev",
+        },
         "default_shipping_address": {
             "type": "Address",
             "id": graphene.Node.to_global_id(
@@ -879,7 +903,7 @@ def test_generate_meta(app, rf):
 
     timestamp = timezone.make_aware(
         datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
-    )
+    ).isoformat()
 
     assert generate_meta(requestor_data=generate_requestor(requestor)) == {
         "issuing_principal": {"id": "Sample app objects", "type": "app"},

@@ -69,6 +69,7 @@ def test_generate_sample_payload_order(
     assert payload == order_payload
 
 
+@freeze_time("1914-06-28 10:50", ignore=["faker"])
 def test_generate_sample_payload_fulfillment_created(fulfillment):
     sample_fulfillment_payload = generate_sample_payload(
         WebhookEventType.FULFILLMENT_CREATED
@@ -153,6 +154,7 @@ def _remove_anonymized_checkout_data(checkout_data: dict) -> dict:
     return checkout_data
 
 
+@freeze_time("1914-06-28 10:50", ignore=["faker"])
 @pytest.mark.parametrize(
     "user_checkouts", ["regular", "click_and_collect"], indirect=True
 )
