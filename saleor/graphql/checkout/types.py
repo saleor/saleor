@@ -91,7 +91,7 @@ class CheckoutLine(CountableDjangoObjectType):
     class Meta:
         only_fields = ["id", "quantity", "variant"]
         description = "Represents an item in the checkout."
-        interfaces = [graphene.relay.Node]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.CheckoutLine
         filter_fields = ["id"]
 

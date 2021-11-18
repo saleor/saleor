@@ -461,7 +461,7 @@ class OrderLine(CountableDjangoObjectType):
     class Meta:
         description = "Represents order line of particular order."
         model = models.OrderLine
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         only_fields = [
             "digital_content_url",
             "id",

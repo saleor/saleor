@@ -402,7 +402,7 @@ class OrderLineQueryset(models.QuerySet):
                 yield line
 
 
-class OrderLine(models.Model):
+class OrderLine(ModelWithMetadata):
     order = models.ForeignKey(
         Order, related_name="lines", editable=False, on_delete=models.CASCADE
     )

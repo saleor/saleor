@@ -170,7 +170,7 @@ class Checkout(ModelWithMetadata):
         return country_code
 
 
-class CheckoutLine(models.Model):
+class CheckoutLine(ModelWithMetadata):
     """A single checkout line.
 
     Multiple lines in the same checkout can refer to the same product variant if

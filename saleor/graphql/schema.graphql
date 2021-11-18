@@ -1160,10 +1160,12 @@ type CheckoutLanguageCodeUpdate {
   errors: [CheckoutError!]!
 }
 
-type CheckoutLine implements Node {
+type CheckoutLine implements Node & ObjectWithMetadata {
   id: ID!
   variant: ProductVariant!
   quantity: Int!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   totalPrice: TaxedMoney
   requiresShipping: Boolean
 }
@@ -4404,7 +4406,7 @@ input OrderFulfillStockInput {
   warehouse: ID!
 }
 
-type OrderLine implements Node {
+type OrderLine implements Node & ObjectWithMetadata {
   id: ID!
   productName: String!
   variantName: String!
@@ -4416,6 +4418,8 @@ type OrderLine implements Node {
   unitDiscountReason: String
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   thumbnail(size: Int): Image
   unitPrice: TaxedMoney!
   undiscountedUnitPrice: TaxedMoney!
