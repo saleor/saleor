@@ -31,7 +31,7 @@ class ShippingMethodData:
     metadata: Dict[str, str] = field(default_factory=dict)
     private_metadata: Dict[str, str] = field(default_factory=dict)
     active: bool = True
-    message: Optional[str] = ""
+    message: str = ""
 
     @property
     def is_external(self) -> bool:
