@@ -31,23 +31,31 @@ def filter_staff_status(qs, _, value):
 
 def filter_user_search(qs, _, value):
     if value:
+        values = value.split()
         UserAddress = User.addresses.through
-        addresses = Address.objects.filter(
-            Q(first_name__ilike=value)
-            | Q(last_name__ilike=value)
-            | Q(city__ilike=value)
-            | Q(country__ilike=value)
-            | Q(phone=value)
-        ).values("id")
+        addresses_filter_lookup = Q()
+        for search_value in values:
+            addresses_filter_lookup &= (
+                Q(first_name__ilike=search_value)
+                | Q(last_name__ilike=search_value)
+                | Q(city__ilike=search_value)
+                | Q(country__ilike=search_value)
+                | Q(phone=search_value)
+            )
+        addresses = Address.objects.filter(addresses_filter_lookup).values("id")
         user_addresses = UserAddress.objects.filter(
             Exists(addresses.filter(pk=OuterRef("address_id")))
         ).values("user_id")
-        qs = qs.filter(
-            Q(email__ilike=value)
-            | Q(first_name__ilike=value)
-            | Q(last_name__ilike=value)
-            | Q(Exists(user_addresses.filter(user_id=OuterRef("pk"))))
-        )
+
+        order_filter_lookup = Q()
+        for search_value in values:
+            order_filter_lookup &= (
+                Q(email__ilike=search_value)
+                | Q(first_name__ilike=search_value)
+                | Q(last_name__ilike=search_value)
+            )
+        order_filter_lookup |= Q(Exists(user_addresses.filter(user_id=OuterRef("pk"))))
+        qs = qs.filter(order_filter_lookup)
     return qs
 
 

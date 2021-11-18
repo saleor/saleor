@@ -4511,6 +4511,10 @@ def test_query_customers_with_sort(
         ({"search": "wroc"}, 1),  # city
         ({"search": "pl"}, 1),  # country
         ({"search": "+48713988102"}, 1),
+        ({"search": "Alice Kowalski"}, 1),
+        ({"search": "Kowalski Alice"}, 1),
+        ({"search": "John Doe"}, 1),
+        ({"search": "Alice Doe"}, 0),
     ],
 )
 def test_query_customer_members_with_filter_search(
