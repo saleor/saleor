@@ -99,7 +99,11 @@ PERMISSIONS_ENUMS = [
 
 
 def split_permission_codename(permissions):
-    return [permission.split(".")[1] for permission in permissions]
+    for permission in permissions:
+        try:
+            yield permission.codename
+        except AttributeError:
+            yield permission.split(".")[1]
 
 
 def get_permissions_codename():

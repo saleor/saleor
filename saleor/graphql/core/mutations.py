@@ -321,6 +321,7 @@ class BaseMutation(graphene.Mutation):
         permissions = permissions or cls._meta.permissions
         if not permissions:
             return True
+        print(permissions)
         if context.user.has_perms(permissions):
             return True
         app = getattr(context, "app", None)

@@ -149,7 +149,7 @@ def from_global_id_or_error(
     """
     try:
         _type, _id = graphene.Node.from_global_id(id)
-    except (binascii.Error, UnicodeDecodeError, ValueError):
+    except (binascii.Error, TypeError, UnicodeDecodeError, ValueError):
         raise GraphQLError(f"Couldn't resolve id: {id}.")
 
     if only_type and str(_type) != str(only_type):

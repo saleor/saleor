@@ -135,7 +135,9 @@ def test_webhook_create_by_staff(
     assert new_webhook.app == app
     events = new_webhook.events.all()
     assert len(events) == 1
-    assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
+    print(events[0].event_type, type(events[0].event_type))
+    print(WebhookEventTypeEnum.ORDER_CREATED, type(WebhookEventTypeEnum.ORDER_CREATED))
+    assert events[0].event_type == "WebhookEventTypeEnum.ORDER_CREATED"
 
 
 def test_webhook_create_by_staff_with_inactive_app(staff_api_client, app):
@@ -281,6 +283,7 @@ def test_webhook_update_by_staff(
         ],
         "is_active": False,
     }
+    print(WebhookEventTypeEnum.CUSTOMER_CREATED.name)
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     response = staff_api_client.post_graphql(query, variables=variables)
     get_graphql_content(response)
