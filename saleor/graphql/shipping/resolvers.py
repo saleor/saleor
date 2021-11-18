@@ -44,10 +44,7 @@ def resolve_shipping_price(
     # Price field are dynamically generated in "available_shipping_methods" resolver
     price = getattr(root.node, "price", None)
     if price is not None:
-        if info.context.site.settings.display_gross_prices:
-            return price.gross
-        else:
-            return price.net
+        return price
 
     if not root.channel_slug:
         return None

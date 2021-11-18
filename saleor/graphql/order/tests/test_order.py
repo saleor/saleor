@@ -724,20 +724,11 @@ def test_order_query_shipping_methods_excluded_postal_codes(
     assert order_data["availableShippingMethods"] == []
 
 
-@pytest.mark.parametrize(
-    "expected_price_type, expected_price, display_gross_prices",
-    (("gross", 13, True), ("net", 10, False)),
-)
 def test_order_available_shipping_methods_query(
-    expected_price_type,
-    expected_price,
-    display_gross_prices,
-    monkeypatch,
     staff_api_client,
     permission_manage_orders,
     fulfilled_order,
     shipping_zone,
-    site_settings,
 ):
     query = """
     query OrdersQuery {
@@ -759,13 +750,6 @@ def test_order_available_shipping_methods_query(
     shipping_price = shipping_method.channel_listings.get(
         channel_id=fulfilled_order.channel_id
     ).price
-    taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
-    apply_taxes_to_shipping_mock = Mock(return_value=taxed_price)
-    monkeypatch.setattr(
-        PluginsManager, "apply_taxes_to_shipping", apply_taxes_to_shipping_mock
-    )
-    site_settings.display_gross_prices = display_gross_prices
-    site_settings.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query)
@@ -773,10 +757,7 @@ def test_order_available_shipping_methods_query(
     order_data = content["data"]["orders"]["edges"][0]["node"]
     method = order_data["availableShippingMethods"][0]
 
-    apply_taxes_to_shipping_mock.assert_called_once_with(
-        shipping_price, ANY, fulfilled_order.channel.slug
-    )
-    assert expected_price == method["price"]["amount"]
+    assert shipping_price.amount == method["price"]["amount"]
 
 
 def test_order_query_customer(api_client):

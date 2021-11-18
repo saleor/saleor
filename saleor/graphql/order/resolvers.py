@@ -84,12 +84,7 @@ def _resolve_order_shipping_methods(root: models.Order, info):
             channel=root.channel
         ).first()
         if shipping_channel_listing:
-            taxed_price = manager.apply_taxes_to_shipping(
-                shipping_channel_listing.price,
-                root.shipping_address,  # type: ignore
-                channel_slug,
-            )
-            shipping_method.price = taxed_price
+            shipping_method.price = shipping_channel_listing.price
             available_shipping_methods.append(shipping_method)
 
     shipping_method_dataclasses = [

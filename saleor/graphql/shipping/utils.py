@@ -47,10 +47,7 @@ def annotate_shipping_methods_with_price(
     }
     for method in shipping_methods:
         shipping_channel_listing = channel_listing_map[method.id]
-        taxed_price = manager.apply_taxes_to_shipping(
-            shipping_channel_listing.price, address, channel_slug
-        )
-        method.price = taxed_price  # type: ignore
+        method.price = shipping_channel_listing.price  # type: ignore
 
 
 def annotate_active_shipping_methods(

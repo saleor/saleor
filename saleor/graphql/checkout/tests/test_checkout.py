@@ -11,7 +11,6 @@ from django.core.exceptions import ValidationError
 from django.test import override_settings
 from django_countries.fields import Country
 from measurement.measures import Weight
-from prices import Money, TaxedMoney
 
 from ....account.models import User
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
@@ -28,7 +27,7 @@ from ....core.payments import PaymentInterface
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.base_plugin import ExcludedShippingMethod
-from ....plugins.manager import PluginsManager, get_plugins_manager
+from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
@@ -1445,32 +1444,16 @@ def test_checkout_available_shipping_methods_excluded_postal_codes(
     assert data["availableShippingMethods"] == []
 
 
-@pytest.mark.parametrize(
-    "expected_price_type, expected_price, display_gross_prices",
-    (("gross", 13, True), ("net", 10, False)),
-)
 def test_checkout_available_shipping_methods_with_price_displayed(
-    expected_price_type,
-    expected_price,
-    display_gross_prices,
-    monkeypatch,
     api_client,
     checkout_with_item,
     address,
     shipping_zone,
-    site_settings,
 ):
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_price = shipping_method.channel_listings.get(
         channel_id=checkout_with_item.channel_id
     ).price
-    taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
-    apply_taxes_to_shipping_mock = mock.Mock(return_value=taxed_price)
-    monkeypatch.setattr(
-        PluginsManager, "apply_taxes_to_shipping", apply_taxes_to_shipping_mock
-    )
-    site_settings.display_gross_prices = display_gross_prices
-    site_settings.save()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
 
@@ -1481,11 +1464,8 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    apply_taxes_to_shipping_mock.assert_called_once_with(
-        shipping_price, mock.ANY, checkout_with_item.channel.slug
-    )
     assert data["availableShippingMethods"] == [
-        {"name": "DHL", "price": {"amount": expected_price}}
+        {"name": "DHL", "price": {"amount": shipping_price.amount}}
     ]
 
 

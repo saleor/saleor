@@ -540,9 +540,7 @@ def generate_list_gateways_payload(
 def _generate_payload_for_shipping_method(method: ShippingMethod):
     payload = {
         "id": graphene.Node.to_global_id("ShippingMethod", method.id),
-        "price_net_amount": method.price.net.amount,
-        "price_gross_amount": method.price.gross.amount,
-        "price_currency": method.price.currency,
+        "price": method.price.amount,
         "name": method.name,
         "maximum_order_weight": method.maximum_order_weight,
         "minimum_order_weight": method.minimum_order_weight,
