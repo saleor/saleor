@@ -54,9 +54,12 @@ def validate_shipping_method(order: "Order", errors: T_ERRORS, manager: PluginsM
         method.price = method.channel_listings.get(  # type: ignore
             channel=order.channel
         ).price
-        if manager.excluded_shipping_methods_for_order(
+        excluded_shipping_methods = manager.excluded_shipping_methods_for_order(
             order, [convert_shipping_method_model_to_dataclass(method)]
-        ):
+        )
+        if method.id in [
+            shipping_method.id for shipping_method in excluded_shipping_methods
+        ]:
             error = ValidationError(
                 "Shipping method cannot be used with this order.",
                 code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
