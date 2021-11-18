@@ -35,6 +35,7 @@ from ....order.actions import cancel_order, order_authorized, order_captured
 from ....order.events import external_notification_event
 from ....order.interface import OrderPaymentAction
 from ....order.notifications import send_order_refunded_confirmation
+from ....order.utils import get_active_payments
 from ....payment.models import Payment, Transaction
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind, gateway
@@ -297,13 +298,14 @@ def handle_cancellation(
 
     reason = notification.get("reason", "-")
     success_msg = f"Adyen: The cancel {transaction_id} request was successful."
-    failed_msg = f"Adyen: The camcel {transaction_id} request failed. Reason: {reason}"
+    failed_msg = f"Adyen: The cancel {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
         payment, success_msg, failed_msg, new_transaction.is_success
     )
     if payment.order and new_transaction.is_success:
         manager = get_plugins_manager()
-        cancel_order(payment.order, None, None, manager)
+        if not get_active_payments(payment.order):
+            cancel_order(payment.order, None, None, manager)
 
 
 def handle_cancel_or_refund(
