@@ -1527,6 +1527,7 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
         from_city="WROCŁAW",
         from_postal_code="53-601",
         from_country="PL",
+        shipping_tax_code="FR00001",
     )
     conf = {data["name"]: data["value"] for data in plugin_conf.configuration}
 
@@ -1580,6 +1581,7 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
         "from_postal_code": conf["from_postal_code"],
         "from_country": conf["from_country"],
         "from_country_area": conf["from_country_area"],
+        "shipping_tax_code": conf["shipping_tax_code"],
     }
 
     api_post_request_task_mock.assert_called_once_with(

@@ -3,7 +3,7 @@ interactions:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
       "lines": [{"quantity": 3, "amount": "15.00", "taxCode": "O9999999", "taxIncluded":
       true, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
-      "10.000", "taxCode": "FR020100", "taxIncluded": true, "itemCode": "Shipping",
+      "10.000", "taxCode": "FR000000", "taxIncluded": true, "itemCode": "Shipping",
       "description": null}], "code": "c1b86a21-352b-43f5-bdc9-4e41c79489cd", "date":
       "2021-03-02", "customerCode": 0, "addresses": {"shipFrom": {"line1": "T\u0119czowa
       7", "line2": "", "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode":
@@ -77,7 +77,7 @@ interactions:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
       "lines": [{"quantity": 3, "amount": "15.00", "taxCode": "O9999999", "taxIncluded":
       true, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
-      "10.000", "taxCode": "FR020100", "taxIncluded": true, "itemCode": "Shipping",
+      "10.000", "taxCode": "FR000000", "taxIncluded": true, "itemCode": "Shipping",
       "description": null}], "code": "c1b86a21-352b-43f5-bdc9-4e41c79489cd", "date":
       "2021-03-02", "customerCode": 0, "addresses": {"shipFrom": {"line1": "T\u0119czowa
       7", "line2": "", "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode":
@@ -151,7 +151,7 @@ interactions:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
       "lines": [{"quantity": 3, "amount": "15.00", "taxCode": "O9999999", "taxIncluded":
       true, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
-      "10.000", "taxCode": "FR020100", "taxIncluded": true, "itemCode": "Shipping",
+      "10.000", "taxCode": "FR000000", "taxIncluded": true, "itemCode": "Shipping",
       "description": null}], "code": "c1b86a21-352b-43f5-bdc9-4e41c79489cd", "date":
       "2021-03-02", "customerCode": 0, "addresses": {"shipFrom": {"line1": "T\u0119czowa
       7", "line2": "", "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode":
