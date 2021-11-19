@@ -109,3 +109,7 @@ class Webhook(CountableDjangoObjectType):
     @staticmethod
     def resolve_events(root: models.Webhook, *_args, **_kwargs):
         return root.events.all()
+
+    @staticmethod
+    def resolve_deliveries(root: models.Webhook, *_args, **_kwargs):
+        return core_models.EventDelivery.objects.filter(webhook_id=root.pk)
