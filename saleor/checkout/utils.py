@@ -261,7 +261,6 @@ def _get_shipping_voucher_discount_for_checkout(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
-    taxes_included: bool = True,
 ):
     """Calculate discount value for a voucher of shipping type."""
     if not is_shipping_required(lines):
@@ -284,10 +283,8 @@ def _get_shipping_voucher_discount_for_checkout(
         lines=lines,
         address=address,
         discounts=discounts,
-    )
-    return voucher.get_discount_amount_for(
-        net_or_gross(shipping_price, taxes_included), checkout_info.channel
-    )
+    ).gross
+    return voucher.get_discount_amount_for(shipping_price, checkout_info.channel)
 
 
 def _get_products_voucher_discount(
@@ -296,13 +293,12 @@ def _get_products_voucher_discount(
     lines: Iterable["CheckoutLineInfo"],
     voucher,
     discounts: Optional[Iterable[DiscountInfo]] = None,
-    taxes_included: bool = True,
 ):
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         prices = get_prices_of_discounted_specific_product(
-            manager, checkout_info, lines, voucher, discounts, taxes_included
+            manager, checkout_info, lines, voucher, discounts
         )
     if not prices:
         msg = "This offer is only valid for selected items."
@@ -342,7 +338,6 @@ def get_prices_of_discounted_specific_product(
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
     discounts: Optional[Iterable[DiscountInfo]] = None,
-    taxes_included: bool = True,
 ) -> List[Money]:
     """Get prices of variants belonging to the discounted specific products.
 
@@ -354,7 +349,6 @@ def get_prices_of_discounted_specific_product(
     discounted_lines: Iterable["CheckoutLineInfo"] = get_discounted_lines(
         lines, voucher
     )
-    address = checkout_info.shipping_address or checkout_info.billing_address
     discounts = discounts or []
 
     for line_info in discounted_lines:
@@ -365,10 +359,8 @@ def get_prices_of_discounted_specific_product(
             lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
-        )
-        line_prices.extend(
-            [net_or_gross(line_unit_price, taxes_included)] * line.quantity
-        )
+        ).gross
+        line_prices.extend([line_unit_price] * line.quantity)
 
     return line_prices
 
@@ -380,7 +372,6 @@ def get_voucher_discount_for_checkout(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
-    taxes_included: bool = True,
 ) -> Money:
     """Calculate discount value depending on voucher and discount types.
 
@@ -394,17 +385,15 @@ def get_voucher_discount_for_checkout(
             lines=lines,
             address=address,
             discounts=discounts,
-        )
-        return voucher.get_discount_amount_for(
-            net_or_gross(subtotal, taxes_included), checkout_info.channel
-        )
+        ).gross
+        return voucher.get_discount_amount_for(subtotal, checkout_info.channel)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(
-            manager, voucher, checkout_info, lines, address, discounts, taxes_included
+            manager, voucher, checkout_info, lines, address, discounts
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         return _get_products_voucher_discount(
-            manager, checkout_info, lines, voucher, discounts, taxes_included
+            manager, checkout_info, lines, voucher, discounts
         )
     raise NotImplementedError("Unknown discount type")
 
@@ -716,7 +705,3 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
                 )
             }
         )
-
-
-def net_or_gross(taxed_money: "TaxedMoney", taxes_included: bool) -> Money:
-    return taxed_money.gross if taxes_included else taxed_money.net

@@ -247,7 +247,6 @@ def generate_checkout_payload(checkout: "Checkout"):
         "subtotal_gross_amount",
         "total_net_amount",
         "total_gross_amount",
-        "voucher_amount",
         "discount_amount",
         "discount_name",
         "private_metadata",
@@ -271,7 +270,7 @@ def generate_checkout_payload(checkout: "Checkout"):
             # Casting to list to make it json-serializable
             "included_taxes_in_price": include_taxes_in_prices(),
             "lines": list(lines_dict_data),
-            "voucher_amount": checkout.discount,
+            "voucher_amount": checkout.discount.amount,
             "collection_point": json.loads(
                 _generate_collection_point_payload(checkout.collection_point)
             )[0]

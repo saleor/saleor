@@ -241,7 +241,7 @@ def test_specific_products_voucher_checkout_discount(
     discounts = []
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_discounted_specific_product",
-        lambda manager, checkout_info, lines, voucher, channel, taxes_included: (
+        lambda manager, checkout_info, lines, voucher, channel: (
             Money(price, "USD") for price in prices
         ),
     )
