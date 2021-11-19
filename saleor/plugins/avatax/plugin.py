@@ -389,7 +389,7 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         if not _validate_order(order):
-            return zero_taxed_money(order.total.currency)
+            return previous_value
 
         taxes_data = self._get_order_tax_data(order, previous_value)
         return self._calculate_line_total_price(taxes_data, variant.sku, previous_value)
@@ -496,7 +496,7 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         if not _validate_order(order):
-            return zero_taxed_money(order.total.currency)
+            return previous_value
         taxes_data = get_order_tax_data(order, self.config, False)
 
         tax_included = (
