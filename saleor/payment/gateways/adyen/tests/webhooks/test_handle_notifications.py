@@ -322,6 +322,44 @@ def test_handle_cancel(
     assert external_events.count() == 1
 
 
+@mock.patch("saleor.payment.gateways.adyen.webhooks.cancel_order")
+def test_handle_cancel_with_remaining_active_payments(
+    mocked_cancel_order, notification, adyen_plugin, payment_adyen_for_order_factory
+):
+    # given
+    payment = payment_adyen_for_order_factory()
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.is_active = False
+    payment.save()
+    remaining_payment = payment_adyen_for_order_factory()
+    remaining_payment.charge_status = ChargeStatus.FULLY_CHARGED
+    remaining_payment.is_active = True
+    remaining_payment.save()
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+
+    # when
+    handle_cancellation(notification, config)
+
+    # then
+    payment.order.refresh_from_db()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.filter(kind=TransactionKind.CANCEL).get()
+    assert transaction.is_success is True
+
+    assert payment.order.status == OrderStatus.UNFULFILLED
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
+    )
+    assert external_events.count() == 1
+
+    assert mocked_cancel_order.call_count == 0
+
+
 def test_handle_cancel_invalid_payment_id(
     notification, adyen_plugin, payment_adyen_for_order, caplog
 ):
