@@ -167,14 +167,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `customerId` to `checkoutCustomerAttach` mutation
   - Add new permision `IMPERSONATE_USER`
   - Handle `SameSite` cookie attribute in jwt refresh token middleware - #8209 by @jakubkuc
-
-- Fix missing transaction id in Braintree - #8110 by @fowczarek
-- Fix GraphQL federation support. - #7771 #8107 by @rafalp
-- Remove unnecessary database lock on discount during checkout complete mutation - #8174 by @fowczarek
-- Fix cursor-based pagination in products search - #8011 #8211 by @rafalp
-- Batch loads in queries for Apollo Federation - #8362 by @rafalp
-- Change metadata mutations to use token for order and checkout as identifier - #8542 by @IKarbowiak
-  - After changes, using the order `id` for changing order metadata is deprecated
 - Add option to set tax code for shipping in Avatax configuration view - #8596 by @korycins
 
 ### Breaking
