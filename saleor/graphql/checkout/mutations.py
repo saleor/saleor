@@ -573,9 +573,15 @@ class CheckoutLinesAdd(BaseMutation):
             )
 
         lines = fetch_checkout_lines(checkout)
+        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info.valid_shipping_methods = (
             get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines, discounts, manager
+                checkout_info,
+                checkout_info.shipping_address,
+                lines,
+                discounts,
+                manager,
+                shipping_channel_listings,
             )
         )
         checkout_info.valid_pick_up_points = (
@@ -609,7 +615,10 @@ class CheckoutLinesAdd(BaseMutation):
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
         quantities = [line.get("quantity") for line in lines]
 
-        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
+        checkout_info = fetch_checkout_info(
+            checkout, [], discounts, manager, shipping_channel_listings
+        )
 
         lines = fetch_checkout_lines(checkout)
         lines = cls.clean_input(
@@ -624,9 +633,14 @@ class CheckoutLinesAdd(BaseMutation):
             replace,
         )
 
-        checkout_info.valid_shipping_methxzods = (
+        checkout_info.valid_shipping_methods = (
             get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines, discounts, manager
+                checkout_info,
+                checkout_info.shipping_address,
+                lines,
+                discounts,
+                manager,
+                shipping_channel_listings,
             )
         )
         checkout_info.valid_pick_up_points = (
@@ -1008,7 +1022,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         discounts = info.context.discounts
         manager = info.context.plugins
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
+        checkout_info = fetch_checkout_info(
+            checkout, lines, discounts, manager, shipping_channel_listings
+        )
 
         country = shipping_address.country.code
         checkout.set_country(country, commit=True)
@@ -1022,7 +1039,12 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         with traced_atomic_transaction():
             shipping_address.save()
             change_shipping_address_in_checkout(
-                checkout_info, shipping_address, lines, discounts, manager
+                checkout_info,
+                shipping_address,
+                lines,
+                discounts,
+                manager,
+                shipping_channel_listings,
             )
         recalculate_checkout_discount(manager, checkout_info, lines, discounts)
 
@@ -1734,7 +1756,10 @@ class CheckoutAddPromoCode(BaseMutation):
         manager = info.context.plugins
         discounts = info.context.discounts
         lines = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
+        checkout_info = fetch_checkout_info(
+            checkout, lines, discounts, manager, shipping_channel_listings
+        )
 
         add_promo_code_to_checkout(
             manager,
@@ -1746,7 +1771,12 @@ class CheckoutAddPromoCode(BaseMutation):
 
         checkout_info.valid_shipping_methods = (
             get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines, discounts, manager
+                checkout_info,
+                checkout_info.shipping_address,
+                lines,
+                discounts,
+                manager,
+                shipping_channel_listings,
             )
         )
 

@@ -250,6 +250,7 @@ def change_shipping_address_in_checkout(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     manager: "PluginsManager",
+    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
 ):
     """Save shipping address in checkout if changed.
 
@@ -264,7 +265,7 @@ def change_shipping_address_in_checkout(
             checkout.shipping_address.delete()  # type: ignore
         checkout.shipping_address = address
         update_checkout_info_shipping_address(
-            checkout_info, address, lines, discounts, manager
+            checkout_info, address, lines, discounts, manager, shipping_channel_listings
         )
         checkout.save(update_fields=["shipping_address", "last_change"])
 
@@ -620,6 +621,7 @@ def get_valid_saleor_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     subtotal: "TaxedMoney",
+    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     country_code: Optional[str] = None,
 ) -> List[ShippingMethodData]:
     if not is_shipping_required(lines):
@@ -636,8 +638,7 @@ def get_valid_saleor_shipping_methods_for_checkout(
     )
 
     channel_listings_map = {
-        listing.shipping_method_id: listing
-        for listing in checkout_info.shipping_method_channel_listings
+        listing.shipping_method_id: listing for listing in shipping_channel_listings
     }
 
     saleor_methods = []

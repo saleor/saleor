@@ -276,12 +276,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                                     (checkout.shipping_method_id, channel.id)
                                 )
                             ),
-                            shipping_method_channel_listings=[
-                                listing
-                                for channel_listings in listings_for_channels
-                                for listing in channel_listings
-                                if listing.channel_id == channel.id
-                            ],
                         )
 
                         def fetch_valid_shipping_methods():
@@ -290,12 +284,19 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
 
                             manager = self.context.plugins
                             discounts = self.context.discounts
+                            shipping_method_listings = [
+                                listing
+                                for channel_listings in listings_for_channels
+                                for listing in channel_listings
+                                if listing.channel_id == channel.id
+                            ]
                             return get_valid_shipping_method_list_for_checkout_info(
                                 checkout_info,
                                 shipping_address,
                                 checkout_lines,
                                 discounts,
                                 manager,
+                                shipping_method_listings,
                             )
 
                         checkout_info.valid_shipping_methods = SimpleLazyObject(

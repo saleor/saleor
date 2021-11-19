@@ -83,8 +83,9 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
     channel = checkout.channel
     shipping_address = checkout.shipping_address
     shipping_method = checkout.shipping_method
-    shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
-        channel=channel
+    shipping_channel_listing = ShippingMethodChannelListing.objects.get(
+        channel=channel,
+        shipping_method=shipping_method,
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
@@ -93,15 +94,10 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=get_delivery_method_info(
-            convert_to_shipping_method_data(
-                shipping_method, shipping_channel_listings.first()
-            ),
+            convert_to_shipping_method_data(shipping_method, shipping_channel_listing),
             shipping_address,
         ),
-        shipping_method_channel_listing=shipping_channel_listings.get(
-            shipping_method=shipping_method
-        ),
-        shipping_method_channel_listings=shipping_channel_listings,
+        shipping_method_channel_listing=shipping_channel_listing,
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )

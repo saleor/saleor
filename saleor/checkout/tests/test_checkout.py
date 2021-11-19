@@ -189,7 +189,6 @@ def test_get_discount_for_checkout_value_voucher(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listing=None,
-        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
         delivery_method_info=get_delivery_method_info(None, None),
@@ -286,7 +285,6 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listing=None,
-        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -401,7 +399,6 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listing=None,
-        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -478,7 +475,6 @@ def test_get_discount_for_checkout_shipping_voucher(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listing=None,
-        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -539,7 +535,6 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listing=None,
-        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -586,7 +581,6 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listing=None,
-        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -731,7 +725,6 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         channel=channel_USD,
         user=None,
         shipping_method_channel_listing=None,
-        shipping_method_channel_listings=[],
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -949,7 +942,14 @@ def test_change_address_in_checkout(checkout, address):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    change_shipping_address_in_checkout(checkout_info, address, lines, [], manager)
+    change_shipping_address_in_checkout(
+        checkout_info,
+        address,
+        lines,
+        [],
+        manager,
+        checkout.channel.shipping_method_listings.all(),
+    )
     change_billing_address_in_checkout(checkout, address)
 
     checkout.refresh_from_db()
@@ -966,7 +966,14 @@ def test_change_address_in_checkout_to_none(checkout, address):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    change_shipping_address_in_checkout(checkout_info, None, lines, [], manager)
+    change_shipping_address_in_checkout(
+        checkout_info,
+        None,
+        lines,
+        [],
+        manager,
+        checkout.channel.shipping_method_listings.all(),
+    )
     change_billing_address_in_checkout(checkout, None)
 
     checkout.refresh_from_db()
@@ -985,7 +992,14 @@ def test_change_address_in_checkout_to_same(checkout, address):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    change_shipping_address_in_checkout(checkout_info, address, lines, [], manager)
+    change_shipping_address_in_checkout(
+        checkout_info,
+        address,
+        lines,
+        [],
+        manager,
+        checkout.channel.shipping_method_listings.all(),
+    )
     change_billing_address_in_checkout(checkout, address)
 
     checkout.refresh_from_db()
@@ -1005,7 +1019,12 @@ def test_change_address_in_checkout_to_other(checkout, address):
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     change_shipping_address_in_checkout(
-        checkout_info, other_address, lines, [], manager
+        checkout_info,
+        other_address,
+        lines,
+        [],
+        manager,
+        checkout.channel.shipping_method_listings.all(),
     )
     change_billing_address_in_checkout(checkout, other_address)
 
@@ -1030,7 +1049,12 @@ def test_change_address_in_checkout_from_user_address_to_other(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     change_shipping_address_in_checkout(
-        checkout_info, other_address, lines, [], manager
+        checkout_info,
+        other_address,
+        lines,
+        [],
+        manager,
+        checkout.channel.shipping_method_listings.all(),
     )
     change_billing_address_in_checkout(checkout, other_address)
 
