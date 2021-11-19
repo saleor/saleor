@@ -16,10 +16,6 @@ def resolve_available_shipping_methods(info, channel_slug: str, address):
         available = filter_shipping_methods_by_postal_code_rules(
             available, Address(**address)
         )
-        # Address instance needed for apply_taxes_to_shipping method
-        address = Address(country=address.country)
-    else:
-        address = Address()
 
     if available is not None:
         shipping_mapping = get_shipping_method_to_shipping_price_mapping(
