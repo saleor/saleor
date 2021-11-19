@@ -37,6 +37,7 @@ from ....order.interface import OrderPaymentAction
 from ....order.notifications import send_order_refunded_confirmation
 from ....order.utils import get_active_payments
 from ....payment.models import Payment, Transaction
+from ....payment.tasks import refund_or_void_inactive_payment
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind, gateway
 from ...gateway import payment_refund_or_void
@@ -216,7 +217,9 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
 
 def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayConfig):
     transaction_id = notification.get("pspReference")
-    payment = get_payment(notification.get("merchantReference"), transaction_id)
+    payment = get_payment(
+        notification.get("merchantReference"), transaction_id, check_if_active=False
+    )
     if not payment:
         # We don't know anything about that payment
         return
@@ -227,6 +230,13 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
     kind = TransactionKind.AUTH
     if adyen_auto_capture:
         kind = TransactionKind.CAPTURE
+
+    if not payment.is_active:
+        transaction = create_new_transaction(notification, payment, kind)
+        gateway_postprocess(transaction, payment)
+        refund_or_void_inactive_payment.delay(payment.pk)
+        return
+
     if not payment.order:
         handle_not_created_order(notification, payment, checkout, kind, manager)
     else:
@@ -326,12 +336,23 @@ def handle_cancel_or_refund(
 def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/capture#capture-notification
     transaction_id = notification.get("pspReference")
-    payment = get_payment(notification.get("merchantReference"), transaction_id)
+    payment = get_payment(
+        notification.get("merchantReference"), transaction_id, check_if_active=False
+    )
     if not payment:
         return
     checkout = get_checkout(payment)
 
     manager = get_plugins_manager()
+
+    if not payment.is_active:
+        transaction = create_new_transaction(
+            notification, payment, TransactionKind.CAPTURE
+        )
+        gateway_postprocess(transaction, payment)
+        refund_or_void_inactive_payment.delay(payment.pk)
+        return
+
     if not payment.order:
         handle_not_created_order(
             notification, payment, checkout, TransactionKind.CAPTURE, manager
@@ -365,7 +386,9 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
 def handle_failed_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/capture#failed-capture
     transaction_id = notification.get("pspReference")
-    payment = get_payment(notification.get("merchantReference"), transaction_id)
+    payment = get_payment(
+        notification.get("merchantReference"), transaction_id, check_if_active=False
+    )
     if not payment:
         return
 
@@ -392,7 +415,9 @@ def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
     # https://docs.adyen.com/development-resources/webhooks/understand-notifications#
     # event-codes"
     transaction_id = notification.get("pspReference")
-    payment = get_payment(notification.get("merchantReference"), transaction_id)
+    payment = get_payment(
+        notification.get("merchantReference"), transaction_id, check_if_active=False
+    )
     if not payment:
         return
     transaction = get_transaction(payment, transaction_id, TransactionKind.PENDING)
@@ -466,7 +491,9 @@ def _get_kind(transaction: Optional[Transaction]) -> str:
 def handle_failed_refund(notification: Dict[str, Any], gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/refund#failed-refund
     transaction_id = notification.get("pspReference")
-    payment = get_payment(notification.get("merchantReference"), transaction_id)
+    payment = get_payment(
+        notification.get("merchantReference"), transaction_id, check_if_active=False
+    )
     if not payment:
         return
 
@@ -531,7 +558,9 @@ def handle_reversed_refund(
 ):
     # https://docs.adyen.com/checkout/refund#failed-refund
     transaction_id = notification.get("pspReference")
-    payment = get_payment(notification.get("merchantReference"), transaction_id)
+    payment = get_payment(
+        notification.get("merchantReference"), transaction_id, check_if_active=False
+    )
     if not payment:
         return
     transaction = get_transaction(

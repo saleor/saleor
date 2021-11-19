@@ -11,7 +11,7 @@ from ......checkout import calculations
 from ......checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
 from ......plugins.manager import get_plugins_manager
-from ..... import ChargeStatus, TransactionKind
+from ..... import ChargeStatus, PaymentError, TransactionKind
 from .....utils import price_to_minor_unit
 from ...plugin import AdyenGatewayPlugin
 from ...webhooks import (
@@ -238,6 +238,45 @@ def test_handle_authorization_with_adyen_auto_capture(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
     assert external_events.count() == 1
+
+
+@patch("saleor.payment.gateway.refund")
+def test_handle_authorization_with_adyen_auto_capture_and_inactive_payment(
+    refund_mock, notification, adyen_plugin, inactive_payment_adyen_for_checkout
+):
+    payment = inactive_payment_adyen_for_checkout
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    plugin = adyen_plugin(adyen_auto_capture=True)
+
+    handle_authorization(notification, plugin.config)
+    payment.refresh_from_db()
+
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert refund_mock.called
+
+
+@patch("saleor.payment.gateway.void")
+def test_handle_authorization_without_adyen_auto_capture_and_inactive_payment(
+    void_mock, notification, adyen_plugin, inactive_payment_adyen_for_checkout
+):
+    void_mock.side_effect = PaymentError("")
+    payment = inactive_payment_adyen_for_checkout
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    plugin = adyen_plugin(adyen_auto_capture=False)
+
+    handle_authorization(notification, plugin.config)
+    payment.refresh_from_db()
+
+    assert payment.charge_status == ChargeStatus.AUTHORIZED
+    assert void_mock.called
 
 
 @pytest.mark.vcr
@@ -474,6 +513,30 @@ def test_handle_capture_for_checkout(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
     assert external_events.count() == 1
+
+
+@patch("saleor.payment.gateway.refund")
+def test_handle_capture_inactive_payment(
+    refund_mock,
+    notification,
+    adyen_plugin,
+    inactive_payment_adyen_for_checkout,
+    address,
+    shipping_method,
+):
+    payment = inactive_payment_adyen_for_checkout
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+
+    handle_capture(notification, config)
+    payment.refresh_from_db()
+
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert refund_mock.called
 
 
 def test_handle_capture_invalid_payment_id(

@@ -293,7 +293,6 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
         TransactionKind.REFUND_REVERSED,
     }:
         payment.captured_amount += transaction.amount
-        payment.is_active = True
         # Set payment charge status to fully charged
         # only if there is no more amount needs to charge
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED

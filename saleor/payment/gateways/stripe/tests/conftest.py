@@ -38,6 +38,13 @@ def payment_stripe_for_checkout(checkout_with_items, address, shipping_method):
 
 
 @pytest.fixture
+def inactive_payment_stripe_for_checkout(payment_stripe_for_checkout):
+    payment_stripe_for_checkout.is_active = False
+    payment_stripe_for_checkout.save(update_fields=["is_active"])
+    return payment_stripe_for_checkout
+
+
+@pytest.fixture
 def payment_stripe_for_order(payment_stripe_for_checkout, order_with_lines):
     payment_stripe_for_checkout.checkout = None
     payment_stripe_for_checkout.order = order_with_lines

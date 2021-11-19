@@ -107,7 +107,6 @@ def payment_adyen_for_order_factory(order_with_lines):
             order=order_with_lines,
             return_url="https://www.example.com",
         )
-
         Transaction.objects.create(
             payment=payment,
             action_required=False,
@@ -123,6 +122,13 @@ def payment_adyen_for_order_factory(order_with_lines):
         return payment
 
     return factory
+
+
+@pytest.fixture
+def inactive_payment_adyen_for_checkout(payment_adyen_for_checkout):
+    payment_adyen_for_checkout.is_active = False
+    payment_adyen_for_checkout.save(update_fields=["is_active"])
+    return payment_adyen_for_checkout
 
 
 @pytest.fixture

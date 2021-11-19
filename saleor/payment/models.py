@@ -171,6 +171,9 @@ class Payment(models.Model):
         )
         return self.charge_status in can_refund_charge_status
 
+    def can_confirm(self):
+        return self.is_active and self.not_charged
+
     def is_manual(self):
         return self.gateway == CustomPaymentChoices.MANUAL
 
