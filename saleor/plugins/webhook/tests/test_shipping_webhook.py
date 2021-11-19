@@ -63,7 +63,7 @@ CHECKOUT_QUERY_SHIPPING_METHOD = """
 """
 
 
-@mock.patch("saleor.plugins.avatax.cache.set")
+@mock.patch("saleor.plugins.webhook.utils.cache.set")
 @mock.patch("saleor.plugins.webhook.utils.send_webhook_request_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
@@ -130,7 +130,7 @@ def test_excluded_shipping_methods_for_order(
     )
 
 
-@mock.patch("saleor.plugins.avatax.cache.set")
+@mock.patch("saleor.plugins.webhook.utils.cache.set")
 @mock.patch("saleor.plugins.webhook.utils.send_webhook_request_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
@@ -418,7 +418,7 @@ def test_checkout_shipping_methods_webhook_called_once(
     assert len(checkout_data["shippingMethods"]) == 2
 
 
-@mock.patch("saleor.plugins.avatax.cache.set")
+@mock.patch("saleor.plugins.webhook.utils.cache.set")
 @mock.patch("saleor.plugins.webhook.utils.send_webhook_request_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin."
@@ -486,7 +486,7 @@ def test_excluded_shipping_methods_for_checkout(
     )
 
 
-@mock.patch("saleor.plugins.avatax.cache.set")
+@mock.patch("saleor.plugins.webhook.utils.cache.set")
 @mock.patch("saleor.plugins.webhook.utils.send_webhook_request_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin."
