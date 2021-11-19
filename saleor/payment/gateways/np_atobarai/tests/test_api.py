@@ -9,6 +9,12 @@ from .... import PaymentError
 from .. import PaymentStatus, api
 from ..api_helpers import format_price, get_goods_with_discount
 from ..api_types import NPResponse
+from ..errors import (
+    NO_PSP_REFERENCE,
+    NO_TRACKING_NUMBER,
+    NP_CONNECTION_ERROR,
+    PAYMENT_DOES_NOT_EXIST,
+)
 from ..plugin import NPAtobaraiGatewayPlugin
 
 
@@ -227,7 +233,7 @@ def test_report_fulfillment_no_psp_reference(
 
     # then
     assert not already_captured
-    assert errors == ["FR#Payment does not have psp reference."]
+    assert errors == [f"FR#{NO_PSP_REFERENCE}"]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -247,7 +253,7 @@ def test_report_fulfillment_no_tracking_number(
 
     # then
     assert not already_captured
-    assert errors == ["FR#Fulfillment does not have tracking number."]
+    assert errors == [f"FR#{NO_TRACKING_NUMBER}"]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -297,9 +303,10 @@ def test_report_fulfillment_connection_errors(
 
     # then
     assert not already_captured
-    error_message = "Cannot connect to NP Atobarai."
-    assert errors == [f"FR#{error_message}"]
-    assert caplog.record_tuples == [(ANY, logging.WARNING, error_message)]
+    assert errors == [f"FR#{NP_CONNECTION_ERROR}"]
+    assert caplog.record_tuples == [
+        (ANY, logging.WARNING, "Cannot connect to NP Atobarai.")
+    ]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -603,8 +610,7 @@ def test_reregister_transaction_no_psp_reference(payment_dummy, np_payment_data)
 
     # then
     assert payment_response.status == PaymentStatus.FAILED
-    assert str(np_payment_data.payment_id) in payment_response.errors[0]
-    assert "psp reference is missing" in payment_response.errors[0]
+    assert payment_response.errors == [f"TR#{NO_PSP_REFERENCE}"]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.cancel")
@@ -690,4 +696,4 @@ def test_cancel_transaction_no_payment(np_payment_data):
     payment_response = api.cancel_transaction(Mock(), np_payment_data)
 
     # then
-    assert payment_response.errors == [f"Payment with id {payment_id} does not exist."]
+    assert payment_response.errors == [f"TC#{PAYMENT_DOES_NOT_EXIST}"]
