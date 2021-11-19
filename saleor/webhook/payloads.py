@@ -194,7 +194,6 @@ def generate_order_payload(order: "Order"):
             "discounts": (lambda o: o.discounts.all(), discount_fields),
         },
         extra_dict_data={
-            "weight": order.weight.g if order.weight else None,
             "original": graphene.Node.to_global_id("Order", order.original_id),
             "lines": json.loads(generate_order_lines_payload(lines)),
             "fulfillments": json.loads(fulfillments_data),
