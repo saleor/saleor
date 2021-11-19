@@ -174,8 +174,8 @@ def test_calculate_order_line_total_order_not_valid(
     net = variant.get_price(product, [], channel, channel_listing)
     unit_price = TaxedMoney(net=net, gross=net)
     order_line.unit_price = unit_price
-    total_price = unit_price * order_line.quantity
-    order_line.total_price = total_price
+    expected_total_price = unit_price * order_line.quantity
+    order_line.total_price = expected_total_price
     order_line.save()
 
     total = manager.calculate_order_line_total(
@@ -185,7 +185,54 @@ def test_calculate_order_line_total_order_not_valid(
         product,
     )
     total = quantize_price(total, total.currency)
-    assert total == TaxedMoney(net=Money("0.00", "USD"), gross=Money("0.00", "USD"))
+    assert total == expected_total_price
+
+
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_shipping_order_not_valid(
+    order_line,
+    address,
+    site_settings,
+    monkeypatch,
+    plugin_configuration,
+    shipping_method,
+):
+    # given
+    plugin_configuration()
+    manager = get_plugins_manager()
+
+    site_settings.company_address = address
+    site_settings.save(update_fields=["company_address"])
+
+    variant = order_line.variant
+    product = variant.product
+    product.metadata = {}
+    product.charge_taxes = True
+    product.save()
+    product.product_type.save()
+
+    order = order_line.order
+
+    expected_shipping_price = TaxedMoney(
+        net=Money("10.00", "USD"), gross=Money("10.00", "USD")
+    )
+    order.shipping_address = None
+    order.shipping_method = shipping_method
+    order.save()
+
+    order.shipping_method.channel_listings.filter(channel_id=order.channel_id).update(
+        price_amount=Decimal("10.00")
+    )
+
+    # when
+    shipping_price = manager.calculate_order_shipping(
+        order,
+    )
+
+    # then
+    shipping_price = quantize_price(shipping_price, shipping_price.currency)
+
+    assert shipping_price == expected_shipping_price
 
 
 @pytest.mark.vcr
