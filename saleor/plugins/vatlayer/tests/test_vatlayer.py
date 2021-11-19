@@ -1,5 +1,4 @@
 from decimal import Decimal
-from unittest.mock import Mock
 from urllib.parse import urlparse
 
 import pytest
@@ -182,27 +181,6 @@ def test_apply_tax_to_price_no_taxes_return_taxed_money_range():
 def test_apply_tax_to_price_no_taxes_raise_typeerror_for_invalid_type():
     with pytest.raises(TypeError):
         assert apply_tax_to_price(None, "standard", 100)
-
-
-def test_vatlayer_plugin_caches_taxes(
-    vatlayer, monkeypatch, product, address, channel_USD
-):
-    mocked_taxes = Mock(wraps=get_taxes_for_country)
-    monkeypatch.setattr(
-        "saleor.plugins.vatlayer.plugin.get_taxes_for_country", mocked_taxes
-    )
-
-    manager = get_plugins_manager()
-    plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID, channel_slug=channel_USD.slug)
-    variant = product.variants.first()
-    channel_listing = variant.channel_listings.get(channel=channel_USD)
-    price = variant.get_price(product, [], channel_USD, channel_listing, None)
-    address.country = Country("de")
-    plugin.apply_taxes_to_product(
-        product, price, address.country, TaxedMoney(price, price)
-    )
-    plugin.apply_taxes_to_shipping(price, address, TaxedMoney(price, price))
-    assert mocked_taxes.call_count == 1
 
 
 @pytest.mark.parametrize(

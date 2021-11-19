@@ -452,23 +452,6 @@ class PluginsManager(PaymentInterface):
             price.currency,
         )
 
-    def apply_taxes_to_shipping(
-        self, price: Money, shipping_address: "Address", channel_slug: str
-    ) -> TaxedMoney:
-        default_value = quantize_price(
-            TaxedMoney(net=price, gross=price), price.currency
-        )
-        return quantize_price(
-            self.__run_method_on_plugins(
-                "apply_taxes_to_shipping",
-                default_value,
-                price,
-                shipping_address,
-                channel_slug=channel_slug,
-            ),
-            price.currency,
-        )
-
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",

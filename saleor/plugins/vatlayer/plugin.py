@@ -444,15 +444,6 @@ class VatlayerPlugin(BasePlugin):
             return previous_value
         return True
 
-    def apply_taxes_to_shipping(
-        self, price: Money, shipping_address: "Address", previous_value: TaxedMoney
-    ) -> TaxedMoney:
-        if self._skip_plugin(previous_value):
-            return previous_value
-
-        taxes = self._get_taxes_for_country(shipping_address.country)
-        return get_taxed_shipping_price(price, taxes)
-
     def apply_taxes_to_product(
         self,
         product: "Product",

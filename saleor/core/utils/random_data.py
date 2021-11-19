@@ -763,7 +763,6 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
             "user_email": get_email(address.first_name, address.last_name),
         }
 
-    manager = get_plugins_manager()
     shipping_method_channel_listing = (
         ShippingMethodChannelListing.objects.filter(channel=channel)
         .order_by("?")
@@ -771,9 +770,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     )
     shipping_method = shipping_method_channel_listing.shipping_method
     shipping_price = shipping_method_channel_listing.price
-    shipping_price = manager.apply_taxes_to_shipping(
-        shipping_price, address, channel_slug=channel.slug
-    )
+    shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
     order_data.update(
         {
             "channel": channel,
