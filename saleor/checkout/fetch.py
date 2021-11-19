@@ -125,10 +125,8 @@ class ShippingMethodInfo(DeliveryMethodBase):
 
     def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
         valid_delivery_methods = checkout_info.valid_delivery_methods
-        # TODO: use me to check pricing inconsitencies
         return bool(
-            valid_delivery_methods
-            and self.delivery_method.id in {m.id for m in valid_delivery_methods}
+            valid_delivery_methods and self.delivery_method in valid_delivery_methods
         )
 
     def update_channel_listings(self, checkout_info: "CheckoutInfo") -> None:

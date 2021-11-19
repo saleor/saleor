@@ -1,3 +1,4 @@
+import logging
 from typing import TYPE_CHECKING, Optional
 
 from django_countries import countries
@@ -6,6 +7,9 @@ from .interface import ShippingMethodData
 
 if TYPE_CHECKING:
     from .models import ShippingMethod, ShippingMethodChannelListing
+
+
+logger = logging.getLogger(__name__)
 
 
 def default_shipping_zone_exists(zone_pk=None):
@@ -29,8 +33,13 @@ def convert_to_shipping_method_data(
 ) -> "ShippingMethodData":
     if listing:
         price = listing.price
+        minimum_order_price = listing.minimum_order_price
     else:
-        price = None
+        price = minimum_order_price = None
+        logger.error(
+            f"Selected shipping method {shipping_method.id} has no channel listing."
+        )
+
     return ShippingMethodData(
         id=str(shipping_method.id),
         name=shipping_method.name,
@@ -45,5 +54,5 @@ def convert_to_shipping_method_data(
         minimum_delivery_days=shipping_method.minimum_delivery_days,
         metadata=shipping_method.metadata,
         private_metadata=shipping_method.private_metadata,
-        minimum_order_price=getattr(listing, "minimum_order_price", None),
+        minimum_order_price=minimum_order_price,
     )

@@ -60,8 +60,8 @@ class BaseMetadataMutation(BaseMutation):
             type_name, _ = from_global_id_or_error(object_id)
             if type_name == "Order":
                 warnings.warn("DEPRECATED. Use token for changing order metadata.")
-            # ShippingMethod and ShippingMethodType types aren't model-based class
-            if type_name in ["ShippingMethod", "ShippingMethodType"]:
+            # ShippingMethodType represents the ShippingMethod model
+            if type_name == "ShippingMethodType":
                 qs = shipping_models.ShippingMethod.objects
             return cls.get_node_or_error(info, object_id, qs=qs)
         except GraphQLError as e:

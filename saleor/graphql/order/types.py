@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 from operator import attrgetter
 from typing import Optional
@@ -38,6 +39,7 @@ from ...payment.model_helpers import (
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.product_images import get_product_image_thumbnail
+from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -87,6 +89,8 @@ from .dataloaders import (
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
 from .resolvers import resolve_order_shipping_methods
 from .utils import validate_draft_order
+
+logger = logging.getLogger(__name__)
 
 
 def get_order_discount_event(discount_obj: dict):
@@ -1070,8 +1074,7 @@ class Order(CountableDjangoObjectType):
                 ).load((shipping_method.id, channel.slug))
             )
 
-            def calculate_price(data):
-                listing = data
+            def calculate_price(listing: Optional[ShippingMethodChannelListing]):
                 return ChannelContext(
                     node=convert_to_shipping_method_data(shipping_method, listing),
                     channel_slug=channel.slug,
