@@ -62,7 +62,7 @@ def filter_status(qs, _, value):
 
 def filter_customer(qs, _, value):
     qs = qs.filter(
-        Q(user_email__trigram_similar=value)
+        Q(user_email__ilike=value)
         | Q(user__email__trigram_similar=value)
         | Q(user__first_name__trigram_similar=value)
         | Q(user__last_name__trigram_similar=value)
@@ -84,7 +84,7 @@ def filter_order_search(qs, _, value):
         | Q(last_name__trigram_similar=value)
     ).values("pk")
 
-    filter_option = Q(user_email__trigram_similar=value) | Q(
+    filter_option = Q(user_email__ilike=value) | Q(
         Exists(users.filter(pk=OuterRef("user_id")))
     )
 
