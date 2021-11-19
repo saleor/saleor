@@ -34,14 +34,14 @@ def tax_data(checkout_with_items, checkout_with_items_lines):
         total_gross_amount=checkout.shipping_price.gross.amount + gross,
         lines=[
             TaxLineData(
-                id=i,
+                id=line.variant_id,
                 currency=checkout.currency,
                 unit_net_amount=line.unit_price.net.amount + net,
                 unit_gross_amount=line.unit_price.gross.amount + gross,
                 total_net_amount=line.total_price.net.amount + net,
                 total_gross_amount=line.total_price.gross.amount + gross,
             )
-            for i, line in enumerate(lines)
+            for line in lines
         ],
     )
 
@@ -56,7 +56,12 @@ def test_apply_tax_data(checkout_with_items, checkout_with_items_lines, tax_data
 
     # when
     _apply_tax_data(
-        checkout, [Mock(spec=CheckoutLineInfo, line=line) for line in lines], tax_data
+        checkout,
+        [
+            Mock(spec=CheckoutLineInfo, line=line, variant=line.variant)
+            for line in lines
+        ],
+        tax_data,
     )
 
     # then
