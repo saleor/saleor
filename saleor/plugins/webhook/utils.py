@@ -219,9 +219,8 @@ def get_excluded_shipping_data(
     # Return a list of excluded methods, unique by id
     excluded_methods = []
     for method_id, methods in excluded_methods_map.items():
-        reasons = [m.reason for m in methods if m.reason]
         reason = None
-        if reasons:
+        if reasons := [m.reason for m in methods if m.reason]:
             reason = " ".join(reasons)
         excluded_methods.append(ExcludedShippingMethod(id=method_id, reason=reason))
     return excluded_methods
