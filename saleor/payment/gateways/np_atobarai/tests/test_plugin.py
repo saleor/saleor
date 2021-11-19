@@ -1,3 +1,4 @@
+import os
 from unittest.mock import Mock, patch
 
 import requests
@@ -71,10 +72,11 @@ def test_process_payment_error(mocked_request, np_atobarai_plugin, np_payment_da
     # given
     plugin = np_atobarai_plugin()
     payment_data = np_payment_data
+    error_codes = ["E0100059", "E0100083"]
     response = Mock(
         spec=requests.Response,
         status_code=400,
-        json=Mock(return_value={"errors": [{"codes": ["E0100059", "E0100083"]}]}),
+        json=Mock(return_value={"errors": [{"codes": error_codes}]}),
     )
     mocked_request.return_value = response
 
@@ -83,11 +85,6 @@ def test_process_payment_error(mocked_request, np_atobarai_plugin, np_payment_da
 
     # then
     assert not gateway_response.is_success
-    assert (
-        "Please check if the customer’s ZIP code and address match."
-        in gateway_response.error
-    )
-    assert (
-        "Please make sure the delivery destination (ZIP code) and address match."
-        in gateway_response.error
+    assert gateway_response.error == os.linesep.join(
+        f"TR#{code}" for code in error_codes
     )
