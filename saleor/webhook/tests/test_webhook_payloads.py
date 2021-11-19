@@ -654,7 +654,7 @@ def test_generate_excluded_shipping_methods_for_order(order):
     ]
 
 
-def test_generate_excluded_shipping_methods_for_checkout(order):
+def test_generate_excluded_shipping_methods_for_checkout(checkout):
     shipping_method = ShippingMethod(
         id="123",
         price=Money(Decimal("10.59"), "USD"),
@@ -666,7 +666,7 @@ def test_generate_excluded_shipping_methods_for_checkout(order):
     )
     response = json.loads(
         generate_excluded_shipping_methods_for_checkout_payload(
-            order, [shipping_method]
+            checkout, [shipping_method]
         )
     )
 
