@@ -6,6 +6,8 @@ from django.http import HttpRequest
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
+from ...core.db.utils import get_database_connection_name
+
 K = TypeVar("K")
 R = TypeVar("R")
 
@@ -13,6 +15,7 @@ R = TypeVar("R")
 class DataLoader(BaseLoader, Generic[K, R]):
     context_key = None
     context = None
+    database_connection_name = None
 
     def __new__(cls, context: HttpRequest):
         key = cls.context_key
@@ -24,6 +27,7 @@ class DataLoader(BaseLoader, Generic[K, R]):
             context.dataloaders[key] = super().__new__(cls, context)
         loader = context.dataloaders[key]
         assert isinstance(loader, cls)
+        cls.database_connection_name = get_database_connection_name(context)
         return loader
 
     def __init__(self, context):
