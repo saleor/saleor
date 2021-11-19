@@ -107,15 +107,6 @@ def _get_payment(payment_intent_id: str) -> Optional[Payment]:
     )
 
 
-def _get_checkout(payment_id: int) -> Optional[Checkout]:
-    return (
-        Checkout.objects.prefetch_related("payments")
-        .select_for_update(of=("self",))
-        .filter(payments__id=payment_id, payments__is_active=True)
-        .first()
-    )
-
-
 def _finalize_checkout(
     checkout: Checkout,
     payment: Payment,
@@ -142,6 +133,15 @@ def _finalize_checkout(
     except ValidationError as e:
         logger.info("Failed to complete checkout %s.", checkout.pk, extra={"error": e})
         return
+
+
+def _get_checkout(payment_id: int) -> Optional[Checkout]:
+    return (
+        Checkout.objects.prefetch_related("payments")
+        .select_for_update(of=("self",))
+        .filter(payments__id=payment_id)
+        .first()
+    )
 
 
 def _create_transaction_if_not_exists(
@@ -209,16 +209,13 @@ def handle_authorized_payment_intent(
     }:
         return
 
-    transaction = _create_transaction_if_not_exists(
+    _create_transaction_if_not_exists(
         payment,
         payment_intent,
         TransactionKind.AUTH,
         payment_intent.amount,
         payment_intent.currency,
     )
-
-    if not transaction:
-        return
 
     if not payment.is_active:
         refund_or_void_inactive_payment.delay(payment.pk)
