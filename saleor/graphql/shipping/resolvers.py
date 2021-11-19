@@ -41,9 +41,9 @@ def resolve_shipping_minimum_order_price(
 def resolve_shipping_price(
     root: ChannelContext[models.ShippingMethod], info, **_kwargs
 ):
-    # Price field are dynamically generated in available_shipping_methods resolver
+    # Price field are dynamically generated in "available_shipping_methods" resolver
     price = getattr(root.node, "price", None)
-    if price:
+    if price is not None:
         return price
 
     if not root.channel_slug:

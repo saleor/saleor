@@ -1,6 +1,5 @@
 import json
 import logging
-from collections import defaultdict
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from ...app.models import App
@@ -24,15 +23,11 @@ from ...webhook.payloads import (
     generate_translation_payload,
 )
 from ..base_plugin import BasePlugin, ExcludedShippingMethod, ShippingMethod
-from .tasks import (
-    _get_webhooks_for_event,
-    send_webhook_request_sync,
-    trigger_webhook_sync,
-    trigger_webhooks_for_event,
-)
+from .const import CACHE_EXCLUDED_SHIPPING_KEY
+from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
 from .utils import (
     from_payment_app_id,
-    parse_excluded_shipping_methods_response,
+    get_excluded_shipping_data,
     parse_list_payment_gateways_response,
     parse_payment_action_response,
 )
@@ -427,56 +422,23 @@ class WebhookPlugin(BasePlugin):
             **kwargs,
         )
 
-    def __send_shipping_webhook_sync(
-        self,
-        event_type: str,
-        previous_value: List[ExcludedShippingMethod],
-        payload: str,
-    ) -> List[ExcludedShippingMethod]:
-        excluded_methods_map = defaultdict(list)
-
-        # Gather responses from webhooks
-        webhooks = _get_webhooks_for_event(event_type)
-        for webhook in webhooks:
-            response_data = send_webhook_request_sync(
-                webhook.app.name,
-                webhook.target_url,
-                webhook.secret_key,
-                event_type,
-                payload,
-            )
-            if response_data:
-                for method in parse_excluded_shipping_methods_response(response_data):
-                    excluded_methods_map[method.id].append(method)
-
-        # Gather responses for previous plugins
-        for method in previous_value:
-            excluded_methods_map[method.id].append(method)
-
-        # Return a list of excluded methods, unique by id
-        excluded_methods = []
-        for method_id, methods in excluded_methods_map.items():
-            reasons = [m.reason for m in methods if m.reason]
-            reason = None
-            if reasons:
-                reason = " ".join(reasons)
-            excluded_methods.append(ExcludedShippingMethod(id=method_id, reason=reason))
-        return excluded_methods
-
     def excluded_shipping_methods_for_order(
         self,
         order: "Order",
         available_shipping_methods: List[ShippingMethod],
         previous_value: List[ExcludedShippingMethod],
     ) -> List[ExcludedShippingMethod]:
-        payload = generate_excluded_shipping_methods_for_order_payload(
+        generate_function = generate_excluded_shipping_methods_for_order_payload
+        payload_fun = lambda: generate_function(  # noqa: E731
             order,
             available_shipping_methods,
         )
-        return self.__send_shipping_webhook_sync(
+        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + order.token
+        return get_excluded_shipping_data(
             event_type=WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
             previous_value=previous_value,
-            payload=payload,
+            payload_fun=payload_fun,
+            cache_key=cache_key,
         )
 
     def excluded_shipping_methods_for_checkout(
@@ -485,12 +447,15 @@ class WebhookPlugin(BasePlugin):
         available_shipping_methods: List[ShippingMethod],
         previous_value: List[ExcludedShippingMethod],
     ) -> List[ExcludedShippingMethod]:
-        payload = generate_excluded_shipping_methods_for_checkout_payload(
+        generate_function = generate_excluded_shipping_methods_for_checkout_payload
+        payload_function = lambda: generate_function(  # noqa: E731
             checkout,
             available_shipping_methods,
         )
-        return self.__send_shipping_webhook_sync(
+        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout.token)
+        return get_excluded_shipping_data(
             event_type=WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
             previous_value=previous_value,
-            payload=payload,
+            payload_fun=payload_function,
+            cache_key=cache_key,
         )

@@ -70,7 +70,6 @@ def _resolve_checkout_excluded_shipping_methods(
     shipping_methods,
     address,
     channel_slug,
-    display_gross,
     manager,
     info,
 ):
@@ -84,7 +83,6 @@ def _resolve_checkout_excluded_shipping_methods(
         address,
         channel_slug,
         manager,
-        display_gross,
     )
     shipping_method_dataclasses = [
         convert_shipping_method_model_to_dataclass(shipping)
@@ -114,7 +112,6 @@ def resolve_checkout_shipping_methods(
         if not address:
             return []
         channel_slug = channel.slug
-        display_gross = info.context.site.settings.display_gross_prices
         manager = info.context.plugins
         subtotal = manager.calculate_checkout_subtotal(
             checkout_info, lines, address, discounts
@@ -138,7 +135,6 @@ def resolve_checkout_shipping_methods(
                         shippings,
                         address,
                         channel_slug,
-                        display_gross,
                         manager,
                         info,
                     )

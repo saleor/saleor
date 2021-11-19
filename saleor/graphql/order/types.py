@@ -1016,11 +1016,11 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_can_finalize(root: models.Order, _info):
+    def resolve_can_finalize(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
             country = get_order_country(root)
             try:
-                validate_draft_order(root, country)
+                validate_draft_order(root, country, info.context.plugins)
             except ValidationError:
                 return False
         return True
@@ -1105,11 +1105,11 @@ class Order(CountableDjangoObjectType):
         return graphene.Node.to_global_id("Order", root.original_id)
 
     @traced_resolver
-    def resolve_errors(root, _info, **_kwargs):
+    def resolve_errors(root, info, **_kwargs):
         if root.status == OrderStatus.DRAFT:
             country = get_order_country(root)
             try:
-                validate_draft_order(root, country)
+                validate_draft_order(root, country, info.context.plugins)
             except ValidationError as e:
                 return validation_error_to_error_type(e, OrderError)
         return []

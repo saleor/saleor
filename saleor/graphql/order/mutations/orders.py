@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from prices import TaxedMoney
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
@@ -8,7 +9,8 @@ from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....core.transactions import transaction_with_commit_on_errors
-from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
+from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events
+from ....order import models as order_models
 from ....order.actions import (
     cancel_order,
     capture_payments,
@@ -31,6 +33,7 @@ from ....order.utils import (
     update_order_prices,
 )
 from ....payment.model_helpers import get_total_authorized
+from ....plugins.manager import PluginsManager
 from ....shipping import models as shipping_models
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
@@ -44,6 +47,7 @@ from ...order.mutations.draft_orders import (
 )
 from ...product.types import ProductVariant
 from ...shipping.types import ShippingMethod
+from ...shipping.utils import convert_shipping_method_model_to_dataclass
 from ..types import Order, OrderEvent, OrderLine
 from ..utils import (
     validate_product_is_published_in_channel,
@@ -53,14 +57,19 @@ from ..utils import (
 ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
-def clean_order_update_shipping(order, method):
+def clean_order_update_shipping(
+    order: order_models.Order,
+    method: shipping_models.ShippingMethod,
+    shipping_price: TaxedMoney,
+    manager: PluginsManager,
+):
     if not order.shipping_address:
         raise ValidationError(
             {
                 "order": ValidationError(
                     "Cannot choose a shipping method for an order without "
                     "the shipping address.",
-                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS,
+                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value,
                 )
             }
         )
@@ -73,7 +82,23 @@ def clean_order_update_shipping(order, method):
             {
                 "shipping_method": ValidationError(
                     "Shipping method cannot be used with this order.",
-                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+                )
+            }
+        )
+
+    method.price = shipping_price  # type: ignore
+    excluded_shipping_methods = manager.excluded_shipping_methods_for_order(
+        order, [convert_shipping_method_model_to_dataclass(method)]
+    )
+    if str(method.id) in [
+        shipping_method.id for shipping_method in excluded_shipping_methods
+    ]:
+        raise ValidationError(
+            {
+                "shipping_method": ValidationError(
+                    "Shipping method cannot be used with this order.",
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
                 )
             }
         )
@@ -187,7 +212,7 @@ class OrderUpdate(DraftOrderCreate):
 
     class Meta:
         description = "Updates an order."
-        model = models.Order
+        model = order_models.Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -283,7 +308,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             info,
             data.get("id"),
             only_type=Order,
-            qs=models.Order.objects.prefetch_related("lines"),
+            qs=order_models.Order.objects.prefetch_related("lines"),
         )
         cls.validate_order(order)
         data = data.get("input")
@@ -322,8 +347,14 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "postal_code_rules"
             ),
         )
-
-        clean_order_update_shipping(order, method)
+        shipping_channel_listing = (
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=method, channel=order.channel
+            ).first()
+        )
+        clean_order_update_shipping(
+            order, method, shipping_channel_listing.price, info.context.plugins
+        )
 
         order.shipping_method = method
         shipping_price = info.context.plugins.calculate_order_shipping(order)
@@ -506,7 +537,7 @@ class OrderCapture(BaseMutation):
             info,
             data.get("id"),
             only_type=Order,
-            qs=models.Order.objects.prefetch_related("payments"),
+            qs=order_models.Order.objects.prefetch_related("payments"),
         )
         payments = get_authorized_payments(order)
         clean_order_capture(order, payments, amount)
@@ -544,7 +575,7 @@ class OrderVoid(BaseMutation):
             info,
             data.get("id"),
             only_type=Order,
-            qs=models.Order.objects.prefetch_related("payments"),
+            qs=order_models.Order.objects.prefetch_related("payments"),
         )
         payments = [p for p in get_active_payments(order)]
         clean_void_payments(payments)
@@ -730,7 +761,7 @@ class OrderConfirm(ModelMutation):
 
     class Meta:
         description = "Confirms an unconfirmed order by changing status to unfulfilled."
-        model = models.Order
+        model = order_models.Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -955,7 +986,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
 
     class Meta:
         description = "Updates an order line of an order."
-        model = models.OrderLine
+        model = order_models.OrderLine
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

@@ -72,7 +72,7 @@ class ExcludedShippingMethod:
 @dataclass
 class ShippingMethod:
     id: str
-    price: Decimal
+    price: Money
     name: str
     maximum_order_weight: Optional[Weight]
     minimum_order_weight: Optional[Weight]
@@ -487,9 +487,6 @@ class BasePlugin:
     #  It is used only by the old storefront. The returned value determines if
     #  storefront should append info to the price about "including/excluding X% VAT".
     show_taxes_on_storefront: Callable[[bool], bool]
-
-    #  Trigger when tracking number is updated.
-    tracking_number_updated: Callable[["Fulfillment", Any], Any]
 
     void_payment: Callable[["PaymentData", Any], GatewayResponse]
 
