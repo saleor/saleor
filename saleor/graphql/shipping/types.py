@@ -279,10 +279,6 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         root: ChannelContext[models.ShippingZone], info, **_kwargs
     ):
         def wrap_shipping_method_with_channel_context(shipping_methods):
-            # TODO: ShippingMethodType will have no price attribute
-            for shipping in shipping_methods:
-                shipping.price = None
-
             shipping_methods = [
                 ChannelContext(node=shipping, channel_slug=root.channel_slug)
                 for shipping in shipping_methods
