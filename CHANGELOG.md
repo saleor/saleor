@@ -167,6 +167,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `customerId` to `checkoutCustomerAttach` mutation
   - Add new permision `IMPERSONATE_USER`
   - Handle `SameSite` cookie attribute in jwt refresh token middleware - #8209 by @jakubkuc
+- Add workaround for failing Avatax when line has price 0 - #8610 by @korycins
 
 
 ### Breaking
