@@ -974,7 +974,6 @@ class ProductVariantCreate(ModelMutation):
             if new_variant
             else info.context.plugins.product_variant_updated
         )
-
         transaction.on_commit(lambda: event_to_call(instance))
 
     @classmethod
