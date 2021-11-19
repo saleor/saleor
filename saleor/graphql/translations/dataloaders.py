@@ -28,7 +28,9 @@ class BaseTranslationByIdAndLanguageCodeLoader(DataLoader):
             f"{self.relation_name}__in": ids,
         }
 
-        translations = self.model.objects.filter(**filters)
+        translations = self.model.objects.using(self.database_connection_name).filter(
+            **filters
+        )
         translation_by_language_code_by_id = defaultdict(
             lambda: defaultdict(lambda: None)
         )
