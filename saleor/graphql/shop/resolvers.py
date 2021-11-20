@@ -3,7 +3,6 @@ from ...core.tracing import traced_resolver
 from ...shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ...shipping.postal_codes import filter_shipping_methods_by_postal_code_rules
 from ...shipping.utils import convert_to_shipping_method_data
-from ..channel import ChannelContext
 
 
 @traced_resolver
@@ -21,10 +20,7 @@ def resolve_available_shipping_methods(info, channel_slug: str, address):
     if available is not None:
         mapping = get_shipping_method_to_listing_mapping(available, channel_slug)
         instances += [
-            ChannelContext(
-                node=convert_to_shipping_method_data(method, mapping[method.id]),
-                channel_slug=channel_slug,
-            )
+            convert_to_shipping_method_data(method, mapping[method.id])
             for method in available
         ]
 

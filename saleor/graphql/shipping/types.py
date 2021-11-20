@@ -308,7 +308,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
-class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
+class ShippingMethod(graphene.ObjectType):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
@@ -347,37 +347,35 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
         )
 
     @staticmethod
-    def resolve_minimum_order_price(
-        root: ChannelContext[ShippingMethodData], info, **_kwargs
-    ):
-        return root.node.minimum_order_price
+    def resolve_minimum_order_price(root: ShippingMethodData, info, **_kwargs):
+        return root.minimum_order_price
 
     @staticmethod
-    def resolve_price(root: ChannelContext[ShippingMethodData], info, **_kwargs):
-        return root.node.price
+    def resolve_price(root: ShippingMethodData, info, **_kwargs):
+        return root.price
 
     @staticmethod
-    def resolve_name(root: ChannelContext[ShippingMethodData], info, **kwargs):
-        return root.node.name
+    def resolve_name(root: ShippingMethodData, info, **kwargs):
+        return root.name
 
     @staticmethod
-    def resolve_id(root: ChannelContext[ShippingMethodData], _info):
-        if getattr(root.node, "is_external", False):
-            return root.node.id
-        return graphene.Node.to_global_id("ShippingMethod", root.node.id)
+    def resolve_id(root: ShippingMethodData, _info):
+        if getattr(root, "is_external", False):
+            return root.id
+        return graphene.Node.to_global_id("ShippingMethod", root.id)
 
     @staticmethod
-    def resolve_message(root: ChannelContext[ShippingMethodData], _info):
-        return root.node.message
+    def resolve_message(root: ShippingMethodData, _info):
+        return root.message
 
     @staticmethod
-    def resolve_active(root: ChannelContext[ShippingMethodData], _info):
-        return root.node.active
+    def resolve_active(root: ShippingMethodData, _info):
+        return root.active
 
     @staticmethod
-    def resolve_minimum_delivery_days(root: ChannelContext[ShippingMethodData], _info):
-        return root.node.minimum_delivery_days
+    def resolve_minimum_delivery_days(root: ShippingMethodData, _info):
+        return root.minimum_delivery_days
 
     @staticmethod
-    def resolve_maximum_delivery_days(root: ChannelContext[ShippingMethodData], _info):
-        return root.node.maximum_delivery_days
+    def resolve_maximum_delivery_days(root: ShippingMethodData, _info):
+        return root.maximum_delivery_days

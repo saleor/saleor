@@ -3,8 +3,7 @@ from ...core.tracing import traced_resolver
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
-from ...order.utils import get_valid_shipping_methods_for_order, sum_order_totals
-from ..channel import ChannelContext
+from ...order.utils import sum_order_totals
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..utils.filters import filter_by_period
 
@@ -59,12 +58,3 @@ def resolve_order_by_token(token):
         .filter(token=token)
         .first()
     )
-
-
-# TODO: We should optimize it in/after PR#5819
-def resolve_order_shipping_methods(root: models.Order, info):
-    available = get_valid_shipping_methods_for_order(root)
-    channel_slug = root.channel.slug
-    return [
-        ChannelContext(node=method, channel_slug=channel_slug) for method in available
-    ]

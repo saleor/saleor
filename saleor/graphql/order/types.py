@@ -28,7 +28,11 @@ from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
-from ...order.utils import get_order_country, get_valid_collection_points_for_order
+from ...order.utils import (
+    get_order_country,
+    get_valid_collection_points_for_order,
+    get_valid_shipping_methods_for_order,
+)
 from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import (
@@ -87,7 +91,6 @@ from .dataloaders import (
     OrderLinesByOrderIdLoader,
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
-from .resolvers import resolve_order_shipping_methods
 from .utils import validate_draft_order
 
 logger = logging.getLogger(__name__)
@@ -1059,9 +1062,7 @@ class Order(CountableDjangoObjectType):
                 shipping_method_id=external_app_shipping_id,
             )
             if shipping_method:
-                return ChannelContext(
-                    node=shipping_method, channel_slug=root.channel.slug
-                )
+                return shipping_method
 
         if not root.shipping_method_id:
             return None
@@ -1075,10 +1076,7 @@ class Order(CountableDjangoObjectType):
             )
 
             def calculate_price(listing: Optional[ShippingMethodChannelListing]):
-                return ChannelContext(
-                    node=convert_to_shipping_method_data(shipping_method, listing),
-                    channel_slug=channel.slug,
-                )
+                return convert_to_shipping_method_data(shipping_method, listing)
 
             return listing.then(calculate_price)
 
@@ -1106,7 +1104,7 @@ class Order(CountableDjangoObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, info):
-        return resolve_order_shipping_methods(root, info)
+        return get_valid_shipping_methods_for_order(root)
 
     @classmethod
     @traced_resolver
