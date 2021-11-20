@@ -65,6 +65,8 @@ class WebhookEventAsyncType:
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
 
+    REPORT_API_CALL = "report_api_call"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         ORDER_CREATED: "Order created",
@@ -105,6 +107,7 @@ class WebhookEventAsyncType:
         PAGE_DELETED: "Page Deleted",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
+        REPORT_API_CALL: "Report API call",
     }
 
     CHOICES = [
@@ -147,6 +150,7 @@ class WebhookEventAsyncType:
         (PAGE_DELETED, DISPLAY_LABELS[PAGE_DELETED]),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
+        (REPORT_API_CALL, DISPLAY_LABELS[REPORT_API_CALL]),
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -190,6 +194,7 @@ class WebhookEventAsyncType:
         PAGE_DELETED: PagePermissions.MANAGE_PAGES,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
+        REPORT_API_CALL: ProductPermissions.MANAGE_PRODUCTS,
     }
 
 
