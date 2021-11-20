@@ -499,6 +499,11 @@ class BasePlugin:
 
     refund_payment: Callable[["PaymentData", Any], GatewayResponse]
 
+    #  Trigger when api call is made.
+    #
+    #  Overwrite this method if you need log api call.
+    report_api_call: Callable[[WSGIRequest, HttpResponse, Any], Any]
+
     #  Trigger when sale is created.
     #
     # Overwrite this method if you need to trigger specific logic after sale is created.

@@ -596,6 +596,12 @@ class PluginsManager(PaymentInterface):
             "product_variant_back_in_stock", default_value, stock
         )
 
+    def report_api_call(self, request: WSGIRequest, response: HttpResponse):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "report_api_call", default_value, request, response
+        )
+
     def order_created(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins(
