@@ -20,7 +20,7 @@ from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
-from ..shipping.models import ShippingMethod
+from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.management import (
     deallocate_stock,
@@ -618,7 +618,9 @@ def sum_order_totals(qs, currency_code):
     return sum([order.total for order in qs], taxed_zero)
 
 
-def get_valid_shipping_methods_for_order(order: Order) -> List[ShippingMethodData]:
+def get_valid_shipping_methods_for_order(
+    order: Order, shipping_channel_listings: Iterable["ShippingMethodChannelListing"]
+) -> List[ShippingMethodData]:
     if not order.is_shipping_required():
         return []
 
@@ -634,10 +636,15 @@ def get_valid_shipping_methods_for_order(order: Order) -> List[ShippingMethodDat
         country_code=order.shipping_address.country.code,
     ).prefetch_related("channel_listings")
 
+    listing_map = {
+        listing.shipping_method_id: listing for listing in shipping_channel_listings
+    }
+
     for method in queryset:
-        valid_methods.append(
-            convert_to_shipping_method_data(method, method.channel_listings.get())
-        )
+        listing = listing_map.get(method.id)
+        if not listing:
+            continue
+        valid_methods.append(convert_to_shipping_method_data(method, listing))
 
     return valid_methods
 

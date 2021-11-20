@@ -66,7 +66,10 @@ def clean_order_update_shipping(order, method: ShippingMethodData):
         )
 
     valid_methods_ids = {
-        method.id for method in get_valid_shipping_methods_for_order(order)
+        method.id
+        for method in get_valid_shipping_methods_for_order(
+            order, order.channel.shipping_method_listings.all()
+        )
     }
     if valid_methods_ids is None or method.id not in valid_methods_ids:
         raise ValidationError(
@@ -296,7 +299,9 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             info,
             data.get("id"),
             only_type=Order,
-            qs=models.Order.objects.prefetch_related("lines"),
+            qs=models.Order.objects.prefetch_related(
+                "lines", "channel__shipping_method_listings"
+            ),
         )
         cls.validate_order(order)
 

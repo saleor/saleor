@@ -77,6 +77,7 @@ from ..product.dataloaders import (
 from ..product.types import ProductVariant
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByChannelSlugLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
 from ..shipping.types import ShippingMethod
@@ -1104,7 +1105,17 @@ class Order(CountableDjangoObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, info):
-        return get_valid_shipping_methods_for_order(root)
+        def with_channel(channel):
+            def with_listings(channel_listings):
+                return get_valid_shipping_methods_for_order(root, channel_listings)
+
+            return (
+                ShippingMethodChannelListingByChannelSlugLoader(info.context)
+                .load(channel.slug)
+                .then(with_listings)
+            )
+
+        return ChannelByIdLoader(info.context).load(root.channel_id).then(with_channel)
 
     @classmethod
     @traced_resolver
