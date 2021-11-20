@@ -9,10 +9,10 @@ from ..plugins.manager import PluginsManager
 from .error_codes import CheckoutErrorCode
 from .utils import (
     call_payment_refund_or_void,
+    clear_delivery_method,
     get_active_payments,
     is_fully_covered,
     is_shipping_required,
-    is_valid_shipping_method,
 )
 
 if TYPE_CHECKING:
@@ -24,8 +24,10 @@ def clean_checkout_shipping(
     lines: Iterable["CheckoutLineInfo"],
     error_code: Union[Type[CheckoutErrorCode], Type[PaymentErrorCode]],
 ):
+    delivery_method_info = checkout_info.delivery_method_info
+
     if is_shipping_required(lines):
-        if not checkout_info.shipping_method:
+        if not delivery_method_info.delivery_method:
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
@@ -34,7 +36,7 @@ def clean_checkout_shipping(
                     )
                 }
             )
-        if not checkout_info.shipping_address:
+        if not delivery_method_info.is_valid_delivery_method():
             raise ValidationError(
                 {
                     "shipping_address": ValidationError(
@@ -43,11 +45,12 @@ def clean_checkout_shipping(
                     )
                 }
             )
-        if not is_valid_shipping_method(checkout_info):
+        if not delivery_method_info.is_method_in_valid_methods(checkout_info):
+            clear_delivery_method(checkout_info)
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
-                        "Shipping method is not valid for your shipping address",
+                        "Delivery method is not valid for your shipping address",
                         code=error_code.INVALID_SHIPPING_METHOD.value,
                     )
                 }

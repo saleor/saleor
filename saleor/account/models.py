@@ -180,6 +180,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         permissions = (
             (AccountPermissions.MANAGE_USERS.codename, "Manage customers."),
             (AccountPermissions.MANAGE_STAFF.codename, "Manage staff."),
+            (AccountPermissions.IMPERSONATE_USER.codename, "Impersonate user."),
         )
         indexes = [
             *ModelWithMetadata.Meta.indexes,

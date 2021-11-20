@@ -15,7 +15,9 @@ from ..enums import (
     CollectionErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
+    ExternalNotificationTriggerErrorCode,
     GiftCardErrorCode,
+    GiftCardSettingsErrorCode,
     InvoiceErrorCode,
     JobStatusEnum,
     LanguageCodeEnum,
@@ -135,6 +137,11 @@ class CheckoutError(Error):
         description="List of varint IDs which causes the error.",
         required=False,
     )
+    lines = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of line Ids which cause the error.",
+        required=False,
+    )
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
@@ -160,12 +167,22 @@ class ExportError(Error):
     code = ExportErrorCode(description="The error code.", required=True)
 
 
+class ExternalNotificationError(Error):
+    code = ExternalNotificationTriggerErrorCode(
+        description="The error code.", required=True
+    )
+
+
 class MenuError(Error):
     code = MenuErrorCode(description="The error code.", required=True)
 
 
 class OrderSettingsError(Error):
     code = OrderSettingsErrorCode(description="The error code.", required=True)
+
+
+class GiftCardSettingsError(Error):
+    code = GiftCardSettingsErrorCode(description="The error code.", required=True)
 
 
 class MetadataError(Error):

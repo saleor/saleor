@@ -1,15 +1,18 @@
 import graphene
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 
 from ...core.permissions import OrderPermissions, ProductPermissions
 from ...warehouse import models
+from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
+from .enums import WarehouseClickAndCollectOptionEnum
 
 
 class WarehouseInput(graphene.InputObjectType):
@@ -36,6 +39,13 @@ class WarehouseUpdateInput(WarehouseInput):
         description="Address of the warehouse.",
         required=False,
     )
+    click_and_collect_option = WarehouseClickAndCollectOptionEnum(
+        description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
+        required=False,
+    )
+    is_private = graphene.Boolean(
+        description=f"{ADDED_IN_31} Visibility of warehouse stocks", required=False
+    )
 
 
 class Warehouse(CountableDjangoObjectType):
@@ -45,6 +55,10 @@ class Warehouse(CountableDjangoObjectType):
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use `Address.companyName` instead."
         ),
+    )
+    click_and_collect_option = WarehouseClickAndCollectOptionEnum(
+        description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
+        required=True,
     )
 
     class Meta:
@@ -58,6 +72,7 @@ class Warehouse(CountableDjangoObjectType):
             "shipping_zones",
             "address",
             "email",
+            "is_private",
         ]
 
     @staticmethod
@@ -90,12 +105,21 @@ class Stock(CountableDjangoObjectType):
     quantity_allocated = graphene.Int(
         required=True, description="Quantity allocated for orders"
     )
+    quantity_reserved = graphene.Int(
+        required=True, description="Quantity reserved for checkouts"
+    )
 
     class Meta:
         description = "Represents stock."
         model = models.Stock
         interfaces = [graphene.relay.Node]
-        only_fields = ["warehouse", "product_variant", "quantity", "quantity_allocated"]
+        only_fields = [
+            "warehouse",
+            "product_variant",
+            "quantity",
+            "quantity_allocated",
+            "quantity_reserved",
+        ]
 
     @staticmethod
     @one_of_permissions_required(
@@ -112,6 +136,24 @@ class Stock(CountableDjangoObjectType):
         return root.allocations.aggregate(
             quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
         )["quantity_allocated"]
+
+    @staticmethod
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
+    def resolve_quantity_reserved(root, info, *_args):
+        if not is_reservation_enabled(info.context.site.settings):
+            return 0
+
+        return root.reservations.aggregate(
+            quantity_reserved=Coalesce(
+                Sum(
+                    "quantity_reserved",
+                    filter=Q(reserved_until__gt=timezone.now()),
+                ),
+                0,
+            )
+        )["quantity_reserved"]
 
     @staticmethod
     def resolve_product_variant(root, *_args):

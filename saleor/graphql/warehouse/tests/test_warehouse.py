@@ -4,6 +4,7 @@ import graphene
 import pytest
 
 from ....account.models import Address
+from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.error_codes import WarehouseErrorCode
 from ....warehouse.models import Stock, Warehouse
 from ...tests.utils import (
@@ -11,6 +12,7 @@ from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
+from ..enums import WarehouseClickAndCollectOptionEnum
 
 QUERY_WAREHOUSES = """
 query {
@@ -140,6 +142,8 @@ mutation updateWarehouse($input: WarehouseUpdateInput!, $id: ID!) {
             name
             slug
             companyName
+            isPrivate
+            clickAndCollectOption
             address {
                 id
                 streetAddress1
@@ -479,6 +483,54 @@ def test_query_warehouse_with_filters_by_id(
     content_warehouses = content_exists["data"]["warehouses"]["edges"]
     assert content_warehouses[0]["node"]["id"] == warehouse_id
     assert content_exists["data"]["warehouses"]["totalCount"] == 1
+
+
+@pytest.mark.parametrize(
+    "graphql_filter, db_filter", [("true", True), ("false", False)]
+)
+def test_query_warehouse_with_filters_by_is_private(
+    staff_api_client,
+    permission_manage_products,
+    warehouses_for_cc,
+    graphql_filter,
+    db_filter,
+):
+    db_count = Warehouse.objects.filter(is_private=db_filter).count()
+    variables_exists = {"filters": {"isPrivate": graphql_filter}}
+    response_exists = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS,
+        variables=variables_exists,
+        permissions=[permission_manage_products],
+    )
+    content_exists = get_graphql_content(response_exists)
+
+    assert content_exists["data"]["warehouses"]["totalCount"] == db_count
+
+
+@pytest.mark.parametrize(
+    "db_option, graphql_option",
+    [
+        (WarehouseClickAndCollectOption.DISABLED, "DISABLED"),
+        (WarehouseClickAndCollectOption.ALL_WAREHOUSES, "ALL"),
+        (WarehouseClickAndCollectOption.LOCAL_STOCK, "LOCAL"),
+    ],
+)
+def test_query_warehouse_with_filters_by_click_and_collect_option(
+    staff_api_client,
+    permission_manage_products,
+    warehouses_for_cc,
+    db_option,
+    graphql_option,
+):
+    db_count = Warehouse.objects.filter(click_and_collect_option=db_option).count()
+    variables_exists = {"filters": {"clickAndCollectOption": graphql_option}}
+    response_exists = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS,
+        variables=variables_exists,
+        permissions=[permission_manage_products],
+    )
+    content_exists = get_graphql_content(response_exists)
+    assert content_exists["data"]["warehouses"]["totalCount"] == db_count
 
 
 def test_query_warehouses_with_filters_and_no_id(
@@ -825,6 +877,92 @@ def test_update_warehouse_slug_and_name(
         assert errors
         assert errors[0]["field"] == error_field
         assert errors[0]["code"] == WarehouseErrorCode.REQUIRED.name
+
+
+@pytest.mark.parametrize(
+    "expected_private, expected_cc_option",
+    [
+        (private, option)
+        for private in (True, False)
+        for option in [
+            WarehouseClickAndCollectOptionEnum.ALL.name,
+            WarehouseClickAndCollectOptionEnum.DISABLED.name,
+        ]
+    ]
+    + [(False, WarehouseClickAndCollectOptionEnum.LOCAL.name)],
+)
+def test_update_click_and_collect_option(
+    staff_api_client,
+    warehouse,
+    permission_manage_products,
+    expected_private,
+    expected_cc_option,
+):
+    query = MUTATION_UPDATE_WAREHOUSE
+
+    assert warehouse.is_private
+    assert warehouse.click_and_collect_option == WarehouseClickAndCollectOption.DISABLED
+
+    node_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    variables = {
+        "input": {
+            "isPrivate": expected_private,
+            "clickAndCollectOption": expected_cc_option,
+        },
+        "id": node_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    warehouse.refresh_from_db()
+    data = content["data"]["updateWarehouse"]
+    errors = data["errors"]
+
+    assert not errors
+    assert data["warehouse"]["isPrivate"] == expected_private == warehouse.is_private
+    assert (
+        data["warehouse"]["clickAndCollectOption"]
+        == expected_cc_option
+        == warehouse.click_and_collect_option.upper()
+    )
+
+
+def test_update_click_and_collect_option_invalid_input(
+    staff_api_client, warehouse, permission_manage_products
+):
+    query = MUTATION_UPDATE_WAREHOUSE
+
+    warehouse_is_private = warehouse.is_private
+    warehouse_click_and_collect = warehouse.click_and_collect_option
+    assert warehouse_is_private
+    assert warehouse_click_and_collect == WarehouseClickAndCollectOption.DISABLED
+
+    node_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    variables = {
+        "input": {
+            "isPrivate": True,
+            "clickAndCollectOption": WarehouseClickAndCollectOptionEnum.LOCAL.name,
+        },
+        "id": node_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    warehouse.refresh_from_db()
+    data = content["data"]["updateWarehouse"]
+    errors = data["errors"]
+
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"]
+        == "Local warehouse can be toggled only for non-private warehouse stocks"
+    )
+    assert errors[0]["field"] == "clickAndCollectOption"
+
+    assert warehouse.is_private == warehouse_is_private
+    assert warehouse.click_and_collect_option == warehouse_click_and_collect
 
 
 def test_delete_warehouse_mutation(

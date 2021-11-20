@@ -3,8 +3,10 @@ from collections import defaultdict
 from django.db.models import F
 from promise import Promise
 
-from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
+from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo, get_delivery_method_info
 from ...checkout.models import Checkout, CheckoutLine
+from ...checkout.utils import get_external_shipping_id
+from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
 from ..product.dataloaders import (
@@ -18,6 +20,7 @@ from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
+from ..warehouse.dataloaders import WarehouseByIdLoader
 
 
 class CheckoutByTokenLoader(DataLoader):
@@ -25,7 +28,7 @@ class CheckoutByTokenLoader(DataLoader):
 
     def batch_load(self, keys):
         checkouts = Checkout.objects.filter(token__in=keys).in_bulk()
-        return [checkouts[token] for token in keys]
+        return [checkouts.get(token) for token in keys]
 
 
 class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
@@ -187,6 +190,14 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         self.context
                     ).load_many(shipping_method_ids_channel_slugs)
                 )
+                collection_point_ids = [
+                    checkout.collection_point_id
+                    for checkout in checkouts
+                    if checkout.collection_point_id
+                ]
+                collection_points = WarehouseByIdLoader(self.context).load_many(
+                    collection_point_ids
+                )
 
                 def with_checkout_info(results):
                     (
@@ -194,6 +205,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         users,
                         shipping_methods,
                         channel_listings,
+                        collection_points,
                     ) = results
                     address_map = {address.id: address for address in addresses}
                     user_map = {user.id: user for user in users}
@@ -207,8 +219,39 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         if listing
                     }
 
+                    collection_points_map = {
+                        collection_point.id: collection_point
+                        for collection_point in collection_points
+                    }
+
                     checkout_info_map = {}
                     for key, checkout, channel in zip(keys, checkouts, channels):
+                        shipping_method = shipping_method_map.get(
+                            checkout.shipping_method_id
+                        )
+                        external_app_shipping_id = get_external_shipping_id(checkout)
+
+                        if shipping_method:
+                            delivery_method = convert_to_shipping_method_data(
+                                shipping_method
+                            )
+                        elif external_app_shipping_id:
+                            delivery_method = self.context.plugins.get_shipping_method(
+                                checkout=checkout,
+                                channel_slug=checkout.channel.slug,
+                                shipping_method_id=external_app_shipping_id,
+                            )
+                        else:
+                            delivery_method = collection_points_map.get(
+                                checkout.collection_point_id
+                            )
+                        shipping_address = (
+                            address_map.get(checkout.shipping_address_id),
+                        )
+                        delivery_method_info = get_delivery_method_info(
+                            delivery_method, shipping_address
+                        )
+
                         checkout_info_map[key] = CheckoutInfo(
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
@@ -219,16 +262,16 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             shipping_address=address_map.get(
                                 checkout.shipping_address_id
                             ),
-                            shipping_method=shipping_method_map.get(
-                                checkout.shipping_method_id
-                            ),
+                            delivery_method_info=delivery_method_info,
                             valid_shipping_methods=[],
+                            valid_pick_up_points=[],
                             shipping_method_channel_listings=(
                                 shipping_method_channel_listing_map.get(
                                     (checkout.shipping_method_id, channel.id)
                                 )
                             ),
                         )
+
                     return [checkout_info_map[key] for key in keys]
 
                 return Promise.all(
@@ -237,6 +280,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         users,
                         shipping_methods,
                         shipping_method_channel_listings,
+                        collection_points,
                     ]
                 ).then(with_checkout_info)
 

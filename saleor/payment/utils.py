@@ -7,7 +7,7 @@ import graphene
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Q, Subquery
 from django.utils import timezone
 
 from ..account.models import User
@@ -15,9 +15,21 @@ from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..order.models import Order
-from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
+from . import (
+    ChargeStatus,
+    GatewayError,
+    PaymentError,
+    StorePaymentMethod,
+    TransactionKind,
+)
 from .error_codes import PaymentErrorCode
-from .interface import AddressData, GatewayResponse, PaymentData, PaymentMethodInfo
+from .interface import (
+    AddressData,
+    GatewayResponse,
+    PaymentData,
+    PaymentMethodInfo,
+    StorePaymentMethodEnum,
+)
 from .models import Payment, Transaction
 
 if TYPE_CHECKING:
@@ -86,6 +98,11 @@ def create_payment_information(
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
         checkout_token=checkout_token,
+        store_payment_method=StorePaymentMethodEnum[
+            payment.store_payment_method.upper()
+        ],
+        payment_metadata=payment.metadata,
+        psp_reference=payment.psp_reference,
     )
 
 
@@ -102,6 +119,8 @@ def create_payment(
     order: Order = None,
     return_url: str = None,
     external_reference: Optional[str] = None,
+    store_payment_method: str = StorePaymentMethod.NONE,
+    metadata: Optional[Dict[str, str]] = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -144,6 +163,8 @@ def create_payment(
         "billing_postal_code": billing_address.postal_code,
         "billing_country_code": billing_address.country.code,
         "billing_country_area": billing_address.country_area,
+        "store_payment_method": store_payment_method,
+        "metadata": {} if metadata is None else metadata,
     }
 
     return Payment.objects.create(**data)
@@ -465,3 +486,14 @@ def get_unfinished_payments():
     )
 
     return payments
+
+
+def payment_owned_by_user(payment_pk: int, user) -> bool:
+    if user.is_anonymous:
+        return False
+    return (
+        Payment.objects.filter(
+            (Q(order__user=user) | Q(checkout__user=user)) & Q(pk=payment_pk)
+        ).first()
+        is not None
+    )

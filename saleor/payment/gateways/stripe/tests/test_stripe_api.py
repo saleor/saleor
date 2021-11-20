@@ -25,6 +25,7 @@ from ..stripe_api import (
     refund_payment_intent,
     retrieve_payment_intent,
     subscribe_webhook,
+    update_payment_method,
 )
 
 
@@ -149,6 +150,26 @@ def test_create_payment_intent_returns_error(mocked_payment_intent):
 
 
 @patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentMethod",
+)
+def test_update_payment_method(mocked_payment_method):
+    # given
+    api_key = "api_key"
+    payment_method_id = "1234"
+    metadata = {"key": "value"}
+
+    # when
+    update_payment_method(api_key, payment_method_id, metadata)
+
+    # then
+    mocked_payment_method.modify.assert_called_once_with(
+        payment_method_id,
+        api_key=api_key,
+        metadata=metadata,
+    )
+
+
+@patch(
     "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent",
 )
 def test_retrieve_payment_intent(mocked_payment_intent):
@@ -160,7 +181,9 @@ def test_retrieve_payment_intent(mocked_payment_intent):
     intent, _ = retrieve_payment_intent(api_key, payment_intent_id)
 
     mocked_payment_intent.retrieve.assert_called_with(
-        payment_intent_id, api_key=api_key, stripe_version=STRIPE_API_VERSION
+        payment_intent_id,
+        api_key=api_key,
+        stripe_version=STRIPE_API_VERSION,
     )
     assert isinstance(intent, StripeObject)
 
@@ -178,7 +201,9 @@ def test_retrieve_payment_intent_stripe_returns_error(mocked_payment_intent):
     _, error = retrieve_payment_intent(api_key, payment_intent_id)
 
     mocked_payment_intent.retrieve.assert_called_with(
-        payment_intent_id, api_key=api_key, stripe_version=STRIPE_API_VERSION
+        payment_intent_id,
+        api_key=api_key,
+        stripe_version=STRIPE_API_VERSION,
     )
 
     assert error == expected_error
@@ -472,7 +497,11 @@ def test_get_payment_method_details():
     payment_method_info = get_payment_method_details(payment_intent)
 
     assert payment_method_info == PaymentMethodInfo(
-        last_4="1234", exp_year=2222, exp_month=12, brand="visa", type="card"
+        last_4="1234",
+        exp_year=2222,
+        exp_month=12,
+        brand="visa",
+        type="card",
     )
 
 

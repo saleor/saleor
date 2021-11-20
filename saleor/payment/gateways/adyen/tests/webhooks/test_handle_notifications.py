@@ -1,9 +1,11 @@
 import logging
 from decimal import Decimal
 from unittest import mock
+from unittest.mock import patch
 
 import graphene
 import pytest
+from django.core.exceptions import ValidationError
 
 from ......checkout import calculations
 from ......checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -12,6 +14,7 @@ from ......plugins.manager import get_plugins_manager
 from ..... import ChargeStatus, TransactionKind
 from .....utils import price_to_minor_unit
 from ...webhooks import (
+    confirm_payment_and_set_back_to_confirm,
     create_new_transaction,
     handle_authorization,
     handle_cancel_or_refund,
@@ -303,9 +306,8 @@ def test_handle_cancel(
         value=price_to_minor_unit(payment.total, payment.currency),
     )
     config = adyen_plugin().config
-    manager = get_plugins_manager()
 
-    handle_cancellation(notification, config, manager)
+    handle_cancellation(notification, config)
 
     payment.order.refresh_from_db()
     assert payment.transactions.count() == 2
@@ -333,9 +335,8 @@ def test_handle_cancel_invalid_payment_id(
     transaction_count = payment.transactions.count()
 
     caplog.set_level(logging.WARNING)
-    manager = get_plugins_manager()
 
-    handle_cancellation(notification, config, manager)
+    handle_cancellation(notification, config)
 
     payment.order.refresh_from_db()
     assert payment.transactions.count() == transaction_count
@@ -357,9 +358,8 @@ def test_handle_cancel_already_canceled(
     )
     config = adyen_plugin().config
     create_new_transaction(notification, payment, TransactionKind.CANCEL)
-    manager = get_plugins_manager()
 
-    handle_cancellation(notification, config, manager)
+    handle_cancellation(notification, config)
 
     assert payment.transactions.count() == 2
 
@@ -987,7 +987,7 @@ def test_handle_cancel_or_refund_action_cancel(
 
     handle_cancel_or_refund(notification, config)
 
-    mock_handle_cancellation.assert_called_once_with(notification, config, mock.ANY)
+    mock_handle_cancellation.assert_called_once_with(notification, config)
 
 
 def test_handle_cancel_or_refund_action_cancel_invalid_payment_id(
@@ -1065,3 +1065,201 @@ def test_handle_not_created_order_does_not_create_order(
     )
 
     mock_create_order.assert_not_called()
+
+
+def test_handle_not_created_order_order_created(
+    checkout_ready_to_complete, payment_adyen_for_checkout, adyen_plugin, notification
+):
+    payment_adyen_for_checkout.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_adyen_for_checkout.save(update_fields=["charge_status"])
+
+    adyen_plugin()
+    handle_not_created_order(
+        notification(),
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        TransactionKind.CAPTURE,
+        get_plugins_manager(),
+    )
+
+    payment_adyen_for_checkout.refresh_from_db()
+
+    assert payment_adyen_for_checkout.order
+
+
+@patch("saleor.payment.gateway.refund")
+@patch("saleor.checkout.complete_checkout._get_order_data")
+def test_handle_not_created_order_refund_when_create_order_raises(
+    order_data_mock, refund_mock, payment_adyen_for_checkout, adyen_plugin, notification
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+
+    payment_adyen_for_checkout.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_adyen_for_checkout.save(update_fields=["charge_status"])
+
+    adyen_plugin()
+    handle_not_created_order(
+        notification(),
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        TransactionKind.CAPTURE,
+        get_plugins_manager(),
+    )
+
+    assert payment_adyen_for_checkout.can_refund()
+    assert refund_mock.call_count == 2
+
+
+@patch("saleor.payment.gateway.void")
+@patch("saleor.checkout.complete_checkout._get_order_data")
+def test_handle_not_created_order_void_when_create_order_raises(
+    order_data_mock, void_mock, payment_adyen_for_checkout, adyen_plugin, notification
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+
+    payment_adyen_for_checkout.charge_status = ChargeStatus.NOT_CHARGED
+    payment_adyen_for_checkout.save(update_fields=["charge_status"])
+
+    adyen_plugin()
+    handle_not_created_order(
+        notification(),
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        TransactionKind.CAPTURE,
+        get_plugins_manager(),
+    )
+
+    assert payment_adyen_for_checkout.can_void()
+    assert void_mock.call_count == 2
+
+
+@pytest.mark.parametrize(
+    "charge_status",
+    [
+        ChargeStatus.PARTIALLY_REFUNDED,
+        ChargeStatus.REFUSED,
+        ChargeStatus.FULLY_REFUNDED,
+        ChargeStatus.CANCELLED,
+    ],
+)
+def test_handle_not_created_order_return_none(
+    charge_status, payment_adyen_for_checkout, adyen_plugin, notification
+):
+    payment_adyen_for_checkout.charge_status = charge_status
+    payment_adyen_for_checkout.save(update_fields=["charge_status"])
+
+    assert not handle_not_created_order(
+        notification(),
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        TransactionKind.CAPTURE,
+        get_plugins_manager(),
+    )
+
+
+def test_handle_not_created_order_create_new_success_transaction(
+    payment_adyen_for_checkout, adyen_plugin, notification
+):
+    payment_adyen_for_checkout.charge_status = ChargeStatus.NOT_CHARGED
+    payment_adyen_for_checkout.save(update_fields=["charge_status"])
+    payment_adyen_for_checkout.transactions.all().delete()
+
+    adyen_plugin()
+    handle_not_created_order(
+        notification(),
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        TransactionKind.CAPTURE,
+        get_plugins_manager(),
+    )
+
+    payment_adyen_for_checkout.refresh_from_db()
+    assert payment_adyen_for_checkout.order
+
+    all_payment_transactions = payment_adyen_for_checkout.transactions.all()
+    assert len(all_payment_transactions) == 2
+    assert all_payment_transactions[0].kind == TransactionKind.ACTION_TO_CONFIRM
+    assert all_payment_transactions[1].kind == TransactionKind.AUTH
+
+
+@patch("saleor.payment.gateway.refund")
+@patch("saleor.checkout.complete_checkout._get_order_data")
+def test_handle_not_created_order_success_transaction_create_order_raises_and_refund(
+    order_data_mock, refund_mock, payment_adyen_for_checkout, adyen_plugin, notification
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+
+    payment_adyen_for_checkout.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_adyen_for_checkout.save(update_fields=["charge_status"])
+    payment_adyen_for_checkout.transactions.all().delete()
+
+    adyen_plugin()
+    handle_not_created_order(
+        notification(),
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        TransactionKind.CAPTURE,
+        get_plugins_manager(),
+    )
+
+    payment_adyen_for_checkout.refresh_from_db()
+    assert not payment_adyen_for_checkout.order
+
+    all_payment_transactions = payment_adyen_for_checkout.transactions.all()
+    assert len(all_payment_transactions) == 2
+    assert all_payment_transactions[0].kind == TransactionKind.ACTION_TO_CONFIRM
+    assert all_payment_transactions[1].kind == TransactionKind.AUTH
+
+    assert payment_adyen_for_checkout.can_refund()
+    assert refund_mock.call_count == 2
+
+
+@patch("saleor.payment.gateway.void")
+@patch("saleor.checkout.complete_checkout._get_order_data")
+def test_handle_not_created_order_success_transaction_create_order_raises_and_void(
+    order_data_mock, void_mock, payment_adyen_for_checkout, adyen_plugin, notification
+):
+    order_data_mock.side_effect = ValidationError("Test error")
+
+    payment_adyen_for_checkout.charge_status = ChargeStatus.NOT_CHARGED
+    payment_adyen_for_checkout.save(update_fields=["charge_status"])
+    payment_adyen_for_checkout.transactions.all().delete()
+
+    adyen_plugin()
+    handle_not_created_order(
+        notification(),
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        TransactionKind.CAPTURE,
+        get_plugins_manager(),
+    )
+
+    payment_adyen_for_checkout.refresh_from_db()
+    assert not payment_adyen_for_checkout.order
+
+    all_payment_transactions = payment_adyen_for_checkout.transactions.all()
+    assert len(all_payment_transactions) == 2
+    assert all_payment_transactions[0].kind == TransactionKind.ACTION_TO_CONFIRM
+    assert all_payment_transactions[1].kind == TransactionKind.AUTH
+
+    assert payment_adyen_for_checkout.can_void()
+    assert void_mock.call_count == 2
+
+
+def test_confirm_payment_and_set_back_to_confirm(
+    payment_adyen_for_checkout, adyen_plugin, notification
+):
+    plugin = adyen_plugin()
+    payment_adyen_for_checkout.to_confirm = True
+    payment_adyen_for_checkout.save(update_fields=["to_confirm"])
+    create_new_transaction(
+        notification(), payment_adyen_for_checkout, TransactionKind.ACTION_TO_CONFIRM
+    )
+
+    confirm_payment_and_set_back_to_confirm(
+        payment_adyen_for_checkout, get_plugins_manager(), plugin.channel.slug
+    )
+
+    payment_adyen_for_checkout.refresh_from_db()
+
+    assert payment_adyen_for_checkout.to_confirm

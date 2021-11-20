@@ -1,4 +1,4 @@
-branch: "master"
+branch: "main"
 schema: "saleor/graphql/schema.graphql"
 diff:
   # Pull Request annotations

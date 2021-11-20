@@ -1,6 +1,8 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
 
+import opentracing
+import opentracing.tags
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -216,12 +218,17 @@ class VatlayerPlugin(BasePlugin):
         taxes = None
         if address:
             taxes = self._get_taxes_for_country(address.country)
-        if (
-            not checkout_info.shipping_method
-            or not checkout_info.shipping_method_channel_listings
-        ):
+        if not checkout_info.delivery_method_info.delivery_method:
             return previous_value
-        shipping_price = checkout_info.shipping_method_channel_listings.price
+        shipping_price = getattr(
+            checkout_info.delivery_method_info.delivery_method, "price", None
+        )
+        if shipping_price is None:
+            if checkout_info.shipping_method_channel_listings:
+                shipping_price = checkout_info.shipping_method_channel_listings.price
+            else:
+                shipping_price = previous_value
+
         return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_order_shipping(
@@ -533,7 +540,13 @@ class VatlayerPlugin(BasePlugin):
         """Triggered when ShopFetchTaxRates mutation is called."""
         if not self.active:
             return previous_value
-        fetch_rates(self.config.access_key)
+        with opentracing.global_tracer().start_active_span(
+            "vatlayer.fetch_taxes_data"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "tax")
+            span.set_tag("service.name", "vatlayer")
+            fetch_rates(self.config.access_key)
         return True
 
     @classmethod

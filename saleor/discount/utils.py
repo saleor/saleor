@@ -1,6 +1,6 @@
 import datetime
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set
+from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, List, Optional, Set
 
 from django.db.models import F
 from django.utils import timezone
@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from ..product.models import Collection, Product
     from .models import Voucher
 
+CatalogueInfo = DefaultDict[str, Set[int]]
+
 
 def increase_voucher_usage(voucher: "Voucher") -> None:
     """Increase voucher uses by 1."""
@@ -35,12 +37,11 @@ def decrease_voucher_usage(voucher: "Voucher") -> None:
 
 
 def add_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
-    voucher_customer = VoucherCustomer.objects.filter(
+    _, created = VoucherCustomer.objects.get_or_create(
         voucher=voucher, customer_email=customer_email
     )
-    if voucher_customer:
+    if not created:
         raise NotApplicable("This offer is only valid once per customer.")
-    VoucherCustomer.objects.create(voucher=voucher, customer_email=customer_email)
 
 
 def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
@@ -56,6 +57,7 @@ def get_product_discount_on_sale(
     product_collections: Set[int],
     discount: DiscountInfo,
     channel: "Channel",
+    variant_id: Optional[int] = None,
 ):
     """Return discount value if product is on sale or raise NotApplicable."""
     is_product_on_sale = (
@@ -63,7 +65,8 @@ def get_product_discount_on_sale(
         or product.category_id in discount.category_ids
         or product_collections.intersection(discount.collection_ids)
     )
-    if is_product_on_sale:
+    is_variant_on_sale = variant_id and variant_id in discount.variants_ids
+    if is_product_on_sale or is_variant_on_sale:
         sale_channel_listing = discount.channel_listings.get(channel.slug)
         return discount.sale.get_discount(sale_channel_listing)  # type: ignore
     raise NotApplicable("Discount not applicable for this product")
@@ -74,14 +77,15 @@ def get_product_discounts(
     product: "Product",
     collections: Iterable["Collection"],
     discounts: Iterable[DiscountInfo],
-    channel: "Channel"
+    channel: "Channel",
+    variant_id: Optional[int] = None
 ) -> Money:
     """Return discount values for all discounts applicable to a product."""
     product_collections = set(pc.id for pc in collections)
     for discount in discounts or []:
         try:
             yield get_product_discount_on_sale(
-                product, product_collections, discount, channel
+                product, product_collections, discount, channel, variant_id=variant_id
             )
         except NotApplicable:
             pass
@@ -93,7 +97,8 @@ def calculate_discounted_price(
     price: Money,
     collections: Iterable["Collection"],
     discounts: Optional[Iterable[DiscountInfo]],
-    channel: "Channel"
+    channel: "Channel",
+    variant_id: Optional[int] = None
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:
@@ -103,6 +108,7 @@ def calculate_discounted_price(
                 collections=collections,
                 discounts=discounts,
                 channel=channel,
+                variant_id=variant_id,
             )
         )
         if discount_prices:
@@ -223,6 +229,18 @@ def fetch_products(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     return product_map
 
 
+def fetch_variants(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
+    variants = (
+        Sale.variants.through.objects.filter(sale_id__in=sale_pks)
+        .order_by("id")
+        .values_list("sale_id", "productvariant_id")
+    )
+    variants_map: Dict[int, Set[int]] = defaultdict(set)
+    for sale_pk, variant_pk in variants:
+        variants_map[sale_pk].add(variant_pk)
+    return variants_map
+
+
 def fetch_sale_channel_listings(
     sale_pks: Iterable[str],
 ):
@@ -243,6 +261,7 @@ def fetch_discounts(date: datetime.date) -> List[DiscountInfo]:
     channel_listings = fetch_sale_channel_listings(pks)
     products = fetch_products(pks)
     categories = fetch_categories(pks)
+    variants = fetch_variants(pks)
 
     return [
         DiscountInfo(
@@ -251,6 +270,7 @@ def fetch_discounts(date: datetime.date) -> List[DiscountInfo]:
             channel_listings=channel_listings[sale.pk],
             collection_ids=collections[sale.pk],
             product_ids=products[sale.pk],
+            variants_ids=variants[sale.pk],
         )
         for sale in sales
     ]
@@ -258,3 +278,15 @@ def fetch_discounts(date: datetime.date) -> List[DiscountInfo]:
 
 def fetch_active_discounts() -> List[DiscountInfo]:
     return fetch_discounts(timezone.now())
+
+
+def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
+    catalogue_fields = ["categories", "collections", "products", "variants"]
+    catalogue_info: CatalogueInfo = defaultdict(set)
+
+    for field in catalogue_fields:
+        catalogue_info[field].update(
+            id_ for id_ in getattr(instance, field).all().values_list("id", flat=True)
+        )
+
+    return catalogue_info

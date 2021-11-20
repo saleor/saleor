@@ -1,8 +1,9 @@
 import logging
-from typing import List, Optional
+from typing import Optional
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
+from django.db.models import Prefetch
 from django.http import HttpResponse
 from stripe.error import SignatureVerificationError
 from stripe.stripe_object import StripeObject
@@ -15,16 +16,12 @@ from ....discount.utils import fetch_active_discounts
 from ....order import events
 from ....order.actions import order_captured, order_voided
 from ....order.interface import OrderPaymentAction
+from ....order.models import Order
 from ....plugins.manager import PluginsManager
 from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
 from ...models import Payment
-from ...utils import (
-    create_transaction,
-    gateway_postprocess,
-    price_from_minor_unit,
-    update_payment_method_details,
-)
+from ...utils import create_transaction, gateway_postprocess, price_from_minor_unit
 from .consts import (
     WEBHOOK_AUTHORIZED_EVENT,
     WEBHOOK_CANCELED_EVENT,
@@ -33,11 +30,7 @@ from .consts import (
     WEBHOOK_REFUND_EVENT,
     WEBHOOK_SUCCESS_EVENT,
 )
-from .stripe_api import (
-    construct_stripe_event,
-    get_payment_method_details,
-    update_payment_method,
-)
+from .stripe_api import construct_stripe_event, update_payment_method
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +72,11 @@ def handle_webhook(
     if event.type in webhook_handlers:
         logger.debug(
             "Processing new Stripe webhook",
-            extra={"event_type": event.type, "event_id": event.id},
+            extra={
+                "event_type": event.type,
+                "event_id": event.id,
+                "channel_slug": channel_slug,
+            },
         )
         webhook_handlers[event.type](
             event.data.object,
@@ -94,10 +91,26 @@ def handle_webhook(
     return HttpResponse(status=200)
 
 
+def _channel_slug_is_different_from_payment_channel_slug(
+    channel_slug: str, payment: Payment
+) -> bool:
+    checkout = payment.checkout
+    order = payment.order
+    if checkout is not None:
+        return channel_slug != checkout.channel.slug
+    elif order is not None:
+        return channel_slug != order.channel.slug
+    else:
+        raise ValueError(
+            "Both payment.checkout and payment.order cannot be None"
+        )  # pragma: no cover
+
+
 def _get_payment(payment_intent_id: str) -> Optional[Payment]:
     return (
         Payment.objects.prefetch_related(
-            "checkout",
+            Prefetch("checkout", queryset=Checkout.objects.select_related("channel")),
+            Prefetch("order", queryset=Order.objects.select_related("channel")),
         )
         .select_for_update(of=("self",))
         # TODO: inactive payments should be processed to reflect their state in PSP
@@ -193,10 +206,22 @@ def _process_payment_with_checkout(
         _finalize_checkout(checkout, payment, manager)
 
 
+def _update_payment_method_metadata(
+    payment: Payment,
+    payment_intent: StripeObject,
+    gateway_config: "GatewayConfig",
+) -> None:
+    api_key = gateway_config.connection_params["secret_api_key"]
+    metadata = payment.metadata
+
+    if metadata:
+        update_payment_method(api_key, payment_intent.payment_method, metadata)
+
+
 def handle_authorized_payment_intent(
     payment_intent: StripeObject,
     gateway_config: "GatewayConfig",
-    _channel_slug: str,
+    channel_slug: str,
     manager: "PluginsManager",
 ):
     payment = _get_payment(payment_intent.id)
@@ -207,6 +232,10 @@ def handle_authorized_payment_intent(
         )
         return
 
+    if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
+        return
+
+    _update_payment_method_metadata(payment, payment_intent, gateway_config)
     _update_payment_with_new_transaction(
         payment,
         payment_intent,
@@ -228,8 +257,8 @@ def handle_authorized_payment_intent(
 
 def handle_failed_payment_intent(
     payment_intent: StripeObject,
-    gateway_config: "GatewayConfig",
-    _channel_slug: str,
+    _gateway_config: "GatewayConfig",
+    channel_slug: str,
     manager: "PluginsManager",
 ):
     payment = _get_payment(payment_intent.id)
@@ -238,6 +267,9 @@ def handle_failed_payment_intent(
             "Payment for PaymentIntent was not found",
             extra={"payment_intent": payment_intent.id},
         )
+        return
+
+    if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
         return
 
     transaction = _update_payment_with_new_transaction(
@@ -255,8 +287,8 @@ def handle_failed_payment_intent(
 
 def handle_processing_payment_intent(
     payment_intent: StripeObject,
-    gateway_config: "GatewayConfig",
-    _channel_slug: str,
+    _gateway_config: "GatewayConfig",
+    channel_slug: str,
     manager: "PluginsManager",
 ):
     payment = _get_payment(payment_intent.id)
@@ -265,6 +297,9 @@ def handle_processing_payment_intent(
             "Payment for PaymentIntent was not found",
             extra={"payment_intent": payment_intent.id},
         )
+        return
+
+    if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
         return
 
     _update_payment_with_new_transaction(
@@ -300,17 +335,10 @@ def handle_successful_payment_intent(
         )
         return
 
-    api_key = gateway_config.connection_params["secret_api_key"]
+    if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
+        return
 
-    if payment_intent.setup_future_usage:
-        update_payment_method(api_key, payment_intent.payment_method, channel_slug)
-
-    payment_method_info = get_payment_method_details(payment_intent)
-    if payment_method_info:
-        changed_fields: List[str] = []
-        update_payment_method_details(payment, payment_method_info, changed_fields)
-        if changed_fields:
-            payment.save(update_fields=changed_fields)
+    _update_payment_method_metadata(payment, payment_intent, gateway_config)
 
     capture_transaction = _update_payment_with_new_transaction(
         payment,
@@ -340,8 +368,8 @@ def handle_successful_payment_intent(
 
 def handle_refund(
     charge: StripeObject,
-    gateway_config: "GatewayConfig",
-    _channel_slug: str,
+    _gateway_config: "GatewayConfig",
+    channel_slug: str,
     manager: "PluginsManager",
 ):
     payment_intent_id = charge.payment_intent
@@ -353,6 +381,9 @@ def handle_refund(
             "Payment for PaymentIntent was not found",
             extra={"payment_intent": payment_intent_id},
         )
+        return
+
+    if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
         return
 
     already_processed = payment.transactions.filter(token=refund.id).exists()
@@ -377,6 +408,7 @@ def handle_refund(
     refund_transaction = _update_payment_with_new_transaction(
         payment, refund, TransactionKind.REFUND, refund.amount, refund.currency
     )
+
     if payment.order:
         if payment.order and refund_transaction.is_success:
             events.payment_refunded_event(

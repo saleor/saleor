@@ -15,6 +15,7 @@ from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
 from ..product.types import Product, ProductVariant
+from ..shipping import types as shipping_types
 from ..shop.types import Shop
 from . import types as translation_types
 
@@ -362,6 +363,16 @@ class ShippingPriceTranslate(BaseTranslateMutation):
         response = super().perform_mutation(_root, info, **data)
         instance = ChannelContext(node=response.shippingMethod, channel_slug=None)
         return cls(**{cls._meta.return_field_name: instance})
+
+    @classmethod
+    def get_type_for_model(cls):
+        return shipping_types.ShippingMethod
+
+    @classmethod
+    def get_node_or_error(cls, info, node_id, field="id", only_type=None, qs=None):
+        return super().get_node_or_error(
+            info, node_id, field, qs=shipping_models.ShippingMethod.objects
+        )
 
 
 class MenuItemTranslate(BaseTranslateMutation):

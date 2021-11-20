@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 
-from ..core.notifications import get_site_context
+from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 
 if TYPE_CHECKING:

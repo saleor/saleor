@@ -1,7 +1,9 @@
 import json
+from collections import namedtuple
 from unittest import mock
 
 import pytest
+from django.conf import settings
 
 from ....app.models import App
 from ....payment import PaymentError, TransactionKind
@@ -10,6 +12,7 @@ from ....webhook.event_types import WebhookEventType
 from ....webhook.models import Webhook, WebhookEvent
 from ...manager import get_plugins_manager
 from ..tasks import (
+    send_webhook_request,
     send_webhook_request_sync,
     signature_for_payload,
     trigger_webhook_sync,
@@ -19,15 +22,6 @@ from ..utils import (
     parse_payment_action_response,
     to_payment_app_id,
 )
-
-
-@pytest.fixture
-def payment(payment_dummy, payment_app):
-    gateway_id = "credit-card"
-    gateway = to_payment_app_id(payment_app, gateway_id)
-    payment_dummy.gateway = gateway
-    payment_dummy.save()
-    return payment_dummy
 
 
 @pytest.fixture
@@ -50,12 +44,25 @@ def webhook_plugin(settings):
     return factory
 
 
+WebhookTestData = namedtuple("WebhookTestData", "secret, event_type, data, message")
+
+
+@pytest.fixture
+def webhook_data():
+    secret = "secret"
+    event_type = WebhookEventType.ANY
+    data = json.dumps({"key": "value"})
+    message = data.encode("utf-8")
+    return WebhookTestData(secret, event_type, data, message)
+
+
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_trigger_webhook_sync(mock_request, payment_app):
     data = {"key": "value"}
     trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
     webhook = payment_app.webhooks.first()
     mock_request.assert_called_once_with(
+        payment_app.name,
         webhook.target_url,
         webhook.secret_key,
         WebhookEventType.PAYMENT_CAPTURE,
@@ -79,6 +86,7 @@ def test_trigger_webhook_sync_use_first_webhook(mock_request, payment_app):
     data = {"key": "value"}
     trigger_webhook_sync(WebhookEventType.PAYMENT_CAPTURE, data, payment_app)
     mock_request.assert_called_once_with(
+        payment_app.name,
         webhook_1.target_url,
         webhook_1.secret_key,
         WebhookEventType.PAYMENT_CAPTURE,
@@ -98,26 +106,50 @@ def test_trigger_webhook_sync_no_webhook_available():
     ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
 )
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_http")
-def test_send_webhook_request_sync(mock_send_http, target_url, site_settings):
-    secret = "secret"
-    event_type = WebhookEventType.PAYMENT_CAPTURE
-    data = json.dumps({"key": "value"})
-    message = data.encode("utf-8")
-
-    send_webhook_request_sync(target_url, secret, event_type, data)
+def test_send_webhook_request_sync(
+    mock_send_http, target_url, site_settings, webhook_data
+):
+    send_webhook_request_sync(
+        "app_name",
+        target_url,
+        webhook_data.secret,
+        webhook_data.event_type,
+        webhook_data.data,
+    )
     mock_send_http.assert_called_once_with(
         target_url,
-        message,
+        webhook_data.message,
         site_settings.site.domain,
-        signature_for_payload(message, secret),
-        event_type,
+        signature_for_payload(webhook_data.message, webhook_data.secret),
+        webhook_data.event_type,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
     )
+
+
+@pytest.mark.parametrize(
+    "target_url",
+    ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
+)
+@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+def test_send_webhook_request_with_proper_timeout(
+    mock_post, target_url, site_settings, webhook_data
+):
+    send_webhook_request(
+        "app_name",
+        "ID",
+        target_url,
+        webhook_data.secret,
+        webhook_data.event_type,
+        webhook_data.data,
+    )
+    assert mock_post.call_count == 1
+    assert mock_post.call_args.kwargs["timeout"] == settings.WEBHOOK_TIMEOUT
 
 
 def test_send_webhook_request_sync_invalid_scheme():
     with pytest.raises(ValueError):
         target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
-        send_webhook_request_sync(target_url, "", "", "")
+        send_webhook_request_sync("", target_url, "", "", "")
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

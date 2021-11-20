@@ -34,6 +34,7 @@ class ProductFieldEnum(graphene.Enum):
     COLLECTIONS = "collections"
     CHARGE_TAXES = "charge taxes"
     PRODUCT_MEDIA = "product media"
+    VARIANT_ID = "variant id"
     VARIANT_SKU = "variant sku"
     VARIANT_WEIGHT = "variant weight"
     VARIANT_MEDIA = "variant media"

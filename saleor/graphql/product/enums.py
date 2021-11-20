@@ -1,5 +1,10 @@
 import graphene
 
+from ...product import ProductTypeKind
+from ..core.enums import to_enum
+
+ProductTypeKindEnum = to_enum(ProductTypeKind)
+
 
 class ProductAttributeType(graphene.Enum):
     PRODUCT = "PRODUCT"

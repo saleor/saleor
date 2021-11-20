@@ -15,6 +15,7 @@ from ...discount.utils import (
     fetch_collections,
     fetch_products,
     fetch_sale_channel_listings,
+    fetch_variants,
 )
 from ..core.dataloaders import DataLoader
 
@@ -32,6 +33,7 @@ class DiscountsByDateTimeLoader(DataLoader):
         channel_listings = fetch_sale_channel_listings(pks)
         products = fetch_products(pks)
         categories = fetch_categories(pks)
+        variants = fetch_variants(pks)
 
         return [
             [
@@ -41,6 +43,7 @@ class DiscountsByDateTimeLoader(DataLoader):
                     category_ids=categories[sale.pk],
                     collection_ids=collections[sale.pk],
                     product_ids=products[sale.pk],
+                    variants_ids=variants[sale.pk],
                 )
                 for sale in sales_map[datetime]
             ]

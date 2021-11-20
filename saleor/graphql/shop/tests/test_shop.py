@@ -6,10 +6,12 @@ from django_countries import countries
 
 from .... import __version__
 from ....account.models import Address
+from ....core import TimePeriodType
 from ....core.error_codes import ShopErrorCode
 from ....core.permissions import get_permissions_codename
 from ....shipping import PostalCodeRuleInclusionType
 from ....shipping.models import ShippingMethod
+from ....site import GiftCardSettingsExpiryType
 from ....site.models import Site
 from ...account.enums import CountryCodeEnum
 from ...core.utils import str_to_enum
@@ -355,6 +357,111 @@ def test_shop_settings_mutation(
     site_settings.refresh_from_db()
     assert not site_settings.include_taxes_in_prices
     assert site_settings.charge_taxes_on_shipping == new_charge_taxes_on_shipping
+
+
+def test_shop_reservation_settings_mutation(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                shop {
+                    reserveStockDurationAnonymousUser
+                    reserveStockDurationAuthenticatedUser
+                }
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+    variables = {
+        "input": {
+            "reserveStockDurationAnonymousUser": 42,
+            "reserveStockDurationAuthenticatedUser": 24,
+        }
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shopSettingsUpdate"]["shop"]
+    assert data["reserveStockDurationAnonymousUser"] == 42
+    assert data["reserveStockDurationAuthenticatedUser"] == 24
+    site_settings.refresh_from_db()
+    assert site_settings.reserve_stock_duration_anonymous_user == 42
+    assert site_settings.reserve_stock_duration_authenticated_user == 24
+
+
+def test_shop_reservation_disable_settings_mutation(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                shop {
+                    reserveStockDurationAnonymousUser
+                    reserveStockDurationAuthenticatedUser
+                }
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+    variables = {
+        "input": {
+            "reserveStockDurationAnonymousUser": None,
+            "reserveStockDurationAuthenticatedUser": None,
+        }
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shopSettingsUpdate"]["shop"]
+    assert data["reserveStockDurationAnonymousUser"] is None
+    assert data["reserveStockDurationAuthenticatedUser"] is None
+    site_settings.refresh_from_db()
+    assert site_settings.reserve_stock_duration_anonymous_user is None
+    assert site_settings.reserve_stock_duration_authenticated_user is None
+
+
+def test_shop_reservation_set_negative_settings_mutation(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                shop {
+                    reserveStockDurationAnonymousUser
+                    reserveStockDurationAuthenticatedUser
+                }
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+    variables = {
+        "input": {
+            "reserveStockDurationAnonymousUser": -14,
+            "reserveStockDurationAuthenticatedUser": -6,
+        }
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shopSettingsUpdate"]["shop"]
+    assert data["reserveStockDurationAnonymousUser"] is None
+    assert data["reserveStockDurationAuthenticatedUser"] is None
+    site_settings.refresh_from_db()
+    assert site_settings.reserve_stock_duration_anonymous_user is None
+    assert site_settings.reserve_stock_duration_authenticated_user is None
 
 
 MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS = """
@@ -1201,12 +1308,16 @@ def test_staff_notification_update_mutation_with_empty_email(
 
 
 ORDER_SETTINGS_UPDATE_MUTATION = """
-    mutation orderSettings($confirmOrders: Boolean!) {
+    mutation orderSettings($confirmOrders: Boolean, $fulfillGiftCards: Boolean) {
         orderSettingsUpdate(
-            input: { automaticallyConfirmAllNewOrders: $confirmOrders }
+            input: {
+                automaticallyConfirmAllNewOrders: $confirmOrders
+                automaticallyFulfillNonShippableGiftCard: $fulfillGiftCards
+            }
         ) {
             orderSettings {
                 automaticallyConfirmAllNewOrders
+                automaticallyFulfillNonShippableGiftCard
             }
         }
     }
@@ -1219,13 +1330,34 @@ def test_order_settings_update_by_staff(
     assert site_settings.automatically_confirm_all_new_orders is True
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(
-        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+        ORDER_SETTINGS_UPDATE_MUTATION,
+        {"confirmOrders": False, "fulfillGiftCards": False},
     )
     content = get_graphql_content(response)
     response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
     assert response_settings["automaticallyConfirmAllNewOrders"] is False
+    assert response_settings["automaticallyFulfillNonShippableGiftCard"] is False
     site_settings.refresh_from_db()
     assert site_settings.automatically_confirm_all_new_orders is False
+    assert site_settings.automatically_fulfill_non_shippable_gift_card is False
+
+
+def test_order_settings_update_by_staff_nothing_changed(
+    staff_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION,
+        {},
+    )
+    content = get_graphql_content(response)
+    response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
+    assert response_settings["automaticallyConfirmAllNewOrders"] is True
+    assert response_settings["automaticallyFulfillNonShippableGiftCard"] is True
+    site_settings.refresh_from_db()
+    assert site_settings.automatically_confirm_all_new_orders is True
+    assert site_settings.automatically_fulfill_non_shippable_gift_card is True
 
 
 def test_order_settings_update_by_app(
@@ -1234,13 +1366,16 @@ def test_order_settings_update_by_app(
     assert site_settings.automatically_confirm_all_new_orders is True
     app_api_client.app.permissions.set([permission_manage_orders])
     response = app_api_client.post_graphql(
-        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+        ORDER_SETTINGS_UPDATE_MUTATION,
+        {"confirmOrders": False, "fulfillGiftCards": False},
     )
     content = get_graphql_content(response)
     response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
     assert response_settings["automaticallyConfirmAllNewOrders"] is False
+    assert response_settings["automaticallyFulfillNonShippableGiftCard"] is False
     site_settings.refresh_from_db()
     assert site_settings.automatically_confirm_all_new_orders is False
+    assert site_settings.automatically_fulfill_non_shippable_gift_card is False
 
 
 def test_order_settings_update_by_user_without_permissions(
@@ -1248,17 +1383,20 @@ def test_order_settings_update_by_user_without_permissions(
 ):
     assert site_settings.automatically_confirm_all_new_orders is True
     response = user_api_client.post_graphql(
-        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+        ORDER_SETTINGS_UPDATE_MUTATION,
+        {"confirmOrders": False, "fulfillGiftCards": False},
     )
     assert_no_permission(response)
     site_settings.refresh_from_db()
     assert site_settings.automatically_confirm_all_new_orders is True
+    assert site_settings.automatically_fulfill_non_shippable_gift_card is True
 
 
 ORDER_SETTINGS_QUERY = """
     query orderSettings {
         orderSettings {
             automaticallyConfirmAllNewOrders
+            automaticallyFulfillNonShippableGiftCard
         }
     }
 """
@@ -1268,19 +1406,112 @@ def test_order_settings_query_as_staff(
     staff_api_client, permission_manage_orders, site_settings
 ):
     assert site_settings.automatically_confirm_all_new_orders is True
+    assert site_settings.automatically_fulfill_non_shippable_gift_card is True
 
     site_settings.automatically_confirm_all_new_orders = False
-    site_settings.save(update_fields=["automatically_confirm_all_new_orders"])
+    site_settings.automatically_fulfill_non_shippable_gift_card = False
+    site_settings.save(
+        update_fields=[
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
+        ]
+    )
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(ORDER_SETTINGS_QUERY)
     content = get_graphql_content(response)
 
     assert content["data"]["orderSettings"]["automaticallyConfirmAllNewOrders"] is False
+    assert (
+        content["data"]["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
+        is False
+    )
 
 
 def test_order_settings_query_as_user(user_api_client, site_settings):
     response = user_api_client.post_graphql(ORDER_SETTINGS_QUERY)
+    assert_no_permission(response)
+
+
+GIFT_CARD_SETTINGS_QUERY = """
+    query giftCardSettings {
+        giftCardSettings {
+            expiryType
+            expiryPeriod {
+                type
+                amount
+            }
+        }
+    }
+"""
+
+
+def test_gift_card_settings_query_as_staff(
+    staff_api_client, permission_manage_gift_card, site_settings
+):
+    assert site_settings.gift_card_expiry_period is None
+
+    staff_api_client.user.user_permissions.add(permission_manage_gift_card)
+    response = staff_api_client.post_graphql(GIFT_CARD_SETTINGS_QUERY)
+    content = get_graphql_content(response)
+
+    assert (
+        content["data"]["giftCardSettings"]["expiryType"]
+        == site_settings.gift_card_expiry_type.upper()
+    )
+    assert content["data"]["giftCardSettings"]["expiryPeriod"] is None
+
+
+def test_query_gift_card_settings_expiry_period(
+    staff_api_client, permission_manage_gift_card, site_settings
+):
+    expiry_type = GiftCardSettingsExpiryType.EXPIRY_PERIOD
+    expiry_period_type = TimePeriodType.MONTH
+    expiry_period = 3
+    site_settings.gift_card_expiry_type = expiry_type
+    site_settings.gift_card_expiry_period_type = expiry_period_type
+    site_settings.gift_card_expiry_period = expiry_period
+    site_settings.save(
+        update_fields=[
+            "gift_card_expiry_type",
+            "gift_card_expiry_period_type",
+            "gift_card_expiry_period",
+        ]
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_gift_card)
+    response = staff_api_client.post_graphql(GIFT_CARD_SETTINGS_QUERY)
+    content = get_graphql_content(response)
+
+    assert content["data"]["giftCardSettings"]["expiryType"] == expiry_type.upper()
+    assert (
+        content["data"]["giftCardSettings"]["expiryPeriod"]["type"]
+        == expiry_period_type.upper()
+    )
+    assert (
+        content["data"]["giftCardSettings"]["expiryPeriod"]["amount"] == expiry_period
+    )
+
+
+def test_gift_card_settings_query_as_app(
+    app_api_client, permission_manage_gift_card, site_settings
+):
+    assert site_settings.gift_card_expiry_period is None
+
+    response = app_api_client.post_graphql(
+        GIFT_CARD_SETTINGS_QUERY, permissions=[permission_manage_gift_card]
+    )
+    content = get_graphql_content(response)
+
+    assert (
+        content["data"]["giftCardSettings"]["expiryType"]
+        == site_settings.gift_card_expiry_type.upper()
+    )
+    assert content["data"]["giftCardSettings"]["expiryPeriod"] is None
+
+
+def test_gift_card_settings_query_as_user(user_api_client, site_settings):
+    response = user_api_client.post_graphql(GIFT_CARD_SETTINGS_QUERY)
     assert_no_permission(response)
 
 

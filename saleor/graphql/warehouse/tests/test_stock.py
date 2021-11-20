@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 import graphene
+from django.utils import timezone
 
 from ....core.permissions import ProductPermissions
-from ....warehouse.models import Stock, Warehouse
+from ....warehouse.models import Reservation, Stock, Warehouse
 from ....warehouse.tests.utils import get_quantity_allocated_for_stock
 from ...tests.utils import (
     assert_no_permission,
@@ -22,6 +25,7 @@ query stock($id: ID!) {
         }
         quantity
         quantityAllocated
+        quantityReserved
     }
 }
 """
@@ -44,6 +48,7 @@ QUERY_STOCKS = """
                     }
                     quantity
                     quantityAllocated
+                    quantityReserved
                 }
             }
         }
@@ -84,6 +89,52 @@ def test_query_stock(staff_api_client, stock, permission_manage_products):
     assert content_stock["warehouse"]["name"] == stock.warehouse.name
     assert content_stock["quantity"] == stock.quantity
     assert content_stock["quantityAllocated"] == get_quantity_allocated_for_stock(stock)
+    assert content_stock["quantityReserved"] == 0
+
+
+def test_query_stock_with_reservations(
+    site_settings_with_reservations,
+    staff_api_client,
+    stock,
+    checkout_line_with_reservation_in_many_stocks,
+    permission_manage_products,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    stock_id = graphene.Node.to_global_id("Stock", stock.pk)
+    response = staff_api_client.post_graphql(QUERY_STOCK, variables={"id": stock_id})
+    content = get_graphql_content(response)
+    content_stock = content["data"]["stock"]
+    assert (
+        content_stock["productVariant"]["product"]["name"]
+        == stock.product_variant.product.name
+    )
+    assert content_stock["warehouse"]["name"] == stock.warehouse.name
+    assert content_stock["quantity"] == stock.quantity
+    assert content_stock["quantityAllocated"] == get_quantity_allocated_for_stock(stock)
+    assert content_stock["quantityReserved"] == 2
+
+
+def test_query_stock_with_expired_reservations(
+    site_settings_with_reservations,
+    staff_api_client,
+    stock,
+    checkout_line_with_reservation_in_many_stocks,
+    permission_manage_products,
+):
+    Reservation.objects.update(reserved_until=timezone.now() - timedelta(minutes=2))
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    stock_id = graphene.Node.to_global_id("Stock", stock.pk)
+    response = staff_api_client.post_graphql(QUERY_STOCK, variables={"id": stock_id})
+    content = get_graphql_content(response)
+    content_stock = content["data"]["stock"]
+    assert (
+        content_stock["productVariant"]["product"]["name"]
+        == stock.product_variant.product.name
+    )
+    assert content_stock["warehouse"]["name"] == stock.warehouse.name
+    assert content_stock["quantity"] == stock.quantity
+    assert content_stock["quantityAllocated"] == get_quantity_allocated_for_stock(stock)
+    assert content_stock["quantityReserved"] == 0
 
 
 def test_staff_query_stock_by_invalid_id(

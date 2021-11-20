@@ -47,12 +47,14 @@ def get_tax_percentage_in_adyen_format(total_gross, total_net):
     return tax_percentage_in_adyen_format
 
 
-def api_call(request_data: Optional[Dict[str, Any]], method: Callable) -> Adyen.Adyen:
+def api_call(
+    request_data: Optional[Dict[str, Any]], method: Callable, **kwargs
+) -> Adyen.Adyen:
     try:
-        return method(request_data)
+        return method(request_data, **kwargs)
     except (Adyen.AdyenError, ValueError, TypeError) as e:
         logger.warning(f"Unable to process the payment: {e}")
-        raise PaymentError("Unable to process the payment request.")
+        raise PaymentError(f"Unable to process the payment request: {e}.")
 
 
 def prepare_address_request_data(address: Optional["AddressData"]) -> Optional[dict]:
@@ -76,6 +78,7 @@ def prepare_address_request_data(address: Optional["AddressData"]) -> Optional[d
     city = address.city or address.country_area or "ZZ"
     country = str(address.country) if address.country else "ZZ"
     postal_code = address.postal_code or "ZZ"
+    state_or_province = address.country_area or "ZZ"
 
     if address.company_name:
         house_number_or_name = address.company_name
@@ -93,7 +96,7 @@ def prepare_address_request_data(address: Optional["AddressData"]) -> Optional[d
         "country": country,
         "houseNumberOrName": house_number_or_name,
         "postalCode": postal_code,
-        "stateOrProvince": address.country_area,
+        "stateOrProvince": state_or_province,
         "street": street,
     }
 
@@ -208,8 +211,10 @@ def get_shipping_data(manager, checkout_info, lines, discounts):
         "quantity": 1,
         "amountExcludingTax": price_to_minor_unit(total_net, currency),
         "taxPercentage": tax_percentage_in_adyen_format,
-        "description": f"Shipping - {checkout_info.shipping_method.name}",
-        "id": f"Shipping:{checkout_info.shipping_method.id}",
+        "description": (
+            f"Shipping - {checkout_info.delivery_method_info.delivery_method.name}"
+        ),
+        "id": f"Shipping:{checkout_info.delivery_method_info.delivery_method.id}",
         "taxAmount": price_to_minor_unit(tax_amount, currency),
         "amountIncludingTax": price_to_minor_unit(total_gross, currency),
     }
@@ -270,13 +275,15 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
             "description": (
                 f"{line_info.variant.product.name}, {line_info.variant.name}"
             ),
-            "id": line_info.variant.sku,
+            "id": line_info.variant.sku or line_info.variant.get_global_id(),
             "taxAmount": price_to_minor_unit(tax_amount, currency),
             "amountIncludingTax": price_to_minor_unit(unit_gross, currency),
         }
         line_items.append(line_data)
 
-    if checkout_info.shipping_method and is_shipping_required(lines):
+    if checkout_info.delivery_method_info.delivery_method and is_shipping_required(
+        lines
+    ):
         line_items.append(get_shipping_data(manager, checkout_info, lines, discounts))
 
     payment_data["lineItems"] = line_items
@@ -442,3 +449,29 @@ def get_payment_method_info(
         type="card" if payment_method == "scheme" else payment_method,
     )
     return payment_method_info
+
+
+def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dict:
+    amount_input = data["card"].get("money")
+    security_code = data["card"].get("cvc")
+
+    request_data = {
+        "merchantAccount": merchant_account,
+        "paymentMethod": {
+            "type": data["method"],
+            "number": data["card"]["code"],
+        },
+    }
+
+    if amount_input:
+        currency = amount_input["currency"]
+        value = amount_input["amount"]
+        request_data["amount"] = {
+            "value": price_to_minor_unit(value, currency),
+            "currency": currency,
+        }
+
+    if security_code:
+        request_data["paymentMethod"]["securityCode"] = security_code  # type: ignore
+
+    return request_data

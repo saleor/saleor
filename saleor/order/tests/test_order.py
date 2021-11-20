@@ -89,6 +89,7 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
     assert line.product_sku == variant.sku
+    assert line.product_variant_id == variant.get_global_id()
     assert line.quantity == 1
     assert line.unit_price == TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
     assert line.translated_product_name == str(variant.product.translated)
@@ -118,6 +119,7 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
     assert line.product_sku == variant.sku
+    assert line.product_variant_id == variant.get_global_id()
     assert line.quantity == 1
     assert line.unit_price == unit_price
     assert line.total_price == total_price
@@ -144,6 +146,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
     assert line.product_sku == variant.sku
+    assert line.product_variant_id == variant.get_global_id()
     assert line.quantity == 1
     assert line.unit_price == TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
     assert line.translated_product_name == str(variant.product.translated)
@@ -189,6 +192,7 @@ def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines, 
     existing_line.refresh_from_db()
     assert order_with_lines.lines.count() == lines_before
     assert existing_line.product_sku == variant.sku
+    assert existing_line.product_variant_id == variant.get_global_id()
     assert existing_line.quantity == line_quantity_before + 1
 
 
@@ -825,7 +829,9 @@ def test_shipping_voucher_order_discount(
     )
     subtotal = Money(100, "USD")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
-    shipping_total = Money(shipping_cost, "USD")
+    shipping_total = TaxedMoney(
+        gross=Money(shipping_cost, "USD"), net=Money(shipping_cost, "USD")
+    )
     order = Mock(
         get_subtotal=Mock(return_value=subtotal),
         shipping_price=shipping_total,

@@ -11,6 +11,7 @@ from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quant
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
 from ....plugins.manager import get_plugins_manager
+from ....product import ProductTypeKind
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
     Category,
@@ -37,9 +38,15 @@ def category_list():
 
 @pytest.fixture
 def product_type_list():
-    product_type_1 = ProductType.objects.create(name="Type 1", slug="type-1")
-    product_type_2 = ProductType.objects.create(name="Type 2", slug="type-2")
-    product_type_3 = ProductType.objects.create(name="Type 3", slug="type-3")
+    product_type_1 = ProductType.objects.create(
+        name="Type 1", slug="type-1", kind=ProductTypeKind.NORMAL
+    )
+    product_type_2 = ProductType.objects.create(
+        name="Type 2", slug="type-2", kind=ProductTypeKind.NORMAL
+    )
+    product_type_3 = ProductType.objects.create(
+        name="Type 3", slug="type-3", kind=ProductTypeKind.NORMAL
+    )
     return product_type_1, product_type_2, product_type_3
 
 
@@ -373,7 +380,9 @@ def test_delete_products(
             product_name=str(product),
             variant_name=str(variant),
             product_sku=variant.sku,
+            product_variant_id=variant.get_global_id(),
             is_shipping_required=variant.is_shipping_required(),
+            is_gift_card=variant.is_gift_card(),
             unit_price=TaxedMoney(net=net, gross=gross),
             total_price=total_price,
             quantity=3,
@@ -386,7 +395,9 @@ def test_delete_products(
             product_name=str(product),
             variant_name=str(variant),
             product_sku=variant.sku,
+            product_variant_id=variant.get_global_id(),
             is_shipping_required=variant.is_shipping_required(),
+            is_gift_card=variant.is_gift_card(),
             unit_price=TaxedMoney(net=net, gross=gross),
             total_price=total_price,
             quantity=3,
@@ -837,7 +848,7 @@ def test_delete_product_variants(
     content = get_graphql_content(response)
     flush_post_commit_hooks()
 
-    assert content["data"]["productVariantBulkDelete"]["count"] == 3
+    assert content["data"]["productVariantBulkDelete"]["count"] == 4
     assert not ProductVariant.objects.filter(
         id__in=[variant.id for variant in product_variant_list]
     ).exists()
@@ -955,7 +966,7 @@ def test_delete_product_variants_with_images(
     content = get_graphql_content(response)
     flush_post_commit_hooks()
 
-    assert content["data"]["productVariantBulkDelete"]["count"] == 3
+    assert content["data"]["productVariantBulkDelete"]["count"] == 4
     assert not ProductVariant.objects.filter(
         id__in=[variant.id for variant in product_variant_list]
     ).exists()
@@ -1004,7 +1015,7 @@ def test_delete_product_variants_with_file_attribute(
     content = get_graphql_content(response)
     flush_post_commit_hooks()
 
-    assert content["data"]["productVariantBulkDelete"]["count"] == 3
+    assert content["data"]["productVariantBulkDelete"]["count"] == 4
     assert not ProductVariant.objects.filter(
         id__in=[variant.id for variant in product_variant_list]
     ).exists()
@@ -1059,7 +1070,9 @@ def test_delete_product_variants_in_draft_orders(
         product_name=str(second_product),
         variant_name=str(second_variant_in_draft),
         product_sku=second_variant_in_draft.sku,
+        product_variant_id=second_variant_in_draft.get_global_id(),
         is_shipping_required=second_variant_in_draft.is_shipping_required(),
+        is_gift_card=second_variant_in_draft.is_gift_card(),
         unit_price=TaxedMoney(net=net, gross=gross),
         total_price=total_price,
         quantity=quantity,
@@ -1080,7 +1093,9 @@ def test_delete_product_variants_in_draft_orders(
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
         unit_price=TaxedMoney(net=net, gross=gross),
         total_price=total_price,
         quantity=quantity,

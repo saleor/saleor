@@ -13,6 +13,7 @@ from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
+from ..giftcard import GiftCardLineData
 from ..payment import (
     ChargeStatus,
     CustomPaymentChoices,
@@ -61,6 +62,7 @@ from .utils import (
 if TYPE_CHECKING:
     from ..app.models import App
     from ..plugins.manager import PluginsManager
+    from ..site.models import SiteSettings
     from ..warehouse.models import Warehouse
 
 logger = logging.getLogger(__name__)
@@ -496,14 +498,26 @@ def order_returned(
 @traced_atomic_transaction()
 def order_fulfilled(
     fulfillments: List["Fulfillment"],
-    user: "User",
+    user: Optional["User"],
     app: Optional["App"],
     fulfillment_lines: List["FulfillmentLine"],
     manager: "PluginsManager",
+    gift_card_lines_info: List[GiftCardLineData],
+    site_settings: "SiteSettings",
     notify_customer=True,
 ):
+    from ..giftcard.utils import gift_cards_create
+
     order = fulfillments[0].order
     update_order_status(order)
+    gift_cards_create(
+        order,
+        gift_card_lines_info,
+        site_settings,
+        user,
+        app,
+        manager,
+    )
     events.fulfillment_fulfilled_items_event(
         order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
     )
@@ -529,6 +543,9 @@ def order_awaits_fulfillment_approval(
     app: Optional["App"],
     fulfillment_lines: List["FulfillmentLine"],
     manager: "PluginsManager",
+    _gift_card_lines: Iterable["OrderLine"],
+    _order_line_quantities: Dict[int, int],
+    _site_settings: "SiteSettings",
     _notify_customer=True,
 ):
     order = fulfillments[0].order
@@ -644,6 +661,14 @@ def cancel_waiting_fulfillment(
     events.fulfillment_canceled_event(
         order=fulfillment.order, user=user, app=app, fulfillment=None
     )
+
+    order_lines = []
+    for line in fulfillment:
+        order_line = line.order_line
+        order_line.quantity_fulfilled -= line.quantity
+        order_lines.append(order_line)
+    OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
+
     fulfillment.delete()
     update_order_status(fulfillment.order)
     transaction.on_commit(lambda: manager.fulfillment_canceled(fulfillment))
@@ -656,8 +681,12 @@ def approve_fulfillment(
     user: "User",
     app: Optional["App"],
     manager: "PluginsManager",
+    settings: "SiteSettings",
     notify_customer=True,
+    allow_stock_to_be_exceeded: bool = False,
 ):
+    from ..giftcard.utils import gift_cards_create
+
     fulfillment.status = FulfillmentStatus.FULFILLED
     fulfillment.save()
     order = fulfillment.order
@@ -668,22 +697,67 @@ def approve_fulfillment(
     events.fulfillment_fulfilled_items_event(
         order=order, user=user, app=app, fulfillment_lines=list(fulfillment.lines.all())
     )
-    lines_to_fulfill = [
-        OrderLineData(
-            line=f_line.order_line,
-            quantity=f_line.quantity,
-            variant=f_line.order_line.variant,
-            warehouse_pk=str(f_line.stock.warehouse_id),  # type: ignore
+    lines_to_fulfill = []
+    gift_card_lines_info = []
+    insufficient_stocks = []
+    for fulfillment_line in fulfillment.lines.all().prefetch_related(
+        "order_line__variant"
+    ):
+        order_line = fulfillment_line.order_line
+        variant = fulfillment_line.order_line.variant
+
+        stock = fulfillment_line.stock
+
+        if stock is None:
+            warehouse_pk = None
+            if not allow_stock_to_be_exceeded:
+                error_data = InsufficientStockData(
+                    variant=variant,
+                    order_line=order_line,
+                    warehouse_pk=warehouse_pk,
+                )
+                insufficient_stocks.append(error_data)
+        else:
+            warehouse_pk = stock.warehouse_id
+
+        lines_to_fulfill.append(
+            OrderLineData(
+                line=order_line,
+                quantity=fulfillment_line.quantity,
+                variant=variant,
+                warehouse_pk=str(warehouse_pk) if warehouse_pk else None,
+            )
         )
-        for f_line in fulfillment.lines.all()
-    ]
-    fulfill_order_lines(lines_to_fulfill, manager)
+        if order_line.is_gift_card:
+            gift_card_lines_info.append(
+                GiftCardLineData(
+                    quantity=fulfillment_line.quantity,
+                    order_line=order_line,
+                    variant=variant,
+                    fulfillment_line=fulfillment_line,
+                )
+            )
+
+    if insufficient_stocks:
+        raise InsufficientStock(insufficient_stocks)
+
+    _decrease_stocks(lines_to_fulfill, manager, allow_stock_to_be_exceeded)
     order.refresh_from_db()
     update_order_status(order)
 
     transaction.on_commit(lambda: manager.order_updated(order))
     if order.status == OrderStatus.FULFILLED:
         transaction.on_commit(lambda: manager.order_fulfilled(order))
+
+    if gift_card_lines_info:
+        gift_cards_create(
+            order,
+            gift_card_lines_info,
+            settings,
+            user,
+            app,
+            manager,
+        )
 
     return fulfillment
 
@@ -738,12 +812,34 @@ def mark_order_as_paid(
 
 @traced_atomic_transaction()
 def fulfill_order_lines(
-    order_lines_info: Iterable["OrderLineData"], manager: "PluginsManager"
+    order_lines_info: Iterable["OrderLineData"],
+    manager: "PluginsManager",
+    allow_stock_to_be_exceeded: bool = False,
 ):
     """Fulfill order line with given quantity."""
+    _decrease_stocks(order_lines_info, manager, allow_stock_to_be_exceeded)
+    _increase_order_line_quantity(order_lines_info)
+
+
+def clean_mark_order_as_paid(order: "Order"):
+    """Check if an order can be marked as paid."""
+    if order.payments.exists():
+        raise PaymentError(
+            "Orders with payments can not be manually marked as paid.",
+        )
+
+
+def _decrease_stocks(order_lines_info, manager, allow_stock_to_be_exceeded=False):
     lines_to_decrease_stock = get_order_lines_with_track_inventory(order_lines_info)
     if lines_to_decrease_stock:
-        decrease_stock(lines_to_decrease_stock, manager)
+        decrease_stock(
+            lines_to_decrease_stock,
+            manager,
+            allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
+        )
+
+
+def _increase_order_line_quantity(order_lines_info):
     order_lines = []
     for line_info in order_lines_info:
         line = line_info.line
@@ -805,8 +901,10 @@ def _create_fulfillment_lines(
     warehouse_pk: str,
     lines_data: List[Dict],
     channel_slug: str,
+    gift_card_lines_info: List[GiftCardLineData],
     manager: "PluginsManager",
     decrease_stock: bool = True,
+    allow_stock_to_be_exceeded: bool = False,
 ) -> List[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
 
@@ -823,8 +921,12 @@ def _create_fulfillment_lines(
                     ...
                 ]
         channel_slug (str): Channel for which fulfillment lines should be created.
+        gift_card_lines_info (List): List with information required
+            to create gift cards.
         manager (PluginsManager): Plugin manager from given context
         decrease_stock (Bool): Stocks will get decreased if this is True.
+        allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
+            Default value is set to `False`.
 
     Return:
         List[FulfillmentLine]: Unsaved fulfillmet lines created for this fulfillment
@@ -854,52 +956,69 @@ def _create_fulfillment_lines(
         order_line = line["order_line"]
         if quantity > 0:
             line_stocks = variant_to_stock.get(order_line.variant_id)
-            if line_stocks is None:
+            variant = order_line.variant
+            stock = line_stocks[0] if line_stocks else None
+
+            # If there is no stock but allow_stock_to_be_exceeded == True
+            # we proceed with fulfilling the order, treat as error otherwise
+            if stock is None and not allow_stock_to_be_exceeded:
                 error_data = InsufficientStockData(
-                    variant=order_line.variant,
+                    variant=variant,
                     order_line=order_line,
                     warehouse_pk=warehouse_pk,
                 )
                 insufficient_stocks.append(error_data)
                 continue
-            stock = line_stocks[0]
+
             lines_info.append(
                 OrderLineData(
                     line=order_line,
                     quantity=quantity,
-                    variant=order_line.variant,
+                    variant=variant,
                     warehouse_pk=warehouse_pk,
                 )
             )
             if order_line.is_digital:
-                order_line.variant.digital_content.urls.create(line=order_line)
-            fulfillment_lines.append(
-                FulfillmentLine(
-                    order_line=order_line,
-                    fulfillment=fulfillment,
-                    quantity=quantity,
-                    stock=stock,
-                )
+                variant.digital_content.urls.create(line=order_line)
+            fulfillment_line = FulfillmentLine(
+                order_line=order_line,
+                fulfillment=fulfillment,
+                quantity=quantity,
+                stock=stock,
             )
+            fulfillment_lines.append(fulfillment_line)
+            if order_line.is_gift_card:
+                gift_card_lines_info.append(
+                    GiftCardLineData(
+                        quantity=quantity,
+                        order_line=order_line,
+                        variant=variant,
+                        fulfillment_line=fulfillment_line,
+                    )
+                )
 
     if insufficient_stocks:
         raise InsufficientStock(insufficient_stocks)
 
-    if lines_info and decrease_stock:
-        fulfill_order_lines(lines_info, manager)
+    if lines_info:
+        if decrease_stock:
+            _decrease_stocks(lines_info, manager, allow_stock_to_be_exceeded)
+        _increase_order_line_quantity(lines_info)
 
     return fulfillment_lines
 
 
 @traced_atomic_transaction()
 def create_fulfillments(
-    user: "User",
+    user: Optional["User"],
     app: Optional["App"],
     order: "Order",
     fulfillment_lines_for_warehouses: Dict,
     manager: "PluginsManager",
+    site_settings: "SiteSettings",
     notify_customer: bool = True,
     approved: bool = True,
+    allow_stock_to_be_exceeded: bool = False,
 ) -> List[Fulfillment]:
     """Fulfill order.
 
@@ -924,8 +1043,11 @@ def create_fulfillments(
         manager (PluginsManager): Base manager for handling plugins logic.
         notify_customer (bool): If `True` system send email about
             fulfillments to customer.
+        site_settings (SiteSettings): Site settings used for creating gift cards.
         approved (Boolean): fulfillments will have status fulfilled if it's True,
             otherwise waiting_for_approval.
+        allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
+            Default value is set to `False`.
 
     Return:
         List[Fulfillment]: Fulfillmet with lines created for this order
@@ -938,6 +1060,7 @@ def create_fulfillments(
     """
     fulfillments: List[Fulfillment] = []
     fulfillment_lines: List[FulfillmentLine] = []
+    gift_card_lines_info: List[GiftCardLineData] = []
     status = (
         FulfillmentStatus.FULFILLED
         if approved
@@ -952,25 +1075,31 @@ def create_fulfillments(
                 warehouse_pk,
                 fulfillment_lines_for_warehouses[warehouse_pk],
                 order.channel.slug,
+                gift_card_lines_info,
                 manager,
                 decrease_stock=approved,
+                allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
             )
         )
 
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
+    order.refresh_from_db()
     post_creation_func = (
         order_fulfilled if approved else order_awaits_fulfillment_approval
     )
     transaction.on_commit(
-        lambda: post_creation_func(  # type: ignore
+        lambda: post_creation_func(
             fulfillments,
-            user,
+            user,  # type: ignore
             app,
             fulfillment_lines,
             manager,
+            gift_card_lines_info,
+            site_settings,
             notify_customer,
         )
     )
+
     return fulfillments
 
 
@@ -1177,8 +1306,14 @@ def create_refund_fulfillment(
             target_fulfillment=refunded_fulfillment,
         )
 
+        # Delete fulfillments without lines after lines are moved.
         Fulfillment.objects.filter(
-            order=order, lines=None, status=FulfillmentStatus.FULFILLED
+            order=order,
+            lines=None,
+            status__in=[
+                FulfillmentStatus.FULFILLED,
+                FulfillmentStatus.WAITING_FOR_APPROVAL,
+            ],
         ).delete()
         transaction.on_commit(lambda: manager.order_updated(order))
 
@@ -1532,7 +1667,12 @@ def create_fulfillments_for_returned_products(
             manager=manager,
         )
         Fulfillment.objects.filter(
-            order=order, lines=None, status=FulfillmentStatus.FULFILLED
+            order=order,
+            lines=None,
+            status__in=[
+                FulfillmentStatus.FULFILLED,
+                FulfillmentStatus.WAITING_FOR_APPROVAL,
+            ],
         ).delete()
         transaction.on_commit(lambda: manager.order_updated(order))
     return return_fulfillment, replace_fulfillment, new_order

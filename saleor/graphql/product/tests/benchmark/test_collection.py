@@ -1,6 +1,7 @@
 import graphene
 import pytest
 
+from .....product.models import Collection
 from ....tests.utils import get_graphql_content
 
 
@@ -379,3 +380,69 @@ def test_collection_bulk_delete(
     content = get_graphql_content(response)
 
     assert not content["data"]["collectionBulkDelete"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_collections_for_federation_query_count(
+    api_client,
+    django_assert_num_queries,
+    count_queries,
+):
+    collections = Collection.objects.bulk_create(
+        [
+            Collection(
+                name="collection 1",
+                slug="collection-1",
+            ),
+            Collection(
+                name="collection 2",
+                slug="collection-2",
+            ),
+            Collection(
+                name="collection 3",
+                slug="collection-3",
+            ),
+        ]
+    )
+
+    query = """
+        query GetCollectionInFederation($representations: [_Any]) {
+            _entities(representations: $representations) {
+                __typename
+                ... on Collection {
+                    id
+                    name
+                }
+            }
+        }
+    """
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "Collection",
+                "id": graphene.Node.to_global_id("Collection", collections[0].pk),
+            },
+        ],
+    }
+
+    with django_assert_num_queries(3):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 1
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "Collection",
+                "id": graphene.Node.to_global_id("Collection", collection.pk),
+            }
+            for collection in collections
+        ],
+    }
+
+    with django_assert_num_queries(3):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 3

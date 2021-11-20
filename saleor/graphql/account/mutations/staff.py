@@ -15,6 +15,8 @@ from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
+from ....giftcard.utils import assign_user_gift_cards
+from ....order.utils import match_orders_with_new_user
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -111,6 +113,8 @@ class CustomerUpdate(CustomerCreate):
             account_events.assigned_email_to_a_customer_event(
                 staff_user=staff_user, app=app, new_email=new_email
             )
+            assign_user_gift_cards(new_instance)
+            match_orders_with_new_user(new_instance)
         if has_new_name:
             account_events.assigned_name_to_a_customer_event(
                 staff_user=staff_user, app=app, new_name=new_fullname
@@ -384,6 +388,17 @@ class StaffUpdate(StaffCreate):
         remove_groups = cleaned_data.get("remove_groups")
         if remove_groups:
             instance.groups.remove(*remove_groups)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        instance = cls.get_instance(info, **data)
+        old_email = instance.email
+        response = super().perform_mutation(_root, info, **data)
+        user = response.user
+        if user.email != old_email:
+            assign_user_gift_cards(user)
+            match_orders_with_new_user(user)
+        return response
 
 
 class StaffDelete(StaffDeleteMixin, UserDelete):

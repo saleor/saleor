@@ -1,5 +1,6 @@
 from decimal import Decimal
 from typing import Optional
+from uuid import UUID
 
 import graphene
 import prices
@@ -8,7 +9,7 @@ from graphene import String, relay
 from promise import Promise
 
 from ...account.models import Address
-from ...account.utils import requestor_is_staff_member_or_app
+from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
@@ -16,19 +17,26 @@ from ...core.permissions import (
     AppPermission,
     OrderPermissions,
     ProductPermissions,
+    has_one_of_permissions,
 )
 from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
+from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderPaymentStatus, OrderStatus, models
 from ...order.models import FulfillmentStatus
-from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
+from ...order.utils import (
+    get_order_country,
+    get_valid_collection_points_for_order,
+    get_valid_shipping_methods_for_order,
+)
 from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import get_subtotal, get_total_authorized
 from ...product import ProductMediaTypes
+from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.product_images import get_product_image_thumbnail
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -65,7 +73,6 @@ from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
-    FulfillmentLinesAwaitingApprovalByOrderLineIdLoader,
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
@@ -318,7 +325,7 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_warehouse(root: models.OrderEvent, info):
         if warehouse_pk := root.parameters.get("warehouse"):
-            return WarehouseByIdLoader(info.context).load(warehouse_pk)
+            return WarehouseByIdLoader(info.context).load(UUID(warehouse_pk))
         return None
 
     @staticmethod
@@ -473,6 +480,7 @@ class OrderLine(CountableDjangoObjectType):
             "product_name",
             "variant_name",
             "product_sku",
+            "product_variant_id",
             "quantity",
             "quantity_fulfilled",
             "tax_rate",
@@ -529,15 +537,7 @@ class OrderLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_quantity_to_fulfill(root: models.OrderLine, info):
-        def _resolve_quantity_to_fulfill(fulfillment_lines):
-            awaiting_quantity = sum(map(lambda f: f.quantity, fulfillment_lines)) or 0
-            return root.quantity - root.quantity_fulfilled - awaiting_quantity
-
-        return (
-            FulfillmentLinesAwaitingApprovalByOrderLineIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_quantity_to_fulfill)
-        )
+        return root.quantity_unfulfilled
 
     @staticmethod
     def resolve_undiscounted_unit_price(root: models.OrderLine, _info):
@@ -578,8 +578,10 @@ class OrderLine(CountableDjangoObjectType):
             variant, channel = data
 
             requester = get_user_or_app_from_context(context)
-            is_staff = requestor_is_staff_member_or_app(requester)
-            if is_staff:
+            has_required_permission = has_one_of_permissions(
+                requester, ALL_PRODUCTS_PERMISSIONS
+            )
+            if has_required_permission:
                 return ChannelContext(node=variant, channel_slug=channel.slug)
 
             def product_is_available(product_channel_listing):
@@ -625,6 +627,11 @@ class Order(CountableDjangoObjectType):
         required=False,
         description="Shipping methods that can be used with this order.",
     )
+    available_collection_points = graphene.List(
+        graphene.NonNull(Warehouse),
+        required=True,
+        description=f"{ADDED_IN_31} Collection points that can be used for this order.",
+    )
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
     )
@@ -649,6 +656,13 @@ class Order(CountableDjangoObjectType):
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
+
+    shipping_method = graphene.Field(
+        ShippingMethod,
+        description="The shipping method related with order.",
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
+    )
+
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
@@ -685,6 +699,10 @@ class Order(CountableDjangoObjectType):
     )
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
+    )
+    delivery_method = graphene.Field(
+        DeliveryMethod,
+        description=f"{ADDED_IN_31} The delivery method selected for this checkout.",
     )
     language_code = graphene.String(
         deprecation_reason=(
@@ -738,8 +756,8 @@ class Order(CountableDjangoObjectType):
             "gift_cards",
             "id",
             "shipping_address",
-            "shipping_method",
             "shipping_method_name",
+            "collection_point_name",
             "shipping_price",
             "shipping_tax_rate",
             "status",
@@ -1042,6 +1060,19 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Order, info):
+        external_app_shipping_id = get_external_shipping_id(root)
+
+        if external_app_shipping_id:
+            shipping_method = info.context.plugins.get_shipping_method(
+                checkout=root,
+                channel_slug=root.channel.slug,
+                shipping_method_id=external_app_shipping_id,
+            )
+            if shipping_method:
+                return ChannelContext(
+                    node=shipping_method, channel_slug=root.channel.slug
+                )
+
         if not root.shipping_method_id:
             return None
 
@@ -1058,40 +1089,63 @@ class Order(CountableDjangoObjectType):
             wrap_shipping_method_with_channel_context
         )
 
+    @classmethod
+    def resolve_delivery_method(cls, root: models.Order, info):
+        if root.shipping_method_id:
+            return cls.resolve_shipping_method(root, info)
+        if root.collection_point_id:
+            collection_point = WarehouseByIdLoader(info.context).load(
+                root.collection_point_id
+            )
+            return collection_point
+        return None
+
     @staticmethod
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, info):
-        available = get_valid_shipping_methods_for_order(root)
-        if available is None:
-            return []
-        available_shipping_methods = []
+        instances = []
         manager = info.context.plugins
-        display_gross = display_gross_prices()
-        channel_slug = root.channel.slug
-        for shipping_method in available:
-            # Ignore typing check because it is checked in
-            # get_valid_shipping_methods_for_order
-            shipping_channel_listing = shipping_method.channel_listings.filter(
-                channel=root.channel
-            ).first()
-            if shipping_channel_listing:
-                taxed_price = manager.apply_taxes_to_shipping(
-                    shipping_channel_listing.price,
-                    root.shipping_address,  # type: ignore
-                    channel_slug,
-                )
-                if display_gross:
-                    shipping_method.price = taxed_price.gross
-                else:
-                    shipping_method.price = taxed_price.net
-                available_shipping_methods.append(shipping_method)
-        instances = [
-            ChannelContext(node=shipping, channel_slug=channel_slug)
-            for shipping in available_shipping_methods
-        ]
+        available = get_valid_shipping_methods_for_order(root)
+        if available is not None:
+            available_shipping_methods = []
+            display_gross = display_gross_prices()
+            channel_slug = root.channel.slug
+            for shipping_method in available:
+                # Ignore typing check because it is checked in
+                # get_valid_shipping_methods_for_order
+                shipping_channel_listing = shipping_method.channel_listings.filter(
+                    channel=root.channel
+                ).first()
+                if shipping_channel_listing:
+                    taxed_price = manager.apply_taxes_to_shipping(
+                        shipping_channel_listing.price,
+                        root.shipping_address,  # type: ignore
+                        channel_slug,
+                    )
+                    if display_gross:
+                        shipping_method.price = taxed_price.gross
+                    else:
+                        shipping_method.price = taxed_price.net
+                    available_shipping_methods.append(shipping_method)
+            instances = [
+                ChannelContext(node=shipping, channel_slug=channel_slug)
+                for shipping in available_shipping_methods
+            ]
 
         return instances
+
+    @classmethod
+    @traced_resolver
+    def resolve_available_collection_points(cls, root: models.Order, info):
+        def get_available_collection_points(data):
+            lines, address = data
+
+            return get_valid_collection_points_for_order(lines, address)
+
+        lines = cls.resolve_lines(root, info)
+        address = cls.resolve_shipping_address(root, info)
+        return Promise.all([lines, address]).then(get_available_collection_points)
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):
