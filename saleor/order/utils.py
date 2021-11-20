@@ -21,7 +21,10 @@ from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod
-from ..shipping.utils import convert_to_shipping_method_data
+from ..shipping.utils import (
+    annotate_active_shipping_methods,
+    convert_to_shipping_method_data,
+)
 from ..warehouse.management import (
     deallocate_stock,
     decrease_allocations,
@@ -618,7 +621,10 @@ def sum_order_totals(qs, currency_code):
     return sum([order.total for order in qs], taxed_zero)
 
 
-def get_valid_shipping_methods_for_order(order: Order) -> List[ShippingMethodData]:
+def get_valid_shipping_methods_for_order(
+    order: Order,
+    manager: "PluginsManager",
+) -> List[ShippingMethodData]:
     if not order.is_shipping_required():
         return []
 
@@ -638,6 +644,9 @@ def get_valid_shipping_methods_for_order(order: Order) -> List[ShippingMethodDat
         valid_methods.append(
             convert_to_shipping_method_data(method, method.channel_listings.get())
         )
+
+    excluded_methods = manager.excluded_shipping_methods_for_order(order, valid_methods)
+    annotate_active_shipping_methods(valid_methods, excluded_methods)
 
     return valid_methods
 

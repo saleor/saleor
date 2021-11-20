@@ -1,8 +1,9 @@
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from django_countries import countries
 
+from ..plugins.base_plugin import ExcludedShippingMethod
 from .interface import ShippingMethodData
 
 if TYPE_CHECKING:
@@ -56,3 +57,17 @@ def convert_to_shipping_method_data(
         private_metadata=shipping_method.private_metadata,
         minimum_order_price=minimum_order_price,
     )
+
+
+def annotate_active_shipping_methods(
+    shipping_methods: List["ShippingMethodData"],
+    excluded_methods: List["ExcludedShippingMethod"],
+):
+    reason_map = {str(method.id): method.reason for method in excluded_methods}
+    for instance in shipping_methods:
+        instance.active = True
+        instance.message = ""
+        reason = reason_map.get(str(instance.id))
+        if reason is not None:
+            instance.active = False
+            instance.message = reason

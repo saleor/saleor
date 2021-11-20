@@ -1103,8 +1103,20 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
+    def resolve_shipping_methods(root: models.Order, info):
+        return get_valid_shipping_methods_for_order(root, info.context.plugins)
+
+    @staticmethod
+    @traced_resolver
+    # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, info):
-        return get_valid_shipping_methods_for_order(root)
+        return [
+            method
+            for method in get_valid_shipping_methods_for_order(
+                root, info.context.plugins
+            )
+            if method.active
+        ]
 
     @classmethod
     @traced_resolver

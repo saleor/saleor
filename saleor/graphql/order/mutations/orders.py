@@ -29,6 +29,7 @@ from ....order.utils import (
     update_order_prices,
 )
 from ....payment import PaymentError, TransactionKind, gateway
+from ....plugins.manager import PluginsManager
 from ....shipping import models as shipping_models
 from ....shipping.interface import ShippingMethodData
 from ....shipping.utils import convert_to_shipping_method_data
@@ -53,7 +54,9 @@ from ..utils import (
 ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
-def clean_order_update_shipping(order, method: ShippingMethodData):
+def clean_order_update_shipping(
+    order, method: ShippingMethodData, manager: "PluginsManager"
+):
     if not order.shipping_address:
         raise ValidationError(
             {
@@ -66,9 +69,9 @@ def clean_order_update_shipping(order, method: ShippingMethodData):
         )
 
     valid_methods_ids = {
-        method.id for method in get_valid_shipping_methods_for_order(order)
+        method.id for method in get_valid_shipping_methods_for_order(order, manager)
     }
-    if valid_methods_ids is None or method.id not in valid_methods_ids:
+    if method.id not in valid_methods_ids:
         raise ValidationError(
             {
                 "shipping_method": ValidationError(
@@ -365,7 +368,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 channel=order.channel,
             ).get(),
         )
-        clean_order_update_shipping(order, shipping_method_data)
+        clean_order_update_shipping(order, shipping_method_data, info.context.plugins)
 
         order.shipping_method = method
         shipping_price = info.context.plugins.calculate_order_shipping(order)

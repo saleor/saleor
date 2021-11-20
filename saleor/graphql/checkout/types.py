@@ -347,7 +347,7 @@ class Checkout(CountableDjangoObjectType):
     @classmethod
     @traced_resolver
     def resolve_shipping_methods(cls, root: models.Checkout, info):
-        return cls.resolve_available_shipping_methods(root, info)
+        return cls.resolve_available_shipping_methods(root, info, only_active=False)
 
     @staticmethod
     def resolve_delivery_method(root: models.Checkout, info):
@@ -461,7 +461,9 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_available_shipping_methods(root: models.Checkout, info):
+    def resolve_available_shipping_methods(
+        root: models.Checkout, info, only_active=True
+    ):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
@@ -471,6 +473,12 @@ class Checkout(CountableDjangoObjectType):
 
         def calculate_available_shipping_methods(data):
             lines, checkout_info, discounts, channel = data
+            if only_active:
+                return [
+                    method
+                    for method in checkout_info.valid_shipping_methods
+                    if method.active
+                ]
             return checkout_info.valid_shipping_methods
 
         return Promise.all([lines, checkout_info, discounts, channel]).then(

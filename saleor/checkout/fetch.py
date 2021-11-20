@@ -7,7 +7,10 @@ from django.utils.encoding import smart_text
 
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethodChannelListing
-from ..shipping.utils import convert_to_shipping_method_data
+from ..shipping.utils import (
+    annotate_active_shipping_methods,
+    convert_to_shipping_method_data,
+)
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
 
@@ -380,7 +383,7 @@ def get_valid_shipping_method_list_for_checkout_info(
     manager: "PluginsManager",
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
 ) -> List["ShippingMethodData"]:
-    return list(
+    all_valid_methods = list(
         itertools.chain(
             get_valid_saleor_shipping_method_list_for_checkout_info(
                 checkout_info,
@@ -395,6 +398,11 @@ def get_valid_shipping_method_list_for_checkout_info(
             ),
         )
     )
+    excluded_methods = manager.excluded_shipping_methods_for_checkout(
+        checkout_info.checkout, all_valid_methods
+    )
+    annotate_active_shipping_methods(all_valid_methods, excluded_methods)
+    return all_valid_methods
 
 
 def get_valid_collection_points_for_checkout_info(
