@@ -9,7 +9,12 @@ from .....plugins.manager import get_plugins_manager
 
 
 @pytest.fixture
-def customer_checkout(customer_user, checkout_with_voucher_percentage_and_shipping):
+def customer_checkout(
+    customer_user,
+    checkout_with_voucher_percentage_and_shipping,
+    shipping_methods_for_channel_factory,
+):
+    shipping_methods_for_channel_factory(5)
     checkout_with_voucher_percentage_and_shipping.user = customer_user
     checkout_with_voucher_percentage_and_shipping.save()
     return checkout_with_voucher_percentage_and_shipping

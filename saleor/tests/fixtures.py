@@ -820,6 +820,34 @@ def shipping_method(shipping_zone, channel_USD):
 
 
 @pytest.fixture
+def shipping_methods_for_channel_factory(shipping_zone, channel_USD):
+    def factory(num_methods=3):
+        methods = []
+        listings = []
+        for i in range(num_methods):
+            method = ShippingMethod(
+                name=f"DHL - {i}",
+                type=ShippingMethodType.PRICE_BASED,
+                shipping_zone=shipping_zone,
+                maximum_delivery_days=10,
+                minimum_delivery_days=5,
+            )
+            ShippingMethodChannelListing(
+                shipping_method=method,
+                channel=channel_USD,
+                minimum_order_price=Money(0, "USD"),
+                price=Money(10, "USD"),
+            )
+
+        ShippingMethodChannelListing.objects.bulk_create(methods)
+        ShippingMethodChannelListing.objects.bulk_create(listings)
+
+        return methods
+
+    return factory
+
+
+@pytest.fixture
 def shipping_method_weight_based(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
         name="weight based method",
