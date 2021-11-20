@@ -1436,10 +1436,19 @@ GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS = """
 query getCheckout($token: UUID!) {
     checkout(token: $token) {
         availableShippingMethods {
+            id
             name
+            description
             price {
                 amount
             }
+            minimumOrderPrice {
+                amount
+            }
+            message
+            active
+            minimumDeliveryDays
+            maximumDeliveryDays
         }
     }
 }
@@ -1460,6 +1469,16 @@ def test_checkout_available_shipping_methods(
 
     shipping_method = shipping_zone.shipping_methods.first()
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
+    assert data["availableShippingMethods"][0]["active"]
+    assert data["availableShippingMethods"][0]["message"] == ""
+    assert (
+        data["availableShippingMethods"][0]["minimumDeliveryDays"]
+        == shipping_method.minimum_delivery_days
+    )
+    assert (
+        data["availableShippingMethods"][0]["maximumDeliveryDays"]
+        == shipping_method.maximum_delivery_days
+    )
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
@@ -1565,7 +1584,12 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     address,
     shipping_zone,
 ):
-    expected_price = Money(10, "USD")
+    listing = shipping_zone.shipping_methods.first().channel_listings.first()
+    expected_shipping_price = Money(10, "USD")
+    expected_min_order_price = Money(10, "USD")
+    listing.price = expected_shipping_price
+    listing.minimum_order_price = expected_min_order_price
+    listing.save()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
 
@@ -1576,9 +1600,16 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    assert data["availableShippingMethods"] == [
-        {"name": "DHL", "price": {"amount": expected_price.amount}}
-    ]
+    assert len(data["availableShippingMethods"]) == 1
+    assert data["availableShippingMethods"][0]["name"] == "DHL"
+    assert (
+        data["availableShippingMethods"][0]["price"]["amount"]
+        == expected_shipping_price.amount
+    )
+    assert (
+        data["availableShippingMethods"][0]["minimumOrderPrice"]["amount"]
+        == expected_min_order_price.amount
+    )
 
 
 def test_checkout_no_available_shipping_methods_without_address(
