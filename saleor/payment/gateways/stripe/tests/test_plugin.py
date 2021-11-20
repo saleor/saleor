@@ -17,7 +17,6 @@ from ....utils import (
 from ..consts import (
     ACTION_REQUIRED_STATUSES,
     AUTHORIZED_STATUS,
-    AUTOMATIC_CAPTURE_METHOD,
     MANUAL_CAPTURE_METHOD,
     PROCESSING_STATUS,
     STRIPE_API_VERSION,
@@ -344,7 +343,7 @@ def test_process_payment_with_customer_and_future_usage(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         customer=customer,
         setup_future_usage=store_payment_method.lower(),
         metadata={
@@ -371,6 +370,7 @@ def test_process_payment_with_customer_and_future_usage_no_store(
     payment_stripe_for_checkout,
     channel_USD,
     customer_user,
+    stripe_client_secret,
 ):
     customer = Mock()
     mocked_customer_create.return_value = customer
@@ -403,7 +403,7 @@ def test_process_payment_with_customer_and_future_usage_no_store(
 
     assert response.is_success is True
     assert response.action_required is False
-    assert response.kind == TransactionKind.AUTH
+    assert response.kind == TransactionKind.CAPTURE
     assert response.amount == payment_info.amount
     assert response.currency == payment_info.currency
     assert response.transaction_id == payment_intent.id
@@ -787,7 +787,7 @@ def test_process_payment_with_customer_and_payment_method_raises_error(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         customer=customer,
         payment_method="pm_ID",
         confirm=True,

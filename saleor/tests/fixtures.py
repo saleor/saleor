@@ -4019,14 +4019,6 @@ def draft_order_with_preorder_lines(order_with_preorder_lines):
 
 
 @pytest.fixture
-def payment_txn_preauth(order_with_lines, payment_dummy):
-    order = order_with_lines
-    payment = payment_dummy
-    payment.order = order
-    payment.save()
-
-
-@pytest.fixture
 def payment_txn_preauth(payment_txn_preauth_factory):
     return payment_txn_preauth_factory()
 

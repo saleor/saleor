@@ -203,7 +203,7 @@ def test_fulfillment_refund_products_amount_costs_for_order_with_gift_card_lines
     data = content["data"]["orderFulfillmentRefundProducts"]
     errors = data["errors"]
     assert len(errors) == 1
-    assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
+    assert errors[0]["code"] == OrderErrorCode.GIFT_CARD_LINE.name
     assert errors[0]["field"] == "amountToRefund"
 
 

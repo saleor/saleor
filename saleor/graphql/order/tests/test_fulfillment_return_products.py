@@ -157,7 +157,7 @@ def test_fulfillment_return_products_amount_order_with_gift_card(
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "amountToRefund"
-    assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
+    assert errors[0]["code"] == OrderErrorCode.GIFT_CARD_LINE.name
     assert fulfillment is None
 
 
@@ -360,7 +360,7 @@ def test_fulfillment_return_products_gift_card_order_line(
     fulfillment = data["returnFulfillment"]
     errors = data["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "orderLineId"
+    assert errors[0]["field"] == "amountToRefund"
     assert errors[0]["code"] == OrderErrorCode.GIFT_CARD_LINE.name
     assert fulfillment is None
 
@@ -655,7 +655,7 @@ def test_fulfillment_return_products_gift_card_fulfillment_line(
     fulfillment = data["returnFulfillment"]
     errors = data["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "fulfillmentLineId"
+    assert errors[0]["field"] == "amountToRefund"
     assert errors[0]["code"] == OrderErrorCode.GIFT_CARD_LINE.name
     assert fulfillment is None
 

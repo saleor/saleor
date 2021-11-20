@@ -1256,7 +1256,10 @@ def test_order_confirm_without_sku(
     order_unconfirmed,
     permission_manage_orders,
     payment_txn_preauth,
+    gateway_response,
 ):
+    gateway_response.amount = payment_txn_preauth.total
+    capture_mock.return_value = gateway_response
     order_unconfirmed.lines.update(product_sku=None)
     ProductVariant.objects.update(sku=None)
 
@@ -1284,11 +1287,14 @@ def test_order_confirm_without_sku(
         order=order_unconfirmed,
         user=staff_api_client.user,
         type=order_events.OrderEvents.PAYMENT_CAPTURED,
-        parameters__amount=payment_txn_preauth.get_total().amount,
+        parameters__amount=payment_txn_preauth.total,
     ).exists()
 
     capture_mock.assert_called_once_with(
-        payment_txn_preauth, ANY, channel_slug=order_unconfirmed.channel.slug
+        payment_txn_preauth,
+        ANY,
+        channel_slug=order_unconfirmed.channel.slug,
+        amount=payment_txn_preauth.total,
     )
     expected_payload = {
         "order": get_default_order_payload(order_unconfirmed, ""),

@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 from .... import TransactionKind
 from ....utils import create_payment_information, price_to_minor_unit
-from ..consts import AUTOMATIC_CAPTURE_METHOD, STRIPE_API_VERSION, SUCCESS_STATUS
+from ..consts import MANUAL_CAPTURE_METHOD, STRIPE_API_VERSION, SUCCESS_STATUS
 
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.Customer.create")
@@ -62,7 +62,7 @@ def test_process_payment_with_customer_and_future_usage(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
-        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        capture_method=MANUAL_CAPTURE_METHOD,
         customer=customer,
         setup_future_usage="off_session",
         metadata={

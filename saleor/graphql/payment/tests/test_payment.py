@@ -1701,6 +1701,8 @@ def test_resolve_available_capture_amount_cannot_capture(
 def test_resolve_available_capture_amount(
     staff_api_client, payment_dummy, permission_manage_orders
 ):
+    payment_dummy.charge_status = ChargeStatus.AUTHORIZED
+    payment_dummy.save()
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(
         QUERY_PAYMENT_CAPTURE_AMOUNT,
