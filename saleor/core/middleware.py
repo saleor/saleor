@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Callable, Union
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import MiddlewareNotUsed
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language
@@ -21,6 +22,7 @@ if TYPE_CHECKING:
     from ..app.models import App
 
 Requestor = Union["User", "App"]
+API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +67,18 @@ def discounts(get_response):
         return get_response(request)
 
     return _discounts_middleware
+
+
+def api_reporter(get_response):
+    """Report API call."""
+
+    def _report(request):
+        response = get_response(request)
+        if request.method == "POST" and request.path == API_PATH:
+            get_plugins_manager().report_api_call(request, response)
+        return response
+
+    return _report
 
 
 def site(get_response):

@@ -186,6 +186,7 @@ MIDDLEWARE = [
     "saleor.core.middleware.site",
     "saleor.core.middleware.plugins",
     "saleor.core.middleware.jwt_refresh_token_middleware",
+    "saleor.core.middleware.api_reporter",
 ]
 
 INSTALLED_APPS = [
