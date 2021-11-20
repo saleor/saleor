@@ -236,6 +236,7 @@ def test_add_shipping_to_checkout(
     api_client,
     checkout_with_shipping_address,
     shipping_method,
+    mock_webhook_plugin_with_shipping_app,
     count_queries,
 ):
     query = (
@@ -717,7 +718,11 @@ def test_complete_checkout_with_single_line(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_customer_complete_checkout(
-    api_client, checkout_with_charged_payment, count_queries, customer_user
+    api_client,
+    checkout_with_charged_payment,
+    mock_webhook_plugin_with_shipping_app,
+    count_queries,
+    customer_user,
 ):
     query = COMPLETE_CHECKOUT_MUTATION
     checkout = checkout_with_charged_payment

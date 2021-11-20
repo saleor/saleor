@@ -1,20 +1,57 @@
+from unittest.mock import MagicMock
+
 import pytest
 
+from .....app.models import App
 from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from .....payment import ChargeStatus, TransactionKind
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
+from .....webhook.event_types import WebhookEventType
+from .....webhook.models import Webhook
+
+
+@pytest.fixture
+def mock_webhook_plugin_with_shipping_app(
+    settings,
+    permission_manage_checkouts,
+    monkeypatch,
+    shipping_methods_for_channel_factory,
+):
+    # Create additional shipping methods available in the channel
+    shipping_methods_for_channel_factory(5)
+
+    # Mock http requests as we are focusing on testing database access
+    response = MagicMock()
+    response.json.return_value = {"excluded_methods": []}
+    monkeypatch.setattr("requests.post", lambda *args, **kwargs: response)
+
+    # Enable webhook plugin
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    # Create multiple apps with a shipping webhook
+    for i in range(3):
+        app = App.objects.create(name=f"Benchmark App {i}", is_active=True)
+        app.tokens.create(name="Default")
+        app.permissions.add(permission_manage_checkouts)
+        webhook = Webhook.objects.create(
+            name="shipping-webhook-1",
+            app=app,
+            target_url="https://shipping-gateway.com/api/",
+        )
+        webhook.events.create(
+            event_type=WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
+            webhook=webhook,
+        )
 
 
 @pytest.fixture
 def customer_checkout(
     customer_user,
     checkout_with_voucher_percentage_and_shipping,
-    shipping_methods_for_channel_factory,
 ):
-    shipping_methods_for_channel_factory(5)
     checkout_with_voucher_percentage_and_shipping.user = customer_user
     checkout_with_voucher_percentage_and_shipping.save()
     return checkout_with_voucher_percentage_and_shipping
