@@ -1073,6 +1073,7 @@ PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
             node {
                 id
                 gateway
+                gatewayName
                 capturedAmount {
                     amount
                     currency
@@ -1108,6 +1109,7 @@ def test_payments_query(
     data = content["data"]["payments"]["edges"][0]["node"]
     pay = payment_txn_captured
     assert data["gateway"] == pay.gateway
+    assert data["gatewayName"] == "Dummy"
     amount = str(data["capturedAmount"]["amount"])
     assert Decimal(amount) == pay.captured_amount
     assert data["capturedAmount"]["currency"] == pay.currency

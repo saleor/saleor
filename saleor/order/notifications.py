@@ -4,8 +4,6 @@ from urllib.parse import urlencode
 from django.forms import model_to_dict
 from graphql_relay import to_global_id
 
-import saleor.order.interface
-
 from ..account.models import StaffNotificationRecipient
 from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
@@ -14,7 +12,9 @@ from ..discount import OrderDiscountType
 from ..product import ProductMediaTypes
 from ..product.models import DigitalContentUrl, Product, ProductMedia, ProductVariant
 from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
+from .interface import OrderPaymentAction
 from .models import FulfillmentLine, Order, OrderLine
+from .utils import get_active_payments
 
 if TYPE_CHECKING:
     from ..account.models import User  # noqa: F401
@@ -327,22 +327,38 @@ def send_fulfillment_update(order, fulfillment, manager):
     )
 
 
+def _prepare_payment_data(payment):
+    data = {
+        "created": payment.created,
+        "modified": payment.modified,
+        "charge_status": payment.charge_status,
+        "total": payment.total,
+        "captured_amount": payment.captured_amount,
+        "currency": payment.currency,
+    }
+
+    return data
+
+
 def send_payment_confirmation(order, manager):
     """Send notification with the payment confirmation."""
-    payment = order.get_last_payment()
+
     payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
-        "payment": {
-            "created": payment.created,
-            "modified": payment.modified,
-            "charge_status": payment.charge_status,
-            "total": payment.total,
-            "captured_amount": payment.captured_amount,
-            "currency": payment.currency,
-        },
         **get_site_context(),
     }
+
+    payments = get_active_payments(order)
+    payments_data = []
+    for payment in payments:
+        data = _prepare_payment_data(payment)
+        payments_data.append(data)
+    payload["payments"] = payments_data
+
+    if len(payments_data) == 1:
+        payload["payment"] = payments_data[0]
+
     manager.notify(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
         payload,
@@ -368,7 +384,7 @@ def send_order_refunded_confirmation(
     order: "Order",
     user: Optional["User"],
     app: Optional["App"],
-    payments: List[saleor.order.interface.OrderPaymentAction],
+    payments: List["OrderPaymentAction"],
     currency: str,
     manager,
 ):

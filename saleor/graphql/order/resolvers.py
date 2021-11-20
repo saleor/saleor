@@ -64,7 +64,7 @@ def resolve_order_by_token(token):
 
 
 def resolve_order_payment_status(order: models.Order, payments: List[models.Payment]):
-    def _map(payments, status_list):
+    def _map_payment_has_status(payments, status_list):
         return map(lambda p: p.charge_status in status_list, payments)
 
     if order.total_paid_amount > order.total_gross_amount:
@@ -74,17 +74,17 @@ def resolve_order_payment_status(order: models.Order, payments: List[models.Paym
         return OrderPaymentStatus.FULLY_CHARGED
 
     if any(
-        _map(
+        _map_payment_has_status(
             payments,
             [ChargeStatus.FULLY_REFUNDED, ChargeStatus.PARTIALLY_REFUNDED],
         )
     ):
-        if all(_map(payments, [ChargeStatus.FULLY_REFUNDED])):
+        if all(_map_payment_has_status(payments, [ChargeStatus.FULLY_REFUNDED])):
             return OrderPaymentStatus.FULLY_REFUNDED
         return OrderPaymentStatus.PARTIALLY_REFUNDED
 
     if any(
-        _map(
+        _map_payment_has_status(
             payments,
             [ChargeStatus.FULLY_CHARGED, ChargeStatus.PARTIALLY_CHARGED],
         )

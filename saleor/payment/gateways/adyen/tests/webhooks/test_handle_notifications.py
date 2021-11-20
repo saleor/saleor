@@ -8,7 +8,6 @@ import pytest
 from ......checkout import calculations
 from ......checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
-from ......order.interface import OrderPaymentAction
 from ......plugins.manager import get_plugins_manager
 from ..... import ChargeStatus, TransactionKind
 from .....utils import price_to_minor_unit
@@ -668,10 +667,7 @@ def test_handle_pending_already_pending(
     assert payment.transactions.filter(kind=TransactionKind.PENDING).exists()
 
 
-@mock.patch("saleor.payment.gateways.adyen.webhooks.order_refunded")
-def test_handle_refund(
-    mock_order_refunded, notification, adyen_plugin, payment_adyen_for_order
-):
+def test_handle_refund(notification, adyen_plugin, payment_adyen_for_order):
     payment = payment_adyen_for_order
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = payment.total
@@ -692,11 +688,9 @@ def test_handle_refund(
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
     assert payment.captured_amount == Decimal("0.00")
 
-    payments = [OrderPaymentAction(payment, transaction.amount)]
+    payment_events = payment.order.events.filter(type=OrderEvents.PAYMENT_REFUNDED)
+    assert payment_events.count() == 1
 
-    mock_order_refunded.assert_called_once_with(
-        payment.order, None, None, payments, mock.ANY, send_notification=False
-    )
     external_events = payment.order.events.filter(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
@@ -727,9 +721,8 @@ def test_handle_refund_invalid_payment_id(
     assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text
 
 
-@mock.patch("saleor.payment.gateways.adyen.webhooks.order_refunded")
 def test_handle_refund_already_refunded(
-    mock_order_refunded, notification, adyen_plugin, payment_adyen_for_order
+    notification, adyen_plugin, payment_adyen_for_order
 ):
     payment = payment_adyen_for_order
     payment.charge_status = ChargeStatus.FULLY_REFUNDED
@@ -746,7 +739,9 @@ def test_handle_refund_already_refunded(
     handle_refund(notification, config)
 
     assert payment.transactions.count() == 2  # AUTH, REFUND
-    assert not mock_order_refunded.called
+
+    payment_events = payment.order.events.filter(type=OrderEvents.PAYMENT_REFUNDED)
+    assert payment_events.count() == 0
 
 
 def test_handle_failed_refund_missing_transaction(

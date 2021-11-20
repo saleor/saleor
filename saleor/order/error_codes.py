@@ -35,5 +35,4 @@ class OrderErrorCode(Enum):
     PAYMENTS_DO_NOT_BELONG_TO_ORDER = "payments_do_not_belong_to_order"
     ORDER_HAS_MULTIPLE_PAYMENTS = "order_has_multiple_payments"
     TOO_MANY_OR_NONE_FIELDS_SPECIFIED = "too_many_or_none_fields_specified"
-    AMOUNT_TO_REFUND_TOO_BIG = "amount_to_refund_too_big"
-    AMOUNT_TO_CAPTURE_TOO_BIG = "amount_to_capture_too_big"
+    AMOUNT_TOO_HIGH = "amount_too_high"

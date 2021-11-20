@@ -1,19 +1,21 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
-from ....order import OrderLineData, OrderStatus, events, models
+from ....core.transactions import transaction_with_commit_on_errors
+from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     capture_payments,
-    make_refund,
     mark_order_as_paid,
     order_confirmed,
     order_shipping_updated,
+    refund_payments,
     void_payments,
 )
 from ....order.error_codes import OrderErrorCode
@@ -94,7 +96,7 @@ def clean_payments(payments):
     if not payments:
         raise ValidationError(
             {
-                "payment": ValidationError(
+                "payments": ValidationError(
                     "There are no active payments associated with the order.",
                     code=OrderErrorCode.PAYMENT_MISSING,
                 )
@@ -120,7 +122,7 @@ def clean_order_capture(order, payments, amount):
             {
                 "amount": ValidationError(
                     "Amount should less than the outstanding balance.",
-                    code=OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG,
+                    code=OrderErrorCode.AMOUNT_TOO_HIGH,
                 )
             }
         )
@@ -130,7 +132,7 @@ def clean_order_capture(order, payments, amount):
             {
                 "amount": ValidationError(
                     "Amount should less than or equal the authorized amount.",
-                    code=OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG,
+                    code=OrderErrorCode.AMOUNT_TOO_HIGH,
                 )
             }
         )
@@ -141,22 +143,34 @@ def clean_void_payments(payments):
     clean_payments(payments)
     if not all([p.is_authorized for p in payments]):
         raise ValidationError(
-            "The order has active payments with status other than authorized.",
-            code=OrderErrorCode.PAYMENT_ERROR.value,
-        )
-
-
-def clean_refund_payment(payment):
-    clean_payments(payment)
-    if not payment.can_refund():
-        raise ValidationError(
             {
-                "payment": ValidationError(
-                    "Payment cannot be refunded.",
-                    code=OrderErrorCode.CANNOT_REFUND,
+                "payments": ValidationError(
+                    "The order has active payments with status other than authorized.",
+                    code=OrderErrorCode.PAYMENT_ERROR.value,
                 )
             }
         )
+
+
+def clean_refund_payments(payments):
+    clean_payments(payments)
+    for payment in payments:
+        if not payment.can_refund():
+            raise ValidationError(
+                {
+                    "payment": ValidationError(
+                        "Payment cannot be refunded.",
+                        code=OrderErrorCode.CANNOT_REFUND,
+                    )
+                }
+            )
+
+
+def get_webhook_handler_by_order_status(status, info):
+    if status == OrderStatus.DRAFT:
+        return info.context.plugins.draft_order_updated
+    else:
+        return info.context.plugins.order_updated
 
 
 class OrderUpdateInput(graphene.InputObjectType):
@@ -478,7 +492,7 @@ class OrderMarkAsPaid(BaseMutation):
 
         message = "Orders with payments can not be manually marked as paid."
         events.payment_capture_failed_event(
-            order=order, user=user, app=app, message=message, payment=None
+            order=order, user=user, app=app, message=message, payment=None, amount=None
         )
         raise ValidationError(
             {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
@@ -579,7 +593,7 @@ class OrderVoid(BaseMutation):
 
 
 class OrderPaymentToRefundInput(graphene.InputObjectType):
-    payment_id = graphene.ID(required=True, description="The graphene ID of a payment.")
+    payment_id = graphene.ID(required=True, description="The GraphQL ID of a payment.")
     amount = PositiveDecimal(required=True, description="Amount of the refund.")
 
 
@@ -592,11 +606,11 @@ class OrderRefund(BaseMutation):
             required=False,
             description=(
                 f"Amount of money to refund. "
-                f"{DEPRECATED_IN_3X_INPUT} Use payments_to_refund instead."
+                f"{DEPRECATED_IN_3X_INPUT} Use `paymentsToRefund` instead."
             ),
         )
         payments_to_refund = graphene.List(
-            OrderPaymentToRefundInput,
+            graphene.NonNull(OrderPaymentToRefundInput),
             required=False,
             description=f"{ADDED_IN_31} Payments that need to be refunded.",
         )
@@ -633,41 +647,39 @@ class OrderRefund(BaseMutation):
             )
 
     @classmethod
-    def _check_amount_to_refund(cls, payments, amount=None):
-        if amount:
-            total_captured_amount = sum(
-                [item.payment.captured_amount for item in payments]
-            )
-            if amount > total_captured_amount:
-                raise ValidationError(
-                    {
-                        "amount": ValidationError(
-                            "The total amount to refund cannot be bigger "
-                            "than the total captured amount.",
-                            code=OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG,
-                        )
-                    }
-                )
-
-        else:
-            improper_payments_ids = []
-            for item in payments:
-                if item.payment.captured_amount < item.amount:
-                    improper_payments_ids.append(
-                        graphene.Node.to_global_id("Payment", item.payment.id)
+    def _check_total_amount_to_refund(cls, payments, amount=None):
+        total_captured_amount = sum([item.payment.captured_amount for item in payments])
+        if amount > total_captured_amount:
+            raise ValidationError(
+                {
+                    "amount": ValidationError(
+                        "The total amount to refund cannot be bigger "
+                        "than the total captured amount.",
+                        code=OrderErrorCode.AMOUNT_TOO_HIGH,
                     )
+                }
+            )
 
-            if improper_payments_ids:
-                raise ValidationError(
-                    {
-                        "amount": ValidationError(
-                            "The amount to refund cannot be bigger "
-                            "than the captured amount.",
-                            code=OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG,
-                            params={"payments": improper_payments_ids},
-                        )
-                    }
+    @classmethod
+    def _check_amount_to_refund_per_payment(cls, payments):
+        improper_payments_ids = []
+        for item in payments:
+            if item.payment.captured_amount < item.amount:
+                improper_payments_ids.append(
+                    graphene.Node.to_global_id("Payment", item.payment.id)
                 )
+
+        if improper_payments_ids:
+            raise ValidationError(
+                {
+                    "amount": ValidationError(
+                        "The amount to refund cannot be bigger "
+                        "than the captured amount.",
+                        code=OrderErrorCode.AMOUNT_TOO_HIGH,
+                        params={"payments": improper_payments_ids},
+                    )
+                }
+            )
 
     @classmethod
     def _prepare_payments(cls, info, order, amount, payments_to_refund):
@@ -680,7 +692,7 @@ class OrderRefund(BaseMutation):
                 for item in payments_to_refund
             ]
 
-            cls._check_amount_to_refund(payments)
+            cls._check_amount_to_refund_per_payment(payments)
 
         else:
             active_payments = order.payments.filter(is_active=True)
@@ -691,11 +703,12 @@ class OrderRefund(BaseMutation):
                 )
                 for payment in active_payments
             ]
-            cls._check_amount_to_refund(payments, amount)
+            cls._check_total_amount_to_refund(payments, amount)
 
         return payments
 
     @classmethod
+    @transaction_with_commit_on_errors()
     def perform_mutation(
         cls, _root, info, amount=None, payments_to_refund=None, **data
     ):
@@ -703,16 +716,23 @@ class OrderRefund(BaseMutation):
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         payments = cls._prepare_payments(info, order, amount, payments_to_refund)
+        clean_refund_payments([item.payment for item in payments])
 
-        if payments:
-            for item in payments:
-                payment = item.payment
-                clean_refund_payment(payment)
-        else:
-            # The check still has to be performed.
-            clean_refund_payment(None)
+        manager = info.context.plugins
+        refunded_payments, _ = refund_payments(
+            order,
+            payments,
+            info.context.user,
+            info.context.app,
+            manager,
+        )
 
-        make_refund(order, payments, info)
+        total_amount = sum([item.amount for item in refunded_payments])
+        if total_amount:
+            order.fulfillments.create(
+                status=FulfillmentStatus.REFUNDED, total_refund_amount=total_amount
+            )
+            transaction.on_commit(lambda: manager.order_updated(order))
 
         return OrderRefund(order=order)
 

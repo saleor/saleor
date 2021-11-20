@@ -43,7 +43,7 @@ from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
-    clean_refund_payment,
+    clean_refund_payments,
 )
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import (
@@ -4642,6 +4642,16 @@ def test_order_capture(
             "captured_amount": payment.captured_amount,
             "currency": payment.currency,
         },
+        "payments": [
+            {
+                "created": payment.created,
+                "modified": payment.modified,
+                "charge_status": payment.charge_status,
+                "total": payment.total,
+                "captured_amount": payment.captured_amount,
+                "currency": payment.currency,
+            }
+        ],
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
@@ -4672,7 +4682,7 @@ def test_order_capture_more_than_outstanding(
     content = get_graphql_content(response)
     # then
     errors = content["data"]["orderCapture"]["errors"]
-    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG.name
+    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TOO_HIGH.name
     assert "outstanding balance" in errors[0]["message"]
 
 
@@ -4696,7 +4706,7 @@ def test_order_capture_more_than_authorized(
     content = get_graphql_content(response)
     # then
     errors = content["data"]["orderCapture"]["errors"]
-    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TO_CAPTURE_TOO_BIG.name
+    assert errors[0]["code"] == OrderErrorCode.AMOUNT_TOO_HIGH.name
     assert "authorized amount" in errors[0]["message"]
     mocked_auth_amount.assert_called_once_with(
         [payment_txn_preauth],
@@ -4932,25 +4942,33 @@ def test_order_void_payment_error(
     mock_void_payment.assert_called_once()
 
 
-def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
-    order = payment_txn_captured.order
-    query = """
-        mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
-            orderRefund(id: $id, amount: $amount) {
-                order {
-                    paymentStatus
-                    paymentStatusDisplay
-                    isPaid
-                    status
-                }
+ORDER_REFUND = """
+    mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
+        orderRefund(id: $id, amount: $amount) {
+            order {
+                paymentStatus
+                paymentStatusDisplay
+                isPaid
+                status
+            }
+            errors {
+                field
+                code
+                message
+                payments
             }
         }
-    """
+    }
+"""
+
+
+def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
+    order = payment_txn_captured.order
     order_id = graphene.Node.to_global_id("Order", order.id)
     amount = payment_txn_captured.total
     variables = {"id": order_id, "amount": amount}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        ORDER_REFUND, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["orderRefund"]["order"]
@@ -4976,6 +4994,36 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
     assert refunded_fulfillment.shipping_refund_amount is None
 
 
+@patch("saleor.order.actions.gateway.refund")
+def test_order_refund_for_failed_refund(
+    mocked_refund,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_captured,
+):
+    message = "Error"
+    mocked_refund.side_effect = PaymentError(message)
+    order = payment_txn_captured.order
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = payment_txn_captured.total
+    variables = {"id": order_id, "amount": amount}
+    response = staff_api_client.post_graphql(
+        ORDER_REFUND, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]
+
+    assert data["order"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "payments"
+    assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_REFUND.name
+
+    refunded_fulfillment = order.fulfillments.filter(
+        status=FulfillmentStatus.REFUNDED
+    ).first()
+    assert not refunded_fulfillment
+
+
 def test_order_refund_with_payments_to_refund(
     staff_api_client, permission_manage_orders, payment_txn_captured
 ):
@@ -4983,7 +5031,7 @@ def test_order_refund_with_payments_to_refund(
     query = """
         mutation refundOrder(
             $id: ID!,
-            $paymentsToRefund: [OrderPaymentToRefundInput]
+            $paymentsToRefund: [OrderPaymentToRefundInput!]
         ) {
             orderRefund(id: $id, paymentsToRefund: $paymentsToRefund) {
                 order {
@@ -5044,7 +5092,7 @@ def test_order_refund_fails_if_both_amount_and_payments_to_refund_specified(
         mutation refundOrder(
             $id: ID!,
             $amount: PositiveDecimal!,
-            $paymentsToRefund: [OrderPaymentToRefundInput]
+            $paymentsToRefund: [OrderPaymentToRefundInput!]
         ) {
             orderRefund(id: $id, amount: $amount, paymentsToRefund: $paymentsToRefund) {
                 order {
@@ -5180,7 +5228,7 @@ def test_order_refund_raises_error_when_total_amount_is_bigger_than_captured_amo
     message = (
         "The total amount to refund cannot be bigger than the total captured amount."
     )
-    code = OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG.name
+    code = OrderErrorCode.AMOUNT_TOO_HIGH.name
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
@@ -5203,7 +5251,7 @@ def test_order_refund_raises_error_when_amount_is_bigger_than_captured_amount(
     query = """
         mutation refundOrder(
             $id: ID!,
-            $paymentsToRefund: [OrderPaymentToRefundInput],
+            $paymentsToRefund: [OrderPaymentToRefundInput!],
         ) {
             orderRefund(
                 id: $id,
@@ -5239,7 +5287,7 @@ def test_order_refund_raises_error_when_amount_is_bigger_than_captured_amount(
 
     # when
     message = "The amount to refund cannot be bigger than the captured amount."
-    code = OrderErrorCode.AMOUNT_TO_REFUND_TOO_BIG.name
+    code = OrderErrorCode.AMOUNT_TOO_HIGH.name
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
@@ -5263,7 +5311,7 @@ def test_order_refund_does_not_refund_more_than_was_captured(
     query = """
         mutation refundOrder(
             $id: ID!,
-            $paymentsToRefund: [OrderPaymentToRefundInput],
+            $paymentsToRefund: [OrderPaymentToRefundInput!],
 
         ) {
             orderRefund(
@@ -5383,7 +5431,7 @@ def test_clean_payment_without_payment_associated_to_order(
     message = "There are no active payments associated with the order."
 
     assert errors, "expected an error"
-    assert errors == [{"field": "payment", "message": message}]
+    assert errors == [{"field": "payments", "message": message}]
     assert not OrderEvent.objects.exists()
 
 
@@ -5391,7 +5439,7 @@ def test_clean_order_refund_payment():
     payment = MagicMock(spec=Payment)
     payment.can_refund.return_value = False
     with pytest.raises(ValidationError) as e:
-        clean_refund_payment(payment)
+        clean_refund_payments([payment])
     assert e.value.error_dict["payment"][0].code == OrderErrorCode.CANNOT_REFUND
 
 
@@ -5399,7 +5447,7 @@ def test_clean_order_capture():
     with pytest.raises(ValidationError) as e:
         clean_order_capture(None, None, Decimal("10"))
     msg = "There are no active payments associated with the order."
-    assert e.value.error_dict["payment"][0].message == msg
+    assert e.value.error_dict["payments"][0].message == msg
 
 
 @pytest.mark.parametrize(

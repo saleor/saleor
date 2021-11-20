@@ -15,4 +15,21 @@ class Migration(migrations.Migration):
             name="complete_order",
             field=models.BooleanField(default=False),
         ),
+        migrations.AddField(
+            model_name="payment",
+            name="partial",
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AlterField(
+            model_name="payment",
+            name="is_active",
+            field=models.BooleanField(
+                default=True,
+                help_text=(
+                    "Inactive payments do not contribute toward checkout / orders, "
+                    "but saleor still manages their lifecycle to reflect "
+                    "the real status in the payment service provider."
+                ),
+            ),
+        ),
     ]

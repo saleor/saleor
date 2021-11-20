@@ -3,6 +3,7 @@ from unittest.mock import create_autospec, patch
 
 import graphql
 import pytest
+from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
 from ...order import OrderLineData
@@ -14,17 +15,17 @@ from ...product.tests.utils import create_image
 from ...warehouse.models import Allocation, Stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
 from ..actions import (
+    _add_missing_amounts_on_payments,
     _process_refund,
-    _update_missing_amounts_on_payments,
     automatically_fulfill_digital_lines,
     cancel_fulfillment,
     cancel_order,
     fulfill_order_lines,
     handle_fully_paid_order,
-    make_refund,
     mark_order_as_paid,
-    order_refunded,
+    refund_payments,
 )
+from ..error_codes import OrderErrorCode
 from ..interface import OrderPaymentAction
 from ..models import Fulfillment
 from ..notifications import (
@@ -232,223 +233,8 @@ def test_cancel_order(
     )
 
 
-@patch("saleor.order.actions.send_order_refunded_confirmation")
-def test_order_refunded_by_user(
-    send_order_refunded_confirmation_mock,
-    order,
-    checkout_with_item,
-):
-    # given
-    payment = Payment.objects.create(
-        gateway="mirumee.payments.dummy",
-        is_active=True,
-        checkout=checkout_with_item,
-        currency=order.currency,
-    )
-    amount = order.total.gross.amount
-    payments = [OrderPaymentAction(payment, amount)]
-    app = None
-
-    # when
-    manager = get_plugins_manager()
-    order_refunded(order, order.user, app, payments, manager)
-
-    # then
-    order_event = order.events.last()
-    assert order_event.type == OrderEvents.PAYMENT_REFUNDED
-
-    send_order_refunded_confirmation_mock.assert_called_once_with(
-        order, order.user, None, payments, payment.currency, manager
-    )
-
-
-@patch("saleor.order.actions.send_order_refunded_confirmation")
-def test_order_refunded_by_app(
-    send_order_refunded_confirmation_mock,
-    order,
-    checkout_with_item,
-    app,
-):
-    # given
-    payment = Payment.objects.create(
-        gateway="mirumee.payments.dummy",
-        is_active=True,
-        checkout=checkout_with_item,
-        currency=order.currency,
-    )
-    amount = order.total.gross.amount
-    payments = [OrderPaymentAction(payment, amount)]
-
-    # when
-    manager = get_plugins_manager()
-    order_refunded(order, None, app, payments, manager)
-
-    # then
-    order_event = order.events.last()
-    assert order_event.type == OrderEvents.PAYMENT_REFUNDED
-
-    send_order_refunded_confirmation_mock.assert_called_once_with(
-        order, None, app, payments, payment.currency, manager
-    )
-
-
-@patch("saleor.order.actions.send_order_refunded_confirmation")
-def test_order_refunded_does_not_send_notification(
-    send_order_refunded_confirmation_mock,
-    order,
-    checkout_with_item,
-    app,
-):
-    # given
-    amount = order.total.gross.amount
-    payment = Payment.objects.create(
-        gateway="mirumee.payments.dummy",
-        is_active=True,
-        checkout=checkout_with_item,
-        currency=order.currency,
-        captured_amount=amount,
-        charge_status=ChargeStatus.FULLY_CHARGED,
-    )
-    payments = [OrderPaymentAction(payment, amount)]
-
-    # when
-    manager = get_plugins_manager()
-    order_refunded(order, None, app, payments, manager, send_notification=False)
-
-    # then
-    send_order_refunded_confirmation_mock.assert_not_called()
-
-
-@patch("saleor.order.events.payment_refunded_event")
-def test_order_refunded_creates_an_event_for_each_payment(
-    payment_refunded_event_mock,
-    order,
-    checkout_with_item,
-    app,
-):
-    # given
-    num_of_payments = 2
-    amount = order.total.gross.amount / 2
-    for _ in range(num_of_payments):
-        Payment.objects.create(
-            gateway="mirumee.payments.dummy",
-            is_active=True,
-            checkout=checkout_with_item,
-            currency=order.currency,
-            captured_amount=amount,
-            charge_status=ChargeStatus.FULLY_CHARGED,
-        )
-
-    payments = Payment.objects.all()
-    payments = [OrderPaymentAction(payment, amount) for payment in payments]
-
-    # when
-    manager = get_plugins_manager()
-    order_refunded(order, None, app, payments, manager)
-
-    # then
-    assert payment_refunded_event_mock.call_count == num_of_payments
-
-
-@patch("saleor.payment.actions.try_refund")
-@patch("saleor.order.actions.order_refunded")
-@pytest.mark.parametrize("transaction_kind", TransactionKind.CHOICES)
-def test_make_refund_calls_order_refunded_only_with_refunded_payments(
-    order_refunded_mock,
-    try_refund_mock,
-    transaction_kind,
-    order,
-    checkout_with_item,
-    app,
-):
-    # given
-    num_of_payments = 2
-    money = Money(amount=Decimal("60"), currency=order.currency)
-    order.total = TaxedMoney(money, money)
-    order.save()
-    amount = order.total.gross.amount / num_of_payments
-
-    for _ in range(num_of_payments):
-        Payment.objects.create(
-            gateway="mirumee.payments.dummy",
-            is_active=True,
-            checkout=checkout_with_item,
-            currency=order.currency,
-            captured_amount=amount,
-            charge_status=ChargeStatus.FULLY_CHARGED,
-        )
-
-    payments = Payment.objects.all()
-    payments = [{"payment": payment, "amount": amount} for payment in payments]
-    try_refund_mock.return_value.kind = transaction_kind
-    refunded_payments = [
-        {"payment": payment, "amount": amount}
-        for payment in payments
-        if transaction_kind == TransactionKind.REFUND
-    ]
-
-    # when
-    info = create_autospec(graphql.execution.base.ResolveInfo)
-    info.context.user = None
-    info.context.app = app
-    info.context.plugins = get_plugins_manager()
-    make_refund(order, refunded_payments, info)
-
-    # then
-    order_refunded_mock.assert_called_once_with(
-        order,
-        info.context.user,
-        info.context.app,
-        refunded_payments,
-        info.context.plugins,
-    )
-
-
-@patch("saleor.payment.actions.try_refund")
-def test_make_refund_creates_only_one_order_fullfilment_for_multiple_payments(
-    try_refund_mock, order, checkout_with_item, app
-):
-    # given
-    try_refund_mock.return_value.currency = order.currency
-    num_of_payments = 2
-    money = Money(amount=Decimal("60"), currency=order.currency)
-    order.total = TaxedMoney(money, money)
-    order.save()
-    amount = order.total.gross.amount / num_of_payments
-    for _ in range(num_of_payments):
-        payment = Payment.objects.create(
-            gateway="mirumee.payments.dummy",
-            is_active=True,
-            checkout=checkout_with_item,
-            currency=order.currency,
-            captured_amount=amount,
-            charge_status=ChargeStatus.FULLY_CHARGED,
-        )
-        payment.transactions.create(
-            amount=payment.total,
-            currency=payment.currency,
-            kind=TransactionKind.CAPTURE,
-            gateway_response={},
-            is_success=True,
-        )
-
-    payments = Payment.objects.all()
-    payments = [OrderPaymentAction(payment, amount) for payment in payments]
-
-    # when
-    info = create_autospec(graphql.execution.base.ResolveInfo)
-    info.context.user = None
-    info.context.app = app
-    info.context.plugins = get_plugins_manager()
-
-    make_refund(order, payments, info)
-
-    # then
-    assert order.fulfillments.count() == 1
-
-
-@patch("saleor.order.actions.try_refund")
-def test_make_refund_calls_try_refund_for_each_payment(
+@patch("saleor.order.actions.gateway.refund")
+def test_refund_payments_calls_gateway_refund_for_each_payment(
     try_refund_mock,
     order,
     checkout_with_item,
@@ -482,13 +268,118 @@ def test_make_refund_calls_try_refund_for_each_payment(
 
     # when
     info = create_autospec(graphql.execution.base.ResolveInfo)
-    info.context.user = None
     info.context.app = app
     info.context.plugins = get_plugins_manager()
-    make_refund(order, payments, info)
+    refund_payments(
+        order, payments, info.context.user, info.context.app, info.context.plugins
+    )
 
     # then
     assert try_refund_mock.call_count == num_of_payments
+
+
+@patch("saleor.order.actions._refund_payments")
+def test_refund_payments_raises_error_if_no_payments_have_been_refunded(
+    _refund_payments_mock,
+    order,
+    checkout_with_item,
+    app,
+):
+    # given
+    num_of_payments = 2
+    money = Money(amount=Decimal("60"), currency=order.currency)
+    order.total = TaxedMoney(money, money)
+    order.save()
+    amount = order.total.gross.amount / num_of_payments
+    for _ in range(num_of_payments):
+        payment = Payment.objects.create(
+            gateway="mirumee.payments.dummy",
+            is_active=True,
+            checkout=checkout_with_item,
+            currency=order.currency,
+            captured_amount=amount,
+            charge_status=ChargeStatus.FULLY_CHARGED,
+        )
+        payment.transactions.create(
+            amount=payment.captured_amount,
+            currency=payment.currency,
+            kind=TransactionKind.CAPTURE,
+            gateway_response={},
+            is_success=True,
+        )
+
+    payments = Payment.objects.all()
+    payments = [OrderPaymentAction(payment, amount) for payment in payments]
+
+    payment_errors = ["Error 1", "Error 2"]
+    _refund_payments_mock.return_value = [], payment_errors
+
+    # when
+    info = create_autospec(graphql.execution.base.ResolveInfo)
+    info.context.app = app
+    info.context.plugins = get_plugins_manager()
+    with pytest.raises(ValidationError) as err:
+        refund_payments(
+            order, payments, info.context.user, info.context.app, info.context.plugins
+        )
+
+    # then
+    assert err.value.error_dict["payments"][0].message == (
+        f"The refund operation is not available yet "
+        f"for {len(payment_errors)} payments."
+    )
+    assert (
+        err.value.error_dict["payments"][0].code == OrderErrorCode.CANNOT_REFUND.value
+    )
+
+
+@patch("saleor.order.actions._refund_payments")
+def test_refund_payments_does_not_raise_error_if_one_payment_has_been_refunded(
+    _refund_payments_mock,
+    order,
+    checkout_with_item,
+    app,
+):
+    # given
+    num_of_payments = 2
+    money = Money(amount=Decimal("60"), currency=order.currency)
+    order.total = TaxedMoney(money, money)
+    order.save()
+    amount = order.total.gross.amount / num_of_payments
+    for _ in range(num_of_payments):
+        payment = Payment.objects.create(
+            gateway="mirumee.payments.dummy",
+            is_active=True,
+            checkout=checkout_with_item,
+            currency=order.currency,
+            captured_amount=amount,
+            charge_status=ChargeStatus.FULLY_CHARGED,
+        )
+        payment.transactions.create(
+            amount=payment.captured_amount,
+            currency=payment.currency,
+            kind=TransactionKind.CAPTURE,
+            gateway_response={},
+            is_success=True,
+        )
+
+    payments = Payment.objects.all()
+    payments = [OrderPaymentAction(payment, amount) for payment in payments]
+
+    payment_errors = ["Error 1", "Error 2"]
+    _refund_payments_mock.return_value = [payments[0]], payment_errors
+
+    # when
+    info = create_autospec(graphql.execution.base.ResolveInfo)
+    info.context.app = app
+    info.context.plugins = get_plugins_manager()
+    payments, errors = refund_payments(
+        order, payments, info.context.user, info.context.app, info.context.plugins
+    )
+
+    # then
+    assert payments == [payments[0]]
+    assert errors == payment_errors
 
 
 def test_fulfill_order_lines(order_with_lines):
@@ -635,11 +526,13 @@ def test_fulfill_digital_lines(
     assert mock_email_fulfillment.called
 
 
+@patch("saleor.order.actions._refund_payments")
 @patch("saleor.order.actions._calculate_refund_amount")
-@patch("saleor.order.actions._update_missing_amounts_on_payments")
-def test_process_refund_calls_update_missing_amounts_on_payments(
-    mock_update_missing_amounts_on_payments,
-    mock_calculate_refund_amount,
+@patch("saleor.order.actions._add_missing_amounts_on_payments")
+def test_process_refund_calls_add_missing_amounts_on_payments(
+    _add_missing_amounts_on_payments_mock,
+    _calculate_refund_amount_mock,
+    _refund_payments_mock,
     order_with_lines,
     payment_dummy_fully_charged,
     staff_user,
@@ -651,8 +544,9 @@ def test_process_refund_calls_update_missing_amounts_on_payments(
     order_lines_to_return = order_with_lines.lines.all()
 
     refund_amount = Decimal("500")
-    mock_calculate_refund_amount.return_value = refund_amount
-    mock_update_missing_amounts_on_payments.return_value = refund_amount, None
+    _calculate_refund_amount_mock.return_value = refund_amount
+    _add_missing_amounts_on_payments_mock.return_value = refund_amount, None
+    _refund_payments_mock.return_value = payments, []
 
     _process_refund(
         user=staff_user,
@@ -667,7 +561,7 @@ def test_process_refund_calls_update_missing_amounts_on_payments(
         manager=get_plugins_manager(),
         include_shipping_costs=False,
     )
-    mock_update_missing_amounts_on_payments.assert_called_once_with(
+    _add_missing_amounts_on_payments_mock.assert_called_once_with(
         refund_amount, payments, order_with_lines, False
     )
 
@@ -694,7 +588,7 @@ def test_update_missing_amounts_on_payments_with_specified_payment_amounts(
     ]
 
     # when
-    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+    total_refund_amount, shipping_refund_amount = _add_missing_amounts_on_payments(
         refund_amount, payments, order_with_lines, include_shipping_costs=False
     )
 
@@ -725,7 +619,7 @@ def test_update_missing_amounts_on_payments_with_shipping_amount_multiple_paymen
     ]
 
     # when
-    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+    total_refund_amount, shipping_refund_amount = _add_missing_amounts_on_payments(
         refund_amount, payments, order_with_lines, include_shipping_costs=True
     )
 
@@ -755,7 +649,7 @@ def test_update_missing_amounts_on_payments_with_shipping_amount_and_single_paym
     payments = [OrderPaymentAction(payment_dummy_fully_charged, Decimal("0"))]
 
     # when
-    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+    total_refund_amount, shipping_refund_amount = _add_missing_amounts_on_payments(
         refund_amount, payments, order_with_lines, include_shipping_costs=True
     )
 
@@ -793,7 +687,7 @@ def test_update_missing_amounts_on_payments_without_specified_amounts(
     ]
 
     # when
-    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+    total_refund_amount, shipping_refund_amount = _add_missing_amounts_on_payments(
         refund_amount, payments, order_with_lines, include_shipping_costs=False
     )
 
@@ -827,7 +721,7 @@ def test_update_missing_amounts_on_payments_refunding_smaller_amounts(
     ]
 
     # when
-    total_refund_amount, shipping_refund_amount = _update_missing_amounts_on_payments(
+    total_refund_amount, shipping_refund_amount = _add_missing_amounts_on_payments(
         refund_amount, payments, order_with_lines, include_shipping_costs=False
     )
 

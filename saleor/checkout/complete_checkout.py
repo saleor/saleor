@@ -41,11 +41,7 @@ from ..warehouse.management import allocate_stocks
 from . import AddressType
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
-from .utils import (
-    call_payment_refund_or_void,
-    get_active_payments,
-    get_voucher_for_checkout,
-)
+from .utils import call_payment_refund_or_void, get_voucher_for_checkout
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -432,25 +428,15 @@ def _create_order(
 
 
 def _prepare_checkout(
-    manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts,
     tracking_code,
     redirect_url,
-    payment,
 ):
     """Prepare checkout object to complete the checkout process."""
     checkout = checkout_info.checkout
     clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
-    clean_checkout_payment(
-        manager,
-        checkout_info,
-        lines,
-        discounts,
-        CheckoutErrorCode,
-        current_payment=payment,
-    )
+
     if not checkout_info.channel.is_active:
         raise ValidationError(
             {
@@ -659,29 +645,20 @@ def complete_checkout(
     """
     checkout = checkout_info.checkout
 
-    if payment is None:
-        active_payments = get_active_payments(checkout)
-        if len(active_payments) == 1:
-            payment = active_payments[0]
-
-        # Implies partial payments
-        elif len(active_payments) > 1:
-            incomplete_payments = [p for p in active_payments if p.not_charged]
-            if len(incomplete_payments) > 1:
-                raise ValidationError(
-                    "When multiple active payments are present you have to provide "
-                    "a specific paymentID as the input parameter.",
-                    code=CheckoutErrorCode.PAYMENT_NOT_SET.value,
-                )
+    payment = clean_checkout_payment(
+        manager,
+        checkout_info,
+        lines,
+        discounts,
+        CheckoutErrorCode,
+        payment,
+    )
 
     _prepare_checkout(
-        manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        discounts=discounts,
         tracking_code=tracking_code,
         redirect_url=redirect_url,
-        payment=payment,
     )
 
     try:

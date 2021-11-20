@@ -4,7 +4,6 @@ from graphene import relay
 from ...core.tracing import traced_resolver
 from ...payment import models
 from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import ADDED_IN_31
 from ..core.types import Money
 from .enums import OrderAction, PaymentChargeStatusEnum
 
@@ -78,9 +77,9 @@ class Payment(CountableDjangoObjectType):
     )
     partial = graphene.Boolean(
         description=(
-            f"{ADDED_IN_31} Indicates whether this payment will "
-            "be processed as a partial payment."
-        )
+            "Indicates whether this payment will be processed as a partial payment."
+        ),
+        required=True,
     )
     total = graphene.Field(Money, description="Total amount of the payment.")
     captured_amount = graphene.Field(
@@ -98,6 +97,10 @@ class Payment(CountableDjangoObjectType):
     credit_card = graphene.Field(
         CreditCard, description="The details of the card used for this payment."
     )
+    gateway_name = graphene.String(
+        description="A human-readable name of the payment gateway plugin.",
+        required=True,
+    )
 
     class Meta:
         description = "Represents a payment of a given type."
@@ -107,6 +110,7 @@ class Payment(CountableDjangoObjectType):
         only_fields = [
             "id",
             "gateway",
+            "gateway_name",
             "is_active",
             "created",
             "modified",
@@ -168,6 +172,10 @@ class Payment(CountableDjangoObjectType):
         if not any(data.values()):
             return None
         return CreditCard(**data)
+
+    @staticmethod
+    def resolve_gateway_name(root: models.Payment, _info):
+        return _info.context.plugins.get_plugin_name(root.gateway)
 
 
 class PaymentInitialized(graphene.ObjectType):
