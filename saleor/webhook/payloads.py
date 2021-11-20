@@ -996,3 +996,38 @@ def generate_translation_payload(
         translation_data.update(context)
 
     return json.dumps(translation_data)
+
+
+def generate_api_call_payload(request, response):
+    content_length = int(request.headers.get("Content-Length", 0))
+    request_body = None
+    response_body = None
+    if request.POST:
+        request_body = json.dumps(dict(request.POST))
+    else:
+        try:
+            request_body = request.body.decode("utf-8")
+        except ValueError:
+            pass
+    try:
+        response_body = response.content.decode(response.charset)
+    except ValueError:
+        pass
+
+    payload = {
+        "request_time": request.request_time.timestamp(),
+        "request_headers": dict(request.headers),
+        "request_body": request_body,
+        "request_content_length": content_length,
+        "response_status_code": response.status_code,
+        "response_reason_phrase": response.reason_phrase,
+        "response_headers": dict(response.headers),
+        "response_content": response_body,
+    }
+    if request.app:
+        payload["request_app_id"] = request.app.id
+        payload["request_app_name"] = request.app.name
+    if request.user.is_authenticated:
+        payload["request_user_id"] = request.user.id
+        payload["request_user_email"] = request.user.email
+    return json.dumps([payload])
