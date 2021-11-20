@@ -33,9 +33,6 @@ All notable, unreleased changes to this project will be documented in this file.
     * X-Saleor-Domain -> Saleor-Domain
     * X-Saleor-Signature -> Saleor-Signature
     * X-Saleor-HMAC-SHA256 -> Saleor-HMAC-SHA256
-- Improve draft orders and orders webhooks - #SALEOR-4008 by @jakubkuc
-
-# 3.0.0 [Unreleased]
 
 - Support for partial payments (PR #8349):
   - Make `OrderConfirm` mutation to trigger capture action on all active payments - by @stnatic
