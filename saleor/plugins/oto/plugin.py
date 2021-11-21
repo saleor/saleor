@@ -5,11 +5,12 @@ from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 
-from . import constants
-from .utils import send_oto_request
+from ...order.models import Fulfillment, Order
+from ...payment.gateways.utils import require_active_plugin
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
-from ...payment.gateways.utils import require_active_plugin
+from . import constants
+from .utils import send_oto_request
 
 logger = logging.getLogger(__name__)
 
