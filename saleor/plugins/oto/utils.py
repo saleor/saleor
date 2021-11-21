@@ -93,13 +93,10 @@ def get_oto_url(config, destination_url):
 
 @app.task
 def send_oto_request(fulfillment, config, destination_url):
-    """
-    Send request to OTO API
-    """
+    """Send request to OTO API."""
     data = generate_oto_request_data(
         fulfillment=fulfillment, config=config, destination_url=destination_url
     )
-    print("Data: ", data)
     url = get_oto_url(config=config, destination_url=destination_url)
     response = requests.post(
         url=url,
@@ -109,5 +106,4 @@ def send_oto_request(fulfillment, config, destination_url):
             "Authorization": "Bearer {}".format(config.get("ACCESS_TOKEN")),
         },
     )
-    print("Response: ", response.json())
     return response.json()
