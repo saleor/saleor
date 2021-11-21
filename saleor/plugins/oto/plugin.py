@@ -23,11 +23,6 @@ class OTOPlugin(BasePlugin):
     PLUGIN_DESCRIPTION = "Plugin responsible for ship orders using OTO."
 
     CONFIG_STRUCTURE = {
-        "SANDBOX": {
-            "label": "Sandbox",
-            "help_text": "Use sandbox endpoints",
-            "type": ConfigurationTypeField.BOOLEAN,
-        },
         "REFRESH_TOKEN": {
             "label": "Refresh Token",
             "help_text": "Refresh Token",
@@ -40,7 +35,6 @@ class OTOPlugin(BasePlugin):
         },
     }
     DEFAULT_CONFIGURATION = [
-        {"name": "SANDBOX", "value": True},
         {"name": "ACCESS_TOKEN", "value": None},
         {"name": "REFRESH_TOKEN", "value": None},
     ]
@@ -85,7 +79,7 @@ class OTOPlugin(BasePlugin):
         self, fulfillment: "Fulfillment", previous_value: Any
     ) -> Any:
         # Create an OTO order.
-        response = send_oto_request.delay(fulfillment, self.config, "createOrder")
+        response = send_oto_request(fulfillment, self.config, "createOrder")
         if response.get("success") is True:
             fulfillment.order.store_value_in_private_metadata(
                 items=dict(oto_id=response.get("otoId"))

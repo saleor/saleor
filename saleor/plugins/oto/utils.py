@@ -48,8 +48,8 @@ def generate_create_order_data(fulfillment):
     )
     data = {
         "storeName": "WeCre8",
+        "orderId": str(fulfillment.id),
         "ref1": fulfillment.order.token,
-        "orderId": str(fulfillment.order.id),
         "currency": fulfillment.order.currency,
         "amount": fulfillment.order.total_net_amount,
         "shippingNotes": fulfillment.order.customer_note,
@@ -75,7 +75,7 @@ def generate_cancel_order_data(fulfillment):
     )
 
 
-def generate_oto_request_data(fulfillment, config, **kwargs):
+def generate_oto_request_data(fulfillment, **kwargs):
     destination_url = kwargs.get("destination_url")
     if destination_url == "createOrder":
         return generate_create_order_data(fulfillment=fulfillment)
@@ -83,21 +83,17 @@ def generate_oto_request_data(fulfillment, config, **kwargs):
         return generate_cancel_order_data(fulfillment=fulfillment)
 
 
-def get_oto_url(config, destination_url):
-    sandbox = config.get("SANDBOX")
-    if sandbox:
-        return "https://sandbox.tryoto.com/rest/v2/{0}".format(destination_url)
-    else:
-        return "https://api.tryoto.com/rest/v2/{0}".format(destination_url)
+def get_oto_url(destination_url):
+    return "https://api.tryoto.com/rest/v2/{0}".format(destination_url)
 
 
 @app.task
 def send_oto_request(fulfillment, config, destination_url):
     """Send request to OTO API."""
     data = generate_oto_request_data(
-        fulfillment=fulfillment, config=config, destination_url=destination_url
+        fulfillment=fulfillment, destination_url=destination_url
     )
-    url = get_oto_url(config=config, destination_url=destination_url)
+    url = get_oto_url(destination_url=destination_url)
     response = requests.post(
         url=url,
         json=data,
