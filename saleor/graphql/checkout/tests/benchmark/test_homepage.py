@@ -10,6 +10,7 @@ def test_user_checkout_details(
     user_api_client,
     customer_checkout,
     count_queries,
+    django_assert_num_queries,
 ):
     query = """
         fragment Price on TaxedMoney {
@@ -143,4 +144,5 @@ def test_user_checkout_details(
           }
         }
     """
-    get_graphql_content(user_api_client.post_graphql(query))
+    with django_assert_num_queries(10):
+        get_graphql_content(user_api_client.post_graphql(query))

@@ -414,10 +414,8 @@ def checkout_with_items_and_shipping(checkout_with_items, address, shipping_meth
 
 
 @pytest.fixture
-def checkout_with_voucher(checkout, product, voucher):
-    variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
-    add_variant_to_checkout(checkout_info, variant, 3)
+def checkout_with_voucher(checkout_with_items, voucher):
+    checkout = checkout_with_items
     checkout.voucher_code = voucher.code
     checkout.discount = Money("20.00", "USD")
     checkout.save()
@@ -425,10 +423,8 @@ def checkout_with_voucher(checkout, product, voucher):
 
 
 @pytest.fixture
-def checkout_with_voucher_percentage(checkout, product, voucher_percentage):
-    variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
-    add_variant_to_checkout(checkout_info, variant, 3)
+def checkout_with_voucher_percentage(checkout_with_items, voucher_percentage):
+    checkout = checkout_with_items
     checkout.voucher_code = voucher_percentage.code
     checkout.discount = Money("3.00", "USD")
     checkout.save()

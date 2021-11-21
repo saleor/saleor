@@ -456,7 +456,12 @@ def test_add_checkout_lines(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_checkout_shipping_address_update(
-    api_client, graphql_address_data, checkout_with_variants, count_queries
+    api_client,
+    graphql_address_data,
+    checkout_with_variants,
+    count_queries,
+    django_assert_num_queries,
+    mock_webhook_plugin_with_shipping_app,
 ):
     query = (
         FRAGMENT_CHECKOUT
@@ -482,7 +487,8 @@ def test_checkout_shipping_address_update(
         "token": checkout_with_variants.pk,
         "shippingAddress": graphql_address_data,
     }
-    response = get_graphql_content(api_client.post_graphql(query, variables))
+    with django_assert_num_queries(10):
+        response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutShippingAddressUpdate"]["errors"]
 
 

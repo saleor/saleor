@@ -17,6 +17,7 @@ from .....webhook.models import Webhook
 def mock_webhook_plugin_with_shipping_app(
     settings,
     permission_manage_checkouts,
+    permission_manage_payments,
     monkeypatch,
     shipping_methods_for_channel_factory,
 ):
@@ -25,8 +26,16 @@ def mock_webhook_plugin_with_shipping_app(
 
     # Mock http requests as we are focusing on testing database access
     response = MagicMock()
-    response.json.return_value = {"excluded_methods": []}
+    response.json.return_value = {}
     monkeypatch.setattr("requests.post", lambda *args, **kwargs: response)
+    monkeypatch.setattr(
+        "saleor.plugins.webhook.utils.parse_list_payment_gateways_response",
+        lambda *args, **kwargs: [],
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.webhook.utils.get_excluded_shipping_methods_from_response",
+        lambda *args, **kwargs: [],
+    )
 
     # Enable webhook plugin
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -36,13 +45,18 @@ def mock_webhook_plugin_with_shipping_app(
         app = App.objects.create(name=f"Benchmark App {i}", is_active=True)
         app.tokens.create(name="Default")
         app.permissions.add(permission_manage_checkouts)
+        app.permissions.add(permission_manage_payments)
         webhook = Webhook.objects.create(
             name="shipping-webhook-1",
             app=app,
-            target_url="https://shipping-gateway.com/api/",
+            target_url="https://gateway.com/api/",
         )
         webhook.events.create(
             event_type=WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
+            webhook=webhook,
+        )
+        webhook.events.create(
+            event_type=WebhookEventType.PAYMENT_LIST_GATEWAYS,
             webhook=webhook,
         )
 
