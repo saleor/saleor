@@ -1,5 +1,4 @@
-"""
-Costs map used by query complexity validator
+"""Costs map used by query complexity validator.
 
 It's three levels deep dict of dicts:
 
