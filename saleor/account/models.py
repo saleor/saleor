@@ -170,6 +170,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     language_code = models.CharField(
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
     )
+    search_document = models.TextField(blank=True, default="", db_index=True)
 
     USERNAME_FIELD = "email"
 
