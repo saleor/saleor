@@ -9,7 +9,7 @@ from ....account import models, utils
 from ....account.error_codes import AccountErrorCode
 from ....account.notifications import send_set_password_notification
 from ....account.thumbnails import create_user_avatar_thumbnails
-from ....account.utils import remove_staff_member
+from ....account.utils import prepare_user_search_document_value, remove_staff_member
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
@@ -245,6 +245,12 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def save(cls, info, user, cleaned_input):
+        if any(
+            [field in cleaned_input for field in ["email", "first_name", "last_name"]]
+        ):
+            user.search_document = prepare_user_search_document_value(
+                user, attach_addresses_data=False
+            )
         user.save()
         if cleaned_input.get("redirect_url"):
             send_set_password_notification(
@@ -460,6 +466,8 @@ class AddressCreate(ModelMutation):
             )
             user.addresses.add(address)
             response.user = user
+            user.search_document = prepare_user_search_document_value(user)
+            user.save(update_fields=["search_document"])
         return response
 
 

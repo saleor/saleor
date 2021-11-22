@@ -57,3 +57,24 @@ def test_prepare_user_search_document_value_no_addresses(customer_user):
 
     # then
     assert search_document_value == expected_search_value.lower()
+
+
+def test_prepare_user_search_document_value_do_not_attach_addresses_data(
+    customer_user, address, address_usa
+):
+    # given
+    customer_user.addresses.set((address, address_usa))
+
+    expected_search_value = (
+        f"{customer_user.email}{customer_user.first_name}{customer_user.last_name}"
+    )
+
+    expected_search_value = expected_search_value.replace(" ", "").lower()
+
+    # when
+    search_document_value = prepare_user_search_document_value(
+        customer_user, attach_addresses_data=False
+    )
+
+    # then
+    assert search_document_value == expected_search_value

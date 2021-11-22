@@ -1106,6 +1106,10 @@ def test_customer_register(
     assert new_user.language_code == "pl"
     assert new_user.first_name == variables["firstName"]
     assert new_user.last_name == variables["lastName"]
+    assert (
+        new_user.search_document
+        == f"{email}{variables['firstName']}{variables['lastName']}".lower()
+    )
     assert not data["errors"]
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_CONFIRMATION,
@@ -1248,6 +1252,17 @@ def test_customer_create(
     assert data["user"]["isActive"]
 
     new_user = User.objects.get(email=email)
+    assert (
+        f"{email}{variables['firstName']}{variables['lastName']}".lower()
+        in new_user.search_document
+    )
+    address_data = (
+        f"{address.first_name}{address.last_name}"
+        f"{address.street_address_1}{address.street_address_2}"
+        f"{address.city}{address.postal_code}"
+        f"{address.country}{address.phone}"
+    )
+    assert address_data.replace(" ", "").lower() in new_user.search_document
     params = urlencode({"email": new_user.email, "token": "token"})
     password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -1462,6 +1477,14 @@ def test_customer_update(
     assert name_changed_event.type == account_events.CustomerEvents.NAME_ASSIGNED
     assert name_changed_event.user.pk == staff_user.pk
     assert name_changed_event.parameters == {"message": customer.get_full_name()}
+    customer_user.refresh_from_db()
+    address_data = (
+        f"{address_data['firstName']}{address_data['lastName']}"
+        f"{address_data['streetAddress1']}{address_data['streetAddress2']}"
+        f"{address_data['city']}{address_data['postalCode']}"
+        f"{address_data['country']}{address_data['phone']}"
+    )
+    assert address_data.replace(" ", "").lower() in customer_user.search_document
 
 
 UPDATE_CUSTOMER_EMAIL_MUTATION = """
@@ -1663,6 +1686,7 @@ def test_logged_customer_updates_language_code(user_api_client):
     assert data["user"]["languageCode"] == language_code
     user.refresh_from_db()
     assert user.language_code == language_code.lower()
+    assert user.search_document
 
 
 def test_logged_customer_update_names(user_api_client):
@@ -1710,6 +1734,7 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
 
     assert user.default_billing_address.first_name == new_first_name
     assert user.default_shipping_address.first_name == new_first_name
+    assert user.search_document
 
 
 def test_logged_customer_update_addresses_invalid_shipping_address(
@@ -2227,6 +2252,7 @@ def test_staff_create(
     staff_user = User.objects.get(email=email)
 
     assert staff_user.is_staff
+    assert staff_user.search_document == f"{email}".lower()
 
     groups = data["user"]["permissionGroups"]
     assert len(groups) == 1
@@ -2508,17 +2534,67 @@ STAFF_UPDATE_MUTATIONS = """
 def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    assert not staff_user.search_document
     id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": id, "input": {"isActive": False}}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
+
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
     assert data["errors"] == []
     assert data["user"]["userPermissions"] == []
     assert not data["user"]["isActive"]
+    staff_user.refresh_from_db()
+    assert not staff_user.search_document
+
+
+def test_staff_update_email(staff_api_client, permission_manage_staff, media_root):
+    query = STAFF_UPDATE_MUTATIONS
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    assert not staff_user.search_document
+    id = graphene.Node.to_global_id("User", staff_user.id)
+    new_email = "test@email.com"
+    variables = {"id": id, "input": {"email": new_email}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    assert data["errors"] == []
+    assert data["user"]["userPermissions"] == []
+    assert data["user"]["isActive"]
+    staff_user.refresh_from_db()
+    assert staff_user.search_document == f"{new_email}"
+
+
+@pytest.mark.parametrize("field", ["firstName", "lastName"])
+def test_staff_update_name_field(
+    field, staff_api_client, permission_manage_staff, media_root
+):
+    query = STAFF_UPDATE_MUTATIONS
+    email = "staffuser@example.com"
+    staff_user = User.objects.create(email=email, is_staff=True)
+    assert not staff_user.search_document
+    id = graphene.Node.to_global_id("User", staff_user.id)
+    value = "Name"
+    variables = {"id": id, "input": {field: value}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    assert data["errors"] == []
+    assert data["user"]["userPermissions"] == []
+    assert data["user"]["isActive"]
+    staff_user.refresh_from_db()
+    assert staff_user.search_document == f"{email}{value.lower()}"
 
 
 def test_staff_update_app_no_permission(
@@ -3396,6 +3472,12 @@ def test_create_address_mutation(
     assert address_obj.user_addresses.first() == customer_user
     assert data["user"]["id"] == user_id
 
+    customer_user.refresh_from_db()
+    assert (
+        f"{variables['city']}{variables['country']}".lower()
+        in customer_user.search_document
+    )
+
 
 ADDRESS_UPDATE_MUTATION = """
     mutation updateUserAddress($addressId: ID!, $address: AddressInput!) {
@@ -3429,6 +3511,15 @@ def test_address_update_mutation(
     assert data["address"]["city"] == graphql_address_data["city"].upper()
     address_obj.refresh_from_db()
     assert address_obj.city == graphql_address_data["city"].upper()
+    customer_user.refresh_from_db()
+    address_data = (
+        f"{graphql_address_data['firstName']}{graphql_address_data['lastName']}"
+        f"{graphql_address_data['streetAddress1']}"
+        f"{graphql_address_data['streetAddress2']}"
+        f"{graphql_address_data['city']}{graphql_address_data['postalCode']}"
+        f"{graphql_address_data['country']}{graphql_address_data['phone']}"
+    )
+    assert address_data.replace(" ", "").lower() in customer_user.search_document
 
 
 ACCOUNT_ADDRESS_UPDATE_MUTATION = """
@@ -3453,6 +3544,7 @@ def test_customer_update_own_address(
     address_data = graphql_address_data
     address_data["city"] = "Poznań"
     assert address_data["city"] != address_obj.city
+    user = user_api_client.user
 
     variables = {
         "addressId": graphene.Node.to_global_id("Address", address_obj.id),
@@ -3464,6 +3556,15 @@ def test_customer_update_own_address(
     assert data["address"]["city"] == address_data["city"].upper()
     address_obj.refresh_from_db()
     assert address_obj.city == address_data["city"].upper()
+    user.refresh_from_db()
+    address_data = (
+        f"{graphql_address_data['firstName']}{graphql_address_data['lastName']}"
+        f"{graphql_address_data['streetAddress1']}"
+        f"{graphql_address_data['streetAddress2']}"
+        f"{graphql_address_data['city']}{graphql_address_data['postalCode']}"
+        f"{graphql_address_data['country']}{graphql_address_data['phone']}"
+    )
+    assert address_data.replace(" ", "").lower() in user.search_document
 
 
 def test_update_address_as_anonymous_user(
@@ -3548,6 +3649,15 @@ def test_address_delete_mutation(
     with pytest.raises(address_obj._meta.model.DoesNotExist):
         address_obj.refresh_from_db()
 
+    customer_user.refresh_from_db()
+    address_data = (
+        f"{address_obj.first_name}{address_obj.last_name}"
+        f"{address_obj.street_address_1}{address_obj.street_address_2}"
+        f"{address_obj.city}{address_obj.postal_code}"
+        f"{address_obj.country}{address_obj.phone}"
+    )
+    assert address_data.replace(" ", "").lower() not in customer_user.search_document
+
 
 def test_address_delete_mutation_as_app(
     app_api_client, customer_user, permission_manage_users
@@ -3583,6 +3693,7 @@ ACCOUNT_ADDRESS_DELETE_MUTATION = """
 def test_customer_delete_own_address(user_api_client, customer_user):
     query = ACCOUNT_ADDRESS_DELETE_MUTATION
     address_obj = customer_user.addresses.first()
+    user = user_api_client.user
     variables = {"id": graphene.Node.to_global_id("Address", address_obj.id)}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -3590,6 +3701,14 @@ def test_customer_delete_own_address(user_api_client, customer_user):
     assert data["address"]["city"] == address_obj.city
     with pytest.raises(address_obj._meta.model.DoesNotExist):
         address_obj.refresh_from_db()
+    user.refresh_from_db()
+    address_data = (
+        f"{address_obj.first_name}{address_obj.last_name}"
+        f"{address_obj.street_address_1}{address_obj.street_address_2}"
+        f"{address_obj.city}{address_obj.postal_code}"
+        f"{address_obj.country}{address_obj.phone}"
+    )
+    assert address_data.replace(" ", "").lower() not in user.search_document
 
 
 @pytest.mark.parametrize(
@@ -4132,6 +4251,14 @@ def test_customer_create_address(user_api_client, graphql_address_data):
 
     user.refresh_from_db()
     assert user.addresses.count() == nr_of_addresses + 1
+    address_data = (
+        f"{graphql_address_data['firstName']}{graphql_address_data['lastName']}"
+        f"{graphql_address_data['streetAddress1']}"
+        f"{graphql_address_data['streetAddress2']}"
+        f"{graphql_address_data['city']}{graphql_address_data['postalCode']}"
+        f"{graphql_address_data['country']}{graphql_address_data['phone']}"
+    )
+    assert address_data.replace(" ", "").lower() in user.search_document
 
 
 def test_account_address_create_return_user(user_api_client, graphql_address_data):
@@ -5170,6 +5297,7 @@ def test_email_update(
         "new_email": new_email,
         "user_pk": customer_user.pk,
     }
+    user = user_api_client.user
 
     token = create_token(payload, timedelta(hours=1))
     variables = {"token": token, "channel": channel_PLN.slug}
@@ -5178,6 +5306,8 @@ def test_email_update(
     content = get_graphql_content(response)
     data = content["data"]["confirmEmailChange"]
     assert data["user"]["email"] == new_email
+    user.refresh_from_db()
+    assert new_email in user.search_document
     assign_gift_cards_mock.assert_called_once_with(customer_user)
     assign_orders_mock.assert_called_once_with(customer_user)
 
