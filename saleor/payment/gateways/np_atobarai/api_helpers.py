@@ -21,6 +21,7 @@ from .errors import (
     NO_TRACKING_NUMBER,
     NP_CONNECTION_ERROR,
     SHIPPING_ADDRESS_INVALID,
+    SHIPPING_COMPANY_CODE_INVALID,
 )
 from .utils import notify_dashboard, np_atobarai_opentracing_trace
 
@@ -236,7 +237,7 @@ def report(
     shipping_slip_number: Optional[str],
 ) -> NPResponse:
     if not shipping_company_code:
-        return error_np_response("Fulfillment has invalid shipping company code.")
+        return error_np_response(SHIPPING_COMPANY_CODE_INVALID)
 
     if not psp_reference:
         return error_np_response(NO_PSP_REFERENCE)

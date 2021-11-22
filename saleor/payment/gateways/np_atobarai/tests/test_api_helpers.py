@@ -11,12 +11,6 @@ from .. import api_helpers, errors
 from ..api_helpers import get_goods, get_refunded_goods
 
 
-def assert_invalid_np_response(np_response, error_keywords):
-    assert not np_response.result
-    for msg in error_keywords:
-        assert msg in np_response.error_codes[0]
-
-
 def test_register_no_billing_address(config, np_payment_data):
     # given
     np_payment_data.billing = None

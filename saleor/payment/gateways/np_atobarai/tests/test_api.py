@@ -14,6 +14,7 @@ from ..errors import (
     NO_TRACKING_NUMBER,
     NP_CONNECTION_ERROR,
     PAYMENT_DOES_NOT_EXIST,
+    SHIPPING_COMPANY_CODE_INVALID,
 )
 from ..plugin import NPAtobaraiGatewayPlugin
 
@@ -223,7 +224,7 @@ def test_report_fulfillment(mocked_request, config, fulfillment, payment_dummy):
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
-def test_report_fulfillment_no_shipping_company_code(
+def test_report_fulfillment_invalid_shipping_company_code(
     mocked_request, config, fulfillment, payment_dummy
 ):
     # given
@@ -247,7 +248,7 @@ def test_report_fulfillment_no_shipping_company_code(
 
     # then
     assert not already_captured
-    assert errors == ["Fulfillment has invalid shipping company code."]
+    assert errors == [f"FR#{SHIPPING_COMPANY_CODE_INVALID}"]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
