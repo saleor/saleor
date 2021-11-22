@@ -207,7 +207,7 @@ class WebhookDelete(ModelDeleteMutation):
 
 
 class EventDeliveryRetry(BaseMutation):
-    delivery = graphene.Field(EventDelivery, description=".")
+    delivery = graphene.Field(EventDelivery, description="Event delivery.")
 
     class Arguments:
         id = graphene.ID(
