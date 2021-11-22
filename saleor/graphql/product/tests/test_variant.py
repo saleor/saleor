@@ -2960,7 +2960,6 @@ def test_update_product_variant_change_attribute_values_ordering(
 @pytest.mark.parametrize(
     "values, message, code",
     (
-        ([], "Attribute expects a value but none were given.", "REQUIRED"),
         (["one", "two"], "Attribute must take only one value.", "INVALID"),
         (["   "], "Attribute values cannot be blank.", "REQUIRED"),
     ),
@@ -2976,9 +2975,7 @@ def test_update_product_variant_requires_values(
 ):
     """Ensures updating a variant with invalid values raise an error.
 
-    - No values
     - Blank value
-    - None as value
     - More than one value
     """
 
@@ -3008,6 +3005,44 @@ def test_update_product_variant_requires_values(
         "field": "attributes",
         "message": message,
         "code": code,
+    }
+    assert not variant.product.variants.filter(sku=sku).exists()
+
+
+def test_update_product_variant_requires_attr_value_when_is_required(
+    staff_api_client,
+    variant,
+    product_type,
+    permission_manage_products,
+):
+    sku = "updated"
+
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute = product_type.variant_attributes.first()
+    attribute.value_required = True
+    attribute.save(update_fields=["value_required"])
+
+    attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().id
+    )
+
+    variables = {
+        "id": variant_id,
+        "attributes": [{"id": attr_id, "values": []}],
+        "sku": sku,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    assert len(content["data"]["productVariantUpdate"]["errors"]) == 1
+    assert content["data"]["productVariantUpdate"]["errors"][0] == {
+        "field": "attributes",
+        "message": "Attribute expects a value but none were given.",
+        "code": "REQUIRED",
     }
     assert not variant.product.variants.filter(sku=sku).exists()
 
