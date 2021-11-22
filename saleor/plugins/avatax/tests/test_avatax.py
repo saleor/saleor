@@ -1975,11 +1975,19 @@ def test_get_checkout_lines_data_sets_different_tax_code_for_zero_amount(
         checkout_with_item, lines, [], get_plugins_manager()
     )
 
-    # when
-    lines_data = get_checkout_lines_data(
-        checkout_info,
-        lines,
+    config = AvataxConfiguration(
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
+
+    # when
+    lines_data = get_checkout_lines_data(checkout_info, lines, config)
 
     # then
     assert lines_data[0]["amount"] == "0.00"
@@ -2009,11 +2017,19 @@ def test_get_checkout_lines_data_sets_different_tax_code_only_for_zero_amount(
         checkout_with_item, lines, [], get_plugins_manager()
     )
 
-    # when
-    lines_data = get_checkout_lines_data(
-        checkout_info,
-        lines,
+    config = AvataxConfiguration(
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
     )
+
+    # when
+    lines_data = get_checkout_lines_data(checkout_info, lines, config)
 
     # then
     assert lines_data[0]["amount"] == "11.00"
@@ -2036,8 +2052,19 @@ def test_get_order_lines_data_sets_different_tax_code_for_zero_amount(
     )
     variant.product.save()
 
+    config = AvataxConfiguration(
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
+    )
+
     # when
-    lines_data = get_order_lines_data(order_with_lines)
+    lines_data = get_order_lines_data(order_with_lines, config)
 
     # then
     assert lines_data[0]["amount"] == "0.000"
@@ -2061,8 +2088,19 @@ def test_get_order_lines_data_sets_different_tax_code_only_for_zero_amount(
     )
     variant.product.save()
 
+    config = AvataxConfiguration(
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
+    )
+
     # when
-    lines_data = get_order_lines_data(order_with_lines)
+    lines_data = get_order_lines_data(order_with_lines, config)
 
     # then
     assert lines_data[0]["amount"] == "10.000"
