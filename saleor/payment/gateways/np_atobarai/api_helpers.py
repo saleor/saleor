@@ -84,14 +84,14 @@ def health_check(config: "ApiConfig") -> bool:
 
 def format_name(ad: AddressData) -> str:
     """Follow the Japanese name guidelines."""
-    return f"{ad.first_name} {ad.last_name}".strip()
+    return f"{ad.last_name}　{ad.first_name}".strip()
 
 
 def format_address(config: "ApiConfig", ad: AddressData) -> Optional[str]:
     """Follow the Japanese address guidelines."""
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
     if not config.fill_missing_address:
-        return f"{ad.country_area}{ad.street_address_2}{ad.street_address_1}"
+        return f"{ad.country_area}{ad.street_address_1}{ad.street_address_2}"
     with Posuto() as pp:
         try:
             jap_ad = pp.get(ad.postal_code)
@@ -102,8 +102,8 @@ def format_address(config: "ApiConfig", ad: AddressData) -> Optional[str]:
                 f"{ad.country_area}"
                 f"{jap_ad.city}"
                 f"{jap_ad.neighborhood}"
-                f"{ad.street_address_2}"
                 f"{ad.street_address_1}"
+                f"{ad.street_address_2}"
             )
 
 
@@ -112,27 +112,26 @@ def format_price(price: Decimal, currency: str) -> int:
 
 
 def get_refunded_goods(
+    config: "ApiConfig",
     refund_data: Dict[int, int],
     payment_information: PaymentData,
 ) -> List[dict]:
     return [
         {
-            "goods_name": payment_line.product_name,
-            "goods_price": format_price(
-                payment_line.gross, payment_information.currency
-            ),
+            "goods_name": line.product_sku if config.sku_as_name else line.product_name,
+            "goods_price": format_price(line.gross, payment_information.currency),
             "quantity": quantity,
         }
-        for payment_line in payment_information.lines
-        if (quantity := refund_data.get(payment_line.variant_id, payment_line.quantity))
+        for line in payment_information.lines
+        if (quantity := refund_data.get(line.variant_id, line.quantity))
     ]
 
 
-def get_goods(payment_information: PaymentData) -> List[dict]:
+def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dict]:
     return [
         {
             "quantity": line.quantity,
-            "goods_name": line.product_name,
+            "goods_name": line.product_sku if config.sku_as_name else line.product_name,
             "goods_price": format_price(line.gross, payment_information.currency),
         }
         for line in payment_information.lines
@@ -140,9 +139,10 @@ def get_goods(payment_information: PaymentData) -> List[dict]:
 
 
 def get_goods_with_discount(
+    config: "ApiConfig",
     payment_information: PaymentData,
 ) -> List[dict]:
-    product_lines = get_goods(payment_information)
+    product_lines = get_goods(config, payment_information)
     return product_lines + [
         {
             "goods_name": "Discount",
@@ -171,7 +171,7 @@ def register(
             payment_information.amount, payment_information.currency
         )
     if goods is None:
-        goods = get_goods(payment_information)
+        goods = get_goods(config, payment_information)
 
     order_date = timezone.now().strftime("%Y-%m-%d")
 
@@ -227,10 +227,12 @@ def register(
 
 def report(
     config: "ApiConfig",
+    shipping_company_code: Optional[str],
     psp_reference: Optional[str],
     shipping_slip_number: Optional[str],
 ) -> NPResponse:
-    shipping_company_code = config.shipping_company
+    if not shipping_company_code:
+        return error_np_response("Fulfillment has invalid shipping company code.")
 
     if not psp_reference:
         return error_np_response("Payment does not have psp reference.")

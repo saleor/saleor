@@ -1,13 +1,14 @@
 from contextlib import contextmanager
-from typing import Union
+from typing import Optional, Union
 
 from django.db.models import Q
 
 from ....core.tracing import opentracing_trace
 from ....order import FulfillmentStatus
 from ....order.events import external_notification_event
-from ....order.models import Order
+from ....order.models import Fulfillment, Order
 from ... import PaymentError
+from .const import SHIPPING_COMPANY_CODE_METADATA_KEY, SHIPPING_COMPANY_CODES
 
 
 def notify_dashboard(order: Order, message: str):
@@ -33,7 +34,14 @@ STATUSES_NOT_ALLOWED_TO_REFUND = [
 ]
 
 
-def get_tracking_number_for_order(order: Order) -> str:
+def get_shipping_company_code(fulfillment: Fulfillment) -> Optional[str]:
+    code = fulfillment.get_value_from_private_metadata(
+        SHIPPING_COMPANY_CODE_METADATA_KEY, default="50000"
+    )
+    return None if code not in SHIPPING_COMPANY_CODES else code
+
+
+def get_fulfillment_for_order(order: Order) -> Fulfillment:
     fulfillments = order.fulfillments.exclude(
         Q(tracking_number="") | Q(status__in=STATUSES_NOT_ALLOWED_TO_REFUND)
     )
@@ -48,7 +56,7 @@ def get_tracking_number_for_order(order: Order) -> str:
             "More than one fulfillment with tracking number exist for this order"
         )
 
-    return fulfillments[0].tracking_number
+    return fulfillments[0]
 
 
 @contextmanager
