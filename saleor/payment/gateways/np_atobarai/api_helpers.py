@@ -13,6 +13,16 @@ from ...interface import AddressData, PaymentData
 from ...utils import price_to_minor_unit
 from .api_types import NPResponse, error_np_response
 from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL, REQUEST_TIMEOUT
+from .errors import (
+    BILLING_ADDRESS_INVALID,
+    NO_BILLING_ADDRESS,
+    NO_PSP_REFERENCE,
+    NO_SHIPPING_ADDRESS,
+    NO_TRACKING_NUMBER,
+    NP_CONNECTION_ERROR,
+    SHIPPING_ADDRESS_INVALID,
+    SHIPPING_COMPANY_CODE_INVALID,
+)
 from .utils import notify_dashboard, np_atobarai_opentracing_trace
 
 if TYPE_CHECKING:
@@ -57,9 +67,8 @@ def np_request(
             return NPResponse({}, response_data["errors"][0]["codes"])
         return NPResponse(response_data["results"][0], [])
     except requests.RequestException:
-        msg = "Cannot connect to NP Atobarai."
-        logger.warning(msg, exc_info=True)
-        return NPResponse({}, [msg])
+        logger.warning("Cannot connect to NP Atobarai.", exc_info=True)
+        return NPResponse({}, [NP_CONNECTION_ERROR])
 
 
 def handle_unrecoverable_state(
@@ -179,21 +188,17 @@ def register(
     shipping = payment_information.shipping
 
     if not billing:
-        return error_np_response(
-            "Billing address is required for transaction in NP Atobarai."
-        )
+        return error_np_response(NO_BILLING_ADDRESS)
     if not shipping:
-        return error_np_response(
-            "Shipping address is required for transaction in NP Atobarai."
-        )
+        return error_np_response(NO_SHIPPING_ADDRESS)
 
     formatted_billing = format_address(config, billing)
     formatted_shipping = format_address(config, shipping)
 
     if not formatted_billing:
-        return error_np_response("Billing address is not a valid Japanese address.")
+        return error_np_response(BILLING_ADDRESS_INVALID)
     if not formatted_shipping:
-        return error_np_response("Shipping address is not a valid Japanese address.")
+        return error_np_response(SHIPPING_ADDRESS_INVALID)
 
     data = {
         "transactions": [
@@ -232,13 +237,13 @@ def report(
     shipping_slip_number: Optional[str],
 ) -> NPResponse:
     if not shipping_company_code:
-        return error_np_response("Fulfillment has invalid shipping company code.")
+        return error_np_response(SHIPPING_COMPANY_CODE_INVALID)
 
     if not psp_reference:
-        return error_np_response("Payment does not have psp reference.")
+        return error_np_response(NO_PSP_REFERENCE)
 
     if not shipping_slip_number:
-        return error_np_response("Fulfillment does not have tracking number.")
+        return error_np_response(NO_TRACKING_NUMBER)
 
     data = {
         "transactions": [

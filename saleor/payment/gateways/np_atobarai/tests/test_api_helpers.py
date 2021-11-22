@@ -7,14 +7,8 @@ from posuto import Posuto
 from saleor.payment.interface import AddressData
 from saleor.payment.utils import price_to_minor_unit
 
-from .. import api_helpers
+from .. import api_helpers, errors
 from ..api_helpers import get_goods, get_refunded_goods
-
-
-def assert_invalid_np_response(np_response, error_keywords):
-    assert not np_response.result
-    for msg in error_keywords:
-        assert msg in np_response.error_codes[0]
 
 
 def test_register_no_billing_address(config, np_payment_data):
@@ -25,7 +19,8 @@ def test_register_no_billing_address(config, np_payment_data):
     np_response = api_helpers.register(config, np_payment_data)
 
     # then
-    assert_invalid_np_response(np_response, ["Billing address", "required"])
+    assert not np_response.result
+    assert np_response.error_codes == [f"{errors.NO_BILLING_ADDRESS}"]
 
 
 def test_register_no_shipping_address(config, np_payment_data):
@@ -36,7 +31,8 @@ def test_register_no_shipping_address(config, np_payment_data):
     np_response = api_helpers.register(config, np_payment_data)
 
     # then
-    assert_invalid_np_response(np_response, ["Shipping address", "required"])
+    assert not np_response.result
+    assert np_response.error_codes == [f"{errors.NO_SHIPPING_ADDRESS}"]
 
 
 INVALID = sentinel.INVALID
@@ -59,7 +55,8 @@ def test_register_invalid_billing_address(config, np_payment_data):
     np_response = api_helpers.register(config, np_payment_data)
 
     # then
-    assert_invalid_np_response(np_response, ["Billing address", "valid"])
+    assert not np_response.result
+    assert np_response.error_codes == [f"{errors.BILLING_ADDRESS_INVALID}"]
 
 
 @patch(
@@ -75,7 +72,8 @@ def test_register_invalid_shipping_address(config, np_payment_data):
     np_response = api_helpers.register(config, np_payment_data)
 
     # then
-    assert_invalid_np_response(np_response, ["Shipping address", "valid"])
+    assert not np_response.result
+    assert np_response.error_codes == [f"{errors.SHIPPING_ADDRESS_INVALID}"]
 
 
 def test_format_name(np_address_data):
