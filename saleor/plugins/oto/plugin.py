@@ -81,10 +81,10 @@ class OTOPlugin(BasePlugin):
         # Create an OTO order.
         response = send_oto_request(fulfillment, self.config, "createOrder")
         if response.get("success") is True:
-            fulfillment.order.store_value_in_private_metadata(
+            fulfillment.store_value_in_private_metadata(
                 items=dict(oto_id=response.get("otoId"))
             )
-            fulfillment.order.save(update_fields=["private_metadata"])
+            fulfillment.save(update_fields=["private_metadata"])
         else:
             msg = (
                 response.get("errorMsg").capitalize()
@@ -100,7 +100,7 @@ class OTOPlugin(BasePlugin):
         self, fulfillment: "Fulfillment", previous_value: Any
     ) -> Any:
         # Cancel an OTO order.
-        response = send_oto_request.delay(fulfillment, self.config, "cancelOrder")
+        response = send_oto_request(fulfillment, self.config, "cancelOrder")
         if not response.get("success") is True:
             msg = (
                 response.get("errorMsg").capitalize()

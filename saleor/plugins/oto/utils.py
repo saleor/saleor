@@ -41,6 +41,7 @@ def get_order_items_data(order):
 
 
 def generate_create_order_data(fulfillment):
+    fulfillment_line = fulfillment.lines.last()
     is_cod_order = (
         True
         if fulfillment.order.get_last_payment().payment_method_type == "cod"
@@ -51,7 +52,6 @@ def generate_create_order_data(fulfillment):
         "orderId": str(fulfillment.id),
         "ref1": fulfillment.order.token,
         "currency": fulfillment.order.currency,
-        "amount": fulfillment.order.total_net_amount,
         "shippingNotes": fulfillment.order.customer_note,
         "payment_method": "cod" if is_cod_order else "paid",
         "items": get_order_items_data(order=fulfillment.order),
@@ -59,6 +59,8 @@ def generate_create_order_data(fulfillment):
         "customer": get_order_customer_data(order=fulfillment.order),
         "shippingAmount": fulfillment.order.shipping_price_net_amount,
         "amount_due": fulfillment.order.total_net_amount if is_cod_order else 0,
+        "amount": fulfillment_line.quantity
+        * fulfillment_line.order_line.unit_price_net_amount,
         "orderDate": "%s %s:%s"
         % (
             str(fulfillment.order.created.date().strftime("%d/%m/%Y")),
