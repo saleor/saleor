@@ -445,10 +445,6 @@ class Product(SeoModel, ModelWithMetadata):
     def __str__(self) -> str:
         return self.name
 
-    @property
-    def plain_text_description(self) -> str:
-        return json_content_to_raw_text(self.description)
-
     def get_first_image(self):
         all_media = self.media.all()
         images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
