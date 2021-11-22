@@ -93,17 +93,20 @@ def category_page_id():
 def hierarchical_categories(product: Product):
     hierarchical = {}
     hierarchical_list = []
-    categories = product.category.get_ancestors(include_self=True)
-    for index, category in enumerate(categories):
-        hierarchical_list.append(str(category))
-        hierarchical.update(
-            {
-                "lvl{0}".format(str(index)): " > ".join(hierarchical_list[: index + 1])
-                if index != 0
-                else hierarchical_list[index]
-            }
-        )
-    return hierarchical
+    if product.category:
+        categories = product.category.get_ancestors(include_self=True)
+        for index, category in enumerate(categories):
+            hierarchical_list.append(str(category))
+            hierarchical.update(
+                {
+                    "lvl{0}".format(str(index)): " > ".join(
+                        hierarchical_list[: index + 1]
+                    )
+                    if index != 0
+                    else hierarchical_list[index]
+                }
+            )
+        return hierarchical
 
 
 def get_product_data(product: "Product", locale="EN"):
@@ -122,19 +125,8 @@ def get_product_data(product: "Product", locale="EN"):
             {
                 "objectID": product_global_id,
                 "categoryPageId": category_page_id(),
-                "gender": get_gender_from_product_data(product_dict),
+                "gender": product.get_value_from_metadata("gender"),
                 "hierarchicalCategories": hierarchical_categories(product),
             }
         )
         return product_dict
-
-
-def get_gender_from_product_data(product_data):
-    gender = None
-    meta_data = product_data.get("metadata", None)
-
-    # Get gender from meta data.
-    for item in meta_data:
-        if item["key"] == "gender":
-            gender = item["value"]
-    return gender

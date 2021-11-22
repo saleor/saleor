@@ -5,11 +5,11 @@ import graphene
 from algoliasearch.search_client import SearchClient
 from django.core.exceptions import ValidationError
 
-from . import constants
-from .utils import UserAdminContext, get_product_data
+from ...product.models import Product
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
-from ...product.models import Product
+from . import constants
+from .utils import UserAdminContext, get_product_data
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,7 @@ class AlgoliaPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.algolia_indices = {}
         self.context = UserAdminContext()
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = {
@@ -61,14 +62,29 @@ class AlgoliaPlugin(BasePlugin):
             "ALGOLIA_APPLICATION_ID": configuration["ALGOLIA_APPLICATION_ID"],
         }
         self.client = SearchClient.create(
-            app_id=self.config["ALGOLIA_APPLICATION_ID"],
             api_key=self.config["ALGOLIA_API_KEY"],
+            app_id=self.config["ALGOLIA_APPLICATION_ID"],
         )
 
-        algolia_index_prefix = self.config["ALGOLIA_INDEX_PREFIX"]
+        self.algolia_index_prefix = self.config["ALGOLIA_INDEX_PREFIX"]
         for locale in self.config["ALGOLIA_LOCALES"].split(","):
-            globals()["algolia_index_" + locale] = self.client.init_index(
-                name=algolia_index_prefix + "_products" + "_" + locale
+            index = self.client.init_index(
+                name=f"{self.algolia_index_prefix}_products_{locale}"
+            )
+
+            self.algolia_indices.update(
+                {f"{self.algolia_index_prefix}_{locale}": index}
+            )
+
+            index.set_settings(
+                settings={
+                    "searchableAttributes": [
+                        "sku",
+                        "name",
+                        "description",
+                        "translation",
+                    ]
+                }
             )
 
     @classmethod
@@ -97,25 +113,32 @@ class AlgoliaPlugin(BasePlugin):
             )
 
     def product_created(self, product: "Product", previous_value: Any):
+        """Index product to Algolia."""
         for locale in self.config["ALGOLIA_LOCALES"].split(","):
             product_data = get_product_data(product=product, locale=locale)
             if product_data:
-                globals().get("algolia_index_" + locale).save_object(
+                self.algolia_indices.get("algolia_index_" + locale).save_object(
                     obj=product_data,
                     request_options={"autoGenerateObjectIDIfNotExist": False},
                 )
 
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
+        """Index product to Algolia."""
         for locale in self.config["ALGOLIA_LOCALES"].split(","):
             product_data = get_product_data(product=product, locale=locale)
             if product_data:
-                globals().get("algolia_index_" + locale).partial_update_object(
+                self.algolia_indices.get(
+                    f"{self.algolia_index_prefix}_{locale}"
+                ).partial_update_object(
                     obj=product_data, request_options={"createIfNotExists": True}
                 )
 
     def product_deleted(
         self, product: "Product", variants: List[int], previous_value: Any
     ) -> Any:
+        """Delete product from Algolia."""
         object_id = graphene.Node.to_global_id("Product", product.pk)
         for locale in self.config["ALGOLIA_LOCALES"].split(","):
-            globals().get("algolia_index_" + locale).delete_object(object_id=object_id)
+            self.algolia_indices.get("algolia_index_" + locale).delete_object(
+                object_id=object_id
+            )
