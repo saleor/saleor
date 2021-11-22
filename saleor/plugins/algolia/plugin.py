@@ -72,9 +72,7 @@ class AlgoliaPlugin(BasePlugin):
                 name=f"{self.algolia_index_prefix}_products_{locale}"
             )
 
-            self.algolia_indices.update(
-                {f"{self.algolia_index_prefix}_{locale}": index}
-            )
+            self.algolia_indices.update({locale: index})
 
             index.set_settings(
                 settings={
@@ -117,7 +115,7 @@ class AlgoliaPlugin(BasePlugin):
         for locale in self.config["ALGOLIA_LOCALES"].split(","):
             product_data = get_product_data(product=product, locale=locale)
             if product_data:
-                self.algolia_indices.get("algolia_index_" + locale).save_object(
+                self.algolia_indices.get(locale).save_object(
                     obj=product_data,
                     request_options={"autoGenerateObjectIDIfNotExist": False},
                 )
@@ -127,9 +125,7 @@ class AlgoliaPlugin(BasePlugin):
         for locale in self.config["ALGOLIA_LOCALES"].split(","):
             product_data = get_product_data(product=product, locale=locale)
             if product_data:
-                self.algolia_indices.get(
-                    f"{self.algolia_index_prefix}_{locale}"
-                ).partial_update_object(
+                self.algolia_indices.get(locale).partial_update_object(
                     obj=product_data, request_options={"createIfNotExists": True}
                 )
 
@@ -139,6 +135,4 @@ class AlgoliaPlugin(BasePlugin):
         """Delete product from Algolia."""
         object_id = graphene.Node.to_global_id("Product", product.pk)
         for locale in self.config["ALGOLIA_LOCALES"].split(","):
-            self.algolia_indices.get("algolia_index_" + locale).delete_object(
-                object_id=object_id
-            )
+            self.algolia_indices.get(locale).delete_object(object_id=object_id)
