@@ -125,32 +125,13 @@ def calculate_checkout_quantity(lines: Iterable["CheckoutLineInfo"]):
     return sum([line_info.line.quantity for line_info in lines])
 
 
-def add_variants_to_checkout(
-    checkout, variants, quantities, channel_slug, skip_stock_check=False, replace=False
-):
+def add_variants_to_checkout(checkout, variants, quantities, replace=False):
     """Add variants to checkout.
 
     If a variant is not placed in checkout, a new checkout line will be created.
     If quantity is set to 0, checkout line will be deleted.
     Otherwise, quantity will be added or replaced (if replace argument is True).
     """
-
-    # check quantities
-    country_code = checkout.get_country()
-    if not skip_stock_check:
-        check_stock_quantity_bulk(variants, country_code, quantities, channel_slug)
-
-    channel_listings = product_models.ProductChannelListing.objects.filter(
-        channel_id=checkout.channel.id,
-        product_id__in=[v.product_id for v in variants],
-    )
-    channel_listings_by_product_id = {cl.product_id: cl for cl in channel_listings}
-
-    # check if variants are published
-    for variant in variants:
-        product_channel_listing = channel_listings_by_product_id[variant.product_id]
-        if not product_channel_listing or not product_channel_listing.is_published:
-            raise ProductNotPublished()
 
     variant_ids_in_lines = {line.variant_id: line for line in checkout.lines.all()}
     to_create = []

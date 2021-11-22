@@ -744,6 +744,9 @@ def create_fake_sale():
         )
     for product in Product.objects.all().order_by("?")[:4]:
         sale.products.add(product)
+
+    for variant in ProductVariant.objects.all().order_by("?")[:2]:
+        sale.variants.add(variant)
     return sale
 
 

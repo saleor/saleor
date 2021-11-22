@@ -34,9 +34,6 @@ CACHE_KEY = "avatax_request_id_"
 TAX_CODES_CACHE_KEY = "avatax_tax_codes_cache_key"
 TIMEOUT = 10  # API HTTP Requests Timeout
 
-# Common carrier code used to identify the line as a shipping service
-COMMON_CARRIER_CODE = "FR020100"
-
 # Common discount code use to apply discount on order
 COMMON_DISCOUNT_VOUCHER_CODE = "OD010000"
 
@@ -57,6 +54,7 @@ class AvataxConfiguration:
     use_sandbox: bool = True
     company_name: str = "DEFAULT"
     autocommit: bool = False
+    shipping_tax_code: str = ""
 
 
 class TransactionType:
@@ -220,6 +218,7 @@ def append_line_to_data(
 def append_shipping_to_data(
     data: List[Dict],
     shipping_method_channel_listing: Optional["ShippingMethodChannelListing"],
+    shipping_tax_code: str,
 ):
     charge_taxes_on_shipping = (
         Site.objects.get_current().settings.charge_taxes_on_shipping
@@ -230,7 +229,7 @@ def append_shipping_to_data(
             data,
             quantity=1,
             amount=shipping_price.amount,
-            tax_code=COMMON_CARRIER_CODE,
+            tax_code=shipping_tax_code,
             item_code="Shipping",
         )
 
@@ -238,6 +237,7 @@ def append_shipping_to_data(
 def get_checkout_lines_data(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
+    config: AvataxConfiguration,
     discounts=None,
 ) -> List[Dict[str, Union[str, int, bool, None]]]:
     data: List[Dict[str, Union[str, int, bool, None]]] = []
@@ -250,28 +250,33 @@ def get_checkout_lines_data(
         product_type = line_info.product_type
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
+        amount = base_calculations.base_checkout_line_total(
+            line_info,
+            channel,
+            discounts,
+        ).gross.amount
         append_line_to_data(
             data=data,
             quantity=line_info.line.quantity,
-            amount=base_calculations.base_checkout_line_total(
-                line_info,
-                channel,
-                discounts,
-            ).gross.amount,
-            tax_code=tax_code,
+            amount=amount,
+            # This is a workaround for Avatax and sending a lines with amount 0. Like
+            # order lines which are fully discounted for some reason. If we use a
+            # standard tax_code, Avatax will raise an exception: "When shipping
+            # cross-border into CIF countries, Tax Included is not supported with mixed
+            # positive and negative line amounts."
+            tax_code=tax_code if amount else DEFAULT_TAX_CODE,
             item_code=line_info.variant.sku,
             name=name,
         )
 
     append_shipping_to_data(
-        data,
-        checkout_info.shipping_method_channel_listings,
+        data, checkout_info.shipping_method_channel_listings, config.shipping_tax_code
     )
     return data
 
 
 def get_order_lines_data(
-    order: "Order",
+    order: "Order", config: AvataxConfiguration
 ) -> List[Dict[str, Union[str, int, bool, None]]]:
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     lines = order.lines.prefetch_related(
@@ -296,11 +301,17 @@ def get_order_lines_data(
         )
         tax_included = line_has_included_taxes or system_tax_included
 
+        amount = line.unit_price_gross_amount * line.quantity
         append_line_to_data(
             data=data,
             quantity=line.quantity,
-            amount=line.unit_price_gross_amount * line.quantity,
-            tax_code=tax_code,
+            amount=amount,
+            # This is a workaround for Avatax and sending a lines with amount 0. Like
+            # order lines which are fully discounted for some reason. If we use a
+            # standard tax_code, Avatax will raise an exception: "When shipping
+            # cross-border into CIF countries, Tax Included is not supported with mixed
+            # positive and negative line amounts."
+            tax_code=tax_code if amount else DEFAULT_TAX_CODE,
             item_code=line.variant.sku,
             name=line.variant.product.name,
             tax_included=tax_included,
@@ -320,7 +331,9 @@ def get_order_lines_data(
     shipping_method_channel_listing = ShippingMethodChannelListing.objects.filter(
         shipping_method=order.shipping_method_id, channel=order.channel_id
     ).first()
-    append_shipping_to_data(data, shipping_method_channel_listing)
+    append_shipping_to_data(
+        data, shipping_method_channel_listing, config.shipping_tax_code
+    )
     return data
 
 
@@ -377,7 +390,7 @@ def generate_request_data_from_checkout(
 ):
 
     address = checkout_info.shipping_address or checkout_info.billing_address
-    lines = get_checkout_lines_data(checkout_info, lines_info, discounts)
+    lines = get_checkout_lines_data(checkout_info, lines_info, config, discounts)
 
     currency = checkout_info.checkout.currency
     data = generate_request_data(
@@ -446,7 +459,7 @@ def get_checkout_tax_data(
 
 def get_order_request_data(order: "Order", config: AvataxConfiguration):
     address = order.shipping_address or order.billing_address
-    lines = get_order_lines_data(order)
+    lines = get_order_lines_data(order, config)
     transaction = (
         TransactionType.INVOICE
         if not (order.is_draft() or order.is_unconfirmed())
