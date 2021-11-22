@@ -508,13 +508,17 @@ def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock)
     ]
 
 
+@pytest.mark.parametrize("is_preorder", [True, False])
 def test_checkout_lines_add_too_many_after_two_trials(
-    user_api_client, checkout_with_item, stock
+    user_api_client, checkout_with_item, stock, is_preorder
 ):
     variant = stock.product_variant
+    variant.is_preorder = is_preorder
+    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=1)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     stock.quantity = 200
     stock.save(update_fields=["quantity"])
+    variant.save(update_fields=["is_preorder", "preorder_end_date"])
 
     variables = {
         "token": checkout_with_item.token,
