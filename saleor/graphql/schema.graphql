@@ -1993,7 +1993,6 @@ input EventDeliveryFilterInput {
 
 type EventDeliveryRetry {
   delivery: EventDelivery
-  webhookErrors: [WebhookError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [WebhookError!]!
 }
 

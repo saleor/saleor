@@ -21,7 +21,7 @@ WEBHOOK_DELIVERY_RETRY_MUTATION = """
 
 @patch("saleor.plugins.webhook.tasks.send_webhook_request_async.delay")
 def test_delivery_retry_mutation(
-    mocked_send_request_async, app_api_client, permission_manage_orders, event_delivery
+    mocked_send_request_async, app_api_client, permission_manage_apps, event_delivery
 ):
     # given
     query = WEBHOOK_DELIVERY_RETRY_MUTATION
@@ -32,7 +32,7 @@ def test_delivery_retry_mutation(
     response = app_api_client.post_graphql(
         query,
         variables=variables,
-        permissions=[permission_manage_orders],
+        permissions=[permission_manage_apps],
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
@@ -54,7 +54,7 @@ def test_webhook_delivery_retry_without_permission(
 
 
 def test_webhook_delivery_retry_wrong_type(
-    staff_api_client, app, event_attempt, permission_manage_orders
+    staff_api_client, app, event_attempt, permission_manage_apps
 ):
     query = WEBHOOK_DELIVERY_RETRY_MUTATION
     delivery_wrong_id = graphene.Node.to_global_id(
@@ -65,7 +65,7 @@ def test_webhook_delivery_retry_wrong_type(
     response = staff_api_client.post_graphql(
         query,
         variables=variables,
-        permissions=[permission_manage_orders],
+        permissions=[permission_manage_apps],
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
@@ -76,7 +76,7 @@ def test_webhook_delivery_retry_wrong_type(
 
 
 def test_delivery_retry_mutation_wrong_id(
-    app_api_client, permission_manage_orders, event_delivery
+    app_api_client, permission_manage_apps, event_delivery
 ):
     # given
     query = WEBHOOK_DELIVERY_RETRY_MUTATION
@@ -86,7 +86,7 @@ def test_delivery_retry_mutation_wrong_id(
     response = app_api_client.post_graphql(
         query,
         variables=variables,
-        permissions=[permission_manage_orders],
+        permissions=[permission_manage_apps],
         check_no_permissions=False,
     )
     content = get_graphql_content(response)

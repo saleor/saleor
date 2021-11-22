@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...core import EventDeliveryStatus
-from ...core.permissions import AppPermission, OrderPermissions
+from ...core.permissions import AppPermission
 from ...plugins.webhook.tasks import send_webhook_request_async
 from ...plugins.webhook.utils import delivery_update
 from ...webhook import models
@@ -216,9 +216,8 @@ class EventDeliveryRetry(BaseMutation):
 
     class Meta:
         description = "Retries event delivery."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = WebhookError
-        error_type_field = "webhook_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
