@@ -84,3 +84,16 @@ def remove_staff_member(staff):
         staff.save()
     else:
         staff.delete()
+
+
+def prepare_user_search_document_value(user: "User"):
+    search_document = f"{user.email}{user.first_name}{user.last_name}"
+
+    for address in user.addresses.all():
+        search_document += (
+            f"{address.first_name}{address.last_name}"
+            f"{address.street_address_1}{address.street_address_2}"
+            f"{address.city}{address.postal_code}{address.country}{address.phone}"
+        )
+
+    return search_document.replace(" ", "").lower()
