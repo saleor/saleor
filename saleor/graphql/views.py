@@ -27,6 +27,9 @@ from jwt.exceptions import PyJWTError
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
+from .api import schema
+from .core.validators.query_cost import validate_query_cost
+from .query_cost_map import COST_MAP
 from .utils import query_fingerprint
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
@@ -197,6 +200,8 @@ class GraphQLView(View):
                 status_code = 400
             else:
                 response["data"] = execution_result.data
+            if execution_result.extensions:
+                response["extensions"] = execution_result.extensions
             result: Optional[Dict[str, List[Any]]] = response
         else:
             result = None
@@ -256,6 +261,7 @@ class GraphQLView(View):
             )
 
             query, variables, operation_name = self.get_graphql_params(request, data)
+            query_cost = 0
 
             document, error = self.parse_query(query)
             if error:
@@ -271,6 +277,18 @@ class GraphQLView(View):
                     )
                 except GraphQLError as e:
                     return ExecutionResult(errors=[e], invalid=True)
+
+                if settings.GRAPHQL_QUERY_MAX_COMPLEXITY:
+                    query_cost, cost_errors = validate_query_cost(
+                        schema,
+                        document,
+                        variables,
+                        COST_MAP,
+                        settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
+                    )
+                    if cost_errors:
+                        result = ExecutionResult(errors=cost_errors, invalid=True)
+                        return set_query_cost_on_result(result, query_cost)
 
             extra_options: Dict[str, Optional[Any]] = {}
 
@@ -299,7 +317,8 @@ class GraphQLView(View):
                         )
                         if should_use_cache_for_scheme:
                             cache.set(key, response)
-                    return response
+
+                    return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_tag(opentracing.tags.ERROR, True)
                 # In the graphql-core version that we are using,
@@ -348,6 +367,9 @@ class GraphQLView(View):
         else:
             result = {"message": str(error)}
 
+        if "extensions" not in result:
+            result["extensions"] = {}
+
         exc = error
         while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
             exc = exc.original_error
@@ -358,7 +380,7 @@ class GraphQLView(View):
         else:
             unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
 
-        result["extensions"] = {"exception": {"code": type(exc).__name__}}
+        result["extensions"]["exception"] = {"code": type(exc).__name__}
         if settings.DEBUG:
             lines = []
 
@@ -419,3 +441,16 @@ def obj_set(obj, path, value, do_not_replace):
 def generate_cache_key(raw_query: str) -> str:
     hashed_query = hashlib.sha256(str(raw_query).encode("utf-8")).hexdigest()
     return f"{saleor_version}-{hashed_query}"
+
+
+def set_query_cost_on_result(execution_result: ExecutionResult, query_cost):
+    if settings.GRAPHQL_QUERY_MAX_COMPLEXITY:
+        execution_result.extensions.update(
+            {
+                "cost": {
+                    "requestedQueryCost": query_cost,
+                    "maximumAvailable": settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
+                }
+            }
+        )
+    return execution_result

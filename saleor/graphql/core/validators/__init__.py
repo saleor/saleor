@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django_prices.utils.formatting import get_currency_fraction
 from graphql.error import GraphQLError
 
-from ...product.models import ProductVariantChannelListing
+from ....product.models import ProductVariantChannelListing
 
 if TYPE_CHECKING:
     from decimal import Decimal
