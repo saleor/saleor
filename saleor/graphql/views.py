@@ -28,7 +28,7 @@ from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from .api import schema
-from .core.validators.query_cost import QueryCostError, validate_query_cost
+from .core.validators.query_cost import validate_query_cost
 from .query_cost_map import COST_MAP
 from .utils import query_fingerprint
 
