@@ -109,10 +109,7 @@ class Webhook(CountableDjangoObjectType):
     @staticmethod
     def resolve_events(root: models.Webhook, *_args, **_kwargs):
         return root.events.all()
-<<<<<<< HEAD
 
     @staticmethod
     def resolve_deliveries(root: models.Webhook, *_args, **_kwargs):
         return core_models.EventDelivery.objects.filter(webhook_id=root.pk)
-=======
->>>>>>> daf10b9d9 (fix event resolver, added test)
