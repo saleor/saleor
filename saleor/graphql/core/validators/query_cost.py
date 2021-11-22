@@ -193,8 +193,8 @@ class CostValidator(ValidationRule):
         ]
         return [m for m in multipliers if m > 0]
 
-    def get_cost_exceeded_error(self) -> GraphQLError:
-        return GraphQLError(
+    def get_cost_exceeded_error(self) -> "QueryCostError":
+        return QueryCostError(
             cost_analysis_message(self.maximum_cost, self.cost),
             extensions={
                 "cost": {
@@ -261,6 +261,10 @@ def cost_analysis_message(maximum_cost: int, cost: int) -> str:
         maximum_cost,
         cost,
     )
+
+
+class QueryCostError(GraphQLError):
+    pass
 
 
 def cost_validator(
