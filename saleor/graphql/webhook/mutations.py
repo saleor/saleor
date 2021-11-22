@@ -206,7 +206,7 @@ class WebhookDelete(ModelDeleteMutation):
         return super().perform_mutation(_root, info, **data)
 
 
-class WebhookDeliveryRetry(BaseMutation):
+class EventDeliveryRetry(BaseMutation):
     delivery = graphene.Field(EventDelivery, description=".")
 
     class Arguments:
@@ -229,4 +229,4 @@ class WebhookDeliveryRetry(BaseMutation):
         )
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
         send_webhook_request_async.delay(delivery.pk)
-        return WebhookDeliveryRetry(delivery=delivery)
+        return EventDeliveryRetry(delivery=delivery)
