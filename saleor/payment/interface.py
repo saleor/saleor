@@ -65,6 +65,7 @@ class PaymentLineData:
     gross: Decimal
     variant_id: int
     product_name: str
+    product_sku: str
     quantity: int
 
 

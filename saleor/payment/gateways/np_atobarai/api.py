@@ -32,7 +32,7 @@ from .errors import (
     add_action_to_code,
     get_error_messages_from_codes,
 )
-from .utils import np_atobarai_opentracing_trace
+from .utils import get_shipping_company_code, np_atobarai_opentracing_trace
 
 logger = logging.getLogger(__name__)
 
@@ -106,9 +106,9 @@ def change_transaction(
 ) -> Optional[PaymentResult]:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.change"):
         if refund_data:
-            goods = get_refunded_goods(refund_data, payment_information)
+            goods = get_refunded_goods(config, refund_data, payment_information)
         else:
-            goods = get_goods_with_discount(payment_information)
+            goods = get_goods_with_discount(config, payment_information)
 
         data = {
             "transactions": [
@@ -156,6 +156,7 @@ def reregister_transaction_for_partial_return(
     config: ApiConfig,
     payment: Payment,
     payment_information: PaymentData,
+    shipping_company_code: Optional[str],
     tracking_number: Optional[str],
     refund_data: Optional[Dict[int, int]],
 ) -> PaymentResult:
@@ -178,9 +179,9 @@ def reregister_transaction_for_partial_return(
             return errors_payment_result(error_messages)
 
         if refund_data:
-            goods = get_refunded_goods(refund_data, payment_information)
+            goods = get_refunded_goods(config, refund_data, payment_information)
         else:
-            goods = get_goods_with_discount(payment_information)
+            goods = get_goods_with_discount(config, payment_information)
 
         billed_amount = format_price(
             payment.captured_amount - payment_information.amount,
@@ -197,7 +198,7 @@ def reregister_transaction_for_partial_return(
         if not error_codes:
             new_psp_reference = result["np_transaction_id"]
 
-            report(config, new_psp_reference, tracking_number)
+            report(config, shipping_company_code, new_psp_reference, tracking_number)
 
             return PaymentResult(
                 status=PaymentStatus.SUCCESS,
@@ -217,9 +218,13 @@ def report_fulfillment(
     ):
         payment_id = payment.psp_reference or payment.id
         already_reported = False
+        shipping_company_code = get_shipping_company_code(fulfillment)
 
         result, error_codes = report(
-            config, payment.psp_reference, fulfillment.tracking_number
+            config,
+            shipping_company_code,
+            payment.psp_reference,
+            fulfillment.tracking_number,
         )
 
         if PRE_FULFILLMENT_ERROR_CODE in error_codes:
