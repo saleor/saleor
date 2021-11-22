@@ -139,6 +139,9 @@ class EventDelivery(models.Model):
     )
     webhook = models.ForeignKey("webhook.Webhook", null=True, on_delete=models.SET_NULL)
 
+    class Meta:
+        ordering = ("-created_at",)
+
 
 class EventDeliveryAttempt(models.Model):
     delivery = models.ForeignKey(
@@ -155,3 +158,6 @@ class EventDeliveryAttempt(models.Model):
         choices=EventDeliveryStatus.CHOICES,
         default=EventDeliveryStatus.PENDING,
     )
+
+    class Meta:
+        ordering = ("-created_at",)
