@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List, Optional, Tuple, Union
 
-from ....order.models import Fulfillment
+from ....order.models import Fulfillment, Order
 from ...interface import PaymentData
 from ...models import Payment
 from .api_helpers import (
@@ -23,27 +23,29 @@ from .api_types import (
 )
 from .const import PRE_FULFILLMENT_ERROR_CODE
 from .errors import (
-    FULFILLMENT_REPORT_RESULT_ERRORS,
-    TRANSACTION_CANCELLATION_RESULT_ERROR,
-    TRANSACTION_REGISTRATION_RESULT_ERRORS,
+    FULFILLMENT_REPORT,
+    NO_PSP_REFERENCE,
+    PAYMENT_DOES_NOT_EXIST,
+    TRANSACTION_CANCELLATION,
+    TRANSACTION_CHANGE,
+    TRANSACTION_REGISTRATION,
+    add_action_to_code,
     get_error_messages_from_codes,
-    get_reason_messages_from_codes,
 )
-from .utils import np_atobarai_opentracing_trace
+from .utils import get_shipping_company_code, np_atobarai_opentracing_trace
 
 logger = logging.getLogger(__name__)
 
 
 def register_transaction(
-    config: ApiConfig, payment_information: "PaymentData"
+    order: Optional[Order], config: ApiConfig, payment_information: "PaymentData"
 ) -> PaymentResult:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.register"):
         result, error_codes = register(config, payment_information)
 
         if error_codes:
             error_messages = get_error_messages_from_codes(
-                error_codes=error_codes,
-                error_map=TRANSACTION_REGISTRATION_RESULT_ERRORS,
+                action=TRANSACTION_REGISTRATION, error_codes=error_codes
             )
             return errors_payment_result(error_messages)
 
@@ -53,8 +55,10 @@ def register_transaction(
 
         if status == PaymentStatus.PENDING:
             if cancel_error_codes := cancel(config, transaction_id).error_codes:
-                handle_unrecoverable_state("cancel", transaction_id, cancel_error_codes)
-            error_messages = get_reason_messages_from_codes(result["authori_hold"])
+                handle_unrecoverable_state(
+                    order, "cancel", transaction_id, cancel_error_codes
+                )
+            error_messages = result["authori_hold"]
 
         return PaymentResult(
             status=status,
@@ -67,25 +71,27 @@ def cancel_transaction(
     config: ApiConfig, payment_information: PaymentData
 ) -> PaymentResult:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.cancel"):
+        action = TRANSACTION_CANCELLATION
         payment_id = payment_information.payment_id
         payment = Payment.objects.filter(id=payment_id).first()
 
         if not payment:
-            return error_payment_result(f"Payment with id {payment_id} does not exist.")
+            return error_payment_result(
+                add_action_to_code(action, error_code=PAYMENT_DOES_NOT_EXIST)
+            )
 
         psp_reference = payment.psp_reference
 
         if not psp_reference:
             return error_payment_result(
-                f"Payment with id {payment_id} cannot be voided "
-                f"- psp reference is missing."
+                add_action_to_code(action, error_code=NO_PSP_REFERENCE)
             )
 
         result, error_codes = cancel(config, psp_reference)
 
         if error_codes:
             error_messages = get_error_messages_from_codes(
-                error_codes, TRANSACTION_CANCELLATION_RESULT_ERROR
+                action, error_codes=error_codes
             )
             return errors_payment_result(error_messages)
 
@@ -100,9 +106,9 @@ def change_transaction(
 ) -> Optional[PaymentResult]:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.change"):
         if refund_data:
-            goods = get_refunded_goods(refund_data, payment_information)
+            goods = get_refunded_goods(config, refund_data, payment_information)
         else:
-            goods = get_goods_with_discount(payment_information)
+            goods = get_goods_with_discount(config, payment_information)
 
         data = {
             "transactions": [
@@ -128,9 +134,9 @@ def change_transaction(
             if status == PaymentStatus.PENDING:
                 if cancel_error_codes := cancel(config, transaction_id).error_codes:
                     handle_unrecoverable_state(
-                        "cancel", transaction_id, cancel_error_codes
+                        payment.order, "cancel", transaction_id, cancel_error_codes
                     )
-                error_messages = get_reason_messages_from_codes(result["authori_hold"])
+                error_messages = result["authori_hold"]
                 return errors_payment_result(error_messages)
 
             return PaymentResult(
@@ -141,7 +147,7 @@ def change_transaction(
             return None
 
         error_messages = get_error_messages_from_codes(
-            error_codes, TRANSACTION_REGISTRATION_RESULT_ERRORS
+            action=TRANSACTION_CHANGE, error_codes=error_codes
         )
         return errors_payment_result(error_messages)
 
@@ -150,29 +156,32 @@ def reregister_transaction_for_partial_return(
     config: ApiConfig,
     payment: Payment,
     payment_information: PaymentData,
+    shipping_company_code: Optional[str],
     tracking_number: Optional[str],
     refund_data: Optional[Dict[int, int]],
 ) -> PaymentResult:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.reregister"):
-        payment_id = payment_information.payment_id
         psp_reference = payment.psp_reference
+        action = TRANSACTION_REGISTRATION
 
         if not psp_reference:
             return error_payment_result(
-                f"Payment with id {payment_id} cannot be reregistered "
-                f"- psp reference is missing."
+                add_action_to_code(
+                    action,
+                    error_code=NO_PSP_REFERENCE,
+                )
             )
 
         if cancel_error_codes := cancel(config, psp_reference).error_codes:
             error_messages = get_error_messages_from_codes(
-                cancel_error_codes, TRANSACTION_CANCELLATION_RESULT_ERROR
+                action=TRANSACTION_CANCELLATION, error_codes=cancel_error_codes
             )
             return errors_payment_result(error_messages)
 
         if refund_data:
-            goods = get_refunded_goods(refund_data, payment_information)
+            goods = get_refunded_goods(config, refund_data, payment_information)
         else:
-            goods = get_goods_with_discount(payment_information)
+            goods = get_goods_with_discount(config, payment_information)
 
         billed_amount = format_price(
             payment.captured_amount - payment_information.amount,
@@ -189,16 +198,14 @@ def reregister_transaction_for_partial_return(
         if not error_codes:
             new_psp_reference = result["np_transaction_id"]
 
-            report(config, new_psp_reference, tracking_number)
+            report(config, shipping_company_code, new_psp_reference, tracking_number)
 
             return PaymentResult(
                 status=PaymentStatus.SUCCESS,
                 psp_reference=new_psp_reference,
             )
 
-        error_messages = get_error_messages_from_codes(
-            error_codes, TRANSACTION_REGISTRATION_RESULT_ERRORS
-        )
+        error_messages = get_error_messages_from_codes(action, error_codes=error_codes)
 
         return errors_payment_result(error_messages)
 
@@ -211,16 +218,20 @@ def report_fulfillment(
     ):
         payment_id = payment.psp_reference or payment.id
         already_reported = False
+        shipping_company_code = get_shipping_company_code(fulfillment)
 
         result, error_codes = report(
-            config, payment.psp_reference, fulfillment.tracking_number
+            config,
+            shipping_company_code,
+            payment.psp_reference,
+            fulfillment.tracking_number,
         )
 
         if PRE_FULFILLMENT_ERROR_CODE in error_codes:
             already_reported = True
 
         errors = get_error_messages_from_codes(
-            error_codes, FULFILLMENT_REPORT_RESULT_ERRORS
+            action=FULFILLMENT_REPORT, error_codes=error_codes
         )
 
         return payment_id, errors, already_reported

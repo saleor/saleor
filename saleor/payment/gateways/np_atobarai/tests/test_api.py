@@ -6,9 +6,17 @@ import pytest
 import requests
 
 from .... import PaymentError
-from .. import PaymentStatus, api
-from ..api_helpers import format_price, get_goods_with_discount
+from .. import PaymentStatus, api, const
+from ..api_helpers import format_price, get_goods_with_discount, get_refunded_goods
 from ..api_types import NPResponse
+from ..errors import (
+    NO_PSP_REFERENCE,
+    NO_TRACKING_NUMBER,
+    NP_CONNECTION_ERROR,
+    PAYMENT_DOES_NOT_EXIST,
+    SHIPPING_COMPANY_CODE_INVALID,
+)
+from ..plugin import NPAtobaraiGatewayPlugin
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -216,6 +224,34 @@ def test_report_fulfillment(mocked_request, config, fulfillment, payment_dummy):
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+def test_report_fulfillment_invalid_shipping_company_code(
+    mocked_request, config, fulfillment, payment_dummy
+):
+    # given
+    psp_reference = "18121200001"
+    payment_dummy.psp_reference = psp_reference
+    payment_dummy.save(update_fields=["psp_reference"])
+    response = Mock(
+        spec=requests.Response,
+        status_code=200,
+        json=Mock(return_value={"results": [{"np_transaction_id": psp_reference}]}),
+    )
+    mocked_request.return_value = response
+    fulfillment.store_value_in_private_metadata(
+        {const.SHIPPING_COMPANY_CODE_METADATA_KEY: "invalid_shipping_company_code"}
+    )
+
+    # when
+    _, errors, already_captured = api.report_fulfillment(
+        config, payment_dummy, fulfillment
+    )
+
+    # then
+    assert not already_captured
+    assert errors == [f"FR#{SHIPPING_COMPANY_CODE_INVALID}"]
+
+
+@patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_report_fulfillment_no_psp_reference(
     _mocked_request, config, fulfillment, payment_dummy
 ):
@@ -226,7 +262,7 @@ def test_report_fulfillment_no_psp_reference(
 
     # then
     assert not already_captured
-    assert errors == ["Payment does not have psp reference."]
+    assert errors == [f"FR#{NO_PSP_REFERENCE}"]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -246,7 +282,7 @@ def test_report_fulfillment_no_tracking_number(
 
     # then
     assert not already_captured
-    assert errors == ["Fulfillment does not have tracking number."]
+    assert errors == [f"FR#{NO_TRACKING_NUMBER}"]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -257,10 +293,11 @@ def test_report_fulfillment_np_errors(
     psp_reference = "18121200001"
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
+    error_codes = ["EPRO0101", "EPRO0102"]
     response = Mock(
         spec=requests.Response,
         status_code=400,
-        json=Mock(return_value={"errors": [{"codes": ["EPRO0101", "EPRO0102"]}]}),
+        json=Mock(return_value={"errors": [{"codes": error_codes}]}),
     )
     mocked_request.return_value = response
 
@@ -271,10 +308,7 @@ def test_report_fulfillment_np_errors(
 
     # then
     assert not already_captured
-    assert set(errors) == {
-        "Please confirm that 1000 or fewer sets of normal transactions are set.",
-        "Please confirm that at least one normal transaction is set.",
-    }
+    assert errors == [f"FR#{code}" for code in error_codes]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -298,9 +332,10 @@ def test_report_fulfillment_connection_errors(
 
     # then
     assert not already_captured
-    error_message = "Cannot connect to NP Atobarai."
-    assert errors == [error_message]
-    assert caplog.record_tuples == [(ANY, logging.WARNING, error_message)]
+    assert errors == [f"FR#{NP_CONNECTION_ERROR}"]
+    assert caplog.record_tuples == [
+        (ANY, logging.WARNING, "Cannot connect to NP Atobarai.")
+    ]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -325,7 +360,7 @@ def test_report_fulfillment_already_captured(
 
 @pytest.fixture
 def payment_np(payment_dummy):
-    payment_dummy.gateway = "mirumee.payments.np-atobarai"
+    payment_dummy.gateway = NPAtobaraiGatewayPlugin.PLUGIN_ID
     payment_dummy.save(update_fields=["gateway"])
     return payment_dummy
 
@@ -553,6 +588,52 @@ def test_change_transaction_failed(
     assert payment_response.errors
 
 
+@patch("saleor.payment.gateways.np_atobarai.api.np_request")
+def test_change_transaction_refunded_goods(
+    mocked_request, config, payment_dummy, np_payment_data
+):
+    # given
+    refund_data = {i: i for i in range(1, 4)}
+    mocked_request.return_value = NPResponse(
+        result={
+            "authori_result": "00",
+            "np_transaction_id": "123123123",
+        },
+        error_codes=[],
+    )
+
+    # when
+    api.change_transaction(config, payment_dummy, np_payment_data, refund_data)
+
+    # then
+    data = mocked_request.call_args[1]["json"]
+    goods = data["transactions"][0]["goods"]
+    assert goods == get_refunded_goods(config, refund_data, np_payment_data)
+
+
+@patch("saleor.payment.gateways.np_atobarai.api.np_request")
+def test_change_transaction_goods_with_discount(
+    mocked_request, config, payment_dummy, np_payment_data
+):
+    # given
+    refund_data = None
+    mocked_request.return_value = NPResponse(
+        result={
+            "authori_result": "00",
+            "np_transaction_id": "123123123",
+        },
+        error_codes=[],
+    )
+
+    # when
+    api.change_transaction(config, payment_dummy, np_payment_data, refund_data)
+
+    # then
+    data = mocked_request.call_args[1]["json"]
+    goods = data["transactions"][0]["goods"]
+    assert goods == get_goods_with_discount(config, np_payment_data)
+
+
 @patch("saleor.payment.gateways.np_atobarai.api.report")
 @patch("saleor.payment.gateways.np_atobarai.api.register")
 @patch("saleor.payment.gateways.np_atobarai.api.cancel")
@@ -567,6 +648,7 @@ def test_reregister_transaction_success(
     # given
     refund_data = None
     tracking_number = "123"
+    shipping_company_code = "50000"
     payment_dummy.psp_reference = "123"
     new_psp_reference = "234"
     mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
@@ -579,7 +661,12 @@ def test_reregister_transaction_success(
 
     # when
     payment_response = api.reregister_transaction_for_partial_return(
-        config, payment_dummy, np_payment_data, tracking_number, refund_data
+        config,
+        payment_dummy,
+        np_payment_data,
+        shipping_company_code,
+        tracking_number,
+        refund_data,
     )
 
     # then
@@ -587,11 +674,13 @@ def test_reregister_transaction_success(
     billed_amount = format_price(
         payment_dummy.captured_amount - np_payment_data.amount, np_payment_data.currency
     )
-    goods = get_goods_with_discount(np_payment_data)
+    goods = get_goods_with_discount(config, np_payment_data)
     mocked_register.assert_called_once_with(
         config, np_payment_data, billed_amount, goods
     )
-    mocked_report.assert_called_once_with(config, new_psp_reference, tracking_number)
+    mocked_report.assert_called_once_with(
+        config, shipping_company_code, new_psp_reference, tracking_number
+    )
     assert payment_response.status == PaymentStatus.SUCCESS
     assert payment_response.psp_reference == new_psp_reference
 
@@ -599,13 +688,12 @@ def test_reregister_transaction_success(
 def test_reregister_transaction_no_psp_reference(payment_dummy, np_payment_data):
     # when
     payment_response = api.reregister_transaction_for_partial_return(
-        Mock(), payment_dummy, np_payment_data, Mock(), Mock()
+        Mock(), payment_dummy, np_payment_data, Mock(), Mock(), Mock()
     )
 
     # then
     assert payment_response.status == PaymentStatus.FAILED
-    assert str(np_payment_data.payment_id) in payment_response.errors[0]
-    assert "psp reference is missing" in payment_response.errors[0]
+    assert payment_response.errors == [f"TR#{NO_PSP_REFERENCE}"]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.cancel")
@@ -619,12 +707,12 @@ def test_reregister_transaction_cancel_error(
 
     # when
     payment_response = api.reregister_transaction_for_partial_return(
-        config, payment_dummy, np_payment_data, Mock(), Mock()
+        config, payment_dummy, np_payment_data, Mock(), Mock(), Mock()
     )
 
     # then
     assert payment_response.status == PaymentStatus.FAILED
-    assert payment_response.errors == error_codes
+    assert payment_response.errors == [f"TC#{code}" for code in error_codes]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.register")
@@ -649,11 +737,12 @@ def test_reregister_transaction_general_error(
         np_payment_data,
         Mock(),
         Mock(),
+        Mock(),
     )
 
     # then
     assert payment_response.status == PaymentStatus.FAILED
-    assert payment_response.errors == error_codes
+    assert payment_response.errors == [f"TR#{code}" for code in error_codes]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.cancel")
@@ -663,24 +752,23 @@ def test_register_transaction_pending(
 ):
     # given
     transaction_id = "123123123"
+    errors = ["RE009", "RE015"]
     register_result = {
         "authori_result": "10",
         "np_transaction_id": transaction_id,
-        "authori_hold": ["RE009", "RE015"],
+        "authori_hold": errors,
     }
     mocked_register.return_value = NPResponse(result=register_result, error_codes=[])
     mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
 
     # when
-    payment_response = api.register_transaction(config, np_payment_data)
+    payment_response = api.register_transaction(None, config, np_payment_data)
 
     # then
     mocked_register.assert_called_once()
     mocked_cancel.assert_called_once_with(config, transaction_id)
     assert payment_response.status == PaymentStatus.PENDING
-    assert len(payment_response.errors) == 2
-    for error in payment_response.errors:
-        assert "address" in error
+    assert payment_response.errors == errors
 
 
 def test_cancel_transaction_no_payment(np_payment_data):
@@ -692,4 +780,4 @@ def test_cancel_transaction_no_payment(np_payment_data):
     payment_response = api.cancel_transaction(Mock(), np_payment_data)
 
     # then
-    assert payment_response.errors == [f"Payment with id {payment_id} does not exist."]
+    assert payment_response.errors == [f"TC#{PAYMENT_DOES_NOT_EXIST}"]

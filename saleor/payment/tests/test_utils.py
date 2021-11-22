@@ -333,6 +333,7 @@ def test_create_payment_lines_information_order(payment_dummy, manager):
             gross=line.unit_price_gross_amount,
             variant_id=line.variant_id,
             product_name=f"{line.product_name}, {line.variant_name}",
+            product_sku=line.product_sku,
             quantity=line.quantity,
         )
         for line in order.lines.all()
@@ -341,6 +342,7 @@ def test_create_payment_lines_information_order(payment_dummy, manager):
             gross=order.shipping_price_gross_amount,
             variant_id=SHIPPING_PAYMENT_LINE_ID,
             product_name="Shipping",
+            product_sku="Shipping",
             quantity=1,
         )
     ]
@@ -412,11 +414,13 @@ def get_expected_payment_lines(checkout, manager):
         quantity = line_info.line.quantity
         variant_id = line_info.variant.id
         product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"
+        product_sku = line_info.variant.sku
         expected_payment_lines.append(
             PaymentLineData(
                 gross=unit_gross,
                 variant_id=variant_id,
                 product_name=product_name,
+                product_sku=product_sku,
                 quantity=quantity,
             )
         )
@@ -432,6 +436,7 @@ def get_expected_payment_lines(checkout, manager):
             gross=shipping_gross,
             variant_id=SHIPPING_PAYMENT_LINE_ID,
             product_name="Shipping",
+            product_sku="Shipping",
             quantity=1,
         )
     )
