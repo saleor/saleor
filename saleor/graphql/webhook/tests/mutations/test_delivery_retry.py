@@ -5,8 +5,8 @@ import graphene
 from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
 
 WEBHOOK_DELIVERY_RETRY_MUTATION = """
-    mutation webhookDeliveryRetry($id: ID!){
-      webhookDeliveryRetry(id: $id){
+    mutation eventDeliveryRetry($id: ID!){
+      eventDeliveryRetry(id: $id){
         errors{
           field
           message
@@ -39,7 +39,7 @@ def test_delivery_retry_mutation(
 
     # then
     mocked_send_request_async.assert_called_once_with(event_delivery.pk)
-    errors = content["data"]["webhookDeliveryRetry"]["errors"]
+    errors = content["data"]["eventDeliveryRetry"]["errors"]
     assert len(errors) == 0
 
 
@@ -69,7 +69,7 @@ def test_webhook_delivery_retry_wrong_type(
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
-    errors = content["data"]["webhookDeliveryRetry"]["errors"]
+    errors = content["data"]["eventDeliveryRetry"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "id"
     assert errors[0]["message"] == expected_message
@@ -91,7 +91,7 @@ def test_delivery_retry_mutation_wrong_id(
     )
     content = get_graphql_content(response)
     # then
-    errors = content["data"]["webhookDeliveryRetry"]["errors"]
+    errors = content["data"]["eventDeliveryRetry"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "id"
     assert errors[0]["message"] == expected_message
