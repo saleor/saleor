@@ -11,7 +11,6 @@ from django.core.exceptions import ValidationError
 from django.test import override_settings
 from django_countries.fields import Country
 from measurement.measures import Weight
-from prices import Money, TaxedMoney
 
 from ....account.models import User
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
@@ -27,7 +26,8 @@ from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quant
 from ....core.payments import PaymentInterface
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
-from ....plugins.manager import PluginsManager, get_plugins_manager
+from ....plugins.base_plugin import ExcludedShippingMethod
+from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
@@ -1329,16 +1329,22 @@ query getCheckout($token: UUID!) {
 def test_checkout_available_shipping_methods(
     api_client, checkout_with_item, address, shipping_zone
 ):
+    # given
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_method.minimum_order_weight = Weight(kg=0)
+    shipping_method.maximum_order_weight = Weight(kg=0)
+    shipping_method.save()
 
+    # when
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    shipping_method = shipping_zone.shipping_methods.first()
+    # then
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
 
 
@@ -1438,32 +1444,16 @@ def test_checkout_available_shipping_methods_excluded_postal_codes(
     assert data["availableShippingMethods"] == []
 
 
-@pytest.mark.parametrize(
-    "expected_price_type, expected_price, display_gross_prices",
-    (("gross", 13, True), ("net", 10, False)),
-)
 def test_checkout_available_shipping_methods_with_price_displayed(
-    expected_price_type,
-    expected_price,
-    display_gross_prices,
-    monkeypatch,
     api_client,
     checkout_with_item,
     address,
     shipping_zone,
-    site_settings,
 ):
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_price = shipping_method.channel_listings.get(
         channel_id=checkout_with_item.channel_id
     ).price
-    taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
-    apply_taxes_to_shipping_mock = mock.Mock(return_value=taxed_price)
-    monkeypatch.setattr(
-        PluginsManager, "apply_taxes_to_shipping", apply_taxes_to_shipping_mock
-    )
-    site_settings.display_gross_prices = display_gross_prices
-    site_settings.save()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
 
@@ -1474,11 +1464,8 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    apply_taxes_to_shipping_mock.assert_called_once_with(
-        shipping_price, mock.ANY, checkout_with_item.channel.slug
-    )
     assert data["availableShippingMethods"] == [
-        {"name": "DHL", "price": {"amount": expected_price}}
+        {"name": "DHL", "price": {"amount": shipping_price.amount}}
     ]
 
 
@@ -2045,6 +2032,32 @@ def test_checkout_billing_address_update(
     assert checkout.billing_address.city == billing_address["city"].upper()
 
 
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
+)
+def test_checkout_shipping_address_update_exclude_shipping_method(
+    mocked_webhook,
+    user_api_client,
+    checkout_with_items_and_shipping,
+    graphql_address_data,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    checkout = checkout_with_items_and_shipping
+    shipping_method = checkout.shipping_method
+    assert shipping_method is not None
+    webhook_reason = "hello-there"
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+    ]
+    shipping_address = graphql_address_data
+    variables = {"token": checkout.token, "shippingAddress": shipping_address}
+
+    user_api_client.post_graphql(MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables)
+    checkout.refresh_from_db()
+    assert checkout.shipping_method is None
+
+
 CHECKOUT_EMAIL_UPDATE_MUTATION = """
     mutation checkoutEmailUpdate($token: UUID, $email: String!) {
         checkoutEmailUpdate(token: $token, email: $email) {
@@ -2518,6 +2531,71 @@ def test_checkout_shipping_method_update_excluded_postal_code(
         mock_is_shipping_method_available.call_count
         == shipping_models.ShippingMethod.objects.count()
     )
+
+
+@patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
+)
+def test_checkout_shipping_method_update_excluded_webhook(
+    mocked_webhook,
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    address,
+    settings,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    webhook_reason = "spanish-inquisition"
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+    ]
+    # when
+    response = staff_api_client.post_graphql(
+        query, {"token": checkout_with_item.token, "shippingMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+    # then
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "shippingMethod"
+    assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    assert checkout.shipping_method is None
+
+
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
+)
+def test_checkout_shipping_methods_webhook_called_once(
+    mocked_webhook,
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    permission_manage_checkouts,
+    settings,
+):
+    # given
+    manager = get_plugins_manager()
+    mocked_webhook.side_effect = [[], AssertionError("called twice.")]
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"token": checkout_with_item.token, "shippingMethodId": method_id},
+    )
+    get_graphql_content(response)
+    fetch_checkout_info(checkout_with_item, [], [], manager)
+    # then
+    assert checkout_with_item.shipping_method is None
 
 
 def test_checkout_shipping_method_update_shipping_zone_without_channel(

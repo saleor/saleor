@@ -649,7 +649,7 @@ def test_add_public_metadata_for_shipping_method(
 ):
     # given
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
 
     # when
@@ -657,7 +657,7 @@ def test_add_public_metadata_for_shipping_method(
         staff_api_client,
         permission_manage_shipping,
         shipping_method_id,
-        "ShippingMethod",
+        "ShippingMethodType",
     )
 
     # then
@@ -1366,7 +1366,7 @@ def test_delete_public_metadata_for_shipping_method(
     shipping_method.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     shipping_method.save(update_fields=["metadata"])
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
 
     # when
@@ -1374,7 +1374,7 @@ def test_delete_public_metadata_for_shipping_method(
         staff_api_client,
         permission_manage_shipping,
         shipping_method_id,
-        "ShippingMethod",
+        "ShippingMethodType",
     )
 
     # then
@@ -2126,7 +2126,7 @@ def test_add_private_metadata_for_shipping_method(
 ):
     # given
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
 
     # when
@@ -2134,7 +2134,7 @@ def test_add_private_metadata_for_shipping_method(
         staff_api_client,
         permission_manage_shipping,
         shipping_method_id,
-        "ShippingMethod",
+        "ShippingMethodType",
     )
 
     # then
@@ -2877,7 +2877,7 @@ def test_delete_private_metadata_for_shipping_method(
     shipping_method.store_value_in_private_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     shipping_method.save(update_fields=["metadata"])
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
 
     # when
@@ -2885,7 +2885,7 @@ def test_delete_private_metadata_for_shipping_method(
         staff_api_client,
         permission_manage_shipping,
         shipping_method_id,
-        "ShippingMethod",
+        "ShippingMethodType",
     )
 
     # then
