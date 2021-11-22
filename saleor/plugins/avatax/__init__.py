@@ -254,15 +254,21 @@ def get_checkout_lines_data(
         item_code = line_info.variant.sku or line_info.variant.get_global_id()
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
+        amount = base_calculations.base_checkout_line_total(
+            line_info,
+            channel,
+            discounts,
+        ).gross.amount
         append_line_to_data(
             data=data,
             quantity=line_info.line.quantity,
-            amount=base_calculations.base_checkout_line_total(
-                line_info,
-                channel,
-                discounts,
-            ).gross.amount,
-            tax_code=tax_code,
+            amount=amount,
+            # This is a workaround for Avatax and sending a lines with amount 0. Like
+            # order lines which are fully discounted for some reason. If we use a
+            # standard tax_code, Avatax will raise an exception: "When shipping
+            # cross-border into CIF countries, Tax Included is not supported with mixed
+            # positive and negative line amounts."
+            tax_code=tax_code if amount else DEFAULT_TAX_CODE,
             item_code=item_code,
             name=name,
         )
@@ -299,11 +305,17 @@ def get_order_lines_data(
             line.unit_price_gross_amount != line.unit_price_net_amount
         )
         tax_included = line_has_included_taxes or system_tax_included
+        amount = line.unit_price_gross_amount * line.quantity
         append_line_to_data(
             data=data,
             quantity=line.quantity,
-            amount=line.unit_price_gross_amount * line.quantity,
-            tax_code=tax_code,
+            amount=amount,
+            # This is a workaround for Avatax and sending a lines with amount 0. Like
+            # order lines which are fully discounted for some reason. If we use a
+            # standard tax_code, Avatax will raise an exception: "When shipping
+            # cross-border into CIF countries, Tax Included is not supported with mixed
+            # positive and negative line amounts."
+            tax_code=tax_code if amount else DEFAULT_TAX_CODE,
             item_code=line.variant.sku or line.variant.get_global_id(),
             name=line.variant.product.name,
             tax_included=tax_included,

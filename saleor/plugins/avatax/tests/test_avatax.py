@@ -25,6 +25,7 @@ from ....shipping.utils import convert_to_shipping_method_data
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from .. import (
+    DEFAULT_TAX_CODE,
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
     AvataxConfiguration,
@@ -34,6 +35,8 @@ from .. import (
     api_post_request,
     generate_request_data_from_checkout,
     get_cached_tax_codes_or_fetch,
+    get_checkout_lines_data,
+    get_order_lines_data,
     get_order_request_data,
     get_order_tax_data,
     taxes_need_new_fetch,
@@ -2038,3 +2041,117 @@ def test_validate_adddress_details(
         shipping_address, is_shipping_required, address, shipping_method
     )
     assert is_valid is expected_is_valid
+
+
+def test_get_checkout_lines_data_sets_different_tax_code_for_zero_amount(
+    settings, channel_USD, plugin_configuration, checkout_with_item
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+
+    line = checkout_with_item.lines.first()
+    variant = line.variant
+    variant.channel_listings.all().update(price_amount=Decimal("0"))
+    variant.product.store_value_in_metadata(
+        {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}
+    )
+    variant.product.save()
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, lines, [], get_plugins_manager()
+    )
+
+    # when
+    lines_data = get_checkout_lines_data(
+        checkout_info,
+        lines,
+    )
+
+    # then
+    assert lines_data[0]["amount"] == "0.00"
+    assert lines_data[0]["taxCode"] == DEFAULT_TAX_CODE
+
+
+def test_get_checkout_lines_data_sets_different_tax_code_only_for_zero_amount(
+    settings, channel_USD, plugin_configuration, checkout_with_item
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+
+    line = checkout_with_item.lines.first()
+    line.quantity = 1
+    line.save()
+
+    variant = line.variant
+    variant.channel_listings.all().update(price_amount=Decimal("11"))
+    variant.product.store_value_in_metadata(
+        {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}
+    )
+    variant.product.save()
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, lines, [], get_plugins_manager()
+    )
+
+    # when
+    lines_data = get_checkout_lines_data(
+        checkout_info,
+        lines,
+    )
+
+    # then
+    assert lines_data[0]["amount"] == "11.00"
+    assert lines_data[0]["taxCode"] == "taxcode"
+
+
+def test_get_order_lines_data_sets_different_tax_code_for_zero_amount(
+    settings, channel_USD, plugin_configuration, order_with_lines
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+
+    line = order_with_lines.lines.first()
+    line.unit_price_gross_amount = Decimal("0")
+    line.save()
+    variant = line.variant
+    variant.product.store_value_in_metadata(
+        {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}
+    )
+    variant.product.save()
+
+    # when
+    lines_data = get_order_lines_data(order_with_lines)
+
+    # then
+    assert lines_data[0]["amount"] == "0.000"
+    assert lines_data[0]["taxCode"] == DEFAULT_TAX_CODE
+
+
+def test_get_order_lines_data_sets_different_tax_code_only_for_zero_amount(
+    settings, channel_USD, plugin_configuration, order_with_lines
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+
+    line = order_with_lines.lines.first()
+    line.quantity = 1
+    line.unit_price_gross_amount = Decimal("10.0")
+    line.save()
+    variant = line.variant
+    variant.product.store_value_in_metadata(
+        {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}
+    )
+    variant.product.save()
+
+    # when
+    lines_data = get_order_lines_data(order_with_lines)
+
+    # then
+    assert lines_data[0]["amount"] == "10.000"
+    assert lines_data[0]["taxCode"] == "taxcode"
