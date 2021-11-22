@@ -19,7 +19,8 @@ query_test_invalid_data = [
             }
         },
         400,
-        'Variable "$channel" of required type "String!" was not provided.',
+        'Argument "channel" of required type String!" provided the variable '
+        '"$channel" which was not provided',
     ),
     (
         {
