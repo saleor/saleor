@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.test import override_settings
 from django_countries.fields import Country
 from measurement.measures import Weight
+from prices import Money
 
 from ....account.models import User
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
@@ -1316,11 +1317,15 @@ GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS = """
 query getCheckout($token: UUID!) {
     checkout(token: $token) {
         availableShippingMethods {
+            id
             name
             price {
                 amount
             }
             minimumOrderPrice {
+                amount
+            }
+            maximumOrderPrice {
                 amount
             }
             message
@@ -1352,6 +1357,9 @@ def test_checkout_available_shipping_methods(
     data = content["data"]["checkout"]
 
     # then
+    assert data["availableShippingMethods"][0]["id"] == (
+        graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    )
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
     assert data["availableShippingMethods"][0]["active"]
     assert data["availableShippingMethods"][0]["message"] == ""
@@ -1468,9 +1476,16 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     shipping_zone,
 ):
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_price = shipping_method.channel_listings.get(
+    method_listing = shipping_method.channel_listings.get(
         channel_id=checkout_with_item.channel_id
-    ).price
+    )
+    method_listing.minimum_order_price = Money(
+        Decimal("5.37"), checkout_with_item.currency
+    )
+    method_listing.maximum_order_price = Money(
+        Decimal("115.73"), checkout_with_item.currency
+    )
+    method_listing.save()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
 
@@ -1482,8 +1497,14 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     data = content["data"]["checkout"]
 
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
-    assert (
-        data["availableShippingMethods"][0]["price"]["amount"] == shipping_price.amount
+    assert data["availableShippingMethods"][0]["price"]["amount"] == float(
+        method_listing.price.amount
+    )
+    assert data["availableShippingMethods"][0]["minimumOrderPrice"]["amount"] == float(
+        method_listing.minimum_order_price.amount
+    )
+    assert data["availableShippingMethods"][0]["maximumOrderPrice"]["amount"] == float(
+        method_listing.maximum_order_price.amount
     )
 
 
