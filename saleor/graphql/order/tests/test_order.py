@@ -404,9 +404,9 @@ query OrdersQuery {
 def test_order_query(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     fulfilled_order,
     shipping_zone,
-    permission_manage_shipping,
 ):
     # given
     order = fulfilled_order
@@ -483,6 +483,7 @@ def test_order_query(
 def test_order_query_shipping_method_channel_listing_does_not_exist(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     order_with_lines,
 ):
     # given
@@ -496,6 +497,7 @@ def test_order_query_shipping_method_channel_listing_does_not_exist(
     ).delete()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
