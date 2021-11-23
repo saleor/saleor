@@ -12,6 +12,7 @@ from ..channel.types import (
     ChannelContext,
     ChannelContextType,
     ChannelContextTypeWithMetadata,
+    MetadataMixin,
 )
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import ChannelContextFilterConnectionField
@@ -247,7 +248,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
-class ShippingMethod(ChannelContextType):
+class ShippingMethod(ChannelContextType, MetadataMixin):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
@@ -324,8 +325,16 @@ class ShippingMethod(ChannelContextType):
 
     @staticmethod
     def resolve_active(root: ChannelContext, _info):
+        # Currently selected shipping method is not validated
+        # with webhooks on every single API call
+        if not hasattr(root.node, "active"):
+            return True
         return root.node.active
 
     @staticmethod
     def resolve_message(root: ChannelContext, _info):
+        # Currently selected shipping method is not validated
+        # with webhooks on every single API call
+        if not hasattr(root.node, "message"):
+            return True
         return root.node.message

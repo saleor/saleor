@@ -1320,6 +1320,13 @@ query getCheckout($token: UUID!) {
             price {
                 amount
             }
+            minimumOrderPrice {
+                amount
+            }
+            message
+            active
+            minimumDeliveryDays
+            maximumDeliveryDays
         }
     }
 }
@@ -1346,6 +1353,16 @@ def test_checkout_available_shipping_methods(
 
     # then
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
+    assert data["availableShippingMethods"][0]["active"]
+    assert data["availableShippingMethods"][0]["message"] == ""
+    assert (
+        data["availableShippingMethods"][0]["minimumDeliveryDays"]
+        == shipping_method.minimum_delivery_days
+    )
+    assert (
+        data["availableShippingMethods"][0]["maximumDeliveryDays"]
+        == shipping_method.maximum_delivery_days
+    )
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
@@ -1464,9 +1481,10 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    assert data["availableShippingMethods"] == [
-        {"name": "DHL", "price": {"amount": shipping_price.amount}}
-    ]
+    assert data["availableShippingMethods"][0]["name"] == shipping_method.name
+    assert (
+        data["availableShippingMethods"][0]["price"]["amount"] == shipping_price.amount
+    )
 
 
 def test_checkout_no_available_shipping_methods_without_address(
