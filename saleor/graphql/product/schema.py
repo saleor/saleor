@@ -12,6 +12,7 @@ from ..core.fields import (
     FilterInputConnectionField,
     PrefetchingConnectionField,
 )
+from ..core.relay import connection_field
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
@@ -125,6 +126,12 @@ from .types import (
 
 
 class ProductQueries(graphene.ObjectType):
+    new_categories = connection_field(
+        Category
+    )
+    new_categories_alt = connection_field(
+        Category
+    )
     digital_content = graphene.Field(
         DigitalContent,
         description="Look up digital content by ID.",
@@ -249,6 +256,13 @@ class ProductQueries(graphene.ObjectType):
 
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level=level, **kwargs)
+
+    def resolve_new_categories(self, info, level=None, **kwargs):
+        qs = resolve_categories(info, level=level, **kwargs)
+        return {
+            "edges": qs,
+            "total_count": qs.count()
+        }
 
     @traced_resolver
     def resolve_category(self, info, id=None, slug=None, **kwargs):
