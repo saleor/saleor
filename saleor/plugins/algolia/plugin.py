@@ -114,30 +114,39 @@ class AlgoliaPlugin(BasePlugin):
                 }
             )
 
+    @staticmethod
+    def get_product_global_id(product: "Product"):
+        return graphene.Node.to_global_id("Product", product.id)
+
     def product_created(self, product: "Product", previous_value: Any):
         """Index product to Algolia."""
-        return
         for locale in self.get_locales():
-            product_data = get_product_data(product=product, locale=locale)
-            if product_data:
+            task = get_product_data.delay(
+                locale=locale,
+                product_global_id=self.get_product_global_id(product=product),
+            )
+            if task.status == "SUCCESS" and task.result:
                 self.algolia_indices.get(locale).save_object(
-                    obj=product_data,
+                    obj=task.result,
                     request_options={"autoGenerateObjectIDIfNotExist": False},
                 )
 
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         """Index product to Algolia."""
         for locale in self.get_locales():
-            product_data = get_product_data(product=product, locale=locale)
-            if product_data:
+            task = get_product_data.delay(
+                locale=locale,
+                product_global_id=self.get_product_global_id(product=product),
+            )
+            if task.status == "SUCCESS" and task.result:
                 self.algolia_indices.get(locale).partial_update_object(
-                    obj=product_data, request_options={"createIfNotExists": True}
+                    obj=task.result, request_options={"createIfNotExists": True}
                 )
 
     def product_deleted(
         self, product: "Product", variants: List[int], previous_value: Any
     ) -> Any:
         """Delete product from Algolia."""
-        object_id = graphene.Node.to_global_id("Product", product.pk)
         for locale in self.get_locales():
-            self.algolia_indices.get(locale).delete_object(object_id=object_id)
+            # Object ID is required to delete an object, it's the product slug.
+            self.algolia_indices.get(locale).delete_object(object_id=product.slug)

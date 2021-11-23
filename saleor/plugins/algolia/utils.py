@@ -7,8 +7,10 @@ from django.utils.functional import SimpleLazyObject
 from gql import gql
 
 from saleor.account.models import User
+from saleor.celeryconf import app
 from saleor.core.permissions import ProductPermissions
 from saleor.discount.utils import fetch_discounts
+from saleor.graphql.core.utils import from_global_id_or_error
 from saleor.graphql.product.schema import ProductQueries
 from saleor.plugins.manager import get_plugins_manager
 from saleor.product.models import Product
@@ -71,6 +73,7 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
           channel {
             slug
           }
+          isPublished
           isAvailableForPurchase
         }
         translation(languageCode: $languageCode) {
@@ -125,10 +128,12 @@ def hierarchical_categories(product: Product):
         return hierarchical
 
 
-def get_product_data(product: "Product", locale="EN"):
+@app.task
+def get_product_data(product_global_id: str, locale="EN"):
     schema = graphene.Schema(query=ProductQueries, types=[Product])
 
-    product_global_id = graphene.Node.to_global_id("Product", product.id)
+    pk = from_global_id_or_error(product_global_id, "Product")[1]
+    product = Product.objects.get(pk=pk)
     variables = {"id": product_global_id, "languageCode": locale}
 
     product_data = schema.execute(
@@ -138,17 +143,18 @@ def get_product_data(product: "Product", locale="EN"):
     channels = []
     channel_listings = product_dict.pop("channelListings")
     for channel in channel_listings:
-        if channel.get("isAvailableForPurchase"):
+        if channel.get("isAvailableForPurchase") and channel.get("isPublished"):
             channels.append(channel)
 
     if not product_data.errors and channels:
         product_dict.pop("metadata")
+        slug = product_dict.pop("slug")
         images = product_dict.pop("media", [])[:2]
         product_dict.update(
             {
+                "objectID": slug,
                 "images": images,
                 "channels": channels,
-                "objectID": product.slug,
                 "categoryPageId": category_page_id(),
                 "gender": product.get_value_from_metadata("gender"),
                 "hierarchicalCategories": hierarchical_categories(product),
