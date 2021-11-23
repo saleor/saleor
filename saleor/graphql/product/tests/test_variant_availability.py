@@ -313,6 +313,30 @@ def test_variant_quantity_available_preorder_with_channel_threshold(
 
 
 @override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
+def test_variant_quantity_available_preorder_without_reservations(
+    site_settings_with_reservations,
+    api_client,
+    preorder_variant_channel_threshold,
+    channel_USD,
+):
+    variant = preorder_variant_channel_threshold
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "country": COUNTRY_CODE,
+        "channel": channel_USD.slug,
+    }
+    response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    channel_listing = variant.channel_listings.get()
+    assert (
+        variant_data["deprecatedByCountry"]
+        == channel_listing.preorder_quantity_threshold
+    )
+    assert variant_data["byAddress"] == channel_listing.preorder_quantity_threshold
+
+
+@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_preorder_with_channel_threshold_and_reservation(
     site_settings_with_reservations,
     api_client,

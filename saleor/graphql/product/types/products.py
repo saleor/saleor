@@ -355,11 +355,14 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                         def calculate_available_channel_quantity_with_reservations(
                             reserved_quantity,
                         ):
-                            return min(
-                                channel_listing.preorder_quantity_threshold
-                                - channel_listing.preorder_quantity_allocated
-                                - reserved_quantity,
-                                settings.MAX_CHECKOUT_LINE_QUANTITY,
+                            return max(
+                                min(
+                                    channel_listing.preorder_quantity_threshold
+                                    - channel_listing.preorder_quantity_allocated
+                                    - reserved_quantity,
+                                    settings.MAX_CHECKOUT_LINE_QUANTITY,
+                                ),
+                                0,
                             )
 
                         return quantity_reserved.then(
@@ -399,11 +402,14 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                             def calculate_available_global_quantity_with_reservations(
                                 reserved_quantities,
                             ):
-                                return min(
-                                    variant.preorder_global_threshold
-                                    - global_sold_units
-                                    - sum(reserved_quantities),
-                                    settings.MAX_CHECKOUT_LINE_QUANTITY,
+                                return max(
+                                    min(
+                                        variant.preorder_global_threshold
+                                        - global_sold_units
+                                        - sum(reserved_quantities),
+                                        settings.MAX_CHECKOUT_LINE_QUANTITY,
+                                    ),
+                                    0,
                                 )
 
                             return quantity_reserved.then(

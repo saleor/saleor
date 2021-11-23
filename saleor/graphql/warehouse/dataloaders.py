@@ -5,6 +5,7 @@ from uuid import UUID
 from django.conf import settings
 from django.db.models import Exists, OuterRef, Q
 from django.db.models.aggregates import Sum
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from ...channel.models import Channel
@@ -293,7 +294,10 @@ class PreorderQuantityReservedByVariantChannelListingIdLoader(DataLoader):
         queryset = (
             ProductVariantChannelListing.objects.filter(id__in=keys)
             .annotate(
-                quantity_reserved=Sum("preorder_reservations__quantity_reserved"),
+                quantity_reserved=Coalesce(
+                    Sum("preorder_reservations__quantity_reserved"),
+                    0,
+                ),
                 where=Q(preorder_reservations__reserved_until__gt=timezone.now()),
             )
             .values("id", "quantity_reserved")
