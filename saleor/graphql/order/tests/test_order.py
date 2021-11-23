@@ -333,17 +333,71 @@ query OrdersQuery {
                 }
                 availableShippingMethods {
                     id
-                    price {
-                        amount
+                    price{
+                      amount
                     }
-                    minimumOrderPrice {
-                        amount
-                        currency
+                    maximumOrderPrice{
+                      amount
                     }
+                    minimumOrderPrice{
+                      amount
+                    }
+                    maximumDeliveryDays
+                    minimumDeliveryDays
+                    metadata{
+                      key
+                      value
+                    }
+                    privateMetadata{
+                      key
+                      value
+                    }
+                }
+                shippingMethods{
+                  id
+                  price{
+                    amount
+                  }
+                  maximumOrderPrice{
+                    amount
+                  }
+                  minimumOrderPrice{
+                    amount
+                  }
+                  maximumDeliveryDays
+                  minimumDeliveryDays
+                  metadata{
+                    key
+                    value
+                  }
+                  privateMetadata{
+                    key
+                    value
+                  }
                 }
                 shippingMethod{
                     id
                     type
+                    active
+                    price{
+                      amount
+                    }
+                    maximumOrderPrice{
+                      amount
+                    }
+                    minimumOrderPrice{
+                      amount
+                    }
+                    maximumDeliveryDays
+                    minimumDeliveryDays
+                    metadata{
+                      key
+                      value
+                    }
+                    privateMetadata{
+                      key
+                      value
+                    }
                 }
             }
         }
