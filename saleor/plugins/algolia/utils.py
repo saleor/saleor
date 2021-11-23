@@ -1,4 +1,5 @@
 import graphene
+from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.http import HttpRequest
 from django.utils import timezone
@@ -6,6 +7,7 @@ from django.utils.functional import SimpleLazyObject
 from gql import gql
 
 from saleor.account.models import User
+from saleor.core.permissions import ProductPermissions
 from saleor.discount.utils import fetch_discounts
 from saleor.graphql.product.schema import ProductQueries
 from saleor.plugins.manager import get_plugins_manager
@@ -18,62 +20,76 @@ class UserAdminContext(HttpRequest):
         self.app = None
         self.request_time = timezone.now()
         self.site = Site.objects.get_current()
-        self.user = User.objects.filter(is_staff=True).first()
         self.plugins = SimpleLazyObject(lambda: get_plugins_manager())
+        self.user, _ = User.objects.get_or_create(
+            is_staff=True, is_active=True, email="manage@products.com"
+        )
+        self.user.user_permissions.add(
+            Permission.objects.get(codename=ProductPermissions.MANAGE_PRODUCTS.codename)
+        )
         self.discounts = SimpleLazyObject(lambda: fetch_discounts(self.request_time))
         self.META = {
             "header": "http",
-            "SERVER_NAME": "localhost",
             "SERVER_PORT": "8000",
+            "SERVER_NAME": "localhost",
         }
 
 
 GET_PRODUCT_QUERY = gql(
     """
-query GET_PRODUCT($id: ID!, $languageCode: LanguageCodeEnum!) {
-  product(id: $id, channel: "default-channel") {
-    name
-    description
-    isAvailable
-    slug
-    thumbnail {
-      url
-    }
-    metadata {
-      key
-      value
-    }
-    pricing {
-      priceRange {
-        start {
-          currency
-          net {
-            amount
-          }
-          gross {
-            amount
-          }
-          tax {
-            amount
-          }
-        }
-      }
-    }
-    translation(languageCode: $languageCode) {
-      name
-      description
-    }
-    attributes {
-      attribute {
+query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
+  products(first: 1, filter: { ids: [$id] }) {
+    edges {
+      node {
         name
+        slug
+        metadata {
+          key
+          value
+        }
+        description
+        media {
+          url
+        }
+        channelListings {
+          pricing {
+            priceRange {
+              start {
+                net {
+                  amount
+                }
+                gross {
+                  amount
+                }
+                tax {
+                  amount
+                }
+                currency
+              }
+            }
+          }
+          channel {
+            slug
+          }
+          isAvailableForPurchase
+        }
         translation(languageCode: $languageCode) {
           name
+          description
         }
-      }
-      values {
-        name
-        translation(languageCode: $languageCode) {
-          name
+        attributes {
+          attribute {
+            name
+            translation(languageCode: $languageCode) {
+              name
+            }
+          }
+          values {
+            name
+            translation(languageCode: $languageCode) {
+              name
+            }
+          }
         }
       }
     }
@@ -118,12 +134,21 @@ def get_product_data(product: "Product", locale="EN"):
     product_data = schema.execute(
         GET_PRODUCT_QUERY, variables=variables, context=UserAdminContext()
     )
-    product_dict = product_data.data.get("product")
-    is_available = product_dict.pop("isAvailable") if product_dict else None
-    if not product_data.errors and is_available:
+    product_dict = product_data.data.get("products").get("edges")[0].get("node")
+    channels = []
+    channel_listings = product_dict.pop("channelListings")
+    for channel in channel_listings:
+        if channel.get("isAvailableForPurchase"):
+            channels.append(channel)
+
+    if not product_data.errors and channels:
+        product_dict.pop("metadata")
+        images = product_dict.pop("media", [])[:2]
         product_dict.update(
             {
-                "objectID": product_global_id,
+                "images": images,
+                "channels": channels,
+                "objectID": product.slug,
                 "categoryPageId": category_page_id(),
                 "gender": product.get_value_from_metadata("gender"),
                 "hierarchicalCategories": hierarchical_categories(product),

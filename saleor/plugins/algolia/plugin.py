@@ -67,11 +67,10 @@ class AlgoliaPlugin(BasePlugin):
         )
 
         self.algolia_index_prefix = self.config["ALGOLIA_INDEX_PREFIX"]
-        for locale in self.config["ALGOLIA_LOCALES"].split(","):
+        for locale in self.get_locales():
             index = self.client.init_index(
                 name=f"{self.algolia_index_prefix}_products_{locale}"
             )
-
             self.algolia_indices.update({locale: index})
 
             index.set_settings(
@@ -79,11 +78,16 @@ class AlgoliaPlugin(BasePlugin):
                     "searchableAttributes": [
                         "sku",
                         "name",
+                        "channels",
                         "description",
                         "translation",
                     ]
                 }
             )
+
+    def get_locales(self):
+        """Return OTO plugin locales."""
+        return self.config["ALGOLIA_LOCALES"].split(",")
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
@@ -112,7 +116,8 @@ class AlgoliaPlugin(BasePlugin):
 
     def product_created(self, product: "Product", previous_value: Any):
         """Index product to Algolia."""
-        for locale in self.config["ALGOLIA_LOCALES"].split(","):
+        return
+        for locale in self.get_locales():
             product_data = get_product_data(product=product, locale=locale)
             if product_data:
                 self.algolia_indices.get(locale).save_object(
@@ -122,7 +127,7 @@ class AlgoliaPlugin(BasePlugin):
 
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         """Index product to Algolia."""
-        for locale in self.config["ALGOLIA_LOCALES"].split(","):
+        for locale in self.get_locales():
             product_data = get_product_data(product=product, locale=locale)
             if product_data:
                 self.algolia_indices.get(locale).partial_update_object(
@@ -134,5 +139,5 @@ class AlgoliaPlugin(BasePlugin):
     ) -> Any:
         """Delete product from Algolia."""
         object_id = graphene.Node.to_global_id("Product", product.pk)
-        for locale in self.config["ALGOLIA_LOCALES"].split(","):
+        for locale in self.get_locales():
             self.algolia_indices.get(locale).delete_object(object_id=object_id)
