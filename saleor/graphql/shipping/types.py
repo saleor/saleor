@@ -410,3 +410,7 @@ class ShippingMethod(graphene.ObjectType):
     @staticmethod
     def resolve_minimum_order_weight(root: ShippingMethodData, *_args):
         return convert_weight_to_default_weight_unit(root.minimum_order_weight)
+
+    @staticmethod
+    def resolve_description(root: ShippingMethodData, *_args):
+        return root.description
