@@ -1433,10 +1433,10 @@ def test_checkout_available_payment_gateways_currency_specified_EUR(
     )
 
 
-GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS = """
+GET_CHECKOUT_SELECTED_SHIPPING_METHOD = """
 query getCheckout($token: UUID!) {
     checkout(token: $token) {
-        availableShippingMethods {
+        shippingMethod {
             id
             name
             description
@@ -1475,7 +1475,7 @@ query getCheckout($token: UUID!) {
 """
 
 
-def test_checkout_available_shipping_methods(
+def test_checkout_selected_shipping_method(
     api_client, checkout_with_item, address, shipping_zone
 ):
     checkout_with_item.shipping_address = address
@@ -1497,8 +1497,11 @@ def test_checkout_available_shipping_methods(
     ShippingMethodTranslation.objects.create(
         language_code="pl", shipping_method=shipping_method, name=translated_name
     )
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.save()
 
-    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
+    # when
+    query = GET_CHECKOUT_SELECTED_SHIPPING_METHOD
     variables = {"token": checkout_with_item.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -1506,32 +1509,129 @@ def test_checkout_available_shipping_methods(
 
     shipping_method = shipping_zone.shipping_methods.first()
     # then
-    assert data["availableShippingMethods"][0]["id"] == (
+    assert data["shippingMethod"]["id"] == (
         graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     )
-    assert data["availableShippingMethods"][0]["name"] == shipping_method.name
-    assert raw_description in data["availableShippingMethods"][0]["description"]
-    assert data["availableShippingMethods"][0]["active"]
-    assert data["availableShippingMethods"][0]["message"] == ""
+    assert data["shippingMethod"]["name"] == shipping_method.name
+    assert raw_description in data["shippingMethod"]["description"]
+    assert data["shippingMethod"]["active"]
+    assert data["shippingMethod"]["message"] == ""
     assert (
-        data["availableShippingMethods"][0]["minimumDeliveryDays"]
+        data["shippingMethod"]["minimumDeliveryDays"]
         == shipping_method.minimum_delivery_days
     )
     assert (
-        data["availableShippingMethods"][0]["maximumDeliveryDays"]
+        data["shippingMethod"]["maximumDeliveryDays"]
         == shipping_method.maximum_delivery_days
     )
-    assert data["availableShippingMethods"][0]["minimumOrderWeight"]["unit"] == "KG"
-    assert (
-        data["availableShippingMethods"][0]["minimumOrderWeight"]["value"] == min_weight
+    assert data["shippingMethod"]["minimumOrderWeight"]["unit"] == "KG"
+    assert data["shippingMethod"]["minimumOrderWeight"]["value"] == min_weight
+    assert data["shippingMethod"]["maximumOrderWeight"]["unit"] == "KG"
+    assert data["shippingMethod"]["maximumOrderWeight"]["value"] == max_weight
+    assert data["shippingMethod"]["metadata"][0]["key"] == metadata_key
+    assert data["shippingMethod"]["metadata"][0]["value"] == metadata_value
+    assert data["shippingMethod"]["translation"]["name"] == translated_name
+
+
+GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS_TEMPLATE = """
+query getCheckout($token: UUID!) {
+    checkout(token: $token) {
+        %s {
+            id
+            type
+            name
+            description
+            price {
+                amount
+            }
+            translation(languageCode: PL) {
+                name
+                description
+            }
+            minimumOrderPrice {
+                amount
+            }
+            maximumOrderPrice {
+                amount
+            }
+            minimumOrderWeight {
+               unit
+               value
+            }
+            maximumOrderWeight {
+               unit
+               value
+            }
+            message
+            active
+            minimumDeliveryDays
+            maximumDeliveryDays
+            metadata {
+                key
+                value
+            }
+        }
+    }
+}
+"""
+
+GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS = (
+    GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS_TEMPLATE % "availableShippingMethods"
+)
+
+
+@pytest.mark.parametrize("field", ["availableShippingMethods", "shippingMethods"])
+def test_checkout_available_shipping_methods(
+    api_client, checkout_with_item, address, shipping_zone, field
+):
+    # given
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+    shipping_method = shipping_zone.shipping_methods.first()
+    min_weight = 0
+    shipping_method.minimum_order_weight = Weight(oz=min_weight)
+    max_weight = 10
+    shipping_method.maximum_order_weight = Weight(kg=max_weight)
+    metadata_key = "md key"
+    metadata_value = "md value"
+    raw_description = "this is descr"
+    description = dummy_editorjs(raw_description)
+    shipping_method.description = description
+    shipping_method.store_value_in_metadata({metadata_key: metadata_value})
+    shipping_method.save()
+    translated_name = "Dostawa ekspresowa"
+    ShippingMethodTranslation.objects.create(
+        language_code="pl", shipping_method=shipping_method, name=translated_name
     )
-    assert data["availableShippingMethods"][0]["maximumOrderWeight"]["unit"] == "KG"
-    assert (
-        data["availableShippingMethods"][0]["maximumOrderWeight"]["value"] == max_weight
+
+    # when
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS_TEMPLATE % field
+    variables = {"token": checkout_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data[field][0]["id"] == (
+        graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     )
-    assert data["availableShippingMethods"][0]["metadata"][0]["key"] == metadata_key
-    assert data["availableShippingMethods"][0]["metadata"][0]["value"] == metadata_value
-    assert data["availableShippingMethods"][0]["translation"]["name"] == translated_name
+    assert data[field][0]["name"] == shipping_method.name
+    assert raw_description in data[field][0]["description"]
+    assert data[field][0]["active"]
+    assert data[field][0]["message"] == ""
+    assert (
+        data[field][0]["minimumDeliveryDays"] == shipping_method.minimum_delivery_days
+    )
+    assert (
+        data[field][0]["maximumDeliveryDays"] == shipping_method.maximum_delivery_days
+    )
+    assert data[field][0]["minimumOrderWeight"]["unit"] == "KG"
+    assert data[field][0]["minimumOrderWeight"]["value"] == min_weight
+    assert data[field][0]["maximumOrderWeight"]["unit"] == "KG"
+    assert data[field][0]["maximumOrderWeight"]["value"] == max_weight
+    assert data[field][0]["metadata"][0]["key"] == metadata_key
+    assert data[field][0]["metadata"][0]["value"] == metadata_value
+    assert data[field][0]["translation"]["name"] == translated_name
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
