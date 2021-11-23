@@ -1330,6 +1330,14 @@ query getCheckout($token: UUID!) {
             maximumOrderPrice {
                 amount
             }
+            minimumOrderWeight {
+               unit
+               value
+            }
+            maximumOrderWeight {
+               unit
+               value
+            }
             message
             active
             minimumDeliveryDays
@@ -1351,8 +1359,10 @@ def test_checkout_available_shipping_methods(
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_method.minimum_order_weight = Weight(kg=0)
-    shipping_method.maximum_order_weight = Weight(kg=0)
+    min_weight = 0
+    shipping_method.minimum_order_weight = Weight(oz=min_weight)
+    max_weight = 10
+    shipping_method.maximum_order_weight = Weight(kg=max_weight)
     metadata_key = "md key"
     metadata_value = "md value"
     shipping_method.store_value_in_metadata({metadata_key: metadata_value})
@@ -1382,6 +1392,14 @@ def test_checkout_available_shipping_methods(
     assert (
         data["availableShippingMethods"][0]["maximumDeliveryDays"]
         == shipping_method.maximum_delivery_days
+    )
+    assert data["availableShippingMethods"][0]["minimumOrderWeight"]["unit"] == "KG"
+    assert (
+        data["availableShippingMethods"][0]["minimumOrderWeight"]["value"] == min_weight
+    )
+    assert data["availableShippingMethods"][0]["maximumOrderWeight"]["unit"] == "KG"
+    assert (
+        data["availableShippingMethods"][0]["maximumOrderWeight"]["value"] == max_weight
     )
     assert data["availableShippingMethods"][0]["metadata"][0]["key"] == metadata_key
     assert data["availableShippingMethods"][0]["metadata"][0]["value"] == metadata_value

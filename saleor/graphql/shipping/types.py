@@ -16,7 +16,7 @@ from ..channel.types import (
 )
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import ChannelContextFilterConnectionField
-from ..core.types import CountryDisplay, Money, MoneyRange
+from ..core.types import CountryDisplay, Money, MoneyRange, Weight
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import (
@@ -265,6 +265,16 @@ class ShippingMethod(ChannelContextType, MetadataMixin):
     minimum_delivery_days = graphene.Int(
         description="Minimum delivery days for this shipping method."
     )
+    maximum_order_weight = graphene.Field(
+        Weight,
+        description="Maximum order weight for this shipping method.",
+        deprecation_reason="This field will be removed in Saleor 4.0.",
+    )
+    minimum_order_weight = graphene.Field(
+        Weight,
+        description="Minimum order weight for this shipping method.",
+        deprecation_reason="This field will be removed in Saleor 4.0.",
+    )
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
@@ -338,3 +348,15 @@ class ShippingMethod(ChannelContextType, MetadataMixin):
         if not hasattr(root.node, "message"):
             return True
         return root.node.message
+
+    @staticmethod
+    def resolve_maximum_order_weight(
+        root: ChannelContext[models.ShippingMethod], *_args
+    ):
+        return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
+
+    @staticmethod
+    def resolve_minimum_order_weight(
+        root: ChannelContext[models.ShippingMethod], *_args
+    ):
+        return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
