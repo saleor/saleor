@@ -1445,6 +1445,9 @@ query getCheckout($token: UUID!) {
             minimumOrderPrice {
                 amount
             }
+            maximumOrderPrice {
+                amount
+            }
             message
             active
             minimumDeliveryDays
@@ -1468,6 +1471,10 @@ def test_checkout_available_shipping_methods(
     data = content["data"]["checkout"]
 
     shipping_method = shipping_zone.shipping_methods.first()
+    # then
+    assert data["availableShippingMethods"][0]["id"] == (
+        graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    )
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
     assert data["availableShippingMethods"][0]["active"]
     assert data["availableShippingMethods"][0]["message"] == ""
