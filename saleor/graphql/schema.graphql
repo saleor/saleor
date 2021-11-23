@@ -6201,6 +6201,8 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   description: JSONString
   maximumDeliveryDays: Int
   minimumDeliveryDays: Int
+  maximumOrderWeight: Weight @deprecated(reason: "This field will be removed in Saleor 4.0.")
+  minimumOrderWeight: Weight @deprecated(reason: "This field will be removed in Saleor 4.0.")
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
   price: Money!
   maximumOrderPrice: Money

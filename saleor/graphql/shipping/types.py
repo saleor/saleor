@@ -320,6 +320,16 @@ class ShippingMethod(graphene.ObjectType):
     minimum_delivery_days = graphene.Int(
         description="Minimum delivery days for this shipping method."
     )
+    maximum_order_weight = graphene.Field(
+        Weight,
+        description="Maximum order weight for this shipping method.",
+        deprecation_reason="This field will be removed in Saleor 4.0.",
+    )
+    minimum_order_weight = graphene.Field(
+        Weight,
+        description="Minimum order weight for this shipping method.",
+        deprecation_reason="This field will be removed in Saleor 4.0.",
+    )
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
@@ -392,3 +402,11 @@ class ShippingMethod(graphene.ObjectType):
         if not hasattr(root, "message"):
             return True
         return root.message
+
+    @staticmethod
+    def resolve_maximum_order_weight(root: ShippingMethodData, *_args):
+        return convert_weight_to_default_weight_unit(root.maximum_order_weight)
+
+    @staticmethod
+    def resolve_minimum_order_weight(root: ShippingMethodData, *_args):
+        return convert_weight_to_default_weight_unit(root.minimum_order_weight)
