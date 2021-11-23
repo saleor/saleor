@@ -21,6 +21,7 @@ from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
 from ....account.models import Address, User
 from ....account.notifications import get_default_user_payload
+from ....account.utils import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType
@@ -4685,6 +4686,8 @@ def test_query_customers_search_without_duplications(
     customer = User.objects.create(email="david@example.com")
     customer.addresses.create(first_name="David")
     customer.addresses.create(first_name="David")
+    customer.search_document = prepare_user_search_document_value(customer)
+    customer.save(update_fields=["search_document"])
 
     variables = {"filter": {"search": "David"}}
     response = staff_api_client.post_graphql(
@@ -4773,6 +4776,10 @@ def test_query_customers_with_sort(
         ({"search": "wroc"}, 1),  # city
         ({"search": "pl"}, 1),  # country
         ({"search": "+48713988102"}, 1),
+        ({"search": "Alice Kowalski"}, 1),
+        ({"search": "Kowalski Alice"}, 1),
+        ({"search": "John Doe"}, 1),
+        ({"search": "Alice Doe"}, 0),
     ],
 )
 def test_query_customer_members_with_filter_search(
@@ -4799,6 +4806,10 @@ def test_query_customer_members_with_filter_search(
         ]
     )
     users[1].addresses.set([address])
+
+    for user in users:
+        user.search_document = prepare_user_search_document_value(user)
+    User.objects.bulk_update(users, ["search_document"])
 
     variables = {"filter": customer_filter}
     response = staff_api_client.post_graphql(
@@ -4871,6 +4882,10 @@ def test_query_staff_members_app_no_permission(
         ({"search": "Doe"}, 1),  # last_name
         ({"search": "irv"}, 1),  # city
         ({"search": "us"}, 1),  # country
+        ({"search": "Alice Kowalski"}, 1),
+        ({"search": "Kowalski Alice"}, 1),
+        ({"search": "John Doe"}, 1),
+        ({"search": "Alice Doe"}, 0),
     ],
 )
 def test_query_staff_members_with_filter_search(
@@ -4906,6 +4921,9 @@ def test_query_staff_members_with_filter_search(
         ]
     )
     users[1].addresses.set([address_usa])
+    for user in users:
+        user.search_document = prepare_user_search_document_value(user)
+    User.objects.bulk_update(users, ["search_document"])
 
     variables = {"filter": staff_member_filter}
     response = staff_api_client.post_graphql(
