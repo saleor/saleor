@@ -339,7 +339,7 @@ class ShippingMethod(graphene.ObjectType):
         Money, required=True, description="The price of selected shipping method."
     )
     maximum_order_price = graphene.Field(
-        Money, description="Maximal order price for this shipping method."
+        Money, description="Maximum order price for this shipping method."
     )
     minimum_order_price = graphene.Field(
         Money, description="Minimal order price for this shipping method."
@@ -399,9 +399,7 @@ class ShippingMethod(graphene.ObjectType):
     def resolve_message(root: ShippingMethodData, _info):
         # Currently selected shipping method is not validated
         # with webhooks on every single API call
-        if not hasattr(root, "message"):
-            return True
-        return root.message
+        return getattr(root, "message", "")
 
     @staticmethod
     def resolve_maximum_order_weight(root: ShippingMethodData, *_args):

@@ -387,6 +387,7 @@ query OrdersQuery {
                     name
                     description
                     active
+                    message
                     price{
                         amount
                     }
@@ -480,11 +481,14 @@ def test_order_query(
     )
     assert expected_price == shipping_price.gross
     assert order_data["shippingTaxRate"] == float(shipping_tax_rate)
+    assert order_data["shippingMethod"]["active"] is True
+    assert order_data["shippingMethod"]["message"] == ""
     assert public_value == order_data["shippingMethod"]["metadata"][0]["value"]
     assert private_value == order_data["shippingMethod"]["privateMetadata"][0]["value"]
     assert len(order_data["lines"]) == order.lines.count()
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data["fulfillments"][0]["fulfillmentOrder"]
+
     assert fulfillment_order == fulfillment
     assert len(order_data["payments"]) == order.payments.count()
 
