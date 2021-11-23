@@ -1,12 +1,16 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...core import EventDeliveryStatus
 from ...core.permissions import AppPermission
+from ...plugins.webhook.tasks import send_webhook_request_async
+from ...plugins.webhook.utils import delivery_update
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
-from ..core.mutations import ModelDeleteMutation, ModelMutation
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import WebhookError
 from .enums import WebhookEventTypeEnum
+from .types import EventDelivery
 
 
 class WebhookCreateInput(graphene.InputObjectType):
@@ -200,3 +204,28 @@ class WebhookDelete(ModelDeleteMutation):
                 )
 
         return super().perform_mutation(_root, info, **data)
+
+
+class EventDeliveryRetry(BaseMutation):
+    delivery = graphene.Field(EventDelivery, description="Event delivery.")
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="ID of the event delivery to retry."
+        )
+
+    class Meta:
+        description = "Retries event delivery."
+        permissions = (AppPermission.MANAGE_APPS,)
+        error_type_class = WebhookError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        delivery = cls.get_node_or_error(
+            info,
+            data["id"],
+            only_type=EventDelivery,
+        )
+        delivery_update(delivery, status=EventDeliveryStatus.PENDING)
+        send_webhook_request_async.delay(delivery.pk)
+        return EventDeliveryRetry(delivery=delivery)

@@ -2094,6 +2094,11 @@ input EventDeliveryFilterInput {
   eventType: WebhookEventTypeEnum
 }
 
+type EventDeliveryRetry {
+  delivery: EventDelivery
+  errors: [WebhookError!]!
+}
+
 enum EventDeliverySortField {
   CREATED_AT
 }
@@ -3833,6 +3838,7 @@ type Mutation {
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
+  eventDeliveryRetry(id: ID!): EventDeliveryRetry
   createWarehouse(input: WarehouseCreateInput!): WarehouseCreate
   updateWarehouse(id: ID!, input: WarehouseUpdateInput!): WarehouseUpdate
   deleteWarehouse(id: ID!): WarehouseDelete
