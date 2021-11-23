@@ -284,7 +284,7 @@ class ShippingMethod(ChannelContextType, MetadataMixin):
         Money, required=True, description="The price of selected shipping method."
     )
     maximum_order_price = graphene.Field(
-        Money, description="Maximal order price for this shipping method."
+        Money, description="Maximum order price for this shipping method."
     )
     minimum_order_price = graphene.Field(
         Money, description="Minimal order price for this shipping method."
@@ -345,9 +345,7 @@ class ShippingMethod(ChannelContextType, MetadataMixin):
     def resolve_message(root: ChannelContext, _info):
         # Currently selected shipping method is not validated
         # with webhooks on every single API call
-        if not hasattr(root.node, "message"):
-            return True
-        return root.node.message
+        return getattr(root.node, "message", "")
 
     @staticmethod
     def resolve_maximum_order_weight(
