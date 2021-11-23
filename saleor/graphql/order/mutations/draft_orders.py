@@ -440,7 +440,7 @@ class DraftOrderComplete(BaseMutation):
             qs=models.Order.objects.prefetch_related("lines__variant"),
         )
         country = get_order_country(order)
-        validate_draft_order(order, country)
+        validate_draft_order(order, country, info.context.plugins)
         cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
 

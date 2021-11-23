@@ -29,7 +29,6 @@ from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
-    get_valid_shipping_methods_for_order,
     recalculate_order,
     update_order_prices,
 )
@@ -52,6 +51,7 @@ from ...product.types import ProductVariant
 from ...shipping.types import ShippingMethod
 from ..types import Order, OrderEvent, OrderLine
 from ..utils import (
+    get_shipping_method_availability_error,
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
@@ -73,23 +73,9 @@ def clean_order_update_shipping(
             }
         )
 
-    valid_methods_ids = {
-        method.id
-        for method in get_valid_shipping_methods_for_order(
-            order,
-            order.channel.shipping_method_listings.all(),
-            manager,
-        )
-    }
-    if method.id not in valid_methods_ids:
-        raise ValidationError(
-            {
-                "shipping_method": ValidationError(
-                    "Shipping method cannot be used with this order.",
-                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
-                )
-            }
-        )
+    error = get_shipping_method_availability_error(order, method, manager)
+    if error:
+        raise ValidationError({"shipping_method": error})
 
 
 def clean_order_cancel(order):
