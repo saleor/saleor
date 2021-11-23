@@ -360,3 +360,7 @@ class ShippingMethod(ChannelContextType, MetadataMixin):
         root: ChannelContext[models.ShippingMethod], *_args
     ):
         return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
+
+    @staticmethod
+    def resolve_description(root: ChannelContext[models.ShippingMethod], *_args):
+        return root.node.description

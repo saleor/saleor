@@ -33,6 +33,7 @@ from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
 from ....shipping.models import ShippingMethodTranslation
+from ....tests.utils import dummy_editorjs
 from ....warehouse.models import Stock
 from ...shipping.enums import ShippingMethodTypeEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -1322,6 +1323,7 @@ query getCheckout($token: UUID!) {
             id
             type
             name
+            description
             price {
                 amount
             }
@@ -1370,6 +1372,9 @@ def test_checkout_available_shipping_methods(
     shipping_method.maximum_order_weight = Weight(kg=max_weight)
     metadata_key = "md key"
     metadata_value = "md value"
+    raw_description = "this is descr"
+    description = dummy_editorjs(raw_description)
+    shipping_method.description = description
     shipping_method.store_value_in_metadata({metadata_key: metadata_value})
     shipping_method.save()
     translated_name = "Dostawa ekspresowa"
@@ -1389,6 +1394,7 @@ def test_checkout_available_shipping_methods(
         graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     )
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
+    assert raw_description in data["availableShippingMethods"][0]["description"]
     assert (
         data["availableShippingMethods"][0]["type"] == ShippingMethodTypeEnum.PRICE.name
     )
@@ -1412,7 +1418,7 @@ def test_checkout_available_shipping_methods(
     )
     assert data["availableShippingMethods"][0]["metadata"][0]["key"] == metadata_key
     assert data["availableShippingMethods"][0]["metadata"][0]["value"] == metadata_value
-    assert data["availableShippingMethods"][0]["translation"] == translated_name
+    assert data["availableShippingMethods"][0]["translation"]["name"] == translated_name
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
