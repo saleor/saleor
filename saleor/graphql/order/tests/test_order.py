@@ -336,6 +336,8 @@ query OrdersQuery {
                 }
                 availableShippingMethods {
                     id
+                    name
+                    description
                     price{
                       amount
                     }
@@ -356,8 +358,35 @@ query OrdersQuery {
                       value
                     }
                 }
-                shippingMethods {
+                shippingMethods{
+                  id
+                  name
+                  description
+                  price{
+                    amount
+                  }
+                  maximumOrderPrice{
+                    amount
+                  }
+                  minimumOrderPrice{
+                    amount
+                  }
+                  maximumDeliveryDays
+                  minimumDeliveryDays
+                  metadata{
+                    key
+                    value
+                  }
+                  privateMetadata{
+                    key
+                    value
+                  }
+                }
+                shippingMethod{
                     id
+                    name
+                    description
+                    active
                     price{
                         amount
                     }
@@ -416,6 +445,11 @@ def test_order_query(
     order.shipping_price = shipping_price
     shipping_tax_rate = Decimal("0.23")
     order.shipping_tax_rate = shipping_tax_rate
+    private_value = "abc123"
+    public_value = "123abc"
+    order.shipping_method.store_value_in_metadata({"test": public_value})
+    order.shipping_method.store_value_in_private_metadata({"test": private_value})
+    order.shipping_method.save()
     order.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -446,6 +480,8 @@ def test_order_query(
     )
     assert expected_price == shipping_price.gross
     assert order_data["shippingTaxRate"] == float(shipping_tax_rate)
+    assert public_value == order_data["shippingMethod"]["metadata"][0]["value"]
+    assert private_value == order_data["shippingMethod"]["privateMetadata"][0]["value"]
     assert len(order_data["lines"]) == order.lines.count()
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data["fulfillments"][0]["fulfillmentOrder"]
