@@ -1332,6 +1332,10 @@ query getCheckout($token: UUID!) {
             active
             minimumDeliveryDays
             maximumDeliveryDays
+            metadata {
+                key
+                value
+            }
         }
     }
 }
@@ -1347,6 +1351,9 @@ def test_checkout_available_shipping_methods(
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_method.minimum_order_weight = Weight(kg=0)
     shipping_method.maximum_order_weight = Weight(kg=0)
+    metadata_key = "md key"
+    metadata_value = "md value"
+    shipping_method.store_value_in_metadata({metadata_key: metadata_value})
     shipping_method.save()
 
     # when
@@ -1371,6 +1378,8 @@ def test_checkout_available_shipping_methods(
         data["availableShippingMethods"][0]["maximumDeliveryDays"]
         == shipping_method.maximum_delivery_days
     )
+    assert data["availableShippingMethods"][0]["metadata"][0]["key"] == metadata_key
+    assert data["availableShippingMethods"][0]["metadata"][0]["value"] == metadata_value
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
