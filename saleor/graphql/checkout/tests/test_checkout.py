@@ -33,6 +33,7 @@ from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
 from ....warehouse.models import Stock
+from ...shipping.enums import ShippingMethodTypeEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
     clean_shipping_method,
@@ -1318,6 +1319,7 @@ query getCheckout($token: UUID!) {
     checkout(token: $token) {
         availableShippingMethods {
             id
+            type
             name
             price {
                 amount
@@ -1368,6 +1370,9 @@ def test_checkout_available_shipping_methods(
         graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     )
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
+    assert (
+        data["availableShippingMethods"][0]["type"] == ShippingMethodTypeEnum.PRICE.name
+    )
     assert data["availableShippingMethods"][0]["active"]
     assert data["availableShippingMethods"][0]["message"] == ""
     assert (
