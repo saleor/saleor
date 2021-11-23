@@ -1,4 +1,5 @@
 import pytest
+from stripe.stripe_object import StripeObject
 
 from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -6,7 +7,8 @@ from .....plugins.manager import get_plugins_manager
 from .....plugins.models import PluginConfiguration
 from .... import TransactionKind
 from ....models import Transaction
-from ....utils import create_payment
+from ....utils import create_payment, price_to_minor_unit
+from ..consts import SUCCESS_STATUS
 from ..plugin import StripeGatewayPlugin
 
 
@@ -99,3 +101,18 @@ def stripe_plugin(settings, monkeypatch, channel_USD):
         return manager.plugins_per_channel[channel_USD.slug][0]
 
     return fun
+
+
+@pytest.fixture
+def stripe_payment_intent(payment_stripe_for_checkout):
+    payment = payment_stripe_for_checkout
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount_received"] = price_to_minor_unit(
+        payment.total, payment.currency
+    )
+    payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    payment_intent["setup_future_usage"] = None
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = SUCCESS_STATUS
+
+    return payment_intent

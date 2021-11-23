@@ -137,6 +137,7 @@ def test_checkout_totals_use_discounts(
             product_ids={product.id},
             category_ids=set(),
             collection_ids=set(),
+            variants_ids=set(),
         )
     ]
 

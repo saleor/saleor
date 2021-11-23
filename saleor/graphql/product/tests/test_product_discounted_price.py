@@ -315,6 +315,7 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
     product,
     category,
     collection,
+    product_variant_list,
     permission_manage_discounts,
 ):
     query = """
@@ -334,12 +335,16 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
     product_id = to_global_id("Product", product.pk)
     collection_id = to_global_id("Collection", collection.pk)
     category_id = to_global_id("Category", category.pk)
+    variant_ids = [
+        to_global_id("ProductVariant", variant.pk) for variant in product_variant_list
+    ]
     variables = {
         "id": sale_id,
         "input": {
             "products": [product_id],
             "collections": [collection_id],
             "categories": [category_id],
+            "variants": variant_ids,
         },
     }
 
@@ -355,6 +360,7 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
         product_ids=[product.pk],
         category_ids=[category.pk],
         collection_ids=[collection.pk],
+        variant_ids=[variant.pk for variant in product_variant_list],
     )
 
 
@@ -369,11 +375,16 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
     product,
     category,
     collection,
+    product_variant_list,
     permission_manage_discounts,
 ):
     assert product in sale.products.all()
     assert category in sale.categories.all()
     assert collection in sale.collections.all()
+
+    sale.variants.add(*product_variant_list)
+
+    assert all(variant in sale.variants.all() for variant in product_variant_list)
     query = """
         mutation SaleCataloguesRemove($id: ID!, $input: CatalogueInput!) {
             saleCataloguesRemove(id: $id, input: $input) {
@@ -391,12 +402,16 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
     product_id = to_global_id("Product", product.pk)
     collection_id = to_global_id("Collection", collection.pk)
     category_id = to_global_id("Category", category.pk)
+    variant_ids = [
+        to_global_id("ProductVariant", variant.pk) for variant in product_variant_list
+    ]
     variables = {
         "id": sale_id,
         "input": {
             "products": [product_id],
             "collections": [collection_id],
             "categories": [category_id],
+            "variants": variant_ids,
         },
     }
 
@@ -412,4 +427,5 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
         product_ids=[product.pk],
         category_ids=[category.pk],
         collection_ids=[collection.pk],
+        variant_ids=[variant.pk for variant in product_variant_list],
     )

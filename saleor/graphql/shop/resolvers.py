@@ -22,20 +22,12 @@ def resolve_available_shipping_methods(info, channel_slug: str, address):
 
     if available is None:
         return []
-    manager = info.context.plugins
-    display_gross = info.context.site.settings.display_gross_prices
     shipping_mapping = get_shipping_method_to_shipping_price_mapping(
         available, channel_slug
     )
     for shipping_method in available:
         shipping_price = shipping_mapping[shipping_method.pk]
-        taxed_price = manager.apply_taxes_to_shipping(
-            shipping_price, address, channel_slug
-        )
-        if display_gross:
-            shipping_method.price = taxed_price.gross
-        else:
-            shipping_method.price = taxed_price.net
+        shipping_method.price = shipping_price
 
     return [
         ChannelContext(node=shipping, channel_slug=channel_slug)

@@ -9,6 +9,8 @@ from ...webhook.event_types import WebhookEventType
 from ...webhook.payloads import (
     generate_checkout_payload,
     generate_customer_payload,
+    generate_excluded_shipping_methods_for_checkout_payload,
+    generate_excluded_shipping_methods_for_order_payload,
     generate_fulfillment_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -20,10 +22,12 @@ from ...webhook.payloads import (
     generate_product_variant_payload,
     generate_translation_payload,
 )
-from ..base_plugin import BasePlugin
+from ..base_plugin import BasePlugin, ExcludedShippingMethod, ShippingMethod
+from .const import CACHE_EXCLUDED_SHIPPING_KEY
 from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
 from .utils import (
     from_payment_app_id,
+    get_excluded_shipping_data,
     parse_list_payment_gateways_response,
     parse_payment_action_response,
 )
@@ -416,4 +420,42 @@ class WebhookPlugin(BasePlugin):
             payment_information,
             previous_value,
             **kwargs,
+        )
+
+    def excluded_shipping_methods_for_order(
+        self,
+        order: "Order",
+        available_shipping_methods: List[ShippingMethod],
+        previous_value: List[ExcludedShippingMethod],
+    ) -> List[ExcludedShippingMethod]:
+        generate_function = generate_excluded_shipping_methods_for_order_payload
+        payload_fun = lambda: generate_function(  # noqa: E731
+            order,
+            available_shipping_methods,
+        )
+        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + order.token
+        return get_excluded_shipping_data(
+            event_type=WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
+            previous_value=previous_value,
+            payload_fun=payload_fun,
+            cache_key=cache_key,
+        )
+
+    def excluded_shipping_methods_for_checkout(
+        self,
+        checkout: "Checkout",
+        available_shipping_methods: List[ShippingMethod],
+        previous_value: List[ExcludedShippingMethod],
+    ) -> List[ExcludedShippingMethod]:
+        generate_function = generate_excluded_shipping_methods_for_checkout_payload
+        payload_function = lambda: generate_function(  # noqa: E731
+            checkout,
+            available_shipping_methods,
+        )
+        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout.token)
+        return get_excluded_shipping_data(
+            event_type=WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
+            previous_value=previous_value,
+            payload_fun=payload_function,
+            cache_key=cache_key,
         )

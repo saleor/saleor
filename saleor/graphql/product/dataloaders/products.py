@@ -35,7 +35,7 @@ class ProductByIdLoader(DataLoader):
     context_key = "product_by_id"
 
     def batch_load(self, keys):
-        products = Product.objects.all().in_bulk(keys)
+        products = Product.objects.using(self.database_connection_name).in_bulk(keys)
         return [products.get(product_id) for product_id in keys]
 
 
@@ -163,7 +163,9 @@ class ProductVariantByIdLoader(DataLoader):
     context_key = "productvariant_by_id"
 
     def batch_load(self, keys):
-        variants = ProductVariant.objects.in_bulk(keys)
+        variants = ProductVariant.objects.using(self.database_connection_name).in_bulk(
+            keys
+        )
         return [variants.get(key) for key in keys]
 
 
@@ -451,7 +453,9 @@ class CollectionByIdLoader(DataLoader):
     context_key = "collection_by_id"
 
     def batch_load(self, keys):
-        collections = Collection.objects.in_bulk(keys)
+        collections = Collection.objects.using(self.database_connection_name).in_bulk(
+            keys
+        )
         return [collections.get(collection_id) for collection_id in keys]
 
 
@@ -460,7 +464,8 @@ class CollectionsByProductIdLoader(DataLoader):
 
     def batch_load(self, keys):
         product_collection_pairs = list(
-            CollectionProduct.objects.filter(product_id__in=keys)
+            CollectionProduct.objects.using(self.database_connection_name)
+            .filter(product_id__in=keys)
             .order_by("id")
             .values_list("product_id", "collection_id")
         )

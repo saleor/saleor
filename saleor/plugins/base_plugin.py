@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django_countries.fields import Country
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ..payment.interface import (
@@ -60,6 +61,23 @@ class ExternalAccessTokens:
     refresh_token: Optional[str] = None
     csrf_token: Optional[str] = None
     user: Optional["User"] = None
+
+
+@dataclass
+class ExcludedShippingMethod:
+    id: str
+    reason: Optional[str]
+
+
+@dataclass
+class ShippingMethod:
+    id: str
+    price: Money
+    name: str
+    maximum_order_weight: Optional[Weight]
+    minimum_order_weight: Optional[Weight]
+    maximum_delivery_days: Optional[int]
+    minimum_delivery_days: Optional[int]
 
 
 class BasePlugin:
@@ -210,6 +228,9 @@ class BasePlugin:
     change_user_address: Callable[
         ["Address", Union[str, NoneType], Union["User", NoneType], "Address"], "Address"
     ]
+
+    #  Retrieves the balance remaining on a shopper's gift card
+    check_payment_balance: Callable[[dict, str], dict]
 
     #  Trigger when checkout is created.
     #
@@ -631,3 +652,19 @@ class BasePlugin:
             # Let's add a translated descriptions and labels
             self._append_config_structure(configuration)
         return configuration
+
+    def excluded_shipping_methods_for_order(
+        self,
+        order: "Order",
+        available_shipping_methods: List[ShippingMethod],
+        previous_value,
+    ) -> List[ExcludedShippingMethod]:
+        return NotImplemented
+
+    def excluded_shipping_methods_for_checkout(
+        self,
+        checkout: "Checkout",
+        available_shipping_methods: List[ShippingMethod],
+        previous_value,
+    ) -> List[ExcludedShippingMethod]:
+        return NotImplemented

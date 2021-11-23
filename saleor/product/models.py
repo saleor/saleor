@@ -591,12 +591,14 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         channel_listing: "ProductVariantChannelListing",
         discounts: Optional[Iterable[DiscountInfo]] = None,
     ) -> "Money":
+
         return calculate_discounted_price(
             product=product,
             price=channel_listing.price,
             discounts=discounts,
             collections=collections,
             channel=channel,
+            variant_id=self.id,
         )
 
     def get_weight(self):

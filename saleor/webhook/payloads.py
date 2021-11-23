@@ -1,13 +1,14 @@
 import json
 import uuid
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 import graphene
 from django.db.models import F, QuerySet
 
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
+from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,
@@ -20,6 +21,7 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
+from ..plugins.base_plugin import ShippingMethod
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
@@ -66,13 +68,20 @@ ORDER_FIELDS = (
     "shipping_price_net_amount",
     "shipping_price_gross_amount",
     "shipping_tax_rate",
-    "total_net_amount",
-    "total_gross_amount",
-    "shipping_price_net_amount",
-    "shipping_price_gross_amount",
     "weight",
     "private_metadata",
     "metadata",
+    "total_net_amount",
+    "total_gross_amount",
+    "undiscounted_total_net_amount",
+    "undiscounted_total_gross_amount",
+)
+
+ORDER_PRICE_FIELDS = (
+    "shipping_price_net_amount",
+    "shipping_price_gross_amount",
+    "total_net_amount",
+    "total_gross_amount",
     "undiscounted_total_net_amount",
     "undiscounted_total_gross_amount",
 )
@@ -114,6 +123,21 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         "undiscounted_total_price_gross_amount",
         "tax_rate",
     )
+    line_price_fields = (
+        "unit_price_gross_amount",
+        "unit_price_net_amount",
+        "unit_discount_amount",
+        "total_price_net_amount",
+        "total_price_gross_amount",
+        "undiscounted_unit_price_net_amount",
+        "undiscounted_unit_price_gross_amount",
+        "undiscounted_total_price_net_amount",
+        "undiscounted_total_price_gross_amount",
+    )
+
+    for line in lines:
+        quantize_price_fields(line, line_price_fields, line.currency)
+
     serializer = PayloadSerializer()
     return serializer.serialize(
         lines,
@@ -135,6 +159,7 @@ def generate_order_payload(order: "Order"):
         "shipping_refund_amount",
         "total_refund_amount",
     )
+    fulfillment_price_fields = ("shipping_refund_amount", "total_refund_amount")
     payment_fields = (
         "gateway",
         "payment_method_type",
@@ -159,7 +184,7 @@ def generate_order_payload(order: "Order"):
         "billing_country_code",
         "billing_country_area",
     )
-
+    payment_price_fields = ("captured_amount", "total")
     discount_fields = (
         "type",
         "value_type",
@@ -169,29 +194,44 @@ def generate_order_payload(order: "Order"):
         "translated_name",
         "reason",
     )
+    discount_price_fields = ("amount_value",)
 
     channel_fields = ("slug", "currency_code")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
-
     lines = order.lines.all()
+    fulfillments = order.fulfillments.all()
+    payments = order.payments.all()
+    discounts = order.discounts.all()
+
+    quantize_price_fields(order, ORDER_PRICE_FIELDS, order.currency)
+
+    for fulfillment in fulfillments:
+        quantize_price_fields(fulfillment, fulfillment_price_fields, order.currency)
+
+    for payment in payments:
+        quantize_price_fields(payment, payment_price_fields, order.currency)
+
+    for discount in discounts:
+        quantize_price_fields(discount, discount_price_fields, order.currency)
 
     fulfillments_data = serializer.serialize(
-        order.fulfillments.all(),
+        fulfillments,
         fields=fulfillment_fields,
         extra_dict_data={
             "lines": lambda f: json.loads(generate_fulfillment_lines_payload(f))
         },
     )
+
     order_data = serializer.serialize(
         [order],
         fields=ORDER_FIELDS,
         additional_fields={
             "channel": (lambda o: o.channel, channel_fields),
             "shipping_method": (lambda o: o.shipping_method, shipping_method_fields),
-            "payments": (lambda o: o.payments.all(), payment_fields),
+            "payments": (lambda _: payments, payment_fields),
             "shipping_address": (lambda o: o.shipping_address, ADDRESS_FIELDS),
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
-            "discounts": (lambda o: o.discounts.all(), discount_fields),
+            "discounts": (lambda _: discounts, discount_fields),
         },
         extra_dict_data={
             "original": graphene.Node.to_global_id("Order", order.original_id),
@@ -205,6 +245,8 @@ def generate_order_payload(order: "Order"):
 def generate_invoice_payload(invoice: "Invoice"):
     serializer = PayloadSerializer()
     invoice_fields = ("id", "number", "external_url", "created")
+    if invoice.order is not None:
+        quantize_price_fields(invoice.order, ORDER_PRICE_FIELDS, invoice.order.currency)
     return serializer.serialize(
         [invoice],
         fields=invoice_fields,
@@ -226,7 +268,11 @@ def generate_checkout_payload(checkout: "Checkout"):
         "private_metadata",
         "metadata",
     )
+
+    checkout_price_fields = ("discount_amount",)
+    quantize_price_fields(checkout, checkout_price_fields, checkout.currency)
     user_fields = ("email", "first_name", "last_name")
+    channel_fields = ("slug", "currency_code")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
     lines_dict_data = serialize_checkout_lines(checkout)
 
@@ -235,6 +281,7 @@ def generate_checkout_payload(checkout: "Checkout"):
         fields=checkout_fields,
         obj_id_name="token",
         additional_fields={
+            "channel": (lambda o: o.channel, channel_fields),
             "user": (lambda c: c.user, user_fields),
             "billing_address": (lambda c: c.billing_address, ADDRESS_FIELDS),
             "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
@@ -438,20 +485,36 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
                 if fl.order_line.variant
                 else None
             ),
-            "unit_price_net": lambda fl: fl.order_line.unit_price_net_amount,
-            "unit_price_gross": lambda fl: fl.order_line.unit_price_gross_amount,
+            "unit_price_net": lambda fl: quantize_price(
+                fl.order_line.unit_price_net_amount, fl.order_line.currency
+            ),
+            "unit_price_gross": lambda fl: quantize_price(
+                fl.order_line.unit_price_gross_amount, fl.order_line.currency
+            ),
             "undiscounted_unit_price_net": (
-                lambda fl: fl.order_line.undiscounted_unit_price.net.amount
+                lambda fl: quantize_price(
+                    fl.order_line.undiscounted_unit_price.net.amount,
+                    fl.order_line.currency,
+                )
             ),
             "undiscounted_unit_price_gross": (
-                lambda fl: fl.order_line.undiscounted_unit_price.gross.amount
+                lambda fl: quantize_price(
+                    fl.order_line.undiscounted_unit_price.gross.amount,
+                    fl.order_line.currency,
+                )
             ),
             "total_price_net_amount": (
-                lambda fl: fl.order_line.undiscounted_unit_price.net.amount
+                lambda fl: quantize_price(
+                    fl.order_line.undiscounted_unit_price.net.amount,
+                    fl.order_line.currency,
+                )
                 * fl.quantity
             ),
             "total_price_gross_amount": (
-                lambda fl: fl.order_line.undiscounted_unit_price.gross.amount
+                lambda fl: quantize_price(
+                    fl.order_line.undiscounted_unit_price.gross.amount,
+                    fl.order_line.currency,
+                )
                 * fl.quantity
             ),
             "currency": lambda fl: fl.order_line.currency,
@@ -475,8 +538,15 @@ def generate_fulfillment_payload(fulfillment: Fulfillment):
         "shipping_refund_amount",
         "total_refund_amount",
     )
+    fulfillment_price_fields = (
+        "shipping_refund_amount",
+        "total_refund_amount",
+    )
     order = fulfillment.order
     order_country = get_order_country(order)
+    quantize_price_fields(
+        fulfillment, fulfillment_price_fields, fulfillment.order.currency
+    )
     fulfillment_line = fulfillment.lines.first()
     if fulfillment_line and fulfillment_line.stock:
         warehouse = fulfillment_line.stock.warehouse
@@ -516,6 +586,7 @@ def generate_page_payload(page: Page):
 
 def generate_payment_payload(payment_data: "PaymentData"):
     data = asdict(payment_data)
+    data["amount"] = quantize_price(data["amount"], data["currency"])
     payment_app_data = from_payment_app_id(data["gateway"])
     if payment_app_data:
         data["payment_method"] = payment_app_data.name
@@ -533,6 +604,50 @@ def generate_list_gateways_payload(
         checkout_data = None
     payload = {"checkout": checkout_data, "currency": currency}
     return json.dumps(payload)
+
+
+def _generate_payload_for_shipping_method(method: ShippingMethod):
+    payload = {
+        "id": graphene.Node.to_global_id("ShippingMethod", method.id),
+        "price": method.price.amount,
+        "currency": method.price.currency,
+        "name": method.name,
+        "maximum_order_weight": method.maximum_order_weight,
+        "minimum_order_weight": method.minimum_order_weight,
+        "maximum_delivery_days": method.maximum_delivery_days,
+        "minimum_delivery_days": method.minimum_delivery_days,
+    }
+    return payload
+
+
+def generate_excluded_shipping_methods_for_order_payload(
+    order: "Order",
+    available_shipping_methods: List[ShippingMethod],
+):
+    order_data = json.loads(generate_order_payload(order))[0]
+    payload = {
+        "order": order_data,
+        "shipping_methods": [
+            _generate_payload_for_shipping_method(shipping_method)
+            for shipping_method in available_shipping_methods
+        ],
+    }
+    return json.dumps(payload, cls=CustomJsonEncoder)
+
+
+def generate_excluded_shipping_methods_for_checkout_payload(
+    checkout: "Checkout",
+    available_shipping_methods: List[ShippingMethod],
+):
+    checkout_data = json.loads(generate_checkout_payload(checkout))[0]
+    payload = {
+        "checkout": checkout_data,
+        "shipping_methods": [
+            _generate_payload_for_shipping_method(shipping_method)
+            for shipping_method in available_shipping_methods
+        ],
+    }
+    return json.dumps(payload, cls=CustomJsonEncoder)
 
 
 def _get_sample_object(qs: QuerySet):
