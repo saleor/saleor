@@ -57,6 +57,7 @@ jobs:
           echo "
           CONTAINER_TAGS=${TAGS}
           NAMED_VERSION=${NAMED_VERSION}
+          VERSION=${VERSION}
           " >> "${GITHUB_ENV}"
 
       # Outputs the containers tags for staging branches
@@ -130,3 +131,12 @@ jobs:
           echo $"\
             Digest: ${{ steps.docker_build.outputs.digest }}
             Tags: ${{ env.CONTAINER_TAGS }}"
+
+      - name: Trigger staging deployment for tagged release
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          curl -f -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
+            https://api.github.com/repos/saleor/saleor-multitenant/dispatches \
+            -d "{\"event_type\":\"deploy-staging\",\"client_payload\":{\"version\":\"$VERSION\"}}"
