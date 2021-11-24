@@ -496,7 +496,7 @@ def test_order_query(
     )
 
 
-@pytest.skip(
+@pytest.mark.skip(
     "Shipping method is cleared when channel listings are edited, "
     "see: drop_invalid_shipping_methods_relations_for_given_channels."
     "However, a solution that returns price for non editable orders "
