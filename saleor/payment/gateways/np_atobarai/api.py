@@ -42,12 +42,17 @@ logger = logging.getLogger(__name__)
 def register_transaction(
     order: Optional[Order], config: ApiConfig, payment_information: "PaymentData"
 ) -> PaymentResult:
+    """Create a new transaction in NP Atobarai.
+
+    On pending status from NP the transaction is cancelled and error
+    """
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.register"):
+        action = TRANSACTION_REGISTRATION
         result, error_codes = register(config, payment_information)
 
         if error_codes:
             error_messages = get_error_messages_from_codes(
-                action=TRANSACTION_REGISTRATION, error_codes=error_codes
+                action, error_codes=error_codes
             )
             return errors_payment_result(error_messages)
 
@@ -60,7 +65,9 @@ def register_transaction(
                 handle_unrecoverable_state(
                     order, "cancel", transaction_id, cancel_error_codes
                 )
-            error_messages = result["authori_hold"]
+            error_messages = get_error_messages_from_codes(
+                action, error_codes=result["authori_hold"]
+            )
 
         return PaymentResult(
             status=status,
@@ -106,6 +113,11 @@ def change_transaction(
     payment_information: PaymentData,
     refund_data: Optional[Dict[int, int]],
 ) -> Optional[PaymentResult]:
+    """Partial refund.
+
+    If the fulfillment was reported prior to changing given transaction,
+    then this function is a noop and return value is None.
+    """
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.change"):
         if refund_data:
             goods = get_refunded_goods(config, refund_data, payment_information)
@@ -166,6 +178,7 @@ def reregister_transaction_for_partial_return(
     tracking_number: Optional[str],
     refund_data: Optional[Dict[int, int]],
 ) -> PaymentResult:
+    """Partial refund after fulfillment report."""
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.reregister"):
         psp_reference = payment.psp_reference
         action = TRANSACTION_REGISTRATION

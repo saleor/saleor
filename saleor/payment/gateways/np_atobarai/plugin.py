@@ -5,16 +5,10 @@ from django.core.exceptions import ValidationError
 from ....order.models import Fulfillment
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ....plugins.error_codes import PluginErrorCode
-from . import (
-    GatewayConfig,
-    capture,
-    get_api_config,
-    process_payment,
-    refund,
-    tracking_number_updated,
-    void,
-)
+from ...interface import GatewayConfig
+from . import capture, process_payment, refund, tracking_number_updated, void
 from .api_helpers import health_check
+from .api_types import get_api_config
 from .const import (
     FILL_MISSING_ADDRESS,
     MERCHANT_CODE,

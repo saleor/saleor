@@ -6,10 +6,10 @@ from graphene import Node
 
 from ....order.models import Fulfillment
 from ... import PaymentError, TransactionKind
-from ...interface import GatewayConfig, GatewayResponse, PaymentData
+from ...interface import GatewayResponse, PaymentData
 from ...models import Payment
 from . import api
-from .api_types import ApiConfig, PaymentStatus, get_api_config
+from .api_types import ApiConfig, PaymentStatus
 from .const import NP_PLUGIN_ID
 from .utils import (
     get_fulfillment_for_order,
@@ -19,13 +19,6 @@ from .utils import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-def inject_api_config(fun):
-    def inner(payment_information: PaymentData, config: GatewayConfig):
-        return fun(payment_information, get_api_config(config.connection_params))
-
-    return inner
 
 
 def parse_errors(errors: List[str]) -> str:

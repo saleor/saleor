@@ -768,7 +768,7 @@ def test_register_transaction_pending(
     mocked_register.assert_called_once()
     mocked_cancel.assert_called_once_with(config, transaction_id)
     assert payment_response.status == PaymentStatus.PENDING
-    assert payment_response.errors == errors
+    assert payment_response.errors == [f"TR#{e}" for e in errors]
 
 
 def test_cancel_transaction_no_payment(np_payment_data):
