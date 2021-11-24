@@ -4776,9 +4776,9 @@ def test_query_customers_with_sort(
         ({"search": "wroc"}, 1),  # city
         ({"search": "pl"}, 1),  # country
         ({"search": "+48713988102"}, 1),
-        ({"search": "Alice Kowalski"}, 1),
-        ({"search": "Kowalski Alice"}, 1),
-        ({"search": "John Doe"}, 1),
+        ({"search": "alice Kowalski"}, 1),
+        ({"search": "kowalski alice"}, 1),
+        ({"search": "John doe"}, 1),
         ({"search": "Alice Doe"}, 0),
     ],
 )
@@ -4876,15 +4876,15 @@ def test_query_staff_members_app_no_permission(
     "staff_member_filter, count",
     [
         ({"search": "mirumee.com"}, 2),
-        ({"search": "Alice"}, 1),
-        ({"search": "Kowalski"}, 1),
+        ({"search": "alice"}, 1),
+        ({"search": "kowalski"}, 1),
         ({"search": "John"}, 1),  # first_name
         ({"search": "Doe"}, 1),  # last_name
         ({"search": "irv"}, 1),  # city
         ({"search": "us"}, 1),  # country
         ({"search": "Alice Kowalski"}, 1),
         ({"search": "Kowalski Alice"}, 1),
-        ({"search": "John Doe"}, 1),
+        ({"search": "john doe"}, 1),
         ({"search": "Alice Doe"}, 0),
     ],
 )

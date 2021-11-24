@@ -33,7 +33,7 @@ def filter_user_search(qs, _, value):
     if value:
         lookup = Q()
         for val in value.split():
-            lookup &= Q(search_document__ilike=val)
+            lookup &= Q(search_document__ilike=val.lower())
         qs = qs.filter(lookup)
     return qs
 
