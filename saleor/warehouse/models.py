@@ -319,6 +319,34 @@ class ReservationQuerySet(models.QuerySet):
         return self
 
 
+class PreorderReservation(models.Model):
+    checkout_line = models.ForeignKey(
+        CheckoutLine,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="preorder_reservations",
+    )
+    product_variant_channel_listing = models.ForeignKey(
+        ProductVariantChannelListing,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="preorder_reservations",
+    )
+    quantity_reserved = models.PositiveIntegerField(default=0)
+    reserved_until = models.DateTimeField()
+
+    objects = models.Manager.from_queryset(ReservationQuerySet)()
+
+    class Meta:
+        unique_together = [["checkout_line", "product_variant_channel_listing"]]
+        indexes = [
+            models.Index(fields=["checkout_line", "reserved_until"]),
+        ]
+        ordering = ("pk",)
+
+
 class Reservation(models.Model):
     checkout_line = models.ForeignKey(
         CheckoutLine,
