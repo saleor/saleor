@@ -333,17 +333,80 @@ query OrdersQuery {
                 }
                 availableShippingMethods {
                     id
-                    price {
-                        amount
+                    type
+                    name
+                    description
+                    price{
+                      amount
                     }
-                    minimumOrderPrice {
-                        amount
-                        currency
+                    maximumOrderPrice{
+                      amount
                     }
+                    minimumOrderPrice{
+                      amount
+                    }
+                    maximumDeliveryDays
+                    minimumDeliveryDays
+                    metadata{
+                      key
+                      value
+                    }
+                    privateMetadata{
+                      key
+                      value
+                    }
+                }
+                shippingMethods{
+                  id
+                  type
+                  name
+                  description
+                  price{
+                    amount
+                  }
+                  maximumOrderPrice{
+                    amount
+                  }
+                  minimumOrderPrice{
+                    amount
+                  }
+                  maximumDeliveryDays
+                  minimumDeliveryDays
+                  metadata{
+                    key
+                    value
+                  }
+                  privateMetadata{
+                    key
+                    value
+                  }
                 }
                 shippingMethod{
                     id
+                    name
+                    description
                     type
+                    active
+                    message
+                    price{
+                      amount
+                    }
+                    maximumOrderPrice{
+                      amount
+                    }
+                    minimumOrderPrice{
+                      amount
+                    }
+                    maximumDeliveryDays
+                    minimumDeliveryDays
+                    metadata{
+                      key
+                      value
+                    }
+                    privateMetadata{
+                      key
+                      value
+                    }
                 }
             }
         }
@@ -353,7 +416,11 @@ query OrdersQuery {
 
 
 def test_order_query(
-    staff_api_client, permission_manage_orders, fulfilled_order, shipping_zone
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_shipping,
+    fulfilled_order,
+    shipping_zone,
 ):
     # given
     order = fulfilled_order
@@ -363,9 +430,15 @@ def test_order_query(
     order.shipping_price = shipping_price
     shipping_tax_rate = Decimal("0.23")
     order.shipping_tax_rate = shipping_tax_rate
+    private_value = "abc123"
+    public_value = "123abc"
+    order.shipping_method.store_value_in_metadata({"test": public_value})
+    order.shipping_method.store_value_in_private_metadata({"test": private_value})
+    order.shipping_method.save()
     order.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -393,9 +466,14 @@ def test_order_query(
     assert expected_price == shipping_price.gross
     assert order_data["shippingTaxRate"] == float(shipping_tax_rate)
     assert order_data["shippingMethod"]["type"] == order.shipping_method.type.upper()
+    assert order_data["shippingMethod"]["active"] is True
+    assert order_data["shippingMethod"]["message"] == ""
+    assert public_value == order_data["shippingMethod"]["metadata"][0]["value"]
+    assert private_value == order_data["shippingMethod"]["privateMetadata"][0]["value"]
     assert len(order_data["lines"]) == order.lines.count()
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data["fulfillments"][0]["fulfillmentOrder"]
+
     assert fulfillment_order == fulfillment
     assert len(order_data["payments"]) == order.payments.count()
 
@@ -418,9 +496,16 @@ def test_order_query(
     )
 
 
+@pytest.mark.skip(
+    "Shipping method is cleared when channel listings are edited, "
+    "see: drop_invalid_shipping_methods_relations_for_given_channels."
+    "However, a solution that returns price for non editable orders "
+    "should be added."
+)
 def test_order_query_shipping_method_channel_listing_does_not_exist(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     order_with_lines,
 ):
     # given
@@ -434,6 +519,7 @@ def test_order_query_shipping_method_channel_listing_does_not_exist(
     ).delete()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -449,6 +535,7 @@ def test_order_query_shipping_method_channel_listing_does_not_exist(
 def test_order_discounts_query(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     draft_order_with_fixed_discount_order,
 ):
     # given
@@ -459,6 +546,7 @@ def test_order_discounts_query(
     discount = order.discounts.get()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -480,6 +568,7 @@ def test_order_discounts_query(
 def test_order_line_discount_query(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     draft_order_with_fixed_discount_order,
 ):
     # given
@@ -496,6 +585,7 @@ def test_order_line_discount_query(
     line_with_discount_id = graphene.Node.to_global_id("OrderLine", line.pk)
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -538,6 +628,7 @@ def test_order_line_discount_query(
 def test_order_query_in_pln_channel(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     order_with_lines_channel_PLN,
     shipping_zone,
     channel_PLN,
@@ -545,6 +636,7 @@ def test_order_query_in_pln_channel(
     shipping_zone.channels.add(channel_PLN)
     order = order_with_lines_channel_PLN
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
     response = staff_api_client.post_graphql(ORDERS_QUERY)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]

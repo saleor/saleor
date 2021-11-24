@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.test import override_settings
 from django_countries.fields import Country
 from measurement.measures import Weight
+from prices import Money
 
 from ....account.models import User
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
@@ -31,7 +32,10 @@ from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
+from ....shipping.models import ShippingMethodTranslation
+from ....tests.utils import dummy_editorjs
 from ....warehouse.models import Stock
+from ...shipping.enums import ShippingMethodTypeEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
     clean_shipping_method,
@@ -1312,13 +1316,42 @@ def test_checkout_available_payment_gateways_currency_specified_EUR(
     )
 
 
-GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS = """
+GET_CHECKOUT_SELECTED_SHIPPING_METHOD = """
 query getCheckout($token: UUID!) {
     checkout(token: $token) {
-        availableShippingMethods {
+        shippingMethod {
+            id
+            type
             name
+            description
             price {
                 amount
+            }
+            translation(languageCode: PL) {
+                name
+                description
+            }
+            minimumOrderPrice {
+                amount
+            }
+            maximumOrderPrice {
+                amount
+            }
+            minimumOrderWeight {
+               unit
+               value
+            }
+            maximumOrderWeight {
+               unit
+               value
+            }
+            message
+            active
+            minimumDeliveryDays
+            maximumDeliveryDays
+            metadata {
+                key
+                value
             }
         }
     }
@@ -1326,26 +1359,164 @@ query getCheckout($token: UUID!) {
 """
 
 
-def test_checkout_available_shipping_methods(
+def test_checkout_selected_shipping_method(
     api_client, checkout_with_item, address, shipping_zone
 ):
     # given
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_method.minimum_order_weight = Weight(kg=0)
-    shipping_method.maximum_order_weight = Weight(kg=0)
+    min_weight = 0
+    shipping_method.minimum_order_weight = Weight(oz=min_weight)
+    max_weight = 10
+    shipping_method.maximum_order_weight = Weight(kg=max_weight)
+    metadata_key = "md key"
+    metadata_value = "md value"
+    raw_description = "this is descr"
+    description = dummy_editorjs(raw_description)
+    shipping_method.description = description
+    shipping_method.store_value_in_metadata({metadata_key: metadata_value})
     shipping_method.save()
+    translated_name = "Dostawa ekspresowa"
+    ShippingMethodTranslation.objects.create(
+        language_code="pl", shipping_method=shipping_method, name=translated_name
+    )
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.save()
 
     # when
-    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
+    query = GET_CHECKOUT_SELECTED_SHIPPING_METHOD
     variables = {"token": checkout_with_item.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
     # then
-    assert data["availableShippingMethods"][0]["name"] == shipping_method.name
+    assert data["shippingMethod"]["id"] == (
+        graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    )
+    assert data["shippingMethod"]["name"] == shipping_method.name
+    assert raw_description in data["shippingMethod"]["description"]
+    assert data["shippingMethod"]["type"] == ShippingMethodTypeEnum.PRICE.name
+    assert data["shippingMethod"]["active"]
+    assert data["shippingMethod"]["message"] == ""
+    assert (
+        data["shippingMethod"]["minimumDeliveryDays"]
+        == shipping_method.minimum_delivery_days
+    )
+    assert (
+        data["shippingMethod"]["maximumDeliveryDays"]
+        == shipping_method.maximum_delivery_days
+    )
+    assert data["shippingMethod"]["minimumOrderWeight"]["unit"] == "KG"
+    assert data["shippingMethod"]["minimumOrderWeight"]["value"] == min_weight
+    assert data["shippingMethod"]["maximumOrderWeight"]["unit"] == "KG"
+    assert data["shippingMethod"]["maximumOrderWeight"]["value"] == max_weight
+    assert data["shippingMethod"]["metadata"][0]["key"] == metadata_key
+    assert data["shippingMethod"]["metadata"][0]["value"] == metadata_value
+    assert data["shippingMethod"]["translation"]["name"] == translated_name
+
+
+GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS_TEMPLATE = """
+query getCheckout($token: UUID!) {
+    checkout(token: $token) {
+        %s {
+            id
+            type
+            name
+            description
+            price {
+                amount
+            }
+            translation(languageCode: PL) {
+                name
+                description
+            }
+            minimumOrderPrice {
+                amount
+            }
+            maximumOrderPrice {
+                amount
+            }
+            minimumOrderWeight {
+               unit
+               value
+            }
+            maximumOrderWeight {
+               unit
+               value
+            }
+            message
+            active
+            minimumDeliveryDays
+            maximumDeliveryDays
+            metadata {
+                key
+                value
+            }
+        }
+    }
+}
+"""
+
+GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS = (
+    GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS_TEMPLATE % "availableShippingMethods"
+)
+
+
+@pytest.mark.parametrize("field", ["availableShippingMethods", "shippingMethods"])
+def test_checkout_available_shipping_methods(
+    api_client, checkout_with_item, address, shipping_zone, field
+):
+    # given
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+    shipping_method = shipping_zone.shipping_methods.first()
+    min_weight = 0
+    shipping_method.minimum_order_weight = Weight(oz=min_weight)
+    max_weight = 10
+    shipping_method.maximum_order_weight = Weight(kg=max_weight)
+    metadata_key = "md key"
+    metadata_value = "md value"
+    raw_description = "this is descr"
+    description = dummy_editorjs(raw_description)
+    shipping_method.description = description
+    shipping_method.store_value_in_metadata({metadata_key: metadata_value})
+    shipping_method.save()
+    translated_name = "Dostawa ekspresowa"
+    ShippingMethodTranslation.objects.create(
+        language_code="pl", shipping_method=shipping_method, name=translated_name
+    )
+
+    # when
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS_TEMPLATE % field
+    variables = {"token": checkout_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data[field][0]["id"] == (
+        graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    )
+    assert data[field][0]["name"] == shipping_method.name
+    assert raw_description in data[field][0]["description"]
+    assert data[field][0]["type"] == ShippingMethodTypeEnum.PRICE.name
+    assert data[field][0]["active"]
+    assert data[field][0]["message"] == ""
+    assert (
+        data[field][0]["minimumDeliveryDays"] == shipping_method.minimum_delivery_days
+    )
+    assert (
+        data[field][0]["maximumDeliveryDays"] == shipping_method.maximum_delivery_days
+    )
+    assert data[field][0]["minimumOrderWeight"]["unit"] == "KG"
+    assert data[field][0]["minimumOrderWeight"]["value"] == min_weight
+    assert data[field][0]["maximumOrderWeight"]["unit"] == "KG"
+    assert data[field][0]["maximumOrderWeight"]["value"] == max_weight
+    assert data[field][0]["metadata"][0]["key"] == metadata_key
+    assert data[field][0]["metadata"][0]["value"] == metadata_value
+    assert data[field][0]["translation"]["name"] == translated_name
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
@@ -1451,9 +1622,16 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     shipping_zone,
 ):
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_price = shipping_method.channel_listings.get(
+    method_listing = shipping_method.channel_listings.get(
         channel_id=checkout_with_item.channel_id
-    ).price
+    )
+    method_listing.minimum_order_price = Money(
+        Decimal("5.37"), checkout_with_item.currency
+    )
+    method_listing.maximum_order_price = Money(
+        Decimal("115.73"), checkout_with_item.currency
+    )
+    method_listing.save()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
 
@@ -1464,9 +1642,16 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    assert data["availableShippingMethods"] == [
-        {"name": "DHL", "price": {"amount": shipping_price.amount}}
-    ]
+    assert data["availableShippingMethods"][0]["name"] == shipping_method.name
+    assert data["availableShippingMethods"][0]["price"]["amount"] == float(
+        method_listing.price.amount
+    )
+    assert data["availableShippingMethods"][0]["minimumOrderPrice"]["amount"] == float(
+        method_listing.minimum_order_price.amount
+    )
+    assert data["availableShippingMethods"][0]["maximumOrderPrice"]["amount"] == float(
+        method_listing.maximum_order_price.amount
+    )
 
 
 def test_checkout_no_available_shipping_methods_without_address(

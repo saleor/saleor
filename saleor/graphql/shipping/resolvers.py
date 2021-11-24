@@ -34,7 +34,26 @@ def resolve_shipping_minimum_order_price(
     return (
         ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(info.context)
         .load((root.node.id, root.channel_slug))
-        .then(lambda channel_listing: channel_listing.minimum_order_price)
+        .then(
+            lambda channel_listing: channel_listing
+            and channel_listing.minimum_order_price
+        )
+    )
+
+
+def resolve_shipping_maximum_order_price(
+    root: ChannelContext[models.ShippingMethod], info, **_kwargs
+):
+    if not root.channel_slug:
+        return None
+
+    return (
+        ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(info.context)
+        .load((root.node.id, root.channel_slug))
+        .then(
+            lambda channel_listing: channel_listing
+            and channel_listing.maximum_order_price
+        )
     )
 
 
@@ -52,5 +71,5 @@ def resolve_shipping_price(
     return (
         ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(info.context)
         .load((root.node.id, root.channel_slug))
-        .then(lambda channel_listing: channel_listing.price)
+        .then(lambda channel_listing: channel_listing and channel_listing.price)
     )

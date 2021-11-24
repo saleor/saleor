@@ -12,20 +12,23 @@ from ..channel.types import (
     ChannelContext,
     ChannelContextType,
     ChannelContextTypeWithMetadata,
+    MetadataMixin,
 )
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import ChannelContextFilterConnectionField
-from ..core.types import CountryDisplay, Money, MoneyRange
+from ..core.types import CountryDisplay, Money, MoneyRange, Weight
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
-from ..shipping.resolvers import resolve_price_range
+from ..shipping.resolvers import (
+    resolve_price_range,
+    resolve_shipping_maximum_order_price,
+)
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
 from .dataloaders import (
     ChannelsByShippingZoneIdLoader,
     PostalCodeRulesByShippingMethodIdLoader,
-    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
     ShippingMethodChannelListingByShippingMethodIdLoader,
     ShippingMethodsByShippingZoneIdAndChannelSlugLoader,
     ShippingMethodsByShippingZoneIdLoader,
@@ -116,30 +119,16 @@ class ShippingMethodType(ChannelContextTypeWithMetadata, CountableDjangoObjectTy
         ]
 
     @staticmethod
-    def resolve_price(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
-        # Price field are dynamically generated in available_shipping_methods resolver
-        return resolve_shipping_price(root, info, **_kwargs)
-
-    @staticmethod
     def resolve_maximum_order_price(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
-        return resolve_shipping_minimum_order_price(root, info, **_kwargs)
+        return resolve_shipping_maximum_order_price(root, info, **_kwargs)
 
     @staticmethod
     def resolve_minimum_order_price(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
-        if not root.channel_slug:
-            return None
-
-        return (
-            ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
-                info.context
-            )
-            .load((root.node.id, root.channel_slug))
-            .then(lambda channel_listing: channel_listing.minimum_order_price)
-        )
+        return resolve_shipping_minimum_order_price(root, info, **_kwargs)
 
     @staticmethod
     def resolve_maximum_order_weight(
@@ -259,7 +248,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
-class ShippingMethod(ChannelContextType):
+class ShippingMethod(ChannelContextType, MetadataMixin):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
@@ -276,6 +265,16 @@ class ShippingMethod(ChannelContextType):
     minimum_delivery_days = graphene.Int(
         description="Minimum delivery days for this shipping method."
     )
+    maximum_order_weight = graphene.Field(
+        Weight,
+        description="Maximum order weight for this shipping method.",
+        deprecation_reason="This field will be removed in Saleor 4.0.",
+    )
+    minimum_order_weight = graphene.Field(
+        Weight,
+        description="Minimum order weight for this shipping method.",
+        deprecation_reason="This field will be removed in Saleor 4.0.",
+    )
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
@@ -283,6 +282,9 @@ class ShippingMethod(ChannelContextType):
     )
     price = graphene.Field(
         Money, required=True, description="The price of selected shipping method."
+    )
+    maximum_order_price = graphene.Field(
+        Money, description="Maximum order price for this shipping method."
     )
     minimum_order_price = graphene.Field(
         Money, description="Minimal order price for this shipping method."
@@ -313,6 +315,12 @@ class ShippingMethod(ChannelContextType):
         return resolve_shipping_minimum_order_price(root, info, **_kwargs)
 
     @staticmethod
+    def resolve_maximum_order_price(
+        root: ChannelContext[models.ShippingMethod], info, **_kwargs
+    ):
+        return resolve_shipping_maximum_order_price(root, info, **_kwargs)
+
+    @staticmethod
     def resolve_price(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
         # Price field are dynamically generated in available_shipping_methods resolver
         return resolve_shipping_price(root, info, **_kwargs)
@@ -327,8 +335,30 @@ class ShippingMethod(ChannelContextType):
 
     @staticmethod
     def resolve_active(root: ChannelContext, _info):
+        # Currently selected shipping method is not validated
+        # with webhooks on every single API call
+        if not hasattr(root.node, "active"):
+            return True
         return root.node.active
 
     @staticmethod
     def resolve_message(root: ChannelContext, _info):
-        return root.node.message
+        # Currently selected shipping method is not validated
+        # with webhooks on every single API call
+        return getattr(root.node, "message", "")
+
+    @staticmethod
+    def resolve_maximum_order_weight(
+        root: ChannelContext[models.ShippingMethod], *_args
+    ):
+        return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
+
+    @staticmethod
+    def resolve_minimum_order_weight(
+        root: ChannelContext[models.ShippingMethod], *_args
+    ):
+        return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
+
+    @staticmethod
+    def resolve_description(root: ChannelContext[models.ShippingMethod], *_args):
+        return root.node.description
