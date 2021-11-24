@@ -888,10 +888,7 @@ def test_get_cached_tax_codes_or_fetch_wrong_response(monkeypatch):
     assert len(tax_codes) == 0
 
 
-def test_checkout_needs_new_fetch(
-    monkeypatch, checkout_with_item, address, shipping_method
-):
-    monkeypatch.setattr("saleor.plugins.avatax.cache.get", lambda x: None)
+def test_checkout_needs_new_fetch(checkout_with_item, address, shipping_method):
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_method
     config = AvataxConfiguration(
@@ -907,12 +904,10 @@ def test_checkout_needs_new_fetch(
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_data = generate_request_data_from_checkout(checkout_info, lines, config)
-    assert taxes_need_new_fetch(checkout_data, str(checkout_with_item.token))
+    assert taxes_need_new_fetch(checkout_data, None)
 
 
-def test_taxes_need_new_fetch_uses_cached_data(
-    monkeypatch, checkout_with_item, address
-):
+def test_taxes_need_new_fetch_uses_cached_data(checkout_with_item, address):
 
     checkout_with_item.shipping_address = address
     config = AvataxConfiguration(
@@ -928,10 +923,7 @@ def test_taxes_need_new_fetch_uses_cached_data(
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_data = generate_request_data_from_checkout(checkout_info, lines, config)
-    monkeypatch.setattr(
-        "saleor.plugins.avatax.cache.get", lambda x: [checkout_data, None]
-    )
-    assert not taxes_need_new_fetch(checkout_data, str(checkout_with_item.token))
+    assert not taxes_need_new_fetch(checkout_data, (checkout_data, None))
 
 
 @pytest.mark.vcr
