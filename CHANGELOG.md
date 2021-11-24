@@ -169,7 +169,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add new permision `IMPERSONATE_USER`
   - Handle `SameSite` cookie attribute in jwt refresh token middleware - #8209 by @jakubkuc
 - Add workaround for failing Avatax when line has price 0 - #8610 by @korycins
-
+- Add option to set tax code for shipping in Avatax configuration view - #8596 by @korycins
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
