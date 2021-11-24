@@ -156,6 +156,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - After changes, using the order `id` for changing order metadata is deprecated
 - Add workaround for failing Avatax when line has price 0 - #8610 by @korycins
 - Add option to set tax code for shipping in Avatax configuration view - #8596 by @korycins
+- Fix Avalara tax fetching from cache - #8647 by @fowczarek
 
 
 ### Breaking
