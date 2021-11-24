@@ -76,6 +76,8 @@ class ChannelContextDjangoObjectType(DjangoObjectType):
 
 
 class MetadataMixin:
+    """Add ObjectWithMetadata functionality to objects wrapped with ChannelContext."""
+
     @staticmethod
     def resolve_metadata(root: ChannelContext, info):
         # Used in metadata API to resolve metadata fields from an instance.
