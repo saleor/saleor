@@ -582,8 +582,6 @@ class CheckoutLinesAdd(BaseMutation):
                 variants,
                 quantities,
                 channel_slug,
-                info.context.site.settings.limit_quantity_per_checkout,
-                skip_stock_check=True,  # already checked by validate_checkout_lines
                 replace=replace,
                 replace_reservations=True,
                 reservation_length=get_reservation_length(info.context),

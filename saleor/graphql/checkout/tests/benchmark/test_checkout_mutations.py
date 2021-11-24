@@ -447,7 +447,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(55):
+    with django_assert_num_queries(53):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -465,7 +465,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(55):
+    with django_assert_num_queries(53):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -697,14 +697,11 @@ def test_update_checkout_lines_with_reservations(
         ]
     )
 
-    global_quantity_limit = site_settings_with_reservations.limit_quantity_per_checkout
-
     add_variants_to_checkout(
         checkout,
         variants,
         [2] * 10,
         channel_USD.slug,
-        global_quantity_limit=global_quantity_limit,
         replace_reservations=True,
         reservation_length=5,
     )
