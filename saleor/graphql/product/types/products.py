@@ -26,6 +26,7 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.variants import get_variant_selection_attributes
+from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
@@ -76,6 +77,7 @@ from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
+    PreorderQuantityReservedByVariantChannelListingIdLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
 from ...warehouse.types import Stock
@@ -343,6 +345,30 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                     channel_listing
                     and channel_listing.preorder_quantity_threshold is not None
                 ):
+                    if is_reservation_enabled(info.context.site.settings):
+                        quantity_reserved = (
+                            PreorderQuantityReservedByVariantChannelListingIdLoader(
+                                info.context
+                            ).load(channel_listing.id)
+                        )
+
+                        def calculate_available_channel_quantity_with_reservations(
+                            reserved_quantity,
+                        ):
+                            return max(
+                                min(
+                                    channel_listing.preorder_quantity_threshold
+                                    - channel_listing.preorder_quantity_allocated
+                                    - reserved_quantity,
+                                    settings.MAX_CHECKOUT_LINE_QUANTITY,
+                                ),
+                                0,
+                            )
+
+                        return quantity_reserved.then(
+                            calculate_available_channel_quantity_with_reservations
+                        )
+
                     return min(
                         channel_listing.preorder_quantity_threshold
                         - channel_listing.preorder_quantity_allocated,
@@ -360,6 +386,36 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                             channel_listing.preorder_quantity_allocated
                             for channel_listing in variant_channel_listings
                         )
+
+                        available_quantity = variant.preorder_global_threshold
+                        available_quantity -= global_sold_units
+
+                        if is_reservation_enabled(info.context.site.settings):
+                            quantity_reserved = (
+                                PreorderQuantityReservedByVariantChannelListingIdLoader(
+                                    info.context
+                                ).load_many(
+                                    [listing.id for listing in variant_channel_listings]
+                                )
+                            )
+
+                            def calculate_available_global_quantity_with_reservations(
+                                reserved_quantities,
+                            ):
+                                return max(
+                                    min(
+                                        variant.preorder_global_threshold
+                                        - global_sold_units
+                                        - sum(reserved_quantities),
+                                        settings.MAX_CHECKOUT_LINE_QUANTITY,
+                                    ),
+                                    0,
+                                )
+
+                            return quantity_reserved.then(
+                                calculate_available_global_quantity_with_reservations
+                            )
+
                         return min(
                             variant.preorder_global_threshold - global_sold_units,
                             settings.MAX_CHECKOUT_LINE_QUANTITY,
