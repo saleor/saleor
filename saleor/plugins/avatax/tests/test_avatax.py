@@ -331,8 +331,7 @@ def test_calculate_order_shipping_order_not_valid(
     product = variant.product
     product.metadata = {}
     product.charge_taxes = True
-    product.save()
-    product.product_type.save()
+    product.save(update_fields=["metadata", "charge_taxes"])
 
     order = order_line.order
 
