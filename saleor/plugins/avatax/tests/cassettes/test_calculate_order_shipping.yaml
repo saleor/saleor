@@ -3,7 +3,7 @@ interactions:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesInvoice",
       "lines": [{"quantity": 3, "amount": "36.900", "taxCode": "O9999999", "taxIncluded":
       true, "itemCode": "SKU_A", "description": "Test product"}, {"quantity": 1, "amount":
-      "10.000", "taxCode": "FR020100", "taxIncluded": true, "itemCode": "Shipping",
+      "10.000", "taxCode": "FR000000", "taxIncluded": true, "itemCode": "Shipping",
       "description": null}], "code": "9bdb1747-a32b-4a69-857a-45e52f5c7022", "date":
       "2021-03-02", "customerCode": 0, "addresses": {"shipFrom": {"line1": "T\u0119czowa
       7", "line2": "", "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode":
