@@ -18,16 +18,35 @@ def set_search_document(apps, schema_editor):
 
 
 def prepare_search_document_value(user):
-    search_document = f"{user.email}{user.first_name}{user.last_name}"
+    search_document = "\n".join(
+        [
+            getattr(user, field)
+            for field in ["email", "first_name", "last_name"]
+            if getattr(user, field)
+        ]
+    )
+    if search_document:
+        search_document += "\n"
 
     for address in user.addresses.all():
-        search_document += (
-            f"{address.first_name}{address.last_name}"
-            f"{address.street_address_1}{address.street_address_2}"
-            f"{address.city}{address.postal_code}{address.country}{address.phone}"
-        )
+        for field in [
+            "first_name",
+            "last_name",
+            "street_address_1",
+            "street_address_2",
+            "city",
+            "postal_code",
+            "country",
+            "phone",
+        ]:
+            if field == "country":
+                search_document += (
+                    address.country.name + "\n" + address.country.code + "\n"
+                )
+            else:
+                search_document += str(getattr(address, field)) + "\n"
 
-    search_document = search_document.replace(" ", "").lower()
+    search_document = search_document.lower()
 
     return search_document
 

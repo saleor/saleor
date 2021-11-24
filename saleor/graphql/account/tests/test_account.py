@@ -21,7 +21,11 @@ from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
 from ....account.models import Address, User
 from ....account.notifications import get_default_user_payload
-from ....account.search import prepare_user_search_document_value
+from ....account.search import (
+    generate_address_search_document_value,
+    generate_user_fields_search_document_value,
+    prepare_user_search_document_value,
+)
 from ....checkout import AddressType
 from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType
@@ -42,7 +46,6 @@ from ...tests.utils import (
 from ..mutations.base import INVALID_TOKEN
 from ..mutations.staff import CustomerDelete, StaffDelete, StaffUpdate, UserDelete
 from ..tests.utils import convert_dict_keys_to_camel_case
-from .utils import get_address_for_search_document
 
 
 @pytest.fixture
@@ -1108,9 +1111,8 @@ def test_customer_register(
     assert new_user.language_code == "pl"
     assert new_user.first_name == variables["firstName"]
     assert new_user.last_name == variables["lastName"]
-    assert (
-        new_user.search_document
-        == f"{email}{variables['firstName']}{variables['lastName']}".lower()
+    assert new_user.search_document == generate_user_fields_search_document_value(
+        new_user
     )
     assert not data["errors"]
     mocked_notify.assert_called_once_with(
@@ -1255,10 +1257,9 @@ def test_customer_create(
 
     new_user = User.objects.get(email=email)
     assert (
-        f"{email}{variables['firstName']}{variables['lastName']}".lower()
-        in new_user.search_document
+        generate_user_fields_search_document_value(new_user) in new_user.search_document
     )
-    assert get_address_for_search_document(address) in new_user.search_document
+    assert generate_address_search_document_value(address) in new_user.search_document
     params = urlencode({"email": new_user.email, "token": "token"})
     password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -1475,7 +1476,12 @@ def test_customer_update(
     assert name_changed_event.parameters == {"message": customer.get_full_name()}
     customer_user.refresh_from_db()
     assert (
-        get_address_for_search_document(address_data) in customer_user.search_document
+        generate_address_search_document_value(billing_address)
+        in customer_user.search_document
+    )
+    assert (
+        generate_address_search_document_value(shipping_address)
+        in customer_user.search_document
     )
 
 
@@ -2244,7 +2250,7 @@ def test_staff_create(
     staff_user = User.objects.get(email=email)
 
     assert staff_user.is_staff
-    assert staff_user.search_document == f"{email}".lower()
+    assert staff_user.search_document == f"{email}\n".lower()
 
     groups = data["user"]["permissionGroups"]
     assert len(groups) == 1
@@ -2561,7 +2567,7 @@ def test_staff_update_email(staff_api_client, permission_manage_staff, media_roo
     assert data["user"]["userPermissions"] == []
     assert data["user"]["isActive"]
     staff_user.refresh_from_db()
-    assert staff_user.search_document == f"{new_email}"
+    assert staff_user.search_document == f"{new_email}\n"
 
 
 @pytest.mark.parametrize("field", ["firstName", "lastName"])
@@ -2586,7 +2592,7 @@ def test_staff_update_name_field(
     assert data["user"]["userPermissions"] == []
     assert data["user"]["isActive"]
     staff_user.refresh_from_db()
-    assert staff_user.search_document == f"{email}{value.lower()}"
+    assert staff_user.search_document == f"{email}\n{value.lower()}\n"
 
 
 def test_staff_update_app_no_permission(
@@ -3465,10 +3471,8 @@ def test_create_address_mutation(
     assert data["user"]["id"] == user_id
 
     customer_user.refresh_from_db()
-    assert (
-        f"{variables['city']}{variables['country']}".lower()
-        in customer_user.search_document
-    )
+    for field in ["city", "country"]:
+        assert variables[field].lower() in customer_user.search_document
 
 
 ADDRESS_UPDATE_MUTATION = """
@@ -3505,7 +3509,7 @@ def test_address_update_mutation(
     assert address_obj.city == graphql_address_data["city"].upper()
     customer_user.refresh_from_db()
     assert (
-        get_address_for_search_document(graphql_address_data)
+        generate_address_search_document_value(address_obj)
         in customer_user.search_document
     )
 
@@ -3545,7 +3549,7 @@ def test_customer_update_own_address(
     address_obj.refresh_from_db()
     assert address_obj.city == address_data["city"].upper()
     user.refresh_from_db()
-    assert get_address_for_search_document(graphql_address_data) in user.search_document
+    assert generate_address_search_document_value(address_obj) in user.search_document
 
 
 def test_update_address_as_anonymous_user(
@@ -3632,7 +3636,7 @@ def test_address_delete_mutation(
 
     customer_user.refresh_from_db()
     assert (
-        get_address_for_search_document(address_obj)
+        generate_address_search_document_value(address_obj)
         not in customer_user.search_document
     )
 
@@ -3680,7 +3684,9 @@ def test_customer_delete_own_address(user_api_client, customer_user):
     with pytest.raises(address_obj._meta.model.DoesNotExist):
         address_obj.refresh_from_db()
     user.refresh_from_db()
-    assert get_address_for_search_document(address_obj) not in user.search_document
+    assert (
+        generate_address_search_document_value(address_obj) not in user.search_document
+    )
 
 
 @pytest.mark.parametrize(
@@ -4223,7 +4229,10 @@ def test_customer_create_address(user_api_client, graphql_address_data):
 
     user.refresh_from_db()
     assert user.addresses.count() == nr_of_addresses + 1
-    assert get_address_for_search_document(graphql_address_data) in user.search_document
+    assert (
+        generate_address_search_document_value(user.addresses.last())
+        in user.search_document
+    )
 
 
 def test_account_address_create_return_user(user_api_client, graphql_address_data):

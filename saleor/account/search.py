@@ -7,6 +7,16 @@ if TYPE_CHECKING:
 
 
 USER_SEARCH_FIELDS = ["email", "first_name", "last_name"]
+ADDRESS_SEARCH_FIELDS = [
+    "first_name",
+    "last_name",
+    "street_address_1",
+    "street_address_2",
+    "city",
+    "postal_code",
+    "country",
+    "phone",
+]
 
 
 def prepare_user_search_document_value(user: "User", *, attach_addresses_data=True):
@@ -15,17 +25,32 @@ def prepare_user_search_document_value(user: "User", *, attach_addresses_data=Tr
     Parameter `attach_addresses_data` should be set to False only when user
     is created and no address has been attached or user addresses are cleared.
     """
-    search_document = "".join([getattr(user, field) for field in USER_SEARCH_FIELDS])
+    search_document = generate_user_fields_search_document_value(user)
 
     if attach_addresses_data:
         for address in user.addresses.all():
-            search_document += (
-                f"{address.first_name}{address.last_name}"
-                f"{address.street_address_1}{address.street_address_2}"
-                f"{address.city}{address.postal_code}{address.country}{address.phone}"
-            )
+            search_document += generate_address_search_document_value(address)
 
-    return search_document.replace(" ", "").lower()
+    return search_document.lower()
+
+
+def generate_user_fields_search_document_value(user: "User"):
+    value = "\n".join(
+        [getattr(user, field) for field in USER_SEARCH_FIELDS if getattr(user, field)]
+    )
+    if value:
+        value += "\n"
+    return value.lower()
+
+
+def generate_address_search_document_value(address):
+    fields_values = [
+        str(getattr(address, field))
+        if field != "country"
+        else address.country.name + "\n" + address.country.code
+        for field in ADDRESS_SEARCH_FIELDS
+    ]
+    return ("\n".join(fields_values) + "\n").lower()
 
 
 def search_users(qs, value):

@@ -23,6 +23,10 @@ from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
+from ...account.search import (
+    generate_address_search_document_value,
+    generate_user_fields_search_document_value,
+)
 from ...account.utils import store_user_address
 from ...attribute.models import (
     AssignedPageAttribute,
@@ -526,8 +530,8 @@ def create_fake_user(user_password, save=True):
         is_active=True,
         note=fake.paragraph(),
         date_joined=fake.date_time(tzinfo=timezone.get_current_timezone()),
-        search_document=_prepare_search_document_value(email, address),
     )
+    user.search_document = _prepare_search_document_value(user, address)
 
     if save:
         user.set_password(user_password)
@@ -901,22 +905,17 @@ def _create_staff_user(staff_password, email=None, superuser=False):
         is_staff=True,
         is_active=True,
         is_superuser=superuser,
-        search_document=_prepare_search_document_value(email, address),
+        search_document=_prepare_search_document_value(
+            User(email=email, first_name=first_name, last_name=last_name), address
+        ),
     )
     return staff_user
 
 
-def _prepare_search_document_value(email, address):
-    return (
-        (
-            f"{email}{address.first_name}{address.last_name}"
-            f"{address.first_name}{address.last_name}"
-            f"{address.street_address_1}{address.street_address_2}"
-            f"{address.city}{address.postal_code}{address.country}{address.phone}"
-        )
-        .replace(" ", "")
-        .lower()
-    )
+def _prepare_search_document_value(user, address):
+    search_document_value = generate_user_fields_search_document_value(user)
+    search_document_value += generate_address_search_document_value(address)
+    return search_document_value
 
 
 def create_staff_users(staff_password, how_many=2, superuser=False):
