@@ -6,7 +6,7 @@ from django.utils import timezone
 from django_countries import countries
 
 from ....shipping.models import ShippingZone
-from ....warehouse.models import Reservation
+from ....warehouse.models import PreorderReservation, Reservation
 from ...tests.utils import get_graphql_content
 
 COUNTRY_CODE = "US"
@@ -313,6 +313,57 @@ def test_variant_quantity_available_preorder_with_channel_threshold(
 
 
 @override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
+def test_variant_quantity_available_preorder_without_reservations(
+    site_settings_with_reservations,
+    api_client,
+    preorder_variant_channel_threshold,
+    channel_USD,
+):
+    variant = preorder_variant_channel_threshold
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "country": COUNTRY_CODE,
+        "channel": channel_USD.slug,
+    }
+    response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    channel_listing = variant.channel_listings.get()
+    assert (
+        variant_data["deprecatedByCountry"]
+        == channel_listing.preorder_quantity_threshold
+    )
+    assert variant_data["byAddress"] == channel_listing.preorder_quantity_threshold
+
+
+@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
+def test_variant_quantity_available_preorder_with_channel_threshold_and_reservation(
+    site_settings_with_reservations,
+    api_client,
+    preorder_variant_channel_threshold,
+    checkout_line_with_reserved_preorder_item,
+    channel_USD,
+):
+    variant = preorder_variant_channel_threshold
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "country": COUNTRY_CODE,
+        "channel": channel_USD.slug,
+    }
+    response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    channel_listing = variant.channel_listings.get()
+
+    reservation = PreorderReservation.objects.all().first()
+    available_quantity = channel_listing.preorder_quantity_threshold
+    available_quantity -= reservation.quantity_reserved
+
+    assert variant_data["deprecatedByCountry"] == available_quantity
+    assert variant_data["byAddress"] == available_quantity
+
+
+@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
 def test_variant_quantity_available_preorder_with_global_threshold(
     api_client, preorder_variant_global_threshold, channel_USD
 ):
@@ -327,6 +378,35 @@ def test_variant_quantity_available_preorder_with_global_threshold(
     variant_data = content["data"]["productVariant"]
     assert variant_data["deprecatedByCountry"] == variant.preorder_global_threshold
     assert variant_data["byAddress"] == variant.preorder_global_threshold
+
+
+@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
+def test_variant_quantity_available_preorder_with_global_threshold_and_reservations(
+    site_settings_with_reservations,
+    api_client,
+    checkout_line_with_reserved_preorder_item,
+    channel_USD,
+):
+    variant = checkout_line_with_reserved_preorder_item.variant
+    variant.channel_listings.update(preorder_quantity_threshold=None)
+    variant.preorder_global_threshold = 10
+    variant.save()
+
+    reservation = PreorderReservation.objects.all().first()
+    available_quantity = (
+        variant.preorder_global_threshold - reservation.quantity_reserved
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "country": COUNTRY_CODE,
+        "channel": channel_USD.slug,
+    }
+    response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["deprecatedByCountry"] == available_quantity
+    assert variant_data["byAddress"] == available_quantity
 
 
 @override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)

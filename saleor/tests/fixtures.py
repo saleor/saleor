@@ -114,6 +114,7 @@ from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
     Allocation,
     PreorderAllocation,
+    PreorderReservation,
     Reservation,
     Stock,
     Warehouse,
@@ -3054,6 +3055,35 @@ def checkout_line_with_one_reservation(
     Reservation.objects.create(
         checkout_line=checkout_line,
         stock=stocks[0],
+        quantity_reserved=2,
+        reserved_until=reserved_until,
+    )
+
+    return checkout_line
+
+
+@pytest.fixture
+def checkout_line_with_preorder_item(
+    checkout, product, preorder_variant_channel_threshold
+):
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
+    return checkout.lines.last()
+
+
+@pytest.fixture
+def checkout_line_with_reserved_preorder_item(
+    checkout, product, preorder_variant_channel_threshold
+):
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
+    checkout_line = checkout.lines.last()
+
+    reserved_until = timezone.now() + timedelta(minutes=5)
+
+    PreorderReservation.objects.create(
+        checkout_line=checkout_line,
+        product_variant_channel_listing=checkout_line.variant.channel_listings.first(),
         quantity_reserved=2,
         reserved_until=reserved_until,
     )

@@ -35,7 +35,7 @@ def test_reserve_stocks(checkout_line, channel_USD):
     assert reservation.reserved_until > timezone.now() + timedelta(minutes=1)
 
 
-def test_stocks_reservation_skips_prev_stocks_delete_if_replace_is_disabled(
+def test_stocks_reservation_skips_prev_reservation_delete_if_replace_is_disabled(
     checkout_line, assert_num_queries, channel_USD
 ):
     with assert_num_queries(3):

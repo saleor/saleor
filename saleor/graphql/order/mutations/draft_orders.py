@@ -463,7 +463,13 @@ class DraftOrderComplete(BaseMutation):
                                 info.context.site.settings
                             ),
                         )
-                        allocate_preorders([line_data], channel_slug)
+                        allocate_preorders(
+                            [line_data],
+                            channel_slug,
+                            check_reservations=is_reservation_enabled(
+                                info.context.site.settings
+                            ),
+                        )
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})
