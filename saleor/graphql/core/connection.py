@@ -237,8 +237,12 @@ def connection_from_queryset_slice(
 
     requested_count = first or last
     end_margin = requested_count + 1 if requested_count else None
+
     cursor = after or before
-    cursor = from_global_cursor(cursor) if cursor else None
+    try:
+        cursor = from_global_cursor(cursor) if cursor else None
+    except ValueError:
+        raise GraphQLError("Received cursor is invalid.")
 
     sort_by = args.get("sort_by", {})
     sorting_fields = _get_sorting_fields(sort_by, qs)
