@@ -485,6 +485,9 @@ class BasePlugin:
     #  storefront should append info to the price about "including/excluding X% VAT".
     show_taxes_on_storefront: Callable[[bool], bool]
 
+    #  Trigger when tracking number is updated.
+    tracking_number_updated: Callable[["Fulfillment", Any], Any]
+
     void_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     #  Handle received http request.

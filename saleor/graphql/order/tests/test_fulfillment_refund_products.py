@@ -85,6 +85,7 @@ def test_fulfillment_refund_products_amount_and_shipping_costs(
         ANY,
         amount=quantize_price(amount_to_refund, fulfilled_order.currency),
         channel_slug=fulfilled_order.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -158,6 +159,7 @@ def test_fulfillment_refund_products_order_lines(
         ANY,
         amount=line_to_refund.unit_price_gross_amount * 2,
         channel_slug=order_with_lines.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -266,6 +268,7 @@ def test_fulfillment_refund_products_fulfillment_lines(
         ANY,
         amount=fulfillment_line_to_refund.order_line.unit_price_gross_amount * 2,
         channel_slug=fulfilled_order.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -383,7 +386,11 @@ def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
     amount = fulfillment_line_to_refund.order_line.unit_price_gross_amount * 2
     amount += fulfilled_order.shipping_price_gross_amount
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+        payment_dummy,
+        ANY,
+        amount=amount,
+        channel_slug=fulfilled_order.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -424,7 +431,11 @@ def test_fulfillment_refund_products_order_lines_include_shipping_costs(
     amount = line_to_refund.unit_price_gross_amount * 2
     amount += order_with_lines.shipping_price_gross_amount
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, amount=amount, channel_slug=order_with_lines.channel.slug
+        payment_dummy,
+        ANY,
+        amount=amount,
+        channel_slug=order_with_lines.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -476,6 +487,7 @@ def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
         ANY,
         amount=amount_to_refund,
         channel_slug=fulfilled_order.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -519,6 +531,7 @@ def test_fulfillment_refund_products_order_lines_custom_amount(
         ANY,
         amount=amount_to_refund,
         channel_slug=order_with_lines.channel.slug,
+        refund_data=ANY,
     )
 
 
@@ -607,5 +620,9 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     amount += order_line.unit_price_gross_amount * 2
     amount = quantize_price(amount, fulfilled_order.currency)
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+        payment_dummy,
+        ANY,
+        amount=amount,
+        channel_slug=fulfilled_order.channel.slug,
+        refund_data=ANY,
     )
