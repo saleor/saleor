@@ -30,6 +30,8 @@ from .utils import np_atobarai_opentracing_trace
 
 GATEWAY_NAME = "NP後払い"
 
+REQUIRED_FIELDS = (MERCHANT_CODE, SP_CODE, TERMINAL_ID, SHIPPING_COMPANY)
+
 if TYPE_CHECKING:
     # flake8: noqa
     from ....plugins.models import PluginConfiguration
@@ -187,9 +189,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
         missing_fields = [
-            field
-            for field in [MERCHANT_CODE, SP_CODE, TERMINAL_ID, SHIPPING_COMPANY]
-            if not configuration[field]
+            field for field in REQUIRED_FIELDS if not configuration[field]
         ]
 
         if plugin_configuration.active:
