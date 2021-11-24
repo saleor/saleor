@@ -5,6 +5,7 @@ import graphene
 from algoliasearch.search_client import SearchClient
 from django.core.exceptions import ValidationError
 
+from ...payment.gateways.utils import require_active_plugin
 from ...product.models import Product
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
@@ -118,6 +119,7 @@ class AlgoliaPlugin(BasePlugin):
     def get_product_global_id(product: "Product"):
         return graphene.Node.to_global_id("Product", product.id)
 
+    @require_active_plugin
     def product_created(self, product: "Product", previous_value: Any):
         """Index product to Algolia."""
         for locale in self.get_locales():
@@ -131,6 +133,7 @@ class AlgoliaPlugin(BasePlugin):
                     request_options={"autoGenerateObjectIDIfNotExist": False},
                 )
 
+    @require_active_plugin
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         """Index product to Algolia."""
         for locale in self.get_locales():
@@ -143,6 +146,7 @@ class AlgoliaPlugin(BasePlugin):
                     obj=task.result, request_options={"createIfNotExists": True}
                 )
 
+    @require_active_plugin
     def product_deleted(
         self, product: "Product", variants: List[int], previous_value: Any
     ) -> Any:
