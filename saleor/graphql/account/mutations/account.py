@@ -5,7 +5,7 @@ from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 
 from ....account import events as account_events
-from ....account import models, notifications, utils
+from ....account import models, notifications, search, utils
 from ....account.error_codes import AccountErrorCode
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
@@ -134,7 +134,7 @@ class AccountRegister(ModelMutation):
     def save(cls, info, user, cleaned_input):
         password = cleaned_input["password"]
         user.set_password(password)
-        user.search_document = utils.prepare_user_search_document_value(
+        user.search_document = search.prepare_user_search_document_value(
             user, attach_addresses_data=False
         )
         if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
@@ -333,7 +333,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         user = info.context.user
         instance.user_addresses.add(user)
         info.context.plugins.customer_updated(user)
-        user.search_document = utils.prepare_user_search_document_value(user)
+        user.search_document = search.prepare_user_search_document_value(user)
         user.save(update_fields=["search_document"])
 
 
@@ -536,7 +536,7 @@ class ConfirmEmailChange(BaseMutation):
             )
 
         user.email = new_email
-        user.search_document = utils.prepare_user_search_document_value(user)
+        user.search_document = search.prepare_user_search_document_value(user)
         user.save(update_fields=["email", "search_document"])
 
         channel_slug = clean_channel(

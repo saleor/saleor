@@ -10,7 +10,7 @@ from ....account.notifications import (
     send_password_reset_notification,
     send_set_password_notification,
 )
-from ....account.utils import prepare_user_search_document_value
+from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions

@@ -21,7 +21,7 @@ from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
 from ....account.models import Address, User
 from ....account.notifications import get_default_user_payload
-from ....account.utils import prepare_user_search_document_value
+from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType

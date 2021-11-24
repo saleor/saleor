@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth import models as auth_models
 
 from ....account.models import User
-from ....account.utils import prepare_user_search_document_value
+from ....account.search import prepare_user_search_document_value
 from ....order.models import Order
 from ...tests.utils import get_graphql_content
 

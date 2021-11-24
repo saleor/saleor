@@ -1,7 +1,8 @@
 import django_filters
-from django.db.models import Count, Q
+from django.db.models import Count
 
 from ...account.models import User
+from ...account.search import search_users
 from ..core.filters import EnumFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput
 from ..utils.filters import filter_range_field
@@ -30,12 +31,7 @@ def filter_staff_status(qs, _, value):
 
 
 def filter_user_search(qs, _, value):
-    if value:
-        lookup = Q()
-        for val in value.split():
-            lookup &= Q(search_document__ilike=val.lower())
-        qs = qs.filter(lookup)
-    return qs
+    return search_users(qs, value)
 
 
 def filter_search(qs, _, value):
