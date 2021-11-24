@@ -42,6 +42,7 @@ from ...tests.utils import (
 from ..mutations.base import INVALID_TOKEN
 from ..mutations.staff import CustomerDelete, StaffDelete, StaffUpdate, UserDelete
 from ..tests.utils import convert_dict_keys_to_camel_case
+from .utils import get_address_for_search_document
 
 
 @pytest.fixture
@@ -1257,13 +1258,7 @@ def test_customer_create(
         f"{email}{variables['firstName']}{variables['lastName']}".lower()
         in new_user.search_document
     )
-    address_data = (
-        f"{address.first_name}{address.last_name}"
-        f"{address.street_address_1}{address.street_address_2}"
-        f"{address.city}{address.postal_code}"
-        f"{address.country}{address.phone}"
-    )
-    assert address_data.replace(" ", "").lower() in new_user.search_document
+    assert get_address_for_search_document(address) in new_user.search_document
     params = urlencode({"email": new_user.email, "token": "token"})
     password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -1479,13 +1474,9 @@ def test_customer_update(
     assert name_changed_event.user.pk == staff_user.pk
     assert name_changed_event.parameters == {"message": customer.get_full_name()}
     customer_user.refresh_from_db()
-    address_data = (
-        f"{address_data['firstName']}{address_data['lastName']}"
-        f"{address_data['streetAddress1']}{address_data['streetAddress2']}"
-        f"{address_data['city']}{address_data['postalCode']}"
-        f"{address_data['country']}{address_data['phone']}"
+    assert (
+        get_address_for_search_document(address_data) in customer_user.search_document
     )
-    assert address_data.replace(" ", "").lower() in customer_user.search_document
 
 
 UPDATE_CUSTOMER_EMAIL_MUTATION = """
@@ -3513,14 +3504,10 @@ def test_address_update_mutation(
     address_obj.refresh_from_db()
     assert address_obj.city == graphql_address_data["city"].upper()
     customer_user.refresh_from_db()
-    address_data = (
-        f"{graphql_address_data['firstName']}{graphql_address_data['lastName']}"
-        f"{graphql_address_data['streetAddress1']}"
-        f"{graphql_address_data['streetAddress2']}"
-        f"{graphql_address_data['city']}{graphql_address_data['postalCode']}"
-        f"{graphql_address_data['country']}{graphql_address_data['phone']}"
+    assert (
+        get_address_for_search_document(graphql_address_data)
+        in customer_user.search_document
     )
-    assert address_data.replace(" ", "").lower() in customer_user.search_document
 
 
 ACCOUNT_ADDRESS_UPDATE_MUTATION = """
@@ -3558,14 +3545,7 @@ def test_customer_update_own_address(
     address_obj.refresh_from_db()
     assert address_obj.city == address_data["city"].upper()
     user.refresh_from_db()
-    address_data = (
-        f"{graphql_address_data['firstName']}{graphql_address_data['lastName']}"
-        f"{graphql_address_data['streetAddress1']}"
-        f"{graphql_address_data['streetAddress2']}"
-        f"{graphql_address_data['city']}{graphql_address_data['postalCode']}"
-        f"{graphql_address_data['country']}{graphql_address_data['phone']}"
-    )
-    assert address_data.replace(" ", "").lower() in user.search_document
+    assert get_address_for_search_document(graphql_address_data) in user.search_document
 
 
 def test_update_address_as_anonymous_user(
@@ -3651,13 +3631,10 @@ def test_address_delete_mutation(
         address_obj.refresh_from_db()
 
     customer_user.refresh_from_db()
-    address_data = (
-        f"{address_obj.first_name}{address_obj.last_name}"
-        f"{address_obj.street_address_1}{address_obj.street_address_2}"
-        f"{address_obj.city}{address_obj.postal_code}"
-        f"{address_obj.country}{address_obj.phone}"
+    assert (
+        get_address_for_search_document(address_obj)
+        not in customer_user.search_document
     )
-    assert address_data.replace(" ", "").lower() not in customer_user.search_document
 
 
 def test_address_delete_mutation_as_app(
@@ -3703,13 +3680,7 @@ def test_customer_delete_own_address(user_api_client, customer_user):
     with pytest.raises(address_obj._meta.model.DoesNotExist):
         address_obj.refresh_from_db()
     user.refresh_from_db()
-    address_data = (
-        f"{address_obj.first_name}{address_obj.last_name}"
-        f"{address_obj.street_address_1}{address_obj.street_address_2}"
-        f"{address_obj.city}{address_obj.postal_code}"
-        f"{address_obj.country}{address_obj.phone}"
-    )
-    assert address_data.replace(" ", "").lower() not in user.search_document
+    assert get_address_for_search_document(address_obj) not in user.search_document
 
 
 @pytest.mark.parametrize(
@@ -4252,14 +4223,7 @@ def test_customer_create_address(user_api_client, graphql_address_data):
 
     user.refresh_from_db()
     assert user.addresses.count() == nr_of_addresses + 1
-    address_data = (
-        f"{graphql_address_data['firstName']}{graphql_address_data['lastName']}"
-        f"{graphql_address_data['streetAddress1']}"
-        f"{graphql_address_data['streetAddress2']}"
-        f"{graphql_address_data['city']}{graphql_address_data['postalCode']}"
-        f"{graphql_address_data['country']}{graphql_address_data['phone']}"
-    )
-    assert address_data.replace(" ", "").lower() in user.search_document
+    assert get_address_for_search_document(graphql_address_data) in user.search_document
 
 
 def test_account_address_create_return_user(user_api_client, graphql_address_data):
