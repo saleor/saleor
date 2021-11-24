@@ -174,20 +174,12 @@ def _validate_checkout(
     )
 
 
-def _retrieve_from_cache(token):
-    taxes_cache_key = CACHE_KEY + token
-    cached_data = cache.get(taxes_cache_key)
-    return cached_data
-
-
-def taxes_need_new_fetch(data: Dict[str, Any], taxes_token: str) -> bool:
+def taxes_need_new_fetch(data: Dict[str, Any], cached_data) -> bool:
     """Check if Avatax's taxes data need to be refetched.
 
     The response from Avatax is stored in a cache. If an object doesn't exist in cache
     or something has changed, taxes need to be refetched.
     """
-    cached_data = _retrieve_from_cache(taxes_token)
-
     if not cached_data:
         return True
 
@@ -438,11 +430,11 @@ def get_cached_response_or_fetch(
     Return cached response if requests data are the same. Fetch new data in other cases.
     """
     data_cache_key = CACHE_KEY + token_in_cache
-    if taxes_need_new_fetch(data, token_in_cache) or force_refresh:
+    cached_data = cache.get(data_cache_key)
+    if taxes_need_new_fetch(data, cached_data) or force_refresh:
         response = _fetch_new_taxes_data(data, data_cache_key, config)
     else:
-        _, response = cache.get(data_cache_key)
-
+        _, response = cached_data
     return response
 
 
