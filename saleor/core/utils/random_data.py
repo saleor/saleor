@@ -516,12 +516,6 @@ def create_fake_user(user_password, save=True):
     except User.DoesNotExist:
         pass
 
-    search_document_value = (
-        f"{email}{address.first_name}{address.last_name}"
-        f"{address.first_name}{address.last_name}"
-        f"{address.street_address_1}{address.street_address_2}"
-        f"{address.city}{address.postal_code}{address.country}{address.phone}"
-    )
     user = User(
         id=fake.numerify(),
         first_name=address.first_name,
@@ -532,7 +526,7 @@ def create_fake_user(user_password, save=True):
         is_active=True,
         note=fake.paragraph(),
         date_joined=fake.date_time(tzinfo=timezone.get_current_timezone()),
-        search_document=search_document_value,
+        search_document=_prepare_search_document_value(email, address),
     )
 
     if save:
@@ -897,12 +891,6 @@ def _create_staff_user(staff_password, email=None, superuser=False):
     if not email:
         email = get_email(first_name, last_name)
 
-    search_document_value = (
-        f"{email}{first_name}{last_name}"
-        f"{address.first_name}{address.last_name}"
-        f"{address.street_address_1}{address.street_address_2}"
-        f"{address.city}{address.postal_code}{address.country}{address.phone}"
-    )
     staff_user = User.objects.create_user(
         first_name=first_name,
         last_name=last_name,
@@ -913,9 +901,22 @@ def _create_staff_user(staff_password, email=None, superuser=False):
         is_staff=True,
         is_active=True,
         is_superuser=superuser,
-        search_document=search_document_value,
+        search_document=_prepare_search_document_value(email, address),
     )
     return staff_user
+
+
+def _prepare_search_document_value(email, address):
+    return (
+        (
+            f"{email}{address.first_name}{address.last_name}"
+            f"{address.first_name}{address.last_name}"
+            f"{address.street_address_1}{address.street_address_2}"
+            f"{address.city}{address.postal_code}{address.country}{address.phone}"
+        )
+        .replace(" ", "")
+        .lower()
+    )
 
 
 def create_staff_users(staff_password, how_many=2, superuser=False):
