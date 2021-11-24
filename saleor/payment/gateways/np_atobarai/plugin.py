@@ -18,6 +18,7 @@ from .api_helpers import health_check
 from .const import (
     FILL_MISSING_ADDRESS,
     MERCHANT_CODE,
+    NP_PLUGIN_ID,
     SHIPPING_COMPANY,
     SHIPPING_COMPANY_CODES,
     SKU_AS_NAME,
@@ -36,7 +37,7 @@ if TYPE_CHECKING:
 
 
 class NPAtobaraiGatewayPlugin(BasePlugin):
-    PLUGIN_ID = "saleor.payments.np-atobarai"
+    PLUGIN_ID = NP_PLUGIN_ID
     PLUGIN_NAME = GATEWAY_NAME
     CONFIGURATION_PER_CHANNEL = True
     SUPPORTED_CURRENCIES = "JPY"
@@ -118,25 +119,39 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        return capture(payment_information, self._get_gateway_config())
+        return capture(
+            payment_information,
+            get_api_config(self._get_gateway_config().connection_params),
+        )
 
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        return refund(payment_information, self._get_gateway_config())
+        return refund(
+            payment_information,
+            get_api_config(self._get_gateway_config().connection_params),
+        )
 
     def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        return void(payment_information, self._get_gateway_config())
+        return void(
+            payment_information,
+            get_api_config(self._get_gateway_config().connection_params),
+        )
 
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        return process_payment(payment_information, self._get_gateway_config())
+        return process_payment(
+            payment_information,
+            get_api_config(self._get_gateway_config().connection_params),
+        )
 
     def tracking_number_updated(self, fulfillment: "Fulfillment", previous_value):
-        tracking_number_updated(fulfillment, self._get_gateway_config())
+        tracking_number_updated(
+            fulfillment, get_api_config(self._get_gateway_config().connection_params)
+        )
 
     def get_supported_currencies(self, previous_value):
         return self.SUPPORTED_CURRENCIES

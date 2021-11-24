@@ -8,6 +8,7 @@ from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from ...models import Payment
 from . import api
 from .api_types import ApiConfig, PaymentStatus, get_api_config
+from .const import NP_PLUGIN_ID
 from .utils import (
     get_fulfillment_for_order,
     get_payment_name,
@@ -31,7 +32,6 @@ def parse_errors(errors: List[str]) -> str:
     return os.linesep.join(errors)[:256]
 
 
-@inject_api_config
 def process_payment(
     payment_information: PaymentData, config: ApiConfig
 ) -> GatewayResponse:
@@ -56,24 +56,17 @@ def process_payment(
     )
 
 
-@inject_api_config
 def capture(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
     raise NotImplementedError
 
 
-@inject_api_config
 def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
     raise NotImplementedError
 
 
-@inject_api_config
 def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None:
-    from .plugin import NPAtobaraiGatewayPlugin
-
     order = fulfillment.order
-    payments = order.payments.filter(
-        gateway=NPAtobaraiGatewayPlugin.PLUGIN_ID, is_active=True
-    )
+    payments = order.payments.filter(gateway=NP_PLUGIN_ID, is_active=True)
 
     if payments:
         results = [
@@ -92,15 +85,12 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
             )
         elif errors:
             error = ", ".join(errors)
-            logger.warning(
-                "Could not capture %s in NP Atobarai: %s", payment_name, error
-            )
+            logger.warning(f"Could not capture {payment_name} in NP Atobarai: {error}")
             notify_dashboard(order, f"Capture Error for {payment_name}")
         else:
             notify_dashboard(order, f"Captured {payment_name}")
 
 
-@inject_api_config
 def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
     payment_id = payment_information.payment_id
     payment = Payment.objects.filter(pk=payment_id).first()
