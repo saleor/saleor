@@ -32,22 +32,26 @@ def prepare_search_document_value(order):
         user_data += "\n"
     search_document += user_data
 
-    search_document += (
-        "\n".join(order.payments.values_list("psp_reference", flat=True)) + "\n"
-    )
-    search_document += (
-        "\n".join(
-            [
-                "\n".join(data)
-                for data in order.discounts.values_list("name", "translated_name")
-            ]
+    payments_data = "\n".join(
+        order.payments.exclude(psp_reference__isnull=True).values_list(
+            "psp_reference", flat=True
         )
-        + "\n"
     )
+    if payments_data:
+        search_document += payments_data + "\n"
 
-    search_document += (
-        "\n".join(order.lines.values_list("product_sku", flat=True)) + "\n"
+    for data in order.discounts.values_list("name", "translated_name"):
+        for value in data:
+            if value:
+                search_document += value + "\n"
+
+    lines_data = "\n".join(
+        order.lines.exclude(product_sku__isnull=True).values_list(
+            "product_sku", flat=True
+        )
     )
+    if lines_data:
+        search_document += lines_data + "\n"
 
     for address_field in ["billing_address", "shipping_address"]:
         if address := getattr(order, address_field):
