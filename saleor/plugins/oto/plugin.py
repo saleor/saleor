@@ -1,5 +1,6 @@
+import json
 import logging
-from typing import Any
+from typing import Any, Dict
 
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
@@ -126,7 +127,31 @@ class OTOPlugin(BasePlugin):
             # Create OTO return shipment.
             pass
 
+    @staticmethod
+    def check_oto_signature(data: Dict[str, Any]) -> bool:
+        """Check OTO signature."""
+        signature = data.pop("signature").decode("utf-8")
+        string_to_sign = f"{data['otoId']}:{data['status']}:{data['timestamp']}"
+        return signature == string_to_sign
+
     @require_active_plugin
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         # Fired when a webhook is received from OTO. Example: OTO cancels an order.
-        pass
+        data = json.loads(request.body)
+        # Check signatures and headers.
+        if not self.check_oto_signature(data):
+            if path == "/webhook/orders":
+                fulfillment = Fulfillment.objects.filter(pk=data["orderId"]).first()
+                if fulfillment:
+                    fulfillment.tracking_number = data["trackingNumber"]
+                    fulfillment.store_value_in_private_metadata(
+                        items={
+                            "otoStatus": data["status"],
+                            "printAWBURL": data["printAWBURL"],
+                            "shippingCompanyStatus": data["dcStatus"],
+                        }
+                    )
+                    fulfillment.save(
+                        update_fields=["tracking_number", "private_metadata"]
+                    )
+        return HttpResponse("OK")
