@@ -186,28 +186,27 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
             field for field in REQUIRED_FIELDS if not configuration[field]
         ]
 
-        if plugin_configuration.active:
-            if missing_fields:
-                raise ValidationError(
-                    {
-                        field: ValidationError(
-                            f"The parameter is required.",
-                            code=PluginErrorCode.REQUIRED.value,
-                        )
-                        for field in missing_fields
-                    }
-                )
-            if configuration[SHIPPING_COMPANY] not in SHIPPING_COMPANY_CODES:
-                raise ValidationError(
-                    {
-                        SHIPPING_COMPANY: ValidationError(
-                            f"Shipping company code is invalid",
-                            code=PluginErrorCode.INVALID.value,
-                        )
-                    }
-                )
+        if missing_fields:
+            raise ValidationError(
+                {
+                    field: ValidationError(
+                        f"The parameter is required.",
+                        code=PluginErrorCode.REQUIRED.value,
+                    )
+                    for field in missing_fields
+                }
+            )
+        if configuration[SHIPPING_COMPANY] not in SHIPPING_COMPANY_CODES:
+            raise ValidationError(
+                {
+                    SHIPPING_COMPANY: ValidationError(
+                        f"Shipping company code is invalid",
+                        code=PluginErrorCode.INVALID.value,
+                    )
+                }
+            )
 
-            cls.validate_authentication(plugin_configuration)
+        cls.validate_authentication(plugin_configuration)
 
     def get_payment_config(self, previous_value):
         return []
