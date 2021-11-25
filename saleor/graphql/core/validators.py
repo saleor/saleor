@@ -54,6 +54,19 @@ def validate_price_precision(value: Optional["Decimal"], currency: str):
         )
 
 
+def validate_price_max_value(value: Optional["Decimal"], max_value=10 ** 9):
+    """Validate if price amount is not higher than the limit for precision field.
+
+    Decimal fields have value limits.
+    By default its 10^9 for fields with precision 12.
+    """
+
+    if not value:
+        return
+    if value >= max_value:
+        raise ValidationError(f"Value must be lower than {max_value}.")
+
+
 def validate_variants_available_in_channel(
     variants_id,
     channel_id,
