@@ -209,7 +209,7 @@ def register(
                 "settlement_type": NP_ATOBARAI,
                 "billed_amount": billed_amount,
                 "customer": {
-                    "customer_name": billing.first_name,
+                    "customer_name": format_name(billing),
                     "company_name": billing.company_name,
                     "zip_code": billing.postal_code,
                     "address": formatted_billing,
