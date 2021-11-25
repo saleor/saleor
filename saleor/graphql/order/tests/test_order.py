@@ -3895,6 +3895,9 @@ def test_order_lines_create(
     assert data["errors"][0]["variants"] == [variant_id]
     product_variant_out_of_stock_webhook_mock.assert_not_called()
 
+    order.refresh_from_db()
+    assert variant.sku.lower() in order.search_document
+
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -4585,6 +4588,10 @@ def test_order_line_remove_with_back_in_stock_webhook(
     ) == 3
     back_in_stock_webhook_mock.assert_called_once_with(Stock.objects.first())
 
+    order.refresh_from_db()
+    assert order.search_document
+    assert line.product_sku not in order.search_document
+
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
@@ -4695,6 +4702,9 @@ def test_order_update(
     assert order.user_email == email
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
+    assert graphql_address_data["firstName"].lower() in order.search_document
+    assert graphql_address_data["lastName"].lower() in order.search_document
+    assert email.lower() in order.search_document
     order_updated_webhook_mock.assert_called_once_with(order)
 
 
@@ -5177,6 +5187,7 @@ def test_order_mark_as_paid_with_external_reference(
     assert event_reference == transaction_reference
     order_payments = order.payments.filter(psp_reference=transaction_reference)
     assert order_payments.count() == 1
+    assert transaction_reference in order.search_document
 
 
 def test_order_mark_as_paid(
@@ -5256,6 +5267,7 @@ def test_order_void(
     event_payment_voided = order.events.last()
     assert event_payment_voided.type == order_events.OrderEvents.PAYMENT_VOIDED
     assert event_payment_voided.user == staff_user
+    order.refresh_from_db()
 
 
 @patch.object(PluginsManager, "void_payment")

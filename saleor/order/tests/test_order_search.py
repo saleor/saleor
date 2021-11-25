@@ -2,7 +2,19 @@ from decimal import Decimal
 
 from ...discount import DiscountValueType
 from ..models import OrderLine
-from ..search import prepare_order_search_document_value
+from ..search import prepare_order_search_document_value, update_order_search_document
+
+
+def test_update_order_search_document(order_with_lines):
+    # given
+    order = order_with_lines
+    assert not order.search_document
+
+    # when
+    update_order_search_document(order)
+
+    # then
+    assert f"{order.id}\n{order.user_email}\n".lower() in order.search_document
 
 
 def test_prepare_order_search_document_value(

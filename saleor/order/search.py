@@ -9,6 +9,11 @@ if TYPE_CHECKING:
     from .models import Order
 
 
+def update_order_search_document(order: "Order"):
+    order.search_document = prepare_order_search_document_value(order)
+    order.save(update_fields=["search_document"])
+
+
 def prepare_order_search_document_value(order: "Order"):
     search_document = str(order.id) + "\n"
 
