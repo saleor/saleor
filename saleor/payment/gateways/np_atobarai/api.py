@@ -44,7 +44,8 @@ def register_transaction(
 ) -> PaymentResult:
     """Create a new transaction in NP Atobarai.
 
-    On pending status from NP the transaction is cancelled and error
+    On pending status from NP the transaction is cancelled and
+    reason for pending is returned as error message.
     """
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.register"):
         action = TRANSACTION_REGISTRATION
