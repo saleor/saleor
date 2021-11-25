@@ -657,8 +657,5 @@ def test_shipping_method_channel_listing_create_channel_max_value_validation(
 
     # then
     data = content["data"]["shippingMethodChannelListingUpdate"]
-
-    # then
     assert data["errors"][0]["field"] == invalid_field
     assert data["errors"][0]["code"] == ShippingErrorCode.INVALID.name
-    assert data["errors"][0]["message"] == "Value must be lower than 1000000000."
