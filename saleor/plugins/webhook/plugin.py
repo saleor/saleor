@@ -3,7 +3,8 @@ import logging
 from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from ...app.models import App
-from ...core.models import EventPayload
+from ...core import EventDeliveryStatus
+from ...core.models import EventDelivery, EventPayload
 from ...core.notify_events import NotifyEventType
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
@@ -25,8 +26,13 @@ from ...webhook.payloads import (
     generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
-from .tasks import trigger_webhook_sync, trigger_webhooks_async
+from .tasks import (
+    send_webhook_request_async,
+    trigger_webhook_sync,
+    trigger_webhooks_async,
+)
 from .utils import (
+    delivery_update,
     from_payment_app_id,
     parse_list_payment_gateways_response,
     parse_list_shipping_methods_response,
@@ -325,6 +331,12 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         translation_data = generate_translation_payload(translation)
         trigger_webhooks_async(translation_data, WebhookEventType.TRANSLATION_UPDATED)
+
+    def event_delivery_retry(self, delivery: "EventDelivery", previous_value: Any):
+        if not self.active:
+            return previous_value
+        delivery_update(delivery, status=EventDeliveryStatus.PENDING)
+        send_webhook_request_async.delay(delivery.pk)
 
     def __run_payment_webhook(
         self,

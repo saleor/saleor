@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from ..core.models import EventDelivery
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -500,6 +501,9 @@ class BasePlugin:
     #
     #  Overwrite this method if the plugin expects the incoming requests.
     webhook: Callable[[WSGIRequest, str, Any], HttpResponse]
+
+    # Triggers retry mechanism for event delivery
+    event_delivery_retry: Callable[["EventDelivery", Any], EventDelivery]
 
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value

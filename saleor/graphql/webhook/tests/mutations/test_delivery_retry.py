@@ -19,11 +19,16 @@ WEBHOOK_DELIVERY_RETRY_MUTATION = """
 """
 
 
-@patch("saleor.plugins.webhook.tasks.send_webhook_request_async.delay")
+@patch("saleor.plugins.webhook.plugin.send_webhook_request_async.delay")
 def test_delivery_retry_mutation(
-    mocked_send_request_async, app_api_client, permission_manage_apps, event_delivery
+    mocked_send_request_async,
+    app_api_client,
+    permission_manage_apps,
+    event_delivery,
+    settings,
 ):
     # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     query = WEBHOOK_DELIVERY_RETRY_MUTATION
     delivery_id = graphene.Node.to_global_id("EventDelivery", event_delivery.pk)
     variables = {"id": delivery_id}

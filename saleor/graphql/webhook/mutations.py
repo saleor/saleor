@@ -1,10 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...core import EventDeliveryStatus
 from ...core.permissions import AppPermission
-from ...plugins.webhook.tasks import send_webhook_request_async
-from ...plugins.webhook.utils import delivery_update
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -226,6 +223,6 @@ class EventDeliveryRetry(BaseMutation):
             data["id"],
             only_type=EventDelivery,
         )
-        delivery_update(delivery, status=EventDeliveryStatus.PENDING)
-        send_webhook_request_async.delay(delivery.pk)
+        manager = info.context.plugins
+        manager.event_delivery_retry(delivery)
         return EventDeliveryRetry(delivery=delivery)
