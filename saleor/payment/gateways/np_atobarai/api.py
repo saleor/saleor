@@ -238,7 +238,7 @@ def report_fulfillment(
     ):
         payment_id = payment.psp_reference or payment.id
         already_reported = False
-        shipping_company_code = get_shipping_company_code(fulfillment)
+        shipping_company_code = get_shipping_company_code(config, fulfillment)
 
         result, error_codes = report(
             config,

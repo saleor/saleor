@@ -115,7 +115,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
 
         if not result:
             fulfillment = get_fulfillment_for_order(order)
-            shipping_company_code = get_shipping_company_code(fulfillment)
+            shipping_company_code = get_shipping_company_code(config, fulfillment)
             tracking_number = fulfillment.tracking_number
             result = api.reregister_transaction_for_partial_return(
                 config,
