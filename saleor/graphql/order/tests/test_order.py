@@ -1710,6 +1710,7 @@ def test_draft_order_create(
     assert order.shipping_method == shipping_method
     assert order.billing_address
     assert order.shipping_address
+    assert order.search_document
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -2644,6 +2645,7 @@ def test_draft_order_update(
     order.refresh_from_db()
     assert order.voucher
     assert order.customer_note == customer_note
+    assert order.search_document
 
 
 def test_draft_order_update_with_non_draft_order(
@@ -3223,6 +3225,7 @@ def test_draft_order_complete(
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
     assert data["origin"] == OrderOrigin.DRAFT.upper()
+    assert order.search_document
 
     for line in order.lines.all():
         allocation = line.allocations.get()
