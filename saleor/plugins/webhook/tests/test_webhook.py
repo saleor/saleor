@@ -565,3 +565,16 @@ def test_sale_deleted(mocked_webhook_trigger, settings, sale):
     mocked_webhook_trigger.assert_called_once_with(
         expected_data, WebhookEventType.SALE_DELETED
     )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_async.delay")
+def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+
+    # when
+    manager.event_delivery_retry(event_delivery)
+
+    # then
+    mocked_webhook_send.assert_called_once_with(event_delivery.pk)

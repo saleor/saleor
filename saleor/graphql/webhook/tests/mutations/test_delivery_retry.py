@@ -19,7 +19,7 @@ WEBHOOK_DELIVERY_RETRY_MUTATION = """
 """
 
 
-@patch("saleor.plugins.webhook.plugin.send_webhook_request_async.delay")
+@patch("saleor.plugins.manager.PluginsManager.event_delivery_retry")
 def test_delivery_retry_mutation(
     mocked_send_request_async,
     app_api_client,
@@ -43,7 +43,7 @@ def test_delivery_retry_mutation(
     content = get_graphql_content(response)
 
     # then
-    mocked_send_request_async.assert_called_once_with(event_delivery.pk)
+    mocked_send_request_async.assert_called_once_with(event_delivery)
     errors = content["data"]["eventDeliveryRetry"]["errors"]
     assert len(errors) == 0
 
