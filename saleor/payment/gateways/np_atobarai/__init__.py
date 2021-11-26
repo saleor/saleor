@@ -22,6 +22,10 @@ logger = logging.getLogger(__name__)
 
 
 def parse_errors(errors: List[str]) -> str:
+    # Field error of Transaction db model has max length of 256
+    # Error codes have max length of 11
+    # We are limiting errors to maximum of 11 codes, because:
+    # 11 * 11 + 10 * 2 (max length of linesep) == 141 < 256
     return os.linesep.join(errors[:11])
 
 
