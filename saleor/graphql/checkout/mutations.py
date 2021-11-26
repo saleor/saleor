@@ -34,6 +34,7 @@ from ...checkout.utils import (
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
 from ...core.permissions import AccountPermissions
+from ...core.taxes import include_taxes_in_prices
 from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
@@ -567,8 +568,13 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
+        taxes_included = include_taxes_in_prices()
         recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
+            manager,
+            checkout_info,
+            lines,
+            info.context.discounts,
+            taxes_included,
         )
         manager.checkout_updated(checkout)
 
@@ -651,8 +657,14 @@ class CheckoutLineDelete(BaseMutation):
             checkout, lines, info.context.discounts, manager
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
+
+        taxes_included = include_taxes_in_prices()
         recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
+            manager,
+            checkout_info,
+            lines,
+            info.context.discounts,
+            taxes_included,
         )
         manager.checkout_updated(checkout)
 
@@ -878,7 +890,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             change_shipping_address_in_checkout(
                 checkout_info, shipping_address, lines, discounts, manager
             )
-        recalculate_checkout_discount(manager, checkout_info, lines, discounts)
+        taxes_included = include_taxes_in_prices()
+        recalculate_checkout_discount(
+            manager, checkout_info, lines, discounts, taxes_included
+        )
 
         manager.checkout_updated(checkout)
 
@@ -1099,8 +1114,13 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=["shipping_method", "last_change"])
+        taxes_included = include_taxes_in_prices()
         recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
+            manager,
+            checkout_info,
+            lines,
+            info.context.discounts,
+            taxes_included,
         )
         manager.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
@@ -1147,8 +1167,13 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             shipping_method=shipping_method,
             collection_point=None,
         )
+        taxes_included = include_taxes_in_prices()
         recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
+            manager,
+            checkout_info,
+            lines,
+            info.context.discounts,
+            taxes_included,
         )
         return CheckoutDeliveryMethodUpdate(checkout=checkout)
 
@@ -1457,12 +1482,14 @@ class CheckoutAddPromoCode(BaseMutation):
         discounts = info.context.discounts
         lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        taxes_included = include_taxes_in_prices()
 
         add_promo_code_to_checkout(
             manager,
             checkout_info,
             lines,
             promo_code,
+            taxes_included,
             discounts,
         )
 

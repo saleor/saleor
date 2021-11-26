@@ -87,8 +87,9 @@ def test_shipping_detection(checkout, product):
     assert checkout.is_shipping_required()
 
 
+@pytest.mark.parametrize("taxes_included", [True, False])
 def test_get_prices_of_discounted_specific_product(
-    checkout_with_item, collection, voucher_specific_product_type
+    checkout_with_item, collection, voucher_specific_product_type, taxes_included
 ):
     checkout = checkout_with_item
     voucher = voucher_specific_product_type
@@ -107,7 +108,7 @@ def test_get_prices_of_discounted_specific_product(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout_info, lines, voucher
+        manager, checkout_info, lines, voucher, taxes_included
     )
 
     excepted_value = [
@@ -120,8 +121,12 @@ def test_get_prices_of_discounted_specific_product(
     assert prices == excepted_value
 
 
+@pytest.mark.parametrize("taxes_included", [True, False])
 def test_get_prices_of_discounted_specific_product_only_product(
-    checkout_with_item, voucher_specific_product_type, product_with_default_variant
+    checkout_with_item,
+    voucher_specific_product_type,
+    product_with_default_variant,
+    taxes_included,
 ):
     checkout = checkout_with_item
     voucher = voucher_specific_product_type
@@ -138,7 +143,7 @@ def test_get_prices_of_discounted_specific_product_only_product(
 
     lines = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout_info, lines, voucher
+        manager, checkout_info, lines, voucher, taxes_included
     )
 
     excepted_value = [
@@ -150,11 +155,13 @@ def test_get_prices_of_discounted_specific_product_only_product(
     assert prices == excepted_value
 
 
+@pytest.mark.parametrize("taxes_included", [True, False])
 def test_get_prices_of_discounted_specific_product_only_collection(
     checkout_with_item,
     collection,
     voucher_specific_product_type,
     product_with_default_variant,
+    taxes_included,
 ):
     checkout = checkout_with_item
     voucher = voucher_specific_product_type
@@ -172,7 +179,7 @@ def test_get_prices_of_discounted_specific_product_only_collection(
 
     lines = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout_info, lines, voucher
+        manager, checkout_info, lines, voucher, taxes_included
     )
 
     excepted_value = [
@@ -186,8 +193,12 @@ def test_get_prices_of_discounted_specific_product_only_collection(
     assert prices == excepted_value
 
 
+@pytest.mark.parametrize("taxes_included", [True, False])
 def test_get_prices_of_discounted_specific_product_only_category(
-    checkout_with_item, voucher_specific_product_type, product_with_default_variant
+    checkout_with_item,
+    voucher_specific_product_type,
+    product_with_default_variant,
+    taxes_included,
 ):
     checkout = checkout_with_item
     voucher = voucher_specific_product_type
@@ -208,7 +219,7 @@ def test_get_prices_of_discounted_specific_product_only_category(
 
     lines = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout_info, lines, voucher
+        manager, checkout_info, lines, voucher, taxes_included
     )
 
     excepted_value = [
@@ -220,8 +231,9 @@ def test_get_prices_of_discounted_specific_product_only_category(
     assert prices == excepted_value
 
 
+@pytest.mark.parametrize("taxes_included", [True, False])
 def test_get_prices_of_discounted_specific_product_all_products(
-    checkout_with_item, voucher_specific_product_type
+    checkout_with_item, voucher_specific_product_type, taxes_included
 ):
     checkout = checkout_with_item
     voucher = voucher_specific_product_type
@@ -234,7 +246,7 @@ def test_get_prices_of_discounted_specific_product_all_products(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout_info, lines, voucher
+        manager, checkout_info, lines, voucher, taxes_included
     )
 
     excepted_value = [
