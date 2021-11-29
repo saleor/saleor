@@ -34,7 +34,7 @@ def tax_data(checkout_with_items, checkout_with_items_lines):
         total_gross_amount=checkout.shipping_price.gross.amount + gross,
         lines=[
             TaxLineData(
-                id=line.variant_id,
+                id=line.id,
                 currency=checkout.currency,
                 unit_net_amount=line.unit_price.net.amount + net,
                 unit_gross_amount=line.unit_price.gross.amount + gross,

@@ -229,9 +229,12 @@ def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []
     return checkout
 
 
-def invalidate_checkout_prices(checkout: models.Checkout) -> None:
+def invalidate_checkout_prices(checkout: models.Checkout, *, save: bool) -> List[str]:
     checkout.price_expiration = timezone.now()
-    checkout.save(update_fields=["price_expiration"])
+    updated_fields = ["price_expiration"]
+    if save:
+        checkout.save(update_fields=updated_fields)
+    return updated_fields
 
 
 class CheckoutLineInput(graphene.InputObjectType):
@@ -570,9 +573,8 @@ class CheckoutLinesAdd(BaseMutation):
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
         )
+        invalidate_checkout_prices(checkout, save=True)
         manager.checkout_updated(checkout)
-
-        invalidate_checkout_prices(checkout)
 
         return CheckoutLinesAdd(checkout=checkout)
 
@@ -654,9 +656,8 @@ class CheckoutLineDelete(BaseMutation):
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
         )
+        invalidate_checkout_prices(checkout, save=True)
         manager.checkout_updated(checkout)
-
-        invalidate_checkout_prices(checkout)
 
         return CheckoutLineDelete(checkout=checkout)
 
@@ -875,14 +876,19 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         with traced_atomic_transaction():
             shipping_address.save()
-            change_shipping_address_in_checkout(
+            shipping_address_updated_fields = change_shipping_address_in_checkout(
                 checkout_info, shipping_address, lines, discounts, manager
             )
         recalculate_checkout_discount(manager, checkout_info, lines, discounts)
+        invalidate_prices_updated_fields = invalidate_checkout_prices(
+            checkout, save=False
+        )
+        checkout.save(
+            update_fields=shipping_address_updated_fields
+            + invalidate_prices_updated_fields
+        )
 
         manager.checkout_updated(checkout)
-
-        invalidate_checkout_prices(checkout)
 
         return CheckoutShippingAddressUpdate(checkout=checkout)
 
@@ -933,10 +939,18 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         )
         with traced_atomic_transaction():
             billing_address.save()
-            change_billing_address_in_checkout(checkout, billing_address)
-            info.context.plugins.checkout_updated(checkout)
+            change_address_updated_fields = change_billing_address_in_checkout(
+                checkout, billing_address
+            )
+            invalidate_prices_updated_fields = invalidate_checkout_prices(
+                checkout, save=False
+            )
+            checkout.save(
+                update_fields=change_address_updated_fields
+                + invalidate_prices_updated_fields
+            )
 
-        invalidate_checkout_prices(checkout)
+            info.context.plugins.checkout_updated(checkout)
 
         return CheckoutBillingAddressUpdate(checkout=checkout)
 

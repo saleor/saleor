@@ -2,6 +2,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -42,7 +43,7 @@ mutation addCheckoutLine($checkoutId: ID!, $line: CheckoutLineInput!){
 
     # then
     assert not response["data"]["checkoutLinesAdd"]["errors"]
-    mocked_function.assert_called_once_with(checkout_with_items)
+    mocked_function.assert_called_once_with(checkout_with_items, save=True)
 
 
 @patch("saleor.graphql.checkout.mutations.invalidate_checkout_prices")
@@ -78,7 +79,7 @@ mutation updateCheckoutLine($token: UUID, $line: CheckoutLineInput!){
 
     # then
     assert not response["data"]["checkoutLinesUpdate"]["errors"]
-    mocked_function.assert_called_once_with(checkout_with_items)
+    mocked_function.assert_called_once_with(checkout_with_items, save=True)
 
 
 @patch("saleor.graphql.checkout.mutations.invalidate_checkout_prices")
@@ -110,7 +111,7 @@ mutation updateCheckoutLine($token: UUID, $lineId: ID){
 
     # then
     assert not response["data"]["checkoutLineDelete"]["errors"]
-    mocked_function.assert_called_once_with(checkout_with_items)
+    mocked_function.assert_called_once_with(checkout_with_items, save=True)
 
 
 @patch("saleor.graphql.checkout.mutations.invalidate_checkout_prices")
@@ -135,13 +136,14 @@ mutation UpdateCheckoutShippingAddress($token: UUID, $address: AddressInput!) {
         "token": checkout_with_items.token,
         "address": graphql_address_data,
     }
+    mocked_function.return_value = []
 
     # when
     response = get_graphql_content(api_client.post_graphql(query, variables))
 
     # then
     assert not response["data"]["checkoutShippingAddressUpdate"]["errors"]
-    mocked_function.assert_called_once_with(checkout_with_items)
+    mocked_function.assert_called_once_with(checkout_with_items, save=False)
 
 
 @patch("saleor.graphql.checkout.mutations.invalidate_checkout_prices")
@@ -166,24 +168,27 @@ mutation UpdateCheckoutBillingAddress($token: UUID, $address: AddressInput!) {
         "token": checkout_with_items.token,
         "address": graphql_address_data,
     }
+    mocked_function.return_value = []
 
     # when
     response = get_graphql_content(api_client.post_graphql(query, variables))
 
     # then
     assert not response["data"]["checkoutBillingAddressUpdate"]["errors"]
-    mocked_function.assert_called_once_with(checkout_with_items)
+    mocked_function.assert_called_once_with(checkout_with_items, save=False)
 
 
 @freeze_time("2020-12-12 12:00:00")
-def test_invalidate_checkout_prices(checkout):
+@pytest.mark.parametrize("save, minutes", [(True, 0), (False, 5)])
+def test_invalidate_checkout_prices(checkout, save, minutes):
     # given
-    checkout.price_expiration += timedelta(minutes=5)
+    checkout.price_expiration = timezone.now() + timedelta(minutes=5)
     checkout.save(update_fields=["price_expiration"])
 
     # when
-    invalidate_checkout_prices(checkout)
+    updated_fields = invalidate_checkout_prices(checkout, save=save)
 
     # then
     checkout.refresh_from_db()
-    assert checkout.price_expiration == timezone.now()
+    assert checkout.price_expiration == timezone.now() + timedelta(minutes=minutes)
+    assert updated_fields == ["price_expiration"]

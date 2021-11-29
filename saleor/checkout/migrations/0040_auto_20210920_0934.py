@@ -8,7 +8,7 @@ def set_default_checkout_line_currency(apps, schema_editor):
     CheckoutLine = apps.get_model("checkout", "CheckoutLine")
     for checkout_line in CheckoutLine.objects.all().iterator():
         checkout_line.currency = checkout_line.checkout.currency
-        checkout_line.save(updated_fields=["currency"])
+        checkout_line.save(update_fields=["currency"])
 
 
 class Migration(migrations.Migration):

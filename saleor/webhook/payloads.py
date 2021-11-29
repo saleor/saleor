@@ -269,8 +269,7 @@ def generate_checkout_payload(checkout: "Checkout"):
         extra_dict_data={
             # Casting to list to make it json-serializable
             "included_taxes_in_price": include_taxes_in_prices(),
-            "lines": list(lines_dict_data),
-            "voucher_amount": checkout.discount.amount,
+            "lines": lines_dict_data,
             "collection_point": json.loads(
                 _generate_collection_point_payload(checkout.collection_point)
             )[0]

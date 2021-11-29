@@ -204,7 +204,7 @@ def _zip_checkout_and_tax_lines(
     tax_data: TaxData,
 ) -> Iterable[Tuple["CheckoutLineInfo", TaxLineData]]:
     tax_lines = {line.id: line for line in tax_data.lines}
-    return ((line_info, tax_lines[line_info.variant.id]) for line_info in lines)
+    return ((line_info, tax_lines[line_info.line.id]) for line_info in lines)
 
 
 def _apply_tax_data(
