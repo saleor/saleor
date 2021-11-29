@@ -197,26 +197,24 @@ def index_product_data_to_algolia(
     locales: List, product_global_id: str, sender: str, config: Dict
 ):
     algolia_indices = get_algolia_indices(config=config, locales=locales)
-    for locale in locales:
+    for locale, index in algolia_indices.items():
         product_data = get_product_data(
             locale=locale,
             product_global_id=product_global_id,
         )
         if product_data:
             if sender == "product_created":
-                algolia_indices.get(locale).save_object(
+                index.save_object(
                     obj=product_data,
                     request_options={"autoGenerateObjectIDIfNotExist": False},
                 )
-            elif sender == "product_update":
-                algolia_indices.get(locale).partial_update_object(
+            elif sender == "product_updated":
+                index.partial_update_object(
                     obj=product_data, request_options={"createIfNotExists": True}
                 )
             elif sender == "product_deleted":
                 # Object ID is required to delete an object, it's the product slug.
-                algolia_indices.get(locale).delete_object(
-                    object_id=product_data.get("objectID")
-                )
+                index.delete_object(object_id=product_data.get("objectID"))
             return {
                 "locale": locale,
                 "sender": sender,
