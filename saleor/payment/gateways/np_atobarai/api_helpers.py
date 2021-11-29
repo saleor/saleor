@@ -7,8 +7,7 @@ from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
-from saleor.order.models import Order
-
+from ....order.models import Order
 from ...interface import AddressData, PaymentData
 from ...utils import price_to_minor_unit
 from .api_types import NPResponse, error_np_response

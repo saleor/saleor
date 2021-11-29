@@ -5,8 +5,7 @@ from unittest.mock import ANY, Mock, patch
 import pytest
 import requests
 
-from saleor.order import OrderEvents
-
+from .....order import OrderEvents
 from .... import PaymentError
 from .. import PaymentStatus, api, const
 from ..api_helpers import format_price, get_goods_with_discount, get_refunded_goods

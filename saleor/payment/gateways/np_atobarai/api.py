@@ -1,8 +1,6 @@
 import logging
 from typing import Dict, List, Optional, Tuple, Union
 
-from graphene import Node
-
 from ....order.models import Fulfillment, Order
 from ...interface import PaymentData
 from ...models import Payment
@@ -161,7 +159,7 @@ def change_transaction(
         if PRE_FULFILLMENT_ERROR_CODE in error_codes:
             logger.info(
                 "Fulfillment for payment with id %s was reported",
-                Node.to_global_id("Payment", payment.id),
+                payment_information.graphql_payment_id,
             )
             return None
 

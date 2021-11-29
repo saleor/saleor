@@ -4,9 +4,8 @@ from unittest.mock import ANY, Mock, patch
 
 import pytest
 import requests
-from graphene import Node
 
-from saleor.payment import PaymentError
+from .... import PaymentError
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -83,7 +82,7 @@ def test_process_payment_no_payment(np_atobarai_plugin, np_payment_data, caplog)
         plugin.process_payment(payment_data, None)
 
     # then
-    payment_id = Node.to_global_id("Payment", -1)
+    payment_id = np_payment_data.graphql_payment_id
     assert caplog.record_tuples == [
         (ANY, logging.ERROR, f"Payment with id {payment_id} does not exist")
     ]

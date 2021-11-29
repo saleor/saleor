@@ -2,8 +2,6 @@ import logging
 import os
 from typing import List
 
-from graphene import Node
-
 from ....order.models import Fulfillment
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayResponse, PaymentData
@@ -38,7 +36,7 @@ def process_payment(
     if not payment:
         logger.error(
             "Payment with id %s does not exist",
-            Node.to_global_id("Payment", payment_id),
+            payment_information.graphql_payment_id,
         )
         raise PaymentError("Payment does not exist.")
 
