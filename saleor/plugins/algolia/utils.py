@@ -217,8 +217,8 @@ def index_product_data_to_algolia(
                 algolia_indices.get(locale).delete_object(
                     object_id=product_data.get("objectID")
                 )
-        return {
-            "locale": locale,
-            "sender": sender,
-            "product": product_data.get("objectID"),
-        }
+            return {
+                "locale": locale,
+                "sender": sender,
+                "product": product_data.get("objectID"),
+            }
