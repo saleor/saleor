@@ -74,7 +74,6 @@ from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context, resolve_global_ids_to_primary_keys
 from ..warehouse.types import Warehouse
 from .types import Checkout, CheckoutLine
-from .utils import prepare_insufficient_stock_checkout_validation_error
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
@@ -438,18 +437,14 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         variants = cleaned_input.get("variants")
         quantities = cleaned_input.get("quantities")
         if variants and quantities:
-            try:
-                add_variants_to_checkout(
-                    instance,
-                    variants,
-                    quantities,
-                    channel.slug,
-                    info.context.site.settings.limit_quantity_per_checkout,
-                    reservation_length=get_reservation_length(info.context),
-                )
-            except InsufficientStock as exc:
-                error = prepare_insufficient_stock_checkout_validation_error(exc)
-                raise ValidationError({"lines": error})
+            add_variants_to_checkout(
+                instance,
+                variants,
+                quantities,
+                channel.slug,
+                info.context.site.settings.limit_quantity_per_checkout,
+                reservation_length=get_reservation_length(info.context),
+            )
 
         # Save addresses
         shipping_address = cleaned_input.get("shipping_address")

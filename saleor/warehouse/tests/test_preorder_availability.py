@@ -17,7 +17,7 @@ from ..availability import (
 from ..models import PreorderReservation
 
 
-@patch("saleor.warehouse.availability.check_preorder_threshold")
+@patch("saleor.warehouse.availability.check_preorder_threshold_in_orders")
 @patch("saleor.warehouse.availability.check_stock_quantity")
 def test_check_stock_and_preorder_quantity(
     mock_check_stock_quantity,

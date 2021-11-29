@@ -50,7 +50,7 @@ def check_stock_and_preorder_quantity(
     or there is not enough available preorder items for a variant.
     """
     if variant.is_preorder_active():
-        check_preorder_threshold(
+        check_preorder_threshold_in_orders(
             variant, quantity, channel_slug, checkout_lines, check_reservations
         )
     else:
@@ -298,9 +298,18 @@ def get_channel_data(
     )
 
 
-def check_preorder_threshold(
-    variant, quantity, channel_slug, checkout_lines, check_reservations
+def check_preorder_threshold_in_orders(
+    variant: "ProductVariant",
+    quantity: int,
+    channel_slug: str,
+    checkout_lines: Optional[Iterable["CheckoutLine"]],
+    check_reservations: bool,
 ):
+    """Validate if there is preorder available for given variants in given country.
+
+    It is used in orders, since it does not need additional logic related to limits.
+    :raises InsufficientStock: when there is not enough items in stock for a variant.
+    """
     (
         variants_channel_availability,
         variants_global_allocations,
