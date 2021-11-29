@@ -1,6 +1,7 @@
 from decimal import Decimal
 from unittest.mock import MagicMock, Mock, patch
 
+import graphene
 import pytest
 from prices import Money, TaxedMoney
 
@@ -14,11 +15,12 @@ from ...discount.models import (
     VoucherType,
 )
 from ...discount.utils import validate_voucher_in_order
+from ...graphql.tests.utils import get_graphql_content
 from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
-from ...warehouse.models import Stock
+from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
 from ..events import (
@@ -1250,3 +1252,59 @@ def test_email_sent_event_without_user_and_app_pk(
         "email": order.get_customer_email(),
         "email_type": expected_event_type,
     }
+
+
+GET_ORDER_AVAILABLE_COLLECTION_POINTS = """
+    query getAvailableCollectionPointsForOrder(
+        $id: ID!
+    ){
+      order(id:$id){
+        availableCollectionPoints{
+          name
+        }
+      }
+    }
+"""
+
+
+def test_available_collection_points_for_preorders_variants_in_order(
+    api_client, staff_api_client, order_with_preorder_lines, permission_manage_orders
+):
+    expected_collection_points = list(
+        Warehouse.objects.for_country("US").values("name")
+    )
+    response = staff_api_client.post_graphql(
+        GET_ORDER_AVAILABLE_COLLECTION_POINTS,
+        variables={
+            "id": graphene.Node.to_global_id("Order", order_with_preorder_lines.id)
+        },
+        permissions=[permission_manage_orders],
+    )
+    response_content = get_graphql_content(response)
+    assert (
+        expected_collection_points
+        == response_content["data"]["order"]["availableCollectionPoints"]
+    )
+
+
+def test_available_collection_points_for_preorders_and_regular_variants_in_order(
+    api_client,
+    staff_api_client,
+    order_with_preorder_lines,
+    permission_manage_orders,
+    warehouse,
+):
+
+    expected_collection_points = [{"name": warehouse.name}]
+    response = staff_api_client.post_graphql(
+        GET_ORDER_AVAILABLE_COLLECTION_POINTS,
+        variables={
+            "id": graphene.Node.to_global_id("Order", order_with_preorder_lines.id)
+        },
+        permissions=[permission_manage_orders],
+    )
+    response_content = get_graphql_content(response)
+    assert (
+        expected_collection_points
+        == response_content["data"]["order"]["availableCollectionPoints"]
+    )
