@@ -2,14 +2,13 @@ import logging
 from typing import Any, List
 
 import graphene
-from algoliasearch.search_client import SearchClient
 from django.core.exceptions import ValidationError
 
 from ...payment.gateways.utils import require_active_plugin
 from ...product.models import Product
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
-from .utils import UserAdminContext, get_product_data
+from .utils import UserAdminContext, index_product_data_to_algolia
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +51,6 @@ class AlgoliaPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.algolia_indices = {}
         self.context = UserAdminContext()
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = {
@@ -61,29 +59,6 @@ class AlgoliaPlugin(BasePlugin):
             "ALGOLIA_INDEX_PREFIX": configuration["ALGOLIA_INDEX_PREFIX"],
             "ALGOLIA_APPLICATION_ID": configuration["ALGOLIA_APPLICATION_ID"],
         }
-        self.client = SearchClient.create(
-            api_key=self.config["ALGOLIA_API_KEY"],
-            app_id=self.config["ALGOLIA_APPLICATION_ID"],
-        )
-
-        self.algolia_index_prefix = self.config["ALGOLIA_INDEX_PREFIX"]
-        for locale in self.get_locales():
-            index = self.client.init_index(
-                name=f"{self.algolia_index_prefix}_products_{locale}"
-            )
-            self.algolia_indices.update({locale: index})
-
-            index.set_settings(
-                settings={
-                    "searchableAttributes": [
-                        "sku",
-                        "name",
-                        "channels",
-                        "description",
-                        "translation",
-                    ]
-                }
-            )
 
     def get_locales(self):
         """Return OTO plugin locales."""
@@ -121,35 +96,31 @@ class AlgoliaPlugin(BasePlugin):
     @require_active_plugin
     def product_created(self, product: "Product", previous_value: Any):
         """Index product to Algolia."""
-        for locale in self.get_locales():
-            task = get_product_data.delay(
-                locale=locale,
-                product_global_id=self.get_product_global_id(product=product),
-            )
-            if task.status == "SUCCESS" and task.result:
-                self.algolia_indices.get(locale).save_object(
-                    obj=task.result,
-                    request_options={"autoGenerateObjectIDIfNotExist": False},
-                )
+        index_product_data_to_algolia.delay(
+            config=self.config,
+            sender="product_created",
+            locales=self.get_locales(),
+            product_global_id=self.get_product_global_id(product=product),
+        )
 
     @require_active_plugin
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         """Index product to Algolia."""
-        for locale in self.get_locales():
-            task = get_product_data.delay(
-                locale=locale,
-                product_global_id=self.get_product_global_id(product=product),
-            )
-            if task.status == "SUCCESS" and task.result:
-                self.algolia_indices.get(locale).partial_update_object(
-                    obj=task.result, request_options={"createIfNotExists": True}
-                )
+        index_product_data_to_algolia.delay(
+            config=self.config,
+            sender="product_updated",
+            locales=self.get_locales(),
+            product_global_id=self.get_product_global_id(product=product),
+        )
 
     @require_active_plugin
     def product_deleted(
         self, product: "Product", variants: List[int], previous_value: Any
     ) -> Any:
         """Delete product from Algolia."""
-        for locale in self.get_locales():
-            # Object ID is required to delete an object, it's the product slug.
-            self.algolia_indices.get(locale).delete_object(object_id=product.slug)
+        index_product_data_to_algolia.delay(
+            config=self.config,
+            sender="product_deleted",
+            locales=self.get_locales(),
+            product_global_id=self.get_product_global_id(product=product),
+        )
