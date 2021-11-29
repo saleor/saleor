@@ -1,7 +1,8 @@
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from functools import cached_property
+from typing import Any, Callable, Dict, List, Optional, Union
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
@@ -67,6 +68,15 @@ class StorePaymentMethodEnum(str, Enum):
 
 
 @dataclass
+class PaymentLineData:
+    gross: Decimal
+    variant_id: int
+    product_name: str
+    product_sku: Optional[str]
+    quantity: int
+
+
+@dataclass
 class PaymentData:
     """Dataclass for storing all payment information.
 
@@ -92,6 +102,18 @@ class PaymentData:
     store_payment_method: StorePaymentMethodEnum = StorePaymentMethodEnum.NONE
     payment_metadata: Dict[str, str] = field(default_factory=dict)
     psp_reference: Optional[str] = None
+    refund_data: Optional[Dict[int, int]] = None
+    # Optional, lazy-evaluated gateway arguments
+    _resolve_lines: InitVar[Callable] = None
+
+    def __post_init__(self, _resolve_lines: Callable):
+        self.__resolve_lines = _resolve_lines
+
+    # Note: this field does not appear in webhook payloads,
+    # because it's not visible to dataclasses.asdict
+    @cached_property
+    def lines(self) -> List[PaymentLineData]:
+        return self.__resolve_lines()
 
 
 @dataclass
