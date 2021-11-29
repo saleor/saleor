@@ -33,7 +33,7 @@ def sample_tax_data() -> TaxData:
             unit_gross_amount=unit_gross,
             total_net_amount=unit * 3,
             total_gross_amount=unit_gross * 3,
-            tax_rate=Decimal("23.00"),
+            tax_rate=Decimal("0.23"),
         )
         for i in range(8)
     ]
@@ -50,7 +50,7 @@ def sample_tax_data() -> TaxData:
         subtotal_gross_amount=subtotal_gross,
         shipping_price_net_amount=shipping,
         shipping_price_gross_amount=shipping_gross,
-        shipping_tax_rate=Decimal("23.00"),
+        shipping_tax_rate=Decimal("0.23"),
         total_net_amount=subtotal + shipping,
         total_gross_amount=subtotal_gross + shipping_gross,
         lines=lines,
