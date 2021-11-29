@@ -8,7 +8,7 @@ from ...payment.gateways.utils import require_active_plugin
 from ...product.models import Product
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
-from .utils import UserAdminContext, index_product_data_to_algolia
+from .utils import UserAdminContext, get_algolia_indices, index_product_data_to_algolia
 
 logger = logging.getLogger(__name__)
 
@@ -121,9 +121,5 @@ class AlgoliaPlugin(BasePlugin):
     ) -> Any:
         """Delete product from Algolia."""
         for locale in self.get_locales():
-            index_product_data_to_algolia.delay(
-                locale=locale,
-                config=self.config,
-                sender="product_deleted",
-                product_global_id=self.get_product_global_id(product=product),
-            )
+            index = get_algolia_indices(config=self.config, locale=locale)
+            index.delete_object(object_id=product.slug)
