@@ -96,7 +96,7 @@ def test_prepare_order_search_document_value_empty_relation_fields(
     # then
     user = order.user
     assert (
-        f"{order.id}\n{order.user_email}\n{user.email}\n"
+        f"#{order.id}\n{order.user_email}\n{user.email}\n"
         f"{user.first_name}\n{user.last_name}\n"
         f"{payment_id}\n".lower() == search_document_value
     )
@@ -118,4 +118,4 @@ def test_prepare_order_search_document_value_no_relations_data(order, address_us
     search_document_value = prepare_order_search_document_value(order)
 
     # then
-    assert f"{order.id}\n{order.user_email}\n".lower() == search_document_value
+    assert f"#{order.id}\n{order.user_email}\n".lower() == search_document_value

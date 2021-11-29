@@ -18,7 +18,7 @@ def update_order_search_document(order: "Order"):
 
 
 def prepare_order_search_document_value(order: "Order"):
-    search_document = str(order.id) + "\n"
+    search_document = f"#{str(order.id)}\n"
 
     user_data = order.user_email + "\n"
     if user := order.user:
@@ -71,8 +71,6 @@ def search_orders(qs, value):
     if value:
         lookup = Q()
         for val in value.split():
-            if val.startswith("#"):
-                val = val[1:]
             lookup &= Q(search_document__ilike=val)
         qs = qs.filter(lookup)
     return qs

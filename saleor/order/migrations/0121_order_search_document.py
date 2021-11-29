@@ -4,6 +4,16 @@ import graphene
 from django.db import migrations, models
 
 BATCH_SIZE = 10000
+ADDRESS_SEARCH_FIELDS = [
+    "first_name",
+    "last_name",
+    "street_address_1",
+    "street_address_2",
+    "city",
+    "postal_code",
+    "country",
+    "phone",
+]
 
 
 def set_search_document(apps, schema_editor):
@@ -18,8 +28,9 @@ def set_search_document(apps, schema_editor):
 
 
 def prepare_search_document_value(order):
-    search_document = str(order.id) + "\n"
+    search_document = f"#{str(order.id)}\n"
 
+    # attach user data
     user_data = order.user_email + "\n"
     if user := order.user:
         user_data += "\n".join(
@@ -32,18 +43,10 @@ def prepare_search_document_value(order):
         user_data += "\n"
     search_document += user_data
 
+    # attach addressess data
     for address_field in ["billing_address", "shipping_address"]:
         if address := getattr(order, address_field):
-            for field in [
-                "first_name",
-                "last_name",
-                "street_address_1",
-                "street_address_2",
-                "city",
-                "postal_code",
-                "country",
-                "phone",
-            ]:
+            for field in ADDRESS_SEARCH_FIELDS:
                 if field == "country":
                     search_document += (
                         address.country.name + "\n" + address.country.code + "\n"
@@ -51,17 +54,20 @@ def prepare_search_document_value(order):
                 else:
                     search_document += str(getattr(address, field)) + "\n"
 
+    # attach payments data
     payments_data = ""
     for id, psp_reference in order.payments.values_list("id", "psp_reference"):
         payments_data += graphene.Node.to_global_id("Payment", id) + "\n"
         if psp_reference:
             payments_data += psp_reference + "\n"
 
+    # attach discounts data
     for data in order.discounts.values_list("name", "translated_name"):
         for value in data:
             if value:
                 search_document += value + "\n"
 
+    # attach order lines data
     lines_data = "\n".join(
         order.lines.exclude(product_sku__isnull=True).values_list(
             "product_sku", flat=True
