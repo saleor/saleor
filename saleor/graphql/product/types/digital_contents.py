@@ -4,6 +4,7 @@ from graphene import relay
 from ....product import models
 from ...channel import ChannelContext
 from ...core.connection import CountableDjangoObjectType
+from ...core.relay import RelayCountableConnection
 from ...core.scalars import UUID
 from ...meta.types import ObjectWithMetadata
 from ..dataloaders import ProductVariantByIdLoader
@@ -59,3 +60,8 @@ class DigitalContent(CountableDjangoObjectType):
             .load(root.product_variant_id)
             .then(lambda variant: ChannelContext(node=variant, channel_slug=None))
         )
+
+
+class DigitalContentCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = DigitalContent

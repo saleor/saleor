@@ -15,13 +15,18 @@ from ..core.descriptions import ADDED_IN_31
 from ..core.fields import (
     ChannelContextFilterConnectionField,
     ChannelQsContext,
-    PrefetchingConnectionField,
 )
+from ..core.relay import RelayConnectionField, create_connection_slice
 from ..core.scalars import PositiveDecimal
 from ..core.types import Money
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
-from ..product.types import Category, Collection, Product, ProductVariant
+from ..product.types import (
+    CategoryCountableConnection,
+    Collection,
+    Product,
+    ProductVariant,
+)
 from ..translations.fields import TranslationField
 from ..translations.types import SaleTranslation, VoucherTranslation
 from .dataloaders import (
@@ -46,8 +51,9 @@ class SaleChannelListing(CountableDjangoObjectType):
 
 
 class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
-    categories = PrefetchingConnectionField(
-        Category, description="List of categories this sale applies to."
+    categories = RelayConnectionField(
+        CategoryCountableConnection,
+        description="List of categories this sale applies to.",
     )
     collections = ChannelContextFilterConnectionField(
         Collection, description="List of collections this sale applies to."
@@ -82,8 +88,9 @@ class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         only_fields = ["end_date", "id", "name", "start_date", "type"]
 
     @staticmethod
-    def resolve_categories(root: ChannelContext[models.Sale], *_args, **_kwargs):
-        return root.node.categories.all()
+    def resolve_categories(root: ChannelContext[models.Sale], info, *_args, **kwargs):
+        qs = root.node.categories.all()
+        return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
@@ -152,8 +159,9 @@ class VoucherChannelListing(CountableDjangoObjectType):
 
 
 class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
-    categories = PrefetchingConnectionField(
-        Category, description="List of categories this voucher applies to."
+    categories = RelayConnectionField(
+        CategoryCountableConnection,
+        description="List of categories this voucher applies to.",
     )
     collections = ChannelContextFilterConnectionField(
         Collection, description="List of collections this voucher applies to."
@@ -215,8 +223,11 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         model = models.Voucher
 
     @staticmethod
-    def resolve_categories(root: ChannelContext[models.Voucher], *_args, **_kwargs):
-        return root.node.categories.all()
+    def resolve_categories(
+        root: ChannelContext[models.Voucher], info, *_args, **kwargs
+    ):
+        qs = root.node.categories.all()
+        return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)

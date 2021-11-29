@@ -31,7 +31,12 @@ from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
 from ...attribute.resolvers import resolve_attributes
-from ...attribute.types import AssignedVariantAttribute, Attribute, SelectedAttribute
+from ...attribute.types import (
+    AssignedVariantAttribute,
+    Attribute,
+    AttributeCountableConnection,
+    SelectedAttribute,
+)
 from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
@@ -44,10 +49,13 @@ from ...core.descriptions import (
 )
 from ...core.enums import ReportingPeriod
 from ...core.federation import resolve_federation_references
-from ...core.fields import (
-    ChannelContextFilterConnectionField,
-    FilterInputConnectionField,
-    PrefetchingConnectionField,
+from ...core.fields import ChannelContextFilterConnectionField
+from ...core.relay import (
+    RelayConnectionField,
+    RelayCountableConnection,
+    RelayFilteredConnectionField,
+    create_connection_slice,
+    filter_connection_queryset,
 )
 from ...core.types import Image, TaxedMoney, TaxedMoneyRange, TaxType
 from ...core.utils import from_global_id_or_error
@@ -1203,8 +1211,8 @@ class ProductType(CountableDjangoObjectType):
     product_attributes = graphene.List(
         Attribute, description="Product attributes of that product type."
     )
-    available_attributes = FilterInputConnectionField(
-        Attribute, filter=AttributeFilterInput()
+    available_attributes = RelayFilteredConnectionField(
+        AttributeCountableConnection, filter=AttributeFilterInput()
     )
 
     class Meta:
@@ -1311,7 +1319,9 @@ class ProductType(CountableDjangoObjectType):
         qs = attribute_models.Attribute.objects.get_unassigned_product_type_attributes(
             root.pk
         )
-        return resolve_attributes(info, qs=qs, **kwargs)
+        qs = resolve_attributes(info, qs=qs, **kwargs)
+        qs = filter_connection_queryset(qs, kwargs, info.context)
+        return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
     def resolve_weight(root: models.ProductType, _info, **_kwargs):
@@ -1322,6 +1332,11 @@ class ProductType(CountableDjangoObjectType):
         return resolve_federation_references(
             ProductType, roots, models.ProductType.objects
         )
+
+
+class ProductTypeCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = ProductType
 
 
 @key(fields="id channel")
@@ -1440,8 +1455,9 @@ class Category(CountableDjangoObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    ancestors = PrefetchingConnectionField(
-        lambda: Category, description="List of ancestors of the category."
+    ancestors = RelayConnectionField(
+        lambda: CategoryCountableConnection,
+        description="List of ancestors of the category.",
     )
     products = ChannelContextFilterConnectionField(
         Product,
@@ -1450,8 +1466,9 @@ class Category(CountableDjangoObjectType):
         ),
         description="List of products in the category.",
     )
-    children = PrefetchingConnectionField(
-        lambda: Category, description="List of children of the category."
+    children = RelayConnectionField(
+        lambda: CategoryCountableConnection,
+        description="List of children of the category.",
     )
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
@@ -1478,8 +1495,10 @@ class Category(CountableDjangoObjectType):
         model = models.Category
 
     @staticmethod
-    def resolve_ancestors(root: models.Category, info, **_kwargs):
-        return root.get_ancestors()
+    def resolve_ancestors(root: models.Category, info, **kwargs):
+        return create_connection_slice(
+            root.get_ancestors(), info, kwargs, CategoryCountableConnection
+        )
 
     @staticmethod
     def resolve_description_json(root: models.Category, info):
@@ -1498,8 +1517,17 @@ class Category(CountableDjangoObjectType):
             )
 
     @staticmethod
-    def resolve_children(root: models.Category, info, **_kwargs):
-        return CategoryChildrenByCategoryIdLoader(info.context).load(root.pk)
+    def resolve_children(root: models.Category, info, **kwargs):
+        def slice_children_categories(children):
+            return create_connection_slice(
+                children, info, kwargs, CategoryCountableConnection
+            )
+
+        return (
+            CategoryChildrenByCategoryIdLoader(info.context)
+            .load(root.pk)
+            .then(slice_children_categories)
+        )
 
     @staticmethod
     def resolve_url(root: models.Category, _info):
@@ -1532,6 +1560,11 @@ class Category(CountableDjangoObjectType):
     @staticmethod
     def __resolve_references(roots: List["Category"], _info, **_kwargs):
         return resolve_federation_references(Category, roots, models.Category.objects)
+
+
+class CategoryCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = Category
 
 
 @key(fields="id")

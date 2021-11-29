@@ -252,9 +252,22 @@ def connection_from_queryset_slice(
     filter_kwargs = (
         _prepare_filter(cursor, sorting_fields, sorting_direction) if cursor else Q()
     )
-    qs = qs.filter(filter_kwargs)
-    qs = qs[:end_margin]
-    edges, page_info = _get_edges_for_connection(edge_type, qs, args, sorting_fields)
+    filtered_qs = qs.filter(filter_kwargs)
+    filtered_qs = filtered_qs[:end_margin]
+    edges, page_info = _get_edges_for_connection(
+        edge_type, filtered_qs, args, sorting_fields
+    )
+
+    if "total_count" in connection_type._meta.fields:
+
+        def get_total_count():
+            return qs.count()
+
+        return connection_type(
+            edges=edges,
+            page_info=pageinfo_type(**page_info),
+            total_count=get_total_count,
+        )
 
     return connection_type(
         edges=edges,
