@@ -5,6 +5,7 @@ import graphene
 from graphene.relay import PageInfo
 from graphene_django.fields import DjangoConnectionField
 from graphql.error import GraphQLError
+from graphql.language.ast import FragmentSpread
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
 
@@ -133,12 +134,7 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
         info,
         **args,
     ):
-        # Disable `enforce_first_or_last` if not querying for `edges`.
-        values = [
-            field.name.value for field in info.field_asts[0].selection_set.selections
-        ]
-        if "edges" not in values:
-            enforce_first_or_last = False
+        enforce_first_or_last = cls.is_first_or_last_required(info)
 
         first = args.get("first")
         last = args.get("last")
@@ -187,6 +183,30 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
         if Promise.is_thenable(iterable):
             return Promise.resolve(iterable).then(on_resolve)
         return on_resolve(iterable)
+
+    @classmethod
+    def is_first_or_last_required(cls, info):
+        """Disable `enforce_first_or_last` if not querying for `edges`."""
+        selections = info.field_asts[0].selection_set.selections
+        values = [field.name.value for field in selections]
+        if "edges" in values:
+            return True
+
+        fragments = [
+            field.name.value
+            for field in selections
+            if isinstance(field, FragmentSpread)
+        ]
+
+        for fragment in fragments:
+            fragment_values = [
+                field.name.value
+                for field in info.fragments[fragment].selection_set.selections
+            ]
+            if "edges" in fragment_values:
+                return True
+
+        return False
 
     @classmethod
     def filter_iterable(cls, iterable, filterset_class, filters_name, info, **args):
