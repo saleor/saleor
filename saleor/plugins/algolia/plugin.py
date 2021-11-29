@@ -9,7 +9,6 @@ from ...payment.gateways.utils import require_active_plugin
 from ...product.models import Product
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
-from . import constants
 from .utils import UserAdminContext, get_product_data
 
 logger = logging.getLogger(__name__)
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 class AlgoliaPlugin(BasePlugin):
     DEFAULT_ACTIVE = False
     PLUGIN_NAME = "Algolia"
-    PLUGIN_ID = constants.PLUGIN_ID
+    PLUGIN_ID = "wecre8.algolia"
     CONFIGURATION_PER_CHANNEL = False
     PLUGIN_DESCRIPTION = "Plugin responsible for indexing data to Algolia."
 
