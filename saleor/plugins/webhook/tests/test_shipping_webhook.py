@@ -11,11 +11,7 @@ from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_order_payload,
 )
 from ...base_plugin import ExcludedShippingMethod
-from ..const import (
-    CACHE_EXCLUDED_SHIPPING_KEY,
-    CACHE_EXCLUDED_SHIPPING_TIME,
-    EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
-)
+from ..const import CACHE_EXCLUDED_SHIPPING_KEY, CACHE_EXCLUDED_SHIPPING_TIME
 from ..utils import get_excluded_shipping_methods_from_response
 
 ORDER_QUERY_SHIPPING_METHOD = """
@@ -76,6 +72,7 @@ def test_excluded_shipping_methods_for_order(
     order_with_lines,
     available_shipping_methods_factory,
     shipping_app_factory,
+    settings,
 ):
     # given
     shipping_app = shipping_app_factory()
@@ -117,7 +114,7 @@ def test_excluded_shipping_methods_for_order(
         mock.ANY,
         WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + order_with_lines.token
 
@@ -143,6 +140,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
     order_with_lines,
     available_shipping_methods_factory,
     shipping_app_factory,
+    settings,
 ):
     # given
     shipping_app = shipping_app_factory()
@@ -198,7 +196,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         mock.ANY,
         WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
     mocked_webhook.assert_any_call(
         second_shipping_app.name,
@@ -206,7 +204,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         mock.ANY,
         WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + order_with_lines.token
 
@@ -432,6 +430,7 @@ def test_excluded_shipping_methods_for_checkout(
     checkout_with_items,
     available_shipping_methods_factory,
     shipping_app_factory,
+    settings,
 ):
     # given
     shipping_app = shipping_app_factory()
@@ -472,7 +471,7 @@ def test_excluded_shipping_methods_for_checkout(
         mock.ANY,
         WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
         payload,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
 
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_with_items.token)
@@ -500,6 +499,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
     checkout_with_items,
     available_shipping_methods_factory,
     shipping_app_factory,
+    settings,
 ):
     # given
     shipping_app = shipping_app_factory()
@@ -554,7 +554,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         mock.ANY,
         WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
         payload,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
     mocked_webhook.assert_any_call(
         second_shipping_app.name,
@@ -562,7 +562,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         mock.ANY,
         WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
         payload,
-        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        timeout=settings.WEBHOOK_EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
 
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_with_items.token)
