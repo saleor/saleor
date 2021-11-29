@@ -30,6 +30,10 @@ from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
 from ....order.models import Order, OrderEvent, OrderLine
 from ....order.notifications import get_default_order_payload
+from ....order.search import (
+    prepare_order_search_document_value,
+    update_order_search_document,
+)
 from ....payment import ChargeStatus, PaymentError
 from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
@@ -7234,6 +7238,10 @@ def test_orders_query_with_filter_search(
         undiscounted_total_price=unit_price * 3,
         tax_rate=Decimal("0.23"),
     )
+    for order in orders:
+        order.search_document = prepare_order_search_document_value(order)
+    Order.objects.bulk_update(orders, ["search_document"])
+
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
@@ -7248,7 +7256,6 @@ def test_orders_query_with_filter_search_by_global_payment_id(
     customer_user,
     channel_USD,
 ):
-
     orders = Order.objects.bulk_create(
         [
             Order(
@@ -7275,6 +7282,9 @@ def test_orders_query_with_filter_search_by_global_payment_id(
     order_with_payment = orders[0]
     payment = Payment.objects.create(order=order_with_payment)
     global_id = graphene.Node.to_global_id("Payment", payment.pk)
+    for order in orders:
+        order.search_document = prepare_order_search_document_value(order)
+    Order.objects.bulk_update(orders, ["search_document"])
 
     variables = {"filter": {"search": global_id}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -7332,6 +7342,8 @@ def test_order_query_with_filter_search_by_product_sku_order_line(
         }
       }
     """
+    order = order_line.order
+    update_order_search_document(order)
 
     variables = {"filter": {"search": order_line.product_sku}}
     response = staff_api_client.post_graphql(
@@ -7462,6 +7474,8 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
             ),
         ]
     )
+    update_order_search_document(order)
+
     variables = {"filter": {"search": lines[0].product_sku}}
     response = staff_api_client.post_graphql(
         orders_query_with_filter, variables, permissions=(permission_manage_orders,)
@@ -7479,6 +7493,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
         ({"search": "user_email"}, 2),
         ({"search": "test@mirumee.com"}, 1),
         ({"search": "Leslie"}, 1),
+        ({"search": "leslie wade"}, 1),
         ({"search": "Wade"}, 1),
         ({"search": ""}, 3),
     ],
@@ -7533,7 +7548,12 @@ def test_draft_orders_query_with_filter_search(
             ),
         ]
     )
+    for order in orders:
+        order.search_document = prepare_order_search_document_value(order)
+    Order.objects.bulk_update(orders, ["search_document"])
+
     variables = {"filter": draft_orders_filter}
+
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)

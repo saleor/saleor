@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import graphene
+from django.db.models import Q
 
 from ..account.search import (
     generate_address_search_document_value,
@@ -64,3 +65,14 @@ def generate_order_lines_search_document_value(order: "Order"):
     if lines_data:
         lines_data += "\n"
     return lines_data
+
+
+def search_orders(qs, value):
+    if value:
+        lookup = Q()
+        for val in value.split():
+            if val.startswith("#"):
+                val = val[1:]
+            lookup &= Q(search_document__ilike=val)
+        qs = qs.filter(lookup)
+    return qs

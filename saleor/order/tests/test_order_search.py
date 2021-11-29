@@ -7,9 +7,10 @@ from ..models import OrderLine
 from ..search import prepare_order_search_document_value, update_order_search_document
 
 
-def test_update_order_search_document(order_with_lines):
+def test_update_order_search_document(order):
     # given
-    order = order_with_lines
+    order.search_document = ""
+    order.save(update_fields=["search_document"])
     assert not order.search_document
 
     # when
