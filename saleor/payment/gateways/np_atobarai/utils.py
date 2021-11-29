@@ -8,6 +8,7 @@ from ....order import FulfillmentStatus
 from ....order.events import external_notification_event
 from ....order.models import Fulfillment, Order
 from ... import PaymentError
+from .api_types import ApiConfig
 from .const import SHIPPING_COMPANY_CODE_METADATA_KEY, SHIPPING_COMPANY_CODES
 
 
@@ -34,9 +35,11 @@ STATUSES_NOT_ALLOWED_TO_REFUND = [
 ]
 
 
-def get_shipping_company_code(fulfillment: Fulfillment) -> Optional[str]:
+def get_shipping_company_code(
+    config: ApiConfig, fulfillment: Fulfillment
+) -> Optional[str]:
     code = fulfillment.get_value_from_private_metadata(
-        SHIPPING_COMPANY_CODE_METADATA_KEY, default="50000"
+        SHIPPING_COMPANY_CODE_METADATA_KEY, default=config.shipping_company
     )
     return None if code not in SHIPPING_COMPANY_CODES else code
 
