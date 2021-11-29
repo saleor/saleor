@@ -92,6 +92,7 @@ opentracing==2.4.0
 petl==1.7.4; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 phonenumberslite==8.12.38
 pillow==8.4.0; python_version >= "3.6"
+posuto==2021.10.0
 prices==1.1.0
 promise==2.3
 prompt-toolkit==3.0.23; python_full_version >= "3.6.2" and python_version >= "3.6"
