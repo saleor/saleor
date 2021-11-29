@@ -106,12 +106,13 @@ class AlgoliaPlugin(BasePlugin):
     @require_active_plugin
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         """Index product to Algolia."""
-        index_product_data_to_algolia.delay(
-            config=self.config,
-            sender="product_updated",
-            locales=self.get_locales(),
-            product_global_id=self.get_product_global_id(product=product),
-        )
+        for locale in self.get_locales():
+            index_product_data_to_algolia.delay(
+                locale=locale,
+                config=self.config,
+                sender="product_updated",
+                product_global_id=self.get_product_global_id(product=product),
+            )
 
     @require_active_plugin
     def product_deleted(

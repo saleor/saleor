@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 import graphene
 from algoliasearch.search_client import SearchClient
@@ -165,58 +165,52 @@ def get_product_data(product_global_id: str, locale="EN"):
         return product_dict
 
 
-def get_algolia_indices(config: Dict, locales: List):
-    algolia_indices = {}
-
+def get_algolia_indices(config: Dict, locale: str):
     client = SearchClient.create(
         api_key=config["ALGOLIA_API_KEY"],
         app_id=config["ALGOLIA_APPLICATION_ID"],
     )
 
     algolia_index_prefix = config["ALGOLIA_INDEX_PREFIX"]
-    for locale in locales:
-        index = client.init_index(name=f"{algolia_index_prefix}_products_{locale}")
-        algolia_indices.update({locale: index})
-
-        index.set_settings(
-            settings={
-                "searchableAttributes": [
-                    "sku",
-                    "name",
-                    "channels",
-                    "description",
-                    "translation",
-                ]
-            }
-        )
-    return algolia_indices
+    index = client.init_index(name=f"{algolia_index_prefix}_products_{locale}")
+    index.set_settings(
+        settings={
+            "searchableAttributes": [
+                "sku",
+                "name",
+                "channels",
+                "description",
+                "translation",
+            ]
+        }
+    )
+    return index
 
 
 @app.task
 def index_product_data_to_algolia(
-    locales: List, product_global_id: str, sender: str, config: Dict
+    locale: str, product_global_id: str, sender: str, config: Dict
 ):
-    algolia_indices = get_algolia_indices(config=config, locales=locales)
-    for locale, index in algolia_indices.items():
-        product_data = get_product_data(
-            locale=locale,
-            product_global_id=product_global_id,
-        )
-        if product_data:
-            if sender == "product_created":
-                index.save_object(
-                    obj=product_data,
-                    request_options={"autoGenerateObjectIDIfNotExist": False},
-                )
-            elif sender == "product_updated":
-                index.partial_update_object(
-                    obj=product_data, request_options={"createIfNotExists": True}
-                )
-            elif sender == "product_deleted":
-                # Object ID is required to delete an object, it's the product slug.
-                index.delete_object(object_id=product_data.get("objectID"))
-            return {
-                "locale": locale,
-                "sender": sender,
-                "product": product_data.get("objectID"),
-            }
+    index = get_algolia_indices(config=config, locale=locale)
+    product_data = get_product_data(
+        locale=locale,
+        product_global_id=product_global_id,
+    )
+    if product_data:
+        if sender == "product_created":
+            index.save_object(
+                obj=product_data,
+                request_options={"autoGenerateObjectIDIfNotExist": False},
+            )
+        elif sender == "product_updated":
+            index.partial_update_object(
+                obj=product_data, request_options={"createIfNotExists": True}
+            )
+        elif sender == "product_deleted":
+            # Object ID is required to delete an object, it's the product slug.
+            index.delete_object(object_id=product_data.get("objectID"))
+        return {
+            "locale": locale,
+            "sender": sender,
+            "product": product_data.get("objectID"),
+        }
