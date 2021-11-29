@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+import graphene
+
 from ...discount import DiscountValueType
 from ..models import OrderLine
 from ..search import prepare_order_search_document_value, update_order_search_document
@@ -47,12 +49,6 @@ def test_prepare_order_search_document_value(
         f"{order.user_email}\n{user.email}\n{user.first_name}\n{user.last_name}".lower()
         in search_document_value
     )
-    assert psp_reference.lower() in search_document_value
-    assert discount.name in search_document_value
-    assert discount.translated_name in search_document_value
-    for line in order.lines.all():
-        assert line.product_sku.lower() in search_document_value
-
     for address in [order.billing_address, order.shipping_address]:
         address_data = (
             f"{address.first_name}\n{address.last_name}\n"
@@ -61,6 +57,11 @@ def test_prepare_order_search_document_value(
             f"{address.country.code}\n{address.phone}\n"
         )
         assert address_data.lower() in search_document_value
+    assert psp_reference.lower() in search_document_value
+    assert discount.name in search_document_value
+    assert discount.translated_name in search_document_value
+    for line in order.lines.all():
+        assert line.product_sku.lower() in search_document_value
 
 
 def test_prepare_order_search_document_value_empty_relation_fields(
@@ -80,6 +81,7 @@ def test_prepare_order_search_document_value_empty_relation_fields(
 
     payment_dummy.psp_reference = None
     payment_dummy.save(update_fields=["psp_reference"])
+    payment_id = graphene.Node.to_global_id("Payment", payment_dummy.pk)
 
     lines = []
     for line in order.lines.all():
@@ -94,7 +96,8 @@ def test_prepare_order_search_document_value_empty_relation_fields(
     user = order.user
     assert (
         f"{order.id}\n{order.user_email}\n{user.email}\n"
-        f"{user.first_name}\n{user.last_name}\n".lower() == search_document_value
+        f"{user.first_name}\n{user.last_name}\n"
+        f"{payment_id}\n".lower() == search_document_value
     )
 
 

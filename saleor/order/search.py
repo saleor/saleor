@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+import graphene
+
 from ..account.search import (
     generate_address_search_document_value,
     generate_user_fields_search_document_value,
@@ -22,27 +24,25 @@ def prepare_order_search_document_value(order: "Order"):
         user_data += generate_user_fields_search_document_value(user)
     search_document += user_data
 
+    for address_field in ["billing_address", "shipping_address"]:
+        if address := getattr(order, address_field):
+            search_document += generate_address_search_document_value(address)
+
     search_document += generate_order_payments_search_document_value(order)
 
     search_document += generate_order_discounts_search_document_value(order)
 
     search_document += generate_order_lines_search_document_value(order)
 
-    for address_field in ["billing_address", "shipping_address"]:
-        if address := getattr(order, address_field):
-            search_document += generate_address_search_document_value(address)
-
     return search_document.lower()
 
 
 def generate_order_payments_search_document_value(order: "Order"):
-    payments_data = "\n".join(
-        order.payments.exclude(psp_reference__isnull=True).values_list(  # type: ignore
-            "psp_reference", flat=True
-        )
-    )
-    if payments_data:
-        payments_data += "\n"
+    payments_data = ""
+    for id, psp_reference in order.payments.values_list("id", "psp_reference"):
+        payments_data += graphene.Node.to_global_id("Payment", id) + "\n"
+        if psp_reference:
+            payments_data += psp_reference + "\n"
     return payments_data
 
 
