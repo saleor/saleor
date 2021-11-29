@@ -17,6 +17,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.relay import RelayCountableConnection
 from ..core.types.money import Money
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -439,3 +440,8 @@ class GiftCard(CountableDjangoObjectType):
     @staticmethod
     def resolve_start_date(root: models.GiftCard, *_args, **_kwargs):
         return None
+
+
+class GiftCardCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = GiftCard

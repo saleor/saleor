@@ -20,6 +20,7 @@ from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoad
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
+from ..core.relay import RelayCountableConnection
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
 from ..core.utils import str_to_enum
@@ -164,6 +165,11 @@ class CheckoutLine(CountableDjangoObjectType):
             .load(root.variant_id)
             .then(is_shipping_required)
         )
+
+
+class CheckoutLineCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = CheckoutLine
 
 
 class DeliveryMethod(graphene.Union):
@@ -611,3 +617,8 @@ class Checkout(CountableDjangoObjectType):
             .load(root.token)
             .then(get_oldest_stock_reservation_expiration_date)
         )
+
+
+class CheckoutCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = Checkout

@@ -10,6 +10,7 @@ from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.relay import RelayCountableConnection
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
 from .enums import WarehouseClickAndCollectOptionEnum
@@ -96,6 +97,11 @@ class Warehouse(CountableDjangoObjectType):
         )
 
 
+class WarehouseCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = Warehouse
+
+
 class Stock(CountableDjangoObjectType):
     quantity = graphene.Int(
         required=True,
@@ -158,6 +164,11 @@ class Stock(CountableDjangoObjectType):
     @staticmethod
     def resolve_product_variant(root, *_args):
         return ChannelContext(node=root.product_variant, channel_slug=None)
+
+
+class StockCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = Stock
 
 
 class Allocation(CountableDjangoObjectType):

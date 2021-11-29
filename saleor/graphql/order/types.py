@@ -54,6 +54,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
+from ..core.relay import RelayCountableConnection
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import Image, OrderError
 from ..core.types.money import Money, TaxedMoney
@@ -351,6 +352,11 @@ class OrderEvent(CountableDjangoObjectType):
         if not discount_obj:
             return None
         return get_order_discount_event(discount_obj)
+
+
+class OrderEventCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = OrderEvent
 
 
 class FulfillmentLine(CountableDjangoObjectType):
@@ -1188,3 +1194,8 @@ class Order(CountableDjangoObjectType):
             except ValidationError as e:
                 return validation_error_to_error_type(e, OrderError)
         return []
+
+
+class OrderCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = Order

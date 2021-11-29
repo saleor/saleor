@@ -10,9 +10,13 @@ from ..core.enums import ReportingPeriod
 from ..core.fields import (
     ChannelContextFilterConnectionField,
     FilterInputConnectionField,
-    PrefetchingConnectionField,
 )
-from ..core.relay import connection_field
+from ..core.relay import (
+    RelayConnectionField,
+    RelayFilteredConnectionField,
+    create_connection_slice,
+    filter_connection_queryset,
+)
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
@@ -117,21 +121,18 @@ from .sorters import (
 )
 from .types import (
     Category,
+    CategoryCountableConnection,
     Collection,
     DigitalContent,
+    DigitalContentCountableConnection,
     Product,
     ProductType,
+    ProductTypeCountableConnection,
     ProductVariant,
 )
 
 
 class ProductQueries(graphene.ObjectType):
-    new_categories = connection_field(
-        Category
-    )
-    new_categories_alt = connection_field(
-        Category
-    )
     digital_content = graphene.Field(
         DigitalContent,
         description="Look up digital content by ID.",
@@ -139,11 +140,11 @@ class ProductQueries(graphene.ObjectType):
             graphene.ID, description="ID of the digital content.", required=True
         ),
     )
-    digital_contents = PrefetchingConnectionField(
-        DigitalContent, description="List of digital content."
+    digital_contents = RelayConnectionField(
+        DigitalContentCountableConnection, description="List of digital content."
     )
-    categories = FilterInputConnectionField(
-        Category,
+    categories = RelayFilteredConnectionField(
+        CategoryCountableConnection,
         filter=CategoryFilterInput(description="Filtering options for categories."),
         sort_by=CategorySortingInput(description="Sort categories."),
         level=graphene.Argument(
@@ -207,8 +208,8 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="Look up a product type by ID.",
     )
-    product_types = FilterInputConnectionField(
-        ProductType,
+    product_types = RelayFilteredConnectionField(
+        ProductTypeCountableConnection,
         filter=ProductTypeFilterInput(
             description="Filtering options for product types."
         ),
@@ -255,14 +256,9 @@ class ProductQueries(graphene.ObjectType):
     )
 
     def resolve_categories(self, info, level=None, **kwargs):
-        return resolve_categories(info, level=level, **kwargs)
-
-    def resolve_new_categories(self, info, level=None, **kwargs):
         qs = resolve_categories(info, level=level, **kwargs)
-        return {
-            "edges": qs,
-            "total_count": qs.count()
-        }
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @traced_resolver
     def resolve_category(self, info, id=None, slug=None, **kwargs):
@@ -311,8 +307,11 @@ class ProductQueries(graphene.ObjectType):
         return resolve_digital_content_by_id(id)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_digital_contents(self, info, **_kwargs):
-        return resolve_digital_contents(info)
+    def resolve_digital_contents(self, info, **kwargs):
+        qs = resolve_digital_contents(info)
+        return create_connection_slice(
+            qs, info, kwargs, DigitalContentCountableConnection
+        )
 
     @traced_resolver
     def resolve_product(self, info, id=None, slug=None, channel=None, **_kwargs):
@@ -351,7 +350,9 @@ class ProductQueries(graphene.ObjectType):
         return resolve_product_type_by_id(id)
 
     def resolve_product_types(self, info, **kwargs):
-        return resolve_product_types(info, **kwargs)
+        qs = resolve_product_types(info, **kwargs)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
 
     @traced_resolver
     def resolve_product_variant(
