@@ -67,3 +67,15 @@ def test_validate_plugin_configuration_invalid_shipping_company_code(
 
     # then
     assert "shipping_company" in excinfo.value.error_dict
+
+
+@mock.patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
+def test_validate_plugin_configuration_inactive(mocked_request, np_atobarai_plugin):
+    # given
+    plugin = np_atobarai_plugin(active=False)
+
+    # when
+    NPAtobaraiGatewayPlugin.validate_plugin_configuration(plugin)
+
+    # then
+    mocked_request.assert_not_called()

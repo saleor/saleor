@@ -4,9 +4,8 @@ from unittest.mock import DEFAULT, Mock, patch, sentinel
 import pytest
 from posuto import Posuto
 
-from saleor.payment.interface import AddressData
-from saleor.payment.utils import price_to_minor_unit
-
+from ....interface import AddressData
+from ....utils import price_to_minor_unit
 from .. import api_helpers, errors
 from ..api_helpers import get_goods, get_refunded_goods
 

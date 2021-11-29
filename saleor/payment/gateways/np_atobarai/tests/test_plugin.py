@@ -1,7 +1,11 @@
+import logging
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
+import pytest
 import requests
+
+from .... import PaymentError
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -67,6 +71,23 @@ def test_process_payment_refused(mocked_request, np_atobarai_plugin, np_payment_
     assert not gateway_response.is_success
 
 
+def test_process_payment_no_payment(np_atobarai_plugin, np_payment_data, caplog):
+    # given
+    plugin = np_atobarai_plugin()
+    payment_data = np_payment_data
+    payment_data.payment_id = -1
+
+    # when
+    with pytest.raises(PaymentError, match=r".*not exist.*"):
+        plugin.process_payment(payment_data, None)
+
+    # then
+    payment_id = np_payment_data.graphql_payment_id
+    assert caplog.record_tuples == [
+        (ANY, logging.ERROR, f"Payment with id {payment_id} does not exist")
+    ]
+
+
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
 def test_process_payment_error(mocked_request, np_atobarai_plugin, np_payment_data):
     # given
@@ -88,3 +109,23 @@ def test_process_payment_error(mocked_request, np_atobarai_plugin, np_payment_da
     assert gateway_response.error == os.linesep.join(
         f"TR#{code}" for code in error_codes
     )
+
+
+def test_capture_payment(np_atobarai_plugin):
+    # given
+    plugin = np_atobarai_plugin()
+
+    # then
+    with pytest.raises(NotImplementedError):
+        # when
+        plugin.capture_payment(Mock(), None)
+
+
+def test_void_payment(np_atobarai_plugin):
+    # given
+    plugin = np_atobarai_plugin()
+
+    # then
+    with pytest.raises(NotImplementedError):
+        # when
+        plugin.void_payment(Mock(), None)

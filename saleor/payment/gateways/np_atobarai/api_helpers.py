@@ -7,12 +7,11 @@ from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
-from saleor.order.models import Order
-
+from ....order.models import Order
 from ...interface import AddressData, PaymentData
 from ...utils import price_to_minor_unit
 from .api_types import NPResponse, error_np_response
-from .const import NP_ATOBARAI, NP_TEST_URL, NP_URL, REQUEST_TIMEOUT
+from .const import NP_ATOBARAI, REQUEST_TIMEOUT
 from .errors import (
     BILLING_ADDRESS_INVALID,
     NO_BILLING_ADDRESS,
@@ -34,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 def get_url(config: "ApiConfig", path: str = "") -> str:
     """Resolve test/production URLs based on the api config."""
-    return f"{NP_TEST_URL if config.test_mode else NP_URL}{path}"
+    return f"{config.url}{path}"
 
 
 def _request(
@@ -105,6 +104,7 @@ def format_address(config: "ApiConfig", ad: AddressData) -> Optional[str]:
         try:
             jap_ad = pp.get(ad.postal_code)
         except KeyError:
+            logger.warning(f"Invalid japanese postal code: {ad.postal_code}")
             return None
         else:
             return (
@@ -208,7 +208,7 @@ def register(
                 "settlement_type": NP_ATOBARAI,
                 "billed_amount": billed_amount,
                 "customer": {
-                    "customer_name": billing.first_name,
+                    "customer_name": format_name(billing),
                     "company_name": billing.company_name,
                     "zip_code": billing.postal_code,
                     "address": formatted_billing,

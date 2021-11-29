@@ -2,7 +2,13 @@ import pytest
 
 from .....order import FulfillmentStatus, OrderEvents
 from .... import PaymentError
-from .. import get_fulfillment_for_order, get_payment_name, notify_dashboard
+from .. import (
+    get_fulfillment_for_order,
+    get_payment_name,
+    get_shipping_company_code,
+    notify_dashboard,
+)
+from ..const import SHIPPING_COMPANY_CODE_METADATA_KEY, SHIPPING_COMPANY_CODES
 
 
 def test_notify_dashboard(order):
@@ -97,3 +103,59 @@ def test_get_fulfillment_for_order_multiple_fulfillments(order, fulfillment):
 
         # when
         get_fulfillment_for_order(order)
+
+
+@pytest.mark.parametrize(
+    "config_shipping_company_code",
+    SHIPPING_COMPANY_CODES,
+)
+def test_get_shipping_company_code_no_metadata(
+    config, fulfillment, config_shipping_company_code
+):
+    # given
+    config.shipping_company = config_shipping_company_code
+
+    # when
+    shipping_company_code = get_shipping_company_code(config, fulfillment)
+
+    # then
+    assert shipping_company_code == config_shipping_company_code
+
+
+@pytest.mark.parametrize(
+    ["config_shipping_company_code", "result_shipping_company_code"],
+    zip(SHIPPING_COMPANY_CODES + ["invalid_code"], SHIPPING_COMPANY_CODES + [None]),
+)
+def test_get_shipping_company_code_valid_metadata(
+    config, fulfillment, config_shipping_company_code, result_shipping_company_code
+):
+    # given
+    fulfillment.store_value_in_private_metadata(
+        {SHIPPING_COMPANY_CODE_METADATA_KEY: config_shipping_company_code}
+    )
+    fulfillment.save(update_fields=["private_metadata"])
+
+    # when
+    shipping_company_code = get_shipping_company_code(config, fulfillment)
+
+    # then
+    assert shipping_company_code == result_shipping_company_code
+
+
+@pytest.mark.parametrize(
+    "config_shipping_company_code",
+    SHIPPING_COMPANY_CODES,
+)
+def test_get_shipping_company_code_invalid_metadata(
+    config, fulfillment, config_shipping_company_code
+):
+    # given
+    config.shipping_company = config_shipping_company_code
+    fulfillment.store_value_in_private_metadata({"invalid_metadata_key": "50000"})
+    fulfillment.save(update_fields=["private_metadata"])
+
+    # when
+    shipping_company_code = get_shipping_company_code(config, fulfillment)
+
+    # then
+    assert shipping_company_code == config_shipping_company_code
