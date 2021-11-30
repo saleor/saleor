@@ -5,6 +5,8 @@ from typing import Dict, List, NamedTuple
 from .const import (
     FILL_MISSING_ADDRESS,
     MERCHANT_CODE,
+    NP_TEST_URL,
+    NP_URL,
     SHIPPING_COMPANY,
     SKU_AS_NAME,
     SP_CODE,
@@ -24,7 +26,7 @@ def error_np_response(error_message: str) -> NPResponse:
 
 @dataclass
 class ApiConfig:
-    test_mode: bool
+    url: str
     fill_missing_address: bool
     merchant_code: str
     terminal_id: str
@@ -56,8 +58,9 @@ def errors_payment_result(errors: List[str]) -> PaymentResult:
 
 
 def get_api_config(connection_params: dict) -> ApiConfig:
+    url = NP_TEST_URL if connection_params[USE_SANDBOX] else NP_URL
     return ApiConfig(
-        test_mode=connection_params[USE_SANDBOX],
+        url=url,
         fill_missing_address=connection_params[FILL_MISSING_ADDRESS],
         merchant_code=connection_params[MERCHANT_CODE],
         sp_code=connection_params[SP_CODE],

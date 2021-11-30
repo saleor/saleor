@@ -1,3 +1,4 @@
+from decimal import Decimal
 from itertools import chain, zip_longest
 from typing import List
 from unittest.mock import Mock, patch
@@ -13,6 +14,7 @@ from ...plugins.manager import get_plugins_manager
 from ..interface import PaymentLineData
 from ..utils import (
     SHIPPING_PAYMENT_LINE_ID,
+    VOUCHER_PAYMENT_LINE_ID,
     create_payment_lines_information,
     create_refund_data,
 )
@@ -338,20 +340,48 @@ def test_create_payment_lines_information_order(payment_dummy):
     ]
 
 
-def test_create_payment_lines_checkout(payment_dummy, checkout_with_items):
+def test_create_payment_lines_information_order_with_voucher(payment_dummy):
     # given
+    voucher_amount = Decimal("12.30")
+    order = payment_dummy.order
+    order.undiscounted_total_gross_amount += voucher_amount
     manager = get_plugins_manager()
-    payment_dummy.order = None
-    payment_dummy.checkout = checkout_with_items
 
     # when
     payment_lines = create_payment_lines_information(payment_dummy, manager)
 
     # then
-    lines = fetch_checkout_lines(checkout_with_items)
-    discounts = []
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
-    address = checkout_with_items.shipping_address
+
+    assert payment_lines == [
+        PaymentLineData(
+            gross=line.unit_price_gross_amount,
+            variant_id=line.variant_id,
+            product_name=f"{line.product_name}, {line.variant_name}",
+            product_sku=line.product_sku,
+            quantity=line.quantity,
+        )
+        for line in order.lines.all()
+    ] + [
+        PaymentLineData(
+            gross=order.shipping_price_gross_amount,
+            variant_id=SHIPPING_PAYMENT_LINE_ID,
+            product_name="Shipping",
+            product_sku="Shipping",
+            quantity=1,
+        ),
+        PaymentLineData(
+            gross=-voucher_amount,
+            variant_id=VOUCHER_PAYMENT_LINE_ID,
+            product_name="Voucher",
+            product_sku="Voucher",
+            quantity=1,
+        ),
+    ]
+
+
+def get_expected_checkout_payment_lines(
+    manager, checkout_info, lines, address, discounts
+):
     expected_payment_lines = []
 
     for line_info in lines:
@@ -401,4 +431,71 @@ def test_create_payment_lines_checkout(payment_dummy, checkout_with_items):
         )
     )
 
+    return expected_payment_lines
+
+
+def test_create_payment_lines_information_checkout(payment_dummy, checkout_with_items):
+    # given
+    manager = get_plugins_manager()
+    payment_dummy.order = None
+    payment_dummy.checkout = checkout_with_items
+
+    # when
+    payment_lines = create_payment_lines_information(payment_dummy, manager)
+
+    # then
+    lines = fetch_checkout_lines(checkout_with_items)
+    discounts = []
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
+    address = checkout_with_items.shipping_address
+    expected_payment_lines = get_expected_checkout_payment_lines(
+        manager, checkout_info, lines, address, discounts
+    )
+
     assert payment_lines == expected_payment_lines
+
+
+def test_create_payment_lines_information_checkout_with_voucher(
+    payment_dummy, checkout_with_items
+):
+    # given
+    manager = get_plugins_manager()
+    voucher_amount = Decimal("12.30")
+    payment_dummy.order = None
+    checkout_with_items.discount_amount = voucher_amount
+    payment_dummy.checkout = checkout_with_items
+
+    # when
+    payment_lines = create_payment_lines_information(payment_dummy, manager)
+
+    # then
+    lines = fetch_checkout_lines(checkout_with_items)
+    discounts = []
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
+    address = checkout_with_items.shipping_address
+    expected_payment_lines = get_expected_checkout_payment_lines(
+        manager, checkout_info, lines, address, discounts
+    )
+    expected_payment_lines.append(
+        PaymentLineData(
+            gross=-voucher_amount,
+            variant_id=VOUCHER_PAYMENT_LINE_ID,
+            product_name="Voucher",
+            product_sku="Voucher",
+            quantity=1,
+        )
+    )
+
+    assert payment_lines == expected_payment_lines
+
+
+def test_create_payment_lines_information_invalid_payment(payment_dummy):
+    # given
+    manager = get_plugins_manager()
+    payment_dummy.order = None
+
+    # when
+    payment_lines = create_payment_lines_information(payment_dummy, manager)
+
+    # then
+    assert not payment_lines
