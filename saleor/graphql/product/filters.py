@@ -41,7 +41,7 @@ from ..core.filters import (
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_fields_containing_value, filter_range_field
+from ..utils.filters import filter_range_field
 from ..warehouse import types as warehouse_types
 from . import types as product_types
 from .enums import (
@@ -617,14 +617,20 @@ class ProductFilter(MetadataFilterBase):
 
 
 class ProductVariantFilter(MetadataFilterBase):
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("name", "product__name", "sku")
-    )
+    search = django_filters.CharFilter(method="product_variant_filter_search")
     sku = ListObjectTypeFilter(input_class=graphene.String, method=filter_sku_list)
 
     class Meta:
         model = ProductVariant
         fields = ["search", "sku"]
+
+    def product_variant_filter_search(self, queryset, _name, value):
+        if not value:
+            return queryset
+        qs = Q(name__ilike=value) | Q(sku__ilike=value)
+        products = Product.objects.filter(name__ilike=value).values("pk")
+        qs |= Q(Exists(products.filter(variants=OuterRef("pk"))))
+        return queryset.filter(qs)
 
 
 class CollectionFilter(MetadataFilterBase):
