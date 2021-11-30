@@ -15,7 +15,7 @@ from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import ShippingError
-from ...core.validators import validate_price_precision
+from ...core.validators import validate_decimal_max_value, validate_price_precision
 from ..types import ShippingMethodType
 
 if TYPE_CHECKING:
@@ -143,6 +143,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                     validate_price_precision(
                         price_amount, channel_input["channel"].currency_code
                     )
+                    validate_decimal_max_value(price_amount)
                     channel_input["price_amount"] = price_amount
                 except ValidationError as error:
                     error.code = ShippingErrorCode.INVALID.value
@@ -169,6 +170,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                     validate_price_precision(
                         min_price, channel_input["channel"].currency_code
                     )
+                    validate_decimal_max_value(min_price)
                 except ValidationError as error:
                     error.code = ShippingErrorCode.INVALID.value
                     error.params = {
@@ -182,6 +184,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                     validate_price_precision(
                         max_price, channel_input["channel"].currency_code
                     )
+                    validate_decimal_max_value(max_price)
                 except ValidationError as error:
                     error.code = ShippingErrorCode.INVALID.value
                     error.params = {
