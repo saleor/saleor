@@ -45,7 +45,6 @@ class CheckoutInfo:
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
     valid_shipping_methods: List["ShippingMethodData"]
-    shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
 
     def get_country(self) -> str:
         address = self.shipping_address or self.billing_address
@@ -201,7 +200,6 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
-        shipping_method_channel_listings=shipping_method_channel_listing,
         valid_shipping_methods=[],
     )
     checkout_info.valid_shipping_methods = SimpleLazyObject(
@@ -292,12 +290,3 @@ def update_checkout_info_shipping_method(
     checkout_info: CheckoutInfo, shipping_method: Optional["ShippingMethod"]
 ):
     checkout_info.delivery_method_info = get_delivery_method_info(None)
-    checkout_info.shipping_method_channel_listings = (
-        (
-            ShippingMethodChannelListing.objects.filter(
-                shipping_method=shipping_method, channel=checkout_info.channel
-            ).first()
-        )
-        if shipping_method
-        else None
-    )

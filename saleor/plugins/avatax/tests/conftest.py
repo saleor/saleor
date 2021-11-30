@@ -97,7 +97,6 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
         delivery_method_info=get_delivery_method_info(
             convert_to_shipping_method_data(shipping_method, shipping_channel_listing)
         ),
-        shipping_method_channel_listings=shipping_channel_listing,
         valid_shipping_methods=[],
     )
     return checkout_info

@@ -245,7 +245,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             ),
                             delivery_method_info=delivery_method_info,
                             valid_shipping_methods=[],
-                            shipping_method_channel_listings=listing,
                         )
 
                         def fetch_valid_shipping_methods():

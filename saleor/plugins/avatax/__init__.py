@@ -213,18 +213,17 @@ def append_line_to_data(
 
 def append_shipping_to_data(
     data: List[Dict],
-    shipping_method_channel_listing: Optional["ShippingMethodChannelListing"],
+    shipping_price_amount: Optional[Decimal],
     shipping_tax_code: str,
 ):
     charge_taxes_on_shipping = (
         Site.objects.get_current().settings.charge_taxes_on_shipping
     )
-    if charge_taxes_on_shipping and shipping_method_channel_listing:
-        shipping_price = shipping_method_channel_listing.price
+    if charge_taxes_on_shipping and shipping_price_amount:
         append_line_to_data(
             data,
             quantity=1,
-            amount=shipping_price.amount,
+            amount=shipping_price_amount,
             tax_code=shipping_tax_code,
             item_code="Shipping",
         )
@@ -265,9 +264,13 @@ def get_checkout_lines_data(
             name=name,
         )
 
-    append_shipping_to_data(
-        data, checkout_info.shipping_method_channel_listings, config.shipping_tax_code
-    )
+    if checkout_info.delivery_method_info.delivery_method:
+        append_shipping_to_data(
+            data,
+            getattr(checkout_info.delivery_method_info.delivery_method, "price", None),
+            config.shipping_tax_code,
+        )
+
     return data
 
 
@@ -327,9 +330,12 @@ def get_order_lines_data(
     shipping_method_channel_listing = ShippingMethodChannelListing.objects.filter(
         shipping_method=order.shipping_method_id, channel=order.channel_id
     ).first()
-    append_shipping_to_data(
-        data, shipping_method_channel_listing, config.shipping_tax_code
-    )
+    if shipping_method_channel_listing:
+        append_shipping_to_data(
+            data,
+            shipping_method_channel_listing.price.amount,
+            config.shipping_tax_code,
+        )
     return data
 
 
