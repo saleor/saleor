@@ -65,11 +65,20 @@ class InvoiceRequest(ModelMutation):
             order=order,
             number=data.get("number"),
         )
+        import ipdb
+
+        ipdb.set_trace()
+        if not any(
+            hasattr(plugin, "invoice_request")
+            for plugin in info.context.plugins.all_plugins
+        ):
+            print("benc")
+
         invoice = info.context.plugins.invoice_request(
             order=order, invoice=shallow_invoice, number=data.get("number")
         )
 
-        if invoice.status == JobStatus.SUCCESS:
+        if invoice and invoice.status == JobStatus.SUCCESS:
             order_events.invoice_generated_event(
                 order=order,
                 user=info.context.user,
