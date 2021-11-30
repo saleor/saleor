@@ -271,11 +271,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             delivery_method_info=delivery_method_info,
                             valid_shipping_methods=[],
                             valid_pick_up_points=[],
-                            shipping_method_channel_listing=(
-                                shipping_method_channel_listing_map.get(
-                                    (checkout.shipping_method_id, channel.id)
-                                )
-                            ),
                         )
 
                         def fetch_valid_shipping_methods():

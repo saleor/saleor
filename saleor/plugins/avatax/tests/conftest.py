@@ -99,7 +99,6 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
             convert_to_shipping_method_data(shipping_method, shipping_channel_listing),
             shipping_address,
         ),
-        shipping_method_channel_listing=shipping_channel_listing,
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )

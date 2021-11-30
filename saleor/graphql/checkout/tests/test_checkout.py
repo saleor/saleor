@@ -109,7 +109,6 @@ def test_update_checkout_shipping_method_if_invalid(
 
     assert checkout.shipping_method is None
     assert checkout_info.delivery_method_info.delivery_method is None
-    assert checkout_info.shipping_method_channel_listing is None
 
     # Ensure the checkout's shipping method was saved
     checkout.refresh_from_db(fields=["shipping_method"])

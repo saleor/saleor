@@ -46,7 +46,6 @@ class CheckoutInfo:
     delivery_method_info: "DeliveryMethodBase"
     valid_shipping_methods: List["ShippingMethodData"]
     valid_pick_up_points: List["Warehouse"]
-    shipping_method_channel_listing: Optional[ShippingMethodChannelListing]
 
     @property
     def valid_delivery_methods(
@@ -99,9 +98,6 @@ class DeliveryMethodBase:
     def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
         return False
 
-    def update_channel_listings(self, checkout_info: "CheckoutInfo") -> None:
-        checkout_info.shipping_method_channel_listing = None
-
 
 @dataclass(frozen=True)
 class ShippingMethodInfo(DeliveryMethodBase):
@@ -126,15 +122,6 @@ class ShippingMethodInfo(DeliveryMethodBase):
         return bool(
             valid_delivery_methods and self.delivery_method in valid_delivery_methods
         )
-
-    def update_channel_listings(self, checkout_info: "CheckoutInfo") -> None:
-        if not self.delivery_method.is_external:
-            checkout_info.shipping_method_channel_listing = (
-                ShippingMethodChannelListing.objects.filter(
-                    shipping_method_id=int(self.delivery_method.id),
-                    channel=checkout_info.channel,
-                ).first()
-            )
 
 
 @dataclass(frozen=True)
@@ -283,7 +270,6 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
-        shipping_method_channel_listing=shipping_channel_listing,
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
@@ -422,4 +408,3 @@ def update_checkout_info_delivery_method(
     checkout_info.delivery_method_info = get_delivery_method_info(
         delivery_method, checkout_info.shipping_address
     )
-    checkout_info.delivery_method_info.update_channel_listings(checkout_info)
