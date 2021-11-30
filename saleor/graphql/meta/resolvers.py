@@ -1,3 +1,4 @@
+import dataclasses
 from operator import itemgetter
 
 from ...account import models as account_models
@@ -38,33 +39,38 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ..shipping import types as shipping_types
     from ..warehouse import types as warehouse_types
 
-    MODEL_TO_TYPE_MAP = {
-        app_models.App: app_types.App,
-        attribute_models.Attribute: attribute_types.Attribute,
-        product_models.Category: product_types.Category,
-        checkout_models.Checkout: checkout_types.Checkout,
-        product_models.Collection: product_types.Collection,
-        product_models.DigitalContent: product_types.DigitalContent,
-        order_models.Fulfillment: order_types.Fulfillment,
-        giftcard_models.GiftCard: giftcard_types.GiftCard,
-        order_models.Order: order_types.Order,
-        invoice_models.Invoice: invoice_types.Invoice,
-        page_models.Page: page_types.Page,
-        page_models.PageType: page_types.PageType,
-        payment_models.Payment: payment_types.Payment,
-        product_models.Product: product_types.Product,
-        product_models.ProductType: product_types.ProductType,
-        product_models.ProductVariant: product_types.ProductVariant,
-        menu_models.Menu: menu_types.Menu,
-        menu_models.MenuItem: menu_types.MenuItem,
-        shipping_models.ShippingMethod: shipping_types.ShippingMethodType,
-        shipping_models.ShippingZone: shipping_types.ShippingZone,
-        account_models.User: account_types.User,
-        warehouse_models.Warehouse: warehouse_types.Warehouse,
-        discount_models.Sale: discount_types.Sale,
-        discount_models.Voucher: discount_types.Voucher,
-    }
-    return MODEL_TO_TYPE_MAP.get(instance.__class__, None)
+    if isinstance(instance, ModelWithMetadata):
+        MODEL_TO_TYPE_MAP = {
+            app_models.App: app_types.App,
+            attribute_models.Attribute: attribute_types.Attribute,
+            product_models.Category: product_types.Category,
+            checkout_models.Checkout: checkout_types.Checkout,
+            product_models.Collection: product_types.Collection,
+            product_models.DigitalContent: product_types.DigitalContent,
+            order_models.Fulfillment: order_types.Fulfillment,
+            giftcard_models.GiftCard: giftcard_types.GiftCard,
+            order_models.Order: order_types.Order,
+            invoice_models.Invoice: invoice_types.Invoice,
+            page_models.Page: page_types.Page,
+            page_models.PageType: page_types.PageType,
+            payment_models.Payment: payment_types.Payment,
+            product_models.Product: product_types.Product,
+            product_models.ProductType: product_types.ProductType,
+            product_models.ProductVariant: product_types.ProductVariant,
+            menu_models.Menu: menu_types.Menu,
+            menu_models.MenuItem: menu_types.MenuItem,
+            shipping_models.ShippingMethod: shipping_types.ShippingMethodType,
+            shipping_models.ShippingZone: shipping_types.ShippingZone,
+            account_models.User: account_types.User,
+            warehouse_models.Warehouse: warehouse_types.Warehouse,
+            discount_models.Sale: discount_types.Sale,
+            discount_models.Voucher: discount_types.Voucher,
+        }
+        return MODEL_TO_TYPE_MAP.get(instance.__class__, None), instance.pk
+
+    elif dataclasses.is_dataclass(instance):
+        DATACLASS_TO_TYPE_MAP = {ShippingMethodData: shipping_types.ShippingMethod}
+        return DATACLASS_TO_TYPE_MAP.get(instance.__class__, None), instance.id
 
 
 def resolve_metadata(metadata: dict):
@@ -75,24 +81,18 @@ def resolve_metadata(metadata: dict):
 
 
 def resolve_private_metadata(root: ModelWithMetadata, info):
-    item_type = resolve_object_with_metadata_type(root)
+    item_type, item_id = resolve_object_with_metadata_type(root)
     if not item_type:
-        if type(root) == ShippingMethodData:
-            from ..shipping import types as shipping_types
-
-            item_type = shipping_types.ShippingMethodType
-        else:
-            raise NotImplementedError(
-                f"Model {type(root)} can't be mapped to type with metadata. "
-                "Make sure that model exists inside MODEL_TO_TYPE_MAP."
-            )
+        raise NotImplementedError(
+            f"Model {type(root)} can't be mapped to type with metadata. "
+            "Make sure that model exists inside MODEL_TO_TYPE_MAP."
+        )
 
     get_required_permission = PRIVATE_META_PERMISSION_MAP[item_type.__name__]
     if not get_required_permission:
         raise PermissionDenied()
 
-    pk = getattr(root, "pk", getattr(root, "id", None))
-    required_permission = get_required_permission(info, pk)
+    required_permission = get_required_permission(info, item_id)
 
     if not required_permission:
         raise PermissionDenied()
