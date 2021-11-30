@@ -13,6 +13,7 @@ from ..channel.types import (
     ChannelContext,
     ChannelContextType,
     ChannelContextTypeWithMetadata,
+    ChannelContextTypeWithMetadataForObjectType,
 )
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import ChannelContextFilterConnectionField
@@ -70,7 +71,7 @@ class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
         ]
 
 
-class ShippingMethodType(ChannelContextTypeWithMetadata):
+class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     """An internal representation of a shipping method used in private API.
 
     Used to manage and configure available shipping methods.
@@ -377,17 +378,17 @@ class ShippingMethod(graphene.ObjectType):
     def resolve_maximum_delivery_days(root: ShippingMethodData, _info):
         return root.maximum_delivery_days
 
-    def resolve_active(root: ChannelContext, _info):
+    def resolve_active(root: ShippingMethodData, _info):
         # Currently selected shipping method is not validated
         # with webhooks on every single API call
-        if not hasattr(root.node, "active"):
+        if not hasattr(root, "active"):
             return True
-        return root.node.active
+        return root.active
 
     @staticmethod
-    def resolve_message(root: ChannelContext, _info):
+    def resolve_message(root: ShippingMethodData, _info):
         # Currently selected shipping method is not validated
         # with webhooks on every single API call
-        if not hasattr(root.node, "message"):
+        if not hasattr(root, "message"):
             return True
-        return root.node.message
+        return root.message

@@ -171,7 +171,7 @@ class DeliveryMethod(graphene.Union):
         description = (
             "Represents a delivery method chosen for the checkout. `Warehouse` "
             'type is used when checkout is marked as "click and collect" and '
-            "`ShippingMethodType` otherwise."
+            "`ShippingMethod` otherwise."
         )
         types = (Warehouse, ShippingMethod)
 
