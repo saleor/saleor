@@ -14,6 +14,7 @@ query variant(
     $id: ID, $sku: String, $variantSelection: VariantAttributeScope, $channel: String
 ){
     productVariant(id:$id, sku:$sku, channel: $channel){
+        id
         sku
         attributes(variantSelection: $variantSelection) {
             attribute {
@@ -221,6 +222,100 @@ def test_get_variant_by_id_as_anonymous_user(api_client, variant, channel_USD):
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["sku"] == variant.sku
+
+
+def test_get_variant_without_sku_by_id_as_staff(
+    staff_api_client, permission_manage_products, variant
+):
+    # given
+    variant.sku = None
+    variant.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_QUERY,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariant"]
+    assert data["id"] == variant_id
+
+
+def test_get_variant_without_sku_by_id_as_app(
+    app_api_client, permission_manage_products, variant
+):
+    # given
+    variant.sku = None
+    variant.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        VARIANT_QUERY,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariant"]
+    assert data["id"] == variant_id
+
+
+def test_get_variant_without_sku_by_id_as_customer(
+    user_api_client, variant, channel_USD
+):
+    # given
+    variant.sku = None
+    variant.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = user_api_client.post_graphql(
+        VARIANT_QUERY,
+        variables,
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariant"]
+    assert data["id"] == variant_id
+
+
+def test_get_variant_without_sku_by_id_as_anonymous_user(
+    api_client, variant, channel_USD
+):
+    # given
+    variant.sku = None
+    variant.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = api_client.post_graphql(
+        VARIANT_QUERY,
+        variables,
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariant"]
+    assert data["id"] == variant_id
 
 
 def test_get_unpublished_variant_by_sku_as_staff(

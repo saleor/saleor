@@ -1,6 +1,5 @@
 import datetime
 from decimal import Decimal
-from typing import Dict, Union
 
 import graphene
 import prices
@@ -9,28 +8,29 @@ from ...core.anonymize import obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, AppPermission, GiftcardPermissions
 from ...core.tracing import traced_resolver
-from ...giftcard import models
+from ...giftcard import GiftCardEvents, models
 from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import requestor_has_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
+from ..channel import ChannelContext
+from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
-from ..core.types.common import TimePeriod
 from ..core.types.money import Money
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
+from ..order.dataloaders import OrderByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader
 from ..utils import get_user_or_app_from_context
 from .dataloaders import GiftCardEventsByGiftCardIdLoader
-from .enums import GiftCardEventsEnum, GiftCardExpiryTypeEnum
+from .enums import GiftCardEventsEnum
 
 
 class GiftCardEventBalance(graphene.ObjectType):
     initial_balance = graphene.Field(
         Money,
         description="Initial balance of the gift card.",
-        required=True,
     )
     current_balance = graphene.Field(
         Money,
@@ -44,23 +44,6 @@ class GiftCardEventBalance(graphene.ObjectType):
     old_current_balance = graphene.Field(
         Money,
         description="Previous current balance of the gift card.",
-    )
-
-
-class GiftCardEventExpiry(graphene.ObjectType):
-    expiry_type = GiftCardExpiryTypeEnum(description="The gift card expiry type.")
-    expiry_period = graphene.Field(
-        TimePeriod, description="The gift card expiry period.", required=False
-    )
-    expiry_date = graphene.types.datetime.Date(description="The gift card expiry date.")
-    old_expiry_type = GiftCardExpiryTypeEnum(
-        description="Previous gift card expiry type."
-    )
-    old_expiry_period = graphene.Field(
-        TimePeriod, description="Previous gift card expiry period.", required=False
-    )
-    old_expiry_date = graphene.types.datetime.Date(
-        description="Previous gift card expiry date."
     )
 
 
@@ -87,12 +70,13 @@ class GiftCardEvent(CountableDjangoObjectType):
     tag = graphene.String(description="The gift card tag.")
     old_tag = graphene.String(description="Old gift card tag.")
     balance = graphene.Field(GiftCardEventBalance, description="The gift card balance.")
-    expiry = graphene.Field(
-        GiftCardEventExpiry, description="The gift card expiry settings."
+    expiry_date = graphene.types.datetime.Date(description="The gift card expiry date.")
+    old_expiry_date = graphene.types.datetime.Date(
+        description="Previous gift card expiry date."
     )
 
     class Meta:
-        description = "History log of the gift card."
+        description = f"{ADDED_IN_31} History log of the gift card."
         model = models.GiftCardEvent
         interfaces = [graphene.relay.Node]
         only_fields = ["id"]
@@ -174,33 +158,17 @@ class GiftCardEvent(CountableDjangoObjectType):
         return GiftCardEventBalance(**balance_data)
 
     @staticmethod
-    @traced_resolver
-    def resolve_expiry(root: models.GiftCardEvent, _info):
-        expiry = root.parameters.get("expiry")
-        if expiry is None:
-            return None
+    def resolve_expiry_date(root: models.GiftCardEvent, _info):
+        expiry_date = root.parameters.get("expiry_date")
+        return (
+            datetime.datetime.strptime(expiry_date, "%Y-%m-%d") if expiry_date else None
+        )
 
-        expiry_data: Dict[str, Union[TimePeriod, datetime.datetime, None]] = {}
-        for period_field in ["expiry_period", "old_expiry_period"]:
-            expiry_data[period_field] = (
-                TimePeriod(
-                    amount=expiry.get(period_field),
-                    type=expiry.get(f"{period_field}_type"),
-                )
-                if expiry.get(period_field)
-                else None
-            )
-
-        for date_field in ["expiry_date", "old_expiry_date"]:
-            date = expiry.get(date_field)
-            expiry_data[date_field] = (
-                datetime.datetime.strptime(date, "%Y-%m-%d") if date else None
-            )
-
-        return GiftCardEventExpiry(
-            expiry_type=expiry.get("expiry_type"),
-            old_expiry_type=expiry.get("old_expiry_type"),
-            **expiry_data,
+    @staticmethod
+    def resolve_old_expiry_date(root: models.GiftCardEvent, _info):
+        expiry_date = root.parameters.get("old_expiry_date")
+        return (
+            datetime.datetime.strptime(expiry_date, "%Y-%m-%d") if expiry_date else None
         )
 
 
@@ -241,17 +209,6 @@ class GiftCard(CountableDjangoObjectType):
         App,
         description=f"{ADDED_IN_31} App which created the gift card.",
     )
-    expiry_type = GiftCardExpiryTypeEnum(
-        description=f"{ADDED_IN_31} The gift card expiry type.", required=True
-    )
-    expiry_period = graphene.Field(
-        TimePeriod,
-        description=f"{ADDED_IN_31} The gift card expiry period.",
-        required=False,
-    )
-    expiry_date = graphene.types.datetime.Date(
-        description=f"{ADDED_IN_31} The gift card expiry date."
-    )
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
         description=f"{ADDED_IN_31} Related gift card product.",
@@ -262,6 +219,12 @@ class GiftCard(CountableDjangoObjectType):
         required=True,
     )
     tag = graphene.String(description=f"{ADDED_IN_31} The gift card tag.")
+    bought_in_channel = graphene.String(
+        description=(
+            "{ADDED_IN_31} Slug of the channel where the gift card was bought."
+        ),
+        required=False,
+    )
 
     # DEPRECATED
     user = graphene.Field(
@@ -292,7 +255,6 @@ class GiftCard(CountableDjangoObjectType):
             "initial_balance",
             "current_balance",
             "expiry_date",
-            "expiry_type",
             "tag",
         ]
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
@@ -408,7 +370,10 @@ class GiftCard(CountableDjangoObjectType):
     def resolve_product(root: models.GiftCard, info):
         if root.product_id is None:
             return None
-        return ProductByIdLoader(info.context).load(root.product_id)
+        product = ProductByIdLoader(info.context).load(root.product_id)
+        return product.then(
+            lambda product: ChannelContext(node=product, channel_slug=None)
+        )
 
     @staticmethod
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
@@ -416,10 +381,39 @@ class GiftCard(CountableDjangoObjectType):
         return GiftCardEventsByGiftCardIdLoader(_info.context).load(root.id)
 
     @staticmethod
-    def resolve_expiry_period(root: models.GiftCard, info):
-        if root.expiry_period_type is None:
-            return None
-        return TimePeriod(amount=root.expiry_period, type=root.expiry_period_type)
+    @traced_resolver
+    def resolve_bought_in_channel(root: models.GiftCard, info):
+        def with_bought_event(events):
+            bought_event = None
+            for event in events:
+                if event.type == GiftCardEvents.BOUGHT:
+                    bought_event = event
+                    break
+
+            if bought_event is None:
+                return None
+
+            def with_order(order):
+                if not order or not order.channel_id:
+                    return None
+
+                def get_channel_slug(channel):
+                    return channel.slug if channel else None
+
+                return (
+                    ChannelByIdLoader(info.context)
+                    .load(order.channel_id)
+                    .then(get_channel_slug)
+                )
+
+            order_id = bought_event.parameters["order_id"]
+            return OrderByIdLoader(info.context).load(order_id).then(with_order)
+
+        return (
+            GiftCardEventsByGiftCardIdLoader(info.context)
+            .load(root.id)
+            .then(with_bought_event)
+        )
 
     # DEPRECATED
     @staticmethod

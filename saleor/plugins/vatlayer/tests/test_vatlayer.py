@@ -1668,3 +1668,57 @@ def test_get_order_shipping_tax_rate_skip_plugin(
 
     tax_rate = manager.get_order_shipping_tax_rate(order, shipping_price)
     assert tax_rate == Decimal("0.25")
+
+
+@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
+def test_calculate_checkout_shipping(
+    checkout_with_item,
+    shipping_zone,
+    discount_info,
+    address,
+    site_settings,
+    vatlayer,
+):
+    manager = get_plugins_manager()
+
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, lines, [discount_info], manager
+    )
+    shipping_price = manager.calculate_checkout_shipping(
+        checkout_info, lines, address, [discount_info]
+    )
+    shipping_price = quantize_price(shipping_price, shipping_price.currency)
+    assert shipping_price == TaxedMoney(
+        net=Money("8.13", "USD"), gross=Money("10.00", "USD")
+    )
+
+
+@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
+def test_calculate_checkout_shipping_no_shipping_price(
+    checkout_with_item,
+    discount_info,
+    address,
+    warehouse_for_cc,
+    vatlayer,
+):
+    manager = get_plugins_manager()
+
+    checkout_with_item.shipping_address = address
+    checkout_with_item.collection_point = warehouse_for_cc
+    checkout_with_item.save(update_fields=["shipping_address", "collection_point"])
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, lines, [discount_info], manager
+    )
+    shipping_price = manager.calculate_checkout_shipping(
+        checkout_info, lines, address, [discount_info]
+    )
+    shipping_price = quantize_price(shipping_price, shipping_price.currency)
+    assert shipping_price == TaxedMoney(
+        net=Money("0.00", "USD"), gross=Money("0.00", "USD")
+    )

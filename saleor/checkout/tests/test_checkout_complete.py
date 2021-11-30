@@ -9,6 +9,8 @@ from ...account.models import CustomerEvent
 from ...core.exceptions import InsufficientStock
 from ...core.notify_events import NotifyEventType
 from ...core.taxes import zero_money, zero_taxed_money
+from ...giftcard import GiftCardEvents
+from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order import OrderEvents
 from ...order.models import OrderEvent
 from ...order.notifications import get_default_order_payload
@@ -53,6 +55,7 @@ def test_create_order_captured_payment_creates_expected_events(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -201,6 +204,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -344,6 +348,7 @@ def test_create_order_preauth_payment_creates_expected_events(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -455,6 +460,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -572,6 +578,7 @@ def test_create_order_doesnt_duplicate_order(
 
     order_1 = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=order_data,
         user=customer_user,
         app=None,
@@ -581,6 +588,7 @@ def test_create_order_doesnt_duplicate_order(
 
     order_2 = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=order_data,
         user=customer_user,
         app=None,
@@ -626,6 +634,7 @@ def test_create_order_with_gift_card(
 
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -638,8 +647,12 @@ def test_create_order_with_gift_card(
     )
 
     assert order.gift_cards.count() == 1
-    assert order.gift_cards.first().current_balance.amount == 0
+    gift_card = order.gift_cards.first()
+    assert gift_card.current_balance.amount == 0
     assert order.total.gross == (total_gross_without_gift_cards - gift_cards_balance)
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
+    )
 
 
 def test_create_order_with_gift_card_partial_use(
@@ -671,6 +684,7 @@ def test_create_order_with_gift_card_partial_use(
 
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -691,6 +705,9 @@ def test_create_order_with_gift_card_partial_use(
     assert order.gift_cards.count() > 0
     assert order.total == zero_taxed_money(order.currency)
     assert gift_card_balance_before_order == expected_old_balance
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card_used, type=GiftCardEvents.USED_IN_ORDER
+    )
 
 
 def test_create_order_with_many_gift_cards(
@@ -730,6 +747,7 @@ def test_create_order_with_many_gift_cards(
 
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -750,6 +768,204 @@ def test_create_order_with_many_gift_cards(
     assert price_without_gift_card.gross.amount == (
         gift_cards_balance_before_order + order.total.gross.amount
     )
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card_created_by_staff, type=GiftCardEvents.USED_IN_ORDER
+    )
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
+    )
+
+
+@mock.patch("saleor.giftcard.utils.send_gift_card_notification")
+@pytest.mark.parametrize("is_anonymous_user", (True, False))
+def test_create_order_gift_card_bought(
+    send_notification_mock,
+    checkout_with_gift_card_items,
+    customer_user,
+    shipping_method,
+    is_anonymous_user,
+    non_shippable_gift_card_product,
+):
+    checkout_user = None if is_anonymous_user else customer_user
+    checkout = checkout_with_gift_card_items
+    checkout.user = checkout_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    shipping_price = calculations.checkout_shipping_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    total_gross = subtotal.gross + shipping_price.gross - checkout.discount
+
+    order = _create_order(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        order_data=_prepare_order_data(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            discounts=None,
+        ),
+        user=customer_user if not is_anonymous_user else AnonymousUser(),
+        app=None,
+        manager=manager,
+    )
+
+    assert order.total.gross == total_gross
+    flush_post_commit_hooks()
+    gift_card = GiftCard.objects.get()
+    assert (
+        gift_card.initial_balance
+        == order.lines.get(
+            variant=non_shippable_gift_card_product.variants.first()
+        ).unit_price_gross
+    )
+    assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
+    send_notification_mock.assert_called_once_with(
+        checkout_user,
+        None,
+        checkout_user,
+        order.user_email,
+        gift_card,
+        manager,
+        order.channel.slug,
+        resending=False,
+    )
+
+
+@mock.patch("saleor.giftcard.utils.send_gift_card_notification")
+@pytest.mark.parametrize("is_anonymous_user", (True, False))
+def test_create_order_gift_card_bought_only_shippable_gift_card(
+    send_notification_mock,
+    checkout,
+    shippable_gift_card_product,
+    customer_user,
+    shipping_method,
+    is_anonymous_user,
+):
+    checkout_user = None if is_anonymous_user else customer_user
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    shippable_variant = shippable_gift_card_product.variants.get()
+    add_variant_to_checkout(checkout_info, shippable_variant, 2)
+
+    checkout.user = checkout_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    shipping_price = calculations.checkout_shipping_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    total_gross = subtotal.gross + shipping_price.gross - checkout.discount
+
+    order = _create_order(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        order_data=_prepare_order_data(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            discounts=None,
+        ),
+        user=customer_user if not is_anonymous_user else AnonymousUser(),
+        app=None,
+        manager=manager,
+    )
+
+    assert order.total.gross == total_gross
+    assert not GiftCard.objects.all()
+    send_notification_mock.assert_not_called()
+
+
+@pytest.mark.parametrize("is_anonymous_user", (True, False))
+def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
+    site_settings,
+    checkout_with_gift_card_items,
+    customer_user,
+    shipping_method,
+    is_anonymous_user,
+    non_shippable_gift_card_product,
+):
+    site_settings.automatically_fulfill_non_shippable_gift_card = False
+    site_settings.save(update_fields=["automatically_fulfill_non_shippable_gift_card"])
+
+    checkout_user = None if is_anonymous_user else customer_user
+    checkout = checkout_with_gift_card_items
+    checkout.user = checkout_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    shipping_price = calculations.checkout_shipping_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    total_gross = subtotal.gross + shipping_price.gross - checkout.discount
+
+    order = _create_order(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        order_data=_prepare_order_data(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            discounts=None,
+        ),
+        user=customer_user if not is_anonymous_user else AnonymousUser(),
+        app=None,
+        manager=manager,
+    )
+
+    assert order.total.gross == total_gross
+    assert not GiftCard.objects.all()
 
 
 def test_note_in_created_order(checkout_with_item, address, customer_user):
@@ -763,6 +979,7 @@ def test_note_in_created_order(checkout_with_item, address, customer_user):
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     order = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -797,6 +1014,7 @@ def test_create_order_with_variant_tracking_false(
 
     order_1 = _create_order(
         checkout_info=checkout_info,
+        checkout_lines=lines,
         order_data=order_data,
         user=customer_user,
         app=None,
@@ -806,7 +1024,7 @@ def test_create_order_with_variant_tracking_false(
 
 
 @override_settings(LANGUAGE_CODE="fr")
-def test_create_order_use_tanslations(
+def test_create_order_use_translations(
     checkout_with_item, customer_user, shipping_method
 ):
     translated_product_name = "French name"

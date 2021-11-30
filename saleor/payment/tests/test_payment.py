@@ -2,11 +2,19 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 
 from ...checkout.calculations import checkout_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import PluginsManager, get_plugins_manager
-from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
+from .. import (
+    ChargeStatus,
+    GatewayError,
+    PaymentError,
+    StorePaymentMethod,
+    TransactionKind,
+    gateway,
+)
 from ..error_codes import PaymentErrorCode
 from ..interface import GatewayResponse, PaymentMethodInfo
 from ..models import Payment
@@ -18,6 +26,7 @@ from ..utils import (
     create_payment_information,
     create_transaction,
     is_currency_supported,
+    payment_owned_by_user,
     update_payment,
     validate_gateway_response,
 )
@@ -111,6 +120,7 @@ def test_create_payment(checkout_with_item, address):
     }
     payment = create_payment(**data)
     assert payment.gateway == "Dummy"
+    assert payment.store_payment_method == StorePaymentMethod.NONE
 
     same_payment = create_payment(**data)
     assert payment == same_payment
@@ -227,6 +237,74 @@ def test_create_payment_information_for_draft_order(draft_order):
     assert billing.street_address_1 == draft_order.billing_address.street_address_1
     assert billing.city == draft_order.billing_address.city
     assert shipping == billing
+
+
+@pytest.mark.parametrize("store", ["NONE", "ON_SESSION", "OFF_SESSION"])
+def test_create_payment_information_store(checkout_with_item, address, store):
+    # given
+    checkout_with_item.billing_address = address
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    total = checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    data = {
+        "gateway": "Dummy",
+        "payment_token": "token",
+        "total": total.gross.amount,
+        "currency": checkout_with_item.currency,
+        "email": "test@example.com",
+        "customer_ip_address": "127.0.0.1",
+        "checkout": checkout_with_item,
+        "store_payment_method": store,
+    }
+
+    # when
+    payment = create_payment(**data)
+    payment_data = create_payment_information(payment, "token", payment.total)
+
+    # then
+    assert payment_data.store_payment_method == store
+
+
+@pytest.mark.parametrize(
+    "metadata", [{f"key{i}": f"value{i}" for i in range(5)}, {}, None]
+)
+def test_create_payment_information_metadata(checkout_with_item, address, metadata):
+    # given
+    checkout_with_item.billing_address = address
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    total = checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    data = {
+        "gateway": "Dummy",
+        "payment_token": "token",
+        "total": total.gross.amount,
+        "currency": checkout_with_item.currency,
+        "email": "test@example.com",
+        "customer_ip_address": "127.0.0.1",
+        "checkout": checkout_with_item,
+        "metadata": metadata,
+    }
+
+    # when
+    payment = create_payment(**data)
+    payment_data = create_payment_information(payment, "token", payment.total)
+
+    # then
+    assert payment_data.payment_metadata == (metadata or {})
 
 
 def test_create_transaction(transaction_data):
@@ -550,3 +628,68 @@ def test_update_payment(gateway_response, payment_txn_captured):
     assert payment.cc_exp_year == gateway_response.payment_method_info.exp_year
     assert payment.cc_exp_month == gateway_response.payment_method_info.exp_month
     assert payment.payment_method_type == gateway_response.payment_method_info.type
+
+
+def test_payment_owned_by_user_from_order(payment, customer_user2):
+    # given
+    assert payment.checkout is None
+    payment.order.user = customer_user2
+    payment.order.save()
+
+    # when
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
+
+    # then
+    assert is_owned
+
+
+def test_payment_owned_by_user_from_checkout(payment, checkout, customer_user2):
+    # given
+    checkout.user = customer_user2
+    checkout.save()
+    payment.checkout = checkout
+    payment.order = None
+    payment.save()
+
+    # when
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
+
+    # then
+    assert is_owned
+
+
+def test_payment_is_not_owned_by_user_for_order(payment, customer_user2):
+    # given
+    assert payment.checkout is None
+    assert payment.order.user != customer_user2
+
+    # when
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
+
+    # then
+    assert not is_owned
+
+
+def test_payment_is_not_owned_by_user_for_checkout(payment, checkout, customer_user2):
+    # given
+    assert checkout.user != customer_user2
+    payment.checkout = checkout
+    payment.order = None
+    payment.save()
+
+    # when
+    is_owned = payment_owned_by_user(payment.pk, customer_user2)
+
+    # then
+    assert not is_owned
+
+
+def test_payment_owned_by_user_anonymous_user(payment):
+    # given
+    user = AnonymousUser()
+
+    # when
+    is_owned = payment_owned_by_user(payment.pk, user)
+
+    # then
+    assert not is_owned

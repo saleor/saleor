@@ -27,7 +27,7 @@ ACTION_REQUIRED_STATUSES = [
     "requires_action",
 ]
 
-FAILED_STATUSES = ["requires_payment_method" "canceled"]
+FAILED_STATUSES = ["requires_payment_method", "canceled"]
 
 SUCCESS_STATUS = "succeeded"
 

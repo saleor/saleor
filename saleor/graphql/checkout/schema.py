@@ -1,11 +1,12 @@
 import graphene
 
 from ...core.permissions import CheckoutPermissions
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
-from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
+from .filters import CheckoutFilterInput
 from .mutations import (
     CheckoutAddPromoCode,
     CheckoutBillingAddressUpdate,
@@ -18,12 +19,14 @@ from .mutations import (
     CheckoutLanguageCodeUpdate,
     CheckoutLineDelete,
     CheckoutLinesAdd,
+    CheckoutLinesDelete,
     CheckoutLinesUpdate,
     CheckoutRemovePromoCode,
     CheckoutShippingAddressUpdate,
     CheckoutShippingMethodUpdate,
 )
 from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
+from .sorters import CheckoutSortingInput
 from .types import Checkout, CheckoutLine
 
 
@@ -34,12 +37,16 @@ class CheckoutQueries(graphene.ObjectType):
         token=graphene.Argument(UUID, description="The checkout's token."),
     )
     # FIXME we could optimize the below field
-    checkouts = BaseDjangoConnectionField(
+    checkouts = FilterInputConnectionField(
         Checkout,
-        description="List of checkouts.",
+        sort_by=CheckoutSortingInput(description=f"{ADDED_IN_31} Sort checkouts."),
+        filter=CheckoutFilterInput(
+            description=f"{ADDED_IN_31} Filtering options for checkouts."
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
+        description="List of checkouts.",
     )
     checkout_lines = PrefetchingConnectionField(
         CheckoutLine, description="List of checkout lines."
@@ -65,7 +72,13 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_customer_attach = CheckoutCustomerAttach.Field()
     checkout_customer_detach = CheckoutCustomerDetach.Field()
     checkout_email_update = CheckoutEmailUpdate.Field()
-    checkout_line_delete = CheckoutLineDelete.Field()
+    checkout_line_delete = CheckoutLineDelete.Field(
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 4.0. "
+            "Use `checkoutLinesDelete` instead."
+        )
+    )
+    checkout_lines_delete = CheckoutLinesDelete.Field()
     checkout_lines_add = CheckoutLinesAdd.Field()
     checkout_lines_update = CheckoutLinesUpdate.Field()
     checkout_remove_promo_code = CheckoutRemovePromoCode.Field()

@@ -20,8 +20,10 @@
             <td class="cell-product">
                 <span class="normal-text-table">
                     {{ product|truncatechars:46 }}
-                    <div class="padded-font-small"></div>
-                    <span class="header-category-small">SKU: {{ product.product_sku }}</span>
+                    {% if product.product_sku %}
+                      <div class="padded-font-small"></div>
+                      <span class="header-category-small">SKU: {{ product.product_sku }}</span>
+                    {% endif %}
                 </span>
             </td>
             <td class="cell-price">

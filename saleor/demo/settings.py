@@ -17,6 +17,7 @@ import logging
 import re
 
 from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.logging import ignore_logger
 
 from ..settings import *  # noqa: F403, lgtm [py/polluting-import]
 
@@ -85,3 +86,4 @@ if DEMO_SENTRY_DSN:
         integrations=[CeleryIntegration(), DjangoIntegration()],
         before_send=before_send,
     )
+    ignore_logger("graphql.execution.utils")

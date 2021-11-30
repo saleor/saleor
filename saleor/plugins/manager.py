@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
+    from ..discount.models import Sale
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
@@ -48,6 +49,7 @@ if TYPE_CHECKING:
         TokenConfig,
     )
     from ..product.models import Product, ProductType, ProductVariant
+    from ..shipping.interface import ShippingMethodData
     from ..translation.models import Translation
     from ..warehouse.models import Stock
     from .base_plugin import BasePlugin
@@ -119,9 +121,9 @@ class PluginsManager(PaymentInterface):
         channel_slug: Optional[str] = None,
         **kwargs
     ):
-        """Try to run a method with the given name on each declared plugin."""
+        """Try to run a method with the given name on each declared active plugin."""
         value = default_value
-        plugins = self.get_plugins(channel_slug=channel_slug)
+        plugins = self.get_plugins(channel_slug=channel_slug, active_only=True)
         for plugin in plugins:
             value = self.__run_method_on_single_plugin(
                 plugin, method_name, value, *args, **kwargs
@@ -149,6 +151,11 @@ class PluginsManager(PaymentInterface):
         if returned_value == NotImplemented:
             return previous_value
         return returned_value
+
+    def check_payment_balance(self, details: dict, channel_slug: str) -> dict:
+        return self.__run_method_on_plugins(
+            "check_payment_balance", None, details, channel_slug=channel_slug
+        )
 
     def change_user_address(
         self, address: "Address", address_type: Optional[str], user: Optional["User"]
@@ -558,6 +565,42 @@ class PluginsManager(PaymentInterface):
             "order_confirmed", default_value, order, channel_slug=order.channel.slug
         )
 
+    def draft_order_created(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_created", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def draft_order_updated(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_updated", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def draft_order_deleted(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "draft_order_deleted", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def sale_created(self, sale: "Sale", current_catalogue):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "sale_created", default_value, sale, current_catalogue
+        )
+
+    def sale_deleted(self, sale: "Sale", previous_catalogue):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "sale_deleted", default_value, sale, previous_catalogue
+        )
+
+    def sale_updated(self, sale: "Sale", previous_catalogue, current_catalogue):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "sale_updated", default_value, sale, previous_catalogue, current_catalogue
+        )
+
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]
     ):
@@ -810,6 +853,44 @@ class PluginsManager(PaymentInterface):
                 )
             )
         return gateways
+
+    def list_shipping_methods_for_checkout(
+        self,
+        checkout: "Checkout",
+        channel_slug: Optional[str] = None,
+        active_only: bool = True,
+    ) -> List["ShippingMethodData"]:
+        channel_slug = checkout.channel.slug if checkout else channel_slug
+        plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
+        shipping_plugins = [
+            plugin
+            for plugin in plugins
+            if hasattr(plugin, "get_shipping_methods_for_checkout")
+        ]
+
+        shipping_methods = []
+        for plugin in shipping_plugins:
+            shipping_methods.extend(
+                # https://github.com/python/mypy/issues/9975
+                getattr(plugin, "get_shipping_methods_for_checkout")(checkout, None)
+            )
+        return shipping_methods
+
+    def get_shipping_method(
+        self,
+        shipping_method_id: str,
+        checkout: Optional["Checkout"] = None,
+        channel_slug: Optional[str] = None,
+    ):
+        if checkout:
+            methods = {
+                method.id: method
+                for method in self.list_shipping_methods_for_checkout(
+                    checkout=checkout, channel_slug=channel_slug
+                )
+            }
+            return methods.get(shipping_method_id)
+        return None
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
         auth_basic_method = "external_obtain_access_tokens"

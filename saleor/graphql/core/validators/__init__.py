@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django_prices.utils.formatting import get_currency_fraction
 from graphql.error import GraphQLError
 
-from ...product.models import ProductVariantChannelListing
+from ....product.models import ProductVariantChannelListing
 
 if TYPE_CHECKING:
     from decimal import Decimal
@@ -62,7 +62,9 @@ def validate_variants_available_in_channel(
     """Validate available variants in specific channel."""
 
     available_variants = ProductVariantChannelListing.objects.filter(
-        variant__id__in=variants_id, channel_id=channel_id, price_amount__isnull=False
+        variant__id__in=variants_id,
+        channel_id=channel_id,
+        price_amount__isnull=False,
     ).values_list("variant_id", flat=True)
     not_available_variants = variants_id - set(available_variants)
     if not_available_variants:

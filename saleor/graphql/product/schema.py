@@ -2,8 +2,8 @@ import graphene
 
 from saleor.core.tracing import traced_resolver
 
-from ...account.utils import requestor_is_staff_member_or_app
-from ...core.permissions import ProductPermissions
+from ...core.permissions import ProductPermissions, has_one_of_permissions
+from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import ReportingPeriod
@@ -43,6 +43,7 @@ from .filters import (
 )
 from .mutations.attributes import (
     ProductAttributeAssign,
+    ProductAttributeAssignmentUpdate,
     ProductAttributeUnassign,
     ProductReorderAttributeValues,
     ProductTypeReorderAttributes,
@@ -81,6 +82,7 @@ from .mutations.products import (
     ProductUpdate,
     ProductVariantCreate,
     ProductVariantDelete,
+    ProductVariantPreorderDeactivate,
     ProductVariantReorder,
     ProductVariantSetDefault,
     ProductVariantUpdate,
@@ -262,8 +264,10 @@ class ProductQueries(graphene.ObjectType):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
 
-        is_staff = requestor_is_staff_member_or_app(requestor)
-        if channel is None and not is_staff:
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
+        if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
             _, id = from_global_id_or_error(id, Collection)
@@ -280,8 +284,10 @@ class ProductQueries(graphene.ObjectType):
 
     def resolve_collections(self, info, channel=None, *_args, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        is_staff = requestor_is_staff_member_or_app(requestor)
-        if channel is None and not is_staff:
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
+        if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_collections(info, channel)
 
@@ -298,9 +304,12 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
-        is_staff = requestor_is_staff_member_or_app(requestor)
 
-        if channel is None and not is_staff:
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
+
+        if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
             _type, id = from_global_id_or_error(id, Product)
@@ -316,7 +325,10 @@ class ProductQueries(graphene.ObjectType):
     @traced_resolver
     def resolve_products(self, info, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        if channel is None and not requestor_is_staff_member_or_app(requestor):
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
+        if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_products(info, requestor, channel_slug=channel, **kwargs)
 
@@ -337,8 +349,11 @@ class ProductQueries(graphene.ObjectType):
     ):
         validate_one_of_args_is_in_query("id", id, "sku", sku)
         requestor = get_user_or_app_from_context(info.context)
-        is_staff = requestor_is_staff_member_or_app(requestor)
-        if channel is None and not is_staff:
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
+
+        if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
             _, id = from_global_id_or_error(id, ProductVariant)
@@ -347,7 +362,7 @@ class ProductQueries(graphene.ObjectType):
                 id,
                 channel_slug=channel,
                 requestor=requestor,
-                requestor_has_access_to_all=is_staff,
+                requestor_has_access_to_all=has_required_permissions,
             )
         else:
             variant = resolve_product_variant_by_sku(
@@ -355,20 +370,22 @@ class ProductQueries(graphene.ObjectType):
                 sku=sku,
                 channel_slug=channel,
                 requestor=requestor,
-                requestor_has_access_to_all=is_staff,
+                requestor_has_access_to_all=has_required_permissions,
             )
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
     def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        is_staff = requestor_is_staff_member_or_app(requestor)
-        if channel is None and not is_staff:
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
+        if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_product_variants(
             info,
             ids=ids,
             channel_slug=channel,
-            requestor_has_access_to_all=is_staff,
+            requestor_has_access_to_all=has_required_permissions,
             requestor=requestor,
         )
 
@@ -380,6 +397,7 @@ class ProductQueries(graphene.ObjectType):
 
 class ProductMutations(graphene.ObjectType):
     product_attribute_assign = ProductAttributeAssign.Field()
+    product_attribute_assignment_update = ProductAttributeAssignmentUpdate.Field()
     product_attribute_unassign = ProductAttributeUnassign.Field()
 
     category_create = CategoryCreate.Field()
@@ -440,6 +458,7 @@ class ProductMutations(graphene.ObjectType):
     product_variant_reorder_attribute_values = (
         ProductVariantReorderAttributeValues.Field()
     )
+    product_variant_preorder_deactivate = ProductVariantPreorderDeactivate.Field()
 
     variant_media_assign = VariantMediaAssign.Field()
     variant_media_unassign = VariantMediaUnassign.Field()

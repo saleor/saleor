@@ -48,7 +48,7 @@ def get_billing_data(payment_information: PaymentData) -> Dict:
 def get_customer_data(payment_information: PaymentData) -> Dict:
     """Provide customer info, use only for new customer creation."""
     return {
-        "order_id": payment_information.order_id,
+        "order_id": payment_information.graphql_payment_id,
         "billing": get_billing_data(payment_information),
         "risk_data": {"customer_ip": payment_information.customer_ip_address or ""},
         "customer": {"email": payment_information.customer_email},

@@ -42,6 +42,7 @@ from ..mutations.products import (
 )
 from ..types import Product, ProductType, ProductVariant
 from ..utils import (
+    clean_variant_sku,
     create_stocks,
     get_draft_order_lines_data_for_variants,
     get_used_variants_attribute_values,
@@ -204,7 +205,7 @@ class ProductVariantBulkCreateInput(ProductVariantInput):
         description="List of prices assigned to channels.",
         required=False,
     )
-    sku = graphene.String(required=True, description="Stock keeping unit.")
+    sku = graphene.String(description="Stock keeping unit.")
 
 
 class ProductVariantBulkCreate(BaseMutation):
@@ -270,6 +271,16 @@ class ProductVariantBulkCreate(BaseMutation):
         stocks = cleaned_input.get("stocks")
         if stocks:
             cls.clean_stocks(stocks, errors, variant_index)
+
+        cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
+
+        preorder_settings = cleaned_input.get("preorder")
+        if preorder_settings:
+            cleaned_input["is_preorder"] = True
+            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
+                "global_threshold"
+            )
+            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
 
         return cleaned_input
 
@@ -444,9 +455,10 @@ class ProductVariantBulkCreate(BaseMutation):
 
             cleaned_inputs.append(cleaned_input if cleaned_input else None)
 
-            if not variant_data.sku:
-                continue
-            cls.validate_duplicated_sku(variant_data.sku, index, sku_list, errors)
+            if cleaned_input["sku"]:
+                cls.validate_duplicated_sku(
+                    cleaned_input["sku"], index, sku_list, errors
+                )
         return cleaned_inputs
 
     @classmethod
@@ -459,6 +471,7 @@ class ProductVariantBulkCreate(BaseMutation):
             channel = channel_listing_data["channel"]
             price = channel_listing_data["price"]
             cost_price = channel_listing_data.get("cost_price")
+            preorder_quantity_threshold = channel_listing_data.get("preorder_threshold")
             variant_channel_listings.append(
                 models.ProductVariantChannelListing(
                     channel=channel,
@@ -466,6 +479,7 @@ class ProductVariantBulkCreate(BaseMutation):
                     price_amount=price,
                     cost_price_amount=cost_price,
                     currency=channel.currency_code,
+                    preorder_quantity_threshold=preorder_quantity_threshold,
                 )
             )
         models.ProductVariantChannelListing.objects.bulk_create(
@@ -741,7 +755,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 product_variant=variant, warehouse=warehouse
             )
 
-            if is_created or (stock.quantity == 0 and stock_data["quantity"] > 0):
+            if is_created or (stock.quantity <= 0 and stock_data["quantity"] > 0):
                 transaction.on_commit(
                     lambda: manager.product_variant_back_in_stock(stock)
                 )

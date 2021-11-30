@@ -20,17 +20,19 @@ from ...webhook.payloads import (
     generate_product_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
+    generate_sale_payload,
     generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
 from .tasks import (
-    trigger_payment_webhook_sync,
     trigger_tax_webhook_sync,
+    trigger_webhook_sync,
     trigger_webhooks_for_event,
 )
 from .utils import (
     from_payment_app_id,
     parse_list_payment_gateways_response,
+    parse_list_shipping_methods_response,
     parse_payment_action_response,
 )
 
@@ -38,11 +40,14 @@ if TYPE_CHECKING:
     from ...account.models import User
     from ...checkout.models import Checkout
     from ...core.taxes import TaxData
+    from ...discount.models import Sale
+    from ...graphql.discount.mutations import NodeCatalogueInfo
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
     from ...product.models import Product, ProductVariant
+    from ...shipping.interface import ShippingMethodData
     from ...translation.models import Translation
     from ...warehouse.models import Stock
 
@@ -92,6 +97,36 @@ class WebhookPlugin(BasePlugin):
         order_data = generate_order_payload(order)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_UPDATED, order_data)
 
+    def sale_created(
+        self, sale: "Sale", current_catalogue: "NodeCatalogueInfo", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        sale_data = generate_sale_payload(
+            sale, previous_catalogue=None, current_catalogue=current_catalogue
+        )
+        trigger_webhooks_for_event.delay(WebhookEventType.SALE_CREATED, sale_data)
+
+    def sale_updated(
+        self,
+        sale: "Sale",
+        previous_catalogue: "NodeCatalogueInfo",
+        current_catalogue: "NodeCatalogueInfo",
+        previous_value: Any,
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        sale_data = generate_sale_payload(sale, previous_catalogue, current_catalogue)
+        trigger_webhooks_for_event.delay(WebhookEventType.SALE_UPDATED, sale_data)
+
+    def sale_deleted(
+        self, sale: "Sale", previous_catalogue: "NodeCatalogueInfo", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        sale_data = generate_sale_payload(sale, previous_catalogue=previous_catalogue)
+        trigger_webhooks_for_event.delay(WebhookEventType.SALE_DELETED, sale_data)
+
     def invoice_request(
         self,
         order: "Order",
@@ -129,6 +164,30 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         order_data = generate_order_payload(order)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_FULFILLED, order_data)
+
+    def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.DRAFT_ORDER_CREATED, order_data
+        )
+
+    def draft_order_updated(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.DRAFT_ORDER_UPDATED, order_data
+        )
+
+    def draft_order_deleted(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.DRAFT_ORDER_DELETED, order_data
+        )
 
     def fulfillment_created(self, fulfillment: "Fulfillment", previous_value):
         if not self.active:
@@ -329,7 +388,7 @@ class WebhookPlugin(BasePlugin):
             )
 
         webhook_payload = generate_payment_payload(payment_information)
-        response_data = trigger_payment_webhook_sync(event_type, webhook_payload, app)
+        response_data = trigger_webhook_sync(event_type, webhook_payload, app)
         if response_data is None:
             raise PaymentError(
                 f"Payment method {payment_information.gateway} is not available: "
@@ -355,7 +414,7 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.PAYMENT_LIST_GATEWAYS
         ).prefetch_related("webhooks")
         for app in apps:
-            response_data = trigger_payment_webhook_sync(
+            response_data = trigger_webhook_sync(
                 event_type=WebhookEventType.PAYMENT_LIST_GATEWAYS,
                 data=generate_list_gateways_payload(currency, checkout),
                 app=app,
@@ -448,3 +507,24 @@ class WebhookPlugin(BasePlugin):
     ) -> Optional["TaxData"]:
         payload = generate_order_payload(order)
         return trigger_tax_webhook_sync(WebhookEventType.ORDER_CALCULATE_TAXES, payload)
+
+    def get_shipping_methods_for_checkout(
+        self, checkout: "Checkout", previous_value: Any
+    ) -> List["ShippingMethodData"]:
+        methods = []
+        apps = App.objects.for_event_type(
+            WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+        ).prefetch_related("webhooks")
+        payload = generate_checkout_payload(checkout)
+        for app in apps:
+            response_data = trigger_webhook_sync(
+                event_type=WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                data=payload,
+                app=app,
+            )
+            if response_data:
+                shipping_methods = parse_list_shipping_methods_response(
+                    response_data, app
+                )
+                methods.extend(shipping_methods)
+        return methods
