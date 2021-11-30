@@ -24,6 +24,7 @@ def test_get_taxes_for_checkout(
 
     # then
     mock_request.assert_called_once_with(
+        tax_checkout_webhook.app.name,
         tax_checkout_webhook.pk,
         tax_checkout_webhook.target_url,
         tax_checkout_webhook.secret_key,
@@ -69,6 +70,7 @@ def test_get_taxes_for_order(
 
     # then
     mock_request.assert_called_once_with(
+        tax_order_webhook.app.name,
         tax_order_webhook.pk,
         tax_order_webhook.target_url,
         tax_order_webhook.secret_key,

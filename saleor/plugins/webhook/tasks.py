@@ -84,7 +84,7 @@ def trigger_webhook_sync(event_type: str, data: str, app: "App"):
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
 
     return send_webhook_request_sync(
-        app.name, webhook.target_url, webhook.secret_key, event_type, data
+        app.name, webhook.pk, webhook.target_url, webhook.secret_key, event_type, data
     )
 
 
@@ -93,7 +93,12 @@ def trigger_tax_webhook_sync(event_type: str, data: str):
     webhooks = _get_webhooks_for_event(event_type)
     for webhook in webhooks:
         response_data = send_webhook_request_sync(
-            webhook.app.name, webhook.target_url, webhook.secret_key, event_type, data
+            webhook.app.name,
+            webhook.pk,
+            webhook.target_url,
+            webhook.secret_key,
+            event_type,
+            data,
         )
         tax_data = parse_tax_data(response_data)
         if tax_data:
@@ -230,7 +235,9 @@ def send_webhook_request(
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
 
 
-def send_webhook_request_sync(app_name, target_url, secret, event_type, data: str):
+def send_webhook_request_sync(
+    app_name, webhook_id, target_url, secret, event_type, data: str
+):
     parts = urlparse(target_url)
     domain = Site.objects.get_current().domain
     message = data.encode("utf-8")
@@ -239,7 +246,10 @@ def send_webhook_request_sync(app_name, target_url, secret, event_type, data: st
     response_data = None
     if parts.scheme.lower() in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
         logger.debug(
-            "[Webhook] Sending payload to %r for event %r.", target_url, event_type
+            "[Webhook ID:%r] Sending payload to %r for event %r.",
+            webhook_id,
+            target_url,
+            event_type,
         )
         try:
             with webhooks_opentracing_trace(
@@ -255,16 +265,23 @@ def send_webhook_request_sync(app_name, target_url, secret, event_type, data: st
                 )
                 response_data = response.json()
         except RequestException as e:
-            logger.warning("[Webhook] Failed request to %r: %r.", target_url, e)
+            logger.warning(
+                "[Webhook ID:%r] Failed request to %r: %r.", webhook_id, target_url, e
+            )
         except JSONDecodeError as e:
             logger.warning(
-                "[Webhook] Failed parsing JSON response from %r: %r.",
+                "[Webhook ID:%r] Failed parsing JSON response from %r: %r.",
+                webhook_id,
                 target_url,
                 e,
             )
-            logger.warning("[Webhook] Failed request to %r: %r.", target_url, e)
+            logger.warning(
+                "[Webhook ID:%r] Failed request to %r: %r.", webhook_id, target_url, e
+            )
         else:
-            logger.debug("[Webhook] Success response from %r.", target_url)
+            logger.debug(
+                "[Webhook ID:%r] Success response from %r.", webhook_id, target_url
+            )
     else:
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
     return response_data
