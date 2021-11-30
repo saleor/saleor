@@ -44,4 +44,5 @@ class ObjectWithMetadata(graphene.Interface):
         if isinstance(instance, ChannelContext):
             # Return instance for types that use ChannelContext
             instance = instance.node
-        return resolve_object_with_metadata_type(instance)
+        item_type, _ = resolve_object_with_metadata_type(instance)
+        return item_type
