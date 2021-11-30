@@ -702,6 +702,11 @@ def order(customer_user, channel_USD):
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
     )
+    return order
+
+
+@pytest.fixture
+def order_with_search_document_value(order):
     order.search_document = prepare_order_search_document_value(order)
     order.save(update_fields=["search_document"])
     return order

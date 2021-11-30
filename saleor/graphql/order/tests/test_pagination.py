@@ -9,7 +9,10 @@ from prices import Money, TaxedMoney
 
 from ....discount.models import OrderDiscount
 from ....order.models import Order, OrderStatus
-from ....order.search import prepare_order_search_document_value
+from ....order.search import (
+    prepare_order_search_document_value,
+    update_order_search_document,
+)
 from ....payment import ChargeStatus
 from ...tests.utils import get_graphql_content
 
@@ -563,8 +566,9 @@ def test_draft_orders_query_pagination_with_filter_search(
 
 
 def test_orders_query_pagination_with_filter_search_by_id(
-    order, staff_api_client, permission_manage_orders
+    order_with_search_document_value, staff_api_client, permission_manage_orders
 ):
+    order = order_with_search_document_value
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": {"search": order.pk}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -578,6 +582,7 @@ def test_draft_orders_query_pagination_with_filter_search_by_id(
     staff_api_client,
     permission_manage_orders,
 ):
+    update_order_search_document(draft_order)
     page_size = 2
     variables = {
         "first": page_size,
