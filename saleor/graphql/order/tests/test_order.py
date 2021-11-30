@@ -477,9 +477,7 @@ def test_order_query_external_shipping_method(
     permission_manage_orders,
     order_with_lines,
 ):
-    external_shipping_method_id = graphene.Node.to_global_id(
-        "app", "1:external123"
-    )
+    external_shipping_method_id = graphene.Node.to_global_id("app", "1:external123")
 
     # given
     order = order_with_lines
