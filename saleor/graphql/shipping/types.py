@@ -328,6 +328,9 @@ class ShippingMethod(graphene.ObjectType):
     price = graphene.Field(
         Money, required=True, description="The price of selected shipping method."
     )
+    maximum_order_price = graphene.Field(
+        Money, description="Maximal order price for this shipping method."
+    )
     minimum_order_price = graphene.Field(
         Money, description="Minimal order price for this shipping method."
     )
@@ -349,6 +352,9 @@ class ShippingMethod(graphene.ObjectType):
     @staticmethod
     def resolve_minimum_order_price(root: ShippingMethodData, info, **_kwargs):
         return root.minimum_order_price
+
+    def resolve_maximum_order_price(root: ShippingMethodData, info, **_kwargs):
+        return root.maximum_order_price
 
     @staticmethod
     def resolve_price(root: ShippingMethodData, info, **_kwargs):

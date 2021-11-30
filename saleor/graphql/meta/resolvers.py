@@ -13,6 +13,7 @@ from ...page import models as page_models
 from ...payment import models as payment_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
+from ...shipping.interface import ShippingMethodData
 from ...warehouse import models as warehouse_models
 from ..utils import get_user_or_app_from_context
 from .permissions import PRIVATE_META_PERMISSION_MAP
@@ -76,16 +77,22 @@ def resolve_metadata(metadata: dict):
 def resolve_private_metadata(root: ModelWithMetadata, info):
     item_type = resolve_object_with_metadata_type(root)
     if not item_type:
-        raise NotImplementedError(
-            f"Model {type(root)} can't be mapped to type with metadata. "
-            "Make sure that model exists inside MODEL_TO_TYPE_MAP."
-        )
+        if type(root) == ShippingMethodData:
+            from ..shipping import types as shipping_types
+
+            item_type = shipping_types.ShippingMethodType
+        else:
+            raise NotImplementedError(
+                f"Model {type(root)} can't be mapped to type with metadata. "
+                "Make sure that model exists inside MODEL_TO_TYPE_MAP."
+            )
 
     get_required_permission = PRIVATE_META_PERMISSION_MAP[item_type.__name__]
     if not get_required_permission:
         raise PermissionDenied()
 
-    required_permission = get_required_permission(info, root.pk)
+    pk = getattr(root, "pk", getattr(root, "id", None))
+    required_permission = get_required_permission(info, pk)
 
     if not required_permission:
         raise PermissionDenied()

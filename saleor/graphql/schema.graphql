@@ -6203,6 +6203,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   minimumDeliveryDays: Int
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
   price: Money!
+  maximumOrderPrice: Money
   minimumOrderPrice: Money
   active: Boolean!
   message: String
