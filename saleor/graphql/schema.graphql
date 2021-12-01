@@ -2045,6 +2045,7 @@ type EventDelivery implements Node {
   status: EventDeliveryStatusEnum!
   eventType: WebhookEventTypeEnum!
   attempts(sortBy: EventDeliveryAttemptSortingInput, before: String, after: String, first: Int, last: Int): EventDeliveryAttemptCountableConnection
+  payload: String
 }
 
 type EventDeliveryAttempt implements Node {
