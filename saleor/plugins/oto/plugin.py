@@ -86,6 +86,15 @@ class OTOPlugin(BasePlugin):
                 items=dict(oto_id=response.get("otoId"))
             )
             fulfillment.save(update_fields=["private_metadata"])
+            oto_ids_from_private_metadata = (
+                fulfillment.order.get_value_from_private_metadata("oto_ids", [])
+            )
+            fulfillment.order.store_value_in_private_metadata(
+                items=dict(
+                    oto_ids=oto_ids_from_private_metadata.append(response.get("otoId"))
+                )
+            )
+            fulfillment.order.save(update_fields=["private_metadata"])
         else:
             msg = (
                 response.get("errorMsg").capitalize()
@@ -119,13 +128,23 @@ class OTOPlugin(BasePlugin):
     @require_active_plugin
     def order_updated(self, order: "Order", previous_value: Any) -> Any:
         # In case order is cancelled, we need to cancel fulfillment on OTO.
-        last_order_fulfillment = order.fulfillments.last()
-        if last_order_fulfillment and last_order_fulfillment.status in [
+        returned_fulfillment = order.fulfillments.last()
+        if returned_fulfillment and returned_fulfillment.status in [
             "returned",
             "refunded_and_returned",
         ]:
-            # Create OTO return shipment.
-            pass
+            fulfillment = order.fulfillments.last()
+            if fulfillment:
+                oto_ids = order.get_value_from_private_metadata("oto_ids", [])
+                for oto_order_id in oto_ids:
+                    response = send_oto_request(
+                        fulfillment, self.config, "getReturnLink"
+                    )
+                    if response.get("success") is True:
+                        fulfillment.store_value_in_private_metadata(
+                            items=dict(oto_return_link=response.get("returnLink"))
+                        )
+                        fulfillment.save(update_fields=["private_metadata"])
 
     @staticmethod
     def check_oto_signature(data: Dict[str, Any]) -> bool:

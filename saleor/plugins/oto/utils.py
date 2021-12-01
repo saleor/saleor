@@ -71,9 +71,9 @@ def generate_create_order_data(fulfillment):
     return data
 
 
-def generate_cancel_order_data(fulfillment):
+def generate_cancel_order_and_return_link_data(fulfillment):
     return dict(
-        orderId=fulfillment.order.get_value_from_private_metadata("oto_id"),
+        orderId=str(fulfillment.id),
     )
 
 
@@ -82,7 +82,9 @@ def generate_oto_request_data(fulfillment, **kwargs):
     if destination_url == "createOrder":
         return generate_create_order_data(fulfillment=fulfillment)
     elif destination_url == "cancelOrder":
-        return generate_cancel_order_data(fulfillment=fulfillment)
+        return generate_cancel_order_and_return_link_data(fulfillment=fulfillment)
+    elif destination_url == "getReturnLink":
+        return generate_cancel_order_and_return_link_data(fulfillment=fulfillment)
 
 
 def get_oto_url(destination_url):
