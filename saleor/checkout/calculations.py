@@ -151,6 +151,18 @@ def checkout_line_unit_price(
     )
 
 
+def force_taxes_recalculation(
+    checkout_info: "CheckoutInfo",
+    manager: "PluginsManager",
+    lines: Iterable["CheckoutLineInfo"],
+    address: Optional["Address"] = None,
+    discounts: Optional[Iterable["DiscountInfo"]] = None,
+) -> None:
+    fetch_checkout_prices_if_expired(
+        checkout_info, manager, lines, address, discounts, force_update=True
+    )
+
+
 def fetch_checkout_prices_if_expired(
     checkout_info: "CheckoutInfo",
     manager: "PluginsManager",

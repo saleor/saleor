@@ -14,16 +14,16 @@ from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 
 
 @pytest.fixture
-def checkout_with_items_lines(checkout_with_items):
+def checkout_lines(checkout_with_items):
     return checkout_with_items.lines.all()
 
 
 @pytest.fixture
-def tax_data(checkout_with_items, checkout_with_items_lines):
+def tax_data(checkout_with_items, checkout_lines):
     checkout = checkout_with_items
     net = Decimal("10.000")
     gross = Decimal("12.300")
-    lines = checkout_with_items_lines
+    lines = checkout_lines
     return TaxData(
         currency=checkout.currency,
         shipping_price_net_amount=checkout.shipping_price.net.amount + net,
@@ -46,10 +46,10 @@ def tax_data(checkout_with_items, checkout_with_items_lines):
     )
 
 
-def test_apply_tax_data(checkout_with_items, checkout_with_items_lines, tax_data):
+def test_apply_tax_data(checkout_with_items, checkout_lines, tax_data):
     # given
     checkout = checkout_with_items
-    lines = checkout_with_items_lines
+    lines = checkout_lines
 
     def qp(amount):
         return quantize_price(amount, checkout.currency)
@@ -159,9 +159,9 @@ def test_fetch_checkout_prices_if_expired_plugins(
     assert checkout_with_items.subtotal == subtotal
     assert checkout_with_items.shipping_price == shipping_price
     assert checkout_with_items.total == total
-    for a, b in zip(checkout_with_items.lines.all(), tax_data.lines):
-        assert a.unit_price == get_taxed_money(b, "unit")
-        assert a.total_price == get_taxed_money(b, "total")
+    for checkout_line, tax_line in zip(checkout_with_items.lines.all(), tax_data.lines):
+        assert checkout_line.unit_price == get_taxed_money(tax_line, "unit")
+        assert checkout_line.total_price == get_taxed_money(tax_line, "total")
 
 
 @freeze_time("2020-12-12 12:00:00")
@@ -184,6 +184,6 @@ def test_fetch_checkout_prices_if_expired_webhooks_success(
         tax_data, "shipping_price"
     )
     assert checkout_with_items.total == get_taxed_money(tax_data, "total")
-    for a, b in zip(checkout_with_items.lines.all(), tax_data.lines):
-        assert a.unit_price == get_taxed_money(b, "unit")
-        assert a.total_price == get_taxed_money(b, "total")
+    for checkout_line, tax_line in zip(checkout_with_items.lines.all(), tax_data.lines):
+        assert checkout_line.unit_price == get_taxed_money(tax_line, "unit")
+        assert checkout_line.total_price == get_taxed_money(tax_line, "total")
