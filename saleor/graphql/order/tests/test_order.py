@@ -501,7 +501,9 @@ def test_order_query_external_shipping_method(
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert order_data["shippingMethod"]["id"] == external_shipping_method_id
     assert order_data["shippingMethod"]["name"] == order.shipping_method_name
-    assert order_data["shippingMethod"]["price"]["amount"] == float(order.shipping_price_gross.amount)
+    assert order_data["shippingMethod"]["price"]["amount"] == float(
+        order.shipping_price_gross.amount
+    )
 
 
 def test_order_discounts_query(
