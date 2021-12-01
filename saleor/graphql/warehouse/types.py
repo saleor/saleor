@@ -9,12 +9,13 @@ from ...warehouse import models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
-from ..core.connection import CountableConnection, CountableDjangoObjectType
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
-from ..core.relay import (
-    RelayConnectionField,
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
     create_connection_slice,
 )
+from ..core.fields import ConnectionField
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
 from .enums import WarehouseClickAndCollectOptionEnum
@@ -65,7 +66,7 @@ class Warehouse(CountableDjangoObjectType):
         description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
         required=True,
     )
-    shipping_zones = RelayConnectionField(
+    shipping_zones = ConnectionField(
         "saleor.graphql.shipping.types.ShippingZoneCountableConnection"
     )
 

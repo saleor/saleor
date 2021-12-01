@@ -41,7 +41,12 @@ from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
-from ...core.connection import CountableConnection, CountableDjangoObjectType
+from ...core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
+    filter_connection_queryset,
+)
 from ...core.descriptions import (
     ADDED_IN_31,
     DEPRECATED_IN_3X_FIELD,
@@ -49,12 +54,7 @@ from ...core.descriptions import (
 )
 from ...core.enums import ReportingPeriod
 from ...core.federation import resolve_federation_references
-from ...core.relay import (
-    RelayConnectionField,
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ...core.fields import ConnectionField, FilterConnectionField
 from ...core.types import Image, TaxedMoney, TaxedMoneyRange, TaxType
 from ...core.utils import from_global_id_or_error
 from ...decorators import (
@@ -1180,7 +1180,7 @@ class ProductCountableConnection(CountableConnection):
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)
-    products = RelayConnectionField(
+    products = ConnectionField(
         ProductCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -1219,7 +1219,7 @@ class ProductType(CountableDjangoObjectType):
     product_attributes = graphene.List(
         Attribute, description="Product attributes of that product type."
     )
-    available_attributes = RelayFilteredConnectionField(
+    available_attributes = FilterConnectionField(
         AttributeCountableConnection, filter=AttributeFilterInput()
     )
 
@@ -1363,7 +1363,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    products = RelayFilteredConnectionField(
+    products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
@@ -1474,18 +1474,18 @@ class Category(CountableDjangoObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    ancestors = RelayConnectionField(
+    ancestors = ConnectionField(
         lambda: CategoryCountableConnection,
         description="List of ancestors of the category.",
     )
-    products = RelayConnectionField(
+    products = ConnectionField(
         ProductCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of products in the category.",
     )
-    children = RelayConnectionField(
+    children = ConnectionField(
         lambda: CategoryCountableConnection,
         description="List of children of the category.",
     )

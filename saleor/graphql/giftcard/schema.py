@@ -3,12 +3,9 @@ from graphql.error import GraphQLError
 
 from ...core.permissions import GiftcardPermissions
 from ...giftcard import models
+from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31
-from ..core.relay import (
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .bulk_mutations import (
@@ -39,7 +36,7 @@ class GiftCardQueries(graphene.ObjectType):
         ),
         description="Look up a gift card by ID.",
     )
-    gift_cards = RelayFilteredConnectionField(
+    gift_cards = FilterConnectionField(
         GiftCardCountableConnection,
         sort_by=GiftCardSortingInput(description=f"{ADDED_IN_31} Sort gift cards."),
         filter=GiftCardFilterInput(

@@ -1,10 +1,7 @@
 import graphene
 
-from ..core.relay import (
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish, PageTypeBulkDelete
@@ -40,7 +37,7 @@ class PageQueries(graphene.ObjectType):
         slug=graphene.String(description="The slug of the page."),
         description="Look up a page by ID or slug.",
     )
-    pages = RelayFilteredConnectionField(
+    pages = FilterConnectionField(
         PageCountableConnection,
         sort_by=PageSortingInput(description="Sort pages."),
         filter=PageFilterInput(description="Filtering options for pages."),
@@ -53,7 +50,7 @@ class PageQueries(graphene.ObjectType):
         ),
         description="Look up a page type by ID.",
     )
-    page_types = RelayFilteredConnectionField(
+    page_types = FilterConnectionField(
         PageTypeCountableConnection,
         sort_by=PageTypeSortingInput(description="Sort page types."),
         filter=PageTypeFilterInput(description="Filtering options for page types."),

@@ -1,14 +1,10 @@
 import graphene
 
 from ...core.permissions import OrderPermissions
+from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import ReportingPeriod
-from ..core.relay import (
-    RelayConnectionField,
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.fields import ConnectionField, FilterConnectionField
 from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
 from ..core.utils import from_global_id_or_error
@@ -74,7 +70,7 @@ class OrderDraftFilterInput(FilterInputObjectType):
 
 
 class OrderQueries(graphene.ObjectType):
-    homepage_events = RelayConnectionField(
+    homepage_events = ConnectionField(
         OrderEventCountableConnection,
         description=(
             "List of activity events to display on "
@@ -86,7 +82,7 @@ class OrderQueries(graphene.ObjectType):
         description="Look up an order by ID.",
         id=graphene.Argument(graphene.ID, description="ID of an order.", required=True),
     )
-    orders = RelayFilteredConnectionField(
+    orders = FilterConnectionField(
         OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort orders."),
         filter=OrderFilterInput(description="Filtering options for orders."),
@@ -95,7 +91,7 @@ class OrderQueries(graphene.ObjectType):
         ),
         description="List of orders.",
     )
-    draft_orders = RelayFilteredConnectionField(
+    draft_orders = FilterConnectionField(
         OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort draft orders."),
         filter=OrderDraftFilterInput(description="Filtering options for draft orders."),

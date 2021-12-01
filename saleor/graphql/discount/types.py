@@ -3,6 +3,7 @@ from graphene import relay
 
 from ...core.permissions import DiscountPermissions, OrderPermissions
 from ...discount import models
+from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
     ChannelContext,
@@ -10,13 +11,13 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
 )
 from ..core import types
-from ..core.connection import CountableConnection, CountableDjangoObjectType
-from ..core.descriptions import ADDED_IN_31
-from ..core.fields import ChannelQsContext
-from ..core.relay import (
-    RelayConnectionField,
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
     create_connection_slice,
 )
+from ..core.descriptions import ADDED_IN_31
+from ..core.fields import ConnectionField
 from ..core.scalars import PositiveDecimal
 from ..core.types import Money
 from ..decorators import permission_required
@@ -51,18 +52,18 @@ class SaleChannelListing(CountableDjangoObjectType):
 
 
 class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
-    categories = RelayConnectionField(
+    categories = ConnectionField(
         CategoryCountableConnection,
         description="List of categories this sale applies to.",
     )
-    collections = RelayConnectionField(
+    collections = ConnectionField(
         CollectionCountableConnection,
         description="List of collections this sale applies to.",
     )
-    products = RelayConnectionField(
+    products = ConnectionField(
         ProductCountableConnection, description="List of products this sale applies to."
     )
-    variants = RelayConnectionField(
+    variants = ConnectionField(
         ProductVariantCountableConnection,
         description=f"{ADDED_IN_31} List of product variants this sale applies to.",
     )
@@ -170,19 +171,19 @@ class VoucherChannelListing(CountableDjangoObjectType):
 
 
 class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
-    categories = RelayConnectionField(
+    categories = ConnectionField(
         CategoryCountableConnection,
         description="List of categories this voucher applies to.",
     )
-    collections = RelayConnectionField(
+    collections = ConnectionField(
         CollectionCountableConnection,
         description="List of collections this voucher applies to.",
     )
-    products = RelayConnectionField(
+    products = ConnectionField(
         ProductCountableConnection,
         description="List of products this voucher applies to.",
     )
-    variants = RelayConnectionField(
+    variants = ConnectionField(
         ProductVariantCountableConnection,
         description=f"{ADDED_IN_31} List of product variants this voucher applies to.",
     )

@@ -1,11 +1,8 @@
 import graphene
 
 from ...core.permissions import AccountPermissions, OrderPermissions
-from ..core.relay import (
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
@@ -120,13 +117,13 @@ class AccountQueries(graphene.ObjectType):
         ),
         description="Look up an address by ID.",
     )
-    customers = RelayFilteredConnectionField(
+    customers = FilterConnectionField(
         UserCountableConnection,
         filter=CustomerFilterInput(description="Filtering options for customers."),
         sort_by=UserSortingInput(description="Sort customers."),
         description="List of the shop's customers.",
     )
-    permission_groups = RelayFilteredConnectionField(
+    permission_groups = FilterConnectionField(
         GroupCountableConnection,
         filter=PermissionGroupFilterInput(
             description="Filtering options for permission groups."
@@ -142,7 +139,7 @@ class AccountQueries(graphene.ObjectType):
         description="Look up permission group by ID.",
     )
     me = graphene.Field(User, description="Return the currently authenticated user.")
-    staff_users = RelayFilteredConnectionField(
+    staff_users = FilterConnectionField(
         UserCountableConnection,
         filter=StaffUserInput(description="Filtering options for staff users."),
         sort_by=UserSortingInput(description="Sort staff users."),

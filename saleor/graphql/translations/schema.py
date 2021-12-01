@@ -8,8 +8,8 @@ from ...page.models import Page
 from ...product.models import Category, Collection, Product, ProductVariant
 from ...shipping.models import ShippingMethod
 from ..attribute.resolvers import resolve_attributes
-from ..core.connection import CountableConnection
-from ..core.relay import RelayConnectionField, create_connection_slice
+from ..core.connection import CountableConnection, create_connection_slice
+from ..core.fields import ConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from ..menu.resolvers import resolve_menu_items
@@ -64,7 +64,7 @@ class TranslatableKinds(graphene.Enum):
 
 
 class TranslationQueries(graphene.ObjectType):
-    translations = RelayConnectionField(
+    translations = ConnectionField(
         TranslatableItemConnection,
         description="Returns a list of all translatable items of a given kind.",
         kind=graphene.Argument(

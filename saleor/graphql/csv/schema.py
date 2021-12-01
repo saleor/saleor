@@ -1,11 +1,8 @@
 import graphene
 
 from ...core.permissions import ProductPermissions
-from ..core.relay import (
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .filters import ExportFileFilterInput
@@ -23,7 +20,7 @@ class CsvQueries(graphene.ObjectType):
         ),
         description="Look up a export file by ID.",
     )
-    export_files = RelayFilteredConnectionField(
+    export_files = FilterConnectionField(
         ExportFileCountableConnection,
         filter=ExportFileFilterInput(description="Filtering options for export files."),
         sort_by=ExportFileSortingInput(description="Sort export files."),

@@ -17,11 +17,12 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
     ChannelContextTypeWithMetadataForObjectType,
 )
-from ..core.connection import CountableConnection, CountableDjangoObjectType
-from ..core.relay import (
-    RelayConnectionField,
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
     create_connection_slice,
 )
+from ..core.fields import ConnectionField
 from ..core.types import CountryDisplay, Money, MoneyRange, Weight
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -105,7 +106,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
             "Postal code ranges rule of exclusion or inclusion of the shipping method."
         ),
     )
-    excluded_products = RelayConnectionField(
+    excluded_products = ConnectionField(
         "saleor.graphql.product.types.products.ProductCountableConnection",
         description="List of excluded products for the shipping method.",
     )

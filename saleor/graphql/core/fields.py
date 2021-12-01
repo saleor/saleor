@@ -1,6 +1,6 @@
-import json
-from functools import partial
+from functools import wraps
 
+<<<<<<< HEAD
 import graphe
 from graphene.relay import PageInfo
 from graphene_django.fields import DjangoConnectionField
@@ -8,15 +8,15 @@ from graphql.error import GraphQLError
 from graphql.language.ast import FragmentSpread
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
+=======
+import graphene
+from graphene.relay import Connection, is_node
+>>>>>>> 453426259... Replace old connections utils with new ones
 
-from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
-from ..channel import ChannelContext, ChannelQsContext
-from ..channel.utils import get_default_channel_slug_or_graphql_error
-from ..utils.sorting import sort_queryset_for_connection
-from .connection import connection_from_queryset_slice
+from .connection import FILTERS_NAME, FILTERSET_CLASS
 
 
-def patch_pagination_args(field: DjangoConnectionField):
+def patch_pagination_args(field: "ConnectionField"):
     """Add descriptions to pagination arguments in a connection field.
 
     By default Graphene's connection fields comes without description for pagination
@@ -36,7 +36,50 @@ def patch_pagination_args(field: DjangoConnectionField):
     )
 
 
-class BaseConnectionField(graphene.ConnectionField):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class ConnectionField(graphene.Field):
+    def __init__(self, type_, *args, **kwargs):
+        kwargs.setdefault("before", graphene.String())
+        kwargs.setdefault("after", graphene.String())
+        kwargs.setdefault("first", graphene.Int())
+        kwargs.setdefault("last", graphene.Int())
+        super(ConnectionField, self).__init__(type_, *args, **kwargs)
         patch_pagination_args(self)
+
+    @property
+    def type(self):
+        type = super(ConnectionField, self).type
+        connection_type = type
+        if isinstance(type, graphene.NonNull):
+            connection_type = type.of_type
+
+        if is_node(connection_type):
+            raise Exception(
+                "ConnectionFields now need a explicit ConnectionType for Nodes.\n"
+                "Read more: https://github.com/graphql-python/graphene/blob/v2.0.0/UPGRADE-v2.0.md#node-connections"
+            )
+
+        assert issubclass(connection_type, Connection), (
+            '{} type have to be a subclass of Connection. Received "{}".'
+        ).format(self.__class__.__name__, connection_type)
+        return type
+
+
+class FilterConnectionField(ConnectionField):
+    def __init__(self, type_, *args, **kwargs):
+        self.filter_field_name = kwargs.pop("filter_field_name", "filter")
+        self.filter_input = kwargs.get(self.filter_field_name)
+        self.FILTERSET_CLASS = None
+        if self.filter_input:
+            self.filterset_class = self.filter_input.filterset_class
+        super(FilterConnectionField, self).__init__(type_, *args, **kwargs)
+
+    def get_resolver(self, parent_resolver):
+        wrapped_resolver = super().get_resolver(parent_resolver)
+
+        @wraps(wrapped_resolver)
+        def new_resolver(obj, info, **kwargs):
+            kwargs[FILTERSET_CLASS] = self.filterset_class
+            kwargs[FILTERS_NAME] = self.filter_field_name
+            return wrapped_resolver(obj, info, **kwargs)
+
+        return new_resolver

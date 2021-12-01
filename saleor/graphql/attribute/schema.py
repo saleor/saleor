@@ -1,10 +1,7 @@
 import graphene
 
-from ..core.relay import (
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
 from .bulk_mutations import AttributeBulkDelete, AttributeValueBulkDelete
@@ -28,7 +25,7 @@ from .types import Attribute, AttributeCountableConnection
 
 
 class AttributeQueries(graphene.ObjectType):
-    attributes = RelayFilteredConnectionField(
+    attributes = FilterConnectionField(
         AttributeCountableConnection,
         description="List of the shop's attributes.",
         filter=AttributeFilterInput(description="Filtering options for attributes."),

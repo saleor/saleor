@@ -3,11 +3,8 @@ import graphene
 from ...core.permissions import ShippingPermissions
 from ...shipping import models
 from ..channel.types import ChannelContext
-from ..core.relay import (
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from ..translations.mutations import ShippingPriceTranslate
@@ -39,7 +36,7 @@ class ShippingQueries(graphene.ObjectType):
         ),
         description="Look up a shipping zone by ID.",
     )
-    shipping_zones = RelayFilteredConnectionField(
+    shipping_zones = FilterConnectionField(
         ShippingZoneCountableConnection,
         filter=ShippingZoneFilterInput(
             description="Filtering options for shipping zones."

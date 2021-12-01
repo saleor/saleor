@@ -5,11 +5,8 @@ from ...core.permissions import (
     ProductPermissions,
     ShippingPermissions,
 )
-from ..core.relay import (
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import one_of_permissions_required, permission_required
 from .filters import StockFilterInput, WarehouseFilterInput
@@ -43,7 +40,7 @@ class WarehouseQueries(graphene.ObjectType):
             graphene.ID, description="ID of an warehouse", required=True
         ),
     )
-    warehouses = RelayFilteredConnectionField(
+    warehouses = FilterConnectionField(
         WarehouseCountableConnection,
         description="List of warehouses.",
         filter=WarehouseFilterInput(),
@@ -89,7 +86,7 @@ class StockQueries(graphene.ObjectType):
         description="Look up a stock by ID",
         id=graphene.ID(required=True, description="ID of an warehouse"),
     )
-    stocks = RelayFilteredConnectionField(
+    stocks = FilterConnectionField(
         StockCountableConnection,
         description="List of stocks.",
         filter=StockFilterInput(),
