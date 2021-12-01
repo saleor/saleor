@@ -1438,6 +1438,9 @@ query getCheckout($token: UUID!) {
             price {
                 amount
             }
+            translation (languageCode: PL) {
+                name
+            }
         }
     }
 }
@@ -1595,9 +1598,8 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     apply_taxes_to_shipping_mock.assert_called_once_with(
         shipping_price, mock.ANY, checkout_with_item.channel.slug
     )
-    assert data["availableShippingMethods"] == [
-        {"name": "DHL", "price": {"amount": expected_price}}
-    ]
+    assert data["availableShippingMethods"][0]["name"] == "DHL"
+    assert data["availableShippingMethods"][0]["price"]["amount"] == expected_price
 
 
 def test_checkout_no_available_shipping_methods_without_address(
