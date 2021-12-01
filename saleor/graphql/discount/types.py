@@ -10,12 +10,11 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
 )
 from ..core import types
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
 from ..core.fields import ChannelQsContext
 from ..core.relay import (
     RelayConnectionField,
-    RelayCountableConnection,
     create_connection_slice,
 )
 from ..core.scalars import PositiveDecimal
@@ -153,7 +152,7 @@ class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
 
-class SaleCountableConnection(RelayCountableConnection):
+class SaleCountableConnection(CountableConnection):
     class Meta:
         node = Sale
 
@@ -326,7 +325,7 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)
 
 
-class VoucherCountableConnection(RelayCountableConnection):
+class VoucherCountableConnection(CountableConnection):
     class Meta:
         node = Voucher
 

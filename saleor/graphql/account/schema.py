@@ -1,7 +1,6 @@
 import graphene
 
 from ...core.permissions import AccountPermissions, OrderPermissions
-from ..core.fields import FilterInputConnectionField
 from ..core.relay import (
     RelayFilteredConnectionField,
     create_connection_slice,

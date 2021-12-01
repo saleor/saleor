@@ -50,11 +50,10 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
-from ..core.relay import RelayCountableConnection
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import Image, OrderError
 from ..core.types.money import Money, TaxedMoney
@@ -354,7 +353,7 @@ class OrderEvent(CountableDjangoObjectType):
         return get_order_discount_event(discount_obj)
 
 
-class OrderEventCountableConnection(RelayCountableConnection):
+class OrderEventCountableConnection(CountableConnection):
     class Meta:
         node = OrderEvent
 
@@ -1196,6 +1195,6 @@ class Order(CountableDjangoObjectType):
         return []
 
 
-class OrderCountableConnection(RelayCountableConnection):
+class OrderCountableConnection(CountableConnection):
     class Meta:
         node = Order

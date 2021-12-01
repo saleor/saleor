@@ -10,8 +10,7 @@ from ..channel.types import (
     ChannelContextType,
     ChannelContextTypeWithMetadata,
 )
-from ..core.connection import CountableDjangoObjectType
-from ..core.relay import RelayCountableConnection
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
 from ..product.dataloaders import (
@@ -54,7 +53,7 @@ class Menu(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
 
-class MenuCountableConnection(RelayCountableConnection):
+class MenuCountableConnection(CountableConnection):
     class Meta:
         node = Menu
 
@@ -200,7 +199,7 @@ class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return None
 
 
-class MenuItemCountableConnection(RelayCountableConnection):
+class MenuItemCountableConnection(CountableConnection):
     class Meta:
         node = MenuItem
 

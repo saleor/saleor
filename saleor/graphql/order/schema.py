@@ -3,7 +3,6 @@ import graphene
 from ...core.permissions import OrderPermissions
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import ReportingPeriod
-from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.relay import (
     RelayConnectionField,
     RelayFilteredConnectionField,

@@ -17,13 +17,12 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import resolve_federation_references
 from ..core.relay import (
     RelayConnectionField,
-    RelayCountableConnection,
     create_connection_slice,
 )
 from ..core.scalars import UUID
@@ -437,7 +436,7 @@ class User(CountableDjangoObjectType):
         return results
 
 
-class UserCountableConnection(RelayCountableConnection):
+class UserCountableConnection(CountableConnection):
     class Meta:
         node = User
 
@@ -550,6 +549,6 @@ class Group(CountableDjangoObjectType):
         return resolve_federation_references(Group, roots, qs)
 
 
-class GroupCountableConnection(RelayCountableConnection):
+class GroupCountableConnection(CountableConnection):
     class Meta:
         node = Group

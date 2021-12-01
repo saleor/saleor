@@ -9,11 +9,10 @@ from ...warehouse import models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.relay import (
     RelayConnectionField,
-    RelayCountableConnection,
     create_connection_slice,
 )
 from ..decorators import one_of_permissions_required
@@ -113,7 +112,7 @@ class Warehouse(CountableDjangoObjectType):
         )
 
 
-class WarehouseCountableConnection(RelayCountableConnection):
+class WarehouseCountableConnection(CountableConnection):
     class Meta:
         node = Warehouse
 
@@ -182,7 +181,7 @@ class Stock(CountableDjangoObjectType):
         return ChannelContext(node=root.product_variant, channel_slug=None)
 
 
-class StockCountableConnection(RelayCountableConnection):
+class StockCountableConnection(CountableConnection):
     class Meta:
         node = Stock
 

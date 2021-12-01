@@ -2,7 +2,6 @@ import graphene
 
 from ...core.permissions import CheckoutPermissions
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
-from ..core.fields import FilterInputConnectionField
 from ..core.relay import (
     RelayConnectionField,
     RelayFilteredConnectionField,
