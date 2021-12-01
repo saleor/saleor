@@ -7,10 +7,6 @@ from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import ReportingPeriod
-from ..core.fields import (
-    ChannelContextFilterConnectionField,
-    FilterInputConnectionField,
-)
 from ..core.relay import (
     RelayConnectionField,
     RelayFilteredConnectionField,
@@ -123,12 +119,15 @@ from .types import (
     Category,
     CategoryCountableConnection,
     Collection,
+    CollectionCountableConnection,
     DigitalContent,
     DigitalContentCountableConnection,
     Product,
+    ProductCountableConnection,
     ProductType,
     ProductTypeCountableConnection,
     ProductVariant,
+    ProductVariantCountableConnection,
 )
 
 
@@ -171,8 +170,8 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="Look up a collection by ID.",
     )
-    collections = ChannelContextFilterConnectionField(
-        Collection,
+    collections = RelayFilteredConnectionField(
+        CollectionCountableConnection,
         filter=CollectionFilterInput(description="Filtering options for collections."),
         sort_by=CollectionSortingInput(description="Sort collections."),
         description="List of the shop's collections.",
@@ -192,8 +191,8 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="Look up a product by ID.",
     )
-    products = ChannelContextFilterConnectionField(
-        Product,
+    products = RelayFilteredConnectionField(
+        ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
         channel=graphene.String(
@@ -230,8 +229,8 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="Look up a product variant by ID or SKU.",
     )
-    product_variants = ChannelContextFilterConnectionField(
-        ProductVariant,
+    product_variants = RelayFilteredConnectionField(
+        ProductVariantCountableConnection,
         ids=graphene.List(
             graphene.ID, description="Filter product variants by given IDs."
         ),
@@ -243,8 +242,8 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="List of product variants.",
     )
-    report_product_sales = ChannelContextFilterConnectionField(
-        ProductVariant,
+    report_product_sales = RelayConnectionField(
+        ProductVariantCountableConnection,
         period=graphene.Argument(
             ReportingPeriod, required=True, description="Span of time."
         ),
@@ -292,14 +291,17 @@ class ProductQueries(graphene.ObjectType):
             else None
         )
 
-    def resolve_collections(self, info, channel=None, *_args, **_kwargs):
+    def resolve_collections(self, info, channel=None, *_args, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
-        return resolve_collections(info, channel)
+        qs = resolve_collections(info, channel)
+        kwargs["channel"] = channel
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_content(self, info, id):
@@ -343,7 +345,10 @@ class ProductQueries(graphene.ObjectType):
         )
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
-        return resolve_products(info, requestor, channel_slug=channel, **kwargs)
+        qs = resolve_products(info, requestor, channel_slug=channel, **kwargs)
+        kwargs["channel"] = channel
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     def resolve_product_type(self, info, id, **_kwargs):
         _, id = from_global_id_or_error(id, ProductType)
@@ -389,25 +394,34 @@ class ProductQueries(graphene.ObjectType):
             )
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
-    def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):
+    def resolve_product_variants(self, info, ids=None, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
-        return resolve_product_variants(
+        qs = resolve_product_variants(
             info,
             ids=ids,
             channel_slug=channel,
             requestor_has_access_to_all=has_required_permissions,
             requestor=requestor,
         )
+        kwargs["channel"] = qs.channel_slug
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(
+            qs, info, kwargs, ProductVariantCountableConnection
+        )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     @traced_resolver
-    def resolve_report_product_sales(self, *_args, period, channel, **_kwargs):
-        return resolve_report_product_sales(period, channel_slug=channel)
+    def resolve_report_product_sales(self, info, *_args, period, channel, **kwargs):
+        qs = resolve_report_product_sales(period, channel_slug=channel)
+        kwargs["channel"] = qs.channel_slug
+        return create_connection_slice(
+            qs, info, kwargs, ProductVariantCountableConnection
+        )
 
 
 class ProductMutations(graphene.ObjectType):
