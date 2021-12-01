@@ -8,9 +8,12 @@ from .products import (
     Category,
     CategoryCountableConnection,
     Collection,
+    CollectionCountableConnection,
     Product,
+    ProductCountableConnection,
     ProductMedia,
     ProductType,
     ProductTypeCountableConnection,
     ProductVariant,
+    ProductVariantCountableConnection,
 )

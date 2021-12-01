@@ -8,6 +8,7 @@ from graphql import GraphQLError, ResolveInfo
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 
 from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
+from ..channel import ChannelContext, ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..utils.sorting import sort_queryset_for_connection
 from .connection import NonNullConnection, connection_from_queryset_slice
@@ -64,7 +65,6 @@ class RelayCountableConnection(NonNullConnection):
         except (AttributeError, KeyError):
             return None
 
-        print(total_count)
         if callable(total_count):
             return total_count()
 
@@ -92,16 +92,31 @@ def create_connection_slice(
             pageinfo_type,
         )
 
-    iterable, sort_by = sort_queryset_for_connection(iterable=iterable, args=args)
+    if isinstance(iterable, ChannelQsContext):
+        queryset = iterable.qs
+    else:
+        queryset = iterable
+
+    queryset, sort_by = sort_queryset_for_connection(iterable=queryset, args=args)
     args["sort_by"] = sort_by
 
-    return connection_from_queryset_slice(
-        iterable,
+    slice = connection_from_queryset_slice(
+        queryset,
         args,
         connection_type,
         edge_type or connection_type.Edge,
         pageinfo_type or graphene.relay.PageInfo,
     )
+
+    if isinstance(iterable, ChannelQsContext):
+        edges_with_context = []
+        for edge in slice.edges:
+            node = edge.node
+            edge.node = ChannelContext(node=node, channel_slug=iterable.channel_slug)
+            edges_with_context.append(edge)
+        slice.edges = edges_with_context
+
+    return slice
 
 
 def validate_slice_args(
@@ -155,6 +170,7 @@ def slice_connection_iterable(
     pageinfo_type=None,
 ):
     _len = len(iterable)
+
     slice = connection_from_list_slice(
         iterable,
         args,
@@ -165,15 +181,18 @@ def slice_connection_iterable(
         edge_type=edge_type or connection_type.Edge,
         pageinfo_type=pageinfo_type or graphene.relay.PageInfo,
     )
+
     if "total_count" in connection_type._meta.fields:
         slice.total_count = _len
+
     return slice
 
 
-def filter_connection_queryset(qs, args, request=None, root=None):
+def filter_connection_queryset(iterable, args, request=None, root=None):
     filterset_class = args[FILTERSET_CLASS]
     filter_field_name = args[FILTERS_NAME]
     filter_input = args.get(filter_field_name)
+    print("filter_connection_queryset")
     if filter_input:
         # for nested filters get channel from ChannelContext object
         if "channel" not in args and root and hasattr(root, "channel_slug"):
@@ -189,8 +208,18 @@ def filter_connection_queryset(qs, args, request=None, root=None):
             or get_default_channel_slug_or_graphql_error()
         )
 
-        filterset = filterset_class(filter_input, queryset=qs, request=request)
+        if isinstance(iterable, ChannelQsContext):
+            queryset = iterable.qs
+        else:
+            queryset = iterable
+
+        filterset = filterset_class(filter_input, queryset=queryset, request=request)
         if not filterset.is_valid():
             raise GraphQLError(json.dumps(filterset.errors.get_json_data()))
+
+        if isinstance(iterable, ChannelQsContext):
+            return ChannelQsContext(filterset.qs, iterable.channel_slug)
+
         return filterset.qs
-    return qs
+
+    return iterable

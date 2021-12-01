@@ -2,7 +2,11 @@ import graphene
 
 from ..channel import ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
-from ..core.fields import ChannelContextFilterConnectionField
+from ..core.relay import (
+    RelayFilteredConnectionField,
+    create_connection_slice,
+    filter_connection_queryset,
+)
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import MenuItemTranslate
 from .bulk_mutations import MenuBulkDelete, MenuItemBulkDelete
@@ -24,7 +28,7 @@ from .resolvers import (
     resolve_menus,
 )
 from .sorters import MenuItemSortingInput, MenuSortingInput
-from .types import Menu, MenuItem
+from .types import Menu, MenuCountableConnection, MenuItem, MenuItemCountableConnection
 
 
 class MenuQueries(graphene.ObjectType):
@@ -38,8 +42,8 @@ class MenuQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="The menu's slug."),
         description="Look up a navigation menu by ID or name.",
     )
-    menus = ChannelContextFilterConnectionField(
-        Menu,
+    menus = RelayFilteredConnectionField(
+        MenuCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -57,8 +61,8 @@ class MenuQueries(graphene.ObjectType):
         ),
         description="Look up a menu item by ID.",
     )
-    menu_items = ChannelContextFilterConnectionField(
-        MenuItem,
+    menu_items = RelayFilteredConnectionField(
+        MenuItemCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -77,7 +81,9 @@ class MenuQueries(graphene.ObjectType):
     def resolve_menus(self, info, channel=None, **kwargs):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        return resolve_menus(info, channel, **kwargs)
+        qs = resolve_menus(info, channel, **kwargs)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, MenuCountableConnection)
 
     def resolve_menu_item(self, info, channel=None, **data):
         if channel is None:
@@ -89,7 +95,9 @@ class MenuQueries(graphene.ObjectType):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         menu_items = resolve_menu_items(info, **kwargs)
-        return ChannelQsContext(qs=menu_items, channel_slug=channel)
+        qs = ChannelQsContext(qs=menu_items, channel_slug=channel)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, MenuItemCountableConnection)
 
 
 class MenuMutations(graphene.ObjectType):

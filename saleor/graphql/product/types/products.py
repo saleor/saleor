@@ -49,7 +49,6 @@ from ...core.descriptions import (
 )
 from ...core.enums import ReportingPeriod
 from ...core.federation import resolve_federation_references
-from ...core.fields import ChannelContextFilterConnectionField
 from ...core.relay import (
     RelayConnectionField,
     RelayCountableConnection,
@@ -695,6 +694,11 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return [variants.get(root_id) for root_id in roots_ids]
 
 
+class ProductVariantCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = ProductVariant
+
+
 @key(fields="id channel")
 class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     channel = graphene.String(
@@ -1169,11 +1173,16 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return [products.get(root_id) for root_id in roots_ids]
 
 
+class ProductCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = Product
+
+
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)
-    products = ChannelContextFilterConnectionField(
-        Product,
+    products = RelayConnectionField(
+        ProductCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -1306,12 +1315,14 @@ class ProductType(CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_products(root: models.ProductType, info, channel=None, **_kwargs):
+    def resolve_products(root: models.ProductType, info, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         qs = root.products.visible_to_user(requestor, channel)  # type: ignore
-        return ChannelQsContext(qs=qs, channel_slug=channel)
+        qs = ChannelQsContext(qs=qs, channel_slug=channel)
+        kwargs["channel"] = channel
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -1353,8 +1364,8 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    products = ChannelContextFilterConnectionField(
-        Product,
+    products = RelayFilteredConnectionField(
+        ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
@@ -1410,7 +1421,11 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         qs = root.node.products.visible_to_user(  # type: ignore
             requestor, root.channel_slug
         )
-        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+
+        kwargs["channel"] = root.channel_slug
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -1447,6 +1462,11 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return [collections.get(root_id) for root_id in roots_ids]
 
 
+class CollectionCountableConnection(RelayCountableConnection):
+    class Meta:
+        node = Collection
+
+
 @key(fields="id")
 class Category(CountableDjangoObjectType):
     description_json = graphene.JSONString(
@@ -1459,8 +1479,8 @@ class Category(CountableDjangoObjectType):
         lambda: CategoryCountableConnection,
         description="List of ancestors of the category.",
     )
-    products = ChannelContextFilterConnectionField(
-        Product,
+    products = RelayConnectionField(
+        ProductCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -1535,7 +1555,7 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_products(root: models.Category, info, channel=None, **_kwargs):
+    def resolve_products(root: models.Category, info, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -1555,7 +1575,8 @@ class Category(CountableDjangoObjectType):
         if channel and has_required_permissions:
             qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
-        return ChannelQsContext(qs=qs, channel_slug=channel)
+        qs = ChannelQsContext(qs=qs, channel_slug=channel)
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     def __resolve_references(roots: List["Category"], _info, **_kwargs):
