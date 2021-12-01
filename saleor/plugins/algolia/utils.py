@@ -56,6 +56,29 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
         media {
           url
         }
+        variants {
+          id
+          name
+          attributes {
+            attribute {
+              id
+              name
+              translation(languageCode: $languageCode) {
+                name
+              }
+            }
+            values {
+              id
+              name
+              translation(languageCode: $languageCode) {
+                name
+              }
+            }
+          }
+          translation(languageCode: $languageCode) {
+            name
+          }
+        }
         channelListings {
           pricing {
             priceRange {
