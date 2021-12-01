@@ -18,6 +18,7 @@ EVENT_DELIVERY_QUERY = """
                status
                eventType
                id
+               payload
                attempts(first: $first){
                 edges{
                   node{
@@ -59,6 +60,7 @@ def test_webhook_delivery_attempt_query(
     assert delivery_response["id"] == delivery_id
     assert delivery_response["status"] == EventDeliveryStatus.PENDING.upper()
     assert delivery_response["eventType"] == WebhookEventType.ANY.upper()
+    assert delivery_response["payload"] == delivery.payload.payload
     assert len(attempts_response) == 1
     assert attempts_response[0]["node"]["response"] == event_attempt.response
     assert attempts_response[0]["node"]["duration"] == event_attempt.duration

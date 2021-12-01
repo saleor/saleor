@@ -11,6 +11,7 @@ from ..webhook.sorters import (
     EventDeliveryAttemptSortingInput,
     EventDeliverySortingInput,
 )
+from .dataloaders import PayloadByIdLoader
 
 
 class WebhookEvent(CountableDjangoObjectType):
@@ -63,6 +64,7 @@ class EventDelivery(CountableDjangoObjectType):
         description="Event delivery attempts.",
     )
     event_type = WebhookEventTypeEnum(description="Webhook event type.", required=True)
+    payload = graphene.String(description="Event payload.")
 
     class Meta:
         description = "Event delivery."
@@ -78,6 +80,12 @@ class EventDelivery(CountableDjangoObjectType):
     @staticmethod
     def resolve_attempts(root: core_models.EventDelivery, *_args, **_kwargs):
         return core_models.EventDeliveryAttempt.objects.filter(delivery=root)
+
+    @staticmethod
+    def resolve_payload(root: core_models.EventDelivery, info):
+        if not root.payload_id:
+            return None
+        return PayloadByIdLoader(info.context).load(root.payload_id)
 
 
 class Webhook(CountableDjangoObjectType):
