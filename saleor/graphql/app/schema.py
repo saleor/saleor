@@ -1,12 +1,9 @@
 import graphene
 
 from ...core.permissions import AppPermission
+from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31
-from ..core.relay import (
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.fields import FilterConnectionField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required, staff_member_or_app_required
@@ -58,7 +55,7 @@ class AppQueries(graphene.ObjectType):
         description="List of all apps installations",
         required=True,
     )
-    apps = RelayFilteredConnectionField(
+    apps = FilterConnectionField(
         AppCountableConnection,
         filter=AppFilterInput(description="Filtering options for apps."),
         sort_by=AppSortingInput(description="Sort apps."),
@@ -73,7 +70,7 @@ class AppQueries(graphene.ObjectType):
         ),
     )
 
-    app_extensions = RelayFilteredConnectionField(
+    app_extensions = FilterConnectionField(
         AppExtensionCountableConnection,
         filter=AppExtensionFilterInput(
             description="Filtering options for apps extensions."

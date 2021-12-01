@@ -2,11 +2,8 @@ import graphene
 
 from ..channel import ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
-from ..core.relay import (
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import MenuItemTranslate
 from .bulk_mutations import MenuBulkDelete, MenuItemBulkDelete
@@ -42,7 +39,7 @@ class MenuQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="The menu's slug."),
         description="Look up a navigation menu by ID or name.",
     )
-    menus = RelayFilteredConnectionField(
+    menus = FilterConnectionField(
         MenuCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -61,7 +58,7 @@ class MenuQueries(graphene.ObjectType):
         ),
         description="Look up a menu item by ID.",
     )
-    menu_items = RelayFilteredConnectionField(
+    menu_items = FilterConnectionField(
         MenuItemCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."

@@ -4,11 +4,8 @@ import graphene
 import pytest
 
 from ....tests.models import Book
-from ..connection import CountableConnection
-from ..relay import (
-    RelayConnectionField,
-    create_connection_slice,
-)
+from ..connection import CountableConnection, create_connection_slice
+from ..fields import ConnectionField
 
 
 class BookType(graphene.ObjectType):
@@ -21,7 +18,7 @@ class BookTypeCountableConnection(CountableConnection):
 
 
 class Query(graphene.ObjectType):
-    books = RelayConnectionField(BookTypeCountableConnection)
+    books = ConnectionField(BookTypeCountableConnection)
 
     def resolve_books(self, info, **kwargs):
         qs = Book.objects.all()

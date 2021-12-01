@@ -1,21 +1,29 @@
 import json
 from decimal import Decimal, InvalidOperation
-from typing import Any, Dict, Iterable, List, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import graphene
+from django.conf import settings
 from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
-from graphene.relay.connection import Connection
+from graphene.relay import Connection
 from graphene_django.types import DjangoObjectType
-from graphql.error import GraphQLError
+from graphql import GraphQLError, ResolveInfo
+from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
 from graphql_relay.utils import base64, unbase64
 
+from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
+from ..channel import ChannelContext, ChannelQsContext
+from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import OrderDirection
+from ..utils.sorting import sort_queryset_for_connection
 
 ConnectionArguments = Dict[str, Any]
 
 EPSILON = Decimal("0.000001")
+FILTERS_NAME = "_FILTERS_NAME"
+FILTERSET_CLASS = "_FILTERSET_CLASS"
 
 
 def to_global_cursor(values):
@@ -273,6 +281,160 @@ def connection_from_queryset_slice(
         edges=edges,
         page_info=pageinfo_type(**page_info),
     )
+
+
+def create_connection_slice(
+    iterable,
+    info,
+    args,
+    connection_type,
+    edge_type=None,
+    pageinfo_type=graphene.relay.PageInfo,
+    enforce_first_or_last: Optional[bool] = None,
+    max_limit: Optional[int] = None,
+):
+    validate_slice_args(info, args, enforce_first_or_last, max_limit)
+
+    if isinstance(iterable, list):
+        return slice_connection_iterable(
+            iterable,
+            args,
+            connection_type,
+            edge_type,
+            pageinfo_type,
+        )
+
+    if isinstance(iterable, ChannelQsContext):
+        queryset = iterable.qs
+    else:
+        queryset = iterable
+
+    queryset, sort_by = sort_queryset_for_connection(iterable=queryset, args=args)
+    args["sort_by"] = sort_by
+
+    slice = connection_from_queryset_slice(
+        queryset,
+        args,
+        connection_type,
+        edge_type or connection_type.Edge,
+        pageinfo_type or graphene.relay.PageInfo,
+    )
+
+    if isinstance(iterable, ChannelQsContext):
+        edges_with_context = []
+        for edge in slice.edges:
+            node = edge.node
+            edge.node = ChannelContext(node=node, channel_slug=iterable.channel_slug)
+            edges_with_context.append(edge)
+        slice.edges = edges_with_context
+
+    return slice
+
+
+def validate_slice_args(
+    info: ResolveInfo,
+    args: dict,
+    enforce_first_or_last: Optional[bool] = None,
+    max_limit: Optional[int] = None,
+):
+    # Disable `enforce_first_or_last` if not querying for `edges`.
+    values = [field.name.value for field in info.field_asts[0].selection_set.selections]
+    if "edges" not in values:
+        enforce_first_or_last = False
+    elif enforce_first_or_last is None:
+        enforce_first_or_last = settings.GRAPHENE.get(
+            "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST", True
+        )
+
+    first = args.get("first")
+    last = args.get("last")
+
+    if enforce_first_or_last and not (first or last):
+        raise GraphQLError(
+            f"You must provide a `first` or `last` value to properly paginate "
+            f"the `{info.field_name}` connection."
+        )
+
+    if max_limit is None:
+        max_limit = settings.GRAPHENE.get("RELAY_CONNECTION_MAX_LIMIT", 0)
+
+    if max_limit:
+        if first:
+            assert first <= max_limit, (
+                "Requesting {} records on the `{}` connection exceeds the "
+                "`first` limit of {} records."
+            ).format(first, info.field_name, max_limit)
+            args["first"] = min(first, max_limit)
+
+        if last:
+            assert last <= max_limit, (
+                "Requesting {} records on the `{}` connection exceeds the "
+                "`last` limit of {} records."
+            ).format(last, info.field_name, max_limit)
+            args["last"] = min(last, max_limit)
+
+
+def slice_connection_iterable(
+    iterable,
+    args,
+    connection_type,
+    edge_type=None,
+    pageinfo_type=None,
+):
+    _len = len(iterable)
+
+    slice = connection_from_list_slice(
+        iterable,
+        args,
+        slice_start=0,
+        list_length=_len,
+        list_slice_length=_len,
+        connection_type=connection_type,
+        edge_type=edge_type or connection_type.Edge,
+        pageinfo_type=pageinfo_type or graphene.relay.PageInfo,
+    )
+
+    if "total_count" in connection_type._meta.fields:
+        slice.total_count = _len
+
+    return slice
+
+
+def filter_connection_queryset(iterable, args, request=None, root=None):
+    filterset_class = args[FILTERSET_CLASS]
+    filter_field_name = args[FILTERS_NAME]
+    filter_input = args.get(filter_field_name)
+
+    if filter_input:
+        # for nested filters get channel from ChannelContext object
+        if "channel" not in args and root and hasattr(root, "channel_slug"):
+            args["channel"] = root.channel_slug
+
+        try:
+            filter_channel = str(filter_input["channel"])
+        except (NoDefaultChannel, ChannelNotDefined, GraphQLError, KeyError):
+            filter_channel = None
+        filter_input["channel"] = (
+            args.get("channel")
+            or filter_channel
+            or get_default_channel_slug_or_graphql_error()
+        )
+
+        if isinstance(iterable, ChannelQsContext):
+            queryset = iterable.qs
+        else:
+            queryset = iterable
+
+        filterset = filterset_class(filter_input, queryset=queryset, request=request)
+        if not filterset.is_valid():
+            raise GraphQLError(json.dumps(filterset.errors.get_json_data()))
+
+        if isinstance(iterable, ChannelQsContext):
+            return ChannelQsContext(filterset.qs, iterable.channel_slug)
+
+        return filterset.qs
+
+    return iterable
 
 
 class NonNullConnection(Connection):

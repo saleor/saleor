@@ -17,14 +17,15 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
-from ..core.connection import CountableConnection, CountableDjangoObjectType
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
+)
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import resolve_federation_references
-from ..core.relay import (
-    RelayConnectionField,
-    create_connection_slice,
-)
+from ..core.fields import ConnectionField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, Permission
 from ..core.utils import from_global_id_or_error, str_to_enum
@@ -241,12 +242,12 @@ class User(CountableDjangoObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
     )
-    gift_cards = RelayConnectionField(
+    gift_cards = ConnectionField(
         "saleor.graphql.giftcard.types.GiftCardCountableConnection",
         description="List of the user gift cards.",
     )
     note = graphene.String(description="A note about the customer.")
-    orders = RelayConnectionField(
+    orders = ConnectionField(
         "saleor.graphql.order.types.OrderCountableConnection",
         description="List of user's orders.",
     )

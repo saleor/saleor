@@ -2,7 +2,8 @@ import graphene
 
 from ...core.permissions import PluginsPermissions
 from ...core.tracing import traced_resolver
-from ..core.relay import RelayConnectionField, create_connection_slice
+from ..core.connection import create_connection_slice
+from ..core.fields import ConnectionField
 from ..decorators import permission_required
 from .filters import PluginFilterInput
 from .mutations import PluginUpdate
@@ -20,7 +21,7 @@ class PluginsQueries(graphene.ObjectType):
         description="Look up a plugin by ID.",
     )
 
-    plugins = RelayConnectionField(
+    plugins = ConnectionField(
         PluginCountableConnection,
         filter=PluginFilterInput(description="Filtering options for plugins."),
         sort_by=PluginSortingInput(description="Sort plugins."),

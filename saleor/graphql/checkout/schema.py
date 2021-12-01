@@ -1,13 +1,9 @@
 import graphene
 
 from ...core.permissions import CheckoutPermissions
+from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
-from ..core.relay import (
-    RelayConnectionField,
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.fields import ConnectionField, FilterConnectionField
 from ..core.scalars import UUID
 from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
@@ -46,7 +42,7 @@ class CheckoutQueries(graphene.ObjectType):
         token=graphene.Argument(UUID, description="The checkout's token."),
     )
     # FIXME we could optimize the below field
-    checkouts = RelayFilteredConnectionField(
+    checkouts = FilterConnectionField(
         CheckoutCountableConnection,
         sort_by=CheckoutSortingInput(description=f"{ADDED_IN_31} Sort checkouts."),
         filter=CheckoutFilterInput(
@@ -57,7 +53,7 @@ class CheckoutQueries(graphene.ObjectType):
         ),
         description="List of checkouts.",
     )
-    checkout_lines = RelayConnectionField(
+    checkout_lines = ConnectionField(
         CheckoutLineCountableConnection, description="List of checkout lines."
     )
 

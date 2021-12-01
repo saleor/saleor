@@ -6,13 +6,9 @@ from ...core.permissions import ProductPermissions, has_one_of_permissions
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
+from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.enums import ReportingPeriod
-from ..core.relay import (
-    RelayConnectionField,
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.fields import ConnectionField, FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
@@ -139,10 +135,10 @@ class ProductQueries(graphene.ObjectType):
             graphene.ID, description="ID of the digital content.", required=True
         ),
     )
-    digital_contents = RelayConnectionField(
+    digital_contents = ConnectionField(
         DigitalContentCountableConnection, description="List of digital content."
     )
-    categories = RelayFilteredConnectionField(
+    categories = FilterConnectionField(
         CategoryCountableConnection,
         filter=CategoryFilterInput(description="Filtering options for categories."),
         sort_by=CategorySortingInput(description="Sort categories."),
@@ -170,7 +166,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="Look up a collection by ID.",
     )
-    collections = RelayFilteredConnectionField(
+    collections = FilterConnectionField(
         CollectionCountableConnection,
         filter=CollectionFilterInput(description="Filtering options for collections."),
         sort_by=CollectionSortingInput(description="Sort collections."),
@@ -191,7 +187,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="Look up a product by ID.",
     )
-    products = RelayFilteredConnectionField(
+    products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
@@ -207,7 +203,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="Look up a product type by ID.",
     )
-    product_types = RelayFilteredConnectionField(
+    product_types = FilterConnectionField(
         ProductTypeCountableConnection,
         filter=ProductTypeFilterInput(
             description="Filtering options for product types."
@@ -229,7 +225,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="Look up a product variant by ID or SKU.",
     )
-    product_variants = RelayFilteredConnectionField(
+    product_variants = FilterConnectionField(
         ProductVariantCountableConnection,
         ids=graphene.List(
             graphene.ID, description="Filter product variants by given IDs."
@@ -242,7 +238,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="List of product variants.",
     )
-    report_product_sales = RelayConnectionField(
+    report_product_sales = ConnectionField(
         ProductVariantCountableConnection,
         period=graphene.Argument(
             ReportingPeriod, required=True, description="Span of time."

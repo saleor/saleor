@@ -1,11 +1,8 @@
 import graphene
 
 from ...core.permissions import OrderPermissions
-from ..core.relay import (
-    RelayFilteredConnectionField,
-    create_connection_slice,
-    filter_connection_queryset,
-)
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .filters import PaymentFilterInput
@@ -28,7 +25,7 @@ class PaymentQueries(graphene.ObjectType):
             graphene.ID, description="ID of the payment.", required=True
         ),
     )
-    payments = RelayFilteredConnectionField(
+    payments = FilterConnectionField(
         PaymentCountableConnection,
         filter=PaymentFilterInput(description="Filtering options for payments."),
         description="List of payments.",

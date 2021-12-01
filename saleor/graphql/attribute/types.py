@@ -7,15 +7,15 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import PagePermissions, ProductPermissions
 from ...core.tracing import traced_resolver
 from ...graphql.utils import get_user_or_app_from_context
-from ..core.connection import CountableConnection, CountableDjangoObjectType
-from ..core.descriptions import ADDED_IN_31
-from ..core.enums import MeasurementUnitsEnum
-from ..core.relay import (
-    RelayConnectionField,
-    RelayFilteredConnectionField,
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
     create_connection_slice,
     filter_connection_queryset,
 )
+from ..core.descriptions import ADDED_IN_31
+from ..core.enums import MeasurementUnitsEnum
+from ..core.fields import ConnectionField, FilterConnectionField
 from ..core.types import File
 from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from ..decorators import check_attribute_required_permissions
@@ -131,7 +131,7 @@ class Attribute(CountableDjangoObjectType):
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
-    choices = RelayFilteredConnectionField(
+    choices = FilterConnectionField(
         AttributeValueCountableConnection,
         sort_by=AttributeChoicesSortingInput(description="Sort attribute choices."),
         filter=AttributeValueFilterInput(
@@ -165,10 +165,10 @@ class Attribute(CountableDjangoObjectType):
         description=AttributeDescriptions.WITH_CHOICES, required=True
     )
 
-    product_types = RelayConnectionField(
+    product_types = ConnectionField(
         "saleor.graphql.product.types.ProductTypeCountableConnection"
     )
-    product_variant_types = RelayConnectionField(
+    product_variant_types = ConnectionField(
         "saleor.graphql.product.types.ProductTypeCountableConnection"
     )
 

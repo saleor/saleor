@@ -8,14 +8,15 @@ from ...core.permissions import PagePermissions
 from ...page import models
 from ..attribute.filters import AttributeFilterInput
 from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
-from ..core.connection import CountableConnection, CountableDjangoObjectType
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
-from ..core.federation import resolve_federation_references
-from ..core.relay import (
-    RelayFilteredConnectionField,
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
     create_connection_slice,
     filter_connection_queryset,
 )
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.federation import resolve_federation_references
+from ..core.fields import FilterConnectionField
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
@@ -85,7 +86,7 @@ class PageType(CountableDjangoObjectType):
     attributes = graphene.List(
         Attribute, description="Page attributes of that page type."
     )
-    available_attributes = RelayFilteredConnectionField(
+    available_attributes = FilterConnectionField(
         AttributeCountableConnection,
         filter=AttributeFilterInput(),
         description="Attributes that can be assigned to the page type.",
