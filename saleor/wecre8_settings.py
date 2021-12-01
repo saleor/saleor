@@ -9,6 +9,8 @@ PLUGINS.append(  # noqa F405
     "saleor.plugins.oto.plugin.OTOPlugin",
 )
 
+INSTALLED_APPS.append("django_celery_results")  # noqa F405
+
 CELERY_BEAT_SCHEDULE.update(  # noqa F405
     {
         "update-oto-access-token": {
