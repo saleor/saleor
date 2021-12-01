@@ -20,7 +20,7 @@ from ...core.permissions import (
     ProductPermissions,
     has_one_of_permissions,
 )
-from ...core.taxes import display_gross_prices
+from ...core.taxes import display_gross_prices, include_taxes_in_prices
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
@@ -1047,10 +1047,12 @@ class Order(CountableDjangoObjectType):
         external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
+            keep_gross = include_taxes_in_prices()
+            price = root.shipping_price_gross if keep_gross else root.shipping_price_net
             method = ShippingMethodData(
                 id=external_app_shipping_id,
                 name=root.shipping_method_name,
-                price=root.shipping_price,
+                price=price,
             )
             return ChannelContext(node=method, channel_slug=root.channel.slug)
 
