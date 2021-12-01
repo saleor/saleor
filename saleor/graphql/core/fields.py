@@ -1,17 +1,7 @@
 from functools import wraps
 
-<<<<<<< HEAD
-import graphe
-from graphene.relay import PageInfo
-from graphene_django.fields import DjangoConnectionField
-from graphql.error import GraphQLError
-from graphql.language.ast import FragmentSpread
-from graphql_relay.connection.arrayconnection import connection_from_list_slice
-from promise import Promise
-=======
 import graphene
 from graphene.relay import Connection, is_node
->>>>>>> 453426259... Replace old connections utils with new ones
 
 from .connection import FILTERS_NAME, FILTERSET_CLASS
 
