@@ -42,6 +42,7 @@ from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
+from ....shipping.models import ShippingMethodTranslation
 from ....shipping.utils import convert_to_shipping_method_data
 from ....warehouse.models import PreorderReservation, Reservation, Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -1587,6 +1588,10 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     site_settings.save()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
+    translated_name = "Dostawa ekspresowa"
+    ShippingMethodTranslation.objects.create(
+        language_code="pl", shipping_method=shipping_method, name=translated_name
+    )
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
 
@@ -1600,6 +1605,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     )
     assert data["availableShippingMethods"][0]["name"] == "DHL"
     assert data["availableShippingMethods"][0]["price"]["amount"] == expected_price
+    assert data["availableShippingMethods"][0]["translation"]["name"] == translated_name
 
 
 def test_checkout_no_available_shipping_methods_without_address(
