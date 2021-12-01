@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
@@ -87,11 +89,18 @@ def test_shipping_detection(checkout, product):
     assert checkout.is_shipping_required()
 
 
-@pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize(
+    "taxes_included, tax_multiplier",
+    [(True, Decimal("1.23")), (False, Decimal("1.00"))],
+)
 def test_get_prices_of_discounted_specific_product(
-    checkout_with_item, collection, voucher_specific_product_type, taxes_included
+    priced_checkout_with_item,
+    collection,
+    voucher_specific_product_type,
+    taxes_included,
+    tax_multiplier,
 ):
-    checkout = checkout_with_item
+    checkout = priced_checkout_with_item
     voucher = voucher_specific_product_type
     line = checkout.lines.first()
     product = line.variant.product
@@ -115,20 +124,25 @@ def test_get_prices_of_discounted_specific_product(
         line.variant.get_price(
             product, [collection], channel, variant_channel_listing, []
         )
+        * tax_multiplier
         for item in range(line.quantity)
     ]
 
     assert prices == excepted_value
 
 
-@pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize(
+    "taxes_included, tax_multiplier",
+    [(True, Decimal("1.23")), (False, Decimal("1.00"))],
+)
 def test_get_prices_of_discounted_specific_product_only_product(
-    checkout_with_item,
+    priced_checkout_with_item,
     voucher_specific_product_type,
     product_with_default_variant,
     taxes_included,
+    tax_multiplier,
 ):
-    checkout = checkout_with_item
+    checkout = priced_checkout_with_item
     voucher = voucher_specific_product_type
     line = checkout.lines.first()
     product = line.variant.product
@@ -148,6 +162,7 @@ def test_get_prices_of_discounted_specific_product_only_product(
 
     excepted_value = [
         line.variant.get_price(product, [], channel, variant_channel_listing, [])
+        * tax_multiplier
         for item in range(line.quantity)
     ]
 
@@ -155,15 +170,19 @@ def test_get_prices_of_discounted_specific_product_only_product(
     assert prices == excepted_value
 
 
-@pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize(
+    "taxes_included, tax_multiplier",
+    [(True, Decimal("1.23")), (False, Decimal("1.00"))],
+)
 def test_get_prices_of_discounted_specific_product_only_collection(
-    checkout_with_item,
+    priced_checkout_with_item,
     collection,
     voucher_specific_product_type,
     product_with_default_variant,
     taxes_included,
+    tax_multiplier,
 ):
-    checkout = checkout_with_item
+    checkout = priced_checkout_with_item
     voucher = voucher_specific_product_type
     line = checkout.lines.first()
     product = line.variant.product
@@ -186,6 +205,7 @@ def test_get_prices_of_discounted_specific_product_only_collection(
         line.variant.get_price(
             product, [collection], channel, variant_channel_listing, []
         )
+        * tax_multiplier
         for item in range(line.quantity)
     ]
 
@@ -193,14 +213,18 @@ def test_get_prices_of_discounted_specific_product_only_collection(
     assert prices == excepted_value
 
 
-@pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize(
+    "taxes_included, tax_multiplier",
+    [(True, Decimal("1.23")), (False, Decimal("1.00"))],
+)
 def test_get_prices_of_discounted_specific_product_only_category(
-    checkout_with_item,
+    priced_checkout_with_item,
     voucher_specific_product_type,
     product_with_default_variant,
     taxes_included,
+    tax_multiplier,
 ):
-    checkout = checkout_with_item
+    checkout = priced_checkout_with_item
     voucher = voucher_specific_product_type
     line = checkout.lines.first()
     product = line.variant.product
@@ -224,6 +248,7 @@ def test_get_prices_of_discounted_specific_product_only_category(
 
     excepted_value = [
         line.variant.get_price(product, [], channel, variant_channel_listing, [])
+        * tax_multiplier
         for item in range(line.quantity)
     ]
 
@@ -231,11 +256,17 @@ def test_get_prices_of_discounted_specific_product_only_category(
     assert prices == excepted_value
 
 
-@pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize(
+    "taxes_included, tax_multiplier",
+    [(True, Decimal("1.23")), (False, Decimal("1.00"))],
+)
 def test_get_prices_of_discounted_specific_product_all_products(
-    checkout_with_item, voucher_specific_product_type, taxes_included
+    priced_checkout_with_item,
+    voucher_specific_product_type,
+    taxes_included,
+    tax_multiplier,
 ):
-    checkout = checkout_with_item
+    checkout = priced_checkout_with_item
     voucher = voucher_specific_product_type
     line = checkout.lines.first()
     product = line.variant.product
@@ -251,6 +282,7 @@ def test_get_prices_of_discounted_specific_product_all_products(
 
     excepted_value = [
         line.variant.get_price(product, [], channel, variant_channel_listing, [])
+        * tax_multiplier
         for item in range(line.quantity)
     ]
 
