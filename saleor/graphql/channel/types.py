@@ -1,4 +1,3 @@
-import dataclasses
 from typing import Union
 
 import graphene
@@ -38,7 +37,7 @@ class ChannelContextTypeForObjectType(graphene.ObjectType):
     @staticmethod
     def resolve_translation(root: ChannelContext, info, language_code):
         # Resolver for TranslationField; needs to be manually specified.
-        if dataclasses.is_dataclass(root):
+        if not isinstance(root, ChannelContext):
             return resolve_translation(root, info, language_code)
         return resolve_translation(root.node, info, language_code)
 
