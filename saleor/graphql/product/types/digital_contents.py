@@ -3,8 +3,7 @@ from graphene import relay
 
 from ....product import models
 from ...channel import ChannelContext
-from ...core.connection import CountableDjangoObjectType
-from ...core.relay import RelayCountableConnection
+from ...core.connection import CountableConnection, CountableDjangoObjectType
 from ...core.scalars import UUID
 from ...meta.types import ObjectWithMetadata
 from ..dataloaders import ProductVariantByIdLoader
@@ -62,6 +61,6 @@ class DigitalContent(CountableDjangoObjectType):
         )
 
 
-class DigitalContentCountableConnection(RelayCountableConnection):
+class DigitalContentCountableConnection(CountableConnection):
     class Meta:
         node = DigitalContent

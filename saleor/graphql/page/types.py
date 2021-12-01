@@ -8,11 +8,10 @@ from ...core.permissions import PagePermissions
 from ...page import models
 from ..attribute.filters import AttributeFilterInput
 from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.federation import resolve_federation_references
 from ..core.relay import (
-    RelayCountableConnection,
     RelayFilteredConnectionField,
     create_connection_slice,
     filter_connection_queryset,
@@ -76,7 +75,7 @@ class Page(CountableDjangoObjectType):
         return SelectedAttributesByPageIdLoader(info.context).load(root.id)
 
 
-class PageCountableConnection(RelayCountableConnection):
+class PageCountableConnection(CountableConnection):
     class Meta:
         node = Page
 
@@ -129,6 +128,6 @@ class PageType(CountableDjangoObjectType):
         return resolve_federation_references(PageType, roots, models.PageType.objects)
 
 
-class PageTypeCountableConnection(RelayCountableConnection):
+class PageTypeCountableConnection(CountableConnection):
     class Meta:
         node = PageType

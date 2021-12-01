@@ -17,10 +17,9 @@ from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
-from ..core.relay import RelayCountableConnection
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
 from ..core.utils import str_to_enum
@@ -167,7 +166,7 @@ class CheckoutLine(CountableDjangoObjectType):
         )
 
 
-class CheckoutLineCountableConnection(RelayCountableConnection):
+class CheckoutLineCountableConnection(CountableConnection):
     class Meta:
         node = CheckoutLine
 
@@ -619,6 +618,6 @@ class Checkout(CountableDjangoObjectType):
         )
 
 
-class CheckoutCountableConnection(RelayCountableConnection):
+class CheckoutCountableConnection(CountableConnection):
     class Meta:
         node = Checkout

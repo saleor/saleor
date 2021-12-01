@@ -41,7 +41,7 @@ from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
-from ...core.connection import CountableDjangoObjectType
+from ...core.connection import CountableConnection, CountableDjangoObjectType
 from ...core.descriptions import (
     ADDED_IN_31,
     DEPRECATED_IN_3X_FIELD,
@@ -51,7 +51,6 @@ from ...core.enums import ReportingPeriod
 from ...core.federation import resolve_federation_references
 from ...core.relay import (
     RelayConnectionField,
-    RelayCountableConnection,
     RelayFilteredConnectionField,
     create_connection_slice,
     filter_connection_queryset,
@@ -694,7 +693,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return [variants.get(root_id) for root_id in roots_ids]
 
 
-class ProductVariantCountableConnection(RelayCountableConnection):
+class ProductVariantCountableConnection(CountableConnection):
     class Meta:
         node = ProductVariant
 
@@ -1173,7 +1172,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return [products.get(root_id) for root_id in roots_ids]
 
 
-class ProductCountableConnection(RelayCountableConnection):
+class ProductCountableConnection(CountableConnection):
     class Meta:
         node = Product
 
@@ -1345,7 +1344,7 @@ class ProductType(CountableDjangoObjectType):
         )
 
 
-class ProductTypeCountableConnection(RelayCountableConnection):
+class ProductTypeCountableConnection(CountableConnection):
     class Meta:
         node = ProductType
 
@@ -1462,7 +1461,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return [collections.get(root_id) for root_id in roots_ids]
 
 
-class CollectionCountableConnection(RelayCountableConnection):
+class CollectionCountableConnection(CountableConnection):
     class Meta:
         node = Collection
 
@@ -1583,7 +1582,7 @@ class Category(CountableDjangoObjectType):
         return resolve_federation_references(Category, roots, models.Category.objects)
 
 
-class CategoryCountableConnection(RelayCountableConnection):
+class CategoryCountableConnection(CountableConnection):
     class Meta:
         node = Category
 

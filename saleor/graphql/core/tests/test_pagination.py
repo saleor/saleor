@@ -4,9 +4,9 @@ import graphene
 import pytest
 
 from ....tests.models import Book
+from ..connection import CountableConnection
 from ..relay import (
     RelayConnectionField,
-    RelayCountableConnection,
     create_connection_slice,
 )
 
@@ -15,7 +15,7 @@ class BookType(graphene.ObjectType):
     name = graphene.String()
 
 
-class BookTypeCountableConnection(RelayCountableConnection):
+class BookTypeCountableConnection(CountableConnection):
     class Meta:
         node = BookType
 

@@ -6,10 +6,9 @@ from graphene_federation import key
 from ...app import models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
 from ..core.federation import resolve_federation_references
-from ..core.relay import RelayCountableConnection
 from ..core.types import Permission
 from ..core.types.common import Job
 from ..decorators import permission_required
@@ -92,7 +91,7 @@ class AppExtension(AppManifestExtension, CountableDjangoObjectType):
         return resolve_access_token_for_app_extension(info, root)
 
 
-class AppExtensionCountableConnection(RelayCountableConnection):
+class AppExtensionCountableConnection(CountableConnection):
     class Meta:
         node = AppExtension
 
@@ -228,7 +227,7 @@ class App(CountableDjangoObjectType):
         return resolve_federation_references(App, roots, qs)
 
 
-class AppCountableConnection(RelayCountableConnection):
+class AppCountableConnection(CountableConnection):
     class Meta:
         node = App
 

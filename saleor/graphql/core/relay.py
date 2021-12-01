@@ -50,27 +50,6 @@ class RelayFilteredConnectionField(RelayConnectionField):
         return new_resolver
 
 
-class RelayCountableConnection(NonNullConnection):
-    class Meta:
-        abstract = True
-
-    total_count = graphene.Int(description="A total count of items in the collection.")
-
-    def resolve_total_count(root, *_):
-        try:
-            if isinstance(root, dict):
-                total_count = root["total_count"]
-            else:
-                total_count = root.total_count
-        except (AttributeError, KeyError):
-            return None
-
-        if callable(total_count):
-            return total_count()
-
-        return total_count
-
-
 def create_connection_slice(
     iterable,
     info,

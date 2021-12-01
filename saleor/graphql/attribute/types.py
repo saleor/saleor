@@ -7,12 +7,11 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import PagePermissions, ProductPermissions
 from ...core.tracing import traced_resolver
 from ...graphql.utils import get_user_or_app_from_context
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
 from ..core.enums import MeasurementUnitsEnum
 from ..core.relay import (
     RelayConnectionField,
-    RelayCountableConnection,
     RelayFilteredConnectionField,
     create_connection_slice,
     filter_connection_queryset,
@@ -117,7 +116,7 @@ class AttributeValue(CountableDjangoObjectType):
         return None
 
 
-class AttributeValueCountableConnection(RelayCountableConnection):
+class AttributeValueCountableConnection(CountableConnection):
     class Meta:
         node = AttributeValue
 
@@ -243,7 +242,7 @@ class Attribute(CountableDjangoObjectType):
         return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
 
 
-class AttributeCountableConnection(RelayCountableConnection):
+class AttributeCountableConnection(CountableConnection):
     class Meta:
         node = Attribute
 

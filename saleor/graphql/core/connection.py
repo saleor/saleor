@@ -313,11 +313,19 @@ class CountableConnection(NonNullConnection):
 
     total_count = graphene.Int(description="A total count of items in the collection.")
 
-    @staticmethod
-    def resolve_total_count(root, *_args, **_kwargs):
-        if isinstance(root.iterable, list):
-            return len(root.iterable)
-        return root.iterable.count()
+    def resolve_total_count(root, *_):
+        try:
+            if isinstance(root, dict):
+                total_count = root["total_count"]
+            else:
+                total_count = root.total_count
+        except (AttributeError, KeyError):
+            return None
+
+        if callable(total_count):
+            return total_count()
+
+        return total_count
 
 
 class CountableDjangoObjectType(DjangoObjectType):

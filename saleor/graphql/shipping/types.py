@@ -17,9 +17,8 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
     ChannelContextTypeWithMetadataForObjectType,
 )
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.relay import (
-    RelayCountableConnection,
     RelayConnectionField,
     create_connection_slice,
 )
@@ -350,6 +349,6 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
-class ShippingZoneCountableConnection(RelayCountableConnection):
+class ShippingZoneCountableConnection(CountableConnection):
     class Meta:
         node = ShippingZone

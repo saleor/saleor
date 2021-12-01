@@ -5,9 +5,8 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import OrderPermissions
 from ...core.tracing import traced_resolver
 from ...payment import models
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
-from ..core.relay import RelayCountableConnection
 from ..core.types import Money
 from ..decorators import permission_required
 from ..meta.permissions import public_payment_permissions
@@ -194,7 +193,7 @@ class Payment(CountableDjangoObjectType):
         return resolve_metadata(root.metadata)
 
 
-class PaymentCountableConnection(RelayCountableConnection):
+class PaymentCountableConnection(CountableConnection):
     class Meta:
         node = Payment
 
