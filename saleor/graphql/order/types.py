@@ -74,6 +74,7 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
 )
 from ..product.types import ProductVariant
+from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
@@ -1042,21 +1043,32 @@ class Order(CountableDjangoObjectType):
         return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
     @staticmethod
-    def resolve_shipping_method(root: models.Order, _info):
-        order_shipping_method_id = root.shipping_method_id or get_external_shipping_id(
-            root
-        )
+    def resolve_shipping_method(root: models.Order, info):
+        external_app_shipping_id = get_external_shipping_id(root)
 
-        if not order_shipping_method_id:
+        if external_app_shipping_id:
+            method = ShippingMethodData(
+                id=external_app_shipping_id,
+                name=root.shipping_method_name,
+                price=root.shipping_price,
+            )
+            return ChannelContext(node=method, channel_slug=root.channel.slug)
+
+        if not root.shipping_method_id:
             return None
 
-        method = ShippingMethodData(
-            id=str(order_shipping_method_id),
-            name=root.shipping_method_name or "",
-            price=root.shipping_price,
-        )
+        def wrap_shipping_method_with_channel_context(data):
+            shipping_method, channel = data
+            return ChannelContext(node=shipping_method, channel_slug=channel.slug)
 
-        return ChannelContext(node=method, channel_slug=root.channel.slug)
+        shipping_method = ShippingMethodByIdLoader(info.context).load(
+            root.shipping_method_id
+        )
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+
+        return Promise.all([shipping_method, channel]).then(
+            wrap_shipping_method_with_channel_context
+        )
 
     @classmethod
     def resolve_delivery_method(cls, root: models.Order, info):
