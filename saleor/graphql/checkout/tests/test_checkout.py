@@ -1538,7 +1538,6 @@ query getCheckout($token: UUID!) {
     checkout(token: $token) {
         %s {
             id
-            type
             name
             description
             price {
