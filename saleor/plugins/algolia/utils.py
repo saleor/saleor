@@ -58,6 +58,7 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
         }
         variants {
           id
+          sku
           name
           attributes {
             attribute {
