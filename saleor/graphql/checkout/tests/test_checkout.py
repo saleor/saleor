@@ -1739,6 +1739,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     address,
     shipping_zone,
 ):
+    shipping_method = shipping_zone.shipping_methods.first()
     listing = shipping_zone.shipping_methods.first().channel_listings.first()
     expected_shipping_price = Money(10, "USD")
     expected_min_order_price = Money(10, "USD")
@@ -1747,6 +1748,10 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     listing.save()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
+    translated_name = "Dostawa ekspresowa"
+    ShippingMethodTranslation.objects.create(
+        language_code="pl", shipping_method=shipping_method, name=translated_name
+    )
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
 
@@ -1765,6 +1770,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
         data["availableShippingMethods"][0]["minimumOrderPrice"]["amount"]
         == expected_min_order_price.amount
     )
+    assert data["availableShippingMethods"][0]["translation"]["name"] == translated_name
 
 
 def test_checkout_no_available_shipping_methods_without_address(
