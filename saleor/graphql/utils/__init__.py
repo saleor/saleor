@@ -2,6 +2,7 @@ import hashlib
 from typing import Union
 
 import graphene
+from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
 from graphene_django.registry import get_global_registry
@@ -10,6 +11,7 @@ from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
 from ..core.enums import PermissionEnum
+from ..core.scalars import UUID
 from ..core.types import Permission
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
@@ -36,6 +38,10 @@ def resolve_global_ids_to_primary_keys(
 
         try:
             node_type, _id = from_global_id(graphql_id)
+            int(_id)
+            UUID(_id)
+        except ValueError:
+            raise ValidationError
         except Exception:
             invalid_ids.append(graphql_id)
             continue
