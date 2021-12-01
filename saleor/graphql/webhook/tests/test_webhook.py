@@ -4,7 +4,7 @@ import graphene
 import pytest
 
 from ....app.models import App
-from ....webhook.event_types import WebhookEventType
+from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.models import Webhook
 from ...tests.utils import (
     assert_no_permission,
@@ -12,9 +12,8 @@ from ...tests.utils import (
     get_graphql_content_from_response,
 )
 from ..enums import (
-    WebhookEventTypeAsync,
-    WebhookEventTypeEnum,
-    WebhookEventTypeSync,
+    WebhookEventTypeAsyncEnum,
+    WebhookEventTypeSyncEnum,
     WebhookSampleEventTypeEnum,
 )
 
@@ -40,8 +39,8 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
             "name": "New integration",
             "targetUrl": "https://www.example.com",
             "asyncEvents": [
-                WebhookEventTypeEnum.ORDER_CREATED.name,
-                WebhookEventTypeEnum.ORDER_CREATED.name,
+                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
+                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
             ],
         }
     }
@@ -57,7 +56,7 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
     assert new_webhook.target_url == "https://www.example.com"
     events = new_webhook.events.all()
     assert len(events) == 1
-    assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
+    assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
 
 
 def test_webhook_create_inactive_app(app_api_client, app, permission_manage_orders):
@@ -67,7 +66,7 @@ def test_webhook_create_inactive_app(app_api_client, app, permission_manage_orde
     variables = {
         "input": {
             "targetUrl": "https://www.example.com",
-            "asyncEvents": [WebhookEventTypeEnum.ORDER_CREATED.name],
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
             "name": "",
         }
     }
@@ -85,7 +84,7 @@ def test_webhook_create_without_app(app_api_client, app):
     variables = {
         "input": {
             "targetUrl": "https://www.example.com",
-            "asyncEvents": [WebhookEventTypeEnum.ORDER_CREATED.name],
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
             "name": "",
         }
     }
@@ -100,7 +99,7 @@ def test_webhook_create_app_doesnt_exist(app_api_client, app):
     variables = {
         "input": {
             "targetUrl": "https://www.example.com",
-            "asyncEvents": [WebhookEventTypeEnum.ORDER_CREATED.name],
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
             "name": "",
         }
     }
@@ -120,8 +119,8 @@ def test_webhook_create_by_staff(
     variables = {
         "input": {
             "targetUrl": "https://www.example.com",
-            "asyncEvents": [WebhookEventTypeEnum.ORDER_CREATED.name],
-            "syncEvents": [WebhookEventTypeEnum.PAYMENT_LIST_GATEWAYS.name],
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+            "syncEvents": [WebhookEventTypeSyncEnum.PAYMENT_LIST_GATEWAYS.name],
             "app": app_id,
         }
     }
@@ -135,8 +134,8 @@ def test_webhook_create_by_staff(
     assert len(events) == 2
 
     created_event_types = [events[0].event_type, events[1].event_type]
-    assert WebhookEventTypeEnum.ORDER_CREATED.value in created_event_types
-    assert WebhookEventTypeEnum.PAYMENT_LIST_GATEWAYS.value in created_event_types
+    assert WebhookEventTypeAsyncEnum.ORDER_CREATED.value in created_event_types
+    assert WebhookEventTypeSyncEnum.PAYMENT_LIST_GATEWAYS.value in created_event_types
 
 
 def test_webhook_create_by_staff_with_inactive_app(staff_api_client, app):
@@ -146,7 +145,7 @@ def test_webhook_create_by_staff_with_inactive_app(staff_api_client, app):
     variables = {
         "input": {
             "targetUrl": "https://www.example.com",
-            "asyncEvents": [WebhookEventTypeEnum.ORDER_CREATED.name],
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
             "app": app_id,
         }
     }
@@ -161,7 +160,7 @@ def test_webhook_create_by_staff_without_permission(staff_api_client, app):
     variables = {
         "input": {
             "targetUrl": "https://www.example.com",
-            "asyncEvents": [WebhookEventTypeEnum.ORDER_CREATED.name],
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
             "app": app_id,
         }
     }
@@ -269,7 +268,7 @@ def test_webhook_update_not_allowed_by_app(app_api_client, app, webhook):
     variables = {
         "id": webhook_id,
         "input": {
-            "asyncEvents": [WebhookEventTypeEnum.ORDER_CREATED.name],
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
             "isActive": False,
         },
     }
@@ -286,8 +285,8 @@ def test_webhook_update_by_staff(
         "id": webhook_id,
         "input": {
             "asyncEvents": [
-                WebhookEventTypeEnum.CUSTOMER_CREATED.name,
-                WebhookEventTypeEnum.CUSTOMER_CREATED.name,
+                WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.name,
+                WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.name,
             ],
             "isActive": False,
         },
@@ -299,7 +298,7 @@ def test_webhook_update_by_staff(
     assert webhook.is_active is False
     events = webhook.events.all()
     assert len(events) == 1
-    assert events[0].event_type == WebhookEventTypeEnum.CUSTOMER_CREATED.value
+    assert events[0].event_type == WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.value
 
 
 def test_webhook_update_by_staff_without_permission(staff_api_client, app, webhook):
@@ -309,8 +308,8 @@ def test_webhook_update_by_staff_without_permission(staff_api_client, app, webho
         "id": webhook_id,
         "input": {
             "asyncEvents": [
-                WebhookEventTypeEnum.ORDER_CREATED.name,
-                WebhookEventTypeEnum.CUSTOMER_CREATED.name,
+                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
+                WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.name,
             ],
             "isActive": False,
         },
@@ -349,7 +348,7 @@ def test_query_webhook_by_staff(staff_api_client, webhook, permission_manage_app
     assert webhook_response["isActive"] == webhook.is_active
     events = webhook.events.all()
     assert len(events) == 1
-    assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
+    assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
 
 
 def test_query_webhook_by_staff_without_permission(staff_api_client, webhook):
@@ -373,7 +372,7 @@ def test_query_webhook_by_app(app_api_client, webhook):
     assert webhook_response["isActive"] == webhook.is_active
     events = webhook.events.all()
     assert len(events) == 1
-    assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
+    assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
 
 
 def test_query_webhook_by_app_without_permission(app_api_client):
@@ -397,8 +396,10 @@ def test_query_webhook_sync_and_async_events(
 ):
     # given
     webhook.events.all().delete()
-    webhook.events.create(event_type=WebhookEventTypeAsync.ORDER_CREATED.value)
-    webhook.events.create(event_type=WebhookEventTypeSync.PAYMENT_LIST_GATEWAYS.value)
+    webhook.events.create(event_type=WebhookEventTypeAsyncEnum.ORDER_CREATED.value)
+    webhook.events.create(
+        event_type=WebhookEventTypeSyncEnum.PAYMENT_LIST_GATEWAYS.value
+    )
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {"id": webhook_id}
     staff_api_client.user.user_permissions.add(permission_manage_apps)
@@ -412,11 +413,11 @@ def test_query_webhook_sync_and_async_events(
 
     assert (
         webhook_response["asyncEvents"][0]["eventType"]
-        == WebhookEventTypeAsync.ORDER_CREATED.name
+        == WebhookEventTypeAsyncEnum.ORDER_CREATED.name
     )
     assert (
         webhook_response["syncEvents"][0]["eventType"]
-        == WebhookEventTypeSync.PAYMENT_LIST_GATEWAYS.name
+        == WebhookEventTypeSyncEnum.PAYMENT_LIST_GATEWAYS.name
     )
 
 
@@ -472,7 +473,7 @@ def test_query_webhook_events(staff_api_client, permission_manage_apps):
     content = get_graphql_content(response)
     webhook_events = content["data"]["webhookEvents"]
 
-    assert len(webhook_events) == len(WebhookEventType.CHOICES)
+    assert len(webhook_events) == len(WebhookEventAsyncType.CHOICES)
 
 
 def test_query_webhook_events_without_permissions(staff_api_client):

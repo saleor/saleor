@@ -1,7 +1,8 @@
 import graphene
 
 from ...webhook import models
-from ...webhook.event_types import WebhookEventType
+from ...webhook.deprecated_event_types import WebhookEventType
+from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from . import enums
@@ -25,7 +26,7 @@ class WebhookEvent(CountableDjangoObjectType):
 
 class WebhookEventAsync(CountableDjangoObjectType):
     name = graphene.String(description="Display name of the event.", required=True)
-    event_type = enums.WebhookEventTypeAsync(
+    event_type = enums.WebhookEventTypeAsyncEnum(
         description="Internal name of the event type.", required=True
     )
 
@@ -36,12 +37,14 @@ class WebhookEventAsync(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_name(root: models.WebhookEvent, *_args, **_kwargs):
-        return WebhookEventType.DISPLAY_LABELS.get(root.event_type) or root.event_type
+        return (
+            WebhookEventAsyncType.DISPLAY_LABELS.get(root.event_type) or root.event_type
+        )
 
 
 class WebhookEventSync(CountableDjangoObjectType):
     name = graphene.String(description="Display name of the event.", required=True)
-    event_type = enums.WebhookEventTypeSync(
+    event_type = enums.WebhookEventTypeSyncEnum(
         description="Internal name of the event type.", required=True
     )
 
@@ -52,7 +55,9 @@ class WebhookEventSync(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_name(root: models.WebhookEvent, *_args, **_kwargs):
-        return WebhookEventType.DISPLAY_LABELS.get(root.event_type) or root.event_type
+        return (
+            WebhookEventAsyncType.DISPLAY_LABELS.get(root.event_type) or root.event_type
+        )
 
 
 class Webhook(CountableDjangoObjectType):
@@ -90,11 +95,11 @@ class Webhook(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_async_events(root: models.Webhook, *_args, **_kwargs):
-        return root.events.exclude(event_type__in=WebhookEventType.SYNC_EVENTS)
+        return root.events.filter(event_type__in=WebhookEventAsyncType.ALL)
 
     @staticmethod
     def resolve_sync_events(root: models.Webhook, *_args, **_kwargs):
-        return root.events.filter(event_type__in=WebhookEventType.SYNC_EVENTS)
+        return root.events.filter(event_type__in=WebhookEventSyncType.ALL)
 
     @staticmethod
     def resolve_events(root: models.Webhook, *_args, **_kwargs):

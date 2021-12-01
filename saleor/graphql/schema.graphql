@@ -5900,7 +5900,7 @@ input PublishableChannelListingInput {
 
 type Query {
   webhook(id: ID!): Webhook
-  webhookEvents: [WebhookEvent]
+  webhookEvents: [WebhookEvent] @deprecated(reason: "This field will be removed in Saleor 4.0.")
   webhookSamplePayload(eventType: WebhookSampleEventTypeEnum!): JSONString
   warehouse(id: ID!): Warehouse
   warehouses(filter: WarehouseFilterInput, sortBy: WarehouseSortingInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
@@ -7276,8 +7276,8 @@ input WebhookCreateInput {
   name: String
   targetUrl: String
   events: [WebhookEventTypeEnum]
-  asyncEvents: [WebhookEventTypeAsync!]
-  syncEvents: [WebhookEventTypeSync!]
+  asyncEvents: [WebhookEventTypeAsyncEnum!]
+  syncEvents: [WebhookEventTypeSyncEnum!]
   app: ID
   isActive: Boolean
   secretKey: String
@@ -7309,16 +7309,16 @@ type WebhookEvent {
 }
 
 type WebhookEventAsync {
-  eventType: WebhookEventTypeAsync!
+  eventType: WebhookEventTypeAsyncEnum!
   name: String!
 }
 
 type WebhookEventSync {
-  eventType: WebhookEventTypeSync!
+  eventType: WebhookEventTypeSyncEnum!
   name: String!
 }
 
-enum WebhookEventTypeAsync {
+enum WebhookEventTypeAsyncEnum {
   ANY_EVENTS
   ORDER_CREATED
   ORDER_CONFIRMED
@@ -7404,7 +7404,7 @@ enum WebhookEventTypeEnum {
   TRANSLATION_UPDATED
 }
 
-enum WebhookEventTypeSync {
+enum WebhookEventTypeSyncEnum {
   PAYMENT_AUTHORIZE
   PAYMENT_CAPTURE
   PAYMENT_CONFIRM
@@ -7449,14 +7449,6 @@ enum WebhookSampleEventTypeEnum {
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
-  PAYMENT_AUTHORIZE
-  PAYMENT_CAPTURE
-  PAYMENT_CONFIRM
-  PAYMENT_LIST_GATEWAYS
-  PAYMENT_PROCESS
-  PAYMENT_REFUND
-  PAYMENT_VOID
-  SHIPPING_LIST_METHODS_FOR_CHECKOUT
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
@@ -7471,8 +7463,8 @@ input WebhookUpdateInput {
   name: String
   targetUrl: String
   events: [WebhookEventTypeEnum]
-  asyncEvents: [WebhookEventTypeAsync!]
-  syncEvents: [WebhookEventTypeSync!]
+  asyncEvents: [WebhookEventTypeAsyncEnum!]
+  syncEvents: [WebhookEventTypeSyncEnum!]
   app: ID
   isActive: Boolean
   secretKey: String
