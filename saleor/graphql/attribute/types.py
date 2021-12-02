@@ -188,7 +188,7 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     def resolve_choices(root: models.Attribute, info, **kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
-            qs = cast(QuerySet[models.AttributeValue], root.root.values.all())
+            qs = cast(QuerySet[models.AttributeValue], root.values.all())
         else:
             qs = cast(
                 QuerySet[models.AttributeValue], models.AttributeValue.objects.none()
