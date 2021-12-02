@@ -45,7 +45,8 @@ class ConnectionField(graphene.Field):
         if is_node(connection_type):
             raise Exception(
                 "ConnectionFields now need a explicit ConnectionType for Nodes.\n"
-                "Read more: https://github.com/graphql-python/graphene/blob/v2.0.0/UPGRADE-v2.0.md#node-connections"
+                "Read more: https://github.com/graphql-python/graphene/blob/v2.0.0/"
+                "UPGRADE-v2.0.md#node-connections"
             )
 
         assert issubclass(connection_type, Connection), (
