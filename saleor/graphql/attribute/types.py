@@ -1,6 +1,8 @@
 import re
+from typing import cast
 
 import graphene
+from django.db.models import QuerySet
 
 from ...attribute import AttributeInputType, AttributeType, models
 from ...core.exceptions import PermissionDenied
@@ -186,9 +188,11 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     def resolve_choices(root: models.Attribute, info, **kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
-            qs = root.values.all()
+            qs = cast(QuerySet[models.AttributeValue], root.root.values.all())
         else:
-            qs = models.AttributeValue.objects.none()
+            qs = cast(
+                QuerySet[models.AttributeValue], models.AttributeValue.objects.none()
+            )
 
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(
