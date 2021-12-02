@@ -150,3 +150,4 @@ weasyprint==53.3; python_version >= "3.6"
 webencodings==0.5.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 websockets==8.1; python_full_version >= "3.6.1"
 zopfli==0.1.9; python_version >= "3.7"
+django-celery-results==2.2.0
