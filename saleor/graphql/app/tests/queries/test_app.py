@@ -153,10 +153,15 @@ def test_app_without_id_as_staff(
 
 
 def test_own_app_without_id(
-    app_api_client, app, permission_manage_orders, order_with_lines, webhook
+    app_api_client,
+    app,
+    permission_manage_orders,
+    order_with_lines,
+    webhook,
+    permission_manage_apps,
 ):
     response = app_api_client.post_graphql(
-        QUERY_APP,
+        QUERY_APP, permissions=[permission_manage_apps]
     )
     content = get_graphql_content(response)
 
