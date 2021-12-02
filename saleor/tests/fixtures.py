@@ -73,6 +73,7 @@ from ..order.models import (
     OrderEvent,
     OrderLine,
 )
+from ..order.search import prepare_order_search_document_value
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
@@ -692,7 +693,7 @@ def user_checkouts(request, user_checkout_with_items, user_checkout_with_items_f
 @pytest.fixture
 def order(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
-    return Order.objects.create(
+    order = Order.objects.create(
         billing_address=address,
         channel=channel_USD,
         currency=channel_USD.currency_code,
@@ -701,6 +702,14 @@ def order(customer_user, channel_USD):
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
     )
+    return order
+
+
+@pytest.fixture
+def order_with_search_document_value(order):
+    order.search_document = prepare_order_search_document_value(order)
+    order.save(update_fields=["search_document"])
+    return order
 
 
 @pytest.fixture
@@ -5214,6 +5223,11 @@ def allocations(order_list, stock, channel_USD):
             ),
         ]
     )
+
+    for order in order_list:
+        order.search_document = prepare_order_search_document_value(order)
+    Order.objects.bulk_update(order_list, ["search_document"])
+
     return Allocation.objects.bulk_create(
         [
             Allocation(

@@ -32,6 +32,7 @@ from ..order import OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import order_created
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
+from ..order.search import prepare_order_search_document_value
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
@@ -451,6 +452,7 @@ def _create_order(
     order.redirect_url = checkout.redirect_url
     order.private_metadata = checkout.private_metadata
     order.update_total_paid()
+    order.search_document = prepare_order_search_document_value(order)
     order.save()
 
     if site_settings.automatically_fulfill_non_shippable_gift_card:
