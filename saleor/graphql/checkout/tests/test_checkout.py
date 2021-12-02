@@ -1740,8 +1740,10 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     listing = shipping_zone.shipping_methods.first().channel_listings.first()
     expected_shipping_price = Money(10, "USD")
     expected_min_order_price = Money(10, "USD")
+    expected_max_order_price = Money(999, "USD")
     listing.price = expected_shipping_price
     listing.minimum_order_price = expected_min_order_price
+    listing.maximum_order_price = expected_max_order_price
     listing.save()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
@@ -1766,6 +1768,10 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     assert (
         data["availableShippingMethods"][0]["minimumOrderPrice"]["amount"]
         == expected_min_order_price.amount
+    )
+    assert (
+        data["availableShippingMethods"][0]["maximumOrderPrice"]["amount"]
+        == expected_max_order_price.amount
     )
     assert data["availableShippingMethods"][0]["translation"]["name"] == translated_name
 
