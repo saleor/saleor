@@ -14,6 +14,7 @@ class CoreAppConfig(AppConfig):
 
         if settings.SENTRY_DSN:
             settings.SENTRY_INIT(settings.SENTRY_DSN, settings.SENTRY_OPTS)
+        self.validate_jwt_manager()
 
     def validate_jwt_manager(self):
         jwt_manager_path = getattr(settings, "JWT_MANAGER_PATH", None)
@@ -27,6 +28,6 @@ class CoreAppConfig(AppConfig):
             raise ImportError(f"Failed to import JWT manager: {e}.")
 
         validate_method = getattr(jwt_manager, "validate_configuration", NotImplemented)
-        if validate_method == NotImplemented:
+        if validate_method is NotImplemented:
             return
         validate_method()

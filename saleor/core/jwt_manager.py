@@ -144,7 +144,7 @@ class JWTManager(JWTManagerBase):
                 "It is required for running in not DEBUG mode."
             )
         try:
-            cls._get_private_key(settings.RSA_PRIVATE_KEY)
+            cls.get_private_key()
         except Exception as e:
             raise ImproperlyConfigured(f"Unable to load provided pem private key. {e}")
 
