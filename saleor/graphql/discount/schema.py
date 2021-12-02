@@ -1,8 +1,8 @@
 import graphene
 
 from ...core.permissions import DiscountPermissions
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.fields import FilterConnectionField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error

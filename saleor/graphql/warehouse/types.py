@@ -1,4 +1,3 @@
-from os import stat
 import graphene
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
@@ -14,8 +13,8 @@ from ..core.connection import (
     CountableDjangoObjectType,
     create_connection_slice,
 )
-from ..core.fields import ConnectionField
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.fields import ConnectionField
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
 from .enums import WarehouseClickAndCollectOptionEnum
@@ -46,7 +45,9 @@ class WarehouseUpdateInput(WarehouseInput):
         required=False,
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
-        description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
+        description=(
+            f"{ADDED_IN_31} Click and collect options: local, all or disabled"
+        ),
         required=False,
     )
     is_private = graphene.Boolean(
