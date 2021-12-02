@@ -6,6 +6,7 @@ from graphene import relay
 from ...core.permissions import ShippingPermissions
 from ...core.tracing import traced_resolver
 from ...core.weight import convert_weight_to_default_weight_unit
+from ...product import models as product_models
 from ...shipping import models
 from ...shipping.interface import ShippingMethodData
 from ..channel import ChannelQsContext
@@ -257,8 +258,8 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     ):
         from ..product.types import ProductCountableConnection
 
-        if root.node.excluded_products is None:
-            qs = root.node.excluded_products.none()
+        if not root.node.excluded_products:
+            qs = product_models.Product.objects.none()
         else:
             qs = ChannelQsContext(
                 qs=root.node.excluded_products.all(), channel_slug=None  # type: ignore
