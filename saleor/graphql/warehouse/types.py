@@ -45,9 +45,7 @@ class WarehouseUpdateInput(WarehouseInput):
         required=False,
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
-        description=(
-            f"{ADDED_IN_31} Click and collect options: local, all or disabled"
-        ),
+        description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
         required=False,
     )
     is_private = graphene.Boolean(

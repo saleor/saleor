@@ -1,6 +1,6 @@
 import json
 from decimal import Decimal, InvalidOperation
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
 from django.conf import settings
@@ -348,7 +348,7 @@ def _validate_slice_args(
         )
 
     if max_limit is None:
-        max_limit = settings.GRAPHENE.get("RELAY_CONNECTION_MAX_LIMIT", 0)
+        max_limit = cast(int, settings.GRAPHENE.get("RELAY_CONNECTION_MAX_LIMIT", 0))
 
     if max_limit:
         if first:
