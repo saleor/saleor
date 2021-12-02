@@ -418,7 +418,14 @@ def test_delete_order_discount_from_order(
     order = draft_order_with_fixed_discount_order
     order.status = status
     order.save(update_fields=["status"])
+
     order_discount = draft_order_with_fixed_discount_order.discounts.get()
+    name = "discount translated"
+    translated_name = "discount translated name"
+    order_discount.name = name
+    order_discount.translated_name = translated_name
+    order_discount.save(update_fields=["name", "translated_name"])
+
     current_undiscounted_total = order.undiscounted_total
 
     variables = {
@@ -439,6 +446,10 @@ def test_delete_order_discount_from_order(
 
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_DELETED
+
+    assert order.search_document
+    assert name not in order.search_document
+    assert translated_name not in order.search_document
 
 
 def test_delete_order_discount_order_is_not_draft(

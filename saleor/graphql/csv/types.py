@@ -85,7 +85,7 @@ class ExportFile(CountableDjangoObjectType):
     @staticmethod
     def resolve_app(root: models.ExportFile, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_STAFF):
+        if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
             return (
                 AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
             )

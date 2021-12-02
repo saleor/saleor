@@ -32,7 +32,7 @@ from ..warehouse.availability import (
     check_stock_and_preorder_quantity_bulk,
 )
 from ..warehouse.models import Warehouse
-from ..warehouse.reservations import reserve_stocks
+from ..warehouse.reservations import reserve_stocks_and_preorders
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
 from .fetch import (
@@ -66,6 +66,8 @@ def check_variant_in_stock(
     quantity: int = 1,
     replace: bool = False,
     check_quantity: bool = True,
+    checkout_lines: Optional[List["CheckoutLine"]] = None,
+    check_reservations: bool = False,
 ) -> Tuple[int, Optional[CheckoutLine]]:
     """Check if a given variant is in stock and return the new quantity + line."""
     line = checkout.lines.filter(variant=variant).first()
@@ -80,7 +82,12 @@ def check_variant_in_stock(
 
     if new_quantity > 0 and check_quantity:
         check_stock_and_preorder_quantity(
-            variant, checkout.get_country(), channel_slug, new_quantity
+            variant,
+            checkout.get_country(),
+            channel_slug,
+            new_quantity,
+            checkout_lines,
+            check_reservations,
         )
 
     return new_quantity, line
@@ -191,7 +198,7 @@ def add_variants_to_checkout(
                 to_reserve.append(line)
                 variants.append(line.variant)
 
-        reserve_stocks(
+        reserve_stocks_and_preorders(
             to_reserve,
             variants,
             country_code,

@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django_prices.utils.formatting import get_currency_fraction
 from graphql.error import GraphQLError
 
-from ...product.models import ProductVariantChannelListing
+from ....product.models import ProductVariantChannelListing
 
 if TYPE_CHECKING:
     from decimal import Decimal
@@ -52,6 +52,16 @@ def validate_price_precision(value: Optional["Decimal"], currency: str):
         raise ValidationError(
             f"Value cannot have more than {currency_fraction} decimal places."
         )
+
+
+def validate_decimal_max_value(value: "Decimal", max_value=10 ** 9):
+    """Validate if price amount is not higher than the limit for precision field.
+
+    Decimal fields in database have value limits.
+    By default its 10^9 for fields with precision 12.
+    """
+    if value >= max_value:
+        raise ValidationError(f"Value must be lower than {max_value}.")
 
 
 def validate_variants_available_in_channel(

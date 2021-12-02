@@ -2,7 +2,7 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from ..celeryconf import app
-from .models import Allocation, Reservation
+from .models import Allocation, PreorderReservation, Reservation
 
 task_logger = get_task_logger(__name__)
 
@@ -16,6 +16,16 @@ def delete_empty_allocations_task():
 
 @app.task
 def delete_expired_reservations_task():
-    count, _ = Reservation.objects.filter(reserved_until__lt=timezone.now()).delete()
-    if count:
-        task_logger.debug("Removed %s reservations", count)
+    stock_reservations, _ = Reservation.objects.filter(
+        reserved_until__lt=timezone.now()
+    ).delete()
+    preorder_reservations, _ = PreorderReservation.objects.filter(
+        reserved_until__lt=timezone.now()
+    ).delete()
+
+    if stock_reservations or preorder_reservations:
+        task_logger.debug(
+            "Removed %s stock reservations and %s preorder reservations",
+            stock_reservations,
+            preorder_reservations,
+        )

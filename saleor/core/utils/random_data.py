@@ -23,6 +23,10 @@ from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
+from ...account.search import (
+    generate_address_search_document_value,
+    generate_user_fields_search_document_value,
+)
 from ...account.utils import store_user_address
 from ...attribute.models import (
     AssignedPageAttribute,
@@ -52,6 +56,7 @@ from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
+from ...order.search import prepare_order_search_document_value
 from ...order.utils import update_order_status
 from ...page.models import Page, PageType
 from ...payment import gateway
@@ -527,6 +532,7 @@ def create_fake_user(user_password, save=True):
         note=fake.paragraph(),
         date_joined=fake.date_time(tzinfo=timezone.get_current_timezone()),
     )
+    user.search_document = _prepare_search_document_value(user, address)
 
     if save:
         user.set_password(user_password)
@@ -797,6 +803,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     for line in order.lines.all():
         weight += line.variant.get_weight()
     order.weight = weight
+    order.search_document = prepare_order_search_document_value(order)
     order.save()
 
     create_fake_payment(order=order)
@@ -900,8 +907,17 @@ def _create_staff_user(staff_password, email=None, superuser=False):
         is_staff=True,
         is_active=True,
         is_superuser=superuser,
+        search_document=_prepare_search_document_value(
+            User(email=email, first_name=first_name, last_name=last_name), address
+        ),
     )
     return staff_user
+
+
+def _prepare_search_document_value(user, address):
+    search_document_value = generate_user_fields_search_document_value(user)
+    search_document_value += generate_address_search_document_value(address)
+    return search_document_value
 
 
 def create_staff_users(staff_password, how_many=2, superuser=False):

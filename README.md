@@ -78,18 +78,16 @@ Help us out… If you love free stuff and great software, give us a star! 🌟
 
 ## Installation
 
-Saleor requires Python 3.8, Node.js 10.0+, PostgreSQL and OS-specific dependency tools.
-
-[See the Saleor docs](https://docs.saleor.io/docs/developer/installation) for step-by-step installation and deployment instructions.
+[See the Saleor docs](https://docs.saleor.io/docs/3.0/developer/installation) for step-by-step installation and deployment instructions.
 
 Note:
-The `master` branch is the development version of Saleor and it may be unstable. To use the latest stable version, download it from the [Releases](https://github.com/saleor/saleor/releases/) page or switch to a release tag.
+The `main` branch is the development version of Saleor and it may be unstable. To use the latest stable version, download it from the [Releases](https://github.com/saleor/saleor/releases/) page or switch to a release tag.
 
-The current stable version is 2.11 and you should use this version for all three components:
+The current production-ready version is 3.0 (beta) and you should use this version for all three components:
 
-- Saleor: https://github.com/saleor/saleor/releases/tag/2.11.1
-- Dashboard: https://github.com/saleor/saleor-dashboard/releases/tag/2.11.1
-- Storefront: https://github.com/saleor/saleor-storefront/releases/tag/2.11.0
+- Saleor: https://github.com/saleor/saleor/releases/
+- Dashboard: https://github.com/saleor/saleor-dashboard/releases/
+- Storefront: https://github.com/saleor/saleor-storefront/releases/
 
 ## Documentation
 

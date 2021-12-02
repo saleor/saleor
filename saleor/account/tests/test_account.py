@@ -12,7 +12,6 @@ from ...order.models import Order
 from .. import forms, i18n
 from ..models import User
 from ..templatetags.i18n_address_tags import format_address
-from ..utils import remove_staff_member
 from ..validators import validate_possible_number
 
 
@@ -290,22 +289,6 @@ def test_get_full_name(email, first_name, last_name, full_name, address):
         default_billing_address=address,
     )
     assert user.get_full_name() == full_name
-
-
-def test_remove_staff_member_with_orders(staff_user, permission_manage_products, order):
-    order.user = staff_user
-    order.save()
-    staff_user.user_permissions.add(permission_manage_products)
-
-    remove_staff_member(staff_user)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert not staff_user.is_staff
-    assert not staff_user.user_permissions.exists()
-
-
-def test_remove_staff_member(staff_user):
-    remove_staff_member(staff_user)
-    assert not User.objects.filter(pk=staff_user.pk).exists()
 
 
 def test_customers_doesnt_return_duplicates(customer_user, channel_USD):

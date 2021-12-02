@@ -419,6 +419,17 @@ def test_update_order_status_partially_returned(fulfilled_order):
     assert fulfilled_order.status == OrderStatus.PARTIALLY_RETURNED
 
 
+def test_update_order_status_waiting_for_approval(fulfilled_order):
+    fulfilled_order.fulfillments.create(status=FulfillmentStatus.WAITING_FOR_APPROVAL)
+    fulfilled_order.status = OrderStatus.FULFILLED
+    fulfilled_order.save()
+
+    update_order_status(fulfilled_order)
+
+    fulfilled_order.refresh_from_db()
+    assert fulfilled_order.status == OrderStatus.PARTIALLY_FULFILLED
+
+
 def test_validate_fulfillment_tracking_number_as_url(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
     assert not fulfillment.is_tracking_number_url
