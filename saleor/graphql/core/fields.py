@@ -32,7 +32,7 @@ class ConnectionField(graphene.Field):
         kwargs.setdefault("after", graphene.String())
         kwargs.setdefault("first", graphene.Int())
         kwargs.setdefault("last", graphene.Int())
-        super(ConnectionField, self).__init__(type_, *args, **kwargs)
+        super().__init__(type_, *args, **kwargs)
         patch_pagination_args(self)
 
     @property
@@ -58,10 +58,10 @@ class FilterConnectionField(ConnectionField):
     def __init__(self, type_, *args, **kwargs):
         self.filter_field_name = kwargs.pop("filter_field_name", "filter")
         self.filter_input = kwargs.get(self.filter_field_name)
-        self.FILTERSET_CLASS = None
+        self.filterset_class = None
         if self.filter_input:
             self.filterset_class = self.filter_input.filterset_class
-        super(FilterConnectionField, self).__init__(type_, *args, **kwargs)
+        super().__init__(type_, *args, **kwargs)
 
     def get_resolver(self, parent_resolver):
         wrapped_resolver = super().get_resolver(parent_resolver)

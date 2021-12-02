@@ -9,6 +9,7 @@ from django.db.models import Q, QuerySet
 from graphene.relay import Connection
 from graphene_django.types import DjangoObjectType
 from graphql import GraphQLError, ResolveInfo
+from graphql.language.ast import FragmentSpread
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
 from graphql_relay.utils import base64, unbase64
@@ -198,7 +199,7 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
 
     # If we don't receive `first` and `last` we shouldn't build `edges` and `page_info`
     if not first and not last:
-        return [], {}
+        return [], {"has_previous_page": False, "has_next_page": False}
 
     if last:
         start_slice, end_slice = 1, None
@@ -290,10 +291,9 @@ def create_connection_slice(
     connection_type,
     edge_type=None,
     pageinfo_type=graphene.relay.PageInfo,
-    enforce_first_or_last: Optional[bool] = None,
     max_limit: Optional[int] = None,
 ):
-    validate_slice_args(info, args, enforce_first_or_last, max_limit)
+    _validate_slice_args(info, args, max_limit)
 
     if isinstance(iterable, list):
         return slice_connection_iterable(
@@ -331,20 +331,12 @@ def create_connection_slice(
     return slice
 
 
-def validate_slice_args(
+def _validate_slice_args(
     info: ResolveInfo,
     args: dict,
-    enforce_first_or_last: Optional[bool] = None,
     max_limit: Optional[int] = None,
 ):
-    # Disable `enforce_first_or_last` if not querying for `edges`.
-    values = [field.name.value for field in info.field_asts[0].selection_set.selections]
-    if "edges" not in values:
-        enforce_first_or_last = False
-    elif enforce_first_or_last is None:
-        enforce_first_or_last = settings.GRAPHENE.get(
-            "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST", True
-        )
+    enforce_first_or_last = _is_first_or_last_required(info)
 
     first = args.get("first")
     last = args.get("last")
@@ -372,6 +364,28 @@ def validate_slice_args(
                 "`last` limit of {} records."
             ).format(last, info.field_name, max_limit)
             args["last"] = min(last, max_limit)
+
+
+def _is_first_or_last_required(info):
+    """Disable `enforce_first_or_last` if not querying for `edges`."""
+    selections = info.field_asts[0].selection_set.selections
+    values = [field.name.value for field in selections]
+    if "edges" in values:
+        return True
+
+    fragments = [
+        field.name.value for field in selections if isinstance(field, FragmentSpread)
+    ]
+
+    for fragment in fragments:
+        fragment_values = [
+            field.name.value
+            for field in info.fragments[fragment].selection_set.selections
+        ]
+        if "edges" in fragment_values:
+            return True
+
+    return False
 
 
 def slice_connection_iterable(
