@@ -156,7 +156,11 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
                 info.context
             )
             .load((root.node.id, root.channel_slug))
-            .then(lambda channel_listing: channel_listing.price)
+            .then(
+                lambda channel_listing: channel_listing.price
+                if channel_listing
+                else None
+            )
         )
 
     @staticmethod

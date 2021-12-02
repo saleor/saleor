@@ -17,6 +17,7 @@ from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
 from ....checkout import AddressType
+from ....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from ....core.anonymize import obfuscate_email
 from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
@@ -355,6 +356,12 @@ query OrdersQuery {
                 }
                 shippingMethod{
                     id
+                    name
+                    price {
+                        amount
+                        currency
+                    }
+
                 }
                 deliveryMethod {
                     __typename
@@ -472,6 +479,34 @@ def test_order_query_shipping_method_channel_listing_does_not_exist(
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert order_data["shippingMethod"]["id"] == graphene.Node.to_global_id(
         "ShippingMethod", order.shipping_method.id
+    )
+
+
+def test_order_query_external_shipping_method(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    external_shipping_method_id = graphene.Node.to_global_id("app", "1:external123")
+
+    # given
+    order = order_with_lines
+    order.shipping_method = None
+    order.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: external_shipping_method_id}
+    order.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["shippingMethod"]["id"] == external_shipping_method_id
+    assert order_data["shippingMethod"]["name"] == order.shipping_method_name
+    assert order_data["shippingMethod"]["price"]["amount"] == float(
+        order.shipping_price_gross.amount
     )
 
 
