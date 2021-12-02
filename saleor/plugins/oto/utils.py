@@ -34,7 +34,12 @@ def get_order_items_data(order):
             "productId": line.variant.product.id,
             "price": line.total_price_net_amount,
             "image": "%s%s"
-            % (site.domain, line.variant.product.get_first_image().image.url),
+            % (
+                site.domain,
+                line.variant.product.get_first_image().image.url
+                if line.variant.product.get_first_image()
+                else "",
+            ),
         }
         for line in order.lines.all()
     ]
