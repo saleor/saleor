@@ -43,6 +43,7 @@ from ...payment.model_helpers import (
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.product_images import get_product_image_thumbnail
+from ...shipping.interface import ShippingMethodData
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import requestor_has_access
@@ -1046,15 +1047,14 @@ class Order(CountableDjangoObjectType):
         external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
-            shipping_method = info.context.plugins.get_shipping_method(
-                checkout=root,
-                channel_slug=root.channel.slug,
-                shipping_method_id=external_app_shipping_id,
+            keep_gross = info.context.site.settings.include_taxes_in_prices
+            price = root.shipping_price_gross if keep_gross else root.shipping_price_net
+            method = ShippingMethodData(
+                id=external_app_shipping_id,
+                name=root.shipping_method_name,
+                price=price,
             )
-            if shipping_method:
-                return ChannelContext(
-                    node=shipping_method, channel_slug=root.channel.slug
-                )
+            return ChannelContext(node=method, channel_slug=root.channel.slug)
 
         if not root.shipping_method_id:
             return None
@@ -1074,7 +1074,7 @@ class Order(CountableDjangoObjectType):
 
     @classmethod
     def resolve_delivery_method(cls, root: models.Order, info):
-        if root.shipping_method_id:
+        if root.shipping_method_id or get_external_shipping_id(root):
             return cls.resolve_shipping_method(root, info)
         if root.collection_point_id:
             collection_point = WarehouseByIdLoader(info.context).load(
