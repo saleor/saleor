@@ -264,6 +264,7 @@ def test_checkout_complete(
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
     assert order.payments.exists()
+    assert order.search_document
     order_payment = order.payments.first()
     assert order_payment == payment
     assert payment.transactions.count() == 1
