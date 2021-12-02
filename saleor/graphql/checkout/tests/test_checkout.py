@@ -1469,9 +1469,6 @@ query getCheckout($token: UUID!) {
                 key
                 value
             }
-            translation (languageCode: PL) {
-                name
-            }
         }
     }
 }
