@@ -66,7 +66,8 @@ class Warehouse(CountableDjangoObjectType):
         required=True,
     )
     shipping_zones = ConnectionField(
-        "saleor.graphql.shipping.types.ShippingZoneCountableConnection"
+        "saleor.graphql.shipping.types.ShippingZoneCountableConnection",
+        required=True,
     )
 
     class Meta:

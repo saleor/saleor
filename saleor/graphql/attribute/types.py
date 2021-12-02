@@ -168,10 +168,12 @@ class Attribute(CountableDjangoObjectType):
     )
 
     product_types = ConnectionField(
-        "saleor.graphql.product.types.ProductTypeCountableConnection"
+        "saleor.graphql.product.types.ProductTypeCountableConnection",
+        required=True,
     )
     product_variant_types = ConnectionField(
-        "saleor.graphql.product.types.ProductTypeCountableConnection"
+        "saleor.graphql.product.types.ProductTypeCountableConnection",
+        required=True,
     )
 
     class Meta:
@@ -188,7 +190,9 @@ class Attribute(CountableDjangoObjectType):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
             qs = root.values.all()
         else:
-            qs = cast(Manager[AttributeValue], models.AttributeValue.objects.none())
+            qs = cast(
+                Manager[models.AttributeValue], models.AttributeValue.objects.none()
+            )
 
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(
