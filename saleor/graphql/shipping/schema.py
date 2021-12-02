@@ -45,6 +45,7 @@ class ShippingQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of the shop's shipping zones.",
+        required=True,
     )
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
