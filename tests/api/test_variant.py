@@ -5,11 +5,11 @@ import graphene
 import pytest
 from graphene.utils.str_converters import to_camel_case
 
-from saleor.product.error_codes import ProductErrorCode
-from saleor.product.models import ProductVariant
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.warehouse.error_codes import StockErrorCode
-from saleor.warehouse.models import Stock, Warehouse
+from dastkari.product.error_codes import ProductErrorCode
+from dastkari.product.models import ProductVariant
+from dastkari.product.utils.attributes import associate_attribute_values_to_instance
+from dastkari.warehouse.error_codes import StockErrorCode
+from dastkari.warehouse.models import Stock, Warehouse
 from tests.api.utils import get_graphql_content
 
 

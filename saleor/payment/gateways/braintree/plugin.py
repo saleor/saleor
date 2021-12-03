@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List
 
-from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from dastkari.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
 from . import (
     GatewayConfig,
@@ -62,23 +62,23 @@ class BraintreeGatewayPlugin(BasePlugin):
         },
         "Use sandbox": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should use Braintree sandbox API.",
+            "help_text": "Determines if Dastkari should use Braintree sandbox API.",
             "label": "Use sandbox",
         },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should store cards on payments"
+            "help_text": "Determines if Dastkari should store cards on payments"
             " in Braintree customer.",
             "label": "Store customers card",
         },
         "Automatic payment capture": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should automaticaly capture payments.",
+            "help_text": "Determines if Dastkari should automaticaly capture payments.",
             "label": "Automatic payment capture",
         },
         "Require 3D secure": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should enforce 3D secure during payment.",
+            "help_text": "Determines if Dastkari should enforce 3D secure during payment.",
             "label": "Require 3D secure",
         },
     }

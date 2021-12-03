@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.order.emails import send_order_confirmation, send_payment_confirmation
+from dastkari.order.emails import send_order_confirmation, send_payment_confirmation
 
 
 @pytest.mark.integration

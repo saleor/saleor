@@ -3,9 +3,9 @@ import os.path
 import graphene
 import pytest
 
-from saleor.core.taxes import zero_money
-from saleor.product import models as product_models
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
+from dastkari.core.taxes import zero_money
+from dastkari.product import models as product_models
+from dastkari.product.utils.attributes import associate_attribute_values_to_instance
 
 from ..api.utils import get_graphql_content
 

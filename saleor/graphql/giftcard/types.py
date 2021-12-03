@@ -12,7 +12,7 @@ class GiftCard(CountableDjangoObjectType):
     )
     code = graphene.String(description="Gift card code.")
     user = graphene.Field(
-        "saleor.graphql.account.types.User",
+        "dastkari.graphql.account.types.User",
         description="The customer who bought a gift card.",
     )
 

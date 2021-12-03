@@ -3,13 +3,13 @@ from unittest.mock import patch
 import graphene
 import pytest
 
-from saleor.app.models import App
-from saleor.graphql.webhook.enums import (
+from dastkari.app.models import App
+from dastkari.graphql.webhook.enums import (
     WebhookEventTypeEnum,
     WebhookSampleEventTypeEnum,
 )
-from saleor.webhook.event_types import WebhookEventType
-from saleor.webhook.models import Webhook
+from dastkari.webhook.event_types import WebhookEventType
+from dastkari.webhook.models import Webhook
 
 from .utils import assert_no_permission, get_graphql_content
 
@@ -562,7 +562,7 @@ SAMPLE_PAYLOAD_QUERY = """
 """
 
 
-@patch("saleor.graphql.webhook.resolvers.payloads.generate_sample_payload")
+@patch("dastkari.graphql.webhook.resolvers.payloads.generate_sample_payload")
 @pytest.mark.parametrize(
     "event_type, has_access",
     [
@@ -600,7 +600,7 @@ def test_sample_payload_query_by_app(
         mock_generate_sample_payload.assert_called_with(event_type.value)
 
 
-@patch("saleor.graphql.webhook.resolvers.payloads.generate_sample_payload")
+@patch("dastkari.graphql.webhook.resolvers.payloads.generate_sample_payload")
 @pytest.mark.parametrize(
     "event_type, has_access",
     [

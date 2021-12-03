@@ -1,8 +1,8 @@
 import pytest
 from django.contrib.auth import models as auth_models
 
-from saleor.account.models import User
-from saleor.order.models import Order
+from dastkari.account.models import User
+from dastkari.order.models import Order
 
 from ..utils import get_graphql_content
 

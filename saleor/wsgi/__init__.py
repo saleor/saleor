@@ -1,4 +1,4 @@
-"""WSGI config for saleor project.
+"""WSGI config for dastkari project.
 
 This module contains the WSGI application used by Django's development server
 and any production WSGI deployments. It should expose a module-level variable
@@ -16,7 +16,7 @@ import os
 from django.core.wsgi import get_wsgi_application
 from django.utils.functional import SimpleLazyObject
 
-from saleor.wsgi.health_check import health_check
+from dastkari.wsgi.health_check import health_check
 
 
 def get_allowed_host_lazy():
@@ -25,7 +25,7 @@ def get_allowed_host_lazy():
     return settings.ALLOWED_HOSTS[0]
 
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saleor.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dastkari.settings")
 
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION

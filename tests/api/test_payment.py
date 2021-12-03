@@ -4,12 +4,12 @@ import graphene
 import pytest
 from django_countries.fields import Country
 
-from saleor.checkout import calculations
-from saleor.graphql.payment.enums import OrderAction, PaymentChargeStatusEnum
-from saleor.payment.error_codes import PaymentErrorCode
-from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
-from saleor.payment.models import ChargeStatus, Payment, TransactionKind
-from saleor.payment.utils import fetch_customer_id, store_customer_id
+from dastkari.checkout import calculations
+from dastkari.graphql.payment.enums import OrderAction, PaymentChargeStatusEnum
+from dastkari.payment.error_codes import PaymentErrorCode
+from dastkari.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
+from dastkari.payment.models import ChargeStatus, Payment, TransactionKind
+from dastkari.payment.utils import fetch_customer_id, store_customer_id
 from tests.api.utils import assert_no_permission, get_graphql_content
 
 VOID_QUERY = """
@@ -53,7 +53,7 @@ def test_payment_void_gateway_error(
     assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
     variables = {"paymentId": payment_id}
-    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+    monkeypatch.setattr("dastkari.payment.gateways.dummy.dummy_success", lambda: False)
     response = staff_api_client.post_graphql(
         VOID_QUERY, variables, permissions=[permission_manage_orders]
     )
@@ -405,7 +405,7 @@ def test_payment_capture_gateway_error(
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
-    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+    monkeypatch.setattr("dastkari.payment.gateways.dummy.dummy_success", lambda: False)
     response = staff_api_client.post_graphql(
         CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
     )
@@ -488,7 +488,7 @@ def test_payment_refund_error(
     payment.save()
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment.total)}
-    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+    monkeypatch.setattr("dastkari.payment.gateways.dummy.dummy_success", lambda: False)
     response = staff_api_client.post_graphql(
         REFUND_QUERY, variables, permissions=[permission_manage_orders]
     )
@@ -735,7 +735,7 @@ def test_list_payment_sources(
     )
     source = CustomerSource(id="test1", gateway=gateway, credit_card_info=card)
     mock_get_source_list = mocker.patch(
-        "saleor.graphql.account.resolvers.gateway.list_payment_sources",
+        "dastkari.graphql.account.resolvers.gateway.list_payment_sources",
         return_value=[source],
         autospec=True,
     )
@@ -756,7 +756,7 @@ def test_stored_payment_sources_restriction(
     )
     source = CustomerSource(id="test1", gateway="dummy", credit_card_info=card)
     mocker.patch(
-        "saleor.graphql.account.resolvers.gateway.list_payment_sources",
+        "dastkari.graphql.account.resolvers.gateway.list_payment_sources",
         return_value=[source],
         autospec=True,
     )

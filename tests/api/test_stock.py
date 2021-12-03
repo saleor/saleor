@@ -1,7 +1,7 @@
 import graphene
 
-from saleor.core.permissions import ProductPermissions
-from saleor.warehouse.models import Stock
+from dastkari.core.permissions import ProductPermissions
+from dastkari.warehouse.models import Stock
 
 from ..utils import get_quantity_allocated_for_stock
 from .utils import assert_no_permission, get_graphql_content

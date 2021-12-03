@@ -3,8 +3,8 @@ from unittest.mock import ANY, Mock
 import requests
 from django.core.management import call_command
 
-from saleor.app.models import App
-from saleor.core.permissions import get_permissions
+from dastkari.app.models import App
+from dastkari.core.permissions import get_permissions
 
 
 def test_creates_app_object():
@@ -51,7 +51,7 @@ def test_sends_data_to_target_url(monkeypatch):
     token = app.tokens.all()[0].auth_token
     mocked_post.assert_called_once_with(
         target_url,
-        headers={"x-saleor-domain": "mirumee.com"},
+        headers={"x-dastkari-domain": "mirumee.com"},
         json={"auth_token": token},
         timeout=ANY,
     )

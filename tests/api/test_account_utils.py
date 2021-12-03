@@ -1,13 +1,13 @@
 from django.contrib.auth.models import Group
 
-from saleor.account.models import User
-from saleor.app.models import App
-from saleor.core.permissions import (
+from dastkari.account.models import User
+from dastkari.app.models import App
+from dastkari.core.permissions import (
     AccountPermissions,
     OrderPermissions,
     ProductPermissions,
 )
-from saleor.graphql.account.utils import (
+from dastkari.graphql.account.utils import (
     can_manage_app,
     can_user_manage_group,
     get_group_permission_codes,

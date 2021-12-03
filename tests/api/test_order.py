@@ -9,26 +9,26 @@ from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from saleor.account.models import CustomerEvent
-from saleor.core.permissions import OrderPermissions
-from saleor.core.taxes import zero_taxed_money
-from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.order.mutations.orders import (
+from dastkari.account.models import CustomerEvent
+from dastkari.core.permissions import OrderPermissions
+from dastkari.core.taxes import zero_taxed_money
+from dastkari.graphql.core.enums import ReportingPeriod
+from dastkari.graphql.order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
     clean_refund_payment,
     try_payment_action,
 )
-from saleor.graphql.order.utils import validate_draft_order
-from saleor.graphql.payment.types import PaymentChargeStatusEnum
-from saleor.order import OrderStatus, events as order_events
-from saleor.order.error_codes import OrderErrorCode
-from saleor.order.models import Order, OrderEvent
-from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
-from saleor.payment.models import Payment
-from saleor.plugins.manager import PluginsManager
-from saleor.shipping.models import ShippingMethod
-from saleor.warehouse.models import Allocation, Stock
+from dastkari.graphql.order.utils import validate_draft_order
+from dastkari.graphql.payment.types import PaymentChargeStatusEnum
+from dastkari.order import OrderStatus, events as order_events
+from dastkari.order.error_codes import OrderErrorCode
+from dastkari.order.models import Order, OrderEvent
+from dastkari.payment import ChargeStatus, CustomPaymentChoices, PaymentError
+from dastkari.payment.models import Payment
+from dastkari.plugins.manager import PluginsManager
+from dastkari.shipping.models import ShippingMethod
+from dastkari.warehouse.models import Allocation, Stock
 
 from ..utils import get_available_quantity_for_stock
 from .utils import assert_no_permission, get_graphql_content
@@ -1498,8 +1498,8 @@ mutation cancelOrder($id: ID!) {
 """
 
 
-@patch("saleor.graphql.order.mutations.orders.cancel_order")
-@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+@patch("dastkari.graphql.order.mutations.orders.cancel_order")
+@patch("dastkari.graphql.order.mutations.orders.clean_order_cancel")
 def test_order_cancel(
     mock_clean_order_cancel,
     mock_cancel_order,
@@ -1521,8 +1521,8 @@ def test_order_cancel(
     mock_cancel_order.assert_called_once_with(order=order, user=staff_api_client.user)
 
 
-@patch("saleor.graphql.order.mutations.orders.cancel_order")
-@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+@patch("dastkari.graphql.order.mutations.orders.cancel_order")
+@patch("dastkari.graphql.order.mutations.orders.clean_order_cancel")
 def test_order_cancel_as_app(
     mock_clean_order_cancel,
     mock_cancel_order,
@@ -2206,7 +2206,7 @@ mutation CancelManyOrders($ids: [ID]!) {
 """
 
 
-@patch("saleor.graphql.order.bulk_mutations.orders.cancel_order")
+@patch("dastkari.graphql.order.bulk_mutations.orders.cancel_order")
 def test_order_bulk_cancel(
     mock_cancel_order,
     staff_api_client,
@@ -2235,7 +2235,7 @@ def test_order_bulk_cancel(
     mock_cancel_order.call_count == expected_count
 
 
-@patch("saleor.graphql.order.bulk_mutations.orders.cancel_order")
+@patch("dastkari.graphql.order.bulk_mutations.orders.cancel_order")
 def test_order_bulk_cancel_as_app(
     mock_cancel_order,
     app_api_client,

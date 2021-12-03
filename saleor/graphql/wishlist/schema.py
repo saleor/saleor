@@ -7,7 +7,7 @@ from .mutations import (
     WishlistRemoveProductVariantMutation,
 )
 
-# User's wishlist queries are located in the "saleor.graphql.account" module:
+# User's wishlist queries are located in the "dastkari.graphql.account" module:
 #
 #     me {
 #         wishlist

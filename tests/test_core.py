@@ -10,11 +10,11 @@ from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
 from measurement.measures import Weight
 
-from saleor.account.models import Address, User
-from saleor.account.utils import create_superuser
-from saleor.core.storages import S3MediaStorage
-from saleor.core.templatetags.placeholder import placeholder
-from saleor.core.utils import (
+from dastkari.account.models import Address, User
+from dastkari.account.utils import create_superuser
+from dastkari.core.storages import S3MediaStorage
+from dastkari.core.templatetags.placeholder import placeholder
+from dastkari.core.utils import (
     Country,
     build_absolute_uri,
     create_thumbnails,
@@ -24,12 +24,12 @@ from saleor.core.utils import (
     get_currency_for_country,
     random_data,
 )
-from saleor.core.weight import WeightUnits, convert_weight
-from saleor.discount.models import Sale, Voucher
-from saleor.giftcard.models import GiftCard
-from saleor.order.models import Order
-from saleor.product.models import ProductImage, ProductType
-from saleor.shipping.models import ShippingZone
+from dastkari.core.weight import WeightUnits, convert_weight
+from dastkari.discount.models import Sale, Voucher
+from dastkari.giftcard.models import GiftCard
+from dastkari.order.models import Order
+from dastkari.product.models import ProductImage, ProductType
+from dastkari.shipping.models import ShippingZone
 
 type_schema = {
     "Vegetable": {
@@ -56,7 +56,7 @@ type_schema = {
     ],
 )
 def test_get_country_by_ip(ip_data, expected_country, monkeypatch):
-    monkeypatch.setattr("saleor.core.utils.georeader.get", Mock(return_value=ip_data))
+    monkeypatch.setattr("dastkari.core.utils.georeader.get", Mock(return_value=ip_data))
     country = get_country_by_ip("127.0.0.1")
     assert country == expected_country
 
@@ -136,7 +136,7 @@ def test_create_address(db):
 def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
-        "saleor.core.utils.random_data.get_image", Mock(return_value=image)
+        "dastkari.core.utils.random_data.get_image", Mock(return_value=image)
     )
     for _ in random_data.create_shipping_zones():
         pass

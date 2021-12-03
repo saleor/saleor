@@ -8,15 +8,15 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 from graphene.utils.str_converters import to_camel_case
 
-from saleor.core.taxes import zero_money
-from saleor.graphql.core.utils import snake_to_camel_case
-from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
-from saleor.graphql.product.filters import filter_attributes_by_product_types
-from saleor.graphql.product.mutations.attributes import validate_value_is_unique
-from saleor.graphql.product.types.attributes import resolve_attribute_value_type
-from saleor.product import AttributeInputType
-from saleor.product.error_codes import ProductErrorCode
-from saleor.product.models import (
+from dastkari.core.taxes import zero_money
+from dastkari.graphql.core.utils import snake_to_camel_case
+from dastkari.graphql.product.enums import AttributeTypeEnum, AttributeValueType
+from dastkari.graphql.product.filters import filter_attributes_by_product_types
+from dastkari.graphql.product.mutations.attributes import validate_value_is_unique
+from dastkari.graphql.product.types.attributes import resolve_attribute_value_type
+from dastkari.product import AttributeInputType
+from dastkari.product.error_codes import ProductErrorCode
+from dastkari.product.models import (
     Attribute,
     AttributeProduct,
     AttributeValue,
@@ -27,7 +27,7 @@ from saleor.product.models import (
     ProductType,
     ProductVariant,
 )
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
+from dastkari.product.utils.attributes import associate_attribute_values_to_instance
 from tests.api.utils import get_graphql_content
 
 

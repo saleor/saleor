@@ -2,9 +2,9 @@ import graphene
 import pytest
 from django.contrib.auth.models import Group
 
-from saleor.account.error_codes import PermissionGroupErrorCode
-from saleor.account.models import User
-from saleor.core.permissions import AccountPermissions, AppPermission, OrderPermissions
+from dastkari.account.error_codes import PermissionGroupErrorCode
+from dastkari.account.models import User
+from dastkari.core.permissions import AccountPermissions, AppPermission, OrderPermissions
 
 from .utils import assert_no_permission, get_graphql_content
 

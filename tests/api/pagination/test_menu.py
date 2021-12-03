@@ -1,13 +1,13 @@
 import pytest
 
-from saleor.menu.models import Menu, MenuItem
+from dastkari.menu.models import Menu, MenuItem
 
 from ..utils import get_graphql_content
 
 
 @pytest.fixture
 def menus_for_pagination(db):
-    # We have "footer" and "navbar" from default saleor configuration
+    # We have "footer" and "navbar" from default dastkari configuration
     return Menu.objects.bulk_create(
         [
             Menu(name="menu1",),

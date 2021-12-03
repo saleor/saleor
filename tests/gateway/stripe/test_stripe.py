@@ -4,8 +4,8 @@ from math import isclose
 
 import pytest
 
-from saleor.payment import ChargeStatus
-from saleor.payment.gateways.stripe import (
+from dastkari.payment import ChargeStatus
+from dastkari.payment.gateways.stripe import (
     TransactionKind,
     _get_client,
     authorize,
@@ -16,8 +16,8 @@ from saleor.payment.gateways.stripe import (
     refund,
     void,
 )
-from saleor.payment.interface import CreditCardInfo, CustomerSource, GatewayConfig
-from saleor.payment.utils import create_payment_information
+from dastkari.payment.interface import CreditCardInfo, CustomerSource, GatewayConfig
+from dastkari.payment.utils import create_payment_information
 
 TRANSACTION_AMOUNT = Decimal(42.42)
 TRANSACTION_REFUND_AMOUNT = Decimal(24.24)
@@ -40,7 +40,7 @@ def gateway_config():
         connection_params={
             "public_key": "public",
             "private_key": "secret",
-            "store_name": "Saleor",
+            "store_name": "Dastkari",
             "store_image": "image.gif",
             "prefill": True,
             "remember_me": True,

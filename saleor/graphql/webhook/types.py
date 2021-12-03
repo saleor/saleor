@@ -37,7 +37,7 @@ class Webhook(CountableDjangoObjectType):
             "Use the `app` field instead. This field will be removed after 2020-07-31."
         ),
     )
-    app = graphene.Field("saleor.graphql.app.types.App", required=True)
+    app = graphene.Field("dastkari.graphql.app.types.App", required=True)
 
     class Meta:
         description = "Webhook."

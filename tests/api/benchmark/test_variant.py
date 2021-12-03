@@ -3,8 +3,8 @@ from uuid import uuid4
 import graphene
 import pytest
 
-from saleor.product.models import ProductVariant
-from saleor.warehouse.models import Stock
+from dastkari.product.models import ProductVariant
+from dastkari.warehouse.models import Stock
 from tests.api.utils import get_graphql_content
 
 

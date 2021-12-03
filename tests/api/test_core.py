@@ -9,21 +9,21 @@ from django.utils import timezone
 from graphene import InputField
 from graphql_jwt.shortcuts import get_token
 
-from saleor.account.error_codes import AccountErrorCode
-from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.core.filters import EnumFilter
-from saleor.graphql.core.mutations import BaseMutation
-from saleor.graphql.core.types import FilterInputObjectType
-from saleor.graphql.core.utils import (
+from dastkari.account.error_codes import AccountErrorCode
+from dastkari.graphql.core.enums import ReportingPeriod
+from dastkari.graphql.core.filters import EnumFilter
+from dastkari.graphql.core.mutations import BaseMutation
+from dastkari.graphql.core.types import FilterInputObjectType
+from dastkari.graphql.core.utils import (
     clean_seo_fields,
     get_duplicated_values,
     snake_to_camel_case,
     validate_slug_and_generate_if_needed,
 )
-from saleor.graphql.product import types as product_types
-from saleor.graphql.utils import get_database_id, requestor_is_superuser
-from saleor.graphql.utils.filters import filter_range_field, reporting_period_to_date
-from saleor.product.models import Category, Product
+from dastkari.graphql.product import types as product_types
+from dastkari.graphql.utils import get_database_id, requestor_is_superuser
+from dastkari.graphql.utils.filters import filter_range_field, reporting_period_to_date
+from dastkari.product.models import Category, Product
 from tests.api.utils import _get_graphql_content_from_response, get_graphql_content
 
 

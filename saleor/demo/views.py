@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 from ..graphql.views import API_PATH, GraphQLView
 
-EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
+EXAMPLE_QUERY = """# Welcome to Dastkari GraphQL API!
 #
 # Type queries into this side of the screen, and you will see
 # intelligent typeaheads aware of the current GraphQL type schema

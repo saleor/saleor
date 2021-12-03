@@ -4,8 +4,8 @@ from unittest.mock import patch
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.order import FulfillmentStatus, OrderEvents, OrderEventsEmails, OrderStatus
-from saleor.order.actions import (
+from dastkari.order import FulfillmentStatus, OrderEvents, OrderEventsEmails, OrderStatus
+from dastkari.order.actions import (
     automatically_fulfill_digital_lines,
     cancel_fulfillment,
     cancel_order,
@@ -14,10 +14,10 @@ from saleor.order.actions import (
     handle_fully_paid_order,
     mark_order_as_paid,
 )
-from saleor.order.models import Fulfillment
-from saleor.payment import ChargeStatus, PaymentError
-from saleor.product.models import DigitalContent
-from saleor.warehouse.models import Allocation, Stock
+from dastkari.order.models import Fulfillment
+from dastkari.payment import ChargeStatus, PaymentError
+from dastkari.product.models import DigitalContent
+from dastkari.warehouse.models import Allocation, Stock
 
 from .utils import create_image
 
@@ -55,8 +55,8 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     return order
 
 
-@patch("saleor.order.emails.send_fulfillment_confirmation.delay")
-@patch("saleor.order.emails.send_payment_confirmation.delay")
+@patch("dastkari.order.emails.send_fulfillment_confirmation.delay")
+@patch("dastkari.order.emails.send_payment_confirmation.delay")
 def test_handle_fully_paid_order_digital_lines(
     mock_send_payment_confirmation,
     mock_send_fulfillment_confirmation,
@@ -94,7 +94,7 @@ def test_handle_fully_paid_order_digital_lines(
     assert order.status == OrderStatus.FULFILLED
 
 
-@patch("saleor.order.emails.send_payment_confirmation.delay")
+@patch("dastkari.order.emails.send_payment_confirmation.delay")
 def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
     handle_fully_paid_order(order)
     event_order_paid, event_email_sent = order.events.all()
@@ -109,7 +109,7 @@ def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
     mock_send_payment_confirmation.assert_called_once_with(order.pk)
 
 
-@patch("saleor.order.emails.send_payment_confirmation.delay")
+@patch("dastkari.order.emails.send_payment_confirmation.delay")
 def test_handle_fully_paid_order_no_email(mock_send_payment_confirmation, order):
     order.user = None
     order.user_email = ""
@@ -236,8 +236,8 @@ def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
-@patch("saleor.order.actions.emails.send_fulfillment_confirmation")
-@patch("saleor.order.utils.get_default_digital_content_settings")
+@patch("dastkari.order.actions.emails.send_fulfillment_confirmation")
+@patch("dastkari.order.utils.get_default_digital_content_settings")
 def test_fulfill_digital_lines(
     mock_digital_settings, mock_email_fulfillment, order_with_lines, media_root
 ):

@@ -6,10 +6,10 @@ from django.core import mail
 from django.core.exceptions import ImproperlyConfigured
 from templated_email import get_connection
 
-import saleor.account.emails as account_emails
-import saleor.order.emails as emails
-from saleor.core.emails import get_email_context, prepare_url
-from saleor.order.utils import add_variant_to_draft_order
+import dastkari.account.emails as account_emails
+import dastkari.order.emails as emails
+from dastkari.core.emails import get_email_context, prepare_url
+from dastkari.order.utils import add_variant_to_draft_order
 
 
 def test_get_email_context(site_settings):
@@ -57,7 +57,7 @@ def test_collect_data_for_email(order):
     assert "schema_markup" not in email_context
 
 
-@mock.patch("saleor.order.emails.send_templated_mail")
+@mock.patch("dastkari.order.emails.send_templated_mail")
 def test_send_email_payment_confirmation(mocked_templated_email, order, site_settings):
     template = emails.CONFIRM_PAYMENT_TEMPLATE
     emails.send_payment_confirmation(order.pk)
@@ -80,7 +80,7 @@ def test_send_email_payment_confirmation(mocked_templated_email, order, site_set
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
-@mock.patch("saleor.order.emails.send_templated_mail")
+@mock.patch("dastkari.order.emails.send_templated_mail")
 def test_send_staff_emails_without_notification_recipient(
     mocked_templated_email, order, site_settings
 ):
@@ -88,7 +88,7 @@ def test_send_staff_emails_without_notification_recipient(
     mocked_templated_email.assert_not_called()
 
 
-@mock.patch("saleor.order.emails.send_templated_mail")
+@mock.patch("dastkari.order.emails.send_templated_mail")
 def test_send_staff_emails(
     mocked_templated_email, order, site_settings, staff_notification_recipient
 ):
@@ -115,7 +115,7 @@ def test_send_staff_emails(
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
-@mock.patch("saleor.order.emails.send_templated_mail")
+@mock.patch("dastkari.order.emails.send_templated_mail")
 def test_send_email_order_confirmation(mocked_templated_email, order, site_settings):
     template = emails.CONFIRM_ORDER_TEMPLATE
     redirect_url = "https://www.example.com"
@@ -139,7 +139,7 @@ def test_send_email_order_confirmation(mocked_templated_email, order, site_setti
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
-@mock.patch("saleor.order.emails.send_templated_mail")
+@mock.patch("dastkari.order.emails.send_templated_mail")
 def test_send_confirmation_emails_without_addresses_for_payment(
     mocked_templated_email, order, site_settings, digital_content
 ):
@@ -173,7 +173,7 @@ def test_send_confirmation_emails_without_addresses_for_payment(
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
-@mock.patch("saleor.order.emails.send_templated_mail")
+@mock.patch("dastkari.order.emails.send_templated_mail")
 def test_send_confirmation_emails_without_addresses_for_order(
     mocked_templated_email, order, site_settings, digital_content
 ):
@@ -218,7 +218,7 @@ def test_send_confirmation_emails_without_addresses_for_order(
         (emails.send_fulfillment_update, emails.UPDATE_FULFILLMENT_TEMPLATE),
     ],
 )
-@mock.patch("saleor.order.emails.send_templated_mail")
+@mock.patch("dastkari.order.emails.send_templated_mail")
 def test_send_fulfillment_emails(
     mocked_templated_email, template, send_email, fulfilled_order, site_settings
 ):
@@ -290,7 +290,7 @@ def test_prepare_url():
     assert result == "https://www.example.com?param1=abc&param2=xyz"
 
 
-@mock.patch("saleor.account.emails.send_templated_mail")
+@mock.patch("dastkari.account.emails.send_templated_mail")
 def test_send_email_request_change(
     mocked_templated_email, site_settings, customer_user
 ):
@@ -326,7 +326,7 @@ def test_send_email_request_change(
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
-@mock.patch("saleor.account.emails.send_templated_mail")
+@mock.patch("dastkari.account.emails.send_templated_mail")
 def test_send_email_changed_notification(
     mocked_templated_email, site_settings, customer_user
 ):

@@ -5,7 +5,7 @@ import django_countries.fields
 import django_measurement.models
 from django.db import migrations, models
 
-import saleor.core.weight
+import dastkari.core.weight
 
 
 class Migration(migrations.Migration):
@@ -87,7 +87,7 @@ class Migration(migrations.Migration):
             name="minimum_order_weight",
             field=django_measurement.models.MeasurementField(
                 blank=True,
-                default=saleor.core.weight.zero_weight,
+                default=dastkari.core.weight.zero_weight,
                 measurement_class="Mass",
                 null=True,
             ),

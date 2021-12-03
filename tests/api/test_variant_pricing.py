@@ -2,9 +2,9 @@ from unittest.mock import Mock
 
 from prices import Money, TaxedMoney
 
-from saleor.plugins.manager import PluginsManager
-from saleor.product.models import ProductVariant
-from saleor.product.utils.availability import get_variant_availability
+from dastkari.plugins.manager import PluginsManager
+from dastkari.product.models import ProductVariant
+from dastkari.product.utils.availability import get_variant_availability
 from tests.api.utils import get_graphql_content
 
 QUERY_GET_VARIANT_PRICING = """

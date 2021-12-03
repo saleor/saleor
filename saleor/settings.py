@@ -36,9 +36,9 @@ SITE_ID = 1
 
 PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 
-ROOT_URLCONF = "saleor.urls"
+ROOT_URLCONF = "dastkari.urls"
 
-WSGI_APPLICATION = "saleor.wsgi.application"
+WSGI_APPLICATION = "dastkari.wsgi.application"
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -62,7 +62,7 @@ INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=600
+        default="postgres://dastkari:dastkari@localhost:5432/dastkari", conn_max_age=600
     )
 }
 
@@ -163,7 +163,7 @@ MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
 STATIC_URL = os.environ.get("STATIC_URL", "/static/")
 STATICFILES_DIRS = [
-    ("images", os.path.join(PROJECT_ROOT, "saleor", "static", "images"))
+    ("images", os.path.join(PROJECT_ROOT, "dastkari", "static", "images"))
 ]
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -174,7 +174,7 @@ context_processors = [
     "django.template.context_processors.debug",
     "django.template.context_processors.media",
     "django.template.context_processors.static",
-    "saleor.site.context_processors.site",
+    "dastkari.site.context_processors.site",
 ]
 
 loaders = [
@@ -205,13 +205,13 @@ if not SECRET_KEY and DEBUG:
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "saleor.core.middleware.request_time",
-    "saleor.core.middleware.discounts",
-    "saleor.core.middleware.google_analytics",
-    "saleor.core.middleware.country",
-    "saleor.core.middleware.currency",
-    "saleor.core.middleware.site",
-    "saleor.core.middleware.plugins",
+    "dastkari.core.middleware.request_time",
+    "dastkari.core.middleware.discounts",
+    "dastkari.core.middleware.google_analytics",
+    "dastkari.core.middleware.country",
+    "dastkari.core.middleware.currency",
+    "dastkari.core.middleware.site",
+    "dastkari.core.middleware.plugins",
 ]
 
 INSTALLED_APPS = [
@@ -224,27 +224,27 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.postgres",
     # Local apps
-    "saleor.plugins",
-    "saleor.account",
-    "saleor.discount",
-    "saleor.giftcard",
-    "saleor.product",
-    "saleor.checkout",
-    "saleor.core",
-    "saleor.graphql",
-    "saleor.menu",
-    "saleor.order",
-    "saleor.seo",
-    "saleor.shipping",
-    "saleor.search",
-    "saleor.site",
-    "saleor.data_feeds",
-    "saleor.page",
-    "saleor.payment",
-    "saleor.warehouse",
-    "saleor.webhook",
-    "saleor.wishlist",
-    "saleor.app",
+    "dastkari.plugins",
+    "dastkari.account",
+    "dastkari.discount",
+    "dastkari.giftcard",
+    "dastkari.product",
+    "dastkari.checkout",
+    "dastkari.core",
+    "dastkari.graphql",
+    "dastkari.menu",
+    "dastkari.order",
+    "dastkari.seo",
+    "dastkari.shipping",
+    "dastkari.search",
+    "dastkari.site",
+    "dastkari.data_feeds",
+    "dastkari.page",
+    "dastkari.payment",
+    "dastkari.warehouse",
+    "dastkari.webhook",
+    "dastkari.wishlist",
+    "dastkari.app",
     # External apps
     "versatileimagefield",
     "django_measurement",
@@ -272,7 +272,7 @@ if ENABLE_DEBUG_TOOLBAR:
         warnings.warn(msg)
     else:
         INSTALLED_APPS += ["django.forms", "debug_toolbar", "graphiql_debug_toolbar"]
-        MIDDLEWARE.append("saleor.graphql.middleware.DebugToolbarMiddleware")
+        MIDDLEWARE.append("dastkari.graphql.middleware.DebugToolbarMiddleware")
 
         DEBUG_TOOLBAR_PANELS = [
             "ddt_request_history.panels.request_history.RequestHistoryPanel",
@@ -317,8 +317,8 @@ LOGGING = {
             "propagate": True,
         },
         "django.server": {"handlers": ["console"], "level": "INFO", "propagate": True},
-        "saleor": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
-        "saleor.graphql.errors.handled": {
+        "dastkari": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
+        "dastkari.graphql.errors.handled": {
             "handlers": ["console"],
             "level": "ERROR",
             "propagate": True,
@@ -328,7 +328,7 @@ LOGGING = {
         # This allow easier filtering from GraphQL query/permission errors that may
         # have been triggered by your frontend applications from the internal errors
         # that happen in backend
-        "saleor.graphql.errors.unhandled": {
+        "dastkari.graphql.errors.unhandled": {
             "handlers": ["console"],
             "level": "ERROR",
             "propagate": True,
@@ -419,10 +419,10 @@ elif GS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
 
 if AWS_MEDIA_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = "saleor.core.storages.S3MediaStorage"
+    DEFAULT_FILE_STORAGE = "dastkari.core.storages.S3MediaStorage"
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 elif GS_MEDIA_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
+    DEFAULT_FILE_STORAGE = "dastkari.core.storages.GCSMediaStorage"
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
@@ -453,7 +453,7 @@ PLACEHOLDER_IMAGES = {
 
 DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
 
-SEARCH_BACKEND = "saleor.search.backends.postgresql"
+SEARCH_BACKEND = "dastkari.search.backends.postgresql"
 
 AUTHENTICATION_BACKENDS = [
     "graphql_jwt.backends.JSONWebTokenBackend",
@@ -462,7 +462,7 @@ AUTHENTICATION_BACKENDS = [
 
 # Django GraphQL JWT settings
 GRAPHQL_JWT = {
-    "JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload",
+    "JWT_PAYLOAD_HANDLER": "dastkari.graphql.utils.create_jwt_payload",
     # How long until a token expires, default is 5m from graphql_jwt.settings
     "JWT_EXPIRATION_DELTA": timedelta(minutes=5),
     # Whether the JWT tokens should expire or not
@@ -500,22 +500,22 @@ GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
     "MIDDLEWARE": [
-        "saleor.graphql.middleware.OpentracingGrapheneMiddleware",
-        "saleor.graphql.middleware.JWTMiddleware",
-        "saleor.graphql.middleware.app_middleware",
+        "dastkari.graphql.middleware.OpentracingGrapheneMiddleware",
+        "dastkari.graphql.middleware.JWTMiddleware",
+        "dastkari.graphql.middleware.app_middleware",
     ],
 }
 
-PLUGINS_MANAGER = "saleor.plugins.manager.PluginsManager"
+PLUGINS_MANAGER = "dastkari.plugins.manager.PluginsManager"
 
 PLUGINS = [
-    "saleor.plugins.avatax.plugin.AvataxPlugin",
-    "saleor.plugins.vatlayer.plugin.VatlayerPlugin",
-    "saleor.plugins.webhook.plugin.WebhookPlugin",
-    "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
-    "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
-    "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
-    "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
+    "dastkari.plugins.avatax.plugin.AvataxPlugin",
+    "dastkari.plugins.vatlayer.plugin.VatlayerPlugin",
+    "dastkari.plugins.webhook.plugin.WebhookPlugin",
+    "dastkari.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+    "dastkari.payment.gateways.stripe.plugin.StripeGatewayPlugin",
+    "dastkari.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
+    "dastkari.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
 ]
 
 if (
@@ -531,7 +531,7 @@ if (
 # Initialize a simple and basic Jaeger Tracing integration
 # for open-tracing if enabled.
 #
-# Refer to our guide on https://docs.saleor.io/docs/next/guides/opentracing-jaeger/.
+# Refer to our guide on https://docs.dastkari.io/docs/next/guides/opentracing-jaeger/.
 #
 # If running locally, set:
 #   JAEGER_AGENT_HOST=localhost
@@ -547,7 +547,7 @@ if "JAEGER_AGENT_HOST" in os.environ:
             },
             "logging": get_bool_from_env("JAEGER_LOGGING", False),
         },
-        service_name="saleor",
+        service_name="dastkari",
         validate=True,
     ).initialize_tracer()
 

@@ -4,14 +4,14 @@ import graphene
 import pytest
 from django.contrib.auth.models import Group
 
-from saleor.account.error_codes import AccountErrorCode
-from saleor.account.models import User
-from saleor.core.permissions import AccountPermissions, OrderPermissions
-from saleor.discount.models import Sale, Voucher
-from saleor.menu.models import Menu, MenuItem
-from saleor.order import OrderStatus, models as order_models
-from saleor.page.models import Page
-from saleor.product.models import (
+from dastkari.account.error_codes import AccountErrorCode
+from dastkari.account.models import User
+from dastkari.core.permissions import AccountPermissions, OrderPermissions
+from dastkari.discount.models import Sale, Voucher
+from dastkari.menu.models import Menu, MenuItem
+from dastkari.order import OrderStatus, models as order_models
+from dastkari.page.models import Page
+from dastkari.product.models import (
     Attribute,
     AttributeValue,
     Category,
@@ -21,7 +21,7 @@ from saleor.product.models import (
     ProductType,
     ProductVariant,
 )
-from saleor.shipping.models import ShippingMethod, ShippingZone
+from dastkari.shipping.models import ShippingMethod, ShippingZone
 
 from .utils import assert_no_permission, get_graphql_content, menu_item_to_json
 
@@ -198,7 +198,7 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
     ).exists()
 
 
-@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
+@patch("dastkari.product.utils.update_products_minimal_variant_prices_task")
 def test_delete_categories_with_subcategories_and_products(
     mock_update_products_minimal_variant_prices_task,
     staff_api_client,
@@ -282,7 +282,7 @@ def test_delete_collections(
 
 
 @patch(
-    "saleor.graphql.account.utils.account_events.staff_user_deleted_a_customer_event"
+    "dastkari.graphql.account.utils.account_events.staff_user_deleted_a_customer_event"
 )
 def test_delete_customers(
     mocked_deletion_event,

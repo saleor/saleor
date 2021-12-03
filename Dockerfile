@@ -18,7 +18,7 @@ FROM python:3.8-slim
 ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
 
-RUN groupadd -r saleor && useradd -r -g saleor saleor
+RUN groupadd -r dastkari && useradd -r -g dastkari dastkari
 
 RUN apt-get update \
   && apt-get install -y \
@@ -41,11 +41,11 @@ WORKDIR /app
 RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --no-input
 
 RUN mkdir -p /app/media /app/static \
-  && chown -R saleor:saleor /app/
+  && chown -R dastkari:dastkari /app/
 
 EXPOSE 8000
 ENV PORT 8000
 ENV PYTHONUNBUFFERED 1
 ENV PROCESSES 4
 
-CMD ["uwsgi", "--ini", "/app/saleor/wsgi/uwsgi.ini"]
+CMD ["uwsgi", "--ini", "/app/dastkari/wsgi/uwsgi.ini"]

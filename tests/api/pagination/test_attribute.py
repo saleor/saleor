@@ -2,7 +2,7 @@ import graphene
 import pytest
 from prices import Money
 
-from saleor.product.models import (
+from dastkari.product.models import (
     Attribute,
     AttributeProduct,
     AttributeVariant,

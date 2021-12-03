@@ -4,8 +4,8 @@ import json
 from django.contrib.postgres import fields
 from django.db import migrations
 
-from saleor.page.models import Page
-from saleor.product.models import Category, Collection
+from dastkari.page.models import Page
+from dastkari.product.models import Category, Collection
 
 
 def get_linked_object_kwargs(object):

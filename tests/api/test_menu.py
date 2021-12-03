@@ -4,9 +4,9 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 
-from saleor.graphql.menu.mutations import NavigationType, _validate_menu_item_instance
-from saleor.menu.models import Menu, MenuItem
-from saleor.product.models import Category
+from dastkari.graphql.menu.mutations import NavigationType, _validate_menu_item_instance
+from dastkari.menu.models import Menu, MenuItem
+from dastkari.product.models import Category
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission, menu_item_to_json
@@ -67,7 +67,7 @@ def test_menu_query_error_when_id_and_name_provided(
     }
     response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        "dastkari.graphql.errors.handled[ERROR].GraphQLError"
     ]
     content = get_graphql_content(response, ignore_errors=True)
     assert len(content["errors"]) == 1
@@ -79,7 +79,7 @@ def test_menu_query_error_when_no_param(
     variables = {}
     response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        "dastkari.graphql.errors.handled[ERROR].GraphQLError"
     ]
     content = get_graphql_content(response, ignore_errors=True)
     assert len(content["errors"]) == 1
@@ -157,7 +157,7 @@ QUERY_MENU_WITH_SORT = """
 @pytest.mark.parametrize(
     "menu_sort, result_order",
     [
-        # We have "footer" and "navbar" from default saleor configuration
+        # We have "footer" and "navbar" from default dastkari configuration
         ({"field": "NAME", "direction": "ASC"}, ["footer", "menu1", "navbar"]),
         ({"field": "NAME", "direction": "DESC"}, ["navbar", "menu1", "footer"]),
         ({"field": "ITEMS_COUNT", "direction": "ASC"}, ["footer", "navbar", "menu1"]),

@@ -2,13 +2,13 @@
 import graphene
 import pytest
 
-from saleor.account.models import Address
-from saleor.checkout import calculations
-from saleor.checkout.error_codes import CheckoutErrorCode
-from saleor.checkout.models import Checkout
-from saleor.checkout.utils import add_variant_to_checkout
-from saleor.graphql.checkout.mutations import update_checkout_shipping_method_if_invalid
-from saleor.order.models import Order
+from dastkari.account.models import Address
+from dastkari.checkout import calculations
+from dastkari.checkout.error_codes import CheckoutErrorCode
+from dastkari.checkout.models import Checkout
+from dastkari.checkout.utils import add_variant_to_checkout
+from dastkari.graphql.checkout.mutations import update_checkout_shipping_method_if_invalid
+from dastkari.order.models import Order
 from tests.api.utils import get_graphql_content
 
 from .test_checkout import (
@@ -33,7 +33,7 @@ def checkout_with_digital_item(checkout, digital_content):
 
 @pytest.fixture(autouse=True)
 def enable_dummy_gateway(settings):
-    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
+    settings.PLUGINS = ["dastkari.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
     return settings
 
 

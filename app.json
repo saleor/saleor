@@ -1,17 +1,17 @@
 {
-  "name": "saleor",
+  "name": "dastkari",
   "description": "An e-commerce storefront for Python and Django",
-  "repository": "https://github.com/mirumee/saleor",
-  "website": "http://getsaleor.com/",
-  "logo": "https://mirumee.com/img/opensource_saleor.jpg",
+  "repository": "https://github.com/mirumee/dastkari",
+  "website": "http://getdastkari.com/",
+  "logo": "https://mirumee.com/img/opensource_dastkari.jpg",
   "keywords": [
-    "saleor",
+    "dastkari",
     "e-commerce",
     "django"
   ],
   "image": "heroku/python",
   "env": {
-    "DJANGO_SETTINGS_MODULE": "saleor.settings",
+    "DJANGO_SETTINGS_MODULE": "dastkari.settings",
     "NODE_ENV": "production",
     "DEBUG": "False",
     "NPM_CONFIG_PRODUCTION": "false",

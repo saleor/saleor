@@ -6,8 +6,8 @@ from django.utils import timezone
 from django.utils.text import slugify
 from freezegun import freeze_time
 
-from saleor.page.error_codes import PageErrorCode
-from saleor.page.models import Page
+from dastkari.page.error_codes import PageErrorCode
+from dastkari.page.models import Page
 from tests.api.utils import get_graphql_content
 
 PAGE_QUERY = """

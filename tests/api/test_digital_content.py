@@ -1,7 +1,7 @@
 import graphene
 
-from saleor.product.error_codes import ProductErrorCode
-from saleor.product.models import DigitalContent, ProductVariant
+from dastkari.product.error_codes import ProductErrorCode
+from dastkari.product.models import DigitalContent, ProductVariant
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
 

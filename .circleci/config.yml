@@ -15,36 +15,36 @@ jobs:
             if [ -n "$CIRCLE_TAG" ]; then
               export SALEOR_VERSION=$(git describe --tags)
             fi
-            sed -i.bak "s#'dev'#'$SALEOR_VERSION'#" saleor/__init__.py
+            sed -i.bak "s#'dev'#'$SALEOR_VERSION'#" dastkari/__init__.py
       - run:
           name: Build application Docker image
           command: |
             docker build \
               --build-arg STATIC_URL=$STATIC_URL \
-              -t mirumee/saleor:latest .
+              -t mirumee/dastkari:latest .
       - run:
           name: Run tests
           command: |
-            docker run -d --name db -e POSTGRES_USER=saleor -e POSTGRES_PASSWORD=saleor postgres:12.2-alpine
-            docker run --network container:db --rm -e DATABASE_URL mirumee/saleor:latest pytest
+            docker run -d --name db -e POSTGRES_USER=dastkari -e POSTGRES_PASSWORD=dastkari postgres:12.2-alpine
+            docker run --network container:db --rm -e DATABASE_URL mirumee/dastkari:latest pytest
           environment:
-            DATABASE_URL: postgres://saleor:saleor@localhost:5432/saleor
+            DATABASE_URL: postgres://dastkari:dastkari@localhost:5432/dastkari
       - deploy:
           name: Push Docker image
           command: |
             docker login -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
-            docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
-            docker push mirumee/saleor:$CIRCLE_SHA1
-            docker push mirumee/saleor:latest
+            docker tag mirumee/dastkari:latest mirumee/dastkari:$CIRCLE_SHA1
+            docker push mirumee/dastkari:$CIRCLE_SHA1
+            docker push mirumee/dastkari:latest
       - run:
-          name: Deploy saleor-demo
+          name: Deploy dastkari-demo
           command: |
             if [ -n "$CIRCLE_TAG" ]; then
               apk add --upgrade --no-cache curl libcurl
               sh ./scripts/push_static.sh
               curl -u $DEMO_DEPLOY_KEY: \
                 -d build_parameters[CIRCLE_JOB]=deploy \
-                https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo/tree/master
+                https://circleci.com/api/v1.1/project/github/mirumee/dastkari-demo/tree/master
             fi
 
 workflows:

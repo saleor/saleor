@@ -6,7 +6,7 @@ import django.utils.timezone
 from django.conf import settings
 from django.db import migrations, models
 
-import saleor.core.utils.json_serializer
+import dastkari.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                     django.contrib.postgres.fields.jsonb.JSONField(
                         blank=True,
                         default=dict,
-                        encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
+                        encoder=dastkari.core.utils.json_serializer.CustomJsonEncoder,
                     ),
                 ),
                 (

@@ -4,8 +4,8 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from saleor.discount import DiscountValueType, VoucherType
-from saleor.discount.models import Sale, Voucher
+from dastkari.discount import DiscountValueType, VoucherType
+from dastkari.discount.models import Sale, Voucher
 
 from ..utils import get_graphql_content
 

@@ -1,8 +1,8 @@
 import graphene
 import pytest
 
-from saleor.graphql.shipping.types import ShippingMethodTypeEnum
-from saleor.shipping.error_codes import ShippingErrorCode
+from dastkari.graphql.shipping.types import ShippingMethodTypeEnum
+from dastkari.shipping.error_codes import ShippingErrorCode
 
 from ..api.utils import get_graphql_content
 

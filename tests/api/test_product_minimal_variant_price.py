@@ -5,8 +5,8 @@ from freezegun import freeze_time
 from graphql_relay import from_global_id, to_global_id
 from prices import Money
 
-from saleor.graphql.discount.enums import DiscountValueTypeEnum
-from saleor.product.error_codes import ProductErrorCode
+from dastkari.graphql.discount.enums import DiscountValueTypeEnum
+from dastkari.product.error_codes import ProductErrorCode
 from tests.api.utils import get_graphql_content
 
 
@@ -63,7 +63,7 @@ def test_product_create_sets_minimal_variant_price(
 
 
 @patch(
-    "saleor.graphql.product.mutations.products"
+    "dastkari.graphql.product.mutations.products"
     ".update_product_minimal_variant_price_task"
 )
 def test_product_update_updates_minimal_variant_price(
@@ -115,7 +115,7 @@ def test_product_update_updates_minimal_variant_price(
 
 
 @patch(
-    "saleor.graphql.product.mutations.products"
+    "dastkari.graphql.product.mutations.products"
     ".update_product_minimal_variant_price_task"
 )
 def test_product_variant_create_updates_minimal_variant_price(
@@ -177,7 +177,7 @@ def test_product_variant_create_updates_minimal_variant_price(
 
 
 @patch(
-    "saleor.graphql.product.mutations.products"
+    "dastkari.graphql.product.mutations.products"
     ".update_product_minimal_variant_price_task"
 )
 def test_product_variant_update_updates_minimal_variant_price(
@@ -226,7 +226,7 @@ def test_product_variant_update_updates_minimal_variant_price(
 
 
 @patch(
-    "saleor.graphql.product.mutations.products"
+    "dastkari.graphql.product.mutations.products"
     ".update_product_minimal_variant_price_task"
 )
 def test_product_variant_update_updates_invalid_variant_price(
@@ -273,7 +273,7 @@ def test_product_variant_update_updates_invalid_variant_price(
 
 
 @patch(
-    "saleor.graphql.product.mutations.products"
+    "dastkari.graphql.product.mutations.products"
     ".update_product_minimal_variant_price_task"
 )
 def test_product_variant_update_updates_invalid_cost_price(
@@ -320,7 +320,7 @@ def test_product_variant_update_updates_invalid_cost_price(
 
 
 @patch(
-    "saleor.graphql.product.mutations.products."
+    "dastkari.graphql.product.mutations.products."
     "update_product_minimal_variant_price_task"
 )
 def test_product_variant_delete_updates_minimal_variant_price(
@@ -357,7 +357,7 @@ def test_product_variant_delete_updates_minimal_variant_price(
     )
 
 
-@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
+@patch("dastkari.product.utils.update_products_minimal_variant_prices_task")
 def test_category_delete_updates_minimal_variant_price(
     mock_update_products_minimal_variant_prices_task,
     staff_api_client,
@@ -403,7 +403,7 @@ def test_category_delete_updates_minimal_variant_price(
 
 
 @patch(
-    "saleor.graphql.product.mutations.products"
+    "dastkari.graphql.product.mutations.products"
     ".update_products_minimal_variant_prices_of_catalogues_task"
 )
 def test_collection_add_products_updates_minimal_variant_price(
@@ -447,7 +447,7 @@ def test_collection_add_products_updates_minimal_variant_price(
 
 
 @patch(
-    "saleor.graphql.product.mutations"
+    "dastkari.graphql.product.mutations"
     ".products.update_products_minimal_variant_prices_of_catalogues_task"
 )
 def test_collection_remove_products_updates_minimal_variant_price(
@@ -492,7 +492,7 @@ def test_collection_remove_products_updates_minimal_variant_price(
 
 @freeze_time("2010-05-31 12:00:01")
 @patch(
-    "saleor.graphql.discount.mutations"
+    "dastkari.graphql.discount.mutations"
     ".update_products_minimal_variant_prices_of_discount_task"
 )
 def test_sale_create_updates_products_minimal_variant_prices(
@@ -543,7 +543,7 @@ def test_sale_create_updates_products_minimal_variant_prices(
 
 
 @patch(
-    "saleor.graphql.discount.mutations"
+    "dastkari.graphql.discount.mutations"
     ".update_products_minimal_variant_prices_of_discount_task"
 )
 def test_sale_update_updates_products_minimal_variant_prices(
@@ -578,7 +578,7 @@ def test_sale_update_updates_products_minimal_variant_prices(
 
 
 @patch(
-    "saleor.graphql.discount.mutations"
+    "dastkari.graphql.discount.mutations"
     ".update_products_minimal_variant_prices_of_discount_task"
 )
 def test_sale_delete_updates_products_minimal_variant_prices(
@@ -613,7 +613,7 @@ def test_sale_delete_updates_products_minimal_variant_prices(
 
 
 @patch(
-    "saleor.graphql.discount.mutations"
+    "dastkari.graphql.discount.mutations"
     ".update_products_minimal_variant_prices_of_catalogues_task"
 )
 def test_sale_add_catalogues_updates_products_minimal_variant_prices(
@@ -664,7 +664,7 @@ def test_sale_add_catalogues_updates_products_minimal_variant_prices(
 
 
 @patch(
-    "saleor.graphql.discount.mutations"
+    "dastkari.graphql.discount.mutations"
     ".update_products_minimal_variant_prices_of_catalogues_task"
 )
 def test_sale_remove_catalogues_updates_products_minimal_variant_prices(

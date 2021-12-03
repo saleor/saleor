@@ -1,7 +1,7 @@
 {
     "AWSEBDockerrunVersion": "1",
     "Image": {
-      "Name": "mirumee/saleor:latest",
+      "Name": "mirumee/dastkari:latest",
       "Update": "true"
     },
     "Ports": [

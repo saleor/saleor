@@ -1,6 +1,6 @@
 # Changelog
 
-All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
+All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/dastkari/releases) page.
 
 ## [Unreleased]
 
@@ -134,7 +134,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutation to change customer's first name last name - #4489 by @fowczarek
 - Add mutation to delete customer's account - #4494 by @fowczarek
 - Add mutation to change customer's password - #4656 by @fowczarek
-- Add ability to customize email sender address in emails sent by Saleor - #4820 by @NyanKiyoshi
+- Add ability to customize email sender address in emails sent by Dastkari - #4820 by @NyanKiyoshi
 - Add ability to filter attributes per global ID - #4640 by @NyanKiyoshi
 - Add ability to search product types by value (through the name) - #4647 by @NyanKiyoshi
 - Add queries and mutation for serving and saving the configuration of all plugins - #4576 by @korycins
@@ -163,7 +163,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix fetching staff user without `manage_users` permission - #4835 by @fowczarek
 - Ensure that a GraphQL query is a string - #4836 by @nix010
 - Add ability to configure the password reset link - #4863 by @fowczarek
-- Fixed a performance issue where Saleor would sometimes run huge, unneeded prefetches when resolving categories or collections - #5291 by @NyanKiyoshi
+- Fixed a performance issue where Dastkari would sometimes run huge, unneeded prefetches when resolving categories or collections - #5291 by @NyanKiyoshi
 - uWSGI now forces the django application to directly load on startup instead of being lazy - #5357 by @NyanKiyoshi
 
 ### Core
@@ -220,7 +220,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix MUI warnings - #4588 by @dominik-zeglen
 - Fix bulk action checkboxes - #4618 by @dominik-zeglen
 - Fix rendering user avatar when it's empty #4546 by @maarcingebala
-- Remove Dashboard 2.0 files form Saleor repository - #4631 by @dominik-zeglen
+- Remove Dashboard 2.0 files form Dastkari repository - #4631 by @dominik-zeglen
 - Fix CreateToken mutation to use NonNull on errors field #5415 by @gabmartinez
 
 ### Other notable changes
@@ -601,7 +601,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove Elasticsearch from `docker-compose.yml` - #3482 by @maarcingebala
 - Resort imports in tests - #3471 by @jxltom
 - Fix the no shipping orders payment crash on Stripe - #3550 by @NyanKiyoshi
-- Bump backend dependencies - #3557 by @maarcingebala. This PR removes security issue CVE-2019-3498 which was present in Django 2.1.4. Saleor however wasn't vulnerable to this issue as it doesn't use the affected `django.views.defaults.page_not_found()` view.
+- Bump backend dependencies - #3557 by @maarcingebala. This PR removes security issue CVE-2019-3498 which was present in Django 2.1.4. Dastkari however wasn't vulnerable to this issue as it doesn't use the affected `django.views.defaults.page_not_found()` view.
 - Generate random data using the default currency - #3512 by @stephenmoloney
 - New translations:
   - Catalan

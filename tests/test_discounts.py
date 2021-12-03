@@ -4,11 +4,11 @@ import pytest
 from django.utils import timezone
 from prices import Money
 
-from saleor.checkout.utils import get_voucher_discount_for_checkout
-from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
-from saleor.discount.models import NotApplicable, Sale, Voucher, VoucherCustomer
-from saleor.discount.templatetags.voucher import discount_as_negative
-from saleor.discount.utils import (
+from dastkari.checkout.utils import get_voucher_discount_for_checkout
+from dastkari.discount import DiscountInfo, DiscountValueType, VoucherType
+from dastkari.discount.models import NotApplicable, Sale, Voucher, VoucherCustomer
+from dastkari.discount.templatetags.voucher import discount_as_negative
+from dastkari.discount.utils import (
     add_voucher_usage_by_customer,
     decrease_voucher_usage,
     get_product_discount_on_sale,
@@ -16,7 +16,7 @@ from saleor.discount.utils import (
     remove_voucher_usage_by_customer,
     validate_voucher,
 )
-from saleor.product.models import Product, ProductVariant
+from dastkari.product.models import Product, ProductVariant
 
 
 @pytest.mark.parametrize(
@@ -115,7 +115,7 @@ def test_specific_products_voucher_checkout_discount(
 ):
     discounts = []
     monkeypatch.setattr(
-        "saleor.checkout.utils.get_prices_of_discounted_specific_product",
+        "dastkari.checkout.utils.get_prices_of_discounted_specific_product",
         lambda lines, discounts, discounted_products: (
             Money(price, "USD") for price in prices
         ),

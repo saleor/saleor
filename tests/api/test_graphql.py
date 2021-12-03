@@ -9,9 +9,9 @@ from django.shortcuts import reverse
 from graphql.error import GraphQLError
 from graphql_relay import to_global_id
 
-from saleor.graphql.product.types import Product
-from saleor.graphql.utils import get_nodes
-from saleor.graphql.utils.filters import filter_by_query_param
+from dastkari.graphql.product.types import Product
+from dastkari.graphql.utils import get_nodes
+from dastkari.graphql.utils.filters import filter_by_query_param
 from tests.api.utils import get_graphql_content
 
 
@@ -271,7 +271,7 @@ def test_get_nodes(product_list):
     assert exc.value.args == (msg,)
 
 
-@patch("saleor.product.models.Product.objects")
+@patch("dastkari.product.models.Product.objects")
 def test_filter_by_query_param(qs):
     qs.filter.return_value = qs
 

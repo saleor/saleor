@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from saleor.payment.interface import (
+    from dastkari.payment.interface import (
         PaymentData,
         GatewayResponse,
         TokenConfig,

@@ -5,9 +5,9 @@ from django.conf import settings
 
 from .plugins import discover_plugins_modules
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saleor.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dastkari.settings")
 
-app = Celery("saleor")
+app = Celery("dastkari")
 
 CELERY_TIMEZONE = "UTC"
 

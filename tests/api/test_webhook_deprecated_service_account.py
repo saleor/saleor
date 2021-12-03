@@ -1,9 +1,9 @@
 import graphene
 import pytest
 
-from saleor.app.models import App
-from saleor.graphql.webhook.enums import WebhookEventTypeEnum
-from saleor.webhook.models import Webhook
+from dastkari.app.models import App
+from dastkari.graphql.webhook.enums import WebhookEventTypeEnum
+from dastkari.webhook.models import Webhook
 
 from .test_webhook import QUERY_WEBHOOKS_WITH_SORT
 from .utils import assert_no_permission, get_graphql_content

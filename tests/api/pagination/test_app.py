@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.app.models import App
+from dastkari.app.models import App
 
 from ..utils import get_graphql_content
 

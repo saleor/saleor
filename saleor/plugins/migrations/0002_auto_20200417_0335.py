@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-from saleor.plugins.manager import get_plugins_manager
+from dastkari.plugins.manager import get_plugins_manager
 
 
 def get_plugin(plugins, plugin_name):

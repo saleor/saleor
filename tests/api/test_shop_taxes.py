@@ -4,7 +4,7 @@ import pytest
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 
-from saleor.graphql.core.utils import str_to_enum
+from dastkari.graphql.core.utils import str_to_enum
 from tests.api.utils import get_graphql_content
 
 # FIXME we are going to rewrite tax section. Currently, below tests are connected only
@@ -155,7 +155,7 @@ def test_shop_fetch_tax_rates(
     monkeypatch, staff_api_client, permission_manage_settings, setup_vatlayer
 ):
     mocked_fetch = Mock()
-    monkeypatch.setattr("saleor.plugins.vatlayer.plugin.fetch_rates", mocked_fetch)
+    monkeypatch.setattr("dastkari.plugins.vatlayer.plugin.fetch_rates", mocked_fetch)
     staff_api_client.user.user_permissions.add(permission_manage_settings)
     response = staff_api_client.post_graphql(MUTATION_SHOP_FETCH_TAX_RATES)
     get_graphql_content(response)

@@ -2,8 +2,8 @@ import pytest
 from django.contrib.sites.models import Site
 from django.db.utils import IntegrityError
 
-from saleor.site import utils
-from saleor.site.models import AuthorizationKey, SiteSettings
+from dastkari.site import utils
+from dastkari.site.models import AuthorizationKey, SiteSettings
 
 
 def test_get_authorization_key_for_backend(

@@ -38,7 +38,7 @@ script:
 
 env:
   global:
-    - DATABASE_URL="postgres://postgres@localhost:5432/saleor"
+    - DATABASE_URL="postgres://postgres@localhost:5432/dastkari"
     - SECRET_KEY="irrelevant"
     - QUERIES_RESULTS_PATH=/tmp/queries-results.json
   matrix:

@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from dastkari.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
 from . import GatewayConfig, capture, process_payment, refund
 
@@ -43,13 +43,13 @@ class RazorpayGatewayPlugin(BasePlugin):
         },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should store cards on payments"
+            "help_text": "Determines if Dastkari should store cards on payments"
             "in Stripe customer.",
             "label": "Store customers card",
         },
         "Automatic payment capture": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should automaticaly capture payments.",
+            "help_text": "Determines if Dastkari should automaticaly capture payments.",
             "label": "Automatic payment capture",
         },
     }

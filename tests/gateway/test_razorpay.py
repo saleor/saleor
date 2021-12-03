@@ -4,8 +4,8 @@ from unittest.mock import patch
 import pytest
 from razorpay.errors import BadRequestError, ServerError
 
-from saleor.payment import ChargeStatus, TransactionKind
-from saleor.payment.gateways.razorpay import (
+from dastkari.payment import ChargeStatus, TransactionKind
+from dastkari.payment.gateways.razorpay import (
     capture,
     check_payment_supported,
     clean_razorpay_response,
@@ -16,8 +16,8 @@ from saleor.payment.gateways.razorpay import (
     logger,
     refund,
 )
-from saleor.payment.interface import GatewayConfig
-from saleor.payment.utils import create_payment_information
+from dastkari.payment.interface import GatewayConfig
+from dastkari.payment.utils import create_payment_information
 
 TRANSACTION_AMOUNT = Decimal("61.33")
 
@@ -31,7 +31,7 @@ def gateway_config():
             "public_key": "public",
             "private_key": "secret",
             "prefill": True,
-            "store_name": "Saleor",
+            "store_name": "Dastkari",
             "store_image": "image.png",
         },
     )

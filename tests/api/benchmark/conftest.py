@@ -1,12 +1,12 @@
 import pytest
 
-from saleor.checkout import calculations
-from saleor.checkout.utils import add_variant_to_checkout
-from saleor.discount.models import Sale
-from saleor.menu.utils import update_menu
-from saleor.payment import ChargeStatus, TransactionKind
-from saleor.payment.models import Payment
-from saleor.product.models import Category
+from dastkari.checkout import calculations
+from dastkari.checkout.utils import add_variant_to_checkout
+from dastkari.discount.models import Sale
+from dastkari.menu.utils import update_menu
+from dastkari.payment import ChargeStatus, TransactionKind
+from dastkari.payment.models import Payment
+from dastkari.product.models import Category
 
 
 @pytest.fixture

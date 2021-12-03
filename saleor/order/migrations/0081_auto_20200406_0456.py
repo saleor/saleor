@@ -2,7 +2,7 @@
 
 from django.db import migrations
 
-from saleor.order import OrderStatus
+from dastkari.order import OrderStatus
 
 
 def match_orders_with_users(apps, *_args, **_kwargs):

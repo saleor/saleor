@@ -57,9 +57,9 @@ SALEOR_ERROR_CODE_ENUMS = [
     ShopErrorCode,
 ]
 
-saleor_error_codes = []
+dastkari_error_codes = []
 for enum in SALEOR_ERROR_CODE_ENUMS:
-    saleor_error_codes.extend([code.value for code in enum])
+    dastkari_error_codes.extend([code.value for code in enum])
 
 
 def get_error_code_from_error(error) -> str:
@@ -77,6 +77,6 @@ def get_error_code_from_error(error) -> str:
         return "invalid"
     if isinstance(code, Enum):
         code = code.value
-    if code not in saleor_error_codes:
+    if code not in dastkari_error_codes:
         return "invalid"
     return code

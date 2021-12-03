@@ -4,9 +4,9 @@ import json
 import graphene
 import pytest
 
-from saleor.order import OrderStatus
-from saleor.webhook.event_types import WebhookEventType
-from saleor.webhook.payloads import (
+from dastkari.order import OrderStatus
+from dastkari.webhook.event_types import WebhookEventType
+from dastkari.webhook.payloads import (
     generate_checkout_payload,
     generate_fulfillment_payload,
     generate_order_payload,

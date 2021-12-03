@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from saleor.seo.schema.email import (
+from dastkari.seo.schema.email import (
     get_order_confirmation_markup,
     get_organization,
     get_product_data,
@@ -10,7 +10,7 @@ from saleor.seo.schema.email import (
 
 
 def test_get_organization(site_settings):
-    example_name = "Saleor Brand Name"
+    example_name = "Dastkari Brand Name"
     site = site_settings.site
     site.name = example_name
     site.save()

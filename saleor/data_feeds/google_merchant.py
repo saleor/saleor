@@ -123,7 +123,7 @@ def item_tax(item: ProductVariant, discounts: Iterable[DiscountInfo]):
     Read more:
     https://support.google.com/merchants/answer/6324454
     """
-    # FIXME https://github.com/mirumee/saleor/issues/4311
+    # FIXME https://github.com/mirumee/dastkari/issues/4311
     return "US::%s:y" % zero_money()
 
 

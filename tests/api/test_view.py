@@ -4,8 +4,8 @@ import graphene
 import pytest
 from django.test import override_settings
 
-from saleor.demo.views import EXAMPLE_QUERY
-from saleor.graphql.product.types import Product
+from dastkari.demo.views import EXAMPLE_QUERY
+from dastkari.graphql.product.types import Product
 
 from .conftest import API_PATH
 from .utils import _get_graphql_content_from_response, get_graphql_content
@@ -133,7 +133,7 @@ def test_invalid_query_graphql_errors_are_logged_in_another_logger(
     response = api_client.post_graphql("{ shop }")
     assert response.status_code == 400
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        "dastkari.graphql.errors.handled[ERROR].GraphQLError"
     ]
 
 
@@ -143,7 +143,7 @@ def test_invalid_syntax_graphql_errors_are_logged_in_another_logger(
     response = api_client.post_graphql("{ }")
     assert response.status_code == 400
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].GraphQLSyntaxError"
+        "dastkari.graphql.errors.handled[ERROR].GraphQLSyntaxError"
     ]
 
 
@@ -163,7 +163,7 @@ def test_permission_denied_query_graphql_errors_are_logged_in_another_logger(
     )
     assert response.status_code == 200
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].PermissionDenied"
+        "dastkari.graphql.errors.handled[ERROR].PermissionDenied"
     ]
 
 
@@ -202,7 +202,7 @@ def test_unexpected_exceptions_are_logged_in_their_own_logger(
 
     assert response.status_code == 200
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.unhandled[ERROR].NotImplementedError"
+        "dastkari.graphql.errors.unhandled[ERROR].NotImplementedError"
     ]
 
 

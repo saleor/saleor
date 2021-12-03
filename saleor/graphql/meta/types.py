@@ -32,7 +32,7 @@ class ObjectWithMetadata(graphene.Interface):
 
     # Deprecated we should remove it in #5221
     private_meta = graphene.List(
-        "saleor.graphql.meta.deprecated.types.MetaStore",
+        "dastkari.graphql.meta.deprecated.types.MetaStore",
         required=True,
         description="List of privately stored metadata namespaces.",
         deprecation_reason=(
@@ -41,7 +41,7 @@ class ObjectWithMetadata(graphene.Interface):
         ),
     )
     meta = graphene.List(
-        "saleor.graphql.meta.deprecated.types.MetaStore",
+        "dastkari.graphql.meta.deprecated.types.MetaStore",
         required=True,
         description="List of publicly stored metadata namespaces.",
         deprecation_reason=(

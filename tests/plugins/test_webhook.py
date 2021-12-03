@@ -4,12 +4,12 @@ import pytest
 import requests
 from django.core.serializers import serialize
 
-from saleor.app.models import App
-from saleor.plugins.manager import get_plugins_manager
-from saleor.plugins.webhook import create_hmac_signature
-from saleor.plugins.webhook.tasks import trigger_webhooks_for_event
-from saleor.webhook.event_types import WebhookEventType
-from saleor.webhook.payloads import (
+from dastkari.app.models import App
+from dastkari.plugins.manager import get_plugins_manager
+from dastkari.plugins.webhook import create_hmac_signature
+from dastkari.plugins.webhook.tasks import trigger_webhooks_for_event
+from dastkari.webhook.event_types import WebhookEventType
+from dastkari.webhook.payloads import (
     generate_checkout_payload,
     generate_customer_payload,
     generate_order_payload,
@@ -18,7 +18,7 @@ from saleor.webhook.payloads import (
 
 
 @pytest.mark.vcr
-@mock.patch("saleor.plugins.webhook.tasks.requests.post", wraps=requests.post)
+@mock.patch("dastkari.plugins.webhook.tasks.requests.post", wraps=requests.post)
 def test_trigger_webhooks_for_event(
     mock_request,
     webhook,
@@ -36,8 +36,8 @@ def test_trigger_webhooks_for_event(
     trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, expected_data)
 
     expected_headers = {
-        "X-Saleor-Event": "order_created",
-        "X-Saleor-Domain": "mirumee.com",
+        "X-Dastkari-Event": "order_created",
+        "X-Dastkari-Domain": "mirumee.com",
     }
 
     mock_request.assert_called_once_with(
@@ -61,7 +61,7 @@ third_url = "http://www.example.com/third/"
         (WebhookEventType.CUSTOMER_CREATED, 0, set()),
     ],
 )
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request.delay")
+@mock.patch("dastkari.plugins.webhook.tasks.send_webhook_request.delay")
 def test_trigger_webhooks_for_event_calls_expected_events(
     mock_request,
     event_name,
@@ -73,7 +73,7 @@ def test_trigger_webhooks_for_event_calls_expected_events(
     permission_manage_users,
     permission_manage_products,
 ):
-    """Confirm that Saleor executes only valid and allowed webhook events."""
+    """Confirm that Dastkari executes only valid and allowed webhook events."""
 
     app.permissions.add(permission_manage_orders)
     app.permissions.add(permission_manage_products)
@@ -106,7 +106,7 @@ def test_trigger_webhooks_for_event_calls_expected_events(
 
 
 @pytest.mark.vcr
-@mock.patch("saleor.plugins.webhook.tasks.requests.post", wraps=requests.post)
+@mock.patch("dastkari.plugins.webhook.tasks.requests.post", wraps=requests.post)
 def test_trigger_webhooks_for_event_with_secret_key(
     mock_request, webhook, order_with_lines, permission_manage_orders
 ):
@@ -122,9 +122,9 @@ def test_trigger_webhooks_for_event_with_secret_key(
         expected_data, webhook.secret_key, "utf-8"
     )
     expected_headers = {
-        "X-Saleor-Event": "order_created",
-        "X-Saleor-Domain": "mirumee.com",
-        "X-Saleor-HMAC-SHA256": f"sha1={expected_signature}",
+        "X-Dastkari-Event": "order_created",
+        "X-Dastkari-Domain": "mirumee.com",
+        "X-Dastkari-HMAC-SHA256": f"sha1={expected_signature}",
     }
 
     mock_request.assert_called_once_with(
@@ -132,9 +132,9 @@ def test_trigger_webhooks_for_event_with_secret_key(
     )
 
 
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("dastkari.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_created(mocked_webhook_trigger, settings, order_with_lines):
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.order_created(order_with_lines)
 
@@ -144,9 +144,9 @@ def test_order_created(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("dastkari.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_customer_created(mocked_webhook_trigger, settings, customer_user):
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.customer_created(customer_user)
 
@@ -156,9 +156,9 @@ def test_customer_created(mocked_webhook_trigger, settings, customer_user):
     )
 
 
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("dastkari.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.order_fully_paid(order_with_lines)
 
@@ -168,9 +168,9 @@ def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("dastkari.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_created(mocked_webhook_trigger, settings, product):
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.product_created(product)
 
@@ -180,9 +180,9 @@ def test_product_created(mocked_webhook_trigger, settings, product):
     )
 
 
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("dastkari.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_updated(mocked_webhook_trigger, settings, order_with_lines):
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.order_updated(order_with_lines)
 
@@ -192,9 +192,9 @@ def test_order_updated(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("dastkari.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_cancelled(mocked_webhook_trigger, settings, order_with_lines):
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.order_cancelled(order_with_lines)
 
@@ -204,11 +204,11 @@ def test_order_cancelled(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("dastkari.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_checkout_quantity_changed(
     mocked_webhook_trigger, settings, checkout_with_items
 ):
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.checkout_quantity_changed(checkout_with_items)
 

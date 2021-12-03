@@ -6,14 +6,14 @@ import pytest
 from freezegun import freeze_time
 from prices import Money, MoneyRange
 
-from saleor.account import events as account_events
-from saleor.product import models
-from saleor.product.filters import filter_products_by_attributes_values
-from saleor.product.models import DigitalContentUrl
-from saleor.product.thumbnails import create_product_thumbnails
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.product.utils.costs import get_margin_for_variant
-from saleor.product.utils.digital_products import increment_download_count
+from dastkari.account import events as account_events
+from dastkari.product import models
+from dastkari.product.filters import filter_products_by_attributes_values
+from dastkari.product.models import DigitalContentUrl
+from dastkari.product.thumbnails import create_product_thumbnails
+from dastkari.product.utils.attributes import associate_attribute_values_to_instance
+from dastkari.product.utils.costs import get_margin_for_variant
+from dastkari.product.utils.digital_products import increment_download_count
 
 
 def test_filtering_by_attribute(db, color_attribute, category, settings):
@@ -290,7 +290,7 @@ def test_costs_get_margin_for_variant(variant, price, cost):
     assert not get_margin_for_variant(variant)
 
 
-@patch("saleor.product.thumbnails.create_thumbnails")
+@patch("dastkari.product.thumbnails.create_thumbnails")
 def test_create_product_thumbnails(mock_create_thumbnails, product_with_image):
     product_image = product_with_image.images.first()
     create_product_thumbnails(product_image.pk)

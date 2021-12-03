@@ -28,13 +28,13 @@ repos:
     rev: 4.0.0
     hooks:
       - id: pydocstyle
-        files: ^saleor/
+        files: ^dastkari/
 
   - repo: https://github.com/prettier/prettier
     rev: 1.18.2
     hooks:
       - id: prettier
-        files: ^saleor/static/*.*\.js$
+        files: ^dastkari/static/*.*\.js$
         verbose: true
 
   - repo: https://github.com/pre-commit/mirrors-mypy
@@ -57,5 +57,5 @@ repos:
       - id: gql-schema-check
         language: system
         name: Check for up-to-date GraphQL schema.
-        entry: sh -c "./manage.py get_graphql_schema | diff saleor/graphql/schema.graphql -"
+        entry: sh -c "./manage.py get_graphql_schema | diff dastkari/graphql/schema.graphql -"
         stages: [commit]

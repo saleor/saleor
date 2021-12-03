@@ -20,9 +20,9 @@ interactions:
       - '724'
       User-Agent:
       - python-requests/2.22.0
-      X-Saleor-Domain:
+      X-Dastkari-Domain:
       - mirumee.com
-      X-Saleor-Event:
+      X-Dastkari-Event:
       - order_created
     method: POST
     uri: https://webhook.site/f0fc9979-cbd4-47b7-8705-1acb03fff1d0

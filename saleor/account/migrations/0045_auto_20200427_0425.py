@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from django.db import migrations
 
-from saleor.plugins.manager import get_plugins_manager
+from dastkari.plugins.manager import get_plugins_manager
 
 
 def create_payments_customer_ids():

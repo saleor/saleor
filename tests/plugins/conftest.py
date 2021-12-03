@@ -2,8 +2,8 @@ import pytest
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 
-from saleor.plugins.base_plugin import ConfigurationTypeField
-from saleor.plugins.models import PluginConfiguration
+from dastkari.plugins.base_plugin import ConfigurationTypeField
+from dastkari.plugins.models import PluginConfiguration
 from tests.plugins.sample_plugins import PluginInactive, PluginSample
 
 

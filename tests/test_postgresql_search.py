@@ -4,9 +4,9 @@ import pytest
 from django.utils.text import slugify
 from prices import Money
 
-from saleor.account.models import Address
-from saleor.product.models import Product
-from saleor.search.backends.postgresql import search_storefront
+from dastkari.account.models import Address
+from dastkari.product.models import Product
+from dastkari.search.backends.postgresql import search_storefront
 
 PRODUCTS = [
     ("Arabica Coffee", "The best grains in galactic"),

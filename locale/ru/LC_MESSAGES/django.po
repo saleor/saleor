@@ -1,6 +1,6 @@
-# Saleor
+# Dastkari
 # Copyright (C) 2017 Mirumee Software
-# This file is distributed under the same license as the Saleor package.
+# This file is distributed under the same license as the Dastkari package.
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
@@ -29,13 +29,13 @@ msgstr ""
 "Language: ru\n"
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
 
-#: saleor/account/templatetags/i18n_address_tags.py:12
+#: dastkari/account/templatetags/i18n_address_tags.py:12
 #, python-format
 msgctxt "Address data"
 msgid "%(first_name)s %(last_name)s"
 msgstr "%(first_name)s %(last_name)s"
 
-#: saleor/account/templatetags/i18n_address_tags.py:16
+#: dastkari/account/templatetags/i18n_address_tags.py:16
 #, python-format
 msgctxt "Address data"
 msgid ""

@@ -2,10 +2,10 @@ import copy
 
 import pytest
 
-from saleor.plugins.base_plugin import ConfigurationTypeField
-from saleor.plugins.error_codes import PluginErrorCode
-from saleor.plugins.manager import get_plugins_manager
-from saleor.plugins.models import PluginConfiguration
+from dastkari.plugins.base_plugin import ConfigurationTypeField
+from dastkari.plugins.error_codes import PluginErrorCode
+from dastkari.plugins.manager import get_plugins_manager
+from dastkari.plugins.models import PluginConfiguration
 from tests.api.utils import assert_no_permission, get_graphql_content
 from tests.plugins.sample_plugins import PluginSample
 from tests.plugins.utils import get_config_value

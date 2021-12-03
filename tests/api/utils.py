@@ -2,8 +2,8 @@ import json
 
 from django.core.serializers.json import DjangoJSONEncoder
 
-from saleor.graphql.core.utils import snake_to_camel_case
-from saleor.menu.utils import get_menu_item_as_dict
+from dastkari.graphql.core.utils import snake_to_camel_case
+from dastkari.menu.utils import get_menu_item_as_dict
 
 
 def _get_graphql_content_from_response(response):

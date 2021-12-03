@@ -7,12 +7,12 @@ from django.http import QueryDict
 from django.template import Context, Template
 from django_countries.fields import Country
 
-from saleor.account import forms, i18n
-from saleor.account.i18n import AddressForm
-from saleor.account.models import User
-from saleor.account.templatetags.i18n_address_tags import format_address
-from saleor.account.utils import remove_staff_member
-from saleor.account.validators import validate_possible_number
+from dastkari.account import forms, i18n
+from dastkari.account.i18n import AddressForm
+from dastkari.account.models import User
+from dastkari.account.templatetags.i18n_address_tags import format_address
+from dastkari.account.utils import remove_staff_member
+from dastkari.account.validators import validate_possible_number
 
 
 @pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])

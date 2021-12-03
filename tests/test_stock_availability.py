@@ -1,15 +1,15 @@
 import pytest
 from django.test import override_settings
 
-from saleor.core.exceptions import InsufficientStock
-from saleor.warehouse.availability import (
+from dastkari.core.exceptions import InsufficientStock
+from dastkari.warehouse.availability import (
     are_all_product_variants_in_stock,
     check_stock_quantity,
     get_available_quantity,
     get_available_quantity_for_customer,
     get_quantity_allocated,
 )
-from saleor.warehouse.models import Allocation, Stock
+from dastkari.warehouse.models import Allocation, Stock
 
 COUNTRY_CODE = "US"
 

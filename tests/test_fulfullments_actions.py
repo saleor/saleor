@@ -2,13 +2,13 @@ from unittest.mock import patch
 
 import pytest
 
-from saleor.core.exceptions import InsufficientStock
-from saleor.order.actions import create_fulfillments
-from saleor.order.models import FulfillmentLine, OrderStatus
-from saleor.warehouse.models import Allocation, Stock
+from dastkari.core.exceptions import InsufficientStock
+from dastkari.order.actions import create_fulfillments
+from dastkari.order.models import FulfillmentLine, OrderStatus
+from dastkari.warehouse.models import Allocation, Stock
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+@patch("dastkari.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments(
     mock_email_fulfillment, staff_user, order_with_lines, warehouse,
 ):
@@ -53,7 +53,7 @@ def test_create_fulfillments(
     )
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+@patch("dastkari.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_without_notification(
     mock_email_fulfillment, staff_user, order_with_lines, warehouse,
 ):
@@ -152,7 +152,7 @@ def test_create_fulfillments_many_warehouses(
     )
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+@patch("dastkari.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_with_one_line_empty_quantity(
     mock_email_fulfillment, staff_user, order_with_lines, warehouse,
 ):
@@ -195,7 +195,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
     )
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+@patch("dastkari.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_with_variant_without_inventory_tracking(
     mock_email_fulfillment,
     staff_user,
@@ -235,7 +235,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
     )
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+@patch("dastkari.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_without_allocations(
     mock_email_fulfillment, staff_user, order_with_lines, warehouse,
 ):
@@ -281,7 +281,7 @@ def test_create_fulfillments_without_allocations(
     )
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+@patch("dastkari.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_warehouse_with_out_of_stock(
     mock_email_fulfillment, staff_user, order_with_lines, warehouse,
 ):
@@ -327,7 +327,7 @@ def test_create_fulfillments_warehouse_with_out_of_stock(
     mock_email_fulfillment.assert_not_called()
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+@patch("dastkari.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_warehouse_without_stock(
     mock_email_fulfillment, staff_user, order_with_lines, warehouse_no_shipping_zone,
 ):
@@ -369,7 +369,7 @@ def test_create_fulfillments_warehouse_without_stock(
     mock_email_fulfillment.assert_not_called()
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+@patch("dastkari.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_with_variant_without_inventory_tracking_and_without_stock(
     mock_email_fulfillment,
     staff_user,

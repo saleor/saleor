@@ -1,6 +1,6 @@
-from saleor.plugins.anonymize.plugin import AnonymizePlugin
-from saleor.plugins.base_plugin import ConfigurationTypeField
-from saleor.plugins.manager import get_plugins_manager
+from dastkari.plugins.anonymize.plugin import AnonymizePlugin
+from dastkari.plugins.base_plugin import ConfigurationTypeField
+from dastkari.plugins.manager import get_plugins_manager
 from tests.plugins.sample_plugins import PluginSample
 from tests.plugins.utils import get_config_value
 
@@ -85,7 +85,7 @@ def test_base_plugin__append_config_structure_to_config(settings):
 
 
 def test_change_user_address_in_anonymize_plugin_reset_phone(address, settings):
-    settings.PLUGINS = ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]
+    settings.PLUGINS = ["dastkari.plugins.anonymize.plugin.AnonymizePlugin"]
     manager = get_plugins_manager()
     anonymize_plugin = manager.get_plugin(AnonymizePlugin.PLUGIN_ID)
 

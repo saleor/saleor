@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-from saleor.product.models import Category
-from saleor.product.utils import collect_categories_tree_products, delete_categories
+from dastkari.product.models import Category
+from dastkari.product.utils import collect_categories_tree_products, delete_categories
 
 
 def test_collect_categories_tree_products(categories_tree):
@@ -17,7 +17,7 @@ def test_collect_categories_tree_products(categories_tree):
     )
 
 
-@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
+@patch("dastkari.product.utils.update_products_minimal_variant_prices_task")
 def test_delete_categories(
     mock_update_products_minimal_variant_prices_task,
     categories_tree_with_published_products,

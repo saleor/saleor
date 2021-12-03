@@ -2,7 +2,7 @@
 
 import django.contrib.postgres.fields.jsonb
 from django.db import migrations
-import saleor.core.utils.json_serializer
+import dastkari.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             field=django.contrib.postgres.fields.jsonb.JSONField(
                 blank=True,
                 default=dict,
-                encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
+                encoder=dastkari.core.utils.json_serializer.CustomJsonEncoder,
                 null=True,
             ),
         ),
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             field=django.contrib.postgres.fields.jsonb.JSONField(
                 blank=True,
                 default=dict,
-                encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
+                encoder=dastkari.core.utils.json_serializer.CustomJsonEncoder,
                 null=True,
             ),
         ),

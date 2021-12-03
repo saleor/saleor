@@ -1,7 +1,7 @@
 import pytest
 
-from saleor.app.models import App
-from saleor.webhook.models import Webhook
+from dastkari.app.models import App
+from dastkari.webhook.models import Webhook
 
 from ..utils import get_graphql_content
 

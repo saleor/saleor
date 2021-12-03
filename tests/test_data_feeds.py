@@ -4,17 +4,17 @@ from unittest.mock import Mock
 
 from django.utils.encoding import smart_text
 
-from saleor.data_feeds.google_merchant import (
+from dastkari.data_feeds.google_merchant import (
     get_feed_items,
     item_attributes,
     item_availability,
     item_google_product_category,
     write_feed,
 )
-from saleor.product.models import AttributeValue, Category
+from dastkari.product.models import AttributeValue, Category
 
 
-def test_saleor_feed_items(product, site_settings):
+def test_dastkari_feed_items(product, site_settings):
     valid_variant = product.variants.first()
     items = get_feed_items()
     assert len(items) == 1
@@ -39,7 +39,7 @@ def test_saleor_feed_items(product, site_settings):
     assert attributes.get("availability") == "in stock"
 
 
-def test_saleor_get_feed_items_having_no_stock_info(variant, site_settings):
+def test_dastkari_get_feed_items_having_no_stock_info(variant, site_settings):
     variant.stocks.all().delete()
     assert item_availability(variant) == "out of stock"
 

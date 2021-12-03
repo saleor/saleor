@@ -2,7 +2,7 @@ import graphene
 import pytest
 from django.contrib.auth.models import Group
 
-from saleor.core.permissions import AccountPermissions
+from dastkari.core.permissions import AccountPermissions
 from tests.api.utils import get_graphql_content
 
 

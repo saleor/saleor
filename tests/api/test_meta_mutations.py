@@ -3,8 +3,8 @@ import uuid
 
 import graphene
 
-from saleor.core.error_codes import MetadataErrorCode
-from saleor.core.models import ModelWithMetadata
+from dastkari.core.error_codes import MetadataErrorCode
+from dastkari.core.models import ModelWithMetadata
 from tests.api.utils import assert_no_permission, get_graphql_content
 
 PRIVATE_KEY = "private_key"

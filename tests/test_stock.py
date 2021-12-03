@@ -1,4 +1,4 @@
-from saleor.warehouse.models import Stock
+from dastkari.warehouse.models import Stock
 
 COUNTRY_CODE = "US"
 

@@ -4,9 +4,9 @@ from decimal import Decimal
 import graphene
 from prices import Money
 
-from saleor.checkout import calculations
-from saleor.checkout.utils import add_voucher_to_checkout
-from saleor.discount import DiscountInfo, VoucherType
+from dastkari.checkout import calculations
+from dastkari.checkout.utils import add_voucher_to_checkout
+from dastkari.discount import DiscountInfo, VoucherType
 from tests.api.test_checkout import (
     MUTATION_CHECKOUT_LINES_DELETE,
     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,

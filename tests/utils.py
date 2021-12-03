@@ -9,7 +9,7 @@ from django.db.models.functions import Coalesce
 from PIL import Image
 from prices import Money
 
-from saleor.product.models import Product, ProductVariant
+from dastkari.product.models import Product, ProductVariant
 
 
 def get_url_path(url):

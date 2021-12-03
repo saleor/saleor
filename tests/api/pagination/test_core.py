@@ -3,8 +3,8 @@ import math
 import graphene
 import pytest
 
-from saleor.graphql.core.connection import CountableDjangoObjectType
-from saleor.graphql.core.fields import FilterInputConnectionField
+from dastkari.graphql.core.connection import CountableDjangoObjectType
+from dastkari.graphql.core.fields import FilterInputConnectionField
 
 from .models import Book
 

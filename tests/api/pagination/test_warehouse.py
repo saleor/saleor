@@ -1,7 +1,7 @@
 import graphene
 import pytest
 
-from saleor.warehouse.models import Warehouse
+from dastkari.warehouse.models import Warehouse
 
 from ..utils import get_graphql_content
 

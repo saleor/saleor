@@ -5,7 +5,7 @@ import opentracing
 from django.conf import settings
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from saleor.product.models import Collection, Product, ProductVariant
+from dastkari.product.models import Collection, Product, ProductVariant
 
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo

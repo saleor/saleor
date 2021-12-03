@@ -9,9 +9,9 @@ from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
 
-from saleor.account.models import User
-from saleor.app.models import App
-from saleor.graphql.views import handled_errors_logger, unhandled_errors_logger
+from dastkari.account.models import User
+from dastkari.app.models import App
+from dastkari.graphql.views import handled_errors_logger, unhandled_errors_logger
 
 from ..utils import flush_post_commit_hooks
 from .utils import assert_no_permission

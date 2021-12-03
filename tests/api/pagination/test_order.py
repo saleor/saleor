@@ -6,8 +6,8 @@ import pytest
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from saleor.order.models import Order, OrderStatus
-from saleor.payment import ChargeStatus
+from dastkari.order.models import Order, OrderStatus
+from dastkari.payment import ChargeStatus
 
 from ..utils import get_graphql_content
 

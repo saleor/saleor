@@ -9,12 +9,12 @@ from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from saleor.account import CustomerEvents
-from saleor.account.models import Address, CustomerEvent, User
-from saleor.account.utils import store_user_address
-from saleor.checkout import AddressType, calculations
-from saleor.checkout.models import Checkout
-from saleor.checkout.utils import (
+from dastkari.account import CustomerEvents
+from dastkari.account.models import Address, CustomerEvent, User
+from dastkari.account.utils import store_user_address
+from dastkari.checkout import AddressType, calculations
+from dastkari.checkout.models import Checkout
+from dastkari.checkout.utils import (
     add_variant_to_checkout,
     add_voucher_to_checkout,
     change_billing_address_in_checkout,
@@ -28,14 +28,14 @@ from saleor.checkout.utils import (
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
 )
-from saleor.core.exceptions import InsufficientStock
-from saleor.core.taxes import zero_money, zero_taxed_money
-from saleor.discount import DiscountValueType, VoucherType
-from saleor.discount.models import NotApplicable, Voucher
-from saleor.order import OrderEvents, OrderEventsEmails
-from saleor.order.models import OrderEvent
-from saleor.plugins.manager import get_plugins_manager
-from saleor.shipping.models import ShippingZone
+from dastkari.core.exceptions import InsufficientStock
+from dastkari.core.taxes import zero_money, zero_taxed_money
+from dastkari.discount import DiscountValueType, VoucherType
+from dastkari.discount.models import NotApplicable, Voucher
+from dastkari.order import OrderEvents, OrderEventsEmails
+from dastkari.order.models import OrderEvent
+from dastkari.plugins.manager import get_plugins_manager
+from dastkari.shipping.models import ShippingZone
 
 from .utils import flush_post_commit_hooks
 
@@ -385,18 +385,18 @@ def test_get_discount_for_checkout_value_voucher(
     checkout = Mock(spec=Checkout, quantity=total_quantity)
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
-        "saleor.checkout.utils.calculations.checkout_subtotal",
+        "dastkari.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
+        "dastkari.discount.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: subtotal,
     )
     discount = get_voucher_discount_for_checkout(voucher, checkout, [], [])
     assert discount == Money(expected_value, "USD")
 
 
-@patch("saleor.discount.utils.validate_voucher")
+@patch("dastkari.discount.utils.validate_voucher")
 def test_get_voucher_discount_for_checkout_voucher_validation(
     mock_validate_voucher, voucher, checkout_with_voucher
 ):
@@ -447,11 +447,11 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     checkout = Mock(spec=Checkout, quantity=total_quantity)
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
-        "saleor.checkout.utils.calculations.checkout_subtotal",
+        "dastkari.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
+        "dastkari.discount.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: subtotal,
     )
     with pytest.raises(NotApplicable):
@@ -513,21 +513,21 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
 ):
     discounts = []
     monkeypatch.setattr(
-        "saleor.checkout.utils.get_prices_of_discounted_specific_product",
+        "dastkari.checkout.utils.get_prices_of_discounted_specific_product",
         lambda checkout, discounts, product: [],
     )
     monkeypatch.setattr(
-        "saleor.checkout.calculations.checkout_shipping_price",
+        "dastkari.checkout.calculations.checkout_shipping_price",
         lambda _: TaxedMoney(Money(0, "USD"), Money(0, "USD")),
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
+        "dastkari.discount.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: TaxedMoney(
             Money(total, "USD"), Money(total, "USD")
         ),
     )
     monkeypatch.setattr(
-        "saleor.checkout.utils.calculations.checkout_subtotal",
+        "dastkari.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: TaxedMoney(
             Money(total, "USD"), Money(total, "USD")
         ),
@@ -569,11 +569,11 @@ def test_get_discount_for_checkout_shipping_voucher(
 ):
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
-        "saleor.checkout.utils.calculations.checkout_subtotal",
+        "dastkari.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
+        "dastkari.discount.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: subtotal,
     )
     shipping_total = Money(shipping_cost, "USD")
@@ -598,16 +598,16 @@ def test_get_discount_for_checkout_shipping_voucher(
 def test_get_discount_for_checkout_shipping_voucher_all_countries(monkeypatch):
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
-        "saleor.checkout.utils.calculations.checkout_subtotal",
+        "dastkari.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
+        "dastkari.discount.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: subtotal,
     )
     shipping_total = TaxedMoney(Money(10, "USD"), Money(10, "USD"))
     monkeypatch.setattr(
-        "saleor.checkout.utils.calculations.checkout_shipping_price",
+        "dastkari.checkout.utils.calculations.checkout_shipping_price",
         lambda checkout, lines, discounts: shipping_total,
     )
     checkout = Mock(
@@ -633,7 +633,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(monkeypatc
     subtotal = TaxedMoney(net=Money(100, "USD"), gross=Money(100, "USD"))
     shipping_total = TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
+        "dastkari.discount.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: subtotal,
     )
     checkout = Mock(
@@ -747,11 +747,11 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "saleor.checkout.utils.calculations.checkout_subtotal",
+        "dastkari.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
+        "dastkari.discount.utils.calculations.checkout_subtotal",
         lambda checkout, lines, discounts: subtotal,
     )
     checkout = Mock(

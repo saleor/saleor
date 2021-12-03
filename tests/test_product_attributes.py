@@ -3,10 +3,10 @@ from unittest.mock import MagicMock, Mock
 import pytest
 from prices import Money
 
-from saleor.product import AttributeInputType
-from saleor.product.models import AttributeValue, Product, ProductType, ProductVariant
-from saleor.product.tasks import _update_variants_names
-from saleor.product.utils.attributes import (
+from dastkari.product import AttributeInputType
+from dastkari.product.models import AttributeValue, Product, ProductType, ProductVariant
+from dastkari.product.tasks import _update_variants_names
+from dastkari.product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
 )

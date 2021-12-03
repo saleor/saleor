@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 from django.urls import reverse
 
-from saleor.graphql.middleware import app_middleware
+from dastkari.graphql.middleware import app_middleware
 
 
 def test_app_middleware_accepts_api_requests(app, rf):

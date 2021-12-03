@@ -4777,7 +4777,7 @@ type User implements Node & ObjectWithMetadata {
   checkout: Checkout
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
-  permissions: [Permission] @deprecated(reason: "Will be removed in Saleor 2.11.Use the `userPermissions` instead.")
+  permissions: [Permission] @deprecated(reason: "Will be removed in Dastkari 2.11.Use the `userPermissions` instead.")
   userPermissions: [UserPermission]
   permissionGroups: [Group]
   editableGroups: [Group]

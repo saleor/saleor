@@ -8,26 +8,26 @@ import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
-from saleor.account.models import User
-from saleor.checkout import calculations
-from saleor.checkout.error_codes import CheckoutErrorCode
-from saleor.checkout.models import Checkout
-from saleor.checkout.utils import is_fully_paid
-from saleor.core.payments import PaymentInterface
-from saleor.core.taxes import zero_money
-from saleor.graphql.checkout.mutations import (
+from dastkari.account.models import User
+from dastkari.checkout import calculations
+from dastkari.checkout.error_codes import CheckoutErrorCode
+from dastkari.checkout.models import Checkout
+from dastkari.checkout.utils import is_fully_paid
+from dastkari.core.payments import PaymentInterface
+from dastkari.core.taxes import zero_money
+from dastkari.graphql.checkout.mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
 )
-from saleor.graphql.checkout.utils import (
+from dastkari.graphql.checkout.utils import (
     clean_checkout_payment,
     clean_checkout_shipping,
 )
-from saleor.order.models import Order
-from saleor.payment import TransactionKind
-from saleor.payment.interface import GatewayResponse
-from saleor.plugins.manager import PluginsManager
-from saleor.warehouse.models import Stock
+from dastkari.order.models import Order
+from dastkari.payment import TransactionKind
+from dastkari.payment.interface import GatewayResponse
+from dastkari.plugins.manager import PluginsManager
+from dastkari.warehouse.models import Stock
 
 from ..utils import get_available_quantity_for_stock
 from .utils import assert_no_permission, get_graphql_content
@@ -35,7 +35,7 @@ from .utils import assert_no_permission, get_graphql_content
 
 @pytest.fixture(autouse=True)
 def setup_dummy_gateway(settings):
-    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
+    settings.PLUGINS = ["dastkari.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
     return settings
 
 
@@ -724,7 +724,7 @@ MUTATION_CHECKOUT_LINES_ADD = """
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "dastkari.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_lines_add(
@@ -903,7 +903,7 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "dastkari.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_lines_update(
@@ -1074,7 +1074,7 @@ MUTATION_CHECKOUT_LINES_DELETE = """
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "dastkari.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_line_delete(
@@ -1102,7 +1102,7 @@ def test_checkout_line_delete(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "dastkari.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_line_delete_by_zero_quantity(
@@ -1242,7 +1242,7 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "dastkari.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_shipping_address_update(
@@ -1704,7 +1704,7 @@ def fake_manager(mocker):
 @pytest.fixture
 def mock_get_manager(mocker, fake_manager):
     manager = mocker.patch(
-        "saleor.payment.gateway.get_plugins_manager",
+        "dastkari.payment.gateway.get_plugins_manager",
         autospec=True,
         return_value=fake_manager,
     )
@@ -2299,7 +2299,7 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
 
 
 @pytest.mark.parametrize("is_valid_shipping_method", (True, False))
-@patch("saleor.graphql.checkout.mutations.clean_shipping_method")
+@patch("dastkari.graphql.checkout.mutations.clean_shipping_method")
 def test_checkout_shipping_method_update(
     mock_clean_shipping,
     staff_api_client,

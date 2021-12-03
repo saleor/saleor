@@ -1,4 +1,4 @@
-"""In Saleor we are using 'weight' instead of a 'mass'.
+"""In Dastkari we are using 'weight' instead of a 'mass'.
 
 For those of us who are earth-bound, weight is what we usually experience.
 Mass is a theoretical construct.

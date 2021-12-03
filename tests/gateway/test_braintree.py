@@ -7,7 +7,7 @@ from braintree.errors import Errors
 from braintree.validation_error import ValidationError
 from django.core.exceptions import ImproperlyConfigured
 
-from saleor.payment.gateways.braintree import (
+from dastkari.payment.gateways.braintree import (
     TransactionKind,
     authorize,
     capture,
@@ -20,17 +20,17 @@ from saleor.payment.gateways.braintree import (
     refund,
     void,
 )
-from saleor.payment.gateways.braintree.errors import (
+from dastkari.payment.gateways.braintree.errors import (
     DEFAULT_ERROR_MESSAGE,
     BraintreeException,
 )
-from saleor.payment.interface import (
+from dastkari.payment.interface import (
     CreditCardInfo,
     CustomerSource,
     GatewayConfig,
     TokenConfig,
 )
-from saleor.payment.utils import create_payment_information
+from dastkari.payment.utils import create_payment_information
 
 DEFAULT_ERROR = "Unable to process transaction. Please try again in a moment"
 
@@ -125,17 +125,17 @@ def test_get_error_for_client(braintree_error, monkeypatch):
     error = {"code": braintree_error.code, "message": braintree_error.message}
 
     # error not whitelisted
-    monkeypatch.setattr("saleor.payment.gateways.braintree.ERROR_CODES_WHITELIST", {})
+    monkeypatch.setattr("dastkari.payment.gateways.braintree.ERROR_CODES_WHITELIST", {})
     assert get_error_for_client([error]) == DEFAULT_ERROR
 
     monkeypatch.setattr(
-        "saleor.payment.gateways.braintree.ERROR_CODES_WHITELIST",
+        "dastkari.payment.gateways.braintree.ERROR_CODES_WHITELIST",
         {braintree_error.code: ""},
     )
     assert get_error_for_client([error]) == braintree_error.message
 
     monkeypatch.setattr(
-        "saleor.payment.gateways.braintree.ERROR_CODES_WHITELIST",
+        "dastkari.payment.gateways.braintree.ERROR_CODES_WHITELIST",
         {braintree_error.code: "Error msg override"},
     )
     assert get_error_for_client([error]) == "Error msg override"
@@ -187,7 +187,7 @@ def test_get_braintree_gateway_inproperly_configured(gateway_config):
         get_braintree_gateway(**gateway_config.connection_params)
 
 
-@patch("saleor.payment.gateways.braintree.get_braintree_gateway")
+@patch("dastkari.payment.gateways.braintree.get_braintree_gateway")
 def test_get_client_token(mock_gateway, gateway_config):
     expected_token = "client-token"
     mock_generate = Mock(return_value=expected_token)
@@ -204,7 +204,7 @@ def gateway_config_with_store_enabled(gateway_config):
     return gateway_config
 
 
-@patch("saleor.payment.gateways.braintree.get_braintree_gateway")
+@patch("dastkari.payment.gateways.braintree.get_braintree_gateway")
 def test_get_client_token_with_customer_id(
     mock_gateway, gateway_config_with_store_enabled
 ):
@@ -221,7 +221,7 @@ def test_get_client_token_with_customer_id(
     assert token == expected_token
 
 
-@patch("saleor.payment.gateways.braintree.get_braintree_gateway")
+@patch("dastkari.payment.gateways.braintree.get_braintree_gateway")
 def test_get_client_token_with_no_customer_id_when_disabled(
     mock_gateway, gateway_config
 ):
@@ -235,7 +235,7 @@ def test_get_client_token_with_no_customer_id_when_disabled(
 
 
 @pytest.mark.integration
-@patch("saleor.payment.gateways.braintree.get_braintree_gateway")
+@patch("dastkari.payment.gateways.braintree.get_braintree_gateway")
 def test_authorize_error_response(
     mock_gateway, payment_dummy, braintree_error_response, gateway_config
 ):

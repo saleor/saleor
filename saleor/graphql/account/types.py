@@ -123,10 +123,10 @@ class CustomerEvent(CountableDjangoObjectType):
     message = graphene.String(description="Content of the event.")
     count = graphene.Int(description="Number of objects concerned by the event.")
     order = graphene.Field(
-        "saleor.graphql.order.types.Order", description="The concerned order."
+        "dastkari.graphql.order.types.Order", description="The concerned order."
     )
     order_line = graphene.Field(
-        "saleor.graphql.order.types.OrderLine", description="The concerned order line."
+        "dastkari.graphql.order.types.OrderLine", description="The concerned order line."
     )
 
     class Meta:
@@ -168,7 +168,7 @@ class CustomerEvent(CountableDjangoObjectType):
 
 class UserPermission(Permission):
     source_permission_groups = graphene.List(
-        graphene.NonNull("saleor.graphql.account.types.Group"),
+        graphene.NonNull("dastkari.graphql.account.types.Group"),
         description="List of user permission groups which contains this permission.",
         user_id=graphene.Argument(
             graphene.ID,
@@ -194,30 +194,30 @@ class User(CountableDjangoObjectType):
         Checkout, description="Returns the last open checkout of this user."
     )
     gift_cards = PrefetchingConnectionField(
-        "saleor.graphql.giftcard.types.GiftCard",
+        "dastkari.graphql.giftcard.types.GiftCard",
         description="List of the user gift cards.",
     )
     note = graphene.String(description="A note about the customer.")
     orders = PrefetchingConnectionField(
-        "saleor.graphql.order.types.Order", description="List of user's orders."
+        "dastkari.graphql.order.types.Order", description="List of user's orders."
     )
     # deprecated, to remove in #5389
     permissions = graphene.List(
         Permission,
         description="List of user's permissions.",
         deprecation_reason=(
-            "Will be removed in Saleor 2.11." "Use the `userPermissions` instead."
+            "Will be removed in Dastkari 2.11." "Use the `userPermissions` instead."
         ),
     )
     user_permissions = graphene.List(
         UserPermission, description="List of user's permissions."
     )
     permission_groups = graphene.List(
-        "saleor.graphql.account.types.Group",
+        "dastkari.graphql.account.types.Group",
         description="List of user's permission groups.",
     )
     editable_groups = graphene.List(
-        "saleor.graphql.account.types.Group",
+        "dastkari.graphql.account.types.Group",
         description="List of user's permission groups which user can manage.",
     )
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
@@ -225,7 +225,7 @@ class User(CountableDjangoObjectType):
         CustomerEvent, description="List of events associated with the user."
     )
     stored_payment_sources = graphene.List(
-        "saleor.graphql.payment.types.PaymentSource",
+        "dastkari.graphql.payment.types.PaymentSource",
         description="List of stored payment sources.",
     )
 
@@ -383,7 +383,7 @@ class StaffNotificationRecipient(CountableDjangoObjectType):
 
     class Meta:
         description = (
-            "Represents a recipient of email notifications send by Saleor, "
+            "Represents a recipient of email notifications send by Dastkari, "
             "such as notifications about new orders. Notifications can be "
             "assigned to staff users or arbitrary email addresses."
         )

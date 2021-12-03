@@ -74,58 +74,58 @@ fake = Factory.create()
 PRODUCTS_LIST_DIR = "products-list/"
 
 IMAGES_MAPPING = {
-    61: ["saleordemoproduct_paints_01.png"],
-    62: ["saleordemoproduct_paints_02.png"],
-    63: ["saleordemoproduct_paints_03.png"],
-    64: ["saleordemoproduct_paints_04.png"],
-    65: ["saleordemoproduct_paints_05.png"],
-    71: ["saleordemoproduct_fd_juice_06.png"],
-    72: ["saleordemoproduct_fd_juice_06.png"],  # FIXME inproper image
-    73: ["saleordemoproduct_fd_juice_05.png"],
-    74: ["saleordemoproduct_fd_juice_01.png"],
-    75: ["saleordemoproduct_fd_juice_03.png"],  # FIXME inproper image
-    76: ["saleordemoproduct_fd_juice_02.png"],  # FIXME inproper image
-    77: ["saleordemoproduct_fd_juice_03.png"],
-    78: ["saleordemoproduct_fd_juice_04.png"],
-    79: ["saleordemoproduct_fd_juice_02.png"],
-    81: ["saleordemoproduct_wine-red.png"],
-    82: ["saleordemoproduct_wine-white.png"],
-    83: ["saleordemoproduct_beer-02_1.png", "saleordemoproduct_beer-02_2.png"],
-    84: ["saleordemoproduct_beer-01_1.png", "saleordemoproduct_beer-01_2.png"],
-    85: ["saleordemoproduct_cuschion01.png"],
-    86: ["saleordemoproduct_cuschion02.png"],
+    61: ["dastkaridemoproduct_paints_01.png"],
+    62: ["dastkaridemoproduct_paints_02.png"],
+    63: ["dastkaridemoproduct_paints_03.png"],
+    64: ["dastkaridemoproduct_paints_04.png"],
+    65: ["dastkaridemoproduct_paints_05.png"],
+    71: ["dastkaridemoproduct_fd_juice_06.png"],
+    72: ["dastkaridemoproduct_fd_juice_06.png"],  # FIXME inproper image
+    73: ["dastkaridemoproduct_fd_juice_05.png"],
+    74: ["dastkaridemoproduct_fd_juice_01.png"],
+    75: ["dastkaridemoproduct_fd_juice_03.png"],  # FIXME inproper image
+    76: ["dastkaridemoproduct_fd_juice_02.png"],  # FIXME inproper image
+    77: ["dastkaridemoproduct_fd_juice_03.png"],
+    78: ["dastkaridemoproduct_fd_juice_04.png"],
+    79: ["dastkaridemoproduct_fd_juice_02.png"],
+    81: ["dastkaridemoproduct_wine-red.png"],
+    82: ["dastkaridemoproduct_wine-white.png"],
+    83: ["dastkaridemoproduct_beer-02_1.png", "dastkaridemoproduct_beer-02_2.png"],
+    84: ["dastkaridemoproduct_beer-01_1.png", "dastkaridemoproduct_beer-01_2.png"],
+    85: ["dastkaridemoproduct_cuschion01.png"],
+    86: ["dastkaridemoproduct_cuschion02.png"],
     87: [
-        "saleordemoproduct_sneakers_01_1.png",
-        "saleordemoproduct_sneakers_01_2.png",
-        "saleordemoproduct_sneakers_01_3.png",
-        "saleordemoproduct_sneakers_01_4.png",
+        "dastkaridemoproduct_sneakers_01_1.png",
+        "dastkaridemoproduct_sneakers_01_2.png",
+        "dastkaridemoproduct_sneakers_01_3.png",
+        "dastkaridemoproduct_sneakers_01_4.png",
     ],
     88: [
-        "saleordemoproduct_sneakers_02_1.png",
-        "saleordemoproduct_sneakers_02_2.png",
-        "saleordemoproduct_sneakers_02_3.png",
-        "saleordemoproduct_sneakers_02_4.png",
+        "dastkaridemoproduct_sneakers_02_1.png",
+        "dastkaridemoproduct_sneakers_02_2.png",
+        "dastkaridemoproduct_sneakers_02_3.png",
+        "dastkaridemoproduct_sneakers_02_4.png",
     ],
-    89: ["saleordemoproduct_cl_boot07_1.png", "saleordemoproduct_cl_boot07_2.png"],
-    107: ["saleordemoproduct_cl_polo01.png"],
-    108: ["saleordemoproduct_cl_polo02.png"],
-    109: ["saleordemoproduct_cl_polo03-woman.png"],
-    110: ["saleordemoproduct_cl_polo04-woman.png"],
+    89: ["dastkaridemoproduct_cl_boot07_1.png", "dastkaridemoproduct_cl_boot07_2.png"],
+    107: ["dastkaridemoproduct_cl_polo01.png"],
+    108: ["dastkaridemoproduct_cl_polo02.png"],
+    109: ["dastkaridemoproduct_cl_polo03-woman.png"],
+    110: ["dastkaridemoproduct_cl_polo04-woman.png"],
     111: [
-        "saleordemoproduct_cl_boot01_1.png",
-        "saleordemoproduct_cl_boot01_2.png",
-        "saleordemoproduct_cl_boot01_3.png",
+        "dastkaridemoproduct_cl_boot01_1.png",
+        "dastkaridemoproduct_cl_boot01_2.png",
+        "dastkaridemoproduct_cl_boot01_3.png",
     ],
-    112: ["saleordemoproduct_cl_boot03_1.png", "saleordemoproduct_cl_boot03_2.png"],
-    113: ["saleordemoproduct_cl_boot06_1.png", "saleordemoproduct_cl_boot06_2.png"],
+    112: ["dastkaridemoproduct_cl_boot03_1.png", "dastkaridemoproduct_cl_boot03_2.png"],
+    113: ["dastkaridemoproduct_cl_boot06_1.png", "dastkaridemoproduct_cl_boot06_2.png"],
     114: [
-        "saleordemoproduct_cl_boot06_1.png",
-        "saleordemoproduct_cl_boot06_2.png",
+        "dastkaridemoproduct_cl_boot06_1.png",
+        "dastkaridemoproduct_cl_boot06_2.png",
     ],  # FIXME incorrect image
-    115: ["saleordemoproduct_cl_bogo01_1.png"],
-    116: ["saleordemoproduct_cl_bogo02_1.png"],
-    117: ["saleordemoproduct_cl_bogo03_1.png"],
-    118: ["saleordemoproduct_cl_bogo04_1.png", "saleordemoproduct_cl_bogo04_2.png"],
+    115: ["dastkaridemoproduct_cl_bogo01_1.png"],
+    116: ["dastkaridemoproduct_cl_bogo02_1.png"],
+    117: ["dastkaridemoproduct_cl_bogo03_1.png"],
+    118: ["dastkaridemoproduct_cl_bogo04_1.png", "dastkaridemoproduct_cl_bogo04_2.png"],
 }
 
 
@@ -297,7 +297,7 @@ def set_field_as_money(defaults, field):
 
 def create_products_by_schema(placeholder_dir, create_images):
     path = os.path.join(
-        settings.PROJECT_ROOT, "saleor", "static", "populatedb_data.json"
+        settings.PROJECT_ROOT, "dastkari", "static", "populatedb_data.json"
     )
     with open(path) as f:
         db_items = json.load(f)
@@ -337,7 +337,7 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
 
-class SaleorProvider(BaseProvider):
+class DastkariProvider(BaseProvider):
     def money(self):
         return Money(fake.pydecimal(2, 2, positive=True), settings.DEFAULT_CURRENCY)
 
@@ -345,7 +345,7 @@ class SaleorProvider(BaseProvider):
         return Weight(kg=fake.pydecimal(1, 2, positive=True))
 
 
-fake.add_provider(SaleorProvider)
+fake.add_provider(DastkariProvider)
 
 
 def get_email(first_name, last_name):
@@ -419,7 +419,7 @@ def create_fake_user(save=True):
 
 # We don't want to spam the console with payment confirmations sent to
 # fake customers.
-@patch("saleor.order.emails.send_payment_confirmation.delay")
+@patch("dastkari.order.emails.send_payment_confirmation.delay")
 def create_fake_payment(mock_email_confirmation, order):
     payment = create_payment(
         gateway="mirumee.payments.dummy",
@@ -1052,12 +1052,12 @@ def create_page():
     <h2>E-commerce for the PWA era</h2>
     <h3>A modular, high performance e-commerce storefront built with GraphQL,
         Django, and ReactJS.</h3>
-    <p>Saleor is a rapidly-growing open source e-commerce platform that has served
+    <p>Dastkari is a rapidly-growing open source e-commerce platform that has served
        high-volume companies from branches like publishing and apparel since 2012.
        Based on Python and Django, the latest major update introduces a modular
        front end with a GraphQL API and storefront and dashboard written in React
-       to make Saleor a full-functionality open source e-commerce.</p>
-    <p><a href="https://github.com/mirumee/saleor">Get Saleor today!</a></p>
+       to make Dastkari a full-functionality open source e-commerce.</p>
+    <p><a href="https://github.com/mirumee/dastkari">Get Dastkari today!</a></p>
     """
     content_json = {
         "blocks": [
@@ -1092,12 +1092,12 @@ def create_page():
             {
                 "key": "",
                 "data": {},
-                "text": "Saleor is a rapidly-growing open source e-commerce platform "
+                "text": "Dastkari is a rapidly-growing open source e-commerce platform "
                 "that has served high-volume companies from branches like "
                 "publishing and apparel since 2012. Based on Python and "
                 "Django, the latest major update introduces a modular "
                 "front end with a GraphQL API and storefront and dashboard "
-                "written in React to make Saleor a full-functionality "
+                "written in React to make Dastkari a full-functionality "
                 "open source e-commerce.",
                 "type": "unstyled",
                 "depth": 0,
@@ -1116,7 +1116,7 @@ def create_page():
             {
                 "key": "",
                 "data": {},
-                "text": "Get Saleor today!",
+                "text": "Get Dastkari today!",
                 "type": "unstyled",
                 "depth": 0,
                 "entityRanges": [{"key": 0, "length": 17, "offset": 0}],
@@ -1125,7 +1125,7 @@ def create_page():
         ],
         "entityMap": {
             "0": {
-                "data": {"url": "https://github.com/mirumee/saleor"},
+                "data": {"url": "https://github.com/mirumee/dastkari"},
                 "type": "LINK",
                 "mutability": "MUTABLE",
             }
@@ -1194,13 +1194,13 @@ def create_menus():
             name=collection.name, collection=collection, parent=item
         )
 
-    item_saleor = bottom_menu.items.get_or_create(name="Saleor", url="/")[0]
+    item_dastkari = bottom_menu.items.get_or_create(name="Dastkari", url="/")[0]
 
     page = Page.objects.order_by("?")[0]
-    item_saleor.children.get_or_create(name=page.title, page=page, menu=bottom_menu)
+    item_dastkari.children.get_or_create(name=page.title, page=page, menu=bottom_menu)
 
     api_url = build_absolute_uri(reverse("api"))
-    item_saleor.children.get_or_create(
+    item_dastkari.children.get_or_create(
         name="GraphQL API", url=api_url, menu=bottom_menu
     )
 

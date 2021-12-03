@@ -2,7 +2,7 @@
 
 from django.db import migrations
 
-from saleor.order import OrderEvents
+from dastkari.order import OrderEvents
 
 
 def move_order_note_to_events(apps, schema_editor):

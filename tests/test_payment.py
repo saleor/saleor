@@ -3,18 +3,18 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from saleor.checkout.calculations import checkout_total
-from saleor.payment import (
+from dastkari.checkout.calculations import checkout_total
+from dastkari.payment import (
     ChargeStatus,
     GatewayError,
     PaymentError,
     TransactionKind,
     gateway,
 )
-from saleor.payment.error_codes import PaymentErrorCode
-from saleor.payment.interface import CreditCardInfo, GatewayConfig, GatewayResponse
-from saleor.payment.models import Payment
-from saleor.payment.utils import (
+from dastkari.payment.error_codes import PaymentErrorCode
+from dastkari.payment.interface import CreditCardInfo, GatewayConfig, GatewayResponse
+from dastkari.payment.models import Payment
+from dastkari.payment.utils import (
     ALLOWED_GATEWAY_KINDS,
     clean_authorize,
     clean_capture,
@@ -248,7 +248,7 @@ def test_payment_needs_to_be_active_for_any_action(func, payment_dummy):
     assert exc.value.message == NOT_ACTIVE_PAYMENT_ERROR
 
 
-@patch("saleor.order.actions.handle_fully_paid_order")
+@patch("dastkari.order.actions.handle_fully_paid_order")
 def test_gateway_charge_failed(
     mock_handle_fully_paid_order, mock_get_manager, payment_txn_preauth, dummy_response
 ):

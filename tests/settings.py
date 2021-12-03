@@ -3,7 +3,7 @@ from typing import List, Pattern, Union
 
 from django.utils.functional import SimpleLazyObject
 
-from saleor.settings import *  # noqa
+from dastkari.settings import *  # noqa
 
 
 def lazy_re_compile(regex, flags=0):
@@ -31,7 +31,7 @@ DEFAULT_CURRENCY = "USD"
 TIME_ZONE = "America/Chicago"
 LANGUAGE_CODE = "en"
 
-SEARCH_BACKEND = "saleor.search.backends.postgresql"
+SEARCH_BACKEND = "dastkari.search.backends.postgresql"
 
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
@@ -44,7 +44,7 @@ MAX_CHECKOUT_LINE_QUANTITY = 50
 AUTH_PASSWORD_VALIDATORS = []
 
 PASSWORD_HASHERS = ["tests.dummy_password_hasher.DummyHasher"]
-PLUGINS_MANAGER = "saleor.plugins.manager.PluginsManager"
+PLUGINS_MANAGER = "dastkari.plugins.manager.PluginsManager"
 
 PLUGINS = []
 

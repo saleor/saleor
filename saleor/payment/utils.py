@@ -179,7 +179,7 @@ def clean_authorize(payment: Payment):
 
 
 def validate_gateway_response(response: GatewayResponse):
-    """Validate response to be a correct format for Saleor to process."""
+    """Validate response to be a correct format for Dastkari to process."""
     if not isinstance(response, GatewayResponse):
         raise GatewayError("Gateway needs to return a GatewayResponse obj")
 
@@ -191,7 +191,7 @@ def validate_gateway_response(response: GatewayResponse):
         )
 
     if response.currency != settings.DEFAULT_CURRENCY:
-        logger.warning("Transaction currency is different than Saleor's.")
+        logger.warning("Transaction currency is different than Dastkari's.")
 
     try:
         json.dumps(response.raw_response, cls=DjangoJSONEncoder)

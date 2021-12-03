@@ -4,20 +4,20 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.core.weight import zero_weight
-from saleor.discount.models import (
+from dastkari.core.weight import zero_weight
+from dastkari.discount.models import (
     DiscountValueType,
     NotApplicable,
     Voucher,
     VoucherType,
 )
-from saleor.discount.utils import validate_voucher_in_order
-from saleor.order import OrderEvents, OrderStatus, models
-from saleor.order.emails import send_fulfillment_confirmation_to_customer
-from saleor.order.events import OrderEvent, OrderEventsEmails, email_sent_event
-from saleor.order.models import Order
-from saleor.order.templatetags.order_lines import display_translated_order_line_name
-from saleor.order.utils import (
+from dastkari.discount.utils import validate_voucher_in_order
+from dastkari.order import OrderEvents, OrderStatus, models
+from dastkari.order.emails import send_fulfillment_confirmation_to_customer
+from dastkari.order.events import OrderEvent, OrderEventsEmails, email_sent_event
+from dastkari.order.models import Order
+from dastkari.order.templatetags.order_lines import display_translated_order_line_name
+from dastkari.order.utils import (
     add_variant_to_draft_order,
     change_order_line_quantity,
     delete_order_line,
@@ -28,10 +28,10 @@ from saleor.order.utils import (
     update_order_prices,
     update_order_status,
 )
-from saleor.payment import ChargeStatus
-from saleor.payment.models import Payment
-from saleor.product.models import Collection
-from saleor.warehouse.models import Stock
+from dastkari.payment import ChargeStatus
+from dastkari.payment.models import Payment
+from dastkari.product.models import Collection
+from dastkari.warehouse.models import Stock
 
 from .utils import get_quantity_allocated_for_stock
 
@@ -421,7 +421,7 @@ def test_get_order_weight_non_existing_product(order_with_lines, product):
     assert old_weight == new_weight
 
 
-@patch("saleor.discount.utils.validate_voucher")
+@patch("dastkari.discount.utils.validate_voucher")
 def test_get_voucher_discount_for_order_voucher_validation(
     mock_validate_voucher, voucher, order_with_lines
 ):
@@ -438,7 +438,7 @@ def test_get_voucher_discount_for_order_voucher_validation(
     )
 
 
-@patch("saleor.discount.utils.validate_voucher")
+@patch("dastkari.discount.utils.validate_voucher")
 def test_validate_voucher_in_order_without_voucher(
     mock_validate_voucher, order_with_lines
 ):
@@ -618,7 +618,7 @@ def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     assert order_with_lines.get_total_quantity() == 0
 
 
-@patch("saleor.order.actions.emails.send_fulfillment_confirmation")
+@patch("dastkari.order.actions.emails.send_fulfillment_confirmation")
 @pytest.mark.parametrize(
     "has_standard,has_digital", ((True, True), (True, False), (False, True))
 )

@@ -891,7 +891,7 @@ class ProductCreate(ModelMutation):
         When creating products that don't use variants, SKU is required in
         the input in order to create the default variant underneath.
         See the documentation for `has_variants` field for details:
-        http://docs.getsaleor.com/en/latest/architecture/products.html#product-types
+        http://docs.getdastkari.com/en/latest/architecture/products.html#product-types
         """
         if product_type and not product_type.has_variants:
             input_sku = cleaned_input.get("sku")

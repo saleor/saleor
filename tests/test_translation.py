@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.product.models import (
+from dastkari.product.models import (
     AttributeTranslation,
     AttributeValueTranslation,
     CategoryTranslation,
@@ -8,7 +8,7 @@ from saleor.product.models import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from saleor.shipping.models import ShippingMethodTranslation
+from dastkari.shipping.models import ShippingMethodTranslation
 
 
 @pytest.fixture

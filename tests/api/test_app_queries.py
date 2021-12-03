@@ -2,8 +2,8 @@ import graphene
 import pytest
 from freezegun import freeze_time
 
-from saleor.app.models import App
-from saleor.webhook.models import Webhook
+from dastkari.app.models import App
+from dastkari.webhook.models import Webhook
 
 from .utils import assert_no_permission, get_graphql_content
 

@@ -4,15 +4,15 @@ import graphene
 import pytest
 from prices import Money
 
-from saleor.product.models import (
+from dastkari.product.models import (
     Category,
     Collection,
     Product,
     ProductType,
     ProductVariant,
 )
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.warehouse.models import Stock
+from dastkari.product.utils.attributes import associate_attribute_values_to_instance
+from dastkari.warehouse.models import Stock
 
 from ..utils import get_graphql_content
 

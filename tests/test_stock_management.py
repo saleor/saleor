@@ -2,15 +2,15 @@ import pytest
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
-from saleor.core.exceptions import InsufficientStock
-from saleor.warehouse.management import (
+from dastkari.core.exceptions import InsufficientStock
+from dastkari.warehouse.management import (
     allocate_stock,
     deallocate_stock,
     deallocate_stock_for_order,
     decrease_stock,
     increase_stock,
 )
-from saleor.warehouse.models import Allocation
+from dastkari.warehouse.models import Allocation
 
 COUNTRY_CODE = "US"
 

@@ -1,7 +1,7 @@
 import graphene
 import pytest
 
-from saleor.wishlist.models import Wishlist
+from dastkari.wishlist.models import Wishlist
 
 from .utils import assert_no_permission, get_graphql_content
 

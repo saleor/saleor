@@ -1,22 +1,22 @@
 {
-  "name": "saleor",
+  "name": "dastkari",
   "version": "0.0.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/mirumee/saleor.git"
+    "url": "git://github.com/mirumee/dastkari.git"
   },
   "author": "Mirumee Software",
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/mirumee/saleor/issues"
+    "url": "https://github.com/mirumee/dastkari/issues"
   },
-  "homepage": "http://getsaleor.com/",
+  "homepage": "http://getdastkari.com/",
   "dependencies": {},
   "devDependencies": {
     "mjml": "^4.6.2"
   },
   "scripts": {
-    "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
+    "build-schema": "python manage.py get_graphql_schema > dastkari/graphql/schema.graphql",
     "heroku-postbuild": "npm run build-emails",
     "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled"
   }

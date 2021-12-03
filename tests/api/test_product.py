@@ -11,14 +11,14 @@ from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
 
-from saleor.core.taxes import TaxType
-from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.product.bulk_mutations.products import ProductVariantStocksUpdate
-from saleor.graphql.product.utils import create_stocks
-from saleor.plugins.manager import PluginsManager
-from saleor.product import AttributeInputType
-from saleor.product.error_codes import ProductErrorCode
-from saleor.product.models import (
+from dastkari.core.taxes import TaxType
+from dastkari.graphql.core.enums import ReportingPeriod
+from dastkari.graphql.product.bulk_mutations.products import ProductVariantStocksUpdate
+from dastkari.graphql.product.utils import create_stocks
+from dastkari.plugins.manager import PluginsManager
+from dastkari.product import AttributeInputType
+from dastkari.product.error_codes import ProductErrorCode
+from dastkari.product.models import (
     Attribute,
     AttributeValue,
     Category,
@@ -28,9 +28,9 @@ from saleor.product.models import (
     ProductType,
     ProductVariant,
 )
-from saleor.product.tasks import update_variants_names
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.warehouse.models import Allocation, Stock, Warehouse
+from dastkari.product.tasks import update_variants_names
+from dastkari.product.utils.attributes import associate_attribute_values_to_instance
+from dastkari.warehouse.models import Allocation, Stock, Warehouse
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
@@ -149,7 +149,7 @@ def test_product_query_error_when_id_and_slug_provided(
     }
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        "dastkari.graphql.errors.handled[ERROR].GraphQLError"
     ]
     content = get_graphql_content(response, ignore_errors=True)
     assert len(content["errors"]) == 1
@@ -161,7 +161,7 @@ def test_product_query_error_when_no_param(
     variables = {}
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        "dastkari.graphql.errors.handled[ERROR].GraphQLError"
     ]
     content = get_graphql_content(response, ignore_errors=True)
     assert len(content["errors"]) == 1
@@ -282,7 +282,7 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
     assert product_data["slug"] == product.slug
     gross = product_data["pricing"]["priceRange"]["start"]["gross"]
     assert float(gross["amount"]) == float(product.price.amount)
-    from saleor.product.utils.costs import get_product_costs_data
+    from dastkari.product.utils.costs import get_product_costs_data
 
     purchase_cost, margin = get_product_costs_data(product)
     assert purchase_cost.start.amount == product_data["purchaseCost"]["start"]["amount"]
@@ -1457,7 +1457,7 @@ def test_product_create_with_collections_webhook(
         assert product.collections.first() == collection
 
     monkeypatch.setattr(
-        "saleor.plugins.manager.PluginsManager.product_created",
+        "dastkari.plugins.manager.PluginsManager.product_created",
         lambda _, product: assert_product_has_collections(product),
     )
 
@@ -2787,7 +2787,7 @@ def test_product_image_create_mutation(
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
-            "saleor.graphql.product.mutations.products."
+            "dastkari.graphql.product.mutations.products."
             "create_product_thumbnails.delay"
         ),
         mock_create_thumbnails,
@@ -2889,7 +2889,7 @@ def test_product_image_update_mutation(
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
-            "saleor.graphql.product.mutations.products."
+            "dastkari.graphql.product.mutations.products."
             "create_product_thumbnails.delay"
         ),
         mock_create_thumbnails,
@@ -3087,7 +3087,7 @@ def test_unassign_not_assigned_variant_image(
     assert content["data"]["variantImageUnassign"]["errors"][0]["field"] == ("imageId")
 
 
-@patch("saleor.product.tasks.update_variants_names.delay")
+@patch("dastkari.product.tasks.update_variants_names.delay")
 def test_product_type_update_changes_variant_name(
     mock_update_variants_names,
     staff_api_client,
@@ -3142,7 +3142,7 @@ def test_product_type_update_changes_variant_name(
     )
 
 
-@patch("saleor.product.tasks._update_variants_names")
+@patch("dastkari.product.tasks._update_variants_names")
 def test_product_update_variants_names(mock__update_variants_names, product_type):
     variant_attributes = [product_type.variant_attributes.first()]
     variant_attr_ids = [attr.pk for attr in variant_attributes]
@@ -3411,7 +3411,7 @@ def test_variant_availability_without_inventory_tracking_not_available(
     assert variant_data["stockQuantity"] == 0
 
 
-@patch("saleor.graphql.product.types.products.get_available_quantity_for_customer")
+@patch("dastkari.graphql.product.types.products.get_available_quantity_for_customer")
 def test_variant_quantity_available_with_country_code(
     mock_get_available_quantity_for_customer, api_client, variant
 ):
@@ -3434,7 +3434,7 @@ def test_variant_quantity_available_with_country_code(
     mock_get_available_quantity_for_customer.assert_called_once_with(variant, "PL")
 
 
-@patch("saleor.graphql.product.types.products.get_available_quantity_for_customer")
+@patch("dastkari.graphql.product.types.products.get_available_quantity_for_customer")
 def test_variant_quantity_available_without_country_code(
     mock_get_available_quantity_for_customer, api_client, variant
 ):
@@ -3453,7 +3453,7 @@ def test_variant_quantity_available_without_country_code(
     mock_get_available_quantity_for_customer.assert_called_once_with(variant, None)
 
 
-@patch("saleor.graphql.product.types.products.get_available_quantity_for_customer")
+@patch("dastkari.graphql.product.types.products.get_available_quantity_for_customer")
 def test_variant_quantity_available_with_null_as_country_code(
     mock_get_available_quantity_for_customer, api_client, variant
 ):

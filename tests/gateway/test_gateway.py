@@ -2,10 +2,10 @@ from decimal import Decimal
 
 import pytest
 
-import saleor.payment.gateway as gateway
-from saleor.payment import ChargeStatus, TransactionKind
-from saleor.payment.interface import GatewayResponse
-from saleor.payment.utils import create_payment_information
+import dastkari.payment.gateway as gateway
+from dastkari.payment import ChargeStatus, TransactionKind
+from dastkari.payment.interface import GatewayResponse
+from dastkari.payment.utils import create_payment_information
 
 RAW_RESPONSE = {"test": "abcdefgheijklmn"}
 PROCESS_PAYMENT_RESPONSE = GatewayResponse(
@@ -85,7 +85,7 @@ USED_GATEWAY = "mirumee.payments.dummy"
 @pytest.fixture
 def mock_payment_interface(mocker, fake_payment_interface):
     mgr = mocker.patch(
-        "saleor.payment.gateway.get_plugins_manager",
+        "dastkari.payment.gateway.get_plugins_manager",
         autospec=True,
         return_value=fake_payment_interface,
     )

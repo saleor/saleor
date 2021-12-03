@@ -20,35 +20,35 @@ from django_countries import countries
 from PIL import Image
 from prices import Money, TaxedMoney
 
-from saleor.account.models import Address, StaffNotificationRecipient, User
-from saleor.app.models import App
-from saleor.checkout import utils
-from saleor.checkout.models import Checkout
-from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.payments import PaymentInterface
-from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
-from saleor.discount.models import (
+from dastkari.account.models import Address, StaffNotificationRecipient, User
+from dastkari.app.models import App
+from dastkari.checkout import utils
+from dastkari.checkout.models import Checkout
+from dastkari.checkout.utils import add_variant_to_checkout
+from dastkari.core.payments import PaymentInterface
+from dastkari.discount import DiscountInfo, DiscountValueType, VoucherType
+from dastkari.discount.models import (
     Sale,
     SaleTranslation,
     Voucher,
     VoucherCustomer,
     VoucherTranslation,
 )
-from saleor.giftcard.models import GiftCard
-from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
-from saleor.menu.utils import update_menu
-from saleor.order import OrderStatus
-from saleor.order.actions import cancel_fulfillment, fulfill_order_line
-from saleor.order.events import OrderEvents
-from saleor.order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
-from saleor.order.utils import recalculate_order
-from saleor.page.models import Page, PageTranslation
-from saleor.payment import ChargeStatus, TransactionKind
-from saleor.payment.models import Payment
-from saleor.plugins.models import PluginConfiguration
-from saleor.plugins.vatlayer.plugin import VatlayerPlugin
-from saleor.product import AttributeInputType
-from saleor.product.models import (
+from dastkari.giftcard.models import GiftCard
+from dastkari.menu.models import Menu, MenuItem, MenuItemTranslation
+from dastkari.menu.utils import update_menu
+from dastkari.order import OrderStatus
+from dastkari.order.actions import cancel_fulfillment, fulfill_order_line
+from dastkari.order.events import OrderEvents
+from dastkari.order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
+from dastkari.order.utils import recalculate_order
+from dastkari.page.models import Page, PageTranslation
+from dastkari.payment import ChargeStatus, TransactionKind
+from dastkari.payment.models import Payment
+from dastkari.plugins.models import PluginConfiguration
+from dastkari.plugins.vatlayer.plugin import VatlayerPlugin
+from dastkari.product import AttributeInputType
+from dastkari.product.models import (
     Attribute,
     AttributeTranslation,
     AttributeValue,
@@ -66,19 +66,19 @@ from saleor.product.models import (
     ProductVariant,
     ProductVariantTranslation,
 )
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.shipping.models import (
+from dastkari.product.utils.attributes import associate_attribute_values_to_instance
+from dastkari.shipping.models import (
     ShippingMethod,
     ShippingMethodTranslation,
     ShippingMethodType,
     ShippingZone,
 )
-from saleor.site import AuthenticationBackends
-from saleor.site.models import AuthorizationKey, SiteSettings
-from saleor.warehouse.models import Allocation, Stock, Warehouse
-from saleor.webhook.event_types import WebhookEventType
-from saleor.webhook.models import Webhook
-from saleor.wishlist.models import Wishlist
+from dastkari.site import AuthenticationBackends
+from dastkari.site.models import AuthorizationKey, SiteSettings
+from dastkari.warehouse.models import Allocation, Stock, Warehouse
+from dastkari.webhook.event_types import WebhookEventType
+from dastkari.webhook.models import Webhook
+from dastkari.wishlist.models import Wishlist
 from tests.utils import create_image
 
 
@@ -169,7 +169,7 @@ def assert_max_num_queries(capture_queries):
 
 @pytest.fixture
 def setup_vatlayer(settings):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     data = {
         "active": True,
         "configuration": [{"name": "Access key", "value": "vatlayer_access_key"},],
@@ -180,7 +180,7 @@ def setup_vatlayer(settings):
 
 @pytest.fixture(autouse=True)
 def setup_dummy_gateway(settings):
-    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
+    settings.PLUGINS = ["dastkari.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
     return settings
 
 
@@ -189,7 +189,7 @@ def site_settings(db, settings) -> SiteSettings:
     """Create a site and matching site settings.
 
     This fixture is autouse because django.contrib.sites.models.Site and
-    saleor.site.models.SiteSettings have a one-to-one relationship and a site
+    dastkari.site.models.SiteSettings have a one-to-one relationship and a site
     should never exist without a matching settings object.
     """
     site = Site.objects.get_or_create(name="mirumee.com", domain="mirumee.com")[0]
@@ -369,7 +369,7 @@ def address_usa():
 @pytest.fixture
 def graphql_address_data():
     return {
-        "firstName": "John Saleor",
+        "firstName": "John Dastkari",
         "lastName": "Doe Mirumee",
         "companyName": "Mirumee Software",
         "streetAddress1": "Tęczowa 7",
@@ -1929,12 +1929,12 @@ def description_json():
                 "key": "",
                 "data": {},
                 "text": (
-                    "Saleor is a rapidly-growing open source e-commerce platform "
+                    "Dastkari is a rapidly-growing open source e-commerce platform "
                     "that has served high-volume companies from branches "
                     "like publishing and apparel since 2012. Based on Python "
                     "and Django, the latest major update introduces a modular "
                     "front end with a GraphQL API and storefront and dashboard "
-                    "written in React to make Saleor a full-functionality "
+                    "written in React to make Dastkari a full-functionality "
                     "open source e-commerce."
                 ),
                 "type": "unstyled",
@@ -1954,7 +1954,7 @@ def description_json():
             {
                 "key": "",
                 "data": {},
-                "text": "Get Saleor today!",
+                "text": "Get Dastkari today!",
                 "type": "unstyled",
                 "depth": 0,
                 "entityRanges": [{"key": 0, "length": 17, "offset": 0}],
@@ -1963,7 +1963,7 @@ def description_json():
         ],
         "entityMap": {
             "0": {
-                "data": {"href": "https://github.com/mirumee/saleor"},
+                "data": {"href": "https://github.com/mirumee/dastkari"},
                 "type": "LINK",
                 "mutability": "MUTABLE",
             }
@@ -1988,7 +1988,7 @@ def other_description_json():
                 "key": "",
                 "data": {},
                 "text": (
-                    "Saleor is powered by a GraphQL server running on "
+                    "Dastkari is powered by a GraphQL server running on "
                     "top of Python 3 and a Django 2 framework."
                 ),
                 "type": "unstyled",
@@ -2023,7 +2023,7 @@ def fake_payment_interface(mocker):
 @pytest.fixture
 def mock_get_manager(mocker, fake_payment_interface):
     mgr = mocker.patch(
-        "saleor.payment.gateway.get_plugins_manager",
+        "dastkari.payment.gateway.get_plugins_manager",
         autospec=True,
         return_value=fake_payment_interface,
     )

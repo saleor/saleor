@@ -4,12 +4,12 @@ import graphene
 import pytest
 from django_countries import countries
 
-from saleor.account.models import Address
-from saleor.core.error_codes import ShopErrorCode
-from saleor.core.permissions import get_permissions_codename
-from saleor.graphql.core.utils import str_to_enum
-from saleor.site import AuthenticationBackends
-from saleor.site.models import Site
+from dastkari.account.models import Address
+from dastkari.core.error_codes import ShopErrorCode
+from dastkari.core.permissions import get_permissions_codename
+from dastkari.graphql.core.utils import str_to_enum
+from dastkari.site import AuthenticationBackends
+from dastkari.site.models import Site
 from tests.api.utils import get_graphql_content
 
 
@@ -502,7 +502,7 @@ def test_shop_domain_update(staff_api_client, permission_manage_settings):
             }
         }
     """
-    new_name = "saleor test store"
+    new_name = "dastkari test store"
     variables = {"input": {"domain": "lorem-ipsum.com", "name": new_name}}
     site = Site.objects.get_current()
     assert site.domain != "lorem-ipsum.com"

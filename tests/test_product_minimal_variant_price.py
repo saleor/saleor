@@ -3,12 +3,12 @@ from unittest.mock import patch
 from django.core.management import call_command
 from prices import Money
 
-from saleor.product.models import Product, ProductVariant
-from saleor.product.tasks import (
+from dastkari.product.models import Product, ProductVariant
+from dastkari.product.tasks import (
     update_products_minimal_variant_prices_of_catalogues,
     update_products_minimal_variant_prices_task,
 )
-from saleor.product.utils.variant_prices import update_product_minimal_variant_price
+from dastkari.product.utils.variant_prices import update_product_minimal_variant_price
 
 
 def test_update_product_minimal_variant_price(product):
@@ -175,7 +175,7 @@ def test_product_variant_objects_bulk_create_updates_minimal_variant_price(produ
 
 
 @patch(
-    "saleor.product.management.commands"
+    "dastkari.product.management.commands"
     ".update_all_products_minimal_variant_prices"
     ".update_product_minimal_variant_price"
 )

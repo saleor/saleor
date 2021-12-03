@@ -1,8 +1,8 @@
 import graphene
 from django.db import models
 
-from saleor.account import events as account_events
-from saleor.account.models import User
+from dastkari.account import events as account_events
+from dastkari.account.models import User
 
 from .utils import get_graphql_content
 

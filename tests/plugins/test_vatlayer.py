@@ -7,19 +7,19 @@ from django.core.exceptions import ValidationError
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from saleor.checkout import calculations
-from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.taxes import quantize_price, zero_taxed_money
-from saleor.plugins.manager import get_plugins_manager
-from saleor.plugins.models import PluginConfiguration
-from saleor.plugins.vatlayer import (
+from dastkari.checkout import calculations
+from dastkari.checkout.utils import add_variant_to_checkout
+from dastkari.core.taxes import quantize_price, zero_taxed_money
+from dastkari.plugins.manager import get_plugins_manager
+from dastkari.plugins.models import PluginConfiguration
+from dastkari.plugins.vatlayer import (
     DEFAULT_TAX_RATE_NAME,
     apply_tax_to_price,
     get_tax_rate_by_name,
     get_taxed_shipping_price,
     get_taxes_for_country,
 )
-from saleor.plugins.vatlayer.plugin import VatlayerPlugin
+from dastkari.plugins.vatlayer.plugin import VatlayerPlugin
 
 
 def get_url_path(url):
@@ -183,7 +183,7 @@ def test_apply_tax_to_price_no_taxes_raise_typeerror_for_invalid_type():
 def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
     mocked_taxes = Mock(wraps=get_taxes_for_country)
     monkeypatch.setattr(
-        "saleor.plugins.vatlayer.plugin.get_taxes_for_country", mocked_taxes
+        "dastkari.plugins.vatlayer.plugin.get_taxes_for_country", mocked_taxes
     )
 
     manager = get_plugins_manager()
@@ -220,7 +220,7 @@ def test_calculate_checkout_total(
     taxes_in_prices,
 ):
     manager = get_plugins_manager(
-        plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+        plugins=["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
@@ -278,7 +278,7 @@ def test_calculate_checkout_subtotal(
     checkout_with_item.save()
 
     manager = get_plugins_manager(
-        plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+        plugins=["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
 
     product = variant.product
@@ -298,7 +298,7 @@ def test_calculate_checkout_subtotal(
 
 def test_calculate_order_shipping(vatlayer, order_line, shipping_zone, site_settings):
     manager = get_plugins_manager(
-        plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+        plugins=["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
@@ -315,7 +315,7 @@ def test_calculate_order_shipping_for_order_without_shipping(
     vatlayer, order_line, shipping_zone, site_settings
 ):
     manager = get_plugins_manager(
-        plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+        plugins=["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     order = order_line.order
     order.shipping_method = None
@@ -326,7 +326,7 @@ def test_calculate_order_shipping_for_order_without_shipping(
 
 def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_settings):
     manager = get_plugins_manager(
-        plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+        plugins=["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     order_line.unit_price = TaxedMoney(
         net=Money("10.00", "USD"), gross=Money("10.00", "USD")
@@ -355,7 +355,7 @@ def test_get_tax_rate_percentage_value(
     vatlayer, order_line, shipping_zone, site_settings, product
 ):
     manager = get_plugins_manager(
-        plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+        plugins=["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     country = Country("PL")
     tax_rate = manager.get_tax_rate_percentage_value(product, country)
@@ -363,7 +363,7 @@ def test_get_tax_rate_percentage_value(
 
 
 def test_save_plugin_configuration(vatlayer, settings):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     manager.save_plugin_configuration(VatlayerPlugin.PLUGIN_ID, {"active": False})
 
@@ -372,7 +372,7 @@ def test_save_plugin_configuration(vatlayer, settings):
 
 
 def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     with pytest.raises(ValidationError):
         manager.save_plugin_configuration(
@@ -381,7 +381,7 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
 
 
 def test_show_taxes_on_storefront(vatlayer, settings):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     assert manager.show_taxes_on_storefront() is True
 
@@ -393,9 +393,9 @@ def test_get_tax_rate_type_choices(vatlayer, settings, monkeypatch):
         "admission to entertainment events",
     ]
     monkeypatch.setattr(
-        "saleor.plugins.vatlayer.plugin.get_tax_rate_types", lambda: expected_choices,
+        "dastkari.plugins.vatlayer.plugin.get_tax_rate_types", lambda: expected_choices,
     )
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     choices = manager.get_tax_rate_type_choices()
 
@@ -408,7 +408,7 @@ def test_get_tax_rate_type_choices(vatlayer, settings, monkeypatch):
 
 
 def test_apply_taxes_to_shipping_price_range(vatlayer, settings):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     money_range = MoneyRange(Money(100, "USD"), Money(200, "USD"))
     country = Country("PL")
     manager = get_plugins_manager()
@@ -423,7 +423,7 @@ def test_apply_taxes_to_shipping_price_range(vatlayer, settings):
 
 
 def test_apply_taxes_to_product(vatlayer, settings, variant, discount_info):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     country = Country("PL")
     manager = get_plugins_manager()
     variant.product.metadata = {
@@ -439,7 +439,7 @@ def test_apply_taxes_to_product(vatlayer, settings, variant, discount_info):
 def test_calculations_checkout_total_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     checkout_subtotal = calculations.checkout_total(
         checkout=checkout_with_item, lines=list(checkout_with_item)
     )
@@ -451,7 +451,7 @@ def test_calculations_checkout_total_with_vatlayer(
 def test_calculations_checkout_subtotal_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     checkout_subtotal = calculations.checkout_subtotal(
         checkout=checkout_with_item, lines=list(checkout_with_item)
     )
@@ -463,7 +463,7 @@ def test_calculations_checkout_subtotal_with_vatlayer(
 def test_calculations_checkout_shipping_price_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     checkout_shipping_price = calculations.checkout_shipping_price(
         checkout=checkout_with_item, lines=list(checkout_with_item)
     )
@@ -473,7 +473,7 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
 
 
 def test_skip_diabled_plugin(settings):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["dastkari.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     plugin: VatlayerPlugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
 

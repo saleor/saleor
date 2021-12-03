@@ -39,7 +39,7 @@ class Command(BaseCommand):
         for perm in required_permissions:
             if perm not in permissions:
                 raise CommandError(
-                    f"Permisssion: {perm} doesn't exist in Saleor."
+                    f"Permisssion: {perm} doesn't exist in Dastkari."
                     f" Avaiable permissions: {permissions}"
                 )
 
@@ -49,7 +49,7 @@ class Command(BaseCommand):
 
     def send_app_data(self, target_url, data: Dict[str, Any]):
         domain = Site.objects.get_current().domain
-        headers = {"x-saleor-domain": domain}
+        headers = {"x-dastkari-domain": domain}
         try:
             response = requests.post(target_url, json=data, headers=headers, timeout=15)
         except RequestException as e:

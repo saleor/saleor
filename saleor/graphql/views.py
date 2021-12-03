@@ -29,8 +29,8 @@ from ..core.utils import is_valid_ipv4, is_valid_ipv6
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
-unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
-handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+unhandled_errors_logger = logging.getLogger("dastkari.graphql.errors.unhandled")
+handled_errors_logger = logging.getLogger("dastkari.graphql.errors.handled")
 
 
 def tracing_wrapper(execute, sql, params, many, context):

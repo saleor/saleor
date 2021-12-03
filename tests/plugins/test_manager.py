@@ -4,9 +4,9 @@ import pytest
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
-from saleor.core.taxes import TaxType
-from saleor.plugins.manager import PluginsManager, get_plugins_manager
-from saleor.plugins.models import PluginConfiguration
+from dastkari.core.taxes import TaxType
+from dastkari.plugins.manager import PluginsManager, get_plugins_manager
+from dastkari.plugins.models import PluginConfiguration
 from tests.plugins.sample_plugins import (
     ActivePaymentGateway,
     InactivePaymentGateway,
@@ -16,7 +16,7 @@ from tests.plugins.sample_plugins import (
 
 
 def test_get_plugins_manager():
-    manager_path = "saleor.plugins.manager.PluginsManager"
+    manager_path = "dastkari.plugins.manager.PluginsManager"
     plugin_path = "tests.plugins.sample_plugins.PluginSample"
     manager = get_plugins_manager(manager_path=manager_path, plugins=[plugin_path])
     assert isinstance(manager, PluginsManager)

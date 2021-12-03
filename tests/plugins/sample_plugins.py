@@ -4,14 +4,14 @@ from typing import TYPE_CHECKING, Union
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
-from saleor.core.taxes import TaxType
-from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
-from saleor.plugins.models import PluginConfiguration
-from saleor.product.models import Product, ProductType
+from dastkari.core.taxes import TaxType
+from dastkari.plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from dastkari.plugins.models import PluginConfiguration
+from dastkari.product.models import Product, ProductType
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from saleor.product.models import Product, ProductType
+    from dastkari.product.models import Product, ProductType
     from django.db.models import QuerySet
 
 

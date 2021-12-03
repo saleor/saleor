@@ -1,8 +1,8 @@
 import pytest
 from graphene import Node
 
-from saleor.checkout import calculations
-from saleor.checkout.models import Checkout
+from dastkari.checkout import calculations
+from dastkari.checkout.models import Checkout
 
 from ..utils import get_graphql_content
 

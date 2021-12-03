@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.wishlist.models import Wishlist, WishlistItem
+from dastkari.wishlist.models import Wishlist, WishlistItem
 
 
 def test_remove_only_variant_also_removes_wishlist_item(customer_wishlist_item):

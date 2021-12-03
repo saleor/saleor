@@ -3,7 +3,7 @@ from math import isclose
 
 from django_countries import countries
 
-from saleor.payment.gateways.stripe.utils import (
+from dastkari.payment.gateways.stripe.utils import (
     get_amount_for_stripe,
     get_amount_from_stripe,
     get_currency_for_stripe,
@@ -11,8 +11,8 @@ from saleor.payment.gateways.stripe.utils import (
     get_payment_billing_fullname,
     shipping_to_stripe_dict,
 )
-from saleor.payment.interface import AddressData
-from saleor.payment.utils import create_payment_information
+from dastkari.payment.interface import AddressData
+from dastkari.payment.utils import create_payment_information
 
 
 def test_get_amount_for_stripe():

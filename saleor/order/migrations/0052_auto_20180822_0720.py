@@ -4,7 +4,7 @@ import django.db.models.deletion
 import django_measurement.models
 from django.db import migrations, models
 
-import saleor.core.weight
+import dastkari.core.weight
 
 
 class Migration(migrations.Migration):
@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             model_name="order",
             name="weight",
             field=django_measurement.models.MeasurementField(
-                default=saleor.core.weight.zero_weight, measurement_class="Mass"
+                default=dastkari.core.weight.zero_weight, measurement_class="Mass"
             ),
         ),
         migrations.AlterField(

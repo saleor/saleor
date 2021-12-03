@@ -25,7 +25,7 @@ from ...utils.random_data import (
 
 class Command(BaseCommand):
     help = "Populate database with test objects"
-    placeholders_dir = "saleor/static/placeholders/"
+    placeholders_dir = "dastkari/static/placeholders/"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -69,7 +69,7 @@ class Command(BaseCommand):
             cursor.execute("PRAGMA synchronous = OFF;")
 
     def sequence_reset(self):
-        """Run a SQL sequence reset on all saleor.* apps.
+        """Run a SQL sequence reset on all dastkari.* apps.
 
         When a value is manually assigned to an auto-incrementing field
         it doesn't update the field's sequence, which might cause a conflict
@@ -77,7 +77,7 @@ class Command(BaseCommand):
         """
         commands = StringIO()
         for app in apps.get_app_configs():
-            if "saleor" in app.name:
+            if "dastkari" in app.name:
                 call_command(
                     "sqlsequencereset", app.label, stdout=commands, no_color=True
                 )

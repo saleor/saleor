@@ -2,8 +2,8 @@ import pytest
 from measurement.measures import Weight
 from prices import Money
 
-from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
-from saleor.shipping.utils import default_shipping_zone_exists
+from dastkari.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
+from dastkari.shipping.utils import default_shipping_zone_exists
 
 from .utils import money
 
