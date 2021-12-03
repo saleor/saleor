@@ -341,14 +341,25 @@ query OrdersQuery {
                 }
                 availableShippingMethods {
                     id
-                    price {
-                        amount
+                    price{
+                      amount
                     }
                     minimumOrderPrice {
-                        amount
-                        currency
+                      amount
                     }
-                    type
+                    maximumOrderPrice{
+                      amount
+                    }
+                    maximumDeliveryDays
+                    minimumDeliveryDays
+                    metadata{
+                      key
+                      value
+                    }
+                    privateMetadata{
+                      key
+                      value
+                    }
                 }
                 availableCollectionPoints {
                     id
@@ -380,7 +391,11 @@ query OrdersQuery {
 
 
 def test_order_query(
-    staff_api_client, permission_manage_orders, fulfilled_order, shipping_zone
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    shipping_zone,
+    permission_manage_shipping,
 ):
     # given
     order = fulfilled_order
@@ -393,6 +408,7 @@ def test_order_query(
     order.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -450,7 +466,6 @@ def test_order_query(
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
-    assert expected_method.type.upper() == method["type"]
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
 
 
@@ -485,6 +500,7 @@ def test_order_query_shipping_method_channel_listing_does_not_exist(
 def test_order_query_external_shipping_method(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     order_with_lines,
 ):
     external_shipping_method_id = graphene.Node.to_global_id("app", "1:external123")
@@ -496,7 +512,7 @@ def test_order_query_external_shipping_method(
     order.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
     content = get_graphql_content(response)
@@ -513,6 +529,7 @@ def test_order_query_external_shipping_method(
 def test_order_discounts_query(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     draft_order_with_fixed_discount_order,
 ):
     # given
@@ -523,6 +540,7 @@ def test_order_discounts_query(
     discount = order.discounts.get()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -544,6 +562,7 @@ def test_order_discounts_query(
 def test_order_line_discount_query(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     draft_order_with_fixed_discount_order,
 ):
     # given
@@ -560,6 +579,7 @@ def test_order_line_discount_query(
     line_with_discount_id = graphene.Node.to_global_id("OrderLine", line.pk)
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -602,6 +622,7 @@ def test_order_line_discount_query(
 def test_order_query_in_pln_channel(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     order_with_lines_channel_PLN,
     shipping_zone,
     channel_PLN,
@@ -609,6 +630,7 @@ def test_order_query_in_pln_channel(
     shipping_zone.channels.add(channel_PLN)
     order = order_with_lines_channel_PLN
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
     response = staff_api_client.post_graphql(ORDERS_QUERY)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
@@ -650,7 +672,6 @@ def test_order_query_in_pln_channel(
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
-    assert expected_method.type.upper() == method["type"]
 
 
 ORDERS_QUERY_SHIPPING_METHODS = """
