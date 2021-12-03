@@ -206,6 +206,16 @@ def _process_payment_with_checkout(
         _finalize_checkout(checkout, payment, payment_intent, kind, amount, currency)
 
 
+def update_payment_method_details_from_intent(
+    payment: Payment, payment_intent: StripeObject
+):
+    if payment_method_info := get_payment_method_details(payment_intent):
+        changed_fields: List[str] = []
+        update_payment_method_details(payment, payment_method_info, changed_fields)
+        if changed_fields:
+            payment.save(update_fields=changed_fields)
+
+
 def handle_authorized_payment_intent(
     payment_intent: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
 ):
@@ -217,6 +227,9 @@ def handle_authorized_payment_intent(
             extra={"payment_intent": payment_intent.id},
         )
         return
+
+    update_payment_method_details_from_intent(payment, payment_intent)
+
     if payment.order_id:
         if payment.charge_status == ChargeStatus.PENDING:
             _update_payment_with_new_transaction(
@@ -303,12 +316,7 @@ def handle_successful_payment_intent(
     if payment_intent.setup_future_usage:
         update_payment_method(api_key, payment_intent.payment_method, channel_slug)
 
-    payment_method_info = get_payment_method_details(payment_intent)
-    if payment_method_info:
-        changed_fields: List[str] = []
-        update_payment_method_details(payment, payment_method_info, changed_fields)
-        if changed_fields:
-            payment.save(update_fields=changed_fields)
+    update_payment_method_details_from_intent(payment, payment_intent)
 
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:

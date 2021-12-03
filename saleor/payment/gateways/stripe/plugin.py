@@ -298,7 +298,7 @@ class StripeGatewayPlugin(BasePlugin):
             kind, action_required = self._get_transaction_details_for_stripe_status(
                 payment_intent.status
             )
-            if kind == TransactionKind.CAPTURE:
+            if kind in (TransactionKind.AUTH, TransactionKind.CAPTURE):
                 payment_method_info = get_payment_method_details(payment_intent)
         else:
             action_required = False
