@@ -178,4 +178,24 @@ class Migration(migrations.Migration):
                 opclasses=["gin_trgm_ops"],
             ),
         ),
+        migrations.RemoveIndex(
+            model_name="product",
+            name="product_pro_search__e78047_gin",
+        ),
+        migrations.RemoveField(
+            model_name="product",
+            name="search_vector",
+        ),
+        migrations.RunSQL(
+            """
+            DROP TRIGGER IF EXISTS title_vector_update
+            ON product_product
+        """
+        ),
+        migrations.RunSQL(
+            """
+            DROP TRIGGER IF EXISTS tsvectorupdate
+            ON product_product
+        """
+        ),
     ]
