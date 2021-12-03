@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Union
 
-from django.db.models import prefetch_related_objects
+from django.db.models import Q, prefetch_related_objects
 
 from ..attribute import AttributeInputType
 from ..core.utils.editorjs import clean_editor_js
@@ -92,3 +92,12 @@ def generate_attributes_search_document_value(
         if values_data:
             attribute_data += values_data + "\n"
     return attribute_data.lower()
+
+
+def search_products(qs, value):
+    if value:
+        lookup = Q()
+        for val in value.split():
+            lookup &= Q(search_document__ilike=val)
+        qs = qs.filter(lookup)
+    return qs

@@ -160,7 +160,7 @@ def clean_text_data(text: str):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0153_merge_20211006_0910"),
+        ("product", "0155_merge_20211208_1108"),
     ]
 
     operations = [
