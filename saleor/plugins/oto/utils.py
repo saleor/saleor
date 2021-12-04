@@ -32,7 +32,7 @@ def get_order_items_data(order):
             "name": line.product_name,
             "quantity": line.quantity_fulfilled,
             "productId": line.variant.product.id,
-            "price": line.total_price_net_amount,
+            "price": float(line.total_price_net_amount),
             "image": "%s%s"
             % (site.domain, line.variant.product.get_first_image().image.url)
             if line.variant.product.get_first_image()
@@ -57,9 +57,9 @@ def generate_create_order_data(fulfillment):
         "shippingNotes": fulfillment.order.customer_note,
         "payment_method": "cod" if is_cod_order else "paid",
         "items": get_order_items_data(order=fulfillment.order),
-        "subtotal": fulfillment.order.get_subtotal().net.amount,
         "customer": get_order_customer_data(order=fulfillment.order),
-        "shippingAmount": fulfillment.order.shipping_price_net_amount,
+        "subtotal": float(fulfillment.order.get_subtotal().net.amount),
+        "shippingAmount": float(fulfillment.order.shipping_price_net_amount),
         "amount_due": fulfillment.order.total_net_amount if is_cod_order else 0,
         "amount": float(
             fulfillment_line.quantity
