@@ -61,8 +61,10 @@ def generate_create_order_data(fulfillment):
         "customer": get_order_customer_data(order=fulfillment.order),
         "shippingAmount": fulfillment.order.shipping_price_net_amount,
         "amount_due": fulfillment.order.total_net_amount if is_cod_order else 0,
-        "amount": fulfillment_line.quantity
-        * fulfillment_line.order_line.unit_price_net_amount,
+        "amount": float(
+            fulfillment_line.quantity
+            * fulfillment_line.order_line.unit_price_net_amount
+        ),
         "orderDate": "%s %s:%s"
         % (
             str(fulfillment.order.created.date().strftime("%d/%m/%Y")),
