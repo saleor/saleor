@@ -89,9 +89,15 @@ class OTOPlugin(BasePlugin):
             oto_ids_from_private_metadata = (
                 fulfillment.order.get_value_from_private_metadata("oto_ids", [])
             )
+            fulfillment_ids_from_private_metadata = (
+                fulfillment.order.get_value_from_private_metadata("fulfillment_ids", [])
+            )
+            oto_ids_from_private_metadata.append(response.get("otoId"))
+            fulfillment_ids_from_private_metadata.append(fulfillment.id)
             fulfillment.order.store_value_in_private_metadata(
                 items=dict(
-                    oto_ids=oto_ids_from_private_metadata.append(response.get("otoId"))
+                    oto_ids=oto_ids_from_private_metadata,
+                    fulfillment_ids=fulfillment_ids_from_private_metadata,
                 )
             )
             fulfillment.order.save(update_fields=["private_metadata"])
@@ -133,18 +139,21 @@ class OTOPlugin(BasePlugin):
             "returned",
             "refunded_and_returned",
         ]:
-            fulfillment = order.fulfillments.last()
-            if fulfillment:
+            fulfillment_ids_from_private_metadata = (
+                order.get_value_from_private_metadata("fulfillment_ids", [])
+            )
+            print(fulfillment_ids_from_private_metadata)
+            if returned_fulfillment:
                 oto_ids = order.get_value_from_private_metadata("oto_ids", [])
                 for oto_order_id in oto_ids:
                     response = send_oto_request(
-                        fulfillment, self.config, "getReturnLink"
+                        returned_fulfillment, self.config, "getReturnLink"
                     )
                     if response.get("success") is True:
-                        fulfillment.store_value_in_private_metadata(
+                        returned_fulfillment.store_value_in_private_metadata(
                             items=dict(oto_return_link=response.get("returnLink"))
                         )
-                        fulfillment.save(update_fields=["private_metadata"])
+                        returned_fulfillment.save(update_fields=["private_metadata"])
 
     @staticmethod
     def check_oto_signature(data: Dict[str, Any]) -> bool:
