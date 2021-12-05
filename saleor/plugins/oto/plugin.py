@@ -101,12 +101,16 @@ class OTOPlugin(BasePlugin):
                 )
             )
             fulfillment.order.save(update_fields=["private_metadata"])
+            logger.info(
+                msg="OTO order created", extra={"order_id": fulfillment.order.id}
+            )
         else:
             msg = (
                 response.get("errorMsg").capitalize()
                 if response.get("errorMsg")
                 else "Can not create an OTO order"
             )
+            logger.error(msg=msg, extra={"order_id": fulfillment.order.id})
             raise ValidationError(
                 {"oto_id": ValidationError(msg, code="invalid")},
             )
