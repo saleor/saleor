@@ -15,7 +15,7 @@
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] This change requires frontend update
 
-## vertical_traffic_light: How Has This Been Tested?
+## :vertical_traffic_light: How Has This Been Tested?
 
 Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
 
