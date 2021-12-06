@@ -6,10 +6,11 @@ from ..models import Product, ProductVariant
 from ..search import (
     prepare_product_search_document_value,
     update_product_search_document,
+    update_products_search_document,
 )
 
 
-def test_update_order_search_document(product_type, category):
+def test_update_product_search_document(product_type, category):
     # given
     name = "Test product"
     description = "Test description"
@@ -27,6 +28,21 @@ def test_update_order_search_document(product_type, category):
 
     # then
     assert f"{name}\n{description}\n".lower() in product.search_document
+
+
+def test_update_products_search_document(product_list):
+    # given
+    for product in product_list:
+        product.search_document = ""
+    Product.objects.bulk_update(product_list, ["search_document"])
+
+    # when
+    update_products_search_document(Product.objects.all())
+
+    # then
+    for product in product_list:
+        product.refresh_from_db()
+        assert product.search_document
 
 
 def test_prepare_product_search_document_value_empty_product(product_type, category):

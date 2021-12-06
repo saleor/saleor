@@ -4,16 +4,29 @@ from django.db.models import Q, prefetch_related_objects
 
 from ..attribute import AttributeInputType
 from ..core.utils.editorjs import clean_editor_js
+from .models import Product
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
     from ..attribute.models import AssignedProductAttribute, AssignedVariantAttribute
-    from .models import Product
 
 ASSIGNED_ATTRIBUTE_TYPE = Union["AssignedProductAttribute", "AssignedVariantAttribute"]
 
 PRODUCT_SEARCH_FIELDS = ["name", "description_plaintext"]
+
+
+def update_products_search_document(products: "QuerySet"):
+    products = products.prefetch_related(
+        "variants__attributes__values",
+        "variants__attributes__assignment__attribute",
+        "attributes__values",
+        "attributes__assignment__attribute",
+    )
+    for product in products:
+        product.search_document = _generate_product_search_document_value(product)
+
+    Product.objects.bulk_update(products, ["search_document"])
 
 
 def update_product_search_document(product: "Product"):
@@ -29,6 +42,10 @@ def prepare_product_search_document_value(product: "Product"):
         "attributes__values",
         "attributes__assignment__attribute",
     )
+    return _generate_product_search_document_value(product)
+
+
+def _generate_product_search_document_value(product: "Product"):
     search_document = generate_product_fields_search_document_value(product)
     search_document += generate_attributes_search_document_value(
         product.attributes.all()
