@@ -1625,6 +1625,14 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 dev = ["pre-commit", "tox"]
 
 [[package]]
+name = "posuto"
+version = "2021.12.0"
+description = "Japanese Postal Code Data"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pre-commit"
 version = "2.14.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
@@ -2686,7 +2694,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
   python-versions = "~3.9"
-content-hash = "2bc1099542dcc0c934e934d9c25ab54c64acc8084ed66c67c2495f4e997b7424"
+content-hash = "402434e976d8d76ca0107504a06d1863e446d69259948640ec1851ffd5d3b028"
 
 [metadata.files]
 adyen = [
@@ -3569,6 +3577,9 @@ platformdirs = [
 pluggy = [
     {file = "pluggy-0.13.1-py2.py3-none-any.whl", hash = "sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d"},
     {file = "pluggy-0.13.1.tar.gz", hash = "sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0"},
+]
+posuto = [
+    {file = "posuto-2021.12.0.tar.gz", hash = "sha256:a2b10692c2c6c2ab0edb800cd38f8233faa90eb6bc0262f3202ab213ba7f17e7"},
 ]
 pre-commit = [
     {file = "pre_commit-2.14.0-py2.py3-none-any.whl", hash = "sha256:ec3045ae62e1aa2eecfb8e86fa3025c2e3698f77394ef8d2011ce0aedd85b2d4"},

@@ -92,6 +92,7 @@ packaging==21.0; python_version >= "3.6"
 petl==1.7.4; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 phonenumberslite==8.12.29
 pillow==8.3.1; python_version >= "3.6"
+posuto==2021.12.0
 prices==1.1.0
 promise==2.3
 prompt-toolkit==3.0.19; python_full_version >= "3.6.1" and python_version >= "3.6"

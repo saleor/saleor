@@ -1,29 +1,182 @@
 import json
 import logging
+from collections import defaultdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional
+from itertools import chain
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import graphene
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
 
 from ..account.models import User
+from ..checkout.calculations import checkout_line_total
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
-from ..order.models import Order
+from ..discount.utils import fetch_active_discounts
+from ..order import FulfillmentLineData, FulfillmentStatus, OrderLineData
+from ..order.models import FulfillmentLine, Order, OrderLine
+from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
-from .interface import AddressData, GatewayResponse, PaymentData, PaymentMethodInfo
+from .interface import (
+    AddressData,
+    GatewayResponse,
+    PaymentData,
+    PaymentLineData,
+    PaymentMethodInfo,
+)
 from .models import Payment, Transaction
-
-if TYPE_CHECKING:
-    from ..plugins.manager import PluginsManager
 
 logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+
+
+def create_payment_lines_information(
+    payment: Payment,
+    manager: PluginsManager,
+) -> List[PaymentLineData]:
+    checkout = payment.checkout
+    order = payment.order
+
+    if checkout:
+        return create_checkout_payment_lines_information(checkout, manager)
+    elif order:
+        return create_order_payment_lines_information(order)
+
+    return []
+
+
+def create_checkout_payment_lines_information(
+    checkout: Checkout, manager: PluginsManager
+) -> List[PaymentLineData]:
+    line_items = []
+    lines = fetch_checkout_lines(checkout)
+    discounts = fetch_active_discounts()
+    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    address = checkout_info.shipping_address or checkout_info.billing_address
+
+    for line_info in lines:
+        total = checkout_line_total(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            checkout_line_info=line_info,
+            discounts=discounts,
+        )
+        unit_price = manager.calculate_checkout_line_unit_price(
+            total,
+            line_info.line.quantity,
+            checkout_info,
+            lines,
+            line_info,
+            address,
+            discounts,
+        )
+        unit_gross = unit_price.gross.amount
+
+        quantity = line_info.line.quantity
+        product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"
+        product_sku = line_info.variant.sku
+        line_items.append(
+            PaymentLineData(
+                quantity=quantity,
+                product_name=product_name,
+                product_sku=product_sku,
+                variant_id=line_info.variant.id,
+                gross=unit_gross,
+            )
+        )
+    shipping_amount = manager.calculate_checkout_shipping(
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
+        discounts=discounts,
+    ).gross.amount
+
+    line_items.append(create_shipping_payment_line_data(amount=shipping_amount))
+
+    voucher_line_item = create_checkout_voucher_payment_line_data(checkout)
+    if voucher_line_item:
+        line_items.append(voucher_line_item)
+
+    return line_items
+
+
+def create_order_payment_lines_information(order: Order) -> List[PaymentLineData]:
+    line_items = []
+    for order_line in order.lines.all():
+        product_name = f"{order_line.product_name}, {order_line.variant_name}"
+
+        variant_id = order_line.variant_id
+        if variant_id is None:
+            continue
+
+        line_items.append(
+            PaymentLineData(
+                quantity=order_line.quantity,
+                product_name=product_name,
+                product_sku=order_line.product_sku,
+                variant_id=variant_id,
+                gross=order_line.unit_price_gross_amount,
+            )
+        )
+
+    line_items.append(
+        create_shipping_payment_line_data(amount=order.shipping_price_gross_amount)
+    )
+
+    voucher_line_item = create_order_voucher_payment_line_data(order)
+    if voucher_line_item:
+        line_items.append(voucher_line_item)
+
+    return line_items
+
+
+# Values are outside of model's pk range to resolve
+# any collision with actual product variant pk
+VOUCHER_PAYMENT_LINE_ID = 0
+SHIPPING_PAYMENT_LINE_ID = -1
+
+
+def create_shipping_payment_line_data(amount: Decimal) -> PaymentLineData:
+    return PaymentLineData(
+        quantity=1,
+        product_name="Shipping",
+        product_sku="Shipping",
+        variant_id=SHIPPING_PAYMENT_LINE_ID,
+        gross=amount,
+    )
+
+
+def create_checkout_voucher_payment_line_data(
+    checkout: Checkout,
+) -> Optional[PaymentLineData]:
+    discount_amount = -checkout.discount_amount
+    return create_voucher_payment_line_data(discount_amount)
+
+
+def create_order_voucher_payment_line_data(
+    order: Order,
+) -> Optional[PaymentLineData]:
+    discount_amount = order.total_gross_amount - order.undiscounted_total_gross_amount
+    return create_voucher_payment_line_data(discount_amount)
+
+
+def create_voucher_payment_line_data(amount: Decimal) -> Optional[PaymentLineData]:
+    if not amount:
+        return None
+    return PaymentLineData(
+        quantity=1,
+        product_name="Voucher",
+        product_sku="Voucher",
+        variant_id=VOUCHER_PAYMENT_LINE_ID,
+        gross=amount,
+    )
 
 
 def create_payment_information(
@@ -32,7 +185,9 @@ def create_payment_information(
     amount: Decimal = None,
     customer_id: str = None,
     store_source: bool = False,
+    refund_data: Optional[Dict[int, int]] = None,
     additional_data: Optional[dict] = None,
+    manager: Optional[PluginsManager] = None,
 ) -> PaymentData:
     """Extract order information along with payment details.
 
@@ -79,7 +234,88 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
+        refund_data=refund_data,
+        _resolve_lines=lambda: create_payment_lines_information(
+            payment, manager or get_plugins_manager()
+        ),
     )
+
+
+RefundLines = Iterator[Tuple[Any, OrderLine]]
+
+
+def _prepare_refund_lines(
+    order: Order,
+    order_lines_to_refund: List[OrderLineData],
+    fulfillment_lines_to_refund: List[FulfillmentLineData],
+) -> Iterator[Tuple[int, int]]:
+    previous_fulfillment_lines = FulfillmentLine.objects.prefetch_related(
+        "order_line"
+    ).filter(
+        fulfillment__order_id=order.pk,
+        fulfillment__status__in=[
+            FulfillmentStatus.REFUNDED,
+            FulfillmentStatus.REFUNDED_AND_RETURNED,
+        ],
+        order_line__variant_id__isnull=False,
+    )
+
+    previous_refund_lines = (
+        (p_variant_id, line.quantity)
+        for line in previous_fulfillment_lines
+        if (p_variant_id := line.order_line.variant_id)
+    )
+
+    current_order_refund_lines = (
+        (variant.id, line.quantity)
+        for line in order_lines_to_refund
+        if (variant := line.variant)
+    )
+
+    current_fulfillment_refund_lines = (
+        (f_variant_id, line.quantity)
+        for line in fulfillment_lines_to_refund
+        if (f_variant_id := line.line.order_line.variant_id)
+    )
+
+    return chain(
+        previous_refund_lines,
+        current_order_refund_lines,
+        current_fulfillment_refund_lines,
+    )
+
+
+def create_refund_data(
+    order: Order,
+    order_lines_to_refund: List[OrderLineData],
+    fulfillment_lines_to_refund: List[FulfillmentLineData],
+    refund_shipping_costs: bool,
+) -> Dict[int, int]:
+    order_lines = {line.variant_id: line.quantity for line in order.lines.all()}
+
+    refund_lines = _prepare_refund_lines(
+        order, order_lines_to_refund, fulfillment_lines_to_refund
+    )
+
+    summed_refund_lines: Dict[int, int] = defaultdict(int)
+
+    for variant_id, quantity in refund_lines:
+        summed_refund_lines[variant_id] += quantity
+
+    lines = {
+        variant_id: order_lines[variant_id] - summed_refund_lines[variant_id]
+        for variant_id in summed_refund_lines
+    }
+
+    shipping_previously_refunded = order.fulfillments.exclude(
+        shipping_refund_amount__isnull=True
+    ).exists()
+
+    lines[SHIPPING_PAYMENT_LINE_ID] = (
+        0 if shipping_previously_refunded or refund_shipping_costs else 1
+    )
+
+    return lines
 
 
 def create_payment(
@@ -278,6 +514,12 @@ def gateway_postprocess(transaction, payment):
     if payment.to_confirm:
         payment.to_confirm = False
         changed_fields.append("to_confirm")
+
+    update_payment_charge_status(payment, transaction, changed_fields)
+
+
+def update_payment_charge_status(payment, transaction, changed_fields=None):
+    changed_fields = changed_fields or []
 
     transaction_kind = transaction.kind
 

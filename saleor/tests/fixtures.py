@@ -405,6 +405,15 @@ def checkout_with_items(checkout, product_list, product):
 
 
 @pytest.fixture
+def checkout_with_items_and_shipping(checkout_with_items, address, shipping_method):
+    checkout_with_items.shipping_address = address
+    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.billing_address = address
+    checkout_with_items.save()
+    return checkout_with_items
+
+
+@pytest.fixture
 def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
@@ -3030,10 +3039,11 @@ def fulfillment(fulfilled_order):
 
 
 @pytest.fixture
-def draft_order(order_with_lines):
+def draft_order(order_with_lines, shipping_method):
     Allocation.objects.filter(order_line__order=order_with_lines).delete()
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.origin = OrderOrigin.DRAFT
+    order_with_lines.shipping_method = shipping_method
     order_with_lines.save(update_fields=["status", "origin"])
     return order_with_lines
 
@@ -3274,6 +3284,7 @@ def discount_info(category, collection, sale, channel_USD):
         product_ids=set(),
         category_ids={category.id},  # assumes this category does not have children
         collection_ids={collection.id},
+        variants_ids=set(),
     )
 
 

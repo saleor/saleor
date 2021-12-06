@@ -1,6 +1,7 @@
 from django.db.models import Exists, OuterRef, Sum
 
 from ...channel.models import Channel
+from ...core.db.utils import get_database_connection_name
 from ...core.permissions import has_one_of_permissions
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
@@ -60,16 +61,20 @@ def resolve_digital_contents(_info):
 
 
 def resolve_product_by_id(info, id, channel_slug, requestor):
+    database_connection_name = get_database_connection_name(info.context)
     return (
-        models.Product.objects.visible_to_user(requestor, channel_slug=channel_slug)
+        models.Product.objects.using(database_connection_name)
+        .visible_to_user(requestor, channel_slug=channel_slug)
         .filter(id=id)
         .first()
     )
 
 
 def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
+    database_connection_name = get_database_connection_name(info.context)
     return (
-        models.Product.objects.visible_to_user(requestor, channel_slug=channel_slug)
+        models.Product.objects.using(database_connection_name)
+        .visible_to_user(requestor, channel_slug=channel_slug)
         .filter(slug=product_slug)
         .first()
     )
@@ -77,7 +82,10 @@ def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
 
 @traced_resolver
 def resolve_products(info, requestor, channel_slug=None, **_kwargs) -> ChannelQsContext:
-    qs = models.Product.objects.visible_to_user(requestor, channel_slug)
+    database_connection_name = get_database_connection_name(info.context)
+    qs = models.Product.objects.using(database_connection_name).visible_to_user(
+        requestor, channel_slug
+    )
     if not has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
         channels = Channel.objects.filter(slug=str(channel_slug))
         product_channel_listings = models.ProductChannelListing.objects.filter(

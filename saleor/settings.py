@@ -67,10 +67,22 @@ ALLOWED_CLIENT_HOSTS = get_list(ALLOWED_CLIENT_HOSTS)
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 
+DATABASE_CONNECTION_DEFAULT_NAME = "default"
+# TODO: For local envs will be activated in separate PR.
+# We need to update docs an saleor platform.
+# This variable should be set to `replica`
+DATABASE_CONNECTION_REPLICA_NAME = "default"
+
 DATABASES = {
-    "default": dj_database_url.config(
+    DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
         default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=600
-    )
+    ),
+    # TODO: We need to add read only user to saleor platfrom, and we need to update
+    # docs.
+    # DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
+    #     default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
+    #     conn_max_age=600,
+    # ),
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
@@ -548,6 +560,7 @@ BUILTIN_PLUGINS = [
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
     "saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin",
     "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin",
+    "saleor.payment.gateways.np_atobarai.plugin.NPAtobaraiGatewayPlugin",
     "saleor.plugins.invoicing.plugin.InvoicingPlugin",
     "saleor.plugins.user_email.plugin.UserEmailPlugin",
     "saleor.plugins.admin_email.plugin.AdminEmailPlugin",
@@ -580,6 +593,11 @@ if (
 # for getting response from the server.
 WEBHOOK_TIMEOUT = 10
 WEBHOOK_SYNC_TIMEOUT = 20
+
+# This is deprecated env which will be removed in Saleor 3.1
+WEBHOOK_EXCLUDED_SHIPPING_REQUEST_TIMEOUT = int(
+    os.environ.get("WEBHOOK_EXCLUDED_SHIPPING_REQUEST_TIMEOUT", 2)
+)
 
 # Initialize a simple and basic Jaeger Tracing integration
 # for open-tracing if enabled.

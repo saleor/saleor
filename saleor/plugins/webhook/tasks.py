@@ -216,7 +216,9 @@ def send_webhook_request(
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
 
 
-def send_webhook_request_sync(app_name, target_url, secret, event_type, data: str):
+def send_webhook_request_sync(
+    app_name, target_url, secret, event_type, data: str, timeout=WEBHOOK_SYNC_TIMEOUT
+):
     parts = urlparse(target_url)
     domain = Site.objects.get_current().domain
     message = data.encode("utf-8")
@@ -237,7 +239,7 @@ def send_webhook_request_sync(app_name, target_url, secret, event_type, data: st
                     domain,
                     signature,
                     event_type,
-                    timeout=WEBHOOK_SYNC_TIMEOUT,
+                    timeout=timeout,
                 )
                 response_data = response.json()
         except RequestException as e:

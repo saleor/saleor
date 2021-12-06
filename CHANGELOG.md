@@ -152,6 +152,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove unnecessary database lock on discount during checkout complete mutation - #8174 by @fowczarek
 - Fix cursor-based pagination in products search - #8011 #8211 by @rafalp
 - Batch loads in queries for Apollo Federation - #8362 by @rafalp
+- Change metadata mutations to use token for order and checkout as identifier - #8542 by @IKarbowiak
+  - After changes, using the order `id` for changing order metadata is deprecated
+- Add workaround for failing Avatax when line has price 0 - #8610 by @korycins
+- Add option to set tax code for shipping in Avatax configuration view - #8596 by @korycins
+- Fix Avalara tax fetching from cache - #8647 by @fowczarek
+
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki

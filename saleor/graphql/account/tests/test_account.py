@@ -246,7 +246,10 @@ def test_query_customer_user(
 
 
 def test_query_customer_user_with_orders(
-    staff_api_client, customer_user, order_list, permission_manage_users
+    staff_api_client,
+    customer_user,
+    order_list,
+    permission_manage_users,
 ):
     # given
     query = FULL_USER_QUERY
@@ -4419,6 +4422,7 @@ def test_query_customers_search_without_duplications(
     query_customer_with_filter,
     staff_api_client,
     permission_manage_users,
+    permission_manage_orders,
 ):
     customer = User.objects.create(email="david@example.com")
     customer.addresses.create(first_name="David")
@@ -4431,6 +4435,34 @@ def test_query_customers_search_without_duplications(
     content = get_graphql_content(response)
     users = content["data"]["customers"]["edges"]
     assert len(users) == 1
+
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter,
+        variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    users = content["data"]["customers"]["edges"]
+    assert len(users) == 1
+
+
+def test_query_customers_with_permission_manage_orders(
+    query_customer_with_filter,
+    customer_user,
+    staff_api_client,
+    permission_manage_orders,
+):
+    variables = {"filter": {}}
+
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter,
+        variables,
+        permissions=[permission_manage_orders],
+    )
+    content = get_graphql_content(response)
+    users = content["data"]["customers"]["totalCount"]
+    assert users == 1
 
 
 QUERY_CUSTOMERS_WITH_SORT = """
@@ -4607,8 +4639,8 @@ def test_query_staff_members_app_no_permission(
         ({"search": "Kowalski"}, 1),
         ({"search": "John"}, 1),  # first_name
         ({"search": "Doe"}, 1),  # last_name
-        ({"search": "wroc"}, 1),  # city
-        ({"search": "pl"}, 2),  # country
+        ({"search": "irv"}, 1),  # city
+        ({"search": "us"}, 1),  # country
     ],
 )
 def test_query_staff_members_with_filter_search(
@@ -4617,7 +4649,7 @@ def test_query_staff_members_with_filter_search(
     query_staff_users_with_filter,
     staff_api_client,
     permission_manage_staff,
-    address,
+    address_usa,
     staff_user,
 ):
     users = User.objects.bulk_create(
@@ -4643,7 +4675,7 @@ def test_query_staff_members_with_filter_search(
             ),
         ]
     )
-    users[1].addresses.set([address])
+    users[1].addresses.set([address_usa])
 
     variables = {"filter": staff_member_filter}
     response = staff_api_client.post_graphql(

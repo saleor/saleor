@@ -10,11 +10,17 @@ from ...menu import models as menu_models
 from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
+from ..attribute import types as attribute_types
 from ..channel import ChannelContext
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
+from ..discount import types as discount_types
+from ..menu import types as menu_types
+from ..page import types as page_types
+from ..product import types as product_types
 from ..product.types import Product, ProductVariant
+from ..shipping import types as shipping_types
 from ..shop.types import Shop
 from . import types as translation_types
 
@@ -24,38 +30,24 @@ from ..discount import types  # noqa # pylint: disable=unused-import, isort:skip
 from ..menu import types  # type: ignore # noqa # pylint: disable=unused-import, isort:skip
 
 
-TRANSLATABLE_CONTENT_TO_MODEL = {
-    str(
-        translation_types.ProductTranslatableContent
-    ): product_models.Product._meta.object_name,
-    str(
-        translation_types.CollectionTranslatableContent
-    ): product_models.Collection._meta.object_name,
-    str(
-        translation_types.CategoryTranslatableContent
-    ): product_models.Category._meta.object_name,
-    str(
-        translation_types.AttributeTranslatableContent
-    ): attribute_models.Attribute._meta.object_name,
-    str(
-        translation_types.AttributeValueTranslatableContent
-    ): attribute_models.AttributeValue._meta.object_name,
-    str(
-        translation_types.ProductVariantTranslatableContent
-    ): product_models.ProductVariant._meta.object_name,
-    str(translation_types.PageTranslatableContent): page_models.Page._meta.object_name,
-    str(
-        translation_types.ShippingMethodTranslatableContent
-    ): shipping_models.ShippingMethod._meta.object_name,
-    str(
-        translation_types.SaleTranslatableContent
-    ): discount_models.Sale._meta.object_name,
-    str(
-        translation_types.VoucherTranslatableContent
-    ): discount_models.Voucher._meta.object_name,
-    str(
-        translation_types.MenuItemTranslatableContent
-    ): menu_models.MenuItem._meta.object_name,
+TRANSLATABLE_CONTENT_TO_TYPE = {
+    str(translation_types.ProductTranslatableContent): str(product_types.Product),
+    str(translation_types.CollectionTranslatableContent): str(product_types.Collection),
+    str(translation_types.CategoryTranslatableContent): str(product_types.Category),
+    str(translation_types.AttributeTranslatableContent): str(attribute_types.Attribute),
+    str(translation_types.AttributeValueTranslatableContent): str(
+        attribute_types.AttributeValue
+    ),
+    str(translation_types.ProductVariantTranslatableContent): str(
+        product_types.ProductVariant
+    ),
+    str(translation_types.PageTranslatableContent): str(page_types.Page),
+    str(translation_types.ShippingMethodTranslatableContent): str(
+        shipping_types.ShippingMethodType
+    ),
+    str(translation_types.SaleTranslatableContent): str(discount_types.Sale),
+    str(translation_types.VoucherTranslatableContent): str(discount_types.Voucher),
+    str(translation_types.MenuItemTranslatableContent): str(menu_types.MenuItem),
 }
 
 
@@ -78,7 +70,7 @@ class BaseTranslateMutation(ModelMutation):
         # check if provided ID refers to a translatable content which matches with the
         # expected model_type. If so, we transform the translatable content ID to model
         # ID.
-        tc_model_type = TRANSLATABLE_CONTENT_TO_MODEL.get(node_type)
+        tc_model_type = TRANSLATABLE_CONTENT_TO_TYPE.get(node_type)
         if tc_model_type and tc_model_type == str(model_type):
             node_id = graphene.Node.to_global_id(tc_model_type, node_pk)
 
@@ -363,6 +355,10 @@ class ShippingPriceTranslate(BaseTranslateMutation):
         instance = ChannelContext(node=response.shippingMethod, channel_slug=None)
         return cls(**{cls._meta.return_field_name: instance})
 
+    @classmethod
+    def get_type_for_model(cls):
+        return shipping_types.ShippingMethodType
+
 
 class MenuItemTranslate(BaseTranslateMutation):
     class Arguments:
@@ -409,6 +405,13 @@ class PageTranslate(BaseTranslateMutation):
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
+
+    @classmethod
+    def get_type_for_model(cls):
+        # This method prevents type PageTranslate page field in GraphQL schema
+        # to be automatically changed to Page model, since we want to address that
+        # problem in a separate PR.
+        return translation_types.PageTranslatableContent
 
 
 class ShopSettingsTranslationInput(graphene.InputObjectType):

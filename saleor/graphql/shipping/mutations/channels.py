@@ -15,8 +15,8 @@ from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import ShippingError
-from ...core.validators import validate_price_precision
-from ..types import ShippingMethod
+from ...core.validators import validate_decimal_max_value, validate_price_precision
+from ..types import ShippingMethodType
 
 if TYPE_CHECKING:
     from ....shipping.models import ShippingMethod as ShippingMethodModel
@@ -54,7 +54,7 @@ class ShippingMethodChannelListingInput(graphene.InputObjectType):
 
 class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
     shipping_method = graphene.Field(
-        ShippingMethod, description="An updated shipping method instance."
+        ShippingMethodType, description="An updated shipping method instance."
     )
 
     class Arguments:
@@ -143,6 +143,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                     validate_price_precision(
                         price_amount, channel_input["channel"].currency_code
                     )
+                    validate_decimal_max_value(price_amount)
                     channel_input["price_amount"] = price_amount
                 except ValidationError as error:
                     error.code = ShippingErrorCode.INVALID.value
@@ -169,6 +170,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                     validate_price_precision(
                         min_price, channel_input["channel"].currency_code
                     )
+                    validate_decimal_max_value(min_price)
                 except ValidationError as error:
                     error.code = ShippingErrorCode.INVALID.value
                     error.params = {
@@ -182,6 +184,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                     validate_price_precision(
                         max_price, channel_input["channel"].currency_code
                     )
+                    validate_decimal_max_value(max_price)
                 except ValidationError as error:
                     error.code = ShippingErrorCode.INVALID.value
                     error.params = {
@@ -233,7 +236,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
         shipping_method = cls.get_node_or_error(
-            info, id, only_type=ShippingMethod, field="id"
+            info, id, only_type=ShippingMethodType, field="id"
         )
         errors = defaultdict(list)
         clean_channels = cls.clean_channels(
