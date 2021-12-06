@@ -273,7 +273,7 @@ class Checkout(CountableDjangoObjectType):
 
         def calculate_available_shipping_methods(data):
             lines, checkout_info, discounts, channel = data
-            return checkout_info.valid_shipping_methods
+            return checkout_info.all_shipping_methods
 
         return Promise.all([lines, checkout_info, discounts, channel]).then(
             calculate_available_shipping_methods

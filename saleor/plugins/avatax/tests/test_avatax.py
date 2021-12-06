@@ -14,7 +14,7 @@ from ....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
     get_delivery_method_info,
-    get_valid_shipping_method_list_for_checkout_info,
+    get_shipping_method_list_for_checkout_info,
 )
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
@@ -562,7 +562,7 @@ def test_calculate_checkout_subtotal_for_product_without_tax(
 
     lines = fetch_checkout_lines(checkout)
     assert len(lines) == 1
-    valid_methods = get_valid_shipping_method_list_for_checkout_info(
+    valid_methods = get_shipping_method_list_for_checkout_info(
         checkout_info,
         ship_to_pl_address,
         lines,
@@ -570,7 +570,7 @@ def test_calculate_checkout_subtotal_for_product_without_tax(
         manager,
         checkout_info.channel.shipping_method_listings.all(),
     )
-    checkout_info.valid_shipping_methods = valid_methods
+    checkout_info.all_shipping_methods = valid_methods
 
     total = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
     total = quantize_price(total, total.currency)
@@ -895,7 +895,7 @@ def test_get_checkout_line_tax_rate(
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
@@ -952,7 +952,7 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
@@ -1021,7 +1021,7 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     add_variant_to_checkout(checkout_info, variant2, 1)
 
@@ -1250,7 +1250,7 @@ def test_get_checkout_shipping_tax_rate(
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
 
     # when

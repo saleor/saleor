@@ -44,7 +44,7 @@ class CheckoutInfo:
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
-    valid_shipping_methods: List["ShippingMethodData"]
+    all_shipping_methods: List["ShippingMethodData"]
 
     def get_country(self) -> str:
         address = self.shipping_address or self.billing_address
@@ -54,6 +54,10 @@ class CheckoutInfo:
 
     def get_customer_email(self) -> str:
         return self.user.email if self.user else self.checkout.email
+
+    @property
+    def valid_shipping_methods(self) -> List["ShippingMethodData"]:
+        return [method for method in self.all_shipping_methods if method.active]
 
 
 @dataclass(frozen=True)
@@ -200,10 +204,10 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
-    checkout_info.valid_shipping_methods = SimpleLazyObject(
-        lambda: get_valid_shipping_method_list_for_checkout_info(
+    checkout_info.all_shipping_methods = SimpleLazyObject(
+        lambda: get_shipping_method_list_for_checkout_info(
             checkout_info,
             shipping_address,
             lines,
@@ -223,7 +227,7 @@ def update_checkout_info_shipping_address(
     manager: "PluginsManager",
 ):
     checkout_info.shipping_address = address
-    valid_methods = get_valid_shipping_method_list_for_checkout_info(
+    valid_methods = get_shipping_method_list_for_checkout_info(
         checkout_info,
         address,
         lines,
@@ -231,7 +235,7 @@ def update_checkout_info_shipping_address(
         manager,
         checkout_info.channel.shipping_method_listings.all(),
     )
-    checkout_info.valid_shipping_methods = valid_methods
+    checkout_info.all_shipping_methods = valid_methods
 
 
 def get_valid_saleor_shipping_method_list_for_checkout_info(
@@ -260,7 +264,7 @@ def get_valid_saleor_shipping_method_list_for_checkout_info(
     return valid_shipping_methods
 
 
-def get_valid_shipping_method_list_for_checkout_info(
+def get_shipping_method_list_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],

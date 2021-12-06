@@ -8,7 +8,7 @@ from ...checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
     get_delivery_method_info,
-    get_valid_shipping_method_list_for_checkout_info,
+    get_shipping_method_list_for_checkout_info,
 )
 from ...checkout.models import Checkout, CheckoutLine
 from ...shipping.utils import convert_to_shipping_method_data
@@ -244,7 +244,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                                 checkout.shipping_address_id
                             ),
                             delivery_method_info=delivery_method_info,
-                            valid_shipping_methods=[],
+                            all_shipping_methods=[],
                         )
 
                         def fetch_valid_shipping_methods():
@@ -259,7 +259,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                                 for listing in channel_listings
                                 if listing.channel_id == channel.id
                             ]
-                            return get_valid_shipping_method_list_for_checkout_info(
+                            return get_shipping_method_list_for_checkout_info(
                                 checkout_info,
                                 shipping_address,
                                 checkout_lines,
@@ -268,7 +268,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                                 shipping_method_listings,
                             )
 
-                        checkout_info.valid_shipping_methods = SimpleLazyObject(
+                        checkout_info.all_shipping_methods = SimpleLazyObject(
                             fetch_valid_shipping_methods
                         )
                         checkout_info_map[key] = checkout_info

@@ -149,7 +149,7 @@ def test_get_discount_for_checkout_value_voucher(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     lines = [
         CheckoutLineInfo(
@@ -242,7 +242,7 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     manager = get_plugins_manager()
     with pytest.raises(NotApplicable):
@@ -354,7 +354,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_checkout(
@@ -429,7 +429,7 @@ def test_get_discount_for_checkout_shipping_voucher(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     discount = get_voucher_discount_for_checkout(
         manager, voucher, checkout_info, [], None, None
@@ -491,7 +491,7 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     discount = get_voucher_discount_for_checkout(
         manager, voucher, checkout_info, [], None, None
@@ -535,7 +535,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     manager = get_plugins_manager()
     with pytest.raises(NotApplicable):
@@ -684,7 +684,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(
