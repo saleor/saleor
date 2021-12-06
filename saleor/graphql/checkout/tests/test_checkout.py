@@ -1644,7 +1644,7 @@ query AvailableCollectionPoints($token: UUID!) {
     }
   }
 }
-    """
+"""
 
 
 def test_available_collection_points_for_preorders_variants_in_checkout(
