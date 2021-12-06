@@ -326,7 +326,7 @@ class Checkout(CountableDjangoObjectType):
                         break
 
                 return convert_to_shipping_method_data(
-                    shipping_method, shipping_method_channel_listing
+                    shipping_method, shipping_method_channel_listing  # type: ignore
                 )
 
             return (

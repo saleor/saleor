@@ -44,8 +44,12 @@ class CheckoutInfo:
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
-    valid_shipping_methods: List["ShippingMethodData"]
+    all_shipping_methods: List["ShippingMethodData"]
     valid_pick_up_points: List["Warehouse"]
+
+    @property
+    def valid_shipping_methods(self) -> List["ShippingMethodData"]:
+        return [method for method in self.all_shipping_methods if method.active]
 
     @property
     def valid_delivery_methods(
@@ -270,13 +274,13 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
         valid_pick_up_points=[],
     )
 
-    valid_shipping_methods: List[
+    all_shipping_methods: List[
         "ShippingMethodData"
-    ] = get_valid_shipping_method_list_for_checkout_info(
+    ] = get_shipping_method_list_for_checkout_info(
         checkout_info,
         shipping_address,
         lines,
@@ -288,7 +292,7 @@ def fetch_checkout_info(
     valid_pick_up_points = get_valid_collection_points_for_checkout_info(
         shipping_address, lines, checkout_info
     )
-    checkout_info.valid_shipping_methods = valid_shipping_methods
+    checkout_info.all_shipping_methods = all_shipping_methods
     checkout_info.valid_pick_up_points = valid_pick_up_points
     checkout_info.delivery_method_info = delivery_method_info
 
@@ -305,13 +309,13 @@ def update_checkout_info_shipping_address(
 ):
     checkout_info.shipping_address = address
 
-    valid_shipping_methods: List[
+    all_shipping_methods: List[
         "ShippingMethodData"
-    ] = get_valid_shipping_method_list_for_checkout_info(
+    ] = get_shipping_method_list_for_checkout_info(
         checkout_info, address, lines, discounts, manager, shipping_channel_listings
     )
 
-    checkout_info.valid_shipping_methods = valid_shipping_methods
+    checkout_info.all_shipping_methods = all_shipping_methods
 
     delivery_method = checkout_info.delivery_method_info.delivery_method
     checkout_info.delivery_method_info = get_delivery_method_info(
@@ -358,7 +362,7 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     )
 
 
-def get_valid_shipping_method_list_for_checkout_info(
+def get_shipping_method_list_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
