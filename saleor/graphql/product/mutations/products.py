@@ -21,6 +21,7 @@ from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
+from ....product.search import update_product_search_document
 from ....product.tasks import (
     update_product_discounted_price_task,
     update_products_discounted_prices_of_catalogues_task,
@@ -653,6 +654,7 @@ class ProductCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
+        update_product_search_document(instance)
         info.context.plugins.product_created(product)
 
     @classmethod
@@ -694,6 +696,7 @@ class ProductUpdate(ProductCreate):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
+        update_product_search_document(instance)
         info.context.plugins.product_updated(product)
 
 
@@ -992,6 +995,7 @@ class ProductVariantCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
             generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
+        update_product_search_document(instance.product)
         event_to_call = (
             info.context.plugins.product_variant_created
             if new_variant
@@ -1075,6 +1079,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         # Update the "discounted_prices" of the parent product
         update_product_discounted_price_task.delay(instance.product_id)
         product = models.Product.objects.get(id=instance.product_id)
+        update_product_search_document(product)
         # if the product default variant has been removed set the new one
         if not product.default_variant:
             product.default_variant = product.variants.first()

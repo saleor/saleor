@@ -16,6 +16,11 @@ ASSIGNED_ATTRIBUTE_TYPE = Union["AssignedProductAttribute", "AssignedVariantAttr
 PRODUCT_SEARCH_FIELDS = ["name", "description_plaintext"]
 
 
+def update_product_search_document(product: "Product"):
+    product.search_document = prepare_product_search_document_value(product)
+    product.save(update_fields=["search_document"])
+
+
 def prepare_product_search_document_value(product: "Product"):
     prefetch_related_objects(
         [product],
@@ -76,6 +81,7 @@ def generate_attributes_search_document_value(
 
         input_type = attribute.input_type
         values = assigned_attribute.values.all()
+        values_list = []
         if input_type in [AttributeInputType.DROPDOWN, AttributeInputType.MULTISELECT]:
             values_list = [value.name for value in values]
         elif input_type == AttributeInputType.RICH_TEXT:
@@ -88,8 +94,8 @@ def generate_attributes_search_document_value(
         elif input_type in [AttributeInputType.DATE, AttributeInputType.DATE_TIME]:
             values_list = [value.date_time.isoformat() for value in values]
 
-        values_data = "\n".join(values_list)
-        if values_data:
+        if values_list:
+            values_data = "\n".join(values_list)
             attribute_data += values_data + "\n"
     return attribute_data.lower()
 

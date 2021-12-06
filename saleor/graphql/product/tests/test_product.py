@@ -24,6 +24,7 @@ from ....attribute.models import Attribute, AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.taxes import TaxType
 from ....core.units import MeasurementUnits, WeightUnits
+from ....core.utils.editorjs import clean_editor_js
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
 from ....plugins.manager import PluginsManager, get_plugins_manager
@@ -3905,7 +3906,10 @@ def test_create_product(
 
     product = Product.objects.first()
     created_webhook_mock.assert_called_once_with(product)
-
+    assert product.search_document
+    assert product_name.lower() in product.search_document
+    assert color_value_slug.lower() in product.search_document
+    assert non_existent_attr_value.lower() in product.search_document
     updated_webhook_mock.assert_not_called()
 
 
@@ -3956,6 +3960,7 @@ def test_create_product_description_plaintext(
 
     product = Product.objects.all().first()
     assert product.description_plaintext == description
+    assert description in product.search_document
 
 
 def test_create_product_with_rich_text_attribute(
@@ -3965,7 +3970,6 @@ def test_create_product_with_rich_text_attribute(
     rich_text_attribute,
     color_attribute,
     permission_manage_products,
-    product,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -3979,7 +3983,8 @@ def test_create_product_with_rich_text_attribute(
     rich_text_attribute_id = graphene.Node.to_global_id(
         "Attribute", rich_text_attribute.id
     )
-    rich_text = json.dumps(dummy_editorjs("test product" * 5))
+    rich_text_value = dummy_editorjs("test product" * 5)
+    rich_text = json.dumps(rich_text_value)
 
     # test creating root product
     variables = {
@@ -4032,6 +4037,13 @@ def test_create_product_with_rich_text_attribute(
 
     for attr_data in data["product"]["attributes"]:
         assert attr_data in expected_attributes_data
+    product = Product.objects.first()
+    assert product.search_document
+    assert product_name.lower() in product.search_document
+    assert (
+        clean_editor_js(rich_text_value, to_string=True).lower()
+        in product.search_document
+    )
 
 
 @freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
@@ -4041,7 +4053,6 @@ def test_create_product_with_date_time_attribute(
     date_time_attribute,
     color_attribute,
     permission_manage_products,
-    product,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -4096,6 +4107,10 @@ def test_create_product_with_date_time_attribute(
     }
 
     assert expected_attributes_data in data["product"]["attributes"]
+    product = Product.objects.first()
+    assert product.search_document
+    assert product_name.lower() in product.search_document
+    assert str(value.isoformat()).lower() in product.search_document
 
 
 @freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
@@ -4105,7 +4120,6 @@ def test_create_product_with_date_attribute(
     date_attribute,
     color_attribute,
     permission_manage_products,
-    product,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -4158,6 +4172,10 @@ def test_create_product_with_date_attribute(
     }
 
     assert expected_attributes_data in data["product"]["attributes"]
+    product = Product.objects.first()
+    assert product.search_document
+    assert product_name.lower() in product.search_document
+    assert str(value).lower() in product.search_document
 
 
 def test_create_product_with_boolean_attribute(
@@ -5981,6 +5999,7 @@ def test_update_product(
     )
 
     attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    attr_value = "Rainbow"
 
     variables = {
         "productId": product_id,
@@ -5991,7 +6010,7 @@ def test_update_product(
             "description": other_description_json,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
-            "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
+            "attributes": [{"id": attribute_id, "values": [attr_value]}],
         },
     }
 
@@ -6019,6 +6038,10 @@ def test_update_product(
 
     updated_webhook_mock.assert_called_once_with(product)
     created_webhook_mock.assert_not_called()
+    product.refresh_from_db()
+    assert product.search_document
+    assert attr_value.lower() in product.search_document
+    assert product_name.lower() in product.search_document
 
 
 def test_update_and_search_product_by_description(
@@ -6329,6 +6352,10 @@ def test_update_product_with_numeric_attribute_value(
     assert expected_att_data in attributes
 
     updated_webhook_mock.assert_called_once_with(product)
+
+    product.refresh_from_db()
+    assert product.search_document
+    assert f"{new_value}{numeric_attribute.unit}" in product.search_document
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -8923,6 +8950,8 @@ def test_product_type_delete_mutation_deletes_also_images(
     with pytest.raises(product_type._meta.model.DoesNotExist):
         product_type.refresh_from_db()
     delete_versatile_image_mock.assert_called_once_with(media_obj.image.name)
+    with pytest.raises(product_with_image._meta.model.DoesNotExist):
+        product_with_image.refresh_from_db()
 
 
 @patch("saleor.attribute.signals.delete_from_storage_task.delay")
@@ -8960,6 +8989,10 @@ def test_product_type_delete_with_file_attributes(
     assert set(
         data.args[0] for data in delete_from_storage_task_mock.call_args_list
     ) == {v.file_url for v in values}
+    with pytest.raises(
+        product_with_variant_with_file_attribute._meta.model.DoesNotExist
+    ):
+        product_with_variant_with_file_attribute.refresh_from_db()
 
 
 def test_product_type_delete_mutation_variants_in_draft_order(

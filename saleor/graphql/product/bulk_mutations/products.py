@@ -15,6 +15,10 @@ from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import models
 from ....product.error_codes import ProductErrorCode
+from ....product.search import (
+    prepare_product_search_document_value,
+    update_product_search_document,
+)
 from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
 from ....product.utils.variants import generate_and_set_variant_name
@@ -531,6 +535,8 @@ class ProductVariantBulkCreate(BaseMutation):
             ChannelContext(node=instance, channel_slug=None) for instance in instances
         ]
 
+        update_product_search_document(product)
+
         transaction.on_commit(
             lambda: [
                 info.context.plugins.product_variant_created(instance.node)
@@ -614,8 +620,9 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             pk__in=product_pks, default_variant__isnull=True
         )
         for product in products:
+            product.search_document = prepare_product_search_document_value(product)
             product.default_variant = product.variants.first()
-            product.save(update_fields=["default_variant"])
+            product.save(update_fields=["default_variant", "search_document"])
 
         return response
 

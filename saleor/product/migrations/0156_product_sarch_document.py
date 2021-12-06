@@ -83,6 +83,7 @@ def generate_attributes_search_document_value(assigned_attributes):
 
         input_type = attribute.input_type
         values = assigned_attribute.values.all()
+        values_list = []
         if input_type in ["dropdown", "multiselect"]:
             values_list = [value.name for value in values]
         elif input_type == "rich-text":
@@ -93,8 +94,8 @@ def generate_attributes_search_document_value(assigned_attributes):
         elif input_type in ["date", "date-time"]:
             values_list = [value.date_time.isoformat() for value in values]
 
-        values_data = "\n".join(values_list)
-        if values_data:
+        if values_list:
+            values_data = "\n".join(values_list)
             attribute_data += values_data + "\n"
     return attribute_data.lower()
 

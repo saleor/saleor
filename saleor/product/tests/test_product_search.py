@@ -3,7 +3,30 @@ from ...attribute.models import Attribute, AttributeValue
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...core.utils.editorjs import clean_editor_js
 from ..models import Product, ProductVariant
-from ..search import prepare_product_search_document_value
+from ..search import (
+    prepare_product_search_document_value,
+    update_product_search_document,
+)
+
+
+def test_update_order_search_document(product_type, category):
+    # given
+    name = "Test product"
+    description = "Test description"
+    product = Product.objects.create(
+        name=name,
+        slug="test-product-111",
+        product_type=product_type,
+        category=category,
+        description_plaintext=description,
+    )
+    assert not product.search_document
+
+    # when
+    update_product_search_document(product)
+
+    # then
+    assert f"{name}\n{description}\n".lower() in product.search_document
 
 
 def test_prepare_product_search_document_value_empty_product(product_type, category):
