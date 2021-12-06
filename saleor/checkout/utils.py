@@ -659,19 +659,6 @@ def get_valid_saleor_shipping_methods_for_checkout(
     return saleor_methods
 
 
-def get_valid_external_shipping_methods_for_checkout(
-    checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
-    subtotal: "TaxedMoney",
-    manager: "PluginsManager",
-    country_code: Optional[str] = None,
-) -> List[ShippingMethodData]:
-    return manager.list_shipping_methods_for_checkout(
-        checkout=checkout_info.checkout,
-        channel_slug=checkout_info.channel.slug,
-    )
-
-
 def get_valid_collection_points_for_checkout(
     lines: Iterable["CheckoutLineInfo"],
     country_code: Optional[str] = None,
