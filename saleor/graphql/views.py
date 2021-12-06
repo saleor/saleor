@@ -122,7 +122,7 @@ class GraphQLView(View):
             "graphql/playground.html",
             {
                 "api_url": request.build_absolute_uri(str(API_PATH)),
-                "plugins_url": f"{request.build_absolute_uri('/')}plugins/",
+                "plugins_url": request.build_absolute_uri("/plugins/"),
             },
         )
 
