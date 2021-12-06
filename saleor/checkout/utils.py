@@ -33,10 +33,7 @@ from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
-from .fetch import (
-    update_checkout_info_shipping_address,
-    update_checkout_info_shipping_method,
-)
+from .fetch import get_delivery_method_info, update_checkout_info_shipping_address
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
@@ -620,7 +617,7 @@ def is_valid_shipping_method(checkout_info: "CheckoutInfo"):
 def clear_shipping_method(checkout_info: "CheckoutInfo"):
     checkout = checkout_info.checkout
     checkout.shipping_method = None
-    update_checkout_info_shipping_method(checkout_info, None)
+    checkout_info.delivery_method_info = get_delivery_method_info(None)
     checkout.save(update_fields=["shipping_method", "last_change"])
 
 

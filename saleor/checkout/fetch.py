@@ -22,7 +22,6 @@ if TYPE_CHECKING:
         ProductVariant,
         ProductVariantChannelListing,
     )
-    from ..shipping.models import ShippingMethod
     from .models import Checkout, CheckoutLine
 
 
@@ -288,9 +287,3 @@ def get_shipping_method_list_for_checkout_info(
         excluded_shipping_methods,
     )
     return methods
-
-
-def update_checkout_info_shipping_method(
-    checkout_info: CheckoutInfo, shipping_method: Optional["ShippingMethod"]
-):
-    checkout_info.delivery_method_info = get_delivery_method_info(None)
