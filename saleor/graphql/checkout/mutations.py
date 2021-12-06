@@ -621,7 +621,7 @@ class CheckoutLinesAdd(BaseMutation):
             [],
             discounts,
             manager,
-            include_shipping_methods=False,
+            fetch_shipping_methods=False,
         )
 
         lines = fetch_checkout_lines(checkout)

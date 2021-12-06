@@ -241,7 +241,7 @@ def fetch_checkout_info(
     manager: "PluginsManager",
     *,
     # Ugly hax to opt out from pulling shipping methods if they aren't needed
-    include_shipping_methods: bool = True,
+    fetch_shipping_methods: bool = True,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
     checkout_info = CheckoutInfo(
@@ -261,7 +261,7 @@ def fetch_checkout_info(
     )
     checkout_info.valid_pick_up_points = valid_pick_up_points
 
-    if include_shipping_methods:
+    if fetch_shipping_methods:
         populate_checkout_info_shippings(checkout_info, lines, discounts, manager)
 
     return checkout_info
