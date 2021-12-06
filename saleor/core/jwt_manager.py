@@ -8,6 +8,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.core.management.color import color_style
 from django.utils.module_loading import import_string
 from jwt.algorithms import RSAAlgorithm
 
@@ -50,9 +51,6 @@ class JWTManager(JWTManagerBase):
     def get_private_key(cls) -> rsa.RSAPrivateKey:
         pem = settings.RSA_PRIVATE_KEY
         if not pem and settings.DEBUG:
-            logger.warning(
-                "RSA_PRIVATE_KEY is missing. Using temporary key for local development."
-            )
             return cls._load_debug_private_key()
         return cls._get_private_key(pem)  # type: ignore
 
@@ -138,11 +136,19 @@ class JWTManager(JWTManagerBase):
 
     @classmethod
     def validate_configuration(cls):
-        if not settings.RSA_PRIVATE_KEY and not settings.DEBUG:
-            raise ImproperlyConfigured(
-                "Variable RSA_PRIVATE_KEY is not provided. "
-                "It is required for running in not DEBUG mode."
-            )
+        if not settings.RSA_PRIVATE_KEY:
+            if not settings.DEBUG:
+                raise ImproperlyConfigured(
+                    "Variable RSA_PRIVATE_KEY is not provided. "
+                    "It is required for running in not DEBUG mode."
+                )
+            else:
+                msg = (
+                    "RSA_PRIVATE_KEY is missing. Using temporary key for local "
+                    "development with DEBUG mode."
+                )
+                logger.warning(color_style().WARNING(msg))
+
         try:
             cls.get_private_key()
         except Exception as e:
