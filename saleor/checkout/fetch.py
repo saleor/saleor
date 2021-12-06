@@ -239,46 +239,58 @@ def fetch_checkout_info(
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
+    *,
+    # Ugly hax to opt out from pulling shipping methods if they aren't needed
+    include_shipping_methods: bool = True,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
+    checkout_info = CheckoutInfo(
+        checkout=checkout,
+        user=checkout.user,
+        channel=checkout.channel,
+        billing_address=checkout.billing_address,
+        shipping_address=checkout.shipping_address,
+        delivery_method_info=DeliveryMethodBase(),
+        shipping_method_channel_listings=None,
+        valid_shipping_methods=[],
+        valid_pick_up_points=[],
+    )
 
+    valid_pick_up_points = get_valid_collection_points_for_checkout_info(
+        checkout.shipping_address, lines, checkout_info
+    )
+    checkout_info.valid_pick_up_points = valid_pick_up_points
+
+    if include_shipping_methods:
+        populate_checkout_info_shippings(checkout_info, lines, discounts, manager)
+
+    return checkout_info
+
+
+def populate_checkout_info_shippings(
+    checkout_info: CheckoutInfo,
+    lines: Iterable[CheckoutLineInfo],
+    discounts: Iterable["DiscountInfo"],
+    manager: "PluginsManager",
+) -> CheckoutInfo:
     from .utils import get_external_shipping_id
 
-    channel = checkout.channel
-    shipping_address = checkout.shipping_address
-    shipping_channel_listings = None
-
+    checkout = checkout_info.checkout
+    channel = checkout_info.channel
+    shipping_address = checkout_info.shipping_address
     shipping_method = checkout.shipping_method
+
+    shipping_channel_listings = None
     if shipping_method:
         shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
             shipping_method=shipping_method, channel=channel
         ).first()
+
         delivery_method: Optional[
             Union["ShippingMethodData", "Warehouse"]
         ] = convert_to_shipping_method_data(shipping_method)
     else:
         delivery_method = checkout.collection_point
-
-    if not delivery_method:
-        external_shipping_method_id = get_external_shipping_id(checkout)
-        delivery_method = manager.get_shipping_method(
-            checkout=checkout,
-            channel_slug=channel.slug,
-            shipping_method_id=external_shipping_method_id,
-        )
-
-    delivery_method_info = get_delivery_method_info(delivery_method, shipping_address)
-    checkout_info = CheckoutInfo(
-        checkout=checkout,
-        user=checkout.user,
-        channel=channel,
-        billing_address=checkout.billing_address,
-        shipping_address=shipping_address,
-        delivery_method_info=delivery_method_info,
-        shipping_method_channel_listings=shipping_channel_listings,
-        valid_shipping_methods=[],
-        valid_pick_up_points=[],
-    )
 
     valid_shipping_methods: List[
         "ShippingMethodData"
@@ -286,14 +298,21 @@ def fetch_checkout_info(
         checkout_info, shipping_address, lines, discounts, manager
     )
 
-    valid_pick_up_points = get_valid_collection_points_for_checkout_info(
-        shipping_address, lines, checkout_info
-    )
-    checkout_info.valid_shipping_methods = valid_shipping_methods
-    checkout_info.valid_pick_up_points = valid_pick_up_points
-    checkout_info.delivery_method_info = delivery_method_info
+    if not delivery_method:
+        external_shipping_method_id = get_external_shipping_id(checkout)
+        for shipping_method in valid_shipping_methods:
+            if (
+                shipping_method.is_external
+                and shipping_method.id == external_shipping_method_id
+            ):
+                delivery_method = shipping_method
+                break
 
-    return checkout_info
+    delivery_method_info = get_delivery_method_info(delivery_method, shipping_address)
+
+    checkout_info.shipping_method_channel_listings = shipping_channel_listings
+    checkout_info.delivery_method_info = delivery_method_info
+    checkout_info.valid_shipping_methods = valid_shipping_methods
 
 
 def update_checkout_info_shipping_address(
