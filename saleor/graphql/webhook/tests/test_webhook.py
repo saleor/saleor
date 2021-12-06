@@ -4,7 +4,6 @@ import graphene
 import pytest
 
 from ....app.models import App
-from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.models import Webhook
 from ...tests.utils import (
     assert_no_permission,
@@ -454,33 +453,6 @@ def test_webhook_with_invalid_object_type(
     response = staff_api_client.post_graphql(QUERY_WEBHOOK, variables)
     content = get_graphql_content(response)
     assert content["data"]["webhook"] is None
-
-
-WEBHOOK_EVENTS_QUERY = """
-{
-  webhookEvents {
-    eventType
-    name
-  }
-}
-"""
-
-
-def test_query_webhook_events(staff_api_client, permission_manage_apps):
-    query = WEBHOOK_EVENTS_QUERY
-    staff_api_client.user.user_permissions.add(permission_manage_apps)
-    response = staff_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    webhook_events = content["data"]["webhookEvents"]
-
-    assert len(webhook_events) == len(WebhookEventAsyncType.CHOICES)
-
-
-def test_query_webhook_events_without_permissions(staff_api_client):
-
-    query = WEBHOOK_EVENTS_QUERY
-    response = staff_api_client.post_graphql(query)
-    assert_no_permission(response)
 
 
 SAMPLE_PAYLOAD_QUERY = """

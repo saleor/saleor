@@ -168,7 +168,7 @@ def test_get_payment_gateways(
     webhook.events.bulk_create(
         [
             WebhookEvent(event_type=event_type, webhook=webhook)
-            for event_type in WebhookEventAsyncType.PAYMENT_EVENTS
+            for event_type in WebhookEventSyncType.PAYMENT_EVENTS
         ]
     )
 

@@ -74,6 +74,7 @@ def description(enum):
     return None
 
 
+# deprecated, use WebhookEventTypeAsyncEnum or WebhookEventTypeSyncEnum
 WebhookEventTypeEnum = graphene.Enum(
     "WebhookEventTypeEnum",
     [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventType.CHOICES],

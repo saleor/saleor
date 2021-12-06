@@ -4862,7 +4862,7 @@ def payment_app(db, permission_manage_payments):
     webhook.events.bulk_create(
         [
             WebhookEvent(event_type=event_type, webhook=webhook)
-            for event_type in WebhookEventAsyncType.PAYMENT_EVENTS
+            for event_type in WebhookEventSyncType.PAYMENT_EVENTS
         ]
     )
     return app
