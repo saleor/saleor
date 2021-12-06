@@ -3,7 +3,7 @@ import uuid
 import warnings
 from decimal import Decimal
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
@@ -21,7 +21,11 @@ from ....checkout.checkout_cleaner import (
     clean_checkout_shipping,
 )
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.fetch import (
+    fetch_checkout_info,
+    fetch_checkout_lines,
+    get_delivery_method_info,
+)
 from ....checkout.models import Checkout
 from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
 from ....core.payments import PaymentInterface
@@ -33,6 +37,7 @@ from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
 from ....shipping.models import ShippingMethodTranslation
+from ....shipping.utils import convert_to_shipping_method_data
 from ....tests.utils import dummy_editorjs
 from ....warehouse.models import Stock
 from ...shipping.enums import ShippingMethodTypeEnum
@@ -57,7 +62,14 @@ def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    is_valid_method = clean_shipping_method(checkout_info, lines, shipping_method)
+    is_valid_method = clean_shipping_method(
+        checkout_info,
+        lines,
+        convert_to_shipping_method_data(
+            shipping_method,
+            shipping_method.channel_listings.get(),
+        ),
+    )
     assert is_valid_method is True
 
 
@@ -97,8 +109,7 @@ def test_update_checkout_shipping_method_if_invalid(
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
     assert checkout.shipping_method is None
-    assert checkout_info.shipping_method is None
-    assert checkout_info.shipping_method_channel_listings is None
+    assert checkout_info.delivery_method_info.delivery_method is None
 
     # Ensure the checkout's shipping method was saved
     checkout.refresh_from_db(fields=["shipping_method"])
@@ -1634,6 +1645,10 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     method_listing.save()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
+    translated_name = "Dostawa ekspresowa"
+    ShippingMethodTranslation.objects.create(
+        language_code="pl", shipping_method=shipping_method, name=translated_name
+    )
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
 
@@ -1652,6 +1667,8 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     assert data["availableShippingMethods"][0]["maximumOrderPrice"]["amount"] == float(
         method_listing.maximum_order_price.amount
     )
+    assert data["availableShippingMethods"][0]["name"] == "DHL"
+    assert data["availableShippingMethods"][0]["translation"]["name"] == translated_name
 
 
 def test_checkout_no_available_shipping_methods_without_address(
@@ -2665,10 +2682,10 @@ def test_checkout_shipping_method_update(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    checkout_info.shipping_method = old_shipping_method
+    checkout_info.delivery_method_info = get_delivery_method_info(old_shipping_method)
     checkout_info.shipping_method_channel_listings = None
     mock_clean_shipping.assert_called_once_with(
-        checkout_info=checkout_info, lines=lines, method=shipping_method
+        checkout_info=checkout_info, lines=lines, method=ANY
     )
     errors = data["errors"]
     if is_valid_shipping_method:

@@ -146,6 +146,7 @@ PRIVATE_META_PERMISSION_MAP = {
     "ProductType": product_type_permissions,
     "ProductVariant": product_permissions,
     "Sale": discount_permissions,
+    "ShippingMethod": shipping_permissions,
     "ShippingMethodType": shipping_permissions,
     "ShippingZone": shipping_permissions,
     "User": private_user_permissions,

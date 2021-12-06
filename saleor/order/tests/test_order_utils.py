@@ -153,7 +153,9 @@ def test_get_valid_shipping_methods_for_order(order_line_with_one_allocation, ad
     order.save(update_fields=["shipping_address"])
 
     # when
-    valid_shipping_methods = get_valid_shipping_methods_for_order(order)
+    valid_shipping_methods = get_valid_shipping_methods_for_order(
+        order, order.channel.shipping_method_listings.all()
+    )
 
     # then
     assert len(valid_shipping_methods) == 1
@@ -173,7 +175,9 @@ def test_get_valid_shipping_methods_for_order_no_channel_shipping_zones(
     order.save(update_fields=["shipping_address"])
 
     # when
-    valid_shipping_methods = get_valid_shipping_methods_for_order(order)
+    valid_shipping_methods = get_valid_shipping_methods_for_order(
+        order, order.channel.shipping_method_listings.all()
+    )
 
     # then
     assert len(valid_shipping_methods) == 0
@@ -190,10 +194,12 @@ def test_get_valid_shipping_methods_for_order_no_shipping_address(
     order.currency = "USD"
 
     # when
-    valid_shipping_methods = get_valid_shipping_methods_for_order(order)
+    valid_shipping_methods = get_valid_shipping_methods_for_order(
+        order, order.channel.shipping_method_listings.all()
+    )
 
     # then
-    assert valid_shipping_methods is None
+    assert valid_shipping_methods == []
 
 
 def test_get_valid_shipping_methods_for_order_shipping_not_required(
@@ -209,10 +215,12 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
     order.save(update_fields=["shipping_address"])
 
     # when
-    valid_shipping_methods = get_valid_shipping_methods_for_order(order)
+    valid_shipping_methods = get_valid_shipping_methods_for_order(
+        order, order.channel.shipping_method_listings.all()
+    )
 
     # then
-    assert valid_shipping_methods is None
+    assert valid_shipping_methods == []
 
 
 def test_update_taxes_for_order_lines(order_with_lines):
