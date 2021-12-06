@@ -8,6 +8,7 @@ from django.db.models import F, QuerySet, Sum
 
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
+from ..core.taxes import include_taxes_in_prices
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,
@@ -92,6 +93,11 @@ def prepare_order_lines_allocations_payload(line):
     return warehouse_id_quantity_allocated_map
 
 
+def _charge_taxes(order_line: OrderLine) -> bool:
+    variant = order_line.variant
+    return False if not variant else variant.product.charge_taxes
+
+
 def generate_order_lines_payload(lines: Iterable[OrderLine]):
     line_fields = (
         "product_name",
@@ -119,9 +125,11 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         lines,
         fields=line_fields,
         extra_dict_data={
+            "id": (lambda l: graphene.Node.to_global_id("OrderLine", l.pk)),
             "total_price_net_amount": (lambda l: l.total_price.net.amount),
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
             "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
+            "charge_taxes": (lambda l: _charge_taxes(l)),
         },
     )
 
@@ -212,6 +220,7 @@ def generate_order_payload(order: "Order"):
         extra_dict_data={
             "original": graphene.Node.to_global_id("Order", order.original_id),
             "lines": json.loads(generate_order_lines_payload(lines)),
+            "included_taxes_in_prices": include_taxes_in_prices(),
             "fulfillments": json.loads(fulfillments_data),
             "collection_point": json.loads(
                 _generate_collection_point_payload(order.collection_point)
