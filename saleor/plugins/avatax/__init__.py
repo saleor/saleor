@@ -264,7 +264,7 @@ def get_checkout_lines_data(
             name=name,
         )
 
-    if checkout_info.delivery_method_info:
+    if checkout_info.delivery_method_info.delivery_method:
         append_shipping_to_data(
             data,
             getattr(checkout_info.delivery_method_info.delivery_method, "price", None),
