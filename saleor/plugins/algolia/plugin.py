@@ -106,7 +106,7 @@ class AlgoliaPlugin(BasePlugin):
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         """Index product to Algolia."""
         for locale in self.get_locales():
-            index_product_data_to_algolia(
+            index_product_data_to_algolia.delay(
                 locale=locale,
                 config=self.config,
                 sender="product_updated",
