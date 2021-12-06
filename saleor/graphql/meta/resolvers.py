@@ -1,5 +1,6 @@
 import dataclasses
 from operator import itemgetter
+from typing import Optional
 
 from ...account import models as account_models
 from ...app import models as app_models
@@ -19,7 +20,7 @@ from ..utils import get_user_or_app_from_context
 from .permissions import PRIVATE_META_PERMISSION_MAP
 
 
-def resolve_object_with_metadata_type(instance: ModelWithMetadata):
+def resolve_object_with_metadata_type(instance: Optional[ModelWithMetadata]):
     # Imports inside resolvers to avoid circular imports.
     from ...invoice import models as invoice_models
     from ...menu import models as menu_models
@@ -72,7 +73,10 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         DATACLASS_TO_TYPE_MAP = {
             shipping_interface.ShippingMethodData: shipping_types.ShippingMethod
         }
-        return DATACLASS_TO_TYPE_MAP.get(instance.__class__, None), instance.id
+        return (
+            DATACLASS_TO_TYPE_MAP.get(instance.__class__, None),  # type: ignore
+            instance.id,  # type: ignore
+        )
 
 
 def resolve_metadata(metadata: dict):
