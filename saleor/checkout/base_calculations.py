@@ -20,9 +20,10 @@ if TYPE_CHECKING:
     from ..order.models import OrderLine
 
 
-def base_checkout_shipping_price(
+def base_checkout_delivery_price(
     checkout_info: "CheckoutInfo", lines=None
 ) -> TaxedMoney:
+    """Calculate base (untaxed) price for any kind of delivery method."""
     delivery_method_info = checkout_info.delivery_method_info
 
     if isinstance(delivery_method_info, ShippingMethodInfo):
@@ -38,7 +39,7 @@ def calculate_base_price_for_shipping_method(
     shipping_method_info: ShippingMethodInfo,
     lines=None,
 ) -> TaxedMoney:
-    """Return checkout shipping price."""
+    """Calculate base (untaxed) price for a shipping method."""
     # FIXME: Optimize checkout.is_shipping_required
     shipping_method = shipping_method_info.delivery_method
 
