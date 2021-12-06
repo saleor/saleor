@@ -6,7 +6,14 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
-from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
+from ....order import (
+    FulfillmentStatus,
+    OrderLineData,
+    OrderStatus,
+    calculations,
+    events,
+    models,
+)
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -339,7 +346,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         clean_order_update_shipping(order, method)
 
         order.shipping_method = method
-        shipping_price = info.context.plugins.calculate_order_shipping(order)
+        shipping_price = calculations.order_shipping(order, info.context.plugins)
         order.shipping_price = shipping_price
         order.shipping_tax_rate = info.context.plugins.get_order_shipping_tax_rate(
             order, shipping_price

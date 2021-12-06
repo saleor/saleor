@@ -26,7 +26,7 @@ from ..warehouse.management import (
     increase_stock,
 )
 from ..warehouse.models import Warehouse
-from . import events
+from . import calculations, events
 
 if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
@@ -193,8 +193,8 @@ def update_taxes_for_order_line(
     line_price = line.unit_price.gross if tax_included else line.unit_price.net
     line.unit_price = TaxedMoney(line_price, line_price)
 
-    unit_price = manager.calculate_order_line_unit(order, line, variant, product)
-    total_price = manager.calculate_order_line_total(order, line, variant, product)
+    unit_price = calculations.order_line_unit(order, line, manager)
+    total_price = calculations.order_line_total(order, line, manager)
     line.unit_price = unit_price
     line.total_price = total_price
     line.undiscounted_unit_price = line.unit_price + line.unit_discount
@@ -236,7 +236,7 @@ def update_order_prices(order: Order, manager: "PluginsManager", tax_included: b
     update_taxes_for_order_lines(order.lines.all(), order, manager, tax_included)
 
     if order.shipping_method:
-        shipping_price = manager.calculate_order_shipping(order)
+        shipping_price = calculations.order_shipping(order, manager)
         order.shipping_price = shipping_price
         order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
             order, shipping_price
@@ -359,8 +359,8 @@ def add_variant_to_order(
             total_price=total_price,
             variant=variant,
         )
-        unit_price = manager.calculate_order_line_unit(order, line, variant, product)
-        total_price = manager.calculate_order_line_total(order, line, variant, product)
+        unit_price = calculations.order_line_unit(order, line, manager)
+        total_price = calculations.order_line_total(order, line, manager)
         line.unit_price = unit_price
         line.total_price = total_price
         line.undiscounted_unit_price = unit_price

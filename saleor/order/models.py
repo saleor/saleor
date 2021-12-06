@@ -11,6 +11,7 @@ from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max, Sum
 from django.db.models.expressions import Exists, OuterRef
+from django.utils import timezone
 from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
@@ -247,6 +248,8 @@ class Order(ModelWithMetadata):
         default=zero_weight,
     )
     redirect_url = models.URLField(blank=True, null=True)
+
+    price_expiration_for_unconfirmed = models.DateTimeField(default=timezone.now)
 
     objects = models.Manager.from_queryset(OrderQueryset)()
 
