@@ -138,6 +138,10 @@ def checkout_line_unit_price(
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo],
 ) -> "TaxedMoney":
+    """Return the unit price of provided line, taxes included.
+
+    It takes in account all plugins.
+    """
     address = checkout_info.shipping_address or checkout_info.billing_address
     return (
         fetch_checkout_prices_if_expired(
@@ -159,6 +163,10 @@ def force_taxes_recalculation(
     address: Optional["Address"] = None,
     discounts: Optional[Iterable["DiscountInfo"]] = None,
 ) -> None:
+    """Fetch checkout prices with taxes.
+
+    Prices will be updated without taking into consideration price_expiration.
+    """
     fetch_checkout_prices_if_expired(
         checkout_info, manager, lines, address, discounts, force_update=True
     )
@@ -172,6 +180,14 @@ def fetch_checkout_prices_if_expired(
     discounts: Optional[Iterable["DiscountInfo"]] = None,
     force_update: bool = False,
 ) -> "Checkout":
+    """Fetch checkout prices with taxes.
+
+    Apply checkout prices with taxes from plugins and
+    if available, apply them from webhooks.
+
+    Prices can be updated only if force_update == True, or if time elapsed from the
+    last price update is greater than settings.CHECKOUT_PRICES_TTL.
+    """
     checkout = checkout_info.checkout
 
     if not force_update and checkout.price_expiration < timezone.now():

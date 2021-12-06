@@ -230,6 +230,7 @@ def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []
 
 
 def invalidate_checkout_prices(checkout: models.Checkout, *, save: bool) -> List[str]:
+    """Mark checkout as ready for prices recalculation."""
     checkout.price_expiration = timezone.now()
     updated_fields = ["price_expiration"]
     if save:
