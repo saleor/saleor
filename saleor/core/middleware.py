@@ -1,5 +1,7 @@
 import logging
 from datetime import datetime
+from functools import partial
+from typing import TYPE_CHECKING, Callable, Union
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -9,9 +11,16 @@ from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language
 
 from ..discount.utils import fetch_discounts
-from ..plugins.manager import get_plugins_manager
+from ..graphql.utils import get_user_or_app_from_context
+from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import analytics
 from .jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, jwt_decode_with_exception_handler
+
+if TYPE_CHECKING:
+    from ..account.models import User
+    from ..app.models import App
+
+Requestor = Union["User", "App"]
 
 logger = logging.getLogger(__name__)
 
@@ -81,11 +90,16 @@ def site(get_response):
 def plugins(get_response):
     """Assign plugins manager."""
 
-    def _get_manager():
-        return get_plugins_manager()
+    def _get_manager(requestor_getter: Callable[[], Requestor]) -> PluginsManager:
+        return get_plugins_manager(requestor_getter)
+
+    def _get_requestor_getter(request) -> Callable[[], Requestor]:
+        return partial(get_user_or_app_from_context, request)
 
     def _plugins_middleware(request):
-        request.plugins = SimpleLazyObject(lambda: _get_manager())
+        request.plugins = SimpleLazyObject(
+            lambda: _get_manager(_get_requestor_getter(request))
+        )
         return get_response(request)
 
     return _plugins_middleware
