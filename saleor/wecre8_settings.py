@@ -5,8 +5,10 @@ LANGUAGES = [
     ("en", "English"),
 ]
 
-PLUGINS.append(  # noqa F403
+PLUGINS += [  # noqa F405
     "saleor.plugins.algolia.plugin.AlgoliaPlugin",
-)
+]
 
-INSTALLED_APPS.append("django_celery_results")  # noqa F405
+INSTALLED_APPS += [  # noqa F405
+    "django_celery_results",
+]

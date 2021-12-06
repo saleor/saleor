@@ -2,6 +2,7 @@ import logging
 from typing import Any, List
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ...payment.gateways.utils import require_active_plugin
@@ -36,15 +37,9 @@ class AlgoliaPlugin(BasePlugin):
             "help_text": "Algolia index prefix",
             "type": ConfigurationTypeField.STRING,
         },
-        "ALGOLIA_LOCALES": {
-            "label": "Algolia Locales",
-            "help_text": "Algolia Locales",
-            "type": ConfigurationTypeField.STRING,
-        },
     }
     DEFAULT_CONFIGURATION = [
         {"name": "ALGOLIA_API_KEY", "value": None},
-        {"name": "ALGOLIA_LOCALES", "value": "EN,"},
         {"name": "ALGOLIA_INDEX_PREFIX", "value": None},
         {"name": "ALGOLIA_APPLICATION_ID", "value": None},
     ]
@@ -55,14 +50,17 @@ class AlgoliaPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = {
             "ALGOLIA_API_KEY": configuration["ALGOLIA_API_KEY"],
-            "ALGOLIA_LOCALES": configuration["ALGOLIA_LOCALES"],
             "ALGOLIA_INDEX_PREFIX": configuration["ALGOLIA_INDEX_PREFIX"],
             "ALGOLIA_APPLICATION_ID": configuration["ALGOLIA_APPLICATION_ID"],
         }
 
-    def get_locales(self):
-        """Return OTO plugin locales."""
-        return self.config["ALGOLIA_LOCALES"].split(",")
+    @staticmethod
+    def get_locales():
+        """Return Algolia plugin locales."""
+        locales = []
+        for locale in settings.LANGUAGES:
+            locales.append(locale[0].upper())
+        return locales
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
@@ -108,7 +106,7 @@ class AlgoliaPlugin(BasePlugin):
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         """Index product to Algolia."""
         for locale in self.get_locales():
-            index_product_data_to_algolia.delay(
+            index_product_data_to_algolia(
                 locale=locale,
                 config=self.config,
                 sender="product_updated",
