@@ -119,6 +119,7 @@ def _unsafe_parse_tax_line_data(
     unit_gross_amount = decimal.Decimal(tax_line_data_response["unit_gross_amount"])
     total_gross_amount = decimal.Decimal(tax_line_data_response["total_gross_amount"])
     total_net_amount = decimal.Decimal(tax_line_data_response["total_net_amount"])
+    tax_rate = decimal.Decimal(tax_line_data_response["tax_rate"])
 
     return TaxLineData(
         id=id,
@@ -127,6 +128,7 @@ def _unsafe_parse_tax_line_data(
         unit_gross_amount=unit_gross_amount,
         total_gross_amount=total_gross_amount,
         total_net_amount=total_net_amount,
+        tax_rate=tax_rate,
     )
 
 
@@ -148,6 +150,7 @@ def _unsafe_parse_tax_data(
     shipping_price_net_amount = decimal.Decimal(
         tax_data_response["shipping_price_net_amount"]
     )
+    shipping_tax_rate = decimal.Decimal(tax_data_response["shipping_tax_rate"])
     lines = [_unsafe_parse_tax_line_data(line) for line in tax_data_response["lines"]]
 
     return TaxData(
@@ -158,6 +161,7 @@ def _unsafe_parse_tax_data(
         subtotal_gross_amount=subtotal_gross_amount,
         shipping_price_gross_amount=shipping_price_gross_amount,
         shipping_price_net_amount=shipping_price_net_amount,
+        shipping_tax_rate=shipping_tax_rate,
         lines=lines,
     )
 
