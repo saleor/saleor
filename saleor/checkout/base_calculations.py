@@ -20,9 +20,10 @@ if TYPE_CHECKING:
     from ..order.models import OrderLine
 
 
-def base_checkout_shipping_price(
+def base_checkout_delivery_price(
     checkout_info: "CheckoutInfo", lines=None
 ) -> TaxedMoney:
+    """Calculate base (untaxed) price for any kind of delivery method."""
     delivery_method_info = checkout_info.delivery_method_info
 
     if isinstance(delivery_method_info, ShippingMethodInfo):
