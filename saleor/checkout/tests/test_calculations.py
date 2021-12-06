@@ -21,6 +21,7 @@ def checkout_lines(checkout_with_items):
 @pytest.fixture
 def tax_data(checkout_with_items, checkout_lines):
     checkout = checkout_with_items
+    tax_rate = Decimal("1.23")
     net = Decimal("10.000")
     gross = Decimal("12.300")
     lines = checkout_lines
@@ -28,6 +29,7 @@ def tax_data(checkout_with_items, checkout_lines):
         currency=checkout.currency,
         shipping_price_net_amount=checkout.shipping_price.net.amount + net,
         shipping_price_gross_amount=checkout.shipping_price.gross.amount + gross,
+        shipping_tax_rate=tax_rate,
         subtotal_net_amount=checkout.subtotal.net.amount + net,
         subtotal_gross_amount=checkout.subtotal.gross.amount + gross,
         total_net_amount=checkout.shipping_price.net.amount + net,
@@ -40,6 +42,7 @@ def tax_data(checkout_with_items, checkout_lines):
                 unit_gross_amount=line.unit_price.gross.amount + gross,
                 total_net_amount=line.total_price.net.amount + net,
                 total_gross_amount=line.total_price.gross.amount + gross,
+                tax_rate=tax_rate,
             )
             for line in lines
         ],
