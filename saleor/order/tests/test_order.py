@@ -538,7 +538,7 @@ def test_update_order_prices(
     price_1 = variant_1.get_price(
         product_1, [], channel, variant_channel_listing_1, None
     )
-    price_1 = TaxedMoney(net=price_1, gross=price_1)
+    price_1 = TaxedMoney(net=price_1, gross=price_1 * Decimal("1.23"))
 
     line_2 = order_with_lines.lines.last()
     variant_2 = line_2.variant
@@ -570,7 +570,9 @@ def test_update_order_prices(
     assert order_with_lines.total == total
 
 
-def test_update_order_prices_tax_included(order_with_lines, vatlayer, site_settings):
+def test_update_order_prices_tax_included(
+    order_with_lines, vatlayer, tax_rates, site_settings
+):
     manager = get_plugins_manager()
 
     channel = order_with_lines.channel
@@ -610,7 +612,8 @@ def test_update_order_prices_tax_included(order_with_lines, vatlayer, site_setti
     line_2.refresh_from_db()
     assert line_1.unit_price.gross == price_1
     assert line_2.unit_price.gross == price_2
-    assert order_with_lines.shipping_price.gross == shipping_price
+    tax_rate = tax_rates["standard_rate"] / Decimal("100.00") + Decimal("1.00")
+    assert order_with_lines.shipping_price.gross == shipping_price * tax_rate
     assert order_with_lines.shipping_tax_rate == Decimal("0.19")
     total = line_1.total_price + line_2.total_price + order_with_lines.shipping_price
     assert order_with_lines.total == total

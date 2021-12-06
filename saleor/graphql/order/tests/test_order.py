@@ -4862,12 +4862,12 @@ def test_order_update_shipping(
     shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id
     ).get_total()
-    shipping_price = TaxedMoney(shipping_total, shipping_total)
+    shipping_price = TaxedMoney(shipping_total, shipping_total * Decimal("1.23"))
     assert order.status == status
     assert order.shipping_method == shipping_method
     assert order.shipping_price_net == shipping_price.net
     assert order.shipping_price_gross == shipping_price.gross
-    assert order.shipping_tax_rate == Decimal("0.0")
+    assert order.shipping_tax_rate == Decimal("0.23")
     assert order.shipping_method_name == shipping_method.name
 
 
@@ -4904,7 +4904,7 @@ def test_order_update_shipping_tax_included(
     ).get_total()
     assert order.status == OrderStatus.UNCONFIRMED
     assert order.shipping_method == shipping_method
-    assert order.shipping_price_gross == shipping_total
+    assert order.shipping_price_gross == shipping_total * Decimal("1.23")
     assert order.shipping_tax_rate == Decimal("0.19")
     assert order.shipping_method_name == shipping_method.name
 

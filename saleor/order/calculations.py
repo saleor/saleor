@@ -26,8 +26,14 @@ def _apply_tax_data_from_plugins(
         line.unit_price = manager.calculate_order_line_unit(
             order, line, variant, product
         )
+        line.tax_rate = manager.get_order_line_tax_rate(
+            order, product, variant, None, line.unit_price
+        )
 
     order.shipping_price = manager.calculate_order_shipping(order)
+    order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
+        order, order.shipping_price
+    )
     order.total = order.shipping_price + order.get_subtotal()
 
 
@@ -46,6 +52,7 @@ def _apply_tax_data(
         net=tax_data.shipping_price_net_amount,
         gross=tax_data.shipping_price_gross_amount,
     )
+    order.shipping_tax_rate = tax_data.shipping_tax_rate
 
     tax_lines = {line.id: line for line in tax_data.lines}
     zipped_order_and_tax_lines = ((line, tax_lines[line.id]) for line in order_lines)
@@ -57,6 +64,7 @@ def _apply_tax_data(
         order_line.total_price = qp(
             net=tax_line.total_net_amount, gross=tax_line.total_gross_amount
         )
+        order_line.tax_rate = tax_line.tax_rate
 
 
 def fetch_order_prices_if_expired(
@@ -92,6 +100,7 @@ def fetch_order_prices_if_expired(
             "subtotal_gross_amount",
             "shipping_price_net_amount",
             "shipping_price_gross_amount",
+            "shipping_tax_rate",
             "price_expiration",
         ]
     )
@@ -102,6 +111,7 @@ def fetch_order_prices_if_expired(
             "unit_price_gross_amount",
             "total_price_net_amount",
             "total_price_gross_amount",
+            "tax_rate",
         ],
     )
 
