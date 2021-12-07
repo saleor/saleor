@@ -93,7 +93,8 @@ class Payment(CountableDjangoObjectType):
     )
     partial = graphene.Boolean(
         description=(
-            "Indicates whether this payment will be processed as a partial payment."
+            f"{ADDED_IN_31} Indicates whether this payment will be processed"
+            f"as a partial payment."
         ),
         required=True,
     )
@@ -114,7 +115,9 @@ class Payment(CountableDjangoObjectType):
         CreditCard, description="The details of the card used for this payment."
     )
     gateway_name = graphene.String(
-        description="A human-readable name of the payment gateway plugin.",
+        description=(
+            f"{ADDED_IN_31} A human-readable name of the payment gateway plugin.",
+        ),
         required=True,
     )
 
