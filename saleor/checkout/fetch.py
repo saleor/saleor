@@ -240,7 +240,9 @@ def fetch_checkout_info(
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
     *,
-    # Ugly hax to opt out from pulling shipping methods if they aren't needed
+    # Ugly hack to disable fetching shipping methods if they aren't needed
+    # Preventing multiple redundant and potentially costful API calls in
+    # checkout lines add/update/delete mutations
     fetch_shipping_methods: bool = True,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
