@@ -63,23 +63,33 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         # that are available in the given channel
         stocks = Stock.objects.filter(product_variant_id__in=variant_ids)
         WarehouseShippingZone = Warehouse.shipping_zones.through  # type: ignore
-        warehouse_shipping_zones = WarehouseShippingZone.objects.all()
+        warehouse_shipping_zones = WarehouseShippingZone.objects.using(
+            self.database_connection_name
+        ).all()
         additional_warehouse_filter = False
         if country_code or channel_slug:
             additional_warehouse_filter = True
             if country_code:
-                shipping_zones = ShippingZone.objects.filter(
-                    countries__contains=country_code
-                ).values("pk")
+                shipping_zones = (
+                    ShippingZone.objects.using(self.database_connection_name)
+                    .filter(countries__contains=country_code)
+                    .values("pk")
+                )
                 warehouse_shipping_zones = warehouse_shipping_zones.filter(
                     Exists(shipping_zones.filter(pk=OuterRef("shippingzone_id")))
                 )
             if channel_slug:
                 ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
-                channels = Channel.objects.filter(slug=channel_slug).values("pk")
-                shipping_zone_channels = ShippingZoneChannel.objects.filter(
-                    Exists(channels.filter(pk=OuterRef("channel_id")))
-                ).values("shippingzone_id")
+                channels = (
+                    Channel.objects.using(self.database_connection_name)
+                    .filter(slug=channel_slug)
+                    .values("pk")
+                )
+                shipping_zone_channels = (
+                    ShippingZoneChannel.objects.using(self.database_connection_name)
+                    .filter(Exists(channels.filter(pk=OuterRef("channel_id"))))
+                    .values("shippingzone_id")
+                )
                 warehouse_shipping_zones = warehouse_shipping_zones.filter(
                     Exists(
                         shipping_zone_channels.filter(
@@ -182,7 +192,9 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         channel_slug: Optional[str],
         variant_ids: Iterable[int],
     ) -> Iterable[Tuple[int, List[Stock]]]:
-        stocks = Stock.objects.filter(product_variant_id__in=variant_ids)
+        stocks = Stock.objects.using(self.database_connection_name).filter(
+            product_variant_id__in=variant_ids
+        )
         if country_code:
             stocks = stocks.filter(
                 warehouse__shipping_zones__countries__contains=country_code
@@ -210,5 +222,7 @@ class WarehouseByIdLoader(DataLoader):
     context_key = "warehouse_by_id"
 
     def batch_load(self, keys):
-        warehouses = Warehouse.objects.in_bulk(keys)
+        warehouses = Warehouse.objects.using(self.database_connection_name).in_bulk(
+            keys
+        )
         return [warehouses.get(UUID(warehouse_uuid)) for warehouse_uuid in keys]
