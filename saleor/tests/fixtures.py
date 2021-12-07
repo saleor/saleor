@@ -37,7 +37,7 @@ from ..attribute.models import (
     AttributeValueTranslation,
 )
 from ..attribute.utils import associate_attribute_values_to_instance
-from ..checkout.fetch import fetch_checkout_info
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus, TimePeriodType
@@ -461,6 +461,35 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
     checkout_with_item.gift_cards.add(gift_card)
     checkout_with_item.save()
     return checkout_with_item
+
+
+@pytest.fixture()
+def checkout_with_preorders_only(
+    checkout,
+    stocks_for_cc,
+    preorder_variant_with_end_date,
+    preorder_variant_channel_threshold,
+):
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
+
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture()
+def checkout_with_preorders_and_regular_variant(
+    checkout, stocks_for_cc, preorder_variant_with_end_date, product_variant_list
+):
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
+    add_variant_to_checkout(checkout_info, product_variant_list[0], 2)
+
+    checkout.save()
+    return checkout
 
 
 @pytest.fixture
