@@ -272,7 +272,7 @@ def populate_checkout_info_shippings(
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
-) -> CheckoutInfo:
+):
     from .utils import get_external_shipping_id
 
     checkout = checkout_info.checkout
