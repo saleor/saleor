@@ -785,7 +785,7 @@ def test_checkout_create_with_variant_without_inventory_tracking(
         ),
         (
             51,
-            "Cannot add more than 50 times this item.",
+            "Cannot add more than 50 times this item: SKU_A.",
             CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
         ),
     ),
@@ -1231,6 +1231,130 @@ def test_checkout_create_check_lines_quantity(
         "Could not add items SKU_A. Only 15 remaining in stock."
     )
     assert data["errors"][0]["field"] == "quantity"
+
+
+@pytest.mark.parametrize("is_preorder", [True, False])
+def test_checkout_create_check_lines_quantity_when_limit_per_variant_is_set_raise_err(
+    user_api_client, stock, graphql_address_data, channel_USD, is_preorder
+):
+    limit_per_customer = 5
+    variant = stock.product_variant
+    variant.quantity_limit_per_customer = limit_per_customer
+    variant.is_preorder = is_preorder
+    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=1)
+    variant.save(
+        update_fields=[
+            "quantity_limit_per_customer",
+            "is_preorder",
+            "preorder_end_date",
+        ]
+    )
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data
+    test_email = "test@example.com"
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 6, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+
+    assert data["errors"][0]["message"] == (
+        f"Cannot add more than {limit_per_customer} times this item: {variant}."
+    )
+    assert data["errors"][0]["field"] == "quantity"
+
+
+@pytest.mark.parametrize("is_preorder", [True, False])
+def test_checkout_create_check_lines_quantity_respects_site_settings(
+    user_api_client,
+    stock,
+    graphql_address_data,
+    channel_USD,
+    site_settings,
+    is_preorder,
+):
+    global_limit = 5
+    variant = stock.product_variant
+    variant.is_preorder = is_preorder
+    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=1)
+    variant.save(
+        update_fields=[
+            "is_preorder",
+            "preorder_end_date",
+        ]
+    )
+    site_settings.limit_quantity_per_checkout = global_limit
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data
+    test_email = "test@example.com"
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 6, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+
+    assert data["errors"][0]["message"] == (
+        f"Cannot add more than {global_limit} times this item: {variant}."
+    )
+    assert data["errors"][0]["field"] == "quantity"
+
+
+@pytest.mark.parametrize("is_preorder", [True, False])
+def test_checkout_create_check_lines_quantity_site_settings_no_limit(
+    user_api_client,
+    stock,
+    graphql_address_data,
+    channel_USD,
+    site_settings,
+    is_preorder,
+):
+    variant = stock.product_variant
+    variant.is_preorder = is_preorder
+    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=1)
+    variant.save(
+        update_fields=[
+            "is_preorder",
+            "preorder_end_date",
+        ]
+    )
+    site_settings.limit_quantity_per_checkout = None
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data
+    test_email = "test@example.com"
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 15, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+
+    assert not data["errors"]
+    assert Checkout.objects.first()
 
 
 def test_checkout_create_check_lines_quantity_against_reservations(

@@ -163,6 +163,7 @@ def add_variants_to_checkout(
     Otherwise, quantity will be added or replaced (if replace argument is True).
     """
     country_code = checkout.get_country()
+
     checkout_lines = checkout.lines.select_related("variant")
     variant_ids_in_lines = {line.variant_id: line for line in checkout_lines}
     to_create = []
