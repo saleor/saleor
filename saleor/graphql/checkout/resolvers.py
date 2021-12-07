@@ -116,6 +116,7 @@ def resolve_checkout_shipping_methods(
         subtotal = manager.calculate_checkout_subtotal(
             checkout_info, lines, address, discounts
         )
+        subtotal -= checkout_info.checkout.discount
         available = get_valid_shipping_methods_for_checkout(
             checkout_info,
             lines,
