@@ -280,6 +280,10 @@ def populate_checkout_info_shippings(
     shipping_address = checkout_info.shipping_address
     shipping_method = checkout.shipping_method
 
+    external_shipping_methods = get_valid_external_shipping_method_list_for_checkout_info(
+        checkout_info, shipping_address, lines, discounts, manager
+    )
+
     shipping_channel_listings = None
     if shipping_method:
         shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
@@ -292,26 +296,33 @@ def populate_checkout_info_shippings(
     else:
         delivery_method = checkout.collection_point
 
-    valid_shipping_methods: List[
-        "ShippingMethodData"
-    ] = get_valid_shipping_method_list_for_checkout_info(
-        checkout_info, shipping_address, lines, discounts, manager
-    )
+    checkout_info.shipping_method_channel_listings = shipping_channel_listings
 
     if not delivery_method:
         external_shipping_method_id = get_external_shipping_id(checkout)
-        for shipping_method in valid_shipping_methods:
-            if (
-                shipping_method.is_external
-                and shipping_method.id == external_shipping_method_id
-            ):
-                delivery_method = shipping_method
-                break
+        external_shipping_methods_map = {
+            external_shipping_method.id: external_shipping_method
+            for external_shipping_method in external_shipping_methods
+        }
+        delivery_method = external_shipping_methods_map.get(external_shipping_method_id)
 
-    delivery_method_info = get_delivery_method_info(delivery_method, shipping_address)
+    if delivery_method:
+        delivery_method_info = get_delivery_method_info(
+            delivery_method, shipping_address
+        )
+        checkout_info.delivery_method_info = delivery_method_info
 
-    checkout_info.shipping_method_channel_listings = shipping_channel_listings
-    checkout_info.delivery_method_info = delivery_method_info
+    valid_shipping_methods: List[
+        "ShippingMethodData"
+    ] = list(
+        itertools.chain(
+            get_valid_local_shipping_method_list_for_checkout_info(
+                checkout_info, shipping_address, lines, discounts, manager
+            ),
+            external_shipping_methods,
+        )
+    )
+
     checkout_info.valid_shipping_methods = valid_shipping_methods
 
 
