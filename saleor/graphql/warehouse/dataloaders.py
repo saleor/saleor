@@ -1,8 +1,8 @@
+import sys
 from collections import defaultdict
 from typing import DefaultDict, Iterable, List, Optional, Tuple
 from uuid import UUID
 
-from django.conf import settings
 from django.db.models import Exists, OuterRef, Q
 from django.db.models.aggregates import Sum
 from django.db.models.functions import Coalesce
@@ -41,7 +41,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         # a handful of unique countries but may access thousands of product variants
         # so it's cheaper to execute one query per country.
         variants_by_country_and_channel: DefaultDict[
-            CountryCode, List[int]
+            Tuple[CountryCode, str], List[int]
         ] = defaultdict(list)
         for variant_id, country_code, channel_slug in keys:
             variants_by_country_and_channel[(country_code, channel_slug)].append(
@@ -153,10 +153,13 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
 
         # Return the quantities after capping them at the maximum quantity allowed in
         # checkout. This prevent users from tracking the store's precise stock levels.
+        global_quantity_limit = (
+            self.context.site.settings.limit_quantity_per_checkout  # type: ignore
+        )
         return [
             (
                 variant_id,
-                min(quantity_map[variant_id], settings.MAX_CHECKOUT_LINE_QUANTITY),
+                min(quantity_map[variant_id], global_quantity_limit or sys.maxsize),
             )
             for variant_id in variant_ids
         ]

@@ -1912,6 +1912,7 @@ def test_update_product_variant(
         mutation updateVariant (
             $id: ID!,
             $sku: String!,
+            $quantityLimitPerCustomer: Int!
             $trackInventory: Boolean!,
             $attributes: [AttributeValueInput!]) {
                 productVariantUpdate(
@@ -1920,10 +1921,12 @@ def test_update_product_variant(
                         sku: $sku,
                         trackInventory: $trackInventory,
                         attributes: $attributes,
+                        quantityLimitPerCustomer: $quantityLimitPerCustomer,
                     }) {
                     productVariant {
                         name
                         sku
+                        quantityLimitPerCustomer
                         channelListings {
                             channel {
                                 slug
@@ -1938,11 +1941,13 @@ def test_update_product_variant(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     sku = "test sku"
+    quantity_limit_per_customer = 5
 
     variables = {
         "id": variant_id,
         "sku": sku,
         "trackInventory": True,
+        "quantityLimitPerCustomer": quantity_limit_per_customer,
         "attributes": [{"id": attribute_id, "values": ["S"]}],
     }
 
@@ -1956,6 +1961,7 @@ def test_update_product_variant(
 
     assert data["name"] == variant.name
     assert data["sku"] == sku
+    assert data["quantityLimitPerCustomer"] == quantity_limit_per_customer
     product_variant_updated_webhook_mock.assert_called_once_with(
         product.variants.last()
     )
@@ -1998,6 +2004,43 @@ def test_update_product_variant_with_negative_weight(
     data = content["data"]["productVariantUpdate"]
     error = data["errors"][0]
     assert error["field"] == "weight"
+    assert error["code"] == ProductErrorCode.INVALID.name
+
+
+@pytest.mark.parametrize("quantity_value", [0, -10])
+def test_update_product_variant_limit_per_customer_lower_than_1(
+    staff_api_client, product, permission_manage_products, quantity_value
+):
+    query = """
+        mutation updateVariant (
+            $id: ID!,
+            $quantityLimitPerCustomer: Int
+        ) {
+            productVariantUpdate(
+                id: $id,
+                input: {
+                    quantityLimitPerCustomer: $quantityLimitPerCustomer,
+                }
+            ){
+                errors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "quantityLimitPerCustomer": quantity_value}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]
+    error = data["errors"][0]
+    assert error["field"] == "quantityLimitPerCustomer"
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
