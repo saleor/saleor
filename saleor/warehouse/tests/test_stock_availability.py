@@ -198,6 +198,7 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
     variant = variant_with_many_stocks
     country_code = "US"
     available_quantity = _get_available_quantity(variant.stocks.all())
+    global_quantity_limit = 50
 
     # test that it doesn't raise error for available quantity
     assert (
@@ -206,6 +207,7 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
             country_code,
             [available_quantity],
             channel_USD.slug,
+            global_quantity_limit,
         )
         is None
     )
@@ -217,6 +219,7 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
             country_code,
             [available_quantity + 1],
             channel_USD,
+            global_quantity_limit,
         )
 
     # test that it raises an error if no stocks are found
@@ -227,6 +230,7 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
             country_code,
             [available_quantity],
             channel_USD.slug,
+            global_quantity_limit,
         )
 
 
@@ -236,6 +240,8 @@ def test_check_stock_quantity_bulk_no_channel_shipping_zones(
     variant = variant_with_many_stocks
     country_code = "US"
     available_quantity = _get_available_quantity(variant.stocks.all())
+    global_quantity_limit = 50
+
     channel_USD.shipping_zones.clear()
 
     with pytest.raises(InsufficientStock):
@@ -244,6 +250,7 @@ def test_check_stock_quantity_bulk_no_channel_shipping_zones(
             country_code,
             [available_quantity],
             channel_USD.slug,
+            global_quantity_limit,
         )
 
 
@@ -261,6 +268,7 @@ def test_check_stock_quantity_bulk_with_reservations(
         channel_USD.slug,
         check_reservations=True,
     )
+    global_quantity_limit = 50
 
     # test that it doesn't raise error for available quantity
     assert (
@@ -269,6 +277,7 @@ def test_check_stock_quantity_bulk_with_reservations(
             country_code,
             [available_quantity],
             channel_USD.slug,
+            global_quantity_limit,
             check_reservations=True,
         )
         is None
@@ -281,6 +290,7 @@ def test_check_stock_quantity_bulk_with_reservations(
             country_code,
             [available_quantity + 1],
             channel_USD.slug,
+            global_quantity_limit,
             check_reservations=True,
         )
 
@@ -292,6 +302,7 @@ def test_check_stock_quantity_bulk_with_reservations(
             country_code,
             [available_quantity + 1],
             channel_USD.slug,
+            global_quantity_limit,
             existing_lines=checkout_lines,
             check_reservations=True,
         )

@@ -1,6 +1,7 @@
 import datetime
 import uuid
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
+from collections import defaultdict
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import graphene
 from django.conf import settings
@@ -141,6 +142,7 @@ def check_lines_quantity(
     quantities,
     country,
     channel_slug,
+    global_quantity_limit,
     allow_zero_quantity=False,
     existing_lines=None,
     replace=False,
@@ -174,23 +176,13 @@ def check_lines_quantity(
                     )
                 }
             )
-
-        if quantity > settings.MAX_CHECKOUT_LINE_QUANTITY:
-            raise ValidationError(
-                {
-                    "quantity": ValidationError(
-                        "Cannot add more than %d times this item."
-                        "" % settings.MAX_CHECKOUT_LINE_QUANTITY,
-                        code=CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
-                    )
-                }
-            )
     try:
         check_stock_and_preorder_quantity_bulk(
             variants,
             country,
             quantities,
             channel_slug,
+            global_quantity_limit,
             existing_lines=existing_lines,
             replace=replace,
             check_reservations=check_reservations,
@@ -275,6 +267,15 @@ def get_checkout_by_token(token: uuid.UUID, qs=None):
     return checkout
 
 
+def group_quantity_by_variants(lines: List[Dict[str, Any]]) -> List[int]:
+    variant_quantity_map: Dict[str, int] = defaultdict(int)
+
+    for quantity, variant_id in (line.values() for line in lines):
+        variant_quantity_map[variant_id] += quantity
+
+    return list(variant_quantity_map.values())
+
+
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
@@ -343,7 +344,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             ),
         )
 
-        quantities = [line["quantity"] for line in lines]
+        quantities = group_quantity_by_variants(lines)
+
         variant_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variant_db_ids, channel.id)
         validate_variants_available_in_channel(
@@ -355,6 +357,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             quantities,
             country,
             channel.slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             check_reservations=is_reservation_enabled(info.context.site.settings),
         )
         return variants, quantities
@@ -431,7 +434,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # Set checkout country
         country = cleaned_input["country"]
         instance.set_country(country)
-
         # Create checkout lines
         channel = cleaned_input["channel"]
         variants = cleaned_input.get("variants")
@@ -442,6 +444,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 variants,
                 quantities,
                 channel.slug,
+                info.context.site.settings.limit_quantity_per_checkout,
                 reservation_length=get_reservation_length(info.context),
             )
 
@@ -508,13 +511,20 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def validate_checkout_lines(
-        cls, info, variants, quantities, country, channel_slug, lines=None
+        cls,
+        info,
+        variants,
+        quantities,
+        country,
+        channel_slug,
+        lines=None,
     ):
         check_lines_quantity(
             variants,
             quantities,
             country,
             channel_slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             existing_lines=lines,
             check_reservations=is_reservation_enabled(info.context.site.settings),
         )
@@ -609,7 +619,7 @@ class CheckoutLinesAdd(BaseMutation):
 
         variant_ids = [line.get("variant_id") for line in lines]
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
-        quantities = [line.get("quantity") for line in lines]
+        input_quantities = group_quantity_by_variants(lines)
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
 
@@ -618,7 +628,7 @@ class CheckoutLinesAdd(BaseMutation):
             info,
             checkout,
             variants,
-            quantities,
+            input_quantities,
             checkout_info,
             lines,
             manager,
@@ -668,6 +678,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             quantities,
             country,
             channel_slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             allow_zero_quantity=True,
             existing_lines=lines,
             replace=True,
@@ -951,6 +962,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             quantities,
             country,
             channel_slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             # Set replace=True to avoid existing_lines and quantities from
             # being counted twice by the check_stock_quantity_bulk
             replace=True,

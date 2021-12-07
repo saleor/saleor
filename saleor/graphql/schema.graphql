@@ -5757,6 +5757,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   sku: String
   product: Product!
   trackInventory: Boolean!
+  quantityLimitPerCustomer: Int
   weight: Weight
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
@@ -5772,7 +5773,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]
-  quantityAvailable(address: AddressInput, countryCode: CountryCode): Int!
+  quantityAvailable(address: AddressInput, countryCode: CountryCode): Int
   preorder: PreorderData
 }
 
@@ -5789,6 +5790,7 @@ input ProductVariantBulkCreateInput {
   trackInventory: Boolean
   weight: WeightScalar
   preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
   stocks: [StockInput!]
   channelListings: [ProductVariantChannelListingAddInput!]
 }
@@ -5844,6 +5846,7 @@ input ProductVariantCreateInput {
   trackInventory: Boolean
   weight: WeightScalar
   preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
   product: ID!
   stocks: [StockInput!]
 }
@@ -5867,6 +5870,7 @@ input ProductVariantInput {
   trackInventory: Boolean
   weight: WeightScalar
   preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
 }
 
 type ProductVariantPreorderDeactivate {
@@ -6486,6 +6490,7 @@ type Shop {
   automaticFulfillmentDigitalProducts: Boolean
   reserveStockDurationAnonymousUser: Int
   reserveStockDurationAuthenticatedUser: Int
+  limitQuantityPerCheckout: Int
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
   companyAddress: Address
@@ -6547,6 +6552,7 @@ input ShopSettingsInput {
   customerSetPasswordUrl: String
   reserveStockDurationAnonymousUser: Int
   reserveStockDurationAuthenticatedUser: Int
+  limitQuantityPerCheckout: Int
 }
 
 type ShopSettingsTranslate {

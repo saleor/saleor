@@ -301,6 +301,12 @@ def gateway_postprocess(transaction, payment):
         payment.to_confirm = False
         changed_fields.append("to_confirm")
 
+    update_payment_charge_status(payment, transaction, changed_fields)
+
+
+def update_payment_charge_status(payment, transaction, changed_fields=None):
+    changed_fields = changed_fields or []
+
     transaction_kind = transaction.kind
 
     if transaction_kind in {

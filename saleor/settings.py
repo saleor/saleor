@@ -381,8 +381,6 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = "order.Payment"
 
-MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
-
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 
@@ -536,6 +534,9 @@ GRAPHENE = {
         "saleor.graphql.middleware.JWTMiddleware",
     ],
 }
+
+# Set GRAPHQL_QUERY_MAX_COMPLEXITY=0 in env to disable (not recommended)
+GRAPHQL_QUERY_MAX_COMPLEXITY = int(os.environ.get("GRAPHQL_QUERY_MAX_COMPLEXITY", 250))
 
 # Max number entities that can be requested in single query by Apollo Federation
 # Federation protocol implements no securities on its own part - malicious actor

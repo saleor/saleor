@@ -247,6 +247,7 @@ class Order(ModelWithMetadata):
         default=zero_weight,
     )
     redirect_url = models.URLField(blank=True, null=True)
+    search_document = models.TextField(blank=True, default="")
 
     objects = models.Manager.from_queryset(OrderQueryset)()
 
@@ -270,6 +271,18 @@ class Order(ModelWithMetadata):
                 ),  # type: ignore
                 name="idx_fully_paid",
             ),  # type: ignore
+            GinIndex(
+                name="order_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["search_document"],
+                opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                name="order_email_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["user_email"],
+                opclasses=["gin_trgm_ops"],
+            ),
         ]
 
     def save(self, *args, **kwargs):

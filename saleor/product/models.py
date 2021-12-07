@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import (
@@ -445,10 +446,6 @@ class Product(SeoModel, ModelWithMetadata):
     def __str__(self) -> str:
         return self.name
 
-    @property
-    def plain_text_description(self) -> str:
-        return json_content_to_raw_text(self.description)
-
     def get_first_image(self):
         all_media = self.media.all()
         images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
@@ -571,6 +568,9 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     is_preorder = models.BooleanField(default=False)
     preorder_end_date = models.DateTimeField(null=True, blank=True)
     preorder_global_threshold = models.IntegerField(blank=True, null=True)
+    quantity_limit_per_customer = models.IntegerField(
+        blank=True, null=True, validators=[MinValueValidator(1)]
+    )
 
     weight = MeasurementField(
         measurement=Weight,

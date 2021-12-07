@@ -1,9 +1,9 @@
+import sys
 from collections import defaultdict
 from dataclasses import asdict
 from typing import List, Optional
 
 import graphene
-from django.conf import settings
 from django_countries.fields import Country
 from graphene import relay
 from graphene_federation import key
@@ -26,6 +26,7 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.variants import get_variant_selection_attributes
+from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
@@ -76,6 +77,7 @@ from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
+    PreorderQuantityReservedByVariantChannelListingIdLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
 from ...warehouse.types import Stock
@@ -273,8 +275,13 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ),
     )
     quantity_available = graphene.Int(
-        required=True,
-        description="Quantity of a product available for sale in one checkout.",
+        required=False,
+        description=(
+            "Quantity of a product available for sale in one checkout. "
+            "Field value will be `null` when "
+            "no `limitQuantityPerCheckout` in global settings has been set, and "
+            "`productVariant` stocks are not tracked."
+        ),
         address=destination_address_argument,
         country_code=graphene.Argument(
             CountryCodeEnum,
@@ -298,7 +305,15 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description = (
             "Represents a version of a product such as different size or color."
         )
-        only_fields = ["id", "name", "product", "sku", "track_inventory", "weight"]
+        only_fields = [
+            "id",
+            "name",
+            "product",
+            "sku",
+            "track_inventory",
+            "weight",
+            "quantity_limit_per_customer",
+        ]
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductVariant
 
@@ -332,6 +347,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if address is not None:
             country_code = address.country
 
+        global_quantity_limit_per_checkout = (
+            info.context.site.settings.limit_quantity_per_checkout
+        )
+
         if root.node.is_preorder_active():
             variant = root.node
             channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
@@ -343,10 +362,34 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                     channel_listing
                     and channel_listing.preorder_quantity_threshold is not None
                 ):
+                    if is_reservation_enabled(info.context.site.settings):
+                        quantity_reserved = (
+                            PreorderQuantityReservedByVariantChannelListingIdLoader(
+                                info.context
+                            ).load(channel_listing.id)
+                        )
+
+                        def calculate_available_channel_quantity_with_reservations(
+                            reserved_quantity,
+                        ):
+                            return max(
+                                min(
+                                    channel_listing.preorder_quantity_threshold
+                                    - channel_listing.preorder_quantity_allocated
+                                    - reserved_quantity,
+                                    global_quantity_limit_per_checkout or sys.maxsize,
+                                ),
+                                0,
+                            )
+
+                        return quantity_reserved.then(
+                            calculate_available_channel_quantity_with_reservations
+                        )
+
                     return min(
                         channel_listing.preorder_quantity_threshold
                         - channel_listing.preorder_quantity_allocated,
-                        settings.MAX_CHECKOUT_LINE_QUANTITY,
+                        global_quantity_limit_per_checkout or sys.maxsize,
                     )
                 if variant.preorder_global_threshold is not None:
                     variant_channel_listings = VariantChannelListingByVariantIdLoader(
@@ -355,24 +398,55 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
                     def calculate_available_global(variant_channel_listings):
                         if not variant_channel_listings:
-                            return settings.MAX_CHECKOUT_LINE_QUANTITY
+                            return global_quantity_limit_per_checkout
                         global_sold_units = sum(
                             channel_listing.preorder_quantity_allocated
                             for channel_listing in variant_channel_listings
                         )
+
+                        available_quantity = variant.preorder_global_threshold
+                        available_quantity -= global_sold_units
+
+                        if is_reservation_enabled(info.context.site.settings):
+                            quantity_reserved = (
+                                PreorderQuantityReservedByVariantChannelListingIdLoader(
+                                    info.context
+                                ).load_many(
+                                    [listing.id for listing in variant_channel_listings]
+                                )
+                            )
+
+                            def calculate_available_global_quantity_with_reservations(
+                                reserved_quantities,
+                            ):
+                                return max(
+                                    min(
+                                        variant.preorder_global_threshold
+                                        - global_sold_units
+                                        - sum(reserved_quantities),
+                                        global_quantity_limit_per_checkout
+                                        or sys.maxsize,
+                                    ),
+                                    0,
+                                )
+
+                            return quantity_reserved.then(
+                                calculate_available_global_quantity_with_reservations
+                            )
+
                         return min(
                             variant.preorder_global_threshold - global_sold_units,
-                            settings.MAX_CHECKOUT_LINE_QUANTITY,
+                            global_quantity_limit_per_checkout or sys.maxsize,
                         )
 
                     return variant_channel_listings.then(calculate_available_global)
 
-                return settings.MAX_CHECKOUT_LINE_QUANTITY
+                return global_quantity_limit_per_checkout
 
             return channel_listing.then(calculate_available_per_channel)
 
         if not root.node.track_inventory:
-            return settings.MAX_CHECKOUT_LINE_QUANTITY
+            return global_quantity_limit_per_checkout
 
         return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             info.context

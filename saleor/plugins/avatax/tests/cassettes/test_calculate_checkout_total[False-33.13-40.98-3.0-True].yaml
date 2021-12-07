@@ -5,7 +5,7 @@ interactions:
       true, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
       "1.99", "taxCode": "PS081282", "taxIncluded": true, "itemCode": "SKU_SINGLE_VARIANT",
       "description": "Test product with single variant"}, {"quantity": 1, "amount":
-      "10.000", "taxCode": "FR020100", "taxIncluded": true, "itemCode": "Shipping",
+      "10.000", "taxCode": "FR000000", "taxIncluded": true, "itemCode": "Shipping",
       "description": null}], "code": "a93a16ca-6e4a-4611-9033-84664694e8e4", "date":
       "2021-03-18", "customerCode": 0, "addresses": {"shipFrom": {"line1": "T\u0119czowa
       7", "line2": "", "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode":

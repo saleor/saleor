@@ -7204,6 +7204,7 @@ def test_delete_product_with_image(
     mocked_recalculate_orders_task.assert_not_called()
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_trigger_webhook(
@@ -7230,7 +7231,9 @@ def test_delete_product_trigger_webhook(
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
 
-    expected_data = generate_product_deleted_payload(product, variants_id)
+    expected_data = generate_product_deleted_payload(
+        product, variants_id, staff_api_client.user
+    )
 
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PRODUCT_DELETED, expected_data

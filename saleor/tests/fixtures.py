@@ -76,6 +76,7 @@ from ..order.models import (
     OrderEvent,
     OrderLine,
 )
+from ..order.search import prepare_order_search_document_value
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
@@ -123,6 +124,7 @@ from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
     Allocation,
     PreorderAllocation,
+    PreorderReservation,
     Reservation,
     Stock,
     Warehouse,
@@ -609,6 +611,35 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
     return checkout_with_item
 
 
+@pytest.fixture()
+def checkout_with_preorders_only(
+    checkout,
+    stocks_for_cc,
+    preorder_variant_with_end_date,
+    preorder_variant_channel_threshold,
+):
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
+
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture()
+def checkout_with_preorders_and_regular_variant(
+    checkout, stocks_for_cc, preorder_variant_with_end_date, product_variant_list
+):
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
+    add_variant_to_checkout(checkout_info, product_variant_list[0], 2)
+
+    checkout.save()
+    return checkout
+
+
 @pytest.fixture
 def checkout_with_gift_card_items(
     checkout, non_shippable_gift_card_product, shippable_gift_card_product
@@ -848,6 +879,13 @@ def order_kwargs(customer_user, channel_USD):
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
     )
+
+
+@pytest.fixture
+def order_with_search_document_value(order):
+    order.search_document = prepare_order_search_document_value(order)
+    order.save(update_fields=["search_document"])
+    return order
 
 
 @pytest.fixture
@@ -3297,6 +3335,35 @@ def checkout_line_with_one_reservation(
 
 
 @pytest.fixture
+def checkout_line_with_preorder_item(
+    checkout, product, preorder_variant_channel_threshold
+):
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
+    return checkout.lines.last()
+
+
+@pytest.fixture
+def checkout_line_with_reserved_preorder_item(
+    checkout, product, preorder_variant_channel_threshold
+):
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
+    checkout_line = checkout.lines.last()
+
+    reserved_until = timezone.now() + timedelta(minutes=5)
+
+    PreorderReservation.objects.create(
+        checkout_line=checkout_line,
+        product_variant_channel_listing=checkout_line.variant.channel_listings.first(),
+        quantity_reserved=2,
+        reserved_until=reserved_until,
+    )
+
+    return checkout_line
+
+
+@pytest.fixture
 def gift_card(customer_user):
     return GiftCard.objects.create(
         code="never_expiry",
@@ -3937,19 +4004,23 @@ def fulfillment(fulfilled_order):
 
 @pytest.fixture
 def fulfillment_awaiting_approval(fulfilled_order):
-    order_line = fulfilled_order.lines.first()
-    order_line.quantity_fulfilled = 0
-    order_line.save(update_fields=["quantity_fulfilled"])
-
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
 
+    quantity = 1
     fulfillment_lines_to_update = []
+    order_lines_to_update = []
     for f_line in fulfillment.lines.all():
-        f_line.quantity = 1
+        f_line.quantity = quantity
         fulfillment_lines_to_update.append(f_line)
+
+        order_line = f_line.order_line
+        order_line.quantity_fulfilled = quantity
+        order_lines_to_update.append(order_line)
+
     FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
+    OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
 
     return fulfillment
 
@@ -5445,6 +5516,11 @@ def allocations(order_list, stock, channel_USD):
             ),
         ]
     )
+
+    for order in order_list:
+        order.search_document = prepare_order_search_document_value(order)
+    Order.objects.bulk_update(order_list, ["search_document"])
+
     return Allocation.objects.bulk_create(
         [
             Allocation(
