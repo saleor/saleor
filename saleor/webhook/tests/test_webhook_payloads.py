@@ -10,6 +10,7 @@ import graphene
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ... import __version__
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
@@ -318,7 +319,7 @@ def test_generate_base_product_variant_payload(product_with_two_variants):
             "meta": {
                 "issuing_principal": {"id": None, "type": None},
                 "issued_at": ANY,
-                "version": "dev",
+                "version": __version__,
             },
         },
         {
@@ -337,7 +338,7 @@ def test_generate_base_product_variant_payload(product_with_two_variants):
             "meta": {
                 "issuing_principal": {"id": None, "type": None},
                 "issued_at": ANY,
-                "version": "dev",
+                "version": __version__,
             },
         },
     ]
@@ -380,7 +381,7 @@ def test_generate_product_variant_payload(
     assert payload["meta"] == {
         "issuing_principal": generate_requestor(staff_user),
         "issued_at": ANY,
-        "version": "dev",
+        "version": __version__,
     }
     assert len(payload.keys()) == len(payload_fields)
 
@@ -502,7 +503,7 @@ def test_generate_invoice_payload(fulfilled_order):
         "meta": {
             "issued_at": timestamp,
             "issuing_principal": {"id": None, "type": None},
-            "version": "dev",
+            "version": __version__,
         },
         "order": {
             "type": "Order",
@@ -705,7 +706,7 @@ def test_generate_customer_payload(customer_user, address_other_country, address
         "meta": {
             "issuing_principal": {"id": None, "type": None},
             "issued_at": timestamp,
-            "version": "dev",
+            "version": __version__,
         },
         "default_shipping_address": {
             "type": "Address",
@@ -908,5 +909,5 @@ def test_generate_meta(app, rf):
     assert generate_meta(requestor_data=generate_requestor(requestor)) == {
         "issuing_principal": {"id": "Sample app objects", "type": "app"},
         "issued_at": timestamp,
-        "version": "dev",
+        "version": __version__,
     }

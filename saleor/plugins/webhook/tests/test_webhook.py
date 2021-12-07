@@ -9,6 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils import timezone
 from freezegun import freeze_time
 
+from .... import __version__
 from ....account.notifications import (
     get_default_user_payload,
     send_account_confirmation,
@@ -492,7 +493,7 @@ def test_notify_user(mocked_webhook_trigger, settings, customer_user, channel_US
         "payload": payload,
         "meta": {
             "issued_at": timestamp,
-            "version": "dev",
+            "version": __version__,
             "issuing_principal": {
                 "id": graphene.Node.to_global_id("User", customer_user.id),
                 "type": "user",
