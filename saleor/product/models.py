@@ -5,7 +5,7 @@ from uuid import uuid4
 import graphene
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -548,6 +548,7 @@ class ProductChannelListing(PublishableModel):
         ordering = ("pk",)
         indexes = [
             models.Index(fields=["publication_date"]),
+            BTreeIndex(fields=["discounted_price_amount"]),
         ]
 
     def is_available_for_purchase(self):
