@@ -280,8 +280,10 @@ def populate_checkout_info_shippings(
     shipping_address = checkout_info.shipping_address
     shipping_method = checkout.shipping_method
 
-    external_shipping_methods = get_valid_external_shipping_method_list_for_checkout_info(
-        checkout_info, shipping_address, lines, discounts, manager
+    external_shipping_methods = (
+        get_valid_external_shipping_method_list_for_checkout_info(
+            checkout_info, shipping_address, lines, discounts, manager
+        )
     )
 
     shipping_channel_listings = None
@@ -312,9 +314,7 @@ def populate_checkout_info_shippings(
         )
         checkout_info.delivery_method_info = delivery_method_info
 
-    valid_shipping_methods: List[
-        "ShippingMethodData"
-    ] = list(
+    valid_shipping_methods: List["ShippingMethodData"] = list(
         itertools.chain(
             get_valid_local_shipping_method_list_for_checkout_info(
                 checkout_info, shipping_address, lines, discounts, manager
