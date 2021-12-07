@@ -3,7 +3,6 @@ import logging
 from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from ...app.models import App
-from ...core.models import EventPayload
 from ...core.notify_events import NotifyEventType
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
@@ -271,8 +270,7 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         checkout_data = generate_checkout_payload(checkout)
-        event_payload = EventPayload.objects.create(payload=checkout_data)
-        trigger_webhooks_async(event_payload, WebhookEventType.CHECKOUT_CREATED)
+        trigger_webhooks_async(checkout_data, WebhookEventType.CHECKOUT_CREATED)
 
     def checkout_updated(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
