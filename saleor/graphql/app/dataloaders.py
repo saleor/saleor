@@ -8,7 +8,7 @@ class AppByIdLoader(DataLoader):
     context_key = "app_by_id"
 
     def batch_load(self, keys):
-        apps = App.objects.in_bulk(keys)
+        apps = App.objects.using(self.database_connection_name).in_bulk(keys)
         return [apps.get(key) for key in keys]
 
 
@@ -16,7 +16,9 @@ class AppExtensionByIdLoader(DataLoader):
     context_key = "app_extension_by_id"
 
     def batch_load(self, keys):
-        extensions = AppExtension.objects.in_bulk(keys)
+        extensions = AppExtension.objects.using(self.database_connection_name).in_bulk(
+            keys
+        )
         return [extensions.get(key) for key in keys]
 
 
@@ -24,7 +26,9 @@ class AppExtensionByAppIdLoader(DataLoader):
     context_key = "app_extension_by_app_id"
 
     def batch_load(self, keys):
-        extensions = AppExtension.objects.filter(app_id__in=keys)
+        extensions = AppExtension.objects.using(self.database_connection_name).filter(
+            app_id__in=keys
+        )
         extensions_map = defaultdict(list)
         app_extension_loader = AppExtensionByIdLoader(self.context)
         for extension in extensions.iterator():

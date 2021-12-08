@@ -30,7 +30,11 @@ class CheckoutByTokenLoader(DataLoader):
     context_key = "checkout_by_token"
 
     def batch_load(self, keys):
-        checkouts = Checkout.objects.filter(token__in=keys).in_bulk()
+        checkouts = (
+            Checkout.objects.using(self.database_connection_name)
+            .filter(token__in=keys)
+            .in_bulk()
+        )
         return [checkouts.get(token) for token in keys]
 
 
@@ -116,7 +120,7 @@ class CheckoutByIdLoader(DataLoader):
     context_key = "checkout_by_id"
 
     def batch_load(self, keys):
-        checkouts = Checkout.objects.in_bulk(keys)
+        checkouts = Checkout.objects.using(self.database_connection_name).in_bulk(keys)
         return [checkouts.get(checkout_id) for checkout_id in keys]
 
 
@@ -124,7 +128,9 @@ class CheckoutByUserLoader(DataLoader):
     context_key = "checkout_by_user"
 
     def batch_load(self, keys):
-        checkouts = Checkout.objects.filter(user_id__in=keys, channel__is_active=True)
+        checkouts = Checkout.objects.using(self.database_connection_name).filter(
+            user_id__in=keys, channel__is_active=True
+        )
         checkout_by_user_map = defaultdict(list)
         for checkout in checkouts:
             checkout_by_user_map[checkout.user_id].append(checkout)
@@ -137,11 +143,15 @@ class CheckoutByUserAndChannelLoader(DataLoader):
     def batch_load(self, keys):
         user_ids = [key[0] for key in keys]
         channel_slugs = [key[1] for key in keys]
-        checkouts = Checkout.objects.filter(
-            user_id__in=user_ids,
-            channel__slug__in=channel_slugs,
-            channel__is_active=True,
-        ).annotate(channel_slug=F("channel__slug"))
+        checkouts = (
+            Checkout.objects.using(self.database_connection_name)
+            .filter(
+                user_id__in=user_ids,
+                channel__slug__in=channel_slugs,
+                channel__is_active=True,
+            )
+            .annotate(channel_slug=F("channel__slug"))
+        )
         checkout_by_user_and_channel_map = defaultdict(list)
         for checkout in checkouts:
             key = (checkout.user_id, checkout.channel_slug)
@@ -296,7 +306,9 @@ class CheckoutLineByIdLoader(DataLoader):
     context_key = "checkout_line_by_id"
 
     def batch_load(self, keys):
-        checkout_lines = CheckoutLine.objects.in_bulk(keys)
+        checkout_lines = CheckoutLine.objects.using(
+            self.database_connection_name
+        ).in_bulk(keys)
         return [checkout_lines.get(line_id) for line_id in keys]
 
 
@@ -304,7 +316,9 @@ class CheckoutLinesByCheckoutTokenLoader(DataLoader):
     context_key = "checkoutlines_by_checkout"
 
     def batch_load(self, keys):
-        lines = CheckoutLine.objects.filter(checkout_id__in=keys)
+        lines = CheckoutLine.objects.using(self.database_connection_name).filter(
+            checkout_id__in=keys
+        )
         line_map = defaultdict(list)
         for line in lines.iterator():
             line_map[line.checkout_id].append(line)
