@@ -42,82 +42,97 @@ def create_payment_lines_information(
 ) -> List[PaymentLineData]:
     checkout = payment.checkout
     order = payment.order
-    line_items = []
+
     if checkout:
-        lines = fetch_checkout_lines(checkout)
-        discounts = fetch_active_discounts()
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
-        address = checkout_info.shipping_address or checkout_info.billing_address
+        return create_checkout_payment_lines_information(checkout, manager)
+    elif order:
+        return create_order_payment_lines_information(order)
 
-        for line_info in lines:
-            total = checkout_line_total(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                checkout_line_info=line_info,
-                discounts=discounts,
-            )
-            unit_price = manager.calculate_checkout_line_unit_price(
-                total,
-                line_info.line.quantity,
-                checkout_info,
-                lines,
-                line_info,
-                address,
-                discounts,
-            )
-            unit_gross = unit_price.gross.amount
+    return []
 
-            quantity = line_info.line.quantity
-            product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"
-            product_sku = line_info.variant.sku
-            line_items.append(
-                PaymentLineData(
-                    quantity=quantity,
-                    product_name=product_name,
-                    product_sku=product_sku,
-                    variant_id=line_info.variant.id,
-                    gross=unit_gross,
-                )
-            )
-        shipping_amount = manager.calculate_checkout_shipping(
+
+def create_checkout_payment_lines_information(
+    checkout: Checkout, manager: PluginsManager
+) -> List[PaymentLineData]:
+    line_items = []
+    lines = fetch_checkout_lines(checkout)
+    discounts = fetch_active_discounts()
+    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    address = checkout_info.shipping_address or checkout_info.billing_address
+
+    for line_info in lines:
+        total = checkout_line_total(
+            manager=manager,
             checkout_info=checkout_info,
             lines=lines,
-            address=address,
+            checkout_line_info=line_info,
             discounts=discounts,
-        ).gross.amount
+        )
+        unit_price = manager.calculate_checkout_line_unit_price(
+            total,
+            line_info.line.quantity,
+            checkout_info,
+            lines,
+            line_info,
+            address,
+            discounts,
+        )
+        unit_gross = unit_price.gross.amount
 
-        line_items.append(create_shipping_payment_line_data(amount=shipping_amount))
-
-        voucher_line_item = create_checkout_voucher_payment_line_data(checkout)
-        if voucher_line_item:
-            line_items.append(voucher_line_item)
-
-    elif order:
-        for order_line in order.lines.all():
-            product_name = f"{order_line.product_name}, {order_line.variant_name}"
-
-            variant_id = order_line.variant_id
-            if variant_id is None:
-                continue
-
-            line_items.append(
-                PaymentLineData(
-                    quantity=order_line.quantity,
-                    product_name=product_name,
-                    product_sku=order_line.product_sku,
-                    variant_id=variant_id,
-                    gross=order_line.unit_price_gross_amount,
-                )
+        quantity = line_info.line.quantity
+        product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"
+        product_sku = line_info.variant.sku
+        line_items.append(
+            PaymentLineData(
+                quantity=quantity,
+                product_name=product_name,
+                product_sku=product_sku,
+                variant_id=line_info.variant.id,
+                gross=unit_gross,
             )
+        )
+    shipping_amount = manager.calculate_checkout_shipping(
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
+        discounts=discounts,
+    ).gross.amount
+
+    line_items.append(create_shipping_payment_line_data(amount=shipping_amount))
+
+    voucher_line_item = create_checkout_voucher_payment_line_data(checkout)
+    if voucher_line_item:
+        line_items.append(voucher_line_item)
+
+    return line_items
+
+
+def create_order_payment_lines_information(order: Order) -> List[PaymentLineData]:
+    line_items = []
+    for order_line in order.lines.all():
+        product_name = f"{order_line.product_name}, {order_line.variant_name}"
+
+        variant_id = order_line.variant_id
+        if variant_id is None:
+            continue
 
         line_items.append(
-            create_shipping_payment_line_data(amount=order.shipping_price_gross_amount)
+            PaymentLineData(
+                quantity=order_line.quantity,
+                product_name=product_name,
+                product_sku=order_line.product_sku,
+                variant_id=variant_id,
+                gross=order_line.unit_price_gross_amount,
+            )
         )
 
-        voucher_line_item = create_order_voucher_payment_line_data(order)
-        if voucher_line_item:
-            line_items.append(voucher_line_item)
+    line_items.append(
+        create_shipping_payment_line_data(amount=order.shipping_price_gross_amount)
+    )
+
+    voucher_line_item = create_order_voucher_payment_line_data(order)
+    if voucher_line_item:
+        line_items.append(voucher_line_item)
 
     return line_items
 

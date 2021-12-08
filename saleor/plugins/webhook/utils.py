@@ -5,12 +5,13 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 import graphene
+from django.conf import settings
 from django.core.cache import cache
 from django.db.models import QuerySet
 
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ..base_plugin import ExcludedShippingMethod
-from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
+from .const import CACHE_EXCLUDED_SHIPPING_TIME
 from .tasks import _get_webhooks_for_event, send_webhook_request_sync
 
 if TYPE_CHECKING:
@@ -174,7 +175,7 @@ def get_excluded_shipping_methods_or_fetch(
             webhook.secret_key,
             event_type,
             payload,
-            timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+            timeout=settings.WEBHOOK_EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
         )
         # TODO handle a case when we didn't receive a proper response
         if response_data:

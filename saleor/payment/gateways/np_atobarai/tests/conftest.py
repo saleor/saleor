@@ -6,7 +6,7 @@ import pytest
 from .....plugins.manager import get_plugins_manager
 from .....plugins.models import PluginConfiguration
 from ....interface import AddressData, PaymentLineData
-from .. import get_api_config
+from ..api_types import get_api_config
 from ..const import (
     FILL_MISSING_ADDRESS,
     MERCHANT_CODE,

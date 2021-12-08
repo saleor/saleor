@@ -8,7 +8,9 @@ class GiftCardsByUserLoader(DataLoader):
     context_key = "gift_cards_by_user"
 
     def batch_load(self, keys):
-        gift_cards = GiftCard.objects.filter(user_id__in=keys)
+        gift_cards = GiftCard.objects.using(self.database_connection_name).filter(
+            user_id__in=keys
+        )
         gift_cards_by_user_map = defaultdict(list)
         for gift_card in gift_cards:
             gift_cards_by_user_map[gift_card.user_id].append(gift_card)

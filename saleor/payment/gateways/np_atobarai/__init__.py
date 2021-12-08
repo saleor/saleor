@@ -4,10 +4,11 @@ from typing import List
 
 from ....order.models import Fulfillment
 from ... import PaymentError, TransactionKind
-from ...interface import GatewayConfig, GatewayResponse, PaymentData
+from ...interface import GatewayResponse, PaymentData
 from ...models import Payment
 from . import api
-from .api_types import ApiConfig, PaymentStatus, get_api_config
+from .api_types import ApiConfig, PaymentStatus
+from .const import NP_PLUGIN_ID
 from .utils import (
     get_fulfillment_for_order,
     get_payment_name,
@@ -18,20 +19,14 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 
-def inject_api_config(fun):
-    def inner(payment_information: PaymentData, config: GatewayConfig):
-        return fun(payment_information, get_api_config(config.connection_params))
-
-    return inner
-
-
 def parse_errors(errors: List[str]) -> str:
-    # FIXME: better solution?
-    #  Transaction.error in database has max_length of 256
-    return os.linesep.join(errors)[:256]
+    # Field error of Transaction db model has max length of 256
+    # Error codes have max length of 11
+    # We are limiting errors to maximum of 11 codes, because:
+    # 11 * 11 + 10 * 2 (max length of linesep) == 141 < 256
+    return os.linesep.join(errors[:11])
 
 
-@inject_api_config
 def process_payment(
     payment_information: PaymentData, config: ApiConfig
 ) -> GatewayResponse:
@@ -39,7 +34,11 @@ def process_payment(
     payment = Payment.objects.filter(pk=payment_id).first()
 
     if not payment:
-        raise PaymentError(f"Payment with id {payment_id} does not exist.")
+        logger.error(
+            "Payment with id %s does not exist",
+            payment_information.graphql_payment_id,
+        )
+        raise PaymentError("Payment does not exist.")
 
     result = api.register_transaction(payment.order, config, payment_information)
 
@@ -56,24 +55,17 @@ def process_payment(
     )
 
 
-@inject_api_config
 def capture(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
     raise NotImplementedError
 
 
-@inject_api_config
 def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
     raise NotImplementedError
 
 
-@inject_api_config
 def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None:
-    from .plugin import NPAtobaraiGatewayPlugin
-
     order = fulfillment.order
-    payments = order.payments.filter(
-        gateway=NPAtobaraiGatewayPlugin.PLUGIN_ID, is_active=True
-    )
+    payments = order.payments.filter(gateway=NP_PLUGIN_ID, is_active=True)
 
     if payments:
         results = [
@@ -92,15 +84,12 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
             )
         elif errors:
             error = ", ".join(errors)
-            logger.warning(
-                "Could not capture %s in NP Atobarai: %s", payment_name, error
-            )
+            logger.warning(f"Could not capture {payment_name} in NP Atobarai: {error}")
             notify_dashboard(order, f"Capture Error for {payment_name}")
         else:
             notify_dashboard(order, f"Captured {payment_name}")
 
 
-@inject_api_config
 def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
     payment_id = payment_information.payment_id
     payment = Payment.objects.filter(pk=payment_id).first()
@@ -124,7 +113,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
 
         if not result:
             fulfillment = get_fulfillment_for_order(order)
-            shipping_company_code = get_shipping_company_code(fulfillment)
+            shipping_company_code = get_shipping_company_code(config, fulfillment)
             tracking_number = fulfillment.tracking_number
             result = api.reregister_transaction_for_partial_return(
                 config,
