@@ -64,6 +64,7 @@ class TaxType:
 class TaxLineData:
     id: int
     currency: str
+    tax_rate: Decimal
     unit_net_amount: Decimal
     unit_gross_amount: Decimal
     total_gross_amount: Decimal
@@ -79,4 +80,5 @@ class TaxData:
     subtotal_gross_amount: Decimal
     shipping_price_gross_amount: Decimal
     shipping_price_net_amount: Decimal
+    shipping_tax_rate: Decimal
     lines: List[TaxLineData]

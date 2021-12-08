@@ -214,19 +214,23 @@ def _check_new_checkout_address(checkout, address, address_type):
     return has_address_changed, remove_old_address
 
 
-def change_billing_address_in_checkout(checkout, address):
+def change_billing_address_in_checkout(checkout, address) -> List[str]:
     """Save billing address in checkout if changed.
 
     Remove previously saved address if not connected to any user.
+    This function does not save anything to database and
+    instead returns updated fields.
     """
     changed, remove = _check_new_checkout_address(
         checkout, address, AddressType.BILLING
     )
+    updated_fields = []
     if changed:
         if remove:
             checkout.billing_address.delete()
         checkout.billing_address = address
-        checkout.save(update_fields=["billing_address", "last_change"])
+        updated_fields = ["billing_address", "last_change"]
+    return updated_fields
 
 
 def change_shipping_address_in_checkout(
@@ -235,15 +239,18 @@ def change_shipping_address_in_checkout(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     manager: "PluginsManager",
-):
+) -> List[str]:
     """Save shipping address in checkout if changed.
 
     Remove previously saved address if not connected to any user.
+    This function does not save anything to database and
+    instead returns updated fields.
     """
     checkout = checkout_info.checkout
     changed, remove = _check_new_checkout_address(
         checkout, address, AddressType.SHIPPING
     )
+    updated_fields = []
     if changed:
         if remove:
             checkout.shipping_address.delete()  # type: ignore
@@ -251,7 +258,8 @@ def change_shipping_address_in_checkout(
         update_checkout_info_shipping_address(
             checkout_info, address, lines, discounts, manager
         )
-        checkout.save(update_fields=["shipping_address", "last_change"])
+        updated_fields = ["shipping_address", "last_change"]
+    return updated_fields
 
 
 def _get_shipping_voucher_discount_for_checkout(

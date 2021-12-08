@@ -1,4 +1,3 @@
-import sys
 from decimal import Decimal
 from operator import itemgetter
 from unittest.mock import ANY
@@ -136,12 +135,6 @@ def test_serialize_checkout_lines(
         )
         price = line.unit_price
         assert price.net != price.gross
-        print(
-            f"{taxes_calculated = } "
-            f"unit gross = {line.unit_price_gross_amount} "
-            f"voucher = {checkout.discount} ",
-            file=sys.stderr,
-        )
         assert data == {
             "id": graphene.Node.to_global_id("CheckoutLine", line.pk),
             "sku": variant.sku,

@@ -747,7 +747,6 @@ def test_generate_checkout_payload(
         },
         "included_taxes_in_price": taxes_included,
         "lines": serialize_checkout_lines(checkout),
-        "voucher_amount": str(checkout.discount_amount),
         "subtotal_net_amount": str(subtotal.net.amount),
         "subtotal_gross_amount": str(subtotal.gross.amount),
         "total_net_amount": str(total.net.amount),

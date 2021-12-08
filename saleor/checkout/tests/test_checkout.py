@@ -1033,8 +1033,12 @@ def test_change_address_in_checkout(checkout, address):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    change_shipping_address_in_checkout(checkout_info, address, lines, [], manager)
-    change_billing_address_in_checkout(checkout, address)
+
+    shipping_updated_fields = change_shipping_address_in_checkout(
+        checkout_info, address, lines, [], manager
+    )
+    billing_updated_fields = change_billing_address_in_checkout(checkout, address)
+    checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address == address
@@ -1050,8 +1054,12 @@ def test_change_address_in_checkout_to_none(checkout, address):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    change_shipping_address_in_checkout(checkout_info, None, lines, [], manager)
-    change_billing_address_in_checkout(checkout, None)
+
+    shipping_updated_fields = change_shipping_address_in_checkout(
+        checkout_info, None, lines, [], manager
+    )
+    billing_updated_fields = change_billing_address_in_checkout(checkout, None)
+    checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address is None
@@ -1069,8 +1077,12 @@ def test_change_address_in_checkout_to_same(checkout, address):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    change_shipping_address_in_checkout(checkout_info, address, lines, [], manager)
-    change_billing_address_in_checkout(checkout, address)
+
+    shipping_updated_fields = change_shipping_address_in_checkout(
+        checkout_info, address, lines, [], manager
+    )
+    billing_updated_fields = change_billing_address_in_checkout(checkout, address)
+    checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address.id == shipping_address_id
@@ -1088,10 +1100,12 @@ def test_change_address_in_checkout_to_other(checkout, address):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    change_shipping_address_in_checkout(
+
+    shipping_updated_fields = change_shipping_address_in_checkout(
         checkout_info, other_address, lines, [], manager
     )
-    change_billing_address_in_checkout(checkout, other_address)
+    billing_updated_fields = change_billing_address_in_checkout(checkout, other_address)
+    checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address == other_address
@@ -1113,10 +1127,12 @@ def test_change_address_in_checkout_from_user_address_to_other(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    change_shipping_address_in_checkout(
+
+    shipping_updated_fields = change_shipping_address_in_checkout(
         checkout_info, other_address, lines, [], manager
     )
-    change_billing_address_in_checkout(checkout, other_address)
+    billing_updated_fields = change_billing_address_in_checkout(checkout, other_address)
+    checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address == other_address

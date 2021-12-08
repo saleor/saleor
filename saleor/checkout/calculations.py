@@ -1,15 +1,16 @@
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple
+from decimal import Decimal
+from typing import TYPE_CHECKING, Iterable, Optional
 
 from django.conf import settings
 from django.utils import timezone
+from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxLineData, zero_taxed_money
+from ..core.taxes import TaxData, zero_taxed_money
 from ..discount import DiscountInfo
 from .models import Checkout
 
 if TYPE_CHECKING:
-    from prices import TaxedMoney
 
     from ..account.models import Address
     from ..plugins.manager import PluginsManager
@@ -137,6 +138,10 @@ def checkout_line_unit_price(
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo],
 ) -> "TaxedMoney":
+    """Return the unit price of provided line, taxes included.
+
+    It takes in account all plugins.
+    """
     address = checkout_info.shipping_address or checkout_info.billing_address
     return (
         fetch_checkout_prices_if_expired(
@@ -151,6 +156,22 @@ def checkout_line_unit_price(
     )
 
 
+def force_taxes_recalculation(
+    checkout_info: "CheckoutInfo",
+    manager: "PluginsManager",
+    lines: Iterable["CheckoutLineInfo"],
+    address: Optional["Address"] = None,
+    discounts: Optional[Iterable["DiscountInfo"]] = None,
+) -> None:
+    """Fetch checkout prices with taxes.
+
+    Prices will be updated without taking into consideration price_expiration.
+    """
+    fetch_checkout_prices_if_expired(
+        checkout_info, manager, lines, address, discounts, force_update=True
+    )
+
+
 def fetch_checkout_prices_if_expired(
     checkout_info: "CheckoutInfo",
     manager: "PluginsManager",
@@ -159,6 +180,14 @@ def fetch_checkout_prices_if_expired(
     discounts: Optional[Iterable["DiscountInfo"]] = None,
     force_update: bool = False,
 ) -> "Checkout":
+    """Fetch checkout prices with taxes.
+
+    Apply checkout prices with taxes from plugins and
+    if available, apply them from webhooks.
+
+    Prices can be updated only if force_update == True, or if time elapsed from the
+    last price update is greater than settings.CHECKOUT_PRICES_TTL.
+    """
     checkout = checkout_info.checkout
 
     if not force_update and checkout.price_expiration < timezone.now():
@@ -199,42 +228,43 @@ def fetch_checkout_prices_if_expired(
     return checkout
 
 
-def _zip_checkout_and_tax_lines(
-    lines: Iterable["CheckoutLineInfo"],
-    tax_data: TaxData,
-) -> Iterable[Tuple["CheckoutLineInfo", TaxLineData]]:
-    tax_lines = {line.id: line for line in tax_data.lines}
-    return ((line_info, tax_lines[line_info.variant.id]) for line_info in lines)
-
-
 def _apply_tax_data(
     checkout: "Checkout", lines: Iterable["CheckoutLineInfo"], tax_data: TaxData
 ) -> None:
-    def qp(price):
-        return quantize_price(price, checkout.currency)
+    def create_quantized_taxed_money(net: Decimal, gross: Decimal) -> TaxedMoney:
+        currency = checkout.currency
+        return quantize_price(
+            TaxedMoney(net=Money(net, currency), gross=Money(gross, currency)), currency
+        )
 
-    checkout.total_net_amount = tax_data.total_net_amount
-    checkout.total_gross_amount = tax_data.total_gross_amount
-    checkout.total = qp(checkout.total)
+    checkout.total = create_quantized_taxed_money(
+        net=tax_data.total_net_amount,
+        gross=tax_data.total_gross_amount,
+    )
+    checkout.subtotal = create_quantized_taxed_money(
+        net=tax_data.subtotal_net_amount, gross=tax_data.subtotal_gross_amount
+    )
+    checkout.shipping_price = create_quantized_taxed_money(
+        net=tax_data.shipping_price_net_amount,
+        gross=tax_data.shipping_price_gross_amount,
+    )
 
-    checkout.subtotal_net_amount = tax_data.subtotal_net_amount
-    checkout.subtotal_gross_amount = tax_data.subtotal_gross_amount
-    checkout.subtotal = qp(checkout.subtotal)
+    tax_lines_data = {
+        tax_line_data.id: tax_line_data for tax_line_data in tax_data.lines
+    }
+    zipped_checkout_and_tax_lines = (
+        (line_info, tax_lines_data[line_info.line.id]) for line_info in lines
+    )
 
-    checkout.shipping_price_net_amount = tax_data.shipping_price_net_amount
-    checkout.shipping_price_gross_amount = tax_data.shipping_price_gross_amount
-    checkout.shipping_price = qp(checkout.shipping_price)
-
-    for (line_info, tax_line_data) in _zip_checkout_and_tax_lines(lines, tax_data):
+    for (line_info, tax_line_data) in zipped_checkout_and_tax_lines:
         line = line_info.line
 
-        line.unit_price_net_amount = tax_line_data.unit_net_amount
-        line.unit_price_gross_amount = tax_line_data.unit_gross_amount
-        line.unit_price = qp(line.unit_price)
-
-        line.total_price_net_amount = tax_line_data.total_net_amount
-        line.total_price_gross_amount = tax_line_data.total_gross_amount
-        line.total_price = qp(line.total_price)
+        line.unit_price = create_quantized_taxed_money(
+            net=tax_line_data.unit_net_amount, gross=tax_line_data.unit_gross_amount
+        )
+        line.total_price = create_quantized_taxed_money(
+            net=tax_line_data.total_net_amount, gross=tax_line_data.total_gross_amount
+        )
 
 
 def _apply_tax_data_from_plugins(

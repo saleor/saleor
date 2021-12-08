@@ -38,7 +38,7 @@ from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_quantity_bulk
 from ..warehouse.management import allocate_stocks
 from . import AddressType
-from .calculations import fetch_checkout_prices_if_expired
+from .calculations import force_taxes_recalculation
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
 from .utils import get_voucher_for_checkout
@@ -608,13 +608,11 @@ def complete_checkout(
     :raises ValidationError
     """
 
-    # force recalculation of taxes
-    fetch_checkout_prices_if_expired(
+    force_taxes_recalculation(
         checkout_info=checkout_info,
         manager=manager,
         lines=lines,
         discounts=discounts,
-        force_update=True,
     )
 
     checkout = checkout_info.checkout
