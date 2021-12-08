@@ -34,6 +34,9 @@ class OAuth2Plugin(BasePlugin):
             "value": None,
         },
         {"name": "google_redirect_uri", "value": None},
+        {"name": "facebook_client_id", "value": None},
+        {"name": "facebook_client_secret", "value": None},
+        {"name": "facebook_redirect_uri", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
@@ -57,7 +60,21 @@ class OAuth2Plugin(BasePlugin):
             "help_text": "The URL to redirect to after the user accepts the consent in Google OAuth2",
             "label": "Google Redirect URL",
         },
-        # same for fb,
+        "facebook_client_id": {
+            "type": ConfigurationTypeField.SECRET,
+            "help_text": "Your Google Client ID",
+            "label": "Facebook Client ID",
+        },
+        "facebook_client_secret": {
+            "type": ConfigurationTypeField.SECRET,
+            "help_text": "Google Your Client secret",
+            "label": "Facebook Client Secret",
+        },
+        "facebook_redirect_uri": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "The URL to redirect to after the user accepts the consent in Google OAuth2",
+            "label": "Facebook Redirect URL",
+        },
     }
 
     def get_normalized_config(self):
