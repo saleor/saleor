@@ -25,7 +25,11 @@ class DiscountsByDateTimeLoader(DataLoader):
 
     def batch_load(self, keys):
         sales_map = {
-            datetime: list(Sale.objects.active(datetime).order_by("id"))
+            datetime: list(
+                Sale.objects.using(self.database_connection_name)
+                .active(datetime)
+                .order_by("id")
+            )
             for datetime in keys
         }
         pks = {s.pk for d, ss in sales_map.items() for s in ss}
@@ -57,9 +61,11 @@ class SaleChannelListingBySaleIdAndChanneSlugLoader(DataLoader):
     def batch_load(self, keys):
         sale_ids = [key[0] for key in keys]
         channel_slugs = [key[1] for key in keys]
-        sale_channel_listings = SaleChannelListing.objects.filter(
-            sale_id__in=sale_ids, channel__slug__in=channel_slugs
-        ).annotate(channel_slug=F("channel__slug"))
+        sale_channel_listings = (
+            SaleChannelListing.objects.using(self.database_connection_name)
+            .filter(sale_id__in=sale_ids, channel__slug__in=channel_slugs)
+            .annotate(channel_slug=F("channel__slug"))
+        )
         sale_channel_listings_by_sale_and_channel_map = {}
         for sale_channel_listing in sale_channel_listings:
             key = (sale_channel_listing.sale_id, sale_channel_listing.channel_slug)
@@ -71,7 +77,9 @@ class SaleChannelListingBySaleIdLoader(DataLoader):
     context_key = "salechannelisting_by_sale"
 
     def batch_load(self, keys):
-        sale_channel_listings = SaleChannelListing.objects.filter(sale_id__in=keys)
+        sale_channel_listings = SaleChannelListing.objects.using(
+            self.database_connection_name
+        ).filter(sale_id__in=keys)
         sale_channel_listings_by_sale_map = defaultdict(list)
         for sale_channel_listing in sale_channel_listings:
             sale_channel_listings_by_sale_map[sale_channel_listing.sale_id].append(
@@ -84,7 +92,7 @@ class VoucherByIdLoader(DataLoader):
     context_key = "voucher_by_id"
 
     def batch_load(self, keys):
-        vouchers = Voucher.objects.in_bulk(keys)
+        vouchers = Voucher.objects.using(self.database_connection_name).in_bulk(keys)
         return [vouchers.get(voucher_id) for voucher_id in keys]
 
 
@@ -94,9 +102,11 @@ class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):
     def batch_load(self, keys):
         voucher_ids = [key[0] for key in keys]
         channel_slugs = [key[1] for key in keys]
-        voucher_channel_listings = VoucherChannelListing.objects.filter(
-            voucher_id__in=voucher_ids, channel__slug__in=channel_slugs
-        ).annotate(channel_slug=F("channel__slug"))
+        voucher_channel_listings = (
+            VoucherChannelListing.objects.using(self.database_connection_name)
+            .filter(voucher_id__in=voucher_ids, channel__slug__in=channel_slugs)
+            .annotate(channel_slug=F("channel__slug"))
+        )
         voucher_channel_listings_by_voucher_and_channel_map = {}
         for voucher_channel_listing in voucher_channel_listings:
             key = (
@@ -115,9 +125,9 @@ class VoucherChannelListingByVoucherIdLoader(DataLoader):
     context_key = "voucherchannellisting_by_voucher"
 
     def batch_load(self, keys):
-        voucher_channel_listings = VoucherChannelListing.objects.filter(
-            voucher_id__in=keys
-        )
+        voucher_channel_listings = VoucherChannelListing.objects.using(
+            self.database_connection_name
+        ).filter(voucher_id__in=keys)
         voucher_channel_listings_by_voucher_map = defaultdict(list)
         for voucher_channel_listing in voucher_channel_listings:
             voucher_channel_listings_by_voucher_map[
@@ -132,7 +142,9 @@ class OrderDiscountsByOrderIDLoader(DataLoader):
     context_key = "orderdiscounts_by_order_id"
 
     def batch_load(self, keys):
-        discounts = OrderDiscount.objects.filter(order_id__in=keys)
+        discounts = OrderDiscount.objects.using(self.database_connection_name).filter(
+            order_id__in=keys
+        )
         discount_map = defaultdict(list)
         for discount in discounts:
             discount_map[discount.order_id].append(discount)
