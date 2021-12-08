@@ -1442,6 +1442,14 @@ query getCheckout($token: UUID!) {
             translation (languageCode: PL) {
                 name
             }
+            metadata {
+                key
+                value
+            }
+            privateMetadata {
+                key
+                value
+            }
         }
     }
 }
@@ -1449,32 +1457,52 @@ query getCheckout($token: UUID!) {
 
 
 def test_checkout_available_shipping_methods(
-    api_client, checkout_with_item, address, shipping_zone
+    staff_api_client,
+    checkout_with_item,
+    address,
+    shipping_zone,
+    permission_manage_shipping,
 ):
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
+    shipping_method = shipping_zone.shipping_methods.first()
+    test_key = "test_key"
+    metadata = {test_key: "Ryan"}
+    private_metadata = {test_key: "private_Ryan"}
+    shipping_method.metadata = metadata
+    shipping_method.private_metadata = private_metadata
+    shipping_method.save()
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
-    response = api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    shipping_method = shipping_zone.shipping_methods.first()
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
+    response_metadata = data["availableShippingMethods"][0]["metadata"][0]
+    assert response_metadata["key"] == test_key
+    assert response_metadata["value"] == metadata[test_key]
+    response_private_metadata = data["availableShippingMethods"][0]["privateMetadata"][
+        0
+    ]
+    assert response_private_metadata["key"] == test_key
+    assert response_private_metadata["value"] == private_metadata[test_key]
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
 def test_checkout_available_shipping_methods_with_weight_based_shipping_method(
-    api_client,
+    staff_api_client,
     checkout_with_item,
     address,
     shipping_method_weight_based,
     minimum_order_weight_value,
+    permission_manage_shipping,
 ):
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
-
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
     shipping_method = shipping_method_weight_based
     if minimum_order_weight_value is not None:
         weight = Weight(kg=minimum_order_weight_value)
@@ -1489,7 +1517,7 @@ def test_checkout_available_shipping_methods_with_weight_based_shipping_method(
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
-    response = api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
@@ -1498,10 +1526,15 @@ def test_checkout_available_shipping_methods_with_weight_based_shipping_method(
 
 
 def test_checkout_available_shipping_methods_weight_method_with_higher_minimal_weigh(
-    api_client, checkout_with_item, address, shipping_method_weight_based
+    staff_api_client,
+    checkout_with_item,
+    address,
+    shipping_method_weight_based,
+    permission_manage_shipping,
 ):
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     shipping_method = shipping_method_weight_based
     weight_value = 5
@@ -1517,7 +1550,7 @@ def test_checkout_available_shipping_methods_weight_method_with_higher_minimal_w
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
-    response = api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
@@ -1526,15 +1559,20 @@ def test_checkout_available_shipping_methods_weight_method_with_higher_minimal_w
 
 
 def test_checkout_available_shipping_methods_shipping_zone_without_channels(
-    api_client, checkout_with_item, address, shipping_zone
+    staff_api_client,
+    checkout_with_item,
+    address,
+    shipping_zone,
+    permission_manage_shipping,
 ):
     shipping_zone.channels.clear()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
-    response = api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
@@ -1542,8 +1580,13 @@ def test_checkout_available_shipping_methods_shipping_zone_without_channels(
 
 
 def test_checkout_available_shipping_methods_excluded_postal_codes(
-    api_client, checkout_with_item, address, shipping_zone
+    staff_api_client,
+    checkout_with_item,
+    address,
+    shipping_zone,
+    permission_manage_shipping,
 ):
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
     address.country = Country("GB")
     address.postal_code = "BH16 7HF"
     address.save()
@@ -1554,7 +1597,7 @@ def test_checkout_available_shipping_methods_excluded_postal_codes(
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
-    response = api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
     assert data["availableShippingMethods"] == []
@@ -1569,12 +1612,14 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     expected_price,
     display_gross_prices,
     monkeypatch,
-    api_client,
+    staff_api_client,
+    permission_manage_shipping,
     checkout_with_item,
     address,
     shipping_zone,
     site_settings,
 ):
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_price = shipping_method.channel_listings.get(
         channel_id=checkout_with_item.channel_id
@@ -1596,7 +1641,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
 
     variables = {"token": checkout_with_item.token}
-    response = api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
