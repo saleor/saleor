@@ -143,7 +143,8 @@ class Address(CountableDjangoObjectType):
         return result
 
 
-class CustomerEvent(CountableDjangoObjectType):
+class CustomerEvent(graphene.ObjectType):
+    id = graphene.ID(required=True)
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
     )
@@ -161,9 +162,11 @@ class CustomerEvent(CountableDjangoObjectType):
 
     class Meta:
         description = "History log of the customer."
-        model = models.CustomerEvent
         interfaces = [relay.Node]
-        only_fields = ["id"]
+
+    @staticmethod
+    def resolve_id(root: models.CustomerEvent, _):
+        return graphene.Node.to_global_id("CustomerEvent", root.id)
 
     @staticmethod
     def resolve_user(root: models.CustomerEvent, info):
@@ -467,7 +470,7 @@ class AddressValidationData(graphene.ObjectType):
     postal_code_prefix = graphene.String()
 
 
-class StaffNotificationRecipient(CountableDjangoObjectType):
+class StaffNotificationRecipient(graphene.ObjectType):
     user = graphene.Field(
         User,
         description="Returns a user subscribed to email notifications.",
@@ -489,7 +492,6 @@ class StaffNotificationRecipient(CountableDjangoObjectType):
         )
         interfaces = [relay.Node]
         model = models.StaffNotificationRecipient
-        only_fields = ["user", "active"]
 
     @staticmethod
     def resolve_user(root: models.StaffNotificationRecipient, info):

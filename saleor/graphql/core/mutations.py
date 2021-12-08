@@ -92,6 +92,7 @@ def attach_error_params(error, params: dict, error_class_fields: set):
 class ModelMutationOptions(MutationOptions):
     exclude = None
     model = None
+    object_type = None
     return_field_name = None
 
 
@@ -371,6 +372,7 @@ class ModelMutation(BaseMutation):
         model=None,
         exclude=None,
         return_field_name=None,
+        object_type=None,
         _meta=None,
         **options,
     ):
@@ -388,6 +390,7 @@ class ModelMutation(BaseMutation):
             arguments = {}
 
         _meta.model = model
+        _meta.object_type = object_type
         _meta.return_field_name = return_field_name
         _meta.exclude = exclude
         super().__init_subclass_with_meta__(_meta=_meta, **options)
@@ -484,6 +487,9 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def get_type_for_model(cls):
+        if cls._meta.object_type:
+            return cls._meta.object_type
+
         return registry.get_type_for_model(cls._meta.model)
 
     @classmethod

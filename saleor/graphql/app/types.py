@@ -115,16 +115,19 @@ class Manifest(graphene.ObjectType):
         description = "The manifest definition."
 
 
-class AppToken(CountableDjangoObjectType):
+class AppToken(graphene.ObjectType):
+    id = graphene.ID(required=True)
     name = graphene.String(description="Name of the authenticated token.")
     auth_token = graphene.String(description="Last 4 characters of the token.")
 
     class Meta:
         description = "Represents token data."
-        model = models.AppToken
         interfaces = [graphene.relay.Node]
         permissions = (AppPermission.MANAGE_APPS,)
-        only_fields = ["name", "auth_token"]
+
+    @staticmethod
+    def resolve_id(root: models.AppToken, _):
+        return graphene.Node.to_global_id("AppToken", root.id)
 
     @staticmethod
     def resolve_auth_token(root: models.AppToken, _info, **_kwargs):
