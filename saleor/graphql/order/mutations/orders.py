@@ -210,10 +210,17 @@ class OrderUpdate(DraftOrderCreate):
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
         instance.save()
+
+        invalid_price_fields = ["shipping_address", "billing_address"]
+        invalidate_prices = any(
+            cleaned_input[field] is not None for field in invalid_price_fields
+        )
+
         update_order_prices(
             instance,
             info.context.plugins,
             info.context.site.settings.include_taxes_in_prices,
+            invalidate_prices,
         )
         info.context.plugins.order_updated(instance)
 
@@ -810,7 +817,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             order_lines=lines_to_add,
         )
 
-        recalculate_order(order)
+        recalculate_order(order, invalidate_prices=True)
         return OrderLinesCreate(order=order, order_lines=lines)
 
 
@@ -876,7 +883,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             order_lines=[(line.quantity, line)],
         )
 
-        recalculate_order(order)
+        recalculate_order(order, invalidate_prices=True)
         return OrderLineDelete(order=order, order_line=line)
 
 
@@ -943,7 +950,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 "Cannot set new quantity because of insufficient stock.",
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
             )
-        recalculate_order(instance.order)
+        recalculate_order(instance.order, invalidate_prices=True)
 
     @classmethod
     def success_response(cls, instance):
