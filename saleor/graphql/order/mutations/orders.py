@@ -276,6 +276,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
+        manager = info.context.plugins
         order = cls.get_node_or_error(
             info,
             data.get("id"),
@@ -346,11 +347,9 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         clean_order_update_shipping(order, method)
 
         order.shipping_method = method
-        shipping_price = calculations.order_shipping(order, info.context.plugins)
+        shipping_price = calculations.order_shipping(order, manager)
         order.shipping_price = shipping_price
-        order.shipping_tax_rate = info.context.plugins.get_order_shipping_tax_rate(
-            order, shipping_price
-        )
+        order.shipping_tax_rate = calculations.order_shipping_tax_rate(order, manager)
         order.shipping_method_name = method.name
         order.save(
             update_fields=[
@@ -364,7 +363,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         )
         update_order_prices(
             order,
-            info.context.plugins,
+            manager,
             info.context.site.settings.include_taxes_in_prices,
         )
         # Post-process the results

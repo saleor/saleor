@@ -73,12 +73,8 @@ def fetch_order_prices_if_expired(
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
 ) -> Order:
-    import sys
-
     if not force_update and order.price_expiration_for_unconfirmed < timezone.now():
-        print("not okay", file=sys.stderr)
         return order
-    print("okay", file=sys.stderr)
 
     if lines is None:
         lines = list(order.lines.all())
@@ -144,6 +140,20 @@ def order_line_total(
     )
 
 
+def order_line_tax_rate(
+    order: Order,
+    line: OrderLine,
+    manager: PluginsManager,
+    order_lines: Optional[Iterable[OrderLine]] = None,
+    force_update: bool = False,
+) -> Decimal:
+    return (
+        fetch_order_prices_if_expired(order, manager, order_lines, force_update)
+        .lines.get(pk=line.pk)
+        .tax_rate
+    )
+
+
 def order_shipping(
     order: Order,
     manager: PluginsManager,
@@ -153,3 +163,14 @@ def order_shipping(
     return fetch_order_prices_if_expired(
         order, manager, order_lines, force_update
     ).shipping_price
+
+
+def order_shipping_tax_rate(
+    order: Order,
+    manager: PluginsManager,
+    order_lines: Optional[Iterable[OrderLine]] = None,
+    force_update: bool = False,
+) -> Decimal:
+    return fetch_order_prices_if_expired(
+        order, manager, order_lines, force_update
+    ).shipping_tax_rate

@@ -187,9 +187,6 @@ def recalculate_order_weight(order):
 def update_taxes_for_order_line(
     line: "OrderLine", order: "Order", manager, tax_included
 ):
-    variant = line.variant
-    product = variant.product  # type: ignore
-
     line_price = line.unit_price.gross if tax_included else line.unit_price.net
     line.unit_price = TaxedMoney(line_price, line_price)
 
@@ -204,9 +201,7 @@ def update_taxes_for_order_line(
         else total_price
     )
     if unit_price.tax and unit_price.net:
-        line.tax_rate = manager.get_order_line_tax_rate(
-            order, product, variant, None, unit_price
-        )
+        line.tax_rate = calculations.order_line_tax_rate(order, line, manager)
 
 
 def update_taxes_for_order_lines(
@@ -236,11 +231,8 @@ def update_order_prices(order: Order, manager: "PluginsManager", tax_included: b
     update_taxes_for_order_lines(order.lines.all(), order, manager, tax_included)
 
     if order.shipping_method:
-        shipping_price = calculations.order_shipping(order, manager)
-        order.shipping_price = shipping_price
-        order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
-            order, shipping_price
-        )
+        order.shipping_price = calculations.order_shipping(order, manager)
+        order.shipping_tax_rate = calculations.order_shipping_tax_rate(order, manager)
         order.save(
             update_fields=[
                 "shipping_price_net_amount",
@@ -365,9 +357,7 @@ def add_variant_to_order(
         line.total_price = total_price
         line.undiscounted_unit_price = unit_price
         line.undiscounted_total_price = total_price
-        line.tax_rate = manager.get_order_line_tax_rate(
-            order, product, variant, None, unit_price
-        )
+        line.tax_rate = calculations.order_line_tax_rate(order, line, manager)
         line.save(
             update_fields=[
                 "currency",

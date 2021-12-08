@@ -230,9 +230,8 @@ def test_update_taxes_for_order_lines(mocked_calculations, order_with_lines):
     tax_rate = Decimal("0.23")
     mocked_calculations.order_line_unit = Mock(return_value=unit_price)
     mocked_calculations.order_line_total = Mock(return_value=total_price)
-    manager = Mock(
-        get_order_line_tax_rate=Mock(return_value=tax_rate),
-    )
+    mocked_calculations.order_line_tax_rate = Mock(return_value=tax_rate)
+    manager = Mock()
 
     # when
     update_taxes_for_order_lines(
@@ -263,9 +262,8 @@ def test_add_variant_to_order(mocked_calculations, order, customer_user, variant
     tax_rate = Decimal("0.23")
     mocked_calculations.order_line_unit = Mock(return_value=unit_price)
     mocked_calculations.order_line_total = Mock(return_value=total_price)
-    manager = Mock(
-        get_order_line_tax_rate=Mock(return_value=tax_rate),
-    )
+    mocked_calculations.order_line_tax_rate = Mock(return_value=tax_rate)
+    manager = Mock()
     app = None
 
     # when
