@@ -258,6 +258,7 @@ def fetch_checkout_prices_if_expired(
             "subtotal_gross_amount",
             "shipping_price_net_amount",
             "shipping_price_gross_amount",
+            "shipping_tax_rate",
             "price_expiration",
         ]
     )
@@ -269,6 +270,7 @@ def fetch_checkout_prices_if_expired(
             "unit_price_gross_amount",
             "total_price_net_amount",
             "total_price_gross_amount",
+            "tax_rate",
         ],
     )
 
@@ -313,7 +315,7 @@ def _apply_tax_data(
         line.total_price = create_quantized_taxed_money(
             net=tax_line_data.total_net_amount, gross=tax_line_data.total_gross_amount
         )
-        line.tax_rate = tax_line.tax_rate
+        line.tax_rate = tax_line_data.tax_rate
 
 
 def _apply_tax_data_from_plugins(

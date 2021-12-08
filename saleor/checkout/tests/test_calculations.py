@@ -136,20 +136,28 @@ def test_fetch_checkout_prices_if_expired_plugins(
     # given
     manager.get_taxes_for_checkout = Mock(return_value=None)
 
-    unit_prices, totals = zip(
+    unit_prices, totals, tax_rates = zip(
         *[
-            (get_taxed_money(line, "unit"), get_taxed_money(line, "total"))
+            (
+                get_taxed_money(line, "unit"),
+                get_taxed_money(line, "total"),
+                line.tax_rate,
+            )
             for line in tax_data.lines
         ]
     )
     manager.calculate_checkout_line_unit_price = Mock(side_effect=unit_prices)
     manager.calculate_checkout_line_total = Mock(side_effect=totals)
+    manager.get_checkout_line_tax_rate = Mock(side_effect=tax_rates)
 
     subtotal = get_taxed_money(tax_data, "subtotal")
     manager.calculate_checkout_subtotal = Mock(return_value=subtotal)
 
     shipping_price = get_taxed_money(tax_data, "shipping_price")
     manager.calculate_checkout_shipping = Mock(return_value=shipping_price)
+
+    shipping_tax_rate = tax_data.shipping_tax_rate
+    manager.get_checkout_shipping_tax_rate = Mock(return_value=shipping_tax_rate)
 
     total = get_taxed_money(tax_data, "total")
     manager.calculate_checkout_total = Mock(return_value=total)
@@ -161,10 +169,12 @@ def test_fetch_checkout_prices_if_expired_plugins(
     checkout_with_items.refresh_from_db()
     assert checkout_with_items.subtotal == subtotal
     assert checkout_with_items.shipping_price == shipping_price
+    assert checkout_with_items.shipping_tax_rate == shipping_tax_rate
     assert checkout_with_items.total == total
     for checkout_line, tax_line in zip(checkout_with_items.lines.all(), tax_data.lines):
         assert checkout_line.unit_price == get_taxed_money(tax_line, "unit")
         assert checkout_line.total_price == get_taxed_money(tax_line, "total")
+        assert checkout_line.tax_rate == tax_line.tax_rate
 
 
 @freeze_time("2020-12-12 12:00:00")
@@ -186,7 +196,9 @@ def test_fetch_checkout_prices_if_expired_webhooks_success(
     assert checkout_with_items.shipping_price == get_taxed_money(
         tax_data, "shipping_price"
     )
+    assert checkout_with_items.shipping_tax_rate == tax_data.shipping_tax_rate
     assert checkout_with_items.total == get_taxed_money(tax_data, "total")
     for checkout_line, tax_line in zip(checkout_with_items.lines.all(), tax_data.lines):
         assert checkout_line.unit_price == get_taxed_money(tax_line, "unit")
         assert checkout_line.total_price == get_taxed_money(tax_line, "total")
+        assert checkout_line.tax_rate == tax_line.tax_rate
