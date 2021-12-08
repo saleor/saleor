@@ -13,3 +13,7 @@ def get_state_from_qs(info):
 
 def get_uri_for(provider, _for):
     return URI_MAPPING[provider][_for]
+
+
+def normalize_config(config):
+    return {item["name"]: item["value"] for item in config}

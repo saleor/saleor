@@ -8,14 +8,8 @@ from ....account.models import User
 from ....graphql.account.mutations.authentication import CreateToken
 from ....graphql.core.mutations import BaseMutation
 from ..utils import get_oauth_info, get_state_from_qs, get_uri_for
-from .types import OAuth2Error
-
-# from .enums import OAuth2ErrorCode
-
-
-class ProviderEnum(graphene.Enum):
-    Google = "google"
-    FACEBOOK = "facebook"
+from .enums import OAuth2ErrorCode
+from .types import OAuth2Error, ProviderEnum
 
 
 class InitateOAuth2Mutation(BaseMutation):
@@ -77,7 +71,8 @@ class OAuth2CallbackMutation(CreateToken):
 
     @classmethod
     def get_user(cls, _info, auth_response):
-        user_info_url = get_uri_for(auth_response["provider"], "userinfo")
+        provider = auth_response["provider"]
+        user_info_url = get_uri_for(provider, "userinfo")
 
         access_token = auth_response["access_token"]
 
@@ -95,13 +90,13 @@ class OAuth2CallbackMutation(CreateToken):
             except User.DoesNotExist:
                 raise ValidationError(
                     message="No user found with the specified email",
-                    # code=OAuth2ErrorCode.USER_NOT_FOUND, # not working for some reason
+                    code=OAuth2ErrorCode.USER_NOT_FOUND,
                 )
 
         raise ValidationError(
-            message="An error occured while requesting the oauth2 service",
-            # code=OAuth2ErrorCode.USER_NOT_FOUND
-        )  # TODO change "oauth2 service to provider name"
+            message="An error occured while requesting {}".format(provider),
+            code=OAuth2ErrorCode.USER_NOT_FOUND,
+        )
 
     @classmethod
     def perform_mutation(cls, root, info, provider, code, state, **kwargs):
@@ -118,7 +113,9 @@ class OAuth2CallbackMutation(CreateToken):
                 state=state,
             )
         except OAuthError:
-            raise ValidationError("Invalid state provided")
+            raise ValidationError(
+                "Invalid state provided", code=OAuth2ErrorCode.OAUTH2_ERROR
+            )
 
         try:
             auth_response = session.fetch_token(
@@ -131,7 +128,7 @@ class OAuth2CallbackMutation(CreateToken):
         except OAuthError:
             raise ValidationError(
                 "Invalid authentication details",
-                # code="oauth2_error",  # not working for some reason
+                code=OAuth2ErrorCode.OAUTH2_ERROR,
             )
 
         auth_response["provider"] = provider

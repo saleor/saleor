@@ -7,4 +7,9 @@ OAuth2ErrorCode = graphene.Enum.from_enum(OAuth2ErrorCodeEnum)
 
 
 class OAuth2Error(Error):
-    code = OAuth2ErrorCode(description="The error code.", required=False)
+    code = OAuth2ErrorCode(description="The error code", required=True)
+
+
+class ProviderEnum(graphene.Enum):
+    Google = "google"
+    FACEBOOK = "facebook"
