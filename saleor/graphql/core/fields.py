@@ -6,34 +6,35 @@ from graphene.relay import Connection, is_node
 from .connection import FILTERS_NAME, FILTERSET_CLASS
 
 
-def patch_pagination_args(field: "ConnectionField"):
-    """Add descriptions to pagination arguments in a connection field.
-
-    By default Graphene's connection fields comes without description for pagination
-    arguments. This functions patches those fields to add the descriptions.
-    """
-    field.args["first"].description = "Return the first n elements from the list."
-    field.args["last"].description = "Return the last n elements from the list."
-    field.args[
-        "before"
-    ].description = (
-        "Return the elements in the list that come before the specified cursor."
-    )
-    field.args[
-        "after"
-    ].description = (
-        "Return the elements in the list that come after the specified cursor."
-    )
-
-
 class ConnectionField(graphene.Field):
     def __init__(self, type_, *args, **kwargs):
-        kwargs.setdefault("before", graphene.String())
-        kwargs.setdefault("after", graphene.String())
-        kwargs.setdefault("first", graphene.Int())
-        kwargs.setdefault("last", graphene.Int())
+        kwargs.setdefault(
+            "before",
+            graphene.String(
+                description=(
+                    "Return the elements in the list that come before "
+                    "the specified cursor."
+                )
+            ),
+        )
+        kwargs.setdefault(
+            "after",
+            graphene.String(
+                description=(
+                    "Return the elements in the list that come after "
+                    "the specified cursor."
+                )
+            ),
+        )
+        kwargs.setdefault(
+            "first",
+            graphene.Int(description="Return the first n elements from the list."),
+        )
+        kwargs.setdefault(
+            "last",
+            graphene.Int(description="Return the last n elements from the list."),
+        )
         super().__init__(type_, *args, **kwargs)
-        patch_pagination_args(self)
 
     @property
     def type(self):
