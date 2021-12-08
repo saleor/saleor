@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 from prices import Money, TaxedMoney
@@ -218,7 +218,8 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
     assert valid_shipping_methods is None
 
 
-def test_update_taxes_for_order_lines(order_with_lines):
+@patch("saleor.order.utils.calculations")
+def test_update_taxes_for_order_lines(mocked_calculations, order_with_lines):
     # given
     line_with_discount = order_with_lines.lines.first()
     line_with_discount.unit_discount_amount = Decimal("2.00")
@@ -227,9 +228,9 @@ def test_update_taxes_for_order_lines(order_with_lines):
     unit_price = TaxedMoney(net=Money("10.23", "USD"), gross=Money("15.80", "USD"))
     total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
     tax_rate = Decimal("0.23")
+    mocked_calculations.order_line_unit = Mock(return_value=unit_price)
+    mocked_calculations.order_line_total = Mock(return_value=total_price)
     manager = Mock(
-        calculate_order_line_unit=Mock(return_value=unit_price),
-        calculate_order_line_total=Mock(return_value=total_price),
         get_order_line_tax_rate=Mock(return_value=tax_rate),
     )
 
@@ -254,14 +255,15 @@ def test_update_taxes_for_order_lines(order_with_lines):
             )
 
 
-def test_add_variant_to_order(order, customer_user, variant):
+@patch("saleor.order.utils.calculations")
+def test_add_variant_to_order(mocked_calculations, order, customer_user, variant):
     # given
     unit_price = TaxedMoney(net=Money("10.23", "USD"), gross=Money("15.80", "USD"))
     total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
     tax_rate = Decimal("0.23")
+    mocked_calculations.order_line_unit = Mock(return_value=unit_price)
+    mocked_calculations.order_line_total = Mock(return_value=total_price)
     manager = Mock(
-        calculate_order_line_unit=Mock(return_value=unit_price),
-        calculate_order_line_total=Mock(return_value=total_price),
         get_order_line_tax_rate=Mock(return_value=tax_rate),
     )
     app = None

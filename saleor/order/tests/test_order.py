@@ -96,8 +96,14 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     assert line.product_name == str(variant.product)
 
 
+@patch("saleor.order.utils.calculations")
 def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
-    order_with_lines, product, product_translation_fr, settings, info
+    mocked_calculations,
+    order_with_lines,
+    product,
+    product_translation_fr,
+    settings,
+    info,
 ):
     order = order_with_lines
     variant = product.variants.get()
@@ -105,9 +111,9 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
     settings.LANGUAGE_CODE = "fr"
     unit_price = TaxedMoney(net=Money(8, "USD"), gross=Money(10, "USD"))
     total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
+    mocked_calculations.order_line_unit = Mock(return_value=unit_price)
+    mocked_calculations.order_line_total = Mock(return_value=total_price)
     manager = Mock(
-        calculate_order_line_unit=Mock(return_value=unit_price),
-        calculate_order_line_total=Mock(return_value=total_price),
         get_order_line_tax_rate=Mock(return_value=0.25),
     )
 
@@ -521,9 +527,13 @@ def test_queryset_ready_to_capture(channel_USD):
     assert OrderStatus.CANCELED not in statuses
 
 
+@patch("saleor.plugins.manager.PluginsManager.get_order_shipping_tax_rate")
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
 def test_update_order_prices(
-    mocked_calculate_order_line_unit, order_with_lines, site_settings
+    mocked_calculate_order_line_unit,
+    mocked_get_order_shipping_tax_rate,
+    order_with_lines,
+    site_settings,
 ):
     manager = get_plugins_manager()
     channel = order_with_lines.channel
@@ -531,6 +541,7 @@ def test_update_order_prices(
     address.country = "DE"
     address.save()
 
+    tax_rate = Decimal("1.23")
     line_1 = order_with_lines.lines.first()
     variant_1 = line_1.variant
     product_1 = variant_1.product
@@ -538,7 +549,7 @@ def test_update_order_prices(
     price_1 = variant_1.get_price(
         product_1, [], channel, variant_channel_listing_1, None
     )
-    price_1 = TaxedMoney(net=price_1, gross=price_1 * Decimal("1.23"))
+    price_1 = TaxedMoney(net=price_1, gross=price_1 * tax_rate)
 
     line_2 = order_with_lines.lines.last()
     variant_2 = line_2.variant
@@ -547,14 +558,16 @@ def test_update_order_prices(
     price_2 = variant_2.get_price(
         product_2, [], channel, variant_channel_listing_2, None
     )
-    price_2 = TaxedMoney(net=price_2, gross=price_2)
+    price_2 = TaxedMoney(net=price_2, gross=price_2 * tax_rate)
 
     mocked_calculate_order_line_unit.side_effect = [price_1, price_2]
 
     shipping_price = order_with_lines.shipping_method.channel_listings.get(
         channel_id=order_with_lines.channel_id
     ).price
-    shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
+    shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price * tax_rate)
+
+    mocked_get_order_shipping_tax_rate.return_value = tax_rate
 
     update_order_prices(
         order_with_lines, manager, site_settings.include_taxes_in_prices
@@ -565,7 +578,7 @@ def test_update_order_prices(
     assert line_1.unit_price == price_1
     assert line_2.unit_price == price_2
     assert order_with_lines.shipping_price == shipping_price
-    assert order_with_lines.shipping_tax_rate == Decimal("0.0")
+    assert order_with_lines.shipping_tax_rate == tax_rate
     total = line_1.total_price + line_2.total_price + shipping_price
     assert order_with_lines.total == total
 

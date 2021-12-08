@@ -12,18 +12,18 @@ from saleor.plugins.manager import PluginsManager
 
 
 def _apply_tax_data_from_plugins(
-    manager: PluginsManager, order: Order, order_lines: Iterable[OrderLine]
+    manager: PluginsManager, order: Order, lines: Iterable[OrderLine]
 ):
-    for line in order_lines:
+    for line in lines:
         variant = line.variant
         if not variant:
             continue
         product = variant.product
 
-        line.total_price = manager.calculate_order_line_total(
+        line.unit_price = manager.calculate_order_line_unit(
             order, line, variant, product
         )
-        line.unit_price = manager.calculate_order_line_unit(
+        line.total_price = manager.calculate_order_line_total(
             order, line, variant, product
         )
         line.tax_rate = manager.get_order_line_tax_rate(
@@ -70,25 +70,25 @@ def _apply_tax_data(
 def fetch_order_prices_if_expired(
     order: Order,
     manager: PluginsManager,
-    order_lines: Optional[Iterable[OrderLine]] = None,
+    lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
 ) -> Order:
+    import sys
+
     if not force_update and order.price_expiration_for_unconfirmed < timezone.now():
+        print("not okay", file=sys.stderr)
         return order
+    print("okay", file=sys.stderr)
 
-    if order_lines is None:
-        order_lines = order.lines.all()
+    if lines is None:
+        lines = list(order.lines.all())
 
-    _apply_tax_data_from_plugins(
-        manager,
-        order,
-        order_lines,
-    )
+    _apply_tax_data_from_plugins(manager, order, lines)
 
     tax_data = manager.get_taxes_for_order(order)
 
     if tax_data:
-        _apply_tax_data(order, order_lines, tax_data)
+        _apply_tax_data(order, lines, tax_data)
 
     order.price_expiration_for_unconfirmed = timezone.now() + settings.ORDER_PRICES_TTL
 
@@ -96,16 +96,14 @@ def fetch_order_prices_if_expired(
         update_fields=[
             "total_net_amount",
             "total_gross_amount",
-            "subtotal_net_amount",
-            "subtotal_gross_amount",
             "shipping_price_net_amount",
             "shipping_price_gross_amount",
             "shipping_tax_rate",
-            "price_expiration",
+            "price_expiration_for_unconfirmed",
         ]
     )
     order.lines.bulk_update(
-        order_lines,
+        lines,
         [
             "unit_price_net_amount",
             "unit_price_gross_amount",
