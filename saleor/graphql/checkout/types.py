@@ -447,6 +447,7 @@ class Checkout(CountableDjangoObjectType):
             subtotal = manager.calculate_checkout_subtotal(
                 checkout_info, lines, address, discounts
             )
+            subtotal -= checkout_info.checkout.discount
             if not address:
                 return []
             available = get_valid_shipping_methods_for_checkout(
