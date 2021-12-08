@@ -1,7 +1,15 @@
+from decimal import Decimal
 from operator import itemgetter
 from unittest.mock import ANY
 
-from ..serializers import serialize_product_or_variant_attributes
+import graphene
+import pytest
+
+from ...checkout.models import CheckoutLine
+from ..serializers import (
+    serialize_checkout_lines,
+    serialize_product_or_variant_attributes,
+)
 
 
 def test_serialize_product_attributes(
@@ -62,3 +70,83 @@ def test_serialize_product_attributes(
             "value": "",
         },
     ]
+
+
+@pytest.mark.parametrize(
+    "taxes_included, taxes_calculated",
+    [
+        (True, True),
+        (True, False),
+        (False, True),
+        (False, False),
+    ],
+)
+def test_serialize_checkout_lines(
+    checkout_with_items_for_cc, taxes_included, taxes_calculated, site_settings
+):
+    # given
+    site_settings.include_taxes_in_prices = taxes_included
+    site_settings.save()
+    checkout = checkout_with_items_for_cc
+    channel = checkout.channel
+    checkout_lines = list(
+        checkout.lines.prefetch_related(
+            "variant__product__collections",
+            "variant__channel_listings__channel",
+            "variant__product__product_type",
+        )
+    )
+    for line in checkout_lines:
+        line.currency = (channel.currency_code,)
+        line.unit_price_net_amount = Decimal("10.00")
+        if taxes_calculated:
+            line.unit_price_gross_amount = Decimal("12.30")
+
+    CheckoutLine.objects.bulk_update(
+        checkout_lines,
+        fields=[
+            "currency",
+            "unit_price_net_amount",
+            "unit_price_gross_amount",
+        ],
+    )
+
+    # when
+    checkout_lines_data = serialize_checkout_lines(checkout)
+
+    # then
+    checkout_with_items_for_cc.refresh_from_db()
+    data_len = 0
+    for data, line in zip(checkout_lines_data, checkout_with_items_for_cc.lines.all()):
+        variant = line.variant
+        product = variant.product
+        collections = list(product.collections.all())
+        variant_channel_listing = None
+
+        for channel_listing in line.variant.channel_listings.all():
+            if channel_listing.channel_id == checkout.channel_id:
+                variant_channel_listing = channel_listing
+
+        if not variant_channel_listing:
+            continue
+
+        base_price = variant.get_price(
+            product, collections, channel, variant_channel_listing
+        )
+        price = line.unit_price
+        assert price.net != price.gross
+        assert data == {
+            "id": graphene.Node.to_global_id("CheckoutLine", line.pk),
+            "sku": variant.sku,
+            "quantity": line.quantity,
+            "charge_taxes": product.charge_taxes,
+            "base_price": str(base_price.amount),
+            "price_net_amount": str(line.unit_price_net_amount),
+            "price_gross_amount": str(line.unit_price_gross_amount),
+            "currency": channel.currency_code,
+            "full_name": variant.display_product(),
+            "product_name": product.name,
+            "variant_name": variant.name,
+        }
+        data_len += 1
+    assert len(checkout_lines_data) == data_len
