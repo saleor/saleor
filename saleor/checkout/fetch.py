@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import singledispatch
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
 
 from django.utils.encoding import smart_text
 from django.utils.functional import SimpleLazyObject
@@ -65,26 +65,12 @@ class DeliveryMethodBase:
     shipping_address: Optional["Address"] = None
 
     @property
-    def warehouse_pk(self) -> Optional[str]:
-        pass
-
-    @property
     def delivery_method_order_field(self) -> dict:
         return {"shipping_method": self.delivery_method}
 
     @property
-    def is_local_collection_point(self) -> bool:
-        return False
-
-    @property
     def delivery_method_name(self) -> Dict[str, Optional[str]]:
         return {"shipping_method_name": None}
-
-    def get_warehouse_filter_lookup(self) -> Dict[str, Any]:
-        return {}
-
-    def is_valid_delivery_method(self) -> bool:
-        return False
 
     def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
         return False
@@ -104,9 +90,6 @@ class ShippingMethodInfo(DeliveryMethodBase):
         if not self.delivery_method.is_external:
             return {"shipping_method_id": self.delivery_method.id}
         return {}
-
-    def is_valid_delivery_method(self) -> bool:
-        return bool(self.shipping_address)
 
     def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
         valid_delivery_methods = checkout_info.valid_shipping_methods
