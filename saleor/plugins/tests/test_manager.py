@@ -1038,3 +1038,10 @@ def test_run_check_payment_balance_not_implemented(channel_USD):
 
     manager = PluginsManager(plugins=plugins)
     assert not manager.check_payment_balance({}, "main")
+
+
+def test_manager_delivery_retry(event_delivery):
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+    manager = PluginsManager(plugins=plugins)
+    delivery_retry = manager.event_delivery_retry(event_delivery=event_delivery)
+    assert delivery_retry
