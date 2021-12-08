@@ -55,9 +55,12 @@ def calculate_base_price_for_shipping_method(
 
     # Base price does not yet contain tax information,
     # which can be later applied by tax plugins
-    return TaxedMoney(
-        net=shipping_method.price,
-        gross=shipping_method.price,
+    return quantize_price(
+        TaxedMoney(
+            net=shipping_method.price,
+            gross=shipping_method.price,
+        ),
+        checkout_info.checkout.currency,
     )
 
 
