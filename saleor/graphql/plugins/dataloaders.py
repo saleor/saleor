@@ -10,7 +10,9 @@ class EmailTemplatesByPluginConfigurationLoader(DataLoader):
     context_key = "email_template_by_plugin_configuration"
 
     def batch_load(self, keys):
-        email_templates = EmailTemplate.objects.filter(plugin_configuration_id__in=keys)
+        email_templates = EmailTemplate.objects.using(
+            self.database_connection_name
+        ).filter(plugin_configuration_id__in=keys)
 
         config_to_template = defaultdict(list)
         for et in email_templates:
