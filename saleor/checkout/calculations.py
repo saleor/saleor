@@ -278,36 +278,40 @@ def fetch_checkout_prices_if_expired(
 def _apply_tax_data(
     checkout: "Checkout", lines: Iterable["CheckoutLineInfo"], tax_data: TaxData
 ) -> None:
-    def qp(net: Decimal, gross: Decimal) -> TaxedMoney:
+    def create_quantized_taxed_money(net: Decimal, gross: Decimal) -> TaxedMoney:
         currency = checkout.currency
         return quantize_price(
             TaxedMoney(net=Money(net, currency), gross=Money(gross, currency)), currency
         )
 
-    checkout.total = qp(
+    checkout.total = create_quantized_taxed_money(
         net=tax_data.total_net_amount,
         gross=tax_data.total_gross_amount,
     )
-    checkout.subtotal = qp(
+    checkout.subtotal = create_quantized_taxed_money(
         net=tax_data.subtotal_net_amount, gross=tax_data.subtotal_gross_amount
     )
-    checkout.shipping_price = qp(
+    checkout.shipping_price = create_quantized_taxed_money(
         net=tax_data.shipping_price_net_amount,
         gross=tax_data.shipping_price_gross_amount,
     )
     checkout.shipping_tax_rate = tax_data.shipping_tax_rate
 
-    tax_lines = {line1.id: line1 for line1 in tax_data.lines}
-    zipped_checkout_and_tax_lines = ((info, tax_lines[info.line.id]) for info in lines)
+    tax_lines_data = {
+        tax_line_data.id: tax_line_data for tax_line_data in tax_data.lines
+    }
+    zipped_checkout_and_tax_lines = (
+        (line_info, tax_lines_data[line_info.line.id]) for line_info in lines
+    )
 
-    for (line_info, tax_line) in zipped_checkout_and_tax_lines:
+    for (line_info, tax_line_data) in zipped_checkout_and_tax_lines:
         line = line_info.line
 
-        line.unit_price = qp(
-            net=tax_line.unit_net_amount, gross=tax_line.unit_gross_amount
+        line.unit_price = create_quantized_taxed_money(
+            net=tax_line_data.unit_net_amount, gross=tax_line_data.unit_gross_amount
         )
-        line.total_price = qp(
-            net=tax_line.total_net_amount, gross=tax_line.total_gross_amount
+        line.total_price = create_quantized_taxed_money(
+            net=tax_line_data.total_net_amount, gross=tax_line_data.total_gross_amount
         )
         line.tax_rate = tax_line.tax_rate
 
