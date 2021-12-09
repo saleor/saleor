@@ -357,9 +357,11 @@ class BasePlugin:
     invoice_delete: Callable[["Invoice", Any], Any]
 
     #  Trigger when invoice creation starts.
-    #
+    #  May return Invoice object.
     #  Overwrite to create invoice with proper data, call invoice.update_invoice.
-    invoice_request: Callable[["Order", "Invoice", Union[str, NoneType], Any], Any]
+    invoice_request: Callable[
+        ["Order", "Invoice", Union[str, NoneType], Any], Optional["Invoice"]
+    ]
 
     #  Trigger after invoice is sent.
     invoice_sent: Callable[["Invoice", str, Any], Any]
@@ -668,3 +670,6 @@ class BasePlugin:
         previous_value,
     ) -> List[ExcludedShippingMethod]:
         return NotImplemented
+
+    def is_event_active(self, event: str, channel=Optional[str]):
+        return hasattr(self, event)

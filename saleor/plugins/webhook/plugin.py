@@ -24,7 +24,11 @@ from ...webhook.payloads import (
 )
 from ..base_plugin import BasePlugin, ExcludedShippingMethod, ShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_KEY
-from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
+from .tasks import (
+    _get_webhooks_for_event,
+    trigger_webhook_sync,
+    trigger_webhooks_for_event,
+)
 from .utils import (
     from_payment_app_id,
     get_excluded_shipping_data,
@@ -459,3 +463,8 @@ class WebhookPlugin(BasePlugin):
             payload_fun=payload_function,
             cache_key=cache_key,
         )
+
+    def is_event_active(self, event: str, channel=Optional[str]):
+        map_event = {"invoice_request": WebhookEventType.INVOICE_REQUESTED}
+        webhooks = _get_webhooks_for_event(event_type=map_event[event])
+        return any(webhooks)
