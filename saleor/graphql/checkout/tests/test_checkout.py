@@ -71,6 +71,20 @@ def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
     assert is_valid_method is True
 
 
+def test_clean_delivery_method_with_preorder_is_valid_for_enabled_warehouse(
+    checkout_with_preorders_only, address, warehouses_for_cc
+):
+    checkout = checkout_with_preorders_only
+    checkout.shipping_address = address
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    is_valid_method = clean_delivery_method(checkout_info, lines, warehouses_for_cc[1])
+
+    assert is_valid_method is True
+
+
 def test_clean_delivery_method_does_nothing_if_no_shipping_method(
     checkout_with_single_item, address, other_shipping_method
 ):

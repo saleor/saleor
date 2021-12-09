@@ -39,6 +39,11 @@ class WarehouseQueryset(models.QuerySet):
         This method should be used only if stocks quantity will be checked in further
         validation steps, for instance in checkout completion.
         """
+        if all(
+            line.variant.is_preorder_active()
+            for line in lines_qs.select_related("variant").only("variant_id")
+        ):
+            return self.for_country(country)
 
         stocks_qs = Stock.objects.filter(
             product_variant__id__in=lines_qs.values("variant_id"),
