@@ -38,6 +38,7 @@ from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_quantity_bulk
 from ..warehouse.management import allocate_stocks
 from . import AddressType
+from .calculations import force_taxes_recalculation
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
 from .utils import get_voucher_for_checkout
@@ -169,21 +170,19 @@ def _create_line_for_order(
     if translated_variant_name == variant_name:
         translated_variant_name = ""
 
-    total_line_price = manager.calculate_checkout_line_total(
-        checkout_info,
-        lines,
-        checkout_line_info,
-        address,
-        discounts,
+    total_line_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=checkout_line_info,
+        discounts=discounts,
     )
-    unit_price = manager.calculate_checkout_line_unit_price(
-        total_line_price,
-        quantity,
-        checkout_info,
-        lines,
-        checkout_line_info,
-        address,
-        discounts,
+    unit_price = calculations.checkout_line_unit_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=checkout_line_info,
+        discounts=discounts,
     )
     tax_rate = manager.get_checkout_line_tax_rate(
         checkout_info, lines, checkout_line_info, address, discounts, unit_price
@@ -305,8 +304,12 @@ def _prepare_order_data(
     taxed_total = max(taxed_total, zero_taxed_money(checkout.currency))
     undiscounted_total = taxed_total + checkout.discount
 
-    shipping_total = manager.calculate_checkout_shipping(
-        checkout_info, lines, address, discounts
+    shipping_total = calculations.checkout_shipping_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
+        discounts=discounts,
     )
     shipping_tax_rate = manager.get_checkout_shipping_tax_rate(
         checkout_info, lines, address, discounts, shipping_total
@@ -338,7 +341,13 @@ def _prepare_order_data(
     # assign gift cards to the order
 
     order_data["total_price_left"] = (
-        manager.calculate_checkout_subtotal(checkout_info, lines, address, discounts)
+        calculations.checkout_subtotal(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            address=address,
+            discounts=discounts,
+        )
         + shipping_total
         - checkout.discount
     ).gross
@@ -598,6 +607,14 @@ def complete_checkout(
     for thread race.
     :raises ValidationError
     """
+
+    force_taxes_recalculation(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        discounts=discounts,
+    )
+
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
     payment = checkout.get_last_active_payment()

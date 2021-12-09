@@ -251,6 +251,10 @@ def generate_checkout_payload(checkout: "Checkout"):
         "email",
         "quantity",
         "currency",
+        "subtotal_net_amount",
+        "subtotal_gross_amount",
+        "total_net_amount",
+        "total_gross_amount",
         "discount_amount",
         "discount_name",
         "private_metadata",
@@ -272,7 +276,8 @@ def generate_checkout_payload(checkout: "Checkout"):
         },
         extra_dict_data={
             # Casting to list to make it json-serializable
-            "lines": list(lines_dict_data),
+            "included_taxes_in_price": include_taxes_in_prices(),
+            "lines": lines_dict_data,
             "collection_point": json.loads(
                 _generate_collection_point_payload(checkout.collection_point)
             )[0]
