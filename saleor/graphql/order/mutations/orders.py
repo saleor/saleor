@@ -213,7 +213,7 @@ class OrderUpdate(DraftOrderCreate):
 
         invalid_price_fields = ["shipping_address", "billing_address"]
         invalidate_prices = any(
-            cleaned_input[field] is not None for field in invalid_price_fields
+            cleaned_input.get(field) is not None for field in invalid_price_fields
         )
 
         update_order_prices(

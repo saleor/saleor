@@ -10,9 +10,6 @@ def invalidate_order_prices(order: Order, *, save: bool) -> List[str]:
     if order.status not in {OrderStatus.DRAFT, OrderStatus.UNCONFIRMED}:
         return []
 
-    # if all(cleaned_input[field] is None for field in invalid_price_fields):
-    #     return []
-
     order.price_expiration_for_unconfirmed = timezone.now()
     updated_fields = ["price_expiration_for_unconfirmed"]
     if not save:

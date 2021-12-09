@@ -354,7 +354,7 @@ class DraftOrderUpdate(DraftOrderCreate):
 
     @classmethod
     def invalidate_prices(cls, instance, cleaned_input) -> bool:
-        invalid_price_fields = ["shipping_address", "billing_address", "lines"]
+        invalid_price_fields = ["shipping_address", "billing_address"]
         return any(
             cleaned_input.get(field) is not None for field in invalid_price_fields
         )
