@@ -626,6 +626,10 @@ def sum_order_totals(qs, currency_code):
 def get_valid_shipping_methods_for_order(
     order: Order, shipping_channel_listings: Iterable["ShippingMethodChannelListing"]
 ) -> List[ShippingMethodData]:
+    """Return a list of shipping methods according to Saleor's own business logic.
+
+    The resulting methods are not yet filtered by plugins.
+    """
     if not order.is_shipping_required():
         return []
 

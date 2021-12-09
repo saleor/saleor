@@ -284,6 +284,10 @@ def update_checkout_info_delivery_method_info(
     collection_point: Optional[Warehouse],
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
 ):
+    """Update delivery_method_attribute for CheckoutInfo.
+
+    The attribute is lazy-evaluated avoid external API calls unless accessed.
+    """
     from .utils import get_external_shipping_id
 
     delivery_method: Optional[Union[ShippingMethodData, Warehouse, Callable]] = None
@@ -342,7 +346,7 @@ def update_checkout_info_shipping_address(
     )
 
 
-def get_valid_saleor_shipping_method_list_for_checkout_info(
+def get_valid_internal_shipping_method_list_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
@@ -391,10 +395,18 @@ def update_delivery_method_lists_for_checkout_info(
     manager: "PluginsManager",
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
 ):
+    """Update the list of shipping methods for checkout info.
+
+    Shipping methods excluded by Saleor's own business logic are not present
+    in the result list.
+
+    Availability of shipping methods according to plugins is indicated
+    by the `active` field.
+    """
     checkout_info.all_shipping_methods = SimpleLazyObject(
         lambda: list(
             itertools.chain(
-                get_valid_saleor_shipping_method_list_for_checkout_info(
+                get_valid_internal_shipping_method_list_for_checkout_info(
                     checkout_info,
                     shipping_address,
                     lines,
