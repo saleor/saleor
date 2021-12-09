@@ -11,5 +11,5 @@ class OAuth2Error(Error):
 
 
 class ProviderEnum(graphene.Enum):
-    Google = "google"
+    GOOGLE = "google"
     FACEBOOK = "facebook"
