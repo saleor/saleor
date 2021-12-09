@@ -3,53 +3,6 @@
 import django.contrib.postgres.indexes
 from django.db import migrations, models
 
-BATCH_SIZE = 10000
-
-
-def set_search_document(apps, schema_editor):
-    User = apps.get_model("account", "User")
-
-    users = []
-    for user in User.objects.iterator():
-        user.search_document = prepare_search_document_value(user)
-        users.append(user)
-
-    User.objects.bulk_update(users, ["search_document"], batch_size=BATCH_SIZE)
-
-
-def prepare_search_document_value(user):
-    search_document = "\n".join(
-        [
-            getattr(user, field)
-            for field in ["email", "first_name", "last_name"]
-            if getattr(user, field)
-        ]
-    )
-    if search_document:
-        search_document += "\n"
-
-    for address in user.addresses.all():
-        for field in [
-            "first_name",
-            "last_name",
-            "street_address_1",
-            "street_address_2",
-            "city",
-            "postal_code",
-            "country",
-            "phone",
-        ]:
-            if field == "country":
-                search_document += (
-                    address.country.name + "\n" + address.country.code + "\n"
-                )
-            else:
-                search_document += str(getattr(address, field)) + "\n"
-
-    search_document = search_document.lower()
-
-    return search_document
-
 
 class Migration(migrations.Migration):
 
@@ -63,7 +16,6 @@ class Migration(migrations.Migration):
             name="search_document",
             field=models.TextField(blank=True, default=""),
         ),
-        migrations.RunPython(set_search_document, migrations.RunPython.noop),
         migrations.RemoveIndex(
             model_name="user",
             name="user_search_gin",

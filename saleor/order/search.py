@@ -17,19 +17,18 @@ def update_order_search_document(order: "Order"):
     order.save(update_fields=["search_document"])
 
 
-def prepare_order_search_document_value(order: "Order"):
+def prepare_order_search_document_value(order: "Order", *, already_prefetched=False):
+    if not already_prefetched:
+        prefetch_related_objects(
+            [order],
+            "user",
+            "billing_address",
+            "shipping_address",
+            "payments",
+            "discounts",
+            "lines",
+        )
     search_document = f"#{str(order.id)}\n"
-
-    prefetch_related_objects(
-        [order],
-        "user",
-        "billing_address",
-        "shipping_address",
-        "payments",
-        "discounts",
-        "lines",
-    )
-
     user_data = order.user_email + "\n"
     if user := order.user:
         user_data += generate_user_fields_search_document_value(user)
