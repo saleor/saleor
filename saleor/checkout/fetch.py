@@ -254,6 +254,14 @@ def get_shipping_method_list_for_checkout_info(
     manager: "PluginsManager",
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
 ):
+    """Return a list of shipping methods for checkout info.
+
+    Shipping methods excluded by Saleor's own business logic are not present
+    in the result list.
+
+    Availability of shipping methods according to plugins is indicated
+    by the `active` field.
+    """
     methods = get_valid_saleor_shipping_method_list_for_checkout_info(
         checkout_info,
         shipping_address,

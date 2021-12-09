@@ -10,6 +10,7 @@ def annotate_active_shipping_methods(
     shipping_methods: List[ShippingMethodData],
     excluded_methods: List[ExcludedShippingMethod],
 ):
+    """Assign availability status based on the response from plugins."""
     for instance in shipping_methods:
         instance.active = True
         instance.message = ""
