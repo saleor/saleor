@@ -210,14 +210,12 @@ def create_payment_information(
         checkout_token = order.checkout_token
         checkout_metadata = None
     else:
-        billing, shipping, email, user_id, checkout_token, checkout_metadata = (
-            None,
-            None,
-            payment.billing_email,
-            None,
-            "",
-            None,
-        )
+        billing = None
+        shipping = None
+        email = payment.billing_email
+        user_id = None
+        checkout_token = ""
+        checkout_metadata = None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
