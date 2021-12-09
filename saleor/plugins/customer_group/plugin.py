@@ -1,8 +1,10 @@
+from django.core.exceptions import ValidationError
+
+from saleor.plugins.models import PluginConfiguration
+
+from ...graphql.views import GraphQLView
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from .graphql.schema import schema
-from ...graphql.views import GraphQLView
-from django.core.exceptions import ValidationError
-from saleor.plugins.models import PluginConfiguration
 
 
 class CustomerGroupPlugin(BasePlugin):

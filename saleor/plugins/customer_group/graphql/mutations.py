@@ -1,12 +1,11 @@
-from typing import DefaultDict, List, Dict
+from typing import DefaultDict, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
 
-from .. import models
 from ....graphql.core.mutations import BaseMutation, ModelMutation
 from ....graphql.core.types.common import AppError
-
+from .. import models
 from .types import CustomerGroupType
 
 
@@ -75,9 +74,6 @@ class BaseCustomerGroupListingMutation(BaseMutation):
             customer_groups_to_add = cls.get_nodes_or_error(  # type: ignore
                 add_groups_ids, "customer_group_id", CustomerGroupType
             )
-        remove_groups_pks = cls.get_global_ids_or_error(
-            remove_groups_ids, CustomerGroupType, field="remove_groups"
-        )
 
         cleaned_input = {input_source: [], "remove_groups": remove_groups_ids}
 

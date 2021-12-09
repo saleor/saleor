@@ -1,4 +1,5 @@
 from graphene_django import DjangoObjectType
+
 from saleor.plugins.customer_group.models import CustomerGroup
 
 

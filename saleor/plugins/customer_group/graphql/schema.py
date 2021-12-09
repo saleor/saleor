@@ -1,7 +1,7 @@
 import graphene
+
 from saleor.graphql.core.utils import from_global_id_or_error
 from saleor.plugins.customer_group.graphql.types import CustomerGroupType
-
 from saleor.plugins.customer_group.models import CustomerGroup
 
 from .mutations import (
