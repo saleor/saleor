@@ -200,13 +200,24 @@ def create_payment_information(
         shipping = checkout.shipping_address
         email = checkout.get_customer_email()
         user_id = checkout.user_id
-    elif payment.order:
-        billing = payment.order.billing_address
-        shipping = payment.order.shipping_address
-        email = payment.order.user_email
-        user_id = payment.order.user_id
+        checkout_token = str(checkout.token)
+        checkout_metadata = checkout.metadata
+    elif order := payment.order:
+        billing = order.billing_address
+        shipping = order.shipping_address
+        email = order.user_email
+        user_id = order.user_id
+        checkout_token = order.checkout_token
+        checkout_metadata = None
     else:
-        billing, shipping, email, user_id = None, None, payment.billing_email, None
+        billing, shipping, email, user_id, checkout_token, checkout_metadata = (
+            None,
+            None,
+            payment.billing_email,
+            None,
+            "",
+            None,
+        )
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
@@ -238,6 +249,8 @@ def create_payment_information(
         _resolve_lines=lambda: create_payment_lines_information(
             payment, manager or get_plugins_manager()
         ),
+        checkout_token=checkout_token,
+        checkout_metadata=checkout_metadata,
     )
 
 
