@@ -450,6 +450,7 @@ class AddressCreate(ModelMutation):
     class Meta:
         description = "Creates user address."
         model = models.Address
+        object_type = Address
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -474,6 +475,7 @@ class AddressUpdate(BaseAddressUpdate):
     class Meta:
         description = "Updates an address."
         model = models.Address
+        object_type = Address
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -483,6 +485,7 @@ class AddressDelete(BaseAddressDelete):
     class Meta:
         description = "Deletes an address."
         model = models.Address
+        object_type = Address
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"

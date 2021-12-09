@@ -29,6 +29,7 @@ from .base import (
     BaseAddressUpdate,
     BaseCustomerCreate,
 )
+from ..types import Address
 
 
 class AccountBaseInput(graphene.InputObjectType):
@@ -303,6 +304,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
     class Meta:
         description = "Create a new address for the customer."
         model = models.Address
+        object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -341,6 +343,7 @@ class AccountAddressUpdate(BaseAddressUpdate):
     class Meta:
         description = "Updates an address of the logged-in user."
         model = models.Address
+        object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -349,6 +352,7 @@ class AccountAddressDelete(BaseAddressDelete):
     class Meta:
         description = "Delete an address of the logged-in user."
         model = models.Address
+        object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
 

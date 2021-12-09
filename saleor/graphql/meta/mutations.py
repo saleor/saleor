@@ -140,7 +140,12 @@ class BaseMetadataMutation(BaseMutation):
     def get_model_for_type_name(cls, info, type_name):
         if type_name in ["ShippingMethodType", "ShippingMethod"]:
             return shipping_models.ShippingMethod
+
         graphene_type = info.schema.get_type(type_name).graphene_type
+
+        if hasattr(graphene_type, "get_model"):
+            return graphene_type.get_model()
+
         return graphene_type._meta.model
 
     @classmethod

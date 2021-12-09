@@ -116,7 +116,7 @@ class Manifest(graphene.ObjectType):
 
 
 class AppToken(graphene.ObjectType):
-    id = graphene.ID(required=True)
+    id = graphene.GlobalID(required=True)
     name = graphene.String(description="Name of the authenticated token.")
     auth_token = graphene.String(description="Last 4 characters of the token.")
 
@@ -126,8 +126,11 @@ class AppToken(graphene.ObjectType):
         permissions = (AppPermission.MANAGE_APPS,)
 
     @staticmethod
-    def resolve_id(root: models.AppToken, _):
-        return graphene.Node.to_global_id("AppToken", root.id)
+    def get_node(info, id):
+        try:
+            return models.AppToken.objects.get(pk=id)
+        except models.AppToken.DoesNotExist:
+            return None
 
     @staticmethod
     def resolve_auth_token(root: models.AppToken, _info, **_kwargs):
@@ -190,6 +193,10 @@ class App(CountableDjangoObjectType):
             "id",
             "tokens",
         ]
+
+    @staticmethod
+    def get_model():
+        return models.App
 
     @staticmethod
     def resolve_permissions(root: models.App, _info, **_kwargs):

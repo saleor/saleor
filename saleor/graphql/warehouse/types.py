@@ -54,6 +54,7 @@ class WarehouseUpdateInput(WarehouseInput):
 
 
 class Warehouse(CountableDjangoObjectType):
+    address = graphene.Field("saleor.graphql.account.types.Address", required=True)
     company_name = graphene.String(
         required=True,
         description="Warehouse company name.",
@@ -78,7 +79,11 @@ class Warehouse(CountableDjangoObjectType):
             "id",
             "name",
             "slug",
+<<<<<<< HEAD
             "address",
+=======
+            "shipping_zones",
+>>>>>>> 9c0c639e0... Make metadata and federations work with ObjectType
             "email",
             "is_private",
         ]
@@ -100,6 +105,10 @@ class Warehouse(CountableDjangoObjectType):
         slice.edges = edges_with_context
 
         return slice
+
+    @staticmethod
+    def resolve_address(root, info):
+        return AddressByIdLoader(info.context).load(root.address_id)
 
     @staticmethod
     def resolve_company_name(root, info, *_args, **_kwargs):
@@ -187,7 +196,8 @@ class StockCountableConnection(CountableConnection):
         node = Stock
 
 
-class Allocation(CountableDjangoObjectType):
+class Allocation(graphene.ObjectType):
+    id = graphene.GlobalID(required=True)
     quantity = graphene.Int(required=True, description="Quantity allocated for orders.")
     warehouse = graphene.Field(
         Warehouse, required=True, description="The warehouse were items were allocated."
@@ -197,7 +207,13 @@ class Allocation(CountableDjangoObjectType):
         description = "Represents allocation."
         model = models.Allocation
         interfaces = [graphene.relay.Node]
-        only_fields = ["id"]
+
+    @staticmethod
+    def get_node(info, id):
+        try:
+            return models.Allocation.objects.get(pk=id)
+        except models.Allocation.DoesNotExist:
+            return None
 
     @staticmethod
     @one_of_permissions_required(

@@ -324,6 +324,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         model = models.ProductVariant
 
     @staticmethod
+    def get_model():
+        return models.ProductVariant
+
+    @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], info):
         return root.channel_slug
 
@@ -821,6 +825,10 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ]
 
     @staticmethod
+    def get_model():
+        return models.Product
+
+    @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], info):
         return root.channel_slug
 
@@ -1260,6 +1268,10 @@ class ProductType(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    def get_model():
+        return models.ProductType
+
+    @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
         tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
@@ -1415,6 +1427,10 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         model = models.Collection
 
     @staticmethod
+    def get_model():
+        return models.Collection
+
+    @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], info):
         return root.channel_slug
 
@@ -1531,6 +1547,9 @@ class Category(CountableDjangoObjectType):
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Category
 
+    def get_model():
+        return models.Category
+
     @staticmethod
     def resolve_ancestors(root: models.Category, info, **kwargs):
         return create_connection_slice(
@@ -1618,6 +1637,10 @@ class ProductMedia(CountableDjangoObjectType):
         fields = ["alt", "id", "sort_order", "type", "oembed_data"]
         interfaces = [relay.Node]
         model = models.ProductMedia
+
+    @staticmethod
+    def get_model():
+        return models.ProductMedia
 
     @staticmethod
     def resolve_url(root: models.ProductMedia, info, *, size=None):

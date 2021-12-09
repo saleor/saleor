@@ -103,6 +103,10 @@ class PageType(CountableDjangoObjectType):
         only_fields = ["id", "name", "slug"]
 
     @staticmethod
+    def get_model():
+        return models.PageType
+
+    @staticmethod
     def resolve_attributes(root: models.PageType, info):
         return PageAttributesByPageTypeIdLoader(info.context).load(root.pk)
 

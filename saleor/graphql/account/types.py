@@ -55,10 +55,21 @@ class AddressInput(graphene.InputObjectType):
 
 
 @key(fields="id")
-class Address(CountableDjangoObjectType):
+class Address(graphene.ObjectType):
+    id = graphene.GlobalID(required=True)
+    first_name = graphene.String(required=True)
+    last_name = graphene.String(required=True)
+    company_name = graphene.String(required=True)
+    street_address_1 = graphene.String(required=True)
+    street_address_2 = graphene.String(required=True)
+    city = graphene.String(required=True)
+    city_area = graphene.String(required=True)
+    postal_code = graphene.String(required=True)
     country = graphene.Field(
         CountryDisplay, required=True, description="Shop's default country."
     )
+    country_area = graphene.String(required=True)
+    phone = graphene.String()
     is_default_shipping_address = graphene.Boolean(
         required=False, description="Address is user's default shipping address."
     )
@@ -69,21 +80,17 @@ class Address(CountableDjangoObjectType):
     class Meta:
         description = "Represents user address data."
         interfaces = [relay.Node]
-        model = models.Address
-        only_fields = [
-            "city",
-            "city_area",
-            "company_name",
-            "country",
-            "country_area",
-            "first_name",
-            "id",
-            "last_name",
-            "phone",
-            "postal_code",
-            "street_address_1",
-            "street_address_2",
-        ]
+
+    @staticmethod
+    def get_node(info, id):
+        try:
+            return models.Address.objects.get(pk=id)
+        except models.Address.DoesNotExist:
+            return None
+
+    @staticmethod
+    def get_model():
+        return models.Address
 
     @staticmethod
     def resolve_country(root: models.Address, _info):
@@ -144,7 +151,7 @@ class Address(CountableDjangoObjectType):
 
 
 class CustomerEvent(graphene.ObjectType):
-    id = graphene.ID(required=True)
+    id = graphene.GlobalID(required=True)
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
     )
@@ -165,8 +172,11 @@ class CustomerEvent(graphene.ObjectType):
         interfaces = [relay.Node]
 
     @staticmethod
-    def resolve_id(root: models.CustomerEvent, _):
-        return graphene.Node.to_global_id("CustomerEvent", root.id)
+    def get_node(info, id):
+        try:
+            return models.CustomerEvent.objects.get(pk=id)
+        except models.CustomerEvent.DoesNotExist:
+            return None
 
     @staticmethod
     def resolve_user(root: models.CustomerEvent, info):
@@ -279,6 +289,8 @@ class User(CountableDjangoObjectType):
     language_code = graphene.Field(
         LanguageCodeEnum, description="User language code.", required=True
     )
+    default_billing_address = graphene.Field(Address)
+    default_shipping_address = graphene.Field(Address)
 
     class Meta:
         description = "Represents user data."
@@ -286,8 +298,6 @@ class User(CountableDjangoObjectType):
         model = get_user_model()
         only_fields = [
             "date_joined",
-            "default_billing_address",
-            "default_shipping_address",
             "email",
             "first_name",
             "id",
@@ -297,6 +307,10 @@ class User(CountableDjangoObjectType):
             "last_name",
             "note",
         ]
+
+    @staticmethod
+    def get_model():
+        return get_user_model()
 
     @staticmethod
     def resolve_addresses(root: models.User, _info, **_kwargs):
@@ -471,6 +485,7 @@ class AddressValidationData(graphene.ObjectType):
 
 
 class StaffNotificationRecipient(graphene.ObjectType):
+    id = graphene.ID(required=True)
     user = graphene.Field(
         User,
         description="Returns a user subscribed to email notifications.",
@@ -492,6 +507,13 @@ class StaffNotificationRecipient(graphene.ObjectType):
         )
         interfaces = [relay.Node]
         model = models.StaffNotificationRecipient
+
+    @staticmethod
+    def get_node(info, id):
+        try:
+            return models.StaffNotificationRecipient.objects.get(pk=id)
+        except models.StaffNotificationRecipient.DoesNotExist:
+            return None
 
     @staticmethod
     def resolve_user(root: models.StaffNotificationRecipient, info):
@@ -521,6 +543,10 @@ class Group(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = auth_models.Group
         only_fields = ["name", "permissions", "id"]
+
+    @staticmethod
+    def get_model():
+        return auth_models.Group
 
     @staticmethod
     @permission_required(AccountPermissions.MANAGE_STAFF)

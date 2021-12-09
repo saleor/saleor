@@ -260,10 +260,11 @@ class Checkout(CountableDjangoObjectType):
     language_code = graphene.Field(
         LanguageCodeEnum, required=True, description="Checkout language code."
     )
+    billing_address = graphene.Field("saleor.graphql.account.types.Address")
+    shipping_address = graphene.Field("saleor.graphql.account.types.Address")
 
     class Meta:
         only_fields = [
-            "billing_address",
             "created",
             "discount_name",
             "gift_cards",
@@ -271,7 +272,6 @@ class Checkout(CountableDjangoObjectType):
             "last_change",
             "channel",
             "note",
-            "shipping_address",
             "translated_discount_name",
             "user",
             "voucher_code",
