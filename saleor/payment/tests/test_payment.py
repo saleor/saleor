@@ -227,6 +227,16 @@ def test_create_payment_information_for_checkout_token_from_order(payment_dummy,
     assert payment_info.checkout_token == order.checkout_token == token
 
 
+def test_create_payment_information_for_empty_payment(payment_dummy):
+    payment_dummy.order = None
+    payment_dummy.checkout = None
+    payment_dummy.save(update_fields=["order", "checkout"])
+
+    payment_info = create_payment_information(payment_dummy)
+    assert payment_info.checkout_token == ""
+    assert payment_info.checkout_metadata is None
+
+
 def test_create_payment_information_for_checkout_metadata(payment_dummy, checkout):
     metadata = {"test_key": "test_val"}
     checkout.metadata = metadata
