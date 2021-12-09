@@ -14,17 +14,20 @@ if TYPE_CHECKING:
 ASSIGNED_ATTRIBUTE_TYPE = Union["AssignedProductAttribute", "AssignedVariantAttribute"]
 
 PRODUCT_SEARCH_FIELDS = ["name", "description_plaintext"]
+PRODUCT_FIELDS_TO_PREFETCH = [
+    "variants__attributes__values",
+    "variants__attributes__assignment__attribute",
+    "attributes__values",
+    "attributes__assignment__attribute",
+]
 
 
 def update_products_search_document(products: "QuerySet"):
-    products = products.prefetch_related(
-        "variants__attributes__values",
-        "variants__attributes__assignment__attribute",
-        "attributes__values",
-        "attributes__assignment__attribute",
-    )
+    products = products.prefetch_related(*PRODUCT_FIELDS_TO_PREFETCH)
     for product in products:
-        product.search_document = _generate_product_search_document_value(product)
+        product.search_document = prepare_product_search_document_value(
+            product, already_prefetched=True
+        )
 
     Product.objects.bulk_update(products, ["search_document"])
 
@@ -34,18 +37,11 @@ def update_product_search_document(product: "Product"):
     product.save(update_fields=["search_document"])
 
 
-def prepare_product_search_document_value(product: "Product"):
-    prefetch_related_objects(
-        [product],
-        "variants__attributes__values",
-        "variants__attributes__assignment__attribute",
-        "attributes__values",
-        "attributes__assignment__attribute",
-    )
-    return _generate_product_search_document_value(product)
-
-
-def _generate_product_search_document_value(product: "Product"):
+def prepare_product_search_document_value(
+    product: "Product", *, already_prefetched=False
+):
+    if not already_prefetched:
+        prefetch_related_objects([product], *PRODUCT_FIELDS_TO_PREFETCH)
     search_document = generate_product_fields_search_document_value(product)
     search_document += generate_attributes_search_document_value(
         product.attributes.all()
