@@ -3,6 +3,7 @@ from graphene import relay
 
 from ...core.permissions import DiscountPermissions, OrderPermissions
 from ...discount import models
+from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
     ChannelContext,
@@ -10,18 +11,23 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
 )
 from ..core import types
-from ..core.connection import CountableDjangoObjectType
-from ..core.descriptions import ADDED_IN_31
-from ..core.fields import (
-    ChannelContextFilterConnectionField,
-    ChannelQsContext,
-    PrefetchingConnectionField,
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
 )
+from ..core.descriptions import ADDED_IN_31
+from ..core.fields import ConnectionField
 from ..core.scalars import PositiveDecimal
 from ..core.types import Money
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
-from ..product.types import Category, Collection, Product, ProductVariant
+from ..product.types import (
+    CategoryCountableConnection,
+    CollectionCountableConnection,
+    ProductCountableConnection,
+    ProductVariantCountableConnection,
+)
 from ..translations.fields import TranslationField
 from ..translations.types import SaleTranslation, VoucherTranslation
 from .dataloaders import (
@@ -46,17 +52,19 @@ class SaleChannelListing(CountableDjangoObjectType):
 
 
 class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
-    categories = PrefetchingConnectionField(
-        Category, description="List of categories this sale applies to."
+    categories = ConnectionField(
+        CategoryCountableConnection,
+        description="List of categories this sale applies to.",
     )
-    collections = ChannelContextFilterConnectionField(
-        Collection, description="List of collections this sale applies to."
+    collections = ConnectionField(
+        CollectionCountableConnection,
+        description="List of collections this sale applies to.",
     )
-    products = ChannelContextFilterConnectionField(
-        Product, description="List of products this sale applies to."
+    products = ConnectionField(
+        ProductCountableConnection, description="List of products this sale applies to."
     )
-    variants = ChannelContextFilterConnectionField(
-        ProductVariant,
+    variants = ConnectionField(
+        ProductVariantCountableConnection,
         description=f"{ADDED_IN_31} List of product variants this sale applies to.",
     )
     translation = TranslationField(
@@ -82,8 +90,9 @@ class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         only_fields = ["end_date", "id", "name", "start_date", "type"]
 
     @staticmethod
-    def resolve_categories(root: ChannelContext[models.Sale], *_args, **_kwargs):
-        return root.node.categories.all()
+    def resolve_categories(root: ChannelContext[models.Sale], info, *_args, **kwargs):
+        qs = root.node.categories.all()
+        return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
@@ -92,21 +101,26 @@ class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_collections(root: ChannelContext[models.Sale], info, *_args, **_kwargs):
+    def resolve_collections(root: ChannelContext[models.Sale], info, *_args, **kwargs):
         qs = root.node.collections.all()
-        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_products(root: ChannelContext[models.Sale], info, **_kwargs):
+    def resolve_products(root: ChannelContext[models.Sale], info, **kwargs):
         qs = root.node.products.all()
-        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_variants(root: ChannelContext[models.Sale], info, **_kwargs):
+    def resolve_variants(root: ChannelContext[models.Sale], info, **kwargs):
         qs = root.node.variants.all()
-        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        return create_connection_slice(
+            qs, info, kwargs, ProductVariantCountableConnection
+        )
 
     @staticmethod
     def resolve_discount_value(root: ChannelContext[models.Sale], info, **_kwargs):
@@ -139,6 +153,11 @@ class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
 
+class SaleCountableConnection(CountableConnection):
+    class Meta:
+        node = Sale
+
+
 class VoucherChannelListing(CountableDjangoObjectType):
     class Meta:
         description = "Represents voucher channel listing."
@@ -152,17 +171,20 @@ class VoucherChannelListing(CountableDjangoObjectType):
 
 
 class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
-    categories = PrefetchingConnectionField(
-        Category, description="List of categories this voucher applies to."
+    categories = ConnectionField(
+        CategoryCountableConnection,
+        description="List of categories this voucher applies to.",
     )
-    collections = ChannelContextFilterConnectionField(
-        Collection, description="List of collections this voucher applies to."
+    collections = ConnectionField(
+        CollectionCountableConnection,
+        description="List of collections this voucher applies to.",
     )
-    products = ChannelContextFilterConnectionField(
-        Product, description="List of products this voucher applies to."
+    products = ConnectionField(
+        ProductCountableConnection,
+        description="List of products this voucher applies to.",
     )
-    variants = ChannelContextFilterConnectionField(
-        ProductVariant,
+    variants = ConnectionField(
+        ProductVariantCountableConnection,
         description=f"{ADDED_IN_31} List of product variants this voucher applies to.",
     )
     countries = graphene.List(
@@ -215,28 +237,36 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         model = models.Voucher
 
     @staticmethod
-    def resolve_categories(root: ChannelContext[models.Voucher], *_args, **_kwargs):
-        return root.node.categories.all()
+    def resolve_categories(
+        root: ChannelContext[models.Voucher], info, *_args, **kwargs
+    ):
+        qs = root.node.categories.all()
+        return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_collections(
-        root: ChannelContext[models.Voucher], _info, *_args, **_kwargs
+        root: ChannelContext[models.Voucher], info, *_args, **kwargs
     ):
         qs = root.node.collections.all()
-        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_products(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_products(root: ChannelContext[models.Voucher], info, **kwargs):
         qs = root.node.products.all()
-        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_variants(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_variants(root: ChannelContext[models.Voucher], info, **kwargs):
         qs = root.node.variants.all()
-        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        return create_connection_slice(
+            qs, info, kwargs, ProductVariantCountableConnection
+        )
 
     @staticmethod
     def resolve_countries(root: ChannelContext[models.Voucher], *_args, **_kwargs):
@@ -294,6 +324,11 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_channel_listings(root: ChannelContext[models.Voucher], info, **_kwargs):
         return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)
+
+
+class VoucherCountableConnection(CountableConnection):
+    class Meta:
+        node = Voucher
 
 
 class OrderDiscount(CountableDjangoObjectType):
