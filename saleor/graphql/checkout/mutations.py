@@ -616,15 +616,14 @@ class CheckoutLinesAdd(BaseMutation):
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
         input_quantities = group_quantity_by_variants(lines)
 
+        lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
             checkout,
-            [],
+            lines,
             discounts,
             manager,
             fetch_shipping_methods=False,
         )
-
-        lines = fetch_checkout_lines(checkout)
         lines = cls.clean_input(
             info,
             checkout,
