@@ -304,11 +304,14 @@ def populate_checkout_info_shippings(
 
     if not delivery_method:
         external_shipping_method_id = get_external_shipping_id(checkout)
-        external_shipping_methods_map = {
-            external_shipping_method.id: external_shipping_method
-            for external_shipping_method in external_shipping_methods
-        }
-        delivery_method = external_shipping_methods_map.get(external_shipping_method_id)
+        if external_shipping_method_id:
+            external_shipping_methods_map = {
+                external_shipping_method.id: external_shipping_method
+                for external_shipping_method in external_shipping_methods
+            }
+            delivery_method = external_shipping_methods_map.get(
+                external_shipping_method_id
+            )
 
     if delivery_method:
         delivery_method_info = get_delivery_method_info(
