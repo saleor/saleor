@@ -2,7 +2,8 @@ import graphene
 
 from ...core.permissions import PluginsPermissions
 from ...core.tracing import traced_resolver
-from ..core.fields import BaseConnectionField
+from ..core.connection import create_connection_slice
+from ..core.fields import ConnectionField
 from ..decorators import permission_required
 from .filters import PluginFilterInput
 from .mutations import PluginUpdate
@@ -20,7 +21,7 @@ class PluginsQueries(graphene.ObjectType):
         description="Look up a plugin by ID.",
     )
 
-    plugins = BaseConnectionField(
+    plugins = ConnectionField(
         PluginCountableConnection,
         filter=PluginFilterInput(description="Filtering options for plugins."),
         sort_by=PluginSortingInput(description="Sort plugins."),
@@ -35,7 +36,8 @@ class PluginsQueries(graphene.ObjectType):
     @permission_required(PluginsPermissions.MANAGE_PLUGINS)
     @traced_resolver
     def resolve_plugins(self, info, **kwargs):
-        return resolve_plugins(info.context.plugins, **kwargs)
+        qs = resolve_plugins(info.context.plugins, **kwargs)
+        return create_connection_slice(qs, info, kwargs, PluginCountableConnection)
 
 
 class PluginsMutations(graphene.ObjectType):

@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Reserve stocks for checkouts - #7589 by @rafalp
 - Add `variant_selection` to `ProductAttributeAssign` operations - #8235 by @kuchichan
 - Add query complexity limit to GraphQL API - #8526 by rafalp
+- Add `quantity_limit_per_customer` field to ProductVariant #8405 by @kuchichan
 
 # 3.0.0 [Unreleased]
 

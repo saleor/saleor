@@ -464,8 +464,6 @@ type AssignedVariantAttribute {
 
 type Attribute implements Node & ObjectWithMetadata {
   id: ID!
-  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
-  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   inputType: AttributeInputTypeEnum
@@ -483,6 +481,8 @@ type Attribute implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
   storefrontSearchPosition: Int!
   withChoices: Boolean!
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
 }
 
 type AttributeBulkDelete {
@@ -5711,6 +5711,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   sku: String
   product: Product!
   trackInventory: Boolean!
+  quantityLimitPerCustomer: Int
   weight: Weight
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
@@ -5726,7 +5727,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]
-  quantityAvailable(address: AddressInput, countryCode: CountryCode): Int!
+  quantityAvailable(address: AddressInput, countryCode: CountryCode): Int
   preorder: PreorderData
 }
 
@@ -5743,6 +5744,7 @@ input ProductVariantBulkCreateInput {
   trackInventory: Boolean
   weight: WeightScalar
   preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
   stocks: [StockInput!]
   channelListings: [ProductVariantChannelListingAddInput!]
 }
@@ -5798,6 +5800,7 @@ input ProductVariantCreateInput {
   trackInventory: Boolean
   weight: WeightScalar
   preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
   product: ID!
   stocks: [StockInput!]
 }
@@ -5821,6 +5824,7 @@ input ProductVariantInput {
   trackInventory: Boolean
   weight: WeightScalar
   preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
 }
 
 type ProductVariantPreorderDeactivate {
@@ -6457,6 +6461,7 @@ type Shop {
   automaticFulfillmentDigitalProducts: Boolean
   reserveStockDurationAnonymousUser: Int
   reserveStockDurationAuthenticatedUser: Int
+  limitQuantityPerCheckout: Int
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
   companyAddress: Address
@@ -6518,6 +6523,7 @@ input ShopSettingsInput {
   customerSetPasswordUrl: String
   reserveStockDurationAnonymousUser: Int
   reserveStockDurationAuthenticatedUser: Int
+  limitQuantityPerCheckout: Int
 }
 
 type ShopSettingsTranslate {
@@ -7162,7 +7168,6 @@ type Warehouse implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
-  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
   email: String!
   isPrivate: Boolean!
@@ -7170,6 +7175,7 @@ type Warehouse implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   companyName: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Address.companyName` instead.")
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
+  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
 }
 
 enum WarehouseClickAndCollectOptionEnum {
