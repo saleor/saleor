@@ -79,11 +79,6 @@ class Warehouse(CountableDjangoObjectType):
             "id",
             "name",
             "slug",
-<<<<<<< HEAD
-            "address",
-=======
-            "shipping_zones",
->>>>>>> 9c0c639e0... Make metadata and federations work with ObjectType
             "email",
             "is_private",
         ]

@@ -366,6 +366,7 @@ class ShippingPriceTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for a shipping method."
         model = shipping_models.ShippingMethod
+        object_type = shipping_types.ShippingMethodType
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
@@ -400,6 +401,7 @@ class MenuItemTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for a menu item."
         model = menu_models.MenuItem
+        object_type = menu_types.MenuItem
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
