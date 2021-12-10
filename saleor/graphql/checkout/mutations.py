@@ -17,8 +17,7 @@ from ...checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_valid_collection_points_for_checkout_info,
-    update_shipping_method_list_for_checkout_info,
+    update_delivery_method_lists_for_checkout_info,
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -584,7 +583,7 @@ class CheckoutLinesAdd(BaseMutation):
 
         lines = fetch_checkout_lines(checkout)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
-        update_shipping_method_list_for_checkout_info(
+        update_delivery_method_lists_for_checkout_info(
             checkout_info,
             checkout_info.checkout.shipping_method,
             checkout_info.checkout.collection_point,
@@ -593,11 +592,6 @@ class CheckoutLinesAdd(BaseMutation):
             discounts,
             manager,
             shipping_channel_listings,
-        )
-        checkout_info.valid_pick_up_points = (
-            get_valid_collection_points_for_checkout_info(
-                checkout_info.shipping_address, lines, checkout_info
-            )
         )
         return lines
 
@@ -643,7 +637,7 @@ class CheckoutLinesAdd(BaseMutation):
             replace,
         )
 
-        update_shipping_method_list_for_checkout_info(
+        update_delivery_method_lists_for_checkout_info(
             checkout_info,
             checkout_info.checkout.shipping_method,
             checkout_info.checkout.collection_point,
@@ -653,12 +647,6 @@ class CheckoutLinesAdd(BaseMutation):
             manager,
             shipping_channel_listings,
         )
-        checkout_info.valid_pick_up_points = (
-            get_valid_collection_points_for_checkout_info(
-                checkout_info.shipping_address, lines, checkout_info
-            )
-        )
-
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
@@ -1781,7 +1769,7 @@ class CheckoutAddPromoCode(BaseMutation):
             discounts,
         )
 
-        update_shipping_method_list_for_checkout_info(
+        update_delivery_method_lists_for_checkout_info(
             checkout_info,
             checkout_info.checkout.shipping_method,
             checkout_info.checkout.collection_point,

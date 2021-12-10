@@ -252,7 +252,7 @@ def fetch_checkout_info(
         all_shipping_methods=[],
         valid_pick_up_points=[],
     )
-    update_shipping_method_list_for_checkout_info(
+    update_delivery_method_lists_for_checkout_info(
         checkout_info,
         checkout.shipping_method,
         checkout.collection_point,
@@ -262,11 +262,6 @@ def fetch_checkout_info(
         manager,
         shipping_channel_listings,
     )
-
-    valid_pick_up_points = get_valid_collection_points_for_checkout_info(
-        shipping_address, lines, checkout_info
-    )
-    checkout_info.valid_pick_up_points = valid_pick_up_points
 
     return checkout_info
 
@@ -314,7 +309,7 @@ def update_checkout_info_shipping_address(
 ):
     checkout_info.shipping_address = address
 
-    update_shipping_method_list_for_checkout_info(
+    update_delivery_method_lists_for_checkout_info(
         checkout_info,
         checkout_info.checkout.shipping_method,
         checkout_info.checkout.collection_point,
@@ -365,7 +360,7 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     )
 
 
-def update_shipping_method_list_for_checkout_info(
+def update_delivery_method_lists_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_method: Optional["ShippingMethod"],
     collection_point: Optional["Warehouse"],
@@ -389,6 +384,13 @@ def update_shipping_method_list_for_checkout_info(
                 get_valid_external_shipping_method_list_for_checkout_info(
                     checkout_info, shipping_address, lines, discounts, manager
                 ),
+            )
+        )
+    )  # type: ignore
+    checkout_info.valid_pick_up_points = SimpleLazyObject(
+        lambda: (
+            get_valid_collection_points_for_checkout_info(
+                shipping_address, lines, checkout_info
             )
         )
     )  # type: ignore

@@ -7,7 +7,7 @@ from ...checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
     get_delivery_method_info,
-    update_shipping_method_list_for_checkout_info,
+    update_delivery_method_lists_for_checkout_info,
 )
 from ...checkout.models import Checkout, CheckoutLine
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
@@ -255,7 +255,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             for listing in channel_listings
                             if listing.channel_id == channel.id
                         ]
-                        update_shipping_method_list_for_checkout_info(
+                        update_delivery_method_lists_for_checkout_info(
                             checkout_info,
                             shipping_method,
                             collection_point,
