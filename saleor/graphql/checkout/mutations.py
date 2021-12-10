@@ -247,11 +247,17 @@ def validate_variants_are_published(variants_id: set, channel_id: int):
         )
 
 
-def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []):
-    try:
-        checkout = models.Checkout.objects.prefetch_related(*prefetch_lookups).get(
-            token=token
+def get_checkout_by_token(token: uuid.UUID, qs=None):
+    if qs is None:
+        qs = models.Checkout.objects.select_related(
+            "channel",
+            "shipping_method",
+            "collection_point",
+            "billing_address",
+            "shipping_address",
         )
+    try:
+        checkout = qs.get(token=token)
     except ObjectDoesNotExist:
         raise ValidationError(
             {
@@ -981,7 +987,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         if token:
             checkout = get_checkout_by_token(
-                token, prefetch_lookups=["lines__variant__product__product_type"]
+                token,
+                qs=models.Checkout.objects.prefetch_related(
+                    "lines__variant__product__product_type"
+                ),
             )
         # DEPRECATED
         if checkout_id:
