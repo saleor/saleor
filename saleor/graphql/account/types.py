@@ -27,7 +27,7 @@ from ..core.enums import LanguageCodeEnum
 from ..core.federation import resolve_federation_references
 from ..core.fields import ConnectionField
 from ..core.scalars import UUID
-from ..core.types import CountryDisplay, Image, Permission
+from ..core.types import CountryDisplay, Image, ModelObjectType, Permission
 from ..core.utils import from_global_id_or_error, str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
 from ..giftcard.dataloaders import GiftCardsByUserLoader
@@ -55,7 +55,7 @@ class AddressInput(graphene.InputObjectType):
 
 
 @key(fields="id")
-class Address(graphene.ObjectType):
+class Address(ModelObjectType):
     id = graphene.GlobalID(required=True)
     first_name = graphene.String(required=True)
     last_name = graphene.String(required=True)
@@ -80,17 +80,7 @@ class Address(graphene.ObjectType):
     class Meta:
         description = "Represents user address data."
         interfaces = [relay.Node]
-
-    @staticmethod
-    def get_node(info, id):
-        try:
-            return models.Address.objects.get(pk=id)
-        except models.Address.DoesNotExist:
-            return None
-
-    @staticmethod
-    def get_model():
-        return models.Address
+        model = models.Address
 
     @staticmethod
     def resolve_country(root: models.Address, _info):

@@ -9,7 +9,7 @@ from ...core.permissions import AppPermission
 from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
 from ..core.federation import resolve_federation_references
-from ..core.types import Permission
+from ..core.types import ModelObjectType, Permission
 from ..core.types.common import Job
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -242,13 +242,12 @@ class AppCountableConnection(CountableConnection):
         node = App
 
 
-class AppInstallation(CountableDjangoObjectType):
+class AppInstallation(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    app_name = graphene.String()
+    manifest_url = graphene.String()
+
     class Meta:
         model = models.AppInstallation
         description = "Represents ongoing installation of app."
         interfaces = [graphene.relay.Node, Job]
-        permissions = (AppPermission.MANAGE_APPS,)
-        only_fields = [
-            "app_name",
-            "manifest_url",
-        ]
