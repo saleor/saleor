@@ -196,13 +196,23 @@ def get_delivery_method_info(
     raise NotImplementedError()
 
 
-def fetch_checkout_lines(checkout: "Checkout") -> Iterable[CheckoutLineInfo]:
+def fetch_checkout_lines(
+    checkout: "Checkout", prefetch_variant_attributes=False
+) -> Iterable[CheckoutLineInfo]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
-    lines = checkout.lines.prefetch_related(
+    prefetched_fields = [
         "variant__product__collections",
         "variant__channel_listings__channel",
         "variant__product__product_type",
-    )
+    ]
+    if prefetch_variant_attributes:
+        prefetched_fields.extend(
+            [
+                "variant__attributes__assignment__attribute",
+                "variant__attributes__values",
+            ]
+        )
+    lines = checkout.lines.prefetch_related(*prefetched_fields)
     lines_info = []
 
     for line in lines:
