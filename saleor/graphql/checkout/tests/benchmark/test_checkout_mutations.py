@@ -769,7 +769,9 @@ MUTATION_CHECKOUT_LINES_ADD = (
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
+@patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
 def test_add_checkout_lines(
+    list_shipping_methods_for_checkout,
     api_client,
     checkout_with_single_item,
     stock,
@@ -821,6 +823,7 @@ def test_add_checkout_lines(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     )
     assert not response["data"]["checkoutLinesAdd"]["errors"]
+    assert list_shipping_methods_for_checkout.call_count == 1
 
 
 @pytest.mark.django_db
