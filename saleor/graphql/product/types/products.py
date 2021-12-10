@@ -31,12 +31,22 @@ from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
 from ...attribute.resolvers import resolve_attributes
-from ...attribute.types import AssignedVariantAttribute, Attribute, SelectedAttribute
+from ...attribute.types import (
+    AssignedVariantAttribute,
+    Attribute,
+    AttributeCountableConnection,
+    SelectedAttribute,
+)
 from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
-from ...core.connection import CountableDjangoObjectType
+from ...core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
+    filter_connection_queryset,
+)
 from ...core.descriptions import (
     ADDED_IN_31,
     DEPRECATED_IN_3X_FIELD,
@@ -44,11 +54,7 @@ from ...core.descriptions import (
 )
 from ...core.enums import ReportingPeriod
 from ...core.federation import resolve_federation_references
-from ...core.fields import (
-    ChannelContextFilterConnectionField,
-    FilterInputConnectionField,
-    PrefetchingConnectionField,
-)
+from ...core.fields import ConnectionField, FilterConnectionField
 from ...core.types import Image, TaxedMoney, TaxedMoneyRange, TaxType
 from ...core.utils import from_global_id_or_error
 from ...decorators import (
@@ -705,6 +711,11 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return [variants.get(root_id) for root_id in roots_ids]
 
 
+class ProductVariantCountableConnection(CountableConnection):
+    class Meta:
+        node = ProductVariant
+
+
 @key(fields="id channel")
 class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     channel = graphene.String(
@@ -1179,11 +1190,16 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return [products.get(root_id) for root_id in roots_ids]
 
 
+class ProductCountableConnection(CountableConnection):
+    class Meta:
+        node = Product
+
+
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)
-    products = ChannelContextFilterConnectionField(
-        Product,
+    products = ConnectionField(
+        ProductCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -1221,8 +1237,8 @@ class ProductType(CountableDjangoObjectType):
     product_attributes = graphene.List(
         Attribute, description="Product attributes of that product type."
     )
-    available_attributes = FilterInputConnectionField(
-        Attribute, filter=AttributeFilterInput()
+    available_attributes = FilterConnectionField(
+        AttributeCountableConnection, filter=AttributeFilterInput()
     )
 
     class Meta:
@@ -1316,12 +1332,14 @@ class ProductType(CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_products(root: models.ProductType, info, channel=None, **_kwargs):
+    def resolve_products(root: models.ProductType, info, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         qs = root.products.visible_to_user(requestor, channel)  # type: ignore
-        return ChannelQsContext(qs=qs, channel_slug=channel)
+        qs = ChannelQsContext(qs=qs, channel_slug=channel)
+        kwargs["channel"] = channel
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -1329,7 +1347,9 @@ class ProductType(CountableDjangoObjectType):
         qs = attribute_models.Attribute.objects.get_unassigned_product_type_attributes(
             root.pk
         )
-        return resolve_attributes(info, qs=qs, **kwargs)
+        qs = resolve_attributes(info, qs=qs, **kwargs)
+        qs = filter_connection_queryset(qs, kwargs, info.context)
+        return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
     def resolve_weight(root: models.ProductType, _info, **_kwargs):
@@ -1340,6 +1360,11 @@ class ProductType(CountableDjangoObjectType):
         return resolve_federation_references(
             ProductType, roots, models.ProductType.objects
         )
+
+
+class ProductTypeCountableConnection(CountableConnection):
+    class Meta:
+        node = ProductType
 
 
 @key(fields="id channel")
@@ -1356,8 +1381,8 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    products = ChannelContextFilterConnectionField(
-        Product,
+    products = FilterConnectionField(
+        ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
@@ -1413,7 +1438,11 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         qs = root.node.products.visible_to_user(  # type: ignore
             requestor, root.channel_slug
         )
-        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+
+        kwargs["channel"] = root.channel_slug
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -1450,6 +1479,11 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return [collections.get(root_id) for root_id in roots_ids]
 
 
+class CollectionCountableConnection(CountableConnection):
+    class Meta:
+        node = Collection
+
+
 @key(fields="id")
 class Category(CountableDjangoObjectType):
     description_json = graphene.JSONString(
@@ -1458,18 +1492,20 @@ class Category(CountableDjangoObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    ancestors = PrefetchingConnectionField(
-        lambda: Category, description="List of ancestors of the category."
+    ancestors = ConnectionField(
+        lambda: CategoryCountableConnection,
+        description="List of ancestors of the category.",
     )
-    products = ChannelContextFilterConnectionField(
-        Product,
+    products = ConnectionField(
+        ProductCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of products in the category.",
     )
-    children = PrefetchingConnectionField(
-        lambda: Category, description="List of children of the category."
+    children = ConnectionField(
+        lambda: CategoryCountableConnection,
+        description="List of children of the category.",
     )
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
@@ -1496,8 +1532,10 @@ class Category(CountableDjangoObjectType):
         model = models.Category
 
     @staticmethod
-    def resolve_ancestors(root: models.Category, info, **_kwargs):
-        return root.get_ancestors()
+    def resolve_ancestors(root: models.Category, info, **kwargs):
+        return create_connection_slice(
+            root.get_ancestors(), info, kwargs, CategoryCountableConnection
+        )
 
     @staticmethod
     def resolve_description_json(root: models.Category, info):
@@ -1516,8 +1554,17 @@ class Category(CountableDjangoObjectType):
             )
 
     @staticmethod
-    def resolve_children(root: models.Category, info, **_kwargs):
-        return CategoryChildrenByCategoryIdLoader(info.context).load(root.pk)
+    def resolve_children(root: models.Category, info, **kwargs):
+        def slice_children_categories(children):
+            return create_connection_slice(
+                children, info, kwargs, CategoryCountableConnection
+            )
+
+        return (
+            CategoryChildrenByCategoryIdLoader(info.context)
+            .load(root.pk)
+            .then(slice_children_categories)
+        )
 
     @staticmethod
     def resolve_url(root: models.Category, _info):
@@ -1525,7 +1572,7 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_products(root: models.Category, info, channel=None, **_kwargs):
+    def resolve_products(root: models.Category, info, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -1545,11 +1592,17 @@ class Category(CountableDjangoObjectType):
         if channel and has_required_permissions:
             qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
-        return ChannelQsContext(qs=qs, channel_slug=channel)
+        qs = ChannelQsContext(qs=qs, channel_slug=channel)
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     def __resolve_references(roots: List["Category"], _info, **_kwargs):
         return resolve_federation_references(Category, roots, models.Category.objects)
+
+
+class CategoryCountableConnection(CountableConnection):
+    class Meta:
+        node = Category
 
 
 @key(fields="id")

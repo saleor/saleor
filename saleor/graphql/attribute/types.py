@@ -1,16 +1,23 @@
 import re
+from typing import cast
 
 import graphene
+from django.db.models import QuerySet
 
 from ...attribute import AttributeInputType, AttributeType, models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import PagePermissions, ProductPermissions
 from ...core.tracing import traced_resolver
 from ...graphql.utils import get_user_or_app_from_context
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
+    filter_connection_queryset,
+)
 from ..core.descriptions import ADDED_IN_31
 from ..core.enums import MeasurementUnitsEnum
-from ..core.fields import FilterInputConnectionField
+from ..core.fields import ConnectionField, FilterConnectionField
 from ..core.types import File
 from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from ..decorators import check_attribute_required_permissions
@@ -111,6 +118,11 @@ class AttributeValue(CountableDjangoObjectType):
         return None
 
 
+class AttributeValueCountableConnection(CountableConnection):
+    class Meta:
+        node = AttributeValue
+
+
 class Attribute(CountableDjangoObjectType):
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     entity_type = AttributeEntityTypeEnum(
@@ -121,8 +133,8 @@ class Attribute(CountableDjangoObjectType):
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
-    choices = FilterInputConnectionField(
-        AttributeValue,
+    choices = FilterConnectionField(
+        AttributeValueCountableConnection,
         sort_by=AttributeChoicesSortingInput(description="Sort attribute choices."),
         filter=AttributeValueFilterInput(
             description="Filtering options for attribute choices."
@@ -155,20 +167,37 @@ class Attribute(CountableDjangoObjectType):
         description=AttributeDescriptions.WITH_CHOICES, required=True
     )
 
+    product_types = ConnectionField(
+        "saleor.graphql.product.types.ProductTypeCountableConnection",
+        required=True,
+    )
+    product_variant_types = ConnectionField(
+        "saleor.graphql.product.types.ProductTypeCountableConnection",
+        required=True,
+    )
+
     class Meta:
         description = (
             "Custom attribute of a product. Attributes can be assigned to products and "
             "variants at the product type level."
         )
-        only_fields = ["id", "product_types", "product_variant_types"]
+        only_fields = ["id"]
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Attribute
 
     @staticmethod
-    def resolve_choices(root: models.Attribute, info, **_kwargs):
+    def resolve_choices(root: models.Attribute, info, **kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
-            return root.values.all()
-        return models.AttributeValue.objects.none()
+            qs = cast(QuerySet[models.AttributeValue], root.values.all())
+        else:
+            qs = cast(
+                QuerySet[models.AttributeValue], models.AttributeValue.objects.none()
+            )
+
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(
+            qs, info, kwargs, AttributeValueCountableConnection
+        )
 
     @staticmethod
     @check_attribute_required_permissions()
@@ -203,6 +232,25 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     def resolve_with_choices(root: models.Attribute, *_args):
         return root.input_type in AttributeInputType.TYPES_WITH_CHOICES
+
+    @staticmethod
+    def resolve_product_types(root: models.Attribute, info, **kwargs):
+        from ..product.types import ProductTypeCountableConnection
+
+        qs = root.product_types.all()
+        return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
+
+    @staticmethod
+    def resolve_product_variant_types(root: models.Attribute, info, **kwargs):
+        from ..product.types import ProductTypeCountableConnection
+
+        qs = root.product_variant_types.all()
+        return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
+
+
+class AttributeCountableConnection(CountableConnection):
+    class Meta:
+        node = Attribute
 
 
 class AssignedVariantAttribute(graphene.ObjectType):

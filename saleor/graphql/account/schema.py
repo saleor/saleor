@@ -1,7 +1,8 @@
 import graphene
 
 from ...core.permissions import AccountPermissions, OrderPermissions
-from ..core.fields import FilterInputConnectionField
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
@@ -67,7 +68,14 @@ from .resolvers import (
     resolve_user,
 )
 from .sorters import PermissionGroupSortingInput, UserSortingInput
-from .types import Address, AddressValidationData, Group, User
+from .types import (
+    Address,
+    AddressValidationData,
+    Group,
+    GroupCountableConnection,
+    User,
+    UserCountableConnection,
+)
 
 
 class CustomerFilterInput(FilterInputObjectType):
@@ -109,14 +117,14 @@ class AccountQueries(graphene.ObjectType):
         ),
         description="Look up an address by ID.",
     )
-    customers = FilterInputConnectionField(
-        User,
+    customers = FilterConnectionField(
+        UserCountableConnection,
         filter=CustomerFilterInput(description="Filtering options for customers."),
         sort_by=UserSortingInput(description="Sort customers."),
         description="List of the shop's customers.",
     )
-    permission_groups = FilterInputConnectionField(
-        Group,
+    permission_groups = FilterConnectionField(
+        GroupCountableConnection,
         filter=PermissionGroupFilterInput(
             description="Filtering options for permission groups."
         ),
@@ -131,8 +139,8 @@ class AccountQueries(graphene.ObjectType):
         description="Look up permission group by ID.",
     )
     me = graphene.Field(User, description="Return the currently authenticated user.")
-    staff_users = FilterInputConnectionField(
-        User,
+    staff_users = FilterConnectionField(
+        UserCountableConnection,
         filter=StaffUserInput(description="Filtering options for staff users."),
         sort_by=UserSortingInput(description="Sort staff users."),
         description="List of the shop's staff users.",
@@ -161,11 +169,15 @@ class AccountQueries(graphene.ObjectType):
         [OrderPermissions.MANAGE_ORDERS, AccountPermissions.MANAGE_USERS]
     )
     def resolve_customers(self, info, **kwargs):
-        return resolve_customers(info, **kwargs)
+        qs = resolve_customers(info, **kwargs)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
     @permission_required(AccountPermissions.MANAGE_STAFF)
     def resolve_permission_groups(self, info, **kwargs):
-        return resolve_permission_groups(info, **kwargs)
+        qs = resolve_permission_groups(info, **kwargs)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, GroupCountableConnection)
 
     @permission_required(AccountPermissions.MANAGE_STAFF)
     def resolve_permission_group(self, info, id):
@@ -178,7 +190,9 @@ class AccountQueries(graphene.ObjectType):
 
     @permission_required(AccountPermissions.MANAGE_STAFF)
     def resolve_staff_users(self, info, **kwargs):
-        return resolve_staff_users(info, **kwargs)
+        qs = resolve_staff_users(info, **kwargs)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
     @one_of_permissions_required(
         [

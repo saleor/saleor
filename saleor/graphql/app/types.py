@@ -6,7 +6,7 @@ from graphene_federation import key
 from ...app import models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
 from ..core.federation import resolve_federation_references
 from ..core.types import Permission
@@ -89,6 +89,11 @@ class AppExtension(AppManifestExtension, CountableDjangoObjectType):
     @staticmethod
     def resolve_access_token(root: models.App, info):
         return resolve_access_token_for_app_extension(info, root)
+
+
+class AppExtensionCountableConnection(CountableConnection):
+    class Meta:
+        node = AppExtension
 
 
 class Manifest(graphene.ObjectType):
@@ -220,6 +225,11 @@ class App(CountableDjangoObjectType):
             qs = resolve_apps(info)
 
         return resolve_federation_references(App, roots, qs)
+
+
+class AppCountableConnection(CountableConnection):
+    class Meta:
+        node = App
 
 
 class AppInstallation(CountableDjangoObjectType):

@@ -464,8 +464,6 @@ type AssignedVariantAttribute {
 
 type Attribute implements Node & ObjectWithMetadata {
   id: ID!
-  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
-  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   inputType: AttributeInputTypeEnum
@@ -483,6 +481,8 @@ type Attribute implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
   storefrontSearchPosition: Int!
   withChoices: Boolean!
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
 }
 
 type AttributeBulkDelete {
@@ -7149,7 +7149,6 @@ type Warehouse implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
-  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
   email: String!
   isPrivate: Boolean!
@@ -7157,6 +7156,7 @@ type Warehouse implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   companyName: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Address.companyName` instead.")
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
+  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
 }
 
 enum WarehouseClickAndCollectOptionEnum {

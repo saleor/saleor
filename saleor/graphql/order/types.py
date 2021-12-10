@@ -51,7 +51,7 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
@@ -352,6 +352,11 @@ class OrderEvent(CountableDjangoObjectType):
         if not discount_obj:
             return None
         return get_order_discount_event(discount_obj)
+
+
+class OrderEventCountableConnection(CountableConnection):
+    class Meta:
+        node = OrderEvent
 
 
 class FulfillmentLine(CountableDjangoObjectType):
@@ -1188,3 +1193,8 @@ class Order(CountableDjangoObjectType):
             except ValidationError as e:
                 return validation_error_to_error_type(e, OrderError)
         return []
+
+
+class OrderCountableConnection(CountableConnection):
+    class Meta:
+        node = Order
