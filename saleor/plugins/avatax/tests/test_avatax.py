@@ -14,7 +14,7 @@ from ....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
     get_delivery_method_info,
-    get_shipping_method_list_for_checkout_info,
+    update_shipping_method_list_for_checkout_info,
 )
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
@@ -682,7 +682,7 @@ def test_calculate_checkout_subtotal_for_product_without_tax(
 
     lines = fetch_checkout_lines(checkout)
     assert len(lines) == 1
-    valid_methods = get_shipping_method_list_for_checkout_info(
+    valid_methods = update_shipping_method_list_for_checkout_info(
         checkout_info,
         ship_to_pl_address,
         lines,

@@ -7,7 +7,7 @@ from django.utils.encoding import smart_text
 from django.utils.functional import SimpleLazyObject
 
 from ..shipping.interface import ShippingMethodData
-from ..shipping.models import ShippingMethodChannelListing
+from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
@@ -236,38 +236,12 @@ def fetch_checkout_info(
     ] = None,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
-
-    from .utils import get_external_shipping_id
-
     channel = checkout.channel
     shipping_address = checkout.shipping_address
     if shipping_channel_listings is None:
         shipping_channel_listings = channel.shipping_method_listings.all()
 
-    shipping_method = checkout.shipping_method
-    shipping_channel_listing = None
-    if shipping_method:
-        # Find listing for the currently selected shipping method
-        for listing in shipping_channel_listings:
-            if listing.shipping_method_id == shipping_method.id:
-                shipping_channel_listing = listing
-                break
-
-        delivery_method: Optional[
-            Union["ShippingMethodData", "Warehouse"]
-        ] = convert_to_shipping_method_data(shipping_method, shipping_channel_listing)
-    else:
-        delivery_method = checkout.collection_point
-
-    if not delivery_method:
-        external_shipping_method_id = get_external_shipping_id(checkout)
-        delivery_method = manager.get_shipping_method(
-            checkout=checkout,
-            channel_slug=channel.slug,
-            shipping_method_id=external_shipping_method_id,
-        )
-
-    delivery_method_info = get_delivery_method_info(delivery_method, shipping_address)
+    delivery_method_info = get_delivery_method_info(None, shipping_address)
     checkout_info = CheckoutInfo(
         checkout=checkout,
         user=checkout.user,
@@ -278,11 +252,10 @@ def fetch_checkout_info(
         all_shipping_methods=[],
         valid_pick_up_points=[],
     )
-
-    all_shipping_methods: List[
-        "ShippingMethodData"
-    ] = get_shipping_method_list_for_checkout_info(
+    update_shipping_method_list_for_checkout_info(
         checkout_info,
+        checkout.shipping_method,
+        checkout.collection_point,
         shipping_address,
         lines,
         discounts,
@@ -293,11 +266,42 @@ def fetch_checkout_info(
     valid_pick_up_points = get_valid_collection_points_for_checkout_info(
         shipping_address, lines, checkout_info
     )
-    checkout_info.all_shipping_methods = all_shipping_methods
     checkout_info.valid_pick_up_points = valid_pick_up_points
-    checkout_info.delivery_method_info = delivery_method_info
 
     return checkout_info
+
+
+def update_checkout_info_delivery_method_info(
+    checkout_info: CheckoutInfo,
+    shipping_method: Optional[ShippingMethod],
+    collection_point: Optional[Warehouse],
+    shipping_channel_listings: Iterable[ShippingMethodChannelListing],
+):
+    from .utils import get_external_shipping_id
+
+    checkout = checkout_info.checkout
+    if shipping_method:
+        # Find listing for the currently selected shipping method
+        for listing in shipping_channel_listings:
+            if listing.shipping_method_id == shipping_method.id:
+                shipping_channel_listing = listing
+                break
+
+        delivery_method: Optional[
+            Union["ShippingMethodData", "Warehouse"]
+        ] = convert_to_shipping_method_data(shipping_method, shipping_channel_listing)
+
+    elif external_shipping_method_id := get_external_shipping_id(checkout):
+        methods = {method.id: method for method in checkout_info.all_shipping_methods}
+        delivery_method = methods.get(external_shipping_method_id)
+
+    else:
+        delivery_method = collection_point
+
+    checkout_info.delivery_method_info = get_delivery_method_info(
+        delivery_method,
+        checkout_info.shipping_address,
+    )
 
 
 def update_checkout_info_shipping_address(
@@ -310,17 +314,15 @@ def update_checkout_info_shipping_address(
 ):
     checkout_info.shipping_address = address
 
-    all_shipping_methods: List[
-        "ShippingMethodData"
-    ] = get_shipping_method_list_for_checkout_info(
-        checkout_info, address, lines, discounts, manager, shipping_channel_listings
-    )
-
-    checkout_info.all_shipping_methods = all_shipping_methods
-
-    delivery_method = checkout_info.delivery_method_info.delivery_method
-    checkout_info.delivery_method_info = get_delivery_method_info(
-        delivery_method, address
+    update_shipping_method_list_for_checkout_info(
+        checkout_info,
+        checkout_info.checkout.shipping_method,
+        checkout_info.checkout.collection_point,
+        address,
+        lines,
+        discounts,
+        manager,
+        shipping_channel_listings,
     )
 
 
@@ -363,15 +365,17 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     )
 
 
-def get_shipping_method_list_for_checkout_info(
+def update_shipping_method_list_for_checkout_info(
     checkout_info: "CheckoutInfo",
+    shipping_method: Optional["ShippingMethod"],
+    collection_point: Optional["Warehouse"],
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
-) -> List["ShippingMethodData"]:
-    return SimpleLazyObject(
+):
+    checkout_info.all_shipping_methods = SimpleLazyObject(
         lambda: list(
             itertools.chain(
                 get_valid_saleor_shipping_method_list_for_checkout_info(
@@ -388,6 +392,12 @@ def get_shipping_method_list_for_checkout_info(
             )
         )
     )  # type: ignore
+    update_checkout_info_delivery_method_info(
+        checkout_info,
+        shipping_method,
+        collection_point,
+        shipping_channel_listings,
+    )
 
 
 def get_valid_collection_points_for_checkout_info(

@@ -17,8 +17,8 @@ from ...checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_shipping_method_list_for_checkout_info,
     get_valid_collection_points_for_checkout_info,
+    update_shipping_method_list_for_checkout_info,
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -584,8 +584,10 @@ class CheckoutLinesAdd(BaseMutation):
 
         lines = fetch_checkout_lines(checkout)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
-        checkout_info.all_shipping_methods = get_shipping_method_list_for_checkout_info(
+        update_shipping_method_list_for_checkout_info(
             checkout_info,
+            checkout_info.checkout.shipping_method,
+            checkout_info.checkout.collection_point,
             checkout_info.shipping_address,
             lines,
             discounts,
@@ -641,8 +643,10 @@ class CheckoutLinesAdd(BaseMutation):
             replace,
         )
 
-        checkout_info.all_shipping_methods = get_shipping_method_list_for_checkout_info(
+        update_shipping_method_list_for_checkout_info(
             checkout_info,
+            checkout_info.checkout.shipping_method,
+            checkout_info.checkout.collection_point,
             checkout_info.shipping_address,
             lines,
             discounts,
@@ -1777,8 +1781,10 @@ class CheckoutAddPromoCode(BaseMutation):
             discounts,
         )
 
-        checkout_info.all_shipping_methods = get_shipping_method_list_for_checkout_info(
+        update_shipping_method_list_for_checkout_info(
             checkout_info,
+            checkout_info.checkout.shipping_method,
+            checkout_info.checkout.collection_point,
             checkout_info.shipping_address,
             lines,
             discounts,

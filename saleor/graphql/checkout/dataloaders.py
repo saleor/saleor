@@ -1,18 +1,15 @@
 from collections import defaultdict
 
 from django.db.models import F
-from django.utils.functional import SimpleLazyObject
 from promise import Promise
 
 from ...checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
     get_delivery_method_info,
-    get_shipping_method_list_for_checkout_info,
+    update_shipping_method_list_for_checkout_info,
 )
 from ...checkout.models import Checkout, CheckoutLine
-from ...checkout.utils import get_external_shipping_id
-from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
 from ..product.dataloaders import (
@@ -216,13 +213,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         shipping_method.id: shipping_method
                         for shipping_method in shipping_methods
                     }
-                    shipping_method_channel_listing_map = {
-                        (listing.shipping_method_id, listing.channel_id): listing
-                        for channel_listings in listings_for_channels
-                        for listing in channel_listings
-                        if listing
-                    }
-
                     collection_points_map = {
                         collection_point.id: collection_point
                         for collection_point in collection_points
@@ -235,28 +225,12 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         shipping_method = shipping_method_map.get(
                             checkout.shipping_method_id
                         )
-                        external_app_shipping_id = get_external_shipping_id(checkout)
-
-                        if shipping_method:
-                            delivery_method = convert_to_shipping_method_data(
-                                shipping_method,
-                                shipping_method_channel_listing_map.get(
-                                    (checkout.shipping_method_id, channel.id)
-                                ),
-                            )
-                        elif external_app_shipping_id:
-                            delivery_method = self.context.plugins.get_shipping_method(
-                                checkout=checkout,
-                                channel_slug=checkout.channel.slug,
-                                shipping_method_id=external_app_shipping_id,
-                            )
-                        else:
-                            delivery_method = collection_points_map.get(
-                                checkout.collection_point_id
-                            )
+                        collection_point = collection_points_map.get(
+                            checkout.collection_point_id
+                        )
                         shipping_address = address_map.get(checkout.shipping_address_id)
                         delivery_method_info = get_delivery_method_info(
-                            delivery_method, shipping_address
+                            None, shipping_address
                         )
                         checkout_info = CheckoutInfo(
                             checkout=checkout,
@@ -273,29 +247,23 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             all_shipping_methods=[],
                         )
 
-                        def fetch_valid_shipping_methods():
-                            if not shipping_address:
-                                return []
-
-                            manager = self.context.plugins
-                            discounts = self.context.discounts
-                            shipping_method_listings = [
-                                listing
-                                for channel_listings in listings_for_channels
-                                for listing in channel_listings
-                                if listing.channel_id == channel.id
-                            ]
-                            return get_shipping_method_list_for_checkout_info(
-                                checkout_info,
-                                shipping_address,
-                                checkout_lines,
-                                discounts,
-                                manager,
-                                shipping_method_listings,
-                            )
-
-                        checkout_info.all_shipping_methods = SimpleLazyObject(
-                            fetch_valid_shipping_methods
+                        manager = self.context.plugins
+                        discounts = self.context.discounts
+                        shipping_method_listings = [
+                            listing
+                            for channel_listings in listings_for_channels
+                            for listing in channel_listings
+                            if listing.channel_id == channel.id
+                        ]
+                        update_shipping_method_list_for_checkout_info(
+                            checkout_info,
+                            shipping_method,
+                            collection_point,
+                            shipping_address,
+                            checkout_lines,
+                            discounts,
+                            manager,
+                            shipping_method_listings,
                         )
                         checkout_info_map[key] = checkout_info
 
