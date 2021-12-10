@@ -4,6 +4,7 @@ from functools import singledispatch
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 from django.utils.encoding import smart_text
+from django.utils.functional import SimpleLazyObject
 
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethodChannelListing
@@ -366,16 +367,18 @@ def get_valid_shipping_method_list_for_checkout_info(
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
 ) -> List["ShippingMethodData"]:
-    return list(
-        itertools.chain(
-            get_valid_local_shipping_method_list_for_checkout_info(
-                checkout_info, shipping_address, lines, discounts, manager
-            ),
-            get_valid_external_shipping_method_list_for_checkout_info(
-                checkout_info, shipping_address, lines, discounts, manager
-            ),
+    return SimpleLazyObject(
+        lambda: list(
+            itertools.chain(
+                get_valid_local_shipping_method_list_for_checkout_info(
+                    checkout_info, shipping_address, lines, discounts, manager
+                ),
+                get_valid_external_shipping_method_list_for_checkout_info(
+                    checkout_info, shipping_address, lines, discounts, manager
+                ),
+            )
         )
-    )
+    )  # type: ignore
 
 
 def get_valid_collection_points_for_checkout_info(
@@ -393,7 +396,7 @@ def get_valid_collection_points_for_checkout_info(
     valid_collection_points = get_valid_collection_points_for_checkout(
         lines, country_code=country_code, quantity_check=False
     )
-    return list(valid_collection_points)
+    return SimpleLazyObject(lambda: list(valid_collection_points))
 
 
 def update_checkout_info_delivery_method(
