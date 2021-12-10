@@ -3,7 +3,7 @@ import logging
 from collections import defaultdict
 from decimal import Decimal
 from itertools import chain
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -19,7 +19,7 @@ from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ..order.models import FulfillmentLine, Order, OrderLine
 from ..plugins.manager import PluginsManager, get_plugins_manager
-from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
+from . import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from .error_codes import PaymentErrorCode
 from .interface import (
     AddressData,
