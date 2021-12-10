@@ -1,11 +1,8 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, Optional
 
-import graphql
 from measurement.measures import Weight
 from prices import Money
-
-from ..graphql.core.utils import from_global_id_or_error
 
 if TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
@@ -32,15 +29,3 @@ class ShippingMethodData:
     private_metadata: Dict[str, str] = field(default_factory=dict)
     active: bool = True
     message: str = ""
-
-    @property
-    def is_external(self) -> bool:
-        try:
-            type_, _ = from_global_id_or_error(self.id)
-            str_type = str(type_)
-        except graphql.error.base.GraphQLError:
-            pass
-        else:
-            return str_type == "app"
-
-        return False

@@ -87,9 +87,7 @@ class ShippingMethodInfo(DeliveryMethodBase):
 
     @property
     def delivery_method_order_field(self) -> dict:
-        if not self.delivery_method.is_external:
-            return {"shipping_method_id": self.delivery_method.id}
-        return {}
+        return {"shipping_method_id": self.delivery_method.id}
 
     def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
         valid_delivery_methods = checkout_info.valid_shipping_methods
