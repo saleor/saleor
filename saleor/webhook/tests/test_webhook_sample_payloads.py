@@ -2,8 +2,10 @@ import copy
 import json
 from unittest import mock
 
+import freezegun
 import graphene
 import pytest
+from freezegun import freeze_time
 
 from ...order import OrderStatus
 from ..event_types import WebhookEventType
@@ -27,6 +29,7 @@ def _remove_anonymized_order_data(order_data: dict) -> dict:
     return order_data
 
 
+@freezegun.freeze_time("1914-06-28 10:50", ignore=["faker"])
 @pytest.mark.parametrize(
     "event_name, order_status",
     [
@@ -44,7 +47,6 @@ def test_generate_sample_payload_order(
     order.status = order_status
     order.save()
     order_id = graphene.Node.to_global_id("Order", order.id)
-
     payload = generate_sample_payload(event_name)
     order_payload = json.loads(generate_order_payload(order))
     # Check anonymized data differ
@@ -67,6 +69,7 @@ def test_generate_sample_payload_order(
     assert payload == order_payload
 
 
+@freeze_time("1914-06-28 10:50", ignore=["faker"])
 def test_generate_sample_payload_fulfillment_created(fulfillment):
     sample_fulfillment_payload = generate_sample_payload(
         WebhookEventType.FULFILLMENT_CREATED
@@ -131,6 +134,7 @@ def test_generate_sample_customer_payload(customer_user):
     assert payload[0]["email"] != customer_user.email
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_sample_product_payload(variant):
     payload = generate_sample_payload(WebhookEventType.PRODUCT_CREATED)
     product = variant.product
@@ -150,6 +154,7 @@ def _remove_anonymized_checkout_data(checkout_data: dict) -> dict:
     return checkout_data
 
 
+@freeze_time("1914-06-28 10:50", ignore=["faker"])
 @pytest.mark.parametrize(
     "user_checkouts", ["regular", "click_and_collect"], indirect=True
 )

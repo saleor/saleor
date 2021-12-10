@@ -20,6 +20,10 @@ from ....order.actions import (
     order_voided,
 )
 from ....order.error_codes import OrderErrorCode
+from ....order.search import (
+    prepare_order_search_document_value,
+    update_order_search_document,
+)
 from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
@@ -230,6 +234,7 @@ class OrderUpdate(DraftOrderCreate):
         if instance.user_email:
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
+        instance.search_document = prepare_order_search_document_value(instance)
         instance.save()
         update_order_prices(
             instance,
@@ -507,6 +512,9 @@ class OrderMarkAsPaid(BaseMutation):
         mark_order_as_paid(
             order, user, app, info.context.plugins, transaction_reference
         )
+
+        update_order_search_document(order)
+
         return OrderMarkAsPaid(order=order)
 
 
@@ -842,6 +850,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         )
 
         recalculate_order(order)
+        update_order_search_document(order)
 
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
@@ -913,6 +922,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         )
 
         recalculate_order(order)
+        update_order_search_document(order)
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
         return OrderLineDelete(order=order, order_line=line)

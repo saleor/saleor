@@ -32,6 +32,7 @@ from ..order import OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import order_created
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
+from ..order.search import prepare_order_search_document_value
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
@@ -260,7 +261,8 @@ def _create_lines_for_order(
         country_code,
         quantities,
         checkout_info.channel.slug,
-        additional_warehouse_lookup,
+        global_quantity_limit=None,
+        additional_filter_lookup=additional_warehouse_lookup,
         existing_lines=lines,
         replace=True,
         check_reservations=check_reservations,
@@ -451,6 +453,7 @@ def _create_order(
     order.redirect_url = checkout.redirect_url
     order.private_metadata = checkout.private_metadata
     order.update_total_paid()
+    order.search_document = prepare_order_search_document_value(order)
     order.save()
 
     if site_settings.automatically_fulfill_non_shippable_gift_card:

@@ -4,17 +4,25 @@ import graphene
 import pytest
 
 from ....tests.models import Book
-from ..connection import CountableDjangoObjectType
-from ..fields import FilterInputConnectionField
+from ..connection import CountableConnection, create_connection_slice
+from ..fields import ConnectionField
 
 
-class BookType(CountableDjangoObjectType):
+class BookType(graphene.ObjectType):
+    name = graphene.String()
+
+
+class BookTypeCountableConnection(CountableConnection):
     class Meta:
-        model = Book
+        node = BookType
 
 
 class Query(graphene.ObjectType):
-    books = FilterInputConnectionField(BookType)
+    books = ConnectionField(BookTypeCountableConnection)
+
+    def resolve_books(self, info, **kwargs):
+        qs = Book.objects.all()
+        return create_connection_slice(qs, info, kwargs, BookTypeCountableConnection)
 
 
 schema = graphene.Schema(query=Query)

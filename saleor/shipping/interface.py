@@ -16,8 +16,8 @@ class ShippingMethodData:
     """Dataclass for storing information about a shipping method."""
 
     id: str
-    name: str
     price: Optional[Money]
+    name: Optional[str] = None
     description: Optional[str] = None
     type: Optional[str] = None
     maximum_order_price: Optional[Money] = None

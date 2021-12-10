@@ -209,6 +209,65 @@ def test_handle_additional_actions_get(
     assert payment_adyen_for_checkout.checkout is None
 
 
+@mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
+def test_handle_additional_actions_for_ideal(
+    api_call_mock, payment_adyen_for_checkout, adyen_plugin
+):
+    # given
+    plugin = adyen_plugin()
+    channel_slug = plugin.channel.slug
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "extra_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+
+    transaction_count = payment_adyen_for_checkout.transactions.all().count()
+
+    checkout = payment_adyen_for_checkout.checkout
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    request_mock = mock.Mock()
+    request_mock.GET = {
+        "payment": payment_id,
+        "checkout": str(checkout.pk),
+        "payload": "test",
+    }
+
+    payment_details_mock = mock.Mock()
+    message = {
+        "additionalData": {
+            "bankAccount.ownerName": "A. Klaassen",
+            "bankAccount.iban": "NL13TEST0123456789",
+        },
+        "pspReference": "861638465362046G",
+        "resultCode": "Authorised",
+        "merchantReference": payment_id,
+        "paymentMethod": "ideal",
+        "shopperLocale": "en_GB",
+    }
+
+    api_call_mock.return_value.message = message
+
+    # when
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, channel_slug
+    )
+
+    # then
+    payment_adyen_for_checkout.refresh_from_db()
+    assert response.status_code == 302
+    assert f"checkout={quote_plus(checkout_id)}" in response.url
+    assert f"resultCode={message['resultCode']}" in response.url
+    assert f"payment={quote_plus(payment_id)}" in response.url
+    transactions = payment_adyen_for_checkout.transactions.all()
+    assert transactions.count() == transaction_count + 2  # TO_CONFIRM, CAPTURE
+    assert transactions.first().kind == TransactionKind.ACTION_TO_CONFIRM
+    assert transactions.last().kind == TransactionKind.CAPTURE
+    assert payment_adyen_for_checkout.order
+    assert payment_adyen_for_checkout.checkout is None
+
+
 def test_handle_additional_actions_more_action_required(payment_adyen_for_checkout):
     # given
     payment_adyen_for_checkout.extra_data = json.dumps(

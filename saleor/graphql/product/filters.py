@@ -6,6 +6,7 @@ import django_filters
 import graphene
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
+from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
 from django.db.models.functions import Cast, Coalesce
 from django.utils import timezone
@@ -272,19 +273,19 @@ def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte
 def filter_products_by_minimal_price(
     qs, channel_slug, minimal_price_lte=None, minimal_price_gte=None
 ):
-    channels = Channel.objects.filter(slug=channel_slug).values("pk")
+    channel = Channel.objects.filter(slug=channel_slug).first()
+    if not channel:
+        return qs
     product_channel_listings = ProductChannelListing.objects.filter(
-        Exists(channels.filter(pk=OuterRef("channel_id")))
+        channel_id=channel.id
     )
     if minimal_price_lte:
         product_channel_listings = product_channel_listings.filter(
-            discounted_price_amount__lte=minimal_price_lte,
-            discounted_price_amount__isnull=False,
+            discounted_price_amount__lte=minimal_price_lte
         )
     if minimal_price_gte:
         product_channel_listings = product_channel_listings.filter(
-            discounted_price_amount__gte=minimal_price_gte,
-            discounted_price_amount__isnull=False,
+            discounted_price_amount__gte=minimal_price_gte
         )
     product_channel_listings = product_channel_listings.values("product_id")
     return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
@@ -569,25 +570,26 @@ def filter_quantity(qs, quantity_value, warehouse_ids=None):
     between given range. If warehouses is given, it aggregates quantity only
     from stocks which are in given warehouses.
     """
-    variants = ProductVariant.objects.filter(product__in=qs)
-
+    stocks = Stock.objects.all()
     if warehouse_ids:
         _, warehouse_pks = resolve_global_ids_to_primary_keys(
             warehouse_ids, warehouse_types.Warehouse
         )
-        variants = variants.annotate(
-            total_quantity=Sum(
-                "stocks__quantity", filter=Q(stocks__warehouse__pk__in=warehouse_pks)
-            )
-        )
-    else:
-        variants = ProductVariant.objects.filter(product__in=qs).annotate(
-            total_quantity=Sum("stocks__quantity")
-        )
+        stocks = stocks.filter(warehouse_id__in=warehouse_pks)
+    stocks = stocks.values("product_variant_id").filter(
+        product_variant_id=OuterRef("pk")
+    )
 
-    variants = filter_range_field(variants, "total_quantity", quantity_value)
-
-    return qs.filter(Exists(variants.filter(product=OuterRef("pk"))))
+    stocks = Subquery(stocks.values_list(Sum("quantity")))
+    variants = ProductVariant.objects.annotate(
+        total_quantity=ExpressionWrapper(stocks, output_field=IntegerField())
+    )
+    variants = list(
+        filter_range_field(variants, "total_quantity", quantity_value).values_list(
+            "product_id", flat=True
+        )
+    )
+    return qs.filter(pk__in=variants)
 
 
 class ProductStockFilterInput(graphene.InputObjectType):
