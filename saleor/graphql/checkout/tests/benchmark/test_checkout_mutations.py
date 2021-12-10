@@ -8,7 +8,7 @@ from graphene import Node
 from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import add_variants_to_checkout
+from .....checkout.utils import add_variants_to_checkout, set_external_shipping_id
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductVariant, ProductVariantChannelListing
 from .....warehouse.models import Stock
@@ -769,9 +769,9 @@ MUTATION_CHECKOUT_LINES_ADD = (
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-@patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_add_checkout_lines(
-    list_shipping_methods_for_checkout,
+    mock_send_request,
     api_client,
     checkout_with_single_item,
     stock,
@@ -779,7 +779,21 @@ def test_add_checkout_lines(
     product_with_single_variant,
     product_with_two_variants,
     count_queries,
+    shipping_app,
+    settings,
 ):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    mock_json_response = [
+        {
+            "id": "abcd",
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
     variables = {
         "checkoutId": Node.to_global_id("Checkout", checkout_with_single_item.pk),
         "lines": [
@@ -823,7 +837,93 @@ def test_add_checkout_lines(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     )
     assert not response["data"]["checkoutLinesAdd"]["errors"]
-    assert list_shipping_methods_for_checkout.call_count == 1
+    assert mock_send_request.call_count == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_add_checkout_lines_with_external_shipping(
+    mock_send_request,
+    api_client,
+    checkout_with_single_item,
+    address,
+    stock,
+    product_with_default_variant,
+    product_with_single_variant,
+    product_with_two_variants,
+    count_queries,
+    shipping_app,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
+    external_shipping_method_id = Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    checkout_with_single_item.shipping_address = address
+    set_external_shipping_id(checkout_with_single_item, external_shipping_method_id)
+    checkout_with_single_item.save()
+
+    variables = {
+        "checkoutId": Node.to_global_id("Checkout", checkout_with_single_item.pk),
+        "lines": [
+            {
+                "quantity": 1,
+                "variantId": Node.to_global_id(
+                    "ProductVariant", stock.product_variant.pk
+                ),
+            },
+            {
+                "quantity": 2,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_default_variant.variants.first().pk,
+                ),
+            },
+            {
+                "quantity": 10,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_single_variant.variants.first().pk,
+                ),
+            },
+            {
+                "quantity": 3,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_two_variants.variants.first().pk,
+                ),
+            },
+            {
+                "quantity": 2,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_two_variants.variants.last().pk,
+                ),
+            },
+        ],
+    }
+    response = get_graphql_content(
+        api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    )
+    assert not response["data"]["checkoutLinesAdd"]["errors"]
+    # Two API calls:
+    # - mutate() logic
+    # - dataloader for lines totalPrice
+    assert mock_send_request.call_count == 2
 
 
 @pytest.mark.django_db
