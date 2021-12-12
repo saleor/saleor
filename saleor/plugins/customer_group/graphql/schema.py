@@ -16,7 +16,7 @@ from .mutations import (
 class CustomerGroupNode(DjangoObjectType):
     class Meta:
         model = CustomerGroup
-        filter_fields = ["id", "name", "description", "customers"]
+        filter_fields = ["id", "name", "description"]
         interfaces = (graphene.relay.Node,)
 
     def resolve_customer_groups(root, info, **kwargs):
