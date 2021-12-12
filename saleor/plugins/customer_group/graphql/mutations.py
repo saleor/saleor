@@ -40,6 +40,10 @@ class CustomerGroupCreate(ModelMutation):
         return CustomerGroupType
 
     @classmethod
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
+
+    @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         return cleaned_input
