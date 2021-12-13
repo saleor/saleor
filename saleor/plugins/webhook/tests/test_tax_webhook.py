@@ -1,10 +1,13 @@
 from unittest import mock
 
+from freezegun import freeze_time
+
 from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import generate_checkout_payload, generate_order_payload
 from ..utils import parse_tax_data
 
 
+@freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_taxes_for_checkout(
     mock_request,
@@ -51,6 +54,7 @@ def test_get_taxes_for_checkout_no_permission(
     assert tax_data is None
 
 
+@freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_taxes_for_order(
     mock_request,

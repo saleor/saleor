@@ -14,6 +14,7 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from ... import __version__
+from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
@@ -940,10 +941,13 @@ def test_generate_checkout_payload(
         "last_change": parse_django_datetime(checkout.last_change),
         "email": checkout.email,
         "currency": checkout.currency,
-        "discount_amount": checkout.discount_amount,
+        "discount_amount": str(
+            quantize_price(checkout.discount_amount, checkout.currency)
+        ),
         "discount_name": checkout.discount_name,
         "private_metadata": checkout.private_metadata,
         "metadata": checkout.metadata,
+        "channel": checkout.channel_id,
         "user": {
             "type": "User",
             "id": graphene.Node.to_global_id("User", user.pk),
@@ -995,6 +999,8 @@ def test_generate_checkout_payload(
         "collection_point": json.loads(
             _generate_collection_point_payload(collection_point)
         )[0],
+        "meta": ANY,
+        "warehouse_address": ANY,
     }
 
 

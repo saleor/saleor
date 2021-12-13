@@ -510,6 +510,10 @@ def test_manager_uses_get_tax_rate_choices(plugins, tax_rate_list):
     assert tax_rate_list == PluginsManager(plugins=plugins).get_tax_rate_type_choices()
 
 
+def sample_none_data(obj):
+    return None
+
+
 @pytest.mark.parametrize(
     "plugins, show_taxes",
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], True), ([], False)],
@@ -521,8 +525,8 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
 @pytest.mark.parametrize(
     "plugins, expected_tax_data",
     [
-        ([], None),
-        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data()),
+        ([], sample_none_data),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data),
     ],
 )
 def test_manager_get_taxes_for_checkout(
@@ -530,17 +534,16 @@ def test_manager_get_taxes_for_checkout(
     plugins,
     expected_tax_data,
 ):
-    assert (
-        PluginsManager(plugins=plugins).get_taxes_for_checkout(checkout)
-        == expected_tax_data
-    )
+    assert PluginsManager(plugins=plugins).get_taxes_for_checkout(
+        checkout
+    ) == expected_tax_data(checkout)
 
 
 @pytest.mark.parametrize(
     "plugins, expected_tax_data",
     [
-        ([], None),
-        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data()),
+        ([], sample_none_data),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data),
     ],
 )
 def test_manager_get_taxes_for_order(
@@ -548,9 +551,9 @@ def test_manager_get_taxes_for_order(
     plugins,
     expected_tax_data,
 ):
-    assert (
-        PluginsManager(plugins=plugins).get_taxes_for_order(order) == expected_tax_data
-    )
+    assert PluginsManager(plugins=plugins).get_taxes_for_order(
+        order
+    ) == expected_tax_data(order)
 
 
 @pytest.mark.parametrize(

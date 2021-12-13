@@ -10,6 +10,7 @@ from ..shipping.models import ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
+from . import calculations
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
@@ -373,8 +374,12 @@ def get_valid_local_shipping_method_list_for_checkout_info(
     from .utils import get_valid_shipping_methods_for_checkout
 
     country_code = shipping_address.country.code if shipping_address else None
-    subtotal = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, discounts
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+        discounts=discounts,
     )
     subtotal -= checkout_info.checkout.discount
     valid_shipping_method = get_valid_shipping_methods_for_checkout(
