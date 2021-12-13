@@ -253,7 +253,7 @@ def fetch_checkout_info(
     # Ugly hack to disable fetching shipping methods if they aren't needed
     # Preventing multiple redundant and potentially costful API calls in
     # checkout lines add/update/delete mutations
-    fetch_shipping_methods: bool = True,
+    fetch_delivery_methods: bool = True,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
     checkout_info = CheckoutInfo(
@@ -268,13 +268,12 @@ def fetch_checkout_info(
         valid_pick_up_points=[],
     )
 
-    valid_pick_up_points = get_valid_collection_points_for_checkout_info(
-        checkout.shipping_address, lines, checkout_info
-    )
-    checkout_info.valid_pick_up_points = valid_pick_up_points
-
-    if fetch_shipping_methods:
+    if fetch_delivery_methods:
         populate_checkout_info_shippings(checkout_info, lines, discounts, manager)
+        valid_pick_up_points = get_valid_collection_points_for_checkout_info(
+            checkout.shipping_address, lines, checkout_info
+        )
+        checkout_info.valid_pick_up_points = valid_pick_up_points
 
     return checkout_info
 

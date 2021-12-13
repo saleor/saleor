@@ -622,7 +622,7 @@ class CheckoutLinesAdd(BaseMutation):
             lines,
             discounts,
             manager,
-            fetch_shipping_methods=False,
+            fetch_delivery_methods=False,
         )
         lines = cls.clean_input(
             info,
