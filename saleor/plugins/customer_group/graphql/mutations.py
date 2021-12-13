@@ -49,6 +49,39 @@ class CustomerGroupCreate(ModelMutation):
         return cleaned_input
 
 
+class CustomerGroupUpdateInput(CustomerGroupInput):
+    name = graphene.String(description="name of customer group")
+    description = graphene.String(description="description of customer group")
+    customers = graphene.List(
+        graphene.ID,
+        description="customers related to the customer group",
+        name="customers",
+        required=False,
+    )
+
+
+class CustomerGroupUpdate(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a customer group to update")
+        input = CustomerGroupUpdateInput(
+            description="Fields required to update a customer group", required=True
+        )
+
+    class Meta:
+        description = "Update a customer group"
+        model = models.CustomerGroup
+        error_type_class = AppError
+
+    @classmethod
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
+
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        cleaned_input = super().clean_input(info, instance, data)
+        return cleaned_input
+
+
 ErrorType = DefaultDict[str, List[ValidationError]]
 
 
