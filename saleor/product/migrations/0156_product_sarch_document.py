@@ -3,6 +3,14 @@
 import django.contrib.postgres.indexes
 from django.db import migrations, models
 
+from ...core.search_tasks import set_product_search_document_values
+
+
+def update_product_search_document_values(apps, _schema_editor):
+    Product = apps.get_model("product", "Product")
+    total_count = Product.objects.filter(search_document="").count()
+    set_product_search_document_values.delay(total_count, 0)
+
 
 class Migration(migrations.Migration):
 
@@ -43,5 +51,9 @@ class Migration(migrations.Migration):
             DROP TRIGGER IF EXISTS tsvectorupdate
             ON product_product
         """
+        ),
+        migrations.RunPython(
+            update_product_search_document_values,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]

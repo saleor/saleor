@@ -2,6 +2,14 @@
 import django.contrib.postgres.indexes
 from django.db import migrations, models
 
+from ...core.search_tasks import set_order_search_document_values
+
+
+def update_order_search_document_values(apps, _schema_editor):
+    Order = apps.get_model("order", "Order")
+    total_count = Order.objects.filter(search_document="").count()
+    set_order_search_document_values.delay(total_count, 0)
+
 
 class Migration(migrations.Migration):
 
@@ -34,5 +42,8 @@ class Migration(migrations.Migration):
                 name="order_email_search_gin",
                 opclasses=["gin_trgm_ops"],
             ),
+        ),
+        migrations.RunPython(
+            update_order_search_document_values, reverse_code=migrations.RunPython.noop
         ),
     ]
