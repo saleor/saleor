@@ -158,6 +158,16 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add option to set tax code for shipping in Avatax configuration view - #8596 by @korycins
 - Fix Avalara tax fetching from cache - #8647 by @fowczarek
 - Implement database read replicas - #8516, #8751 by @fowczarek
+- Propagate sale and voucher discounts over specific lines - #8793 by @korycins
+  - The created order lines from checkout will now have fulfilled all undiscounted fields with a default price value
+  (without any discounts).
+  - Order line will now include a voucher discount (in the case when the voucher is for specific products or have a
+  flag apply_once_per_order). In that case `Order.discounts` will not have a relation to `OrderDiscount` object.
+  - Webhook payload for `OrderLine` will now include two new fields `sale_id` (graphql's ID of applied sale) and
+  `voucher_code` (code of the valid voucher applied to this line).
+  - When any sale or voucher discount was applied, `line.discount_reason` will be fulfilled.
+  - New interface for handling more data for prices: `PricesData` and `TaxedPricesData` used in checkout calculations
+  and in plugins/pluginManager.
 
 
 ### Breaking
@@ -191,10 +201,10 @@ All notable, unreleased changes to this project will be documented in this file.
     - `preprocess_order_creation`
   - additionally, `preprocess_order_creation` was extend with `lines_info` parameter
 - Fix Avalara caching - #7036 by @fowczarek;
- - Introduced changes in plugin methods definitions:
-    - `calculate_checkout_line_total`  was extended with `lines` parameter
-    - `calculate_checkout_line_unit_price`  was extended with `lines` parameter
-    - `get_checkout_line_tax_rate`  was extended with `lines` parameter
+- Introduced changes in plugin methods definitions:
+   - `calculate_checkout_line_total`  was extended with `lines` parameter
+   - `calculate_checkout_line_unit_price`  was extended with `lines` parameter
+   - `get_checkout_line_tax_rate`  was extended with `lines` parameter
   To get proper taxes we should always send the whole checkout to Avalara.
 - Remove triggering a webhook event `PRODUCT_UPDATED`  when calling `ProductVariantCreate` mutation.  Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
 - Remove triggering a webhook event `PRODUCT_UPDATED` when calling  `ProductVariantChannelListingUpdate` mutation. Use `PRODUCT_VARIANT_UPDATED` instead - #6963 by @piotrgrundas
@@ -264,6 +274,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use root level channel argument for filtering and sorting - #7374 by @IKarbowiak
   - drop `channel` field from filters and sorters
 - Drop top-level `checkoutLine` query from the schema with related resolver, use `checkout` query instead - #7623 by @dexon44
+- Propagate sale and voucher discounts over specific lines - #8793 by @korycins
+  - Use a new interface for response received from plugins/pluginManager. Methods `calculate_checkout_line_unit_price`
+  and `calculate_checkout_line_total` returns `TaxedPricesData` instead of `TaxedMoney`.
 
 ### Other
 
