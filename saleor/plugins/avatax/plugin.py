@@ -424,25 +424,22 @@ class AvataxPlugin(BasePlugin):
             tax = Decimal(line.get("tax", 0.0))
             net = Decimal(line["lineAmount"])
 
-            if currency != "JPY":
-                line_gross = Money(amount=net + tax, currency=currency)
-                line_net = Money(amount=net, currency=currency)
-            else:
-                is_tax_included = tax_included()
+            if currency == "JPY" and tax_included():
                 line_gross = base_value.undiscounted_price.gross
                 if is_sale_record:
-                    line_gross = base_value.sale_amount(is_tax_included)
+                    line_gross = base_value.price.gross
                 elif is_voucher_record:
-                    line_gross = base_value.voucher_amount(is_tax_included)
+                    line_gross = base_value.price_with_voucher.gross
                 line_net = Money(amount=line_gross.amount - tax, currency=currency)
+            else:
+                line_gross = Money(amount=net + tax, currency=currency)
+                line_net = Money(amount=net, currency=currency)
 
             total = TaxedMoney(net=line_net, gross=line_gross)
             if is_sale_record:
                 line_price = total
-                # sale_taxed_amount = total
             elif is_voucher_record:
                 line_price_with_voucher = total
-                # voucher_taxed_amount = total
             else:
                 undiscounted_line_price = total
 
