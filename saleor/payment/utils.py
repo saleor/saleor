@@ -10,7 +10,6 @@ from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
 
 from ..account.models import User
-from ..checkout.calculations import checkout_line_total
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
@@ -61,22 +60,13 @@ def create_checkout_payment_lines_information(
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     for line_info in lines:
-        total = checkout_line_total(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            checkout_line_info=line_info,
-            discounts=discounts,
-        )
         unit_price = manager.calculate_checkout_line_unit_price(
-            total,
-            line_info.line.quantity,
             checkout_info,
             lines,
             line_info,
             address,
             discounts,
-        )
+        ).price
         unit_gross = unit_price.gross.amount
 
         quantity = line_info.line.quantity

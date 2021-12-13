@@ -32,7 +32,7 @@ from ..utils import (
     change_shipping_address_in_checkout,
     clear_shipping_method,
     get_voucher_discount_for_checkout,
-    get_voucher_for_checkout,
+    get_voucher_for_checkout_info,
     is_fully_paid,
     is_valid_shipping_method,
     recalculate_checkout_discount,
@@ -682,27 +682,27 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     assert str(e.value) == error_msg
 
 
-def test_get_voucher_for_checkout(checkout_with_voucher, voucher):
+def test_get_voucher_for_checkout_info(checkout_with_voucher, voucher):
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout_with_voucher, [], [], manager)
-    checkout_voucher = get_voucher_for_checkout(checkout_info)
+    checkout_voucher = get_voucher_for_checkout_info(checkout_info)
     assert checkout_voucher == voucher
 
 
-def test_get_voucher_for_checkout_expired_voucher(checkout_with_voucher, voucher):
+def test_get_voucher_for_checkout_info_expired_voucher(checkout_with_voucher, voucher):
     date_yesterday = timezone.now() - datetime.timedelta(days=1)
     voucher.end_date = date_yesterday
     voucher.save()
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout_with_voucher, [], [], manager)
-    checkout_voucher = get_voucher_for_checkout(checkout_info)
+    checkout_voucher = get_voucher_for_checkout_info(checkout_info)
     assert checkout_voucher is None
 
 
-def test_get_voucher_for_checkout_no_voucher_code(checkout):
+def test_get_voucher_for_checkout_info_no_voucher_code(checkout):
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout, [], [], manager)
-    checkout_voucher = get_voucher_for_checkout(checkout_info)
+    checkout_voucher = get_voucher_for_checkout_info(checkout_info)
     assert checkout_voucher is None
 
 
