@@ -96,7 +96,7 @@ class Webhook(CountableDjangoObjectType):
         required=True,
     )
     app = graphene.Field("saleor.graphql.app.types.App", required=True)
-    deliveries = FilterInputConnectionField(
+    event_deliveries = FilterInputConnectionField(
         EventDelivery,
         sort_by=EventDeliverySortingInput(description="Event delivery sorter."),
         filter=EventDeliveryFilterInput(description="Event delivery filter options."),
@@ -119,5 +119,5 @@ class Webhook(CountableDjangoObjectType):
         return root.events.all()
 
     @staticmethod
-    def resolve_deliveries(root: models.Webhook, *_args, **_kwargs):
+    def resolve_event_deliveries(root: models.Webhook, *_args, **_kwargs):
         return core_models.EventDelivery.objects.filter(webhook_id=root.pk)

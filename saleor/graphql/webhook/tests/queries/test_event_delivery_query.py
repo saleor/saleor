@@ -10,7 +10,7 @@ EVENT_DELIVERY_QUERY = """
       $first: Int, $last: Int, $after: String, $before: String,
     ){
       webhook(id: $id){
-        deliveries(
+        eventDeliveries(
             first: $first, last: $last, after: $after, before: $before,
         ){
            edges{
@@ -53,7 +53,9 @@ def test_webhook_delivery_attempt_query(
     # when
     response = staff_api_client.post_graphql(EVENT_DELIVERY_QUERY, variables=variables)
     content = get_graphql_content(response)
-    delivery_response = content["data"]["webhook"]["deliveries"]["edges"][0]["node"]
+    delivery_response = content["data"]["webhook"]["eventDeliveries"]["edges"][0][
+        "node"
+    ]
     attempts_response = delivery_response["attempts"]["edges"]
 
     # then

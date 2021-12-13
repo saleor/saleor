@@ -7,7 +7,7 @@ EVENT_DELIVERY_SORT_QUERY = """
       $sortBy: EventDeliverySortingInput
     ){
       webhook(id: $id){
-        deliveries(
+        eventDeliveries(
             first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy
         ){
            edges{
@@ -40,7 +40,7 @@ def test_webhook_delivery_query_sort_asc(
         EVENT_DELIVERY_SORT_QUERY, variables=variables
     )
     content = get_graphql_content(response)
-    deliveries_response = content["data"]["webhook"]["deliveries"]["edges"]
+    deliveries_response = content["data"]["webhook"]["eventDeliveries"]["edges"]
 
     # then
     assert len(deliveries_response) == 3
@@ -67,7 +67,7 @@ def test_webhook_delivery_query_sort_dsc(
         EVENT_DELIVERY_SORT_QUERY, variables=variables
     )
     content = get_graphql_content(response)
-    deliveries_response = content["data"]["webhook"]["deliveries"]["edges"]
+    deliveries_response = content["data"]["webhook"]["eventDeliveries"]["edges"]
 
     # then
     assert len(deliveries_response) == 3
@@ -83,7 +83,7 @@ EVENT_DELIVERY_ATTEMPT_SORT_QUERY = """
       $sortBy: EventDeliveryAttemptSortingInput
     ){
       webhook(id: $id){
-        deliveries(
+        eventDeliveries(
             first: $first
         ){
            edges{
@@ -126,7 +126,7 @@ def test_webhook_delivery_attempt_query_sort_asc(
         EVENT_DELIVERY_ATTEMPT_SORT_QUERY, variables=variables
     )
     content = get_graphql_content(response)
-    deliveries_response = content["data"]["webhook"]["deliveries"]["edges"][0]
+    deliveries_response = content["data"]["webhook"]["eventDeliveries"]["edges"][0]
     attempts_response = deliveries_response["node"]["attempts"]["edges"]
 
     # then
@@ -152,7 +152,7 @@ def test_webhook_delivery_attempt_query_sort_desc(
         EVENT_DELIVERY_ATTEMPT_SORT_QUERY, variables=variables
     )
     content = get_graphql_content(response)
-    deliveries_response = content["data"]["webhook"]["deliveries"]["edges"][0]
+    deliveries_response = content["data"]["webhook"]["eventDeliveries"]["edges"][0]
     attempts_response = deliveries_response["node"]["attempts"]["edges"]
     # then
     assert attempts_response[0]["node"]["id"] == delivery_attempts["attempt_3_id"]

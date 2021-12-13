@@ -7333,7 +7333,7 @@ type Webhook implements Node {
   id: ID!
   events: [WebhookEvent!]!
   app: App!
-  deliveries(sortBy: EventDeliverySortingInput, filter: EventDeliveryFilterInput, before: String, after: String, first: Int, last: Int): EventDeliveryCountableConnection
+  eventDeliveries(sortBy: EventDeliverySortingInput, filter: EventDeliveryFilterInput, before: String, after: String, first: Int, last: Int): EventDeliveryCountableConnection
 }
 
 type WebhookCreate {

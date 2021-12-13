@@ -10,7 +10,7 @@ EVENT_DELIVERY_FILTER_QUERY = """
       $filters: EventDeliveryFilterInput!
     ){
       webhook(id: $id){
-        deliveries(
+        eventDeliveries(
             first: $first, last: $last, after: $after, before: $before,
             filter: $filters
         ){
@@ -43,7 +43,7 @@ def test_delivery_status_filter(
         EVENT_DELIVERY_FILTER_QUERY, variables=variables
     )
     content = get_graphql_content(response)
-    delivery_response = content["data"]["webhook"]["deliveries"]
+    delivery_response = content["data"]["webhook"]["eventDeliveries"]
 
     # then
     assert delivery_response["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
@@ -69,4 +69,4 @@ def test_delivery_status_filter_no_results(
     content = get_graphql_content(response)
 
     # then
-    assert len(content["data"]["webhook"]["deliveries"]["edges"]) == 0
+    assert len(content["data"]["webhook"]["eventDeliveries"]["edges"]) == 0
