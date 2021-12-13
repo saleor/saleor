@@ -37,7 +37,7 @@ from ..attribute.models import (
     AttributeValueTranslation,
 )
 from ..attribute.utils import associate_attribute_values_to_instance
-from ..checkout.fetch import fetch_checkout_info
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus, TimePeriodType
@@ -73,6 +73,7 @@ from ..order.models import (
     OrderEvent,
     OrderLine,
 )
+from ..order.search import prepare_order_search_document_value
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
@@ -474,6 +475,35 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
     return checkout_with_item
 
 
+@pytest.fixture()
+def checkout_with_preorders_only(
+    checkout,
+    stocks_for_cc,
+    preorder_variant_with_end_date,
+    preorder_variant_channel_threshold,
+):
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
+
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture()
+def checkout_with_preorders_and_regular_variant(
+    checkout, stocks_for_cc, preorder_variant_with_end_date, product_variant_list
+):
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
+    add_variant_to_checkout(checkout_info, product_variant_list[0], 2)
+
+    checkout.save()
+    return checkout
+
+
 @pytest.fixture
 def checkout_with_gift_card_items(
     checkout, non_shippable_gift_card_product, shippable_gift_card_product
@@ -704,7 +734,7 @@ def user_checkouts(request, user_checkout_with_items, user_checkout_with_items_f
 @pytest.fixture
 def order(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
-    return Order.objects.create(
+    order = Order.objects.create(
         billing_address=address,
         channel=channel_USD,
         currency=channel_USD.currency_code,
@@ -713,6 +743,14 @@ def order(customer_user, channel_USD):
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
     )
+    return order
+
+
+@pytest.fixture
+def order_with_search_document_value(order):
+    order.search_document = prepare_order_search_document_value(order)
+    order.save(update_fields=["search_document"])
+    return order
 
 
 @pytest.fixture
@@ -5244,6 +5282,11 @@ def allocations(order_list, stock, channel_USD):
             ),
         ]
     )
+
+    for order in order_list:
+        order.search_document = prepare_order_search_document_value(order)
+    Order.objects.bulk_update(order_list, ["search_document"])
+
     return Allocation.objects.bulk_create(
         [
             Allocation(

@@ -37,6 +37,28 @@ EXPORT_PRODUCTS_MUTATION = """
     }
 """
 
+EXPORT_PRODUCTS_BY_APP_MUTATION = """
+    mutation ExportProducts($input: ExportProductsInput!){
+        exportProducts(input: $input){
+            exportFile {
+                id
+                status
+                createdAt
+                updatedAt
+                url
+                app {
+                    name
+                }
+            }
+            errors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
 
 @pytest.mark.parametrize(
     "input, called_data",
@@ -104,9 +126,8 @@ def test_export_products_mutation_by_app(
     product_list,
     permission_manage_products,
     permission_manage_apps,
-    permission_manage_staff,
 ):
-    query = EXPORT_PRODUCTS_MUTATION
+    query = EXPORT_PRODUCTS_BY_APP_MUTATION
     app = app_api_client.app
     variables = {
         "input": {
@@ -122,7 +143,6 @@ def test_export_products_mutation_by_app(
         permissions=[
             permission_manage_products,
             permission_manage_apps,
-            permission_manage_staff,
         ],
     )
     content = get_graphql_content(response)
@@ -136,7 +156,6 @@ def test_export_products_mutation_by_app(
     assert not data["errors"]
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
-    assert export_file_data["user"] is None
     assert export_file_data["app"]["name"] == app.name
     assert ExportEvent.objects.filter(
         user=None, app=app, type=ExportEvents.EXPORT_PENDING

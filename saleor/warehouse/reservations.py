@@ -263,21 +263,9 @@ def reserve_preorders(
         for variant_id, channel_listings in variant_channels.items()
     }
 
-    quantity_reservation = (
-        PreorderReservation.objects.filter(
-            product_variant_channel_listing__in=all_variants_channel_listings,
-            quantity_reserved__gt=0,
-        )
-        .not_expired()
-        .exclude_checkout_lines(checkout_lines_to_reserve)
-        .values("product_variant_channel_listing")
-        .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
-    )  # type: ignore
-    listings_reservations: Dict = defaultdict(int)
-    for reservation in quantity_reservation:
-        listings_reservations[
-            reservation["product_variant_channel_listing"]
-        ] += reservation["quantity_reserved_sum"]
+    listings_reservations: Dict = get_listings_reservations(
+        checkout_lines, all_variants_channel_listings
+    )
 
     insufficient_stocks: List[InsufficientStockData] = []
     reservations: List[Reservation] = []
@@ -387,3 +375,27 @@ def get_reservation_length(request) -> Optional[int]:
     if request.user.is_authenticated:
         return request.site.settings.reserve_stock_duration_authenticated_user
     return request.site.settings.reserve_stock_duration_anonymous_user
+
+
+def get_listings_reservations(
+    checkout_lines: Optional[Iterable["CheckoutLine"]],
+    all_variants_channel_listings,
+) -> Dict[int, int]:
+    quantity_reservation_list = (
+        PreorderReservation.objects.filter(
+            product_variant_channel_listing__in=all_variants_channel_listings,
+            quantity_reserved__gt=0,
+        )
+        .not_expired()
+        .exclude_checkout_lines(checkout_lines)
+        .values("product_variant_channel_listing")
+        .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
+    )  # type: ignore
+    listings_reservations: Dict = defaultdict(int)
+
+    for reservation in quantity_reservation_list:
+        listings_reservations[
+            reservation["product_variant_channel_listing"]
+        ] += reservation["quantity_reserved_sum"]
+
+    return listings_reservations

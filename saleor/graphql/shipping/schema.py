@@ -3,7 +3,8 @@ import graphene
 from ...core.permissions import ShippingPermissions
 from ...shipping import models
 from ..channel.types import ChannelContext
-from ..core.fields import ChannelContextFilterConnectionField
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from ..translations.mutations import ShippingPriceTranslate
@@ -21,7 +22,7 @@ from .mutations.shippings import (
     ShippingZoneUpdate,
 )
 from .resolvers import resolve_shipping_zones
-from .types import ShippingZone
+from .types import ShippingZone, ShippingZoneCountableConnection
 
 
 class ShippingQueries(graphene.ObjectType):
@@ -35,8 +36,8 @@ class ShippingQueries(graphene.ObjectType):
         ),
         description="Look up a shipping zone by ID.",
     )
-    shipping_zones = ChannelContextFilterConnectionField(
-        ShippingZone,
+    shipping_zones = FilterConnectionField(
+        ShippingZoneCountableConnection,
         filter=ShippingZoneFilterInput(
             description="Filtering options for shipping zones."
         ),
@@ -53,8 +54,12 @@ class ShippingQueries(graphene.ObjectType):
         return ChannelContext(node=instance, channel_slug=channel) if instance else None
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_shipping_zones(self, info, channel=None, **_kwargs):
-        return resolve_shipping_zones(channel)
+    def resolve_shipping_zones(self, info, channel=None, **kwargs):
+        qs = resolve_shipping_zones(channel)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(
+            qs, info, kwargs, ShippingZoneCountableConnection
+        )
 
 
 class ShippingMutations(graphene.ObjectType):
