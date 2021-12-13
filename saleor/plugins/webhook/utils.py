@@ -4,11 +4,12 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
-import graphene
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import QuerySet
+from graphql import GraphQLError
 
+from ...graphql.utils import from_global_id
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ..base_plugin import ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_TIME
@@ -124,12 +125,12 @@ def get_excluded_shipping_methods_from_response(
     excluded_methods = []
     for method_data in response_data.get("excluded_methods", []):
         try:
-            typename, method_id = graphene.Node.from_global_id(method_data["id"])
+            typename, method_id = from_global_id(method_data["id"])
             if typename != "ShippingMethod":
                 raise ValueError(
                     f"Invalid type received. Expected ShippingMethod, got {typename}"
                 )
-        except (KeyError, ValueError, TypeError) as e:
+        except (KeyError, ValueError, TypeError, GraphQLError) as e:
             logger.warning(f"Malformed ShippingMethod id was provided: {e}")
             continue
         excluded_methods.append(

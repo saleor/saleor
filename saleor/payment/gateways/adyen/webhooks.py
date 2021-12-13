@@ -22,7 +22,6 @@ from django.http import (
 )
 from django.http.request import HttpHeaders
 from django.http.response import HttpResponseRedirect
-from graphql_relay import from_global_id
 
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -30,6 +29,7 @@ from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
+from ....graphql.utils import from_global_id
 from ....order.actions import (
     cancel_order,
     order_authorized,

@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from graphql import GraphQLError
 
 from ...attribute import models as attribute_models
 from ...core.permissions import SitePermissions
@@ -22,6 +23,7 @@ from ..product import types as product_types
 from ..product.types import Product, ProductVariant
 from ..shipping import types as shipping_types
 from ..shop.types import Shop
+from ..utils import from_global_id
 from . import types as translation_types
 
 # discount and menu types need to be imported to get
@@ -63,7 +65,17 @@ class BaseTranslateMutation(ModelMutation):
             )
 
         node_id = data["id"]
-        node_type, node_pk = graphene.Node.from_global_id(node_id)
+        try:
+            node_type, node_pk = from_global_id(node_id)
+        except (GraphQLError):
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Invalid ID has been provided.",
+                        code="not_found",
+                    )
+                }
+            )
         model_type = registry.get_type_for_model(cls._meta.model)
 
         # This mutation accepts either model IDs or translatable content IDs. Below we
