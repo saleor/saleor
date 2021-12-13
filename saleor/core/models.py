@@ -124,6 +124,7 @@ class Job(models.Model):
 
 class EventPayload(models.Model):
     payload = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class EventDelivery(models.Model):
