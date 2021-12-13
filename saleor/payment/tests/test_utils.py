@@ -17,9 +17,9 @@ from ..utils import (
     VOUCHER_PAYMENT_LINE_ID,
     create_payment_lines_information,
     create_refund_data,
+    get_channel_slug_from_payment,
+    try_void_or_refund_inactive_payment,
 )
-
-from ..utils import get_channel_slug_from_payment, try_void_or_refund_inactive_payment
 
 
 @pytest.fixture
