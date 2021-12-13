@@ -2,8 +2,8 @@ interactions:
 - request:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
       "lines": [{"quantity": 1, "amount": "0.000", "taxCode": "FR000000", "taxIncluded":
-      true, "itemCode": "Shipping", "description": null}], "code": "dd5c408f-b533-494c-b2a1-2985140b71be",
-      "date": "2021-06-24", "customerCode": 0, "addresses": {"shipFrom": {"line1":
+      true, "itemCode": "Shipping", "description": null}], "code": "1adbd3ad-99aa-425e-bea0-e51c1a859908",
+      "date": "2021-12-13", "customerCode": 0, "addresses": {"shipFrom": {"line1":
       "Teczowa 7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL",
       "postalCode": "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "",
       "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode": "53-105"}},
@@ -12,7 +12,7 @@ interactions:
       Accept:
       - '*/*'
       Accept-Encoding:
-      - gzip, deflate
+      - gzip, deflate, br
       Authorization:
       - Basic Og==
       Connection:
@@ -20,50 +20,71 @@ interactions:
       Content-Length:
       - '626'
       User-Agent:
-      - python-requests/2.25.1
+      - python-requests/2.26.0
     method: POST
     uri: https://rest.avatax.com/api/v2/transactions/createoradjust
   response:
     body:
       string: !!binary |
-        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
+        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
+        w+i1fp6fAw==
     headers:
       Connection:
       - keep-alive
       Content-Encoding:
-      - gzip
+      - br
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 24 Jun 2021 08:36:35 GMT
+      - Mon, 13 Dec 2021 21:06:55 GMT
       Location:
       - /api/v2/companies/242975/transactions/0
-      Server:
-      - Kestrel
       ServerDuration:
-      - '00:00:00.0130762'
+      - '00:00:00.0128619'
       Transfer-Encoding:
       - chunked
       Vary:
       - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      referrer-policy:
+      - same-origin
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains
+      x-avalara-uid:
+      - bb8ffeee-12dd-424f-a1a8-fbefbb4e0f31
+      x-correlation-id:
+      - bb8ffeee-12dd-424f-a1a8-fbefbb4e0f31
+      x-frame-options:
+      - sameorigin
+      x-permitted-cross-domain-policies:
+      - none
+      x-xss-protection:
+      - 1; mode=block
     status:
       code: 201
       message: Created
