@@ -4,17 +4,29 @@ from django.core.exceptions import ValidationError
 from ...core.permissions import AppPermission
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import WebhookError
-from .enums import WebhookEventTypeEnum
+from . import enums
 
 
 class WebhookCreateInput(graphene.InputObjectType):
     name = graphene.String(description="The name of the webhook.", required=False)
     target_url = graphene.String(description="The url to receive the payload.")
     events = graphene.List(
-        WebhookEventTypeEnum,
-        description=("The events that webhook wants to subscribe."),
+        enums.WebhookEventTypeEnum,
+        description=(
+            f"The events that webhook wants to subscribe. {DEPRECATED_IN_3X_INPUT} "
+            "Use `asyncEvents` or `syncEvents` instead."
+        ),
+    )
+    async_events = graphene.List(
+        graphene.NonNull(enums.WebhookEventTypeAsyncEnum),
+        description="The asynchronous events that webhook wants to subscribe.",
+    )
+    sync_events = graphene.List(
+        graphene.NonNull(enums.WebhookEventTypeSyncEnum),
+        description="The synchronous events that webhook wants to subscribe.",
     )
     app = graphene.ID(
         required=False,
@@ -27,6 +39,17 @@ class WebhookCreateInput(graphene.InputObjectType):
         description="The secret key used to create a hash signature with each payload.",
         required=False,
     )
+
+
+def clean_webhook_events(_info, _instance, data):
+    # if `events` field is not empty, use this field. Otherwise get event types
+    # from `async_events` and `sync_events`.
+    events = data.get("events", [])
+    if not events:
+        events += data.pop("async_events", [])
+        events += data.pop("sync_events", [])
+    data["events"] = events
+    return data
 
 
 class WebhookCreate(ModelMutation):
@@ -64,6 +87,7 @@ class WebhookCreate(ModelMutation):
                 "App doesn't exist or is disabled",
                 code=WebhookErrorCode.NOT_FOUND,
             )
+        clean_webhook_events(info, instance, cleaned_data)
         return cleaned_data
 
     @classmethod
@@ -97,8 +121,21 @@ class WebhookUpdateInput(graphene.InputObjectType):
         description="The url to receive the payload.", required=False
     )
     events = graphene.List(
-        WebhookEventTypeEnum,
-        description=("The events that webhook wants to subscribe."),
+        enums.WebhookEventTypeEnum,
+        description=(
+            f"The events that webhook wants to subscribe. {DEPRECATED_IN_3X_INPUT} "
+            "Use `asyncEvents` or `syncEvents` instead."
+        ),
+        required=False,
+    )
+    async_events = graphene.List(
+        graphene.NonNull(enums.WebhookEventTypeAsyncEnum),
+        description="The asynchronous events that webhook wants to subscribe.",
+        required=False,
+    )
+    sync_events = graphene.List(
+        graphene.NonNull(enums.WebhookEventTypeSyncEnum),
+        description="The synchronous events that webhook wants to subscribe.",
         required=False,
     )
     app = graphene.ID(
@@ -146,6 +183,7 @@ class WebhookUpdate(ModelMutation):
                 "App doesn't exist or is disabled",
                 code=WebhookErrorCode.NOT_FOUND,
             )
+        clean_webhook_events(info, instance, cleaned_data)
         return cleaned_data
 
     @classmethod

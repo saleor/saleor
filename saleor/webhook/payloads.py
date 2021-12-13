@@ -30,7 +30,7 @@ from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
 from ..warehouse.models import Stock, Warehouse
-from .event_types import WebhookEventType
+from .event_types import WebhookEventAsyncType
 from .payload_serializers import PayloadSerializer
 from .serializers import (
     serialize_checkout_lines,
@@ -838,19 +838,19 @@ def _generate_sample_order_payload(event_name):
         "fulfillments",
     )
     order = None
-    if event_name == WebhookEventType.ORDER_CREATED:
+    if event_name == WebhookEventAsyncType.ORDER_CREATED:
         order = _get_sample_object(order_qs.filter(status=OrderStatus.UNFULFILLED))
-    elif event_name == WebhookEventType.ORDER_FULLY_PAID:
+    elif event_name == WebhookEventAsyncType.ORDER_FULLY_PAID:
         order = _get_sample_object(
             order_qs.filter(payments__charge_status=ChargeStatus.FULLY_CHARGED)
         )
-    elif event_name == WebhookEventType.ORDER_FULFILLED:
+    elif event_name == WebhookEventAsyncType.ORDER_FULFILLED:
         order = _get_sample_object(
             order_qs.filter(fulfillments__status=FulfillmentStatus.FULFILLED)
         )
     elif event_name in [
-        WebhookEventType.ORDER_CANCELLED,
-        WebhookEventType.ORDER_UPDATED,
+        WebhookEventAsyncType.ORDER_CANCELLED,
+        WebhookEventAsyncType.ORDER_UPDATED,
     ]:
         order = _get_sample_object(order_qs.filter(status=OrderStatus.CANCELED))
     if order:
@@ -860,20 +860,23 @@ def _generate_sample_order_payload(event_name):
 
 def generate_sample_payload(event_name: str) -> Optional[dict]:
     checkout_events = [
-        WebhookEventType.CHECKOUT_UPDATED,
-        WebhookEventType.CHECKOUT_CREATED,
+        WebhookEventAsyncType.CHECKOUT_UPDATED,
+        WebhookEventAsyncType.CHECKOUT_CREATED,
     ]
     pages_events = [
-        WebhookEventType.PAGE_CREATED,
-        WebhookEventType.PAGE_DELETED,
-        WebhookEventType.PAGE_UPDATED,
+        WebhookEventAsyncType.PAGE_CREATED,
+        WebhookEventAsyncType.PAGE_DELETED,
+        WebhookEventAsyncType.PAGE_UPDATED,
     ]
-    user_events = [WebhookEventType.CUSTOMER_CREATED, WebhookEventType.CUSTOMER_UPDATED]
+    user_events = [
+        WebhookEventAsyncType.CUSTOMER_CREATED,
+        WebhookEventAsyncType.CUSTOMER_UPDATED,
+    ]
 
     if event_name in user_events:
         user = generate_fake_user()
         payload = generate_customer_payload(user)
-    elif event_name == WebhookEventType.PRODUCT_CREATED:
+    elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
         product = _get_sample_object(
             Product.objects.prefetch_related("category", "collections", "variants")
         )
@@ -890,7 +893,7 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         page = _get_sample_object(Page.objects.all())
         if page:
             payload = generate_page_payload(page)
-    elif event_name == WebhookEventType.FULFILLMENT_CREATED:
+    elif event_name == WebhookEventAsyncType.FULFILLMENT_CREATED:
         fulfillment = _get_sample_object(
             Fulfillment.objects.prefetch_related("lines__order_line__variant")
         )

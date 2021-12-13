@@ -46,7 +46,7 @@ from ....product.utils.availability import get_variant_availability
 from ....product.utils.costs import get_product_costs_data
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.models import Allocation, Stock, Warehouse
-from ....webhook.event_types import WebhookEventType
+from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_product_deleted_payload
 from ...core.enums import AttributeErrorCode, ReportingPeriod
 from ...tests.utils import (
@@ -7236,7 +7236,7 @@ def test_delete_product_trigger_webhook(
     )
 
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.PRODUCT_DELETED, expected_data
+        WebhookEventAsyncType.PRODUCT_DELETED, expected_data
     )
     mocked_recalculate_orders_task.assert_not_called()
 
