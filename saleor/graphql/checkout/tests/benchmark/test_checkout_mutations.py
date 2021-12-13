@@ -8,7 +8,7 @@ from graphene import Node
 from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import add_variants_to_checkout
+from .....checkout.utils import add_variants_to_checkout, set_external_shipping_id
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductVariant, ProductVariantChannelListing
 from .....warehouse.models import Stock
@@ -706,7 +706,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
-    with django_assert_num_queries(60):
+    with django_assert_num_queries(57):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "token": checkout.token,
@@ -720,7 +720,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(60):
+    with django_assert_num_queries(57):
         variables = {
             "token": checkout.token,
             "lines": [],
@@ -761,7 +761,9 @@ MUTATION_CHECKOUT_LINES_ADD = (
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
+@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_add_checkout_lines(
+    mock_send_request,
     api_client,
     checkout_with_single_item,
     stock,
@@ -769,7 +771,21 @@ def test_add_checkout_lines(
     product_with_single_variant,
     product_with_two_variants,
     count_queries,
+    shipping_app,
+    settings,
 ):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    mock_json_response = [
+        {
+            "id": "abcd",
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
     variables = {
         "checkoutId": Node.to_global_id("Checkout", checkout_with_single_item.pk),
         "lines": [
@@ -813,6 +829,93 @@ def test_add_checkout_lines(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     )
     assert not response["data"]["checkoutLinesAdd"]["errors"]
+    assert mock_send_request.call_count == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_add_checkout_lines_with_external_shipping(
+    mock_send_request,
+    api_client,
+    checkout_with_single_item,
+    address,
+    stock,
+    product_with_default_variant,
+    product_with_single_variant,
+    product_with_two_variants,
+    count_queries,
+    shipping_app,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
+    external_shipping_method_id = Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    checkout_with_single_item.shipping_address = address
+    set_external_shipping_id(checkout_with_single_item, external_shipping_method_id)
+    checkout_with_single_item.save()
+
+    variables = {
+        "checkoutId": Node.to_global_id("Checkout", checkout_with_single_item.pk),
+        "lines": [
+            {
+                "quantity": 1,
+                "variantId": Node.to_global_id(
+                    "ProductVariant", stock.product_variant.pk
+                ),
+            },
+            {
+                "quantity": 2,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_default_variant.variants.first().pk,
+                ),
+            },
+            {
+                "quantity": 10,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_single_variant.variants.first().pk,
+                ),
+            },
+            {
+                "quantity": 3,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_two_variants.variants.first().pk,
+                ),
+            },
+            {
+                "quantity": 2,
+                "variantId": Node.to_global_id(
+                    "ProductVariant",
+                    product_with_two_variants.variants.last().pk,
+                ),
+            },
+        ],
+    }
+    response = get_graphql_content(
+        api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    )
+    assert not response["data"]["checkoutLinesAdd"]["errors"]
+    # Two API calls:
+    # - mutate() logic
+    # - dataloader for lines totalPrice
+    assert mock_send_request.call_count == 2
 
 
 @pytest.mark.django_db
@@ -859,7 +962,7 @@ def test_add_checkout_lines_with_reservations(
         new_lines.append({"quantity": 2, "variantId": variant_id})
 
     # Adding multiple lines to checkout has same query count as adding one
-    with django_assert_num_queries(59):
+    with django_assert_num_queries(56):
         variables = {
             "checkoutId": Node.to_global_id("Checkout", checkout.pk),
             "lines": [new_lines[0]],
@@ -872,7 +975,7 @@ def test_add_checkout_lines_with_reservations(
 
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(59):
+    with django_assert_num_queries(56):
         variables = {
             "checkoutId": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,
