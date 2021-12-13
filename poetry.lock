@@ -886,7 +886,7 @@ typing-extensions = {version = ">=3.7.4.3", markers = "python_version < \"3.10\"
 
 [[package]]
 name = "google-api-core"
-version = "2.2.2"
+version = "2.3.0"
 description = "Google API client core library"
 category = "main"
 optional = false
@@ -2491,7 +2491,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-pytz"
-version = "2021.3.1"
+version = "2021.3.2"
 description = "Typing stubs for pytz"
 category = "dev"
 optional = false
@@ -2719,7 +2719,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "4161e4eced201c8ba1608c7dd2dce6f5dc9b0710e9f31d25ae8f905b8d6422d6"
+content-hash = "18b696a71c69b16418950a036b6349c3bcd46bfe4b11fe58c86977569272e946"
 
 [metadata.files]
 adyen = [
@@ -3167,8 +3167,8 @@ gitpython = [
     {file = "GitPython-3.1.24.tar.gz", hash = "sha256:df83fdf5e684fef7c6ee2c02fc68a5ceb7e7e759d08b694088d0cacb4eba59e5"},
 ]
 google-api-core = [
-    {file = "google-api-core-2.2.2.tar.gz", hash = "sha256:97349cc18c2bb2415f64f1353a80273a289a61294ce3eb2f7ce682d251bdd997"},
-    {file = "google_api_core-2.2.2-py2.py3-none-any.whl", hash = "sha256:e7853735d4f51f4212d6bf9750620d76fc0106c0f271be0c3f43b73501c7ddf9"},
+    {file = "google-api-core-2.3.0.tar.gz", hash = "sha256:538cd927bfe0f7c63bc1eb5fcadeeeb52f90bb29117dea87ae8cae48953d4c60"},
+    {file = "google_api_core-2.3.0-py2.py3-none-any.whl", hash = "sha256:65fe1d9d8dde7a5ddc43d5cc134560c2a76b1a26c9f70c3c24f13b7910e89e10"},
 ]
 google-auth = [
     {file = "google-auth-2.3.3.tar.gz", hash = "sha256:d83570a664c10b97a1dc6f8df87e5fdfff012f48f62be131e449c20dfc32630e"},
@@ -4194,8 +4194,8 @@ types-python-dateutil = [
     {file = "types_python_dateutil-2.8.3-py3-none-any.whl", hash = "sha256:42262d0b8f8ecb06cdc5c458956685eb3b27c74f170adf541d1cc5ee4ff68bdc"},
 ]
 types-pytz = [
-    {file = "types-pytz-2021.3.1.tar.gz", hash = "sha256:dffd77f3efecd3b1555f187a9bf3a638d55fac296700b829c41bd51ec72a6eb7"},
-    {file = "types_pytz-2021.3.1-py3-none-any.whl", hash = "sha256:d58a0688094b768d8e21c044e45861cbcaecba0494fd5b9c5feb3e1739211606"},
+    {file = "types-pytz-2021.3.2.tar.gz", hash = "sha256:c4ee36466faed9af334d15093d05cea416323d2d043158bb582bb94c041abf51"},
+    {file = "types_pytz-2021.3.2-py3-none-any.whl", hash = "sha256:ef39e119ce3b8f36741ec5de43ffb821038b0d119f8a31db598fa379b4fd72e3"},
 ]
 types-requests = [
     {file = "types-requests-2.26.1.tar.gz", hash = "sha256:0893e112e1510bbb67f537941c92192de7472e51bf7f236e0e583866f0ed933e"},
