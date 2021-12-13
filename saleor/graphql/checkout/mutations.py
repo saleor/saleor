@@ -642,17 +642,6 @@ class CheckoutLinesAdd(BaseMutation):
             discounts,
             replace,
         )
-
-        update_delivery_method_lists_for_checkout_info(
-            checkout_info,
-            checkout_info.checkout.shipping_method,
-            checkout_info.checkout.collection_point,
-            checkout_info.shipping_address,
-            lines,
-            discounts,
-            manager,
-            shipping_channel_listings,
-        )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts

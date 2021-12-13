@@ -1,7 +1,7 @@
 import itertools
 from dataclasses import dataclass
 from functools import singledispatch
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
 
 from django.utils.encoding import smart_text
 from django.utils.functional import SimpleLazyObject
@@ -175,11 +175,13 @@ class CollectionPointInfo(DeliveryMethodBase):
 
 @singledispatch
 def get_delivery_method_info(
-    delivery_method: Optional[Union["ShippingMethodData", "Warehouse"]],
+    delivery_method: Optional[Union["ShippingMethodData", "Warehouse", Callable]],
     address=Optional["Address"],
 ) -> DeliveryMethodBase:
     if delivery_method is None:
         return DeliveryMethodBase()
+    if callable(delivery_method):
+        delivery_method = delivery_method()
     if isinstance(delivery_method, ShippingMethodData):
         return ShippingMethodInfo(delivery_method, address)
     if isinstance(delivery_method, Warehouse):
@@ -188,13 +190,23 @@ def get_delivery_method_info(
     raise NotImplementedError()
 
 
-def fetch_checkout_lines(checkout: "Checkout") -> Iterable[CheckoutLineInfo]:
+def fetch_checkout_lines(
+    checkout: "Checkout", prefetch_variant_attributes=False
+) -> Iterable[CheckoutLineInfo]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
-    lines = checkout.lines.prefetch_related(
+    prefetched_fields = [
         "variant__product__collections",
         "variant__channel_listings__channel",
         "variant__product__product_type",
-    )
+    ]
+    if prefetch_variant_attributes:
+        prefetched_fields.extend(
+            [
+                "variant__attributes__assignment__attribute",
+                "variant__attributes__values",
+            ]
+        )
+    lines = checkout.lines.prefetch_related(*prefetched_fields)
     lines_info = []
 
     for line in lines:
@@ -274,6 +286,7 @@ def update_checkout_info_delivery_method_info(
 ):
     from .utils import get_external_shipping_id
 
+    delivery_method: Optional[Union[ShippingMethodData, Warehouse, Callable]] = None
     checkout = checkout_info.checkout
     if shipping_method:
         # Find listing for the currently selected shipping method
@@ -282,21 +295,29 @@ def update_checkout_info_delivery_method_info(
                 shipping_channel_listing = listing
                 break
 
-        delivery_method: Optional[
-            Union["ShippingMethodData", "Warehouse"]
-        ] = convert_to_shipping_method_data(shipping_method, shipping_channel_listing)
+        delivery_method = convert_to_shipping_method_data(
+            shipping_method, shipping_channel_listing
+        )
 
     elif external_shipping_method_id := get_external_shipping_id(checkout):
-        methods = {method.id: method for method in checkout_info.all_shipping_methods}
-        delivery_method = methods.get(external_shipping_method_id)
+
+        def _resolve_external_method():
+            methods = {
+                method.id: method for method in checkout_info.all_shipping_methods
+            }
+            return methods.get(external_shipping_method_id)
+
+        delivery_method = _resolve_external_method
 
     else:
         delivery_method = collection_point
 
-    checkout_info.delivery_method_info = get_delivery_method_info(
-        delivery_method,
-        checkout_info.shipping_address,
-    )
+    checkout_info.delivery_method_info = SimpleLazyObject(
+        lambda: get_delivery_method_info(
+            delivery_method,
+            checkout_info.shipping_address,
+        )
+    )  # type: ignore
 
 
 def update_checkout_info_shipping_address(
