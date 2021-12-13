@@ -2171,6 +2171,7 @@ def test_translations_query(
                     __typename
                 }
             }
+            totalCount
         }
     }
     """
@@ -2181,6 +2182,7 @@ def test_translations_query(
     data = get_graphql_content(response)["data"]["translations"]
 
     assert data["edges"][0]["node"]["__typename"] == expected_typename
+    assert data["totalCount"] > 0
 
 
 def test_translations_query_inline_fragment(

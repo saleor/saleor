@@ -19,6 +19,7 @@ from ...checkout.fetch import (
     fetch_checkout_lines,
     get_valid_collection_points_for_checkout_info,
     get_valid_shipping_method_list_for_checkout_info,
+    populate_checkout_info_shippings,
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -583,11 +584,7 @@ class CheckoutLinesAdd(BaseMutation):
             )
 
         lines = fetch_checkout_lines(checkout)
-        checkout_info.valid_shipping_methods = (
-            get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines, discounts, manager
-            )
-        )
+        populate_checkout_info_shippings(checkout_info, lines, discounts, manager)
         checkout_info.valid_pick_up_points = (
             get_valid_collection_points_for_checkout_info(
                 checkout_info.shipping_address, lines, checkout_info
@@ -619,9 +616,14 @@ class CheckoutLinesAdd(BaseMutation):
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
         input_quantities = group_quantity_by_variants(lines)
 
-        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
-
         lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(
+            checkout,
+            lines,
+            discounts,
+            manager,
+            fetch_delivery_methods=False,
+        )
         lines = cls.clean_input(
             info,
             checkout,
@@ -632,17 +634,6 @@ class CheckoutLinesAdd(BaseMutation):
             manager,
             discounts,
             replace,
-        )
-
-        checkout_info.valid_shipping_methods = (
-            get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines, discounts, manager
-            )
-        )
-        checkout_info.valid_pick_up_points = (
-            get_valid_collection_points_for_checkout_info(
-                checkout_info.shipping_address, lines, checkout_info
-            )
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)

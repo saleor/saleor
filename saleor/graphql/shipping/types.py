@@ -6,6 +6,7 @@ from graphene import relay
 from ...core.permissions import ShippingPermissions
 from ...core.tracing import traced_resolver
 from ...core.weight import convert_weight_to_default_weight_unit
+from ...product import models as product_models
 from ...shipping import models
 from ...shipping.interface import ShippingMethodData
 from ..channel import ChannelQsContext
@@ -17,8 +18,12 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
     ChannelContextTypeWithMetadataForObjectType,
 )
-from ..core.connection import CountableDjangoObjectType
-from ..core.fields import ChannelContextFilterConnectionField
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
+)
+from ..core.fields import ConnectionField
 from ..core.types import CountryDisplay, Money, MoneyRange, Weight
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -102,8 +107,8 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
             "Postal code ranges rule of exclusion or inclusion of the shipping method."
         ),
     )
-    excluded_products = ChannelContextFilterConnectionField(
-        "saleor.graphql.product.types.products.Product",
+    excluded_products = ConnectionField(
+        "saleor.graphql.product.types.products.ProductCountableConnection",
         description="List of excluded products for the shipping method.",
     )
     minimum_order_weight = graphene.Field(
@@ -252,15 +257,19 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_excluded_products(
         root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
-        _info,
-        **_kwargs
+        info,
+        **kwargs
     ):
-        if root.node.excluded_products is None:
-            return None
+        from ..product.types import ProductCountableConnection
 
-        return ChannelQsContext(
-            qs=root.node.excluded_products.all(), channel_slug=None  # type: ignore
-        )
+        if not root.node.excluded_products:
+            qs = product_models.Product.objects.none()
+        else:
+            qs = ChannelQsContext(
+                qs=root.node.excluded_products.all(), channel_slug=None  # type: ignore
+            )
+
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
 
 class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
@@ -344,3 +353,8 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_channels(root: ChannelContext[models.ShippingZone], info, **_kwargs):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
+
+
+class ShippingZoneCountableConnection(CountableConnection):
+    class Meta:
+        node = ShippingZone

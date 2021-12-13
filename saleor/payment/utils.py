@@ -52,19 +52,27 @@ def create_payment_information(
     Returns information required to process payment and additional
     billing/shipping addresses for optional fraud-prevention mechanisms.
     """
-    checkout = payment.checkout
-    if checkout:
+    if checkout := payment.checkout:
         billing = checkout.billing_address
         shipping = checkout.shipping_address
         email = checkout.get_customer_email()
         user_id = checkout.user_id
-    elif payment.order:
-        billing = payment.order.billing_address
-        shipping = payment.order.shipping_address
-        email = payment.order.user_email
-        user_id = payment.order.user_id
+        checkout_token = str(checkout.token)
+        checkout_metadata = checkout.metadata
+    elif order := payment.order:
+        billing = order.billing_address
+        shipping = order.shipping_address
+        email = order.user_email
+        user_id = order.user_id
+        checkout_token = order.checkout_token
+        checkout_metadata = None
     else:
-        billing, shipping, email, user_id = None, None, payment.billing_email, None
+        billing = None
+        shipping = None
+        email = payment.billing_email
+        user_id = None
+        checkout_token = ""
+        checkout_metadata = None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
@@ -95,6 +103,8 @@ def create_payment_information(
         store_payment_method=StorePaymentMethodEnum[
             payment.store_payment_method.upper()
         ],
+        checkout_token=checkout_token,
+        checkout_metadata=checkout_metadata,
         payment_metadata=payment.metadata,
         psp_reference=payment.psp_reference,
     )
