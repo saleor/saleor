@@ -8587,7 +8587,10 @@ mutation updateProductType(
 
 
 def test_product_type_update_mutation(
-    staff_api_client, product_type, permission_manage_product_types_and_attributes
+    staff_api_client,
+    product_type,
+    product,
+    permission_manage_product_types_and_attributes,
 ):
     query = PRODUCT_TYPE_UPDATE_MUTATION
     product_type_name = "test type updated"
@@ -8595,6 +8598,9 @@ def test_product_type_update_mutation(
     has_variants = True
     require_shipping = False
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+
+    product_attr = product.attributes.first()
+    value = product_attr.values.first()
 
     # Test scenario: remove all product attributes using [] as input
     # but do not change variant attributes
@@ -8622,6 +8628,10 @@ def test_product_type_update_mutation(
     assert data["isShippingRequired"] == require_shipping
     assert not data["productAttributes"]
     assert len(data["variantAttributes"]) == (variant_attributes.count())
+
+    product.refresh_from_db()
+    assert product.search_document
+    assert value.name not in product.search_document
 
 
 def test_product_type_update_mutation_not_valid_attributes(
@@ -8701,7 +8711,9 @@ UPDATE_PRODUCT_TYPE_SLUG_MUTATION = """
         (None, "", "Slug value cannot be blank."),
     ],
 )
+@patch("saleor.product.search.update_products_search_document")
 def test_update_product_type_slug(
+    update_products_search_document_mock,
     staff_api_client,
     product_type,
     permission_manage_product_types_and_attributes,
@@ -8725,6 +8737,7 @@ def test_update_product_type_slug(
     if not error_message:
         assert not errors
         assert data["productType"]["slug"] == expected_slug
+        update_products_search_document_mock.assert_not_called()
     else:
         assert errors
         assert errors[0]["field"] == "slug"

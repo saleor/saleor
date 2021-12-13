@@ -21,7 +21,10 @@ from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
-from ....product.search import update_product_search_document
+from ....product.search import (
+    update_product_search_document,
+    update_products_search_document,
+)
 from ....product.tasks import (
     update_product_discounted_price_task,
     update_products_discounted_prices_of_catalogues_task,
@@ -1267,6 +1270,15 @@ class ProductTypeUpdate(ProductTypeCreate):
             variant_attr_ids = [attr.pk for attr in variant_attr]
             update_variants_names.delay(instance.pk, variant_attr_ids)
         super().save(info, instance, cleaned_input)
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        if (
+            "product_attributes" in cleaned_input
+            or "variant_attributes" in cleaned_input
+        ):
+            products = models.Product.objects.filter(product_type=instance)
+            update_products_search_document(products)
 
 
 class ProductTypeDelete(ModelDeleteMutation):
