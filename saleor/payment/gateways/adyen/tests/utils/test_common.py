@@ -133,9 +133,9 @@ def test_append_checkout_details_without_sku(
 
 
 @mock.patch("saleor.payment.gateways.adyen.utils.common.get_plugins_manager")
-@mock.patch("saleor.payment.gateways.adyen.utils.common.checkout_line_total")
+@mock.patch("saleor.payment.gateways.adyen.utils.common.checkout_line_unit_price")
 def test_append_checkout_details_tax_included(
-    mocked_checkout_line_total,
+    mocked_checkout_line_unit_price,
     mocked_plugins_manager,
     dummy_payment_data,
     payment_dummy,
@@ -145,7 +145,7 @@ def test_append_checkout_details_tax_included(
     net = Money(100, "USD")
     gross = Money(123, "USD")
     # tax 23 %
-    mocked_checkout_line_total.return_value = quantize_price(
+    mocked_checkout_line_unit_price.return_value = quantize_price(
         TaxedMoney(net=net, gross=gross), "USD"
     )
     manager = get_plugins_manager()

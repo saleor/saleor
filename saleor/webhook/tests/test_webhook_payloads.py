@@ -6,6 +6,9 @@ from unittest import mock
 from unittest.mock import ANY
 
 import graphene
+import pytest
+from django.core.serializers.json import DjangoJSONEncoder
+from prices import Money, TaxedMoney
 
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
@@ -19,6 +22,7 @@ from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
+    _generate_collection_point_payload,
     generate_checkout_payload,
     generate_customer_payload,
     generate_fulfillment_lines_payload,
@@ -31,6 +35,7 @@ from ..payloads import (
     generate_sale_payload,
     generate_translation_payload,
 )
+from ..serializers import serialize_checkout_lines
 
 
 @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
@@ -651,7 +656,6 @@ def test_generate_unique_page_attribute_value_translation_payload(
 
 
 def test_generate_customer_payload(customer_user, address_other_country, address):
-
     customer = customer_user
     customer.default_billing_address = address_other_country
     customer.save()
@@ -795,7 +799,7 @@ def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
     assert not payload["variants_added"]
 
 
-def test_genereate_sale_payload_calculates_set_differences(sale):
+def test_generate_sale_payload_calculates_set_differences(sale):
     previous_info = {
         "categories": {1, 2, 3},
         "collections": {45, 70, 90},
@@ -823,3 +827,123 @@ def test_genereate_sale_payload_calculates_set_differences(sale):
     assert set(payload["products_added"]) == {10, 20}
     assert set(payload["variants_added"]) == {"ddd"}
     assert set(payload["variants_removed"]) == {"ccc"}
+
+
+@pytest.mark.parametrize("taxes_included", [True, False])
+def test_generate_checkout_payload(
+    checkout,
+    customer_user,
+    address,
+    address_other_country,
+    shipping_method,
+    site_settings,
+    taxes_included,
+    warehouse,
+):
+    # given
+    def parse_django_datetime(date):
+        return json.loads(json.dumps(date, cls=DjangoJSONEncoder))
+
+    site_settings.include_taxes_in_prices = taxes_included
+    site_settings.save(update_fields=["include_taxes_in_prices"])
+
+    checkout = checkout
+    billing_address = address
+    shipping_address = address_other_country
+    collection_point = warehouse
+    user = customer_user
+    subtotal = TaxedMoney(
+        Money("100.00", checkout.currency), Money("123.00", checkout.currency)
+    )
+    total = TaxedMoney(
+        Money("200.00", checkout.currency), Money("246.00", checkout.currency)
+    )
+
+    checkout.user = user
+    checkout.billing_address = billing_address
+    checkout.shipping_address = shipping_address
+    checkout.shipping_method = shipping_method
+    checkout.collection_point = collection_point
+    checkout.subtotal = subtotal
+    checkout.total = total
+    checkout.save(
+        update_fields=[
+            "user",
+            "billing_address",
+            "shipping_address",
+            "shipping_method",
+            "collection_point",
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
+            "total_net_amount",
+            "total_gross_amount",
+        ]
+    )
+
+    # when
+    payload = json.loads(generate_checkout_payload(checkout))[0]
+
+    # then
+    assert payload == {
+        "type": "Checkout",
+        "token": graphene.Node.to_global_id("Checkout", checkout.pk),
+        "created": parse_django_datetime(checkout.created),
+        "last_change": parse_django_datetime(checkout.last_change),
+        "email": checkout.email,
+        "currency": checkout.currency,
+        "discount_amount": checkout.discount_amount,
+        "discount_name": checkout.discount_name,
+        "private_metadata": checkout.private_metadata,
+        "metadata": checkout.metadata,
+        "user": {
+            "type": "User",
+            "id": graphene.Node.to_global_id("User", user.pk),
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+        },
+        "billing_address": {
+            "type": "Address",
+            "id": graphene.Node.to_global_id("Address", billing_address.pk),
+            "first_name": billing_address.first_name,
+            "last_name": billing_address.last_name,
+            "company_name": billing_address.company_name,
+            "street_address_1": billing_address.street_address_1,
+            "street_address_2": billing_address.street_address_2,
+            "city": billing_address.city,
+            "city_area": billing_address.city_area,
+            "postal_code": billing_address.postal_code,
+            "country": billing_address.country.code,
+            "country_area": billing_address.country_area,
+            "phone": str(billing_address.phone),
+        },
+        "shipping_address": {
+            "type": "Address",
+            "id": graphene.Node.to_global_id("Address", shipping_address.pk),
+            "first_name": shipping_address.first_name,
+            "last_name": shipping_address.last_name,
+            "company_name": shipping_address.company_name,
+            "street_address_1": shipping_address.street_address_1,
+            "street_address_2": shipping_address.street_address_2,
+            "city": shipping_address.city,
+            "city_area": shipping_address.city_area,
+            "postal_code": shipping_address.postal_code,
+            "country": shipping_address.country.code,
+            "country_area": shipping_address.country_area,
+            "phone": str(shipping_address.phone),
+        },
+        "shipping_method": {
+            "id": graphene.Node.to_global_id("ShippingMethod", shipping_method.pk),
+            "name": shipping_method.name,
+            "type": shipping_method.type,
+        },
+        "included_taxes_in_price": taxes_included,
+        "lines": serialize_checkout_lines(checkout),
+        "subtotal_net_amount": str(subtotal.net.amount),
+        "subtotal_gross_amount": str(subtotal.gross.amount),
+        "total_net_amount": str(total.net.amount),
+        "total_gross_amount": str(total.gross.amount),
+        "collection_point": json.loads(
+            _generate_collection_point_payload(collection_point)
+        )[0],
+    }

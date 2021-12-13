@@ -630,6 +630,10 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
     seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
 )
 
+CHECKOUT_PRICES_TTL = timedelta(
+    seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "5 minutes"))
+)
+
 # Support multiple interface notation in schema for Apollo tooling.
 
 # In `graphql-core` V2 separator for interface is `,`.

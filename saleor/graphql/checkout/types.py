@@ -124,18 +124,13 @@ class CheckoutLine(CountableDjangoObjectType):
                     checkout_info,
                     lines,
                 ) = data
-                line_info = None
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
-                        address = (
-                            checkout_info.shipping_address
-                            or checkout_info.billing_address
-                        )
-                        return info.context.plugins.calculate_checkout_line_total(
+                        return calculations.checkout_line_total(
+                            manager=info.context.plugins,
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
-                            address=address,
                             discounts=discounts,
                         )
                 return None
@@ -444,8 +439,12 @@ class Checkout(CountableDjangoObjectType):
             channel_slug = channel.slug
             display_gross = info.context.site.settings.display_gross_prices
             manager = info.context.plugins
-            subtotal = manager.calculate_checkout_subtotal(
-                checkout_info, lines, address, discounts
+            subtotal = calculations.checkout_subtotal(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                address=address,
+                discounts=discounts,
             )
             if not address:
                 return []

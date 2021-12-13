@@ -10,7 +10,7 @@ from django.conf import settings
 from django_countries.fields import Country
 
 from .....checkout.calculations import (
-    checkout_line_total,
+    checkout_line_unit_price,
     checkout_shipping_price,
     checkout_total,
 )
@@ -241,22 +241,12 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
 
     line_items = []
     for line_info in lines:
-        total = checkout_line_total(
+        unit_price = checkout_line_unit_price(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
-        )
-        address = checkout_info.shipping_address or checkout_info.billing_address
-        unit_price = manager.calculate_checkout_line_unit_price(
-            total,
-            line_info.line.quantity,
-            checkout_info,
-            lines,
-            line_info,
-            address,
-            discounts,
         )
         unit_gross = unit_price.gross.amount
         unit_net = unit_price.net.amount
