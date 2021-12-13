@@ -20,7 +20,10 @@ class WebhookQueries(graphene.ObjectType):
     webhook_events = graphene.List(
         WebhookEvent,
         description="List of all available webhook events.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD}",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `WebhookEventTypeAsyncEnum` and "
+            "`WebhookEventTypeSyncEnum` to get available event types."
+        ),
     )
     webhook_sample_payload = graphene.Field(
         graphene.JSONString,

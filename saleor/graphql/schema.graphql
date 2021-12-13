@@ -5900,7 +5900,7 @@ input PublishableChannelListingInput {
 
 type Query {
   webhook(id: ID!): Webhook
-  webhookEvents: [WebhookEvent] @deprecated(reason: "This field will be removed in Saleor 4.0.")
+  webhookEvents: [WebhookEvent] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `WebhookEventTypeAsyncEnum` and `WebhookEventTypeSyncEnum` to get available event types.")
   webhookSamplePayload(eventType: WebhookSampleEventTypeEnum!): JSONString
   warehouse(id: ID!): Warehouse
   warehouses(filter: WarehouseFilterInput, sortBy: WarehouseSortingInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
