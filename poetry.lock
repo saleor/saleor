@@ -886,7 +886,7 @@ typing-extensions = {version = ">=3.7.4.3", markers = "python_version < \"3.10\"
 
 [[package]]
 name = "google-api-core"
-version = "2.2.2"
+version = "2.3.0"
 description = "Google API client core library"
 category = "main"
 optional = false
@@ -1593,7 +1593,7 @@ xpath = ["lxml (>=4.4.0)"]
 
 [[package]]
 name = "phonenumberslite"
-version = "8.12.38"
+version = "8.12.39"
 description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
 category = "main"
 optional = false
@@ -2719,7 +2719,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "4161e4eced201c8ba1608c7dd2dce6f5dc9b0710e9f31d25ae8f905b8d6422d6"
+content-hash = "dcc0ec7d6bb479e42366eb9f4c21df94cda60753c8c798c6c5e103fb6683781d"
 
 [metadata.files]
 adyen = [
@@ -3167,8 +3167,8 @@ gitpython = [
     {file = "GitPython-3.1.24.tar.gz", hash = "sha256:df83fdf5e684fef7c6ee2c02fc68a5ceb7e7e759d08b694088d0cacb4eba59e5"},
 ]
 google-api-core = [
-    {file = "google-api-core-2.2.2.tar.gz", hash = "sha256:97349cc18c2bb2415f64f1353a80273a289a61294ce3eb2f7ce682d251bdd997"},
-    {file = "google_api_core-2.2.2-py2.py3-none-any.whl", hash = "sha256:e7853735d4f51f4212d6bf9750620d76fc0106c0f271be0c3f43b73501c7ddf9"},
+    {file = "google-api-core-2.3.0.tar.gz", hash = "sha256:538cd927bfe0f7c63bc1eb5fcadeeeb52f90bb29117dea87ae8cae48953d4c60"},
+    {file = "google_api_core-2.3.0-py2.py3-none-any.whl", hash = "sha256:65fe1d9d8dde7a5ddc43d5cc134560c2a76b1a26c9f70c3c24f13b7910e89e10"},
 ]
 google-auth = [
     {file = "google-auth-2.3.3.tar.gz", hash = "sha256:d83570a664c10b97a1dc6f8df87e5fdfff012f48f62be131e449c20dfc32630e"},
@@ -3706,8 +3706,8 @@ petl = [
     {file = "petl-1.7.4.tar.gz", hash = "sha256:e57d9d50397e35a0aead8c028494474742edb9b320a89472207778241f57b694"},
 ]
 phonenumberslite = [
-    {file = "phonenumberslite-8.12.38-py2.py3-none-any.whl", hash = "sha256:cd9c28e73ac2bc470b015efd84fa38ffe1adff4446f53f4244af81d9602e500b"},
-    {file = "phonenumberslite-8.12.38.tar.gz", hash = "sha256:c98334ccd6e87067594584b7f4e3a210b6e1080b8e1ac7c7caffdb7c33fbce55"},
+    {file = "phonenumberslite-8.12.39-py2.py3-none-any.whl", hash = "sha256:1001fd304ccf5ec7f926fd039ef07eefffa9880573698baede00a3becb8de6ad"},
+    {file = "phonenumberslite-8.12.39.tar.gz", hash = "sha256:5b77990b6832675fa3a2e60a05e738af0bf96908352a8ee90b4d4ec964a03977"},
 ]
 pillow = [
     {file = "Pillow-8.4.0-cp310-cp310-macosx_10_10_universal2.whl", hash = "sha256:81f8d5c81e483a9442d72d182e1fb6dcb9723f289a57e8030811bac9ea3fef8d"},
