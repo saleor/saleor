@@ -1468,7 +1468,9 @@ def product_type_attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
-                Attribute(slug="size", name="Size", type=AttributeType.PRODUCT_TYPE),
+                Attribute(
+                    slug="height", name="Height", type=AttributeType.PRODUCT_TYPE
+                ),
                 Attribute(
                     slug="weight", name="Weight", type=AttributeType.PRODUCT_TYPE
                 ),
