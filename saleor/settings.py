@@ -470,9 +470,15 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Expired checkouts settings - defines after what time checkouts will be deleted
-ANONYMOUS_CHECKOUTS_TIMEDELTA = {"days": 30}
-USER_CHECKOUTS_TIMEDELTA = {"days": 90}
-EMPTY_CHECKOUTS_TIMEDELTA = {"hours": 6}
+ANONYMOUS_CHECKOUTS_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("ANONYMOUS_CHECKOUTS_TIMEDELTA", "30 days"))
+)
+USER_CHECKOUTS_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("USER_CHECKOUTS_TIMEDELTA", "90 days"))
+)
+EMPTY_CHECKOUTS_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("EMPTY_CHECKOUTS_TIMEDELTA", "6 hours"))
+)
 
 # CELERY SETTINGS
 CELERY_TIMEZONE = TIME_ZONE

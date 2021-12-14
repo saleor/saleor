@@ -197,7 +197,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         if not checkout.email:
             raise ValidationError(
                 "Checkout email must be set.",
-                code=PaymentErrorCode.EMAIL_NOT_SET.value,
+                code=PaymentErrorCode.CHECKOUT_EMAIL_NOT_SET.value,
             )
 
     @classmethod

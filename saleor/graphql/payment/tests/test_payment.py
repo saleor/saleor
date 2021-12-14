@@ -353,7 +353,7 @@ def test_checkout_add_payment_no_checkout_email(
     data = content["data"]["checkoutPaymentCreate"]
 
     assert len(data["errors"]) == 1
-    assert data["errors"][0]["code"] == PaymentErrorCode.EMAIL_NOT_SET.name
+    assert data["errors"][0]["code"] == PaymentErrorCode.CHECKOUT_EMAIL_NOT_SET.name
 
 
 def test_checkout_add_payment_not_supported_gateways(
