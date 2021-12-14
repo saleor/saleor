@@ -293,7 +293,7 @@ def _get_shipping_voucher_discount_for_checkout(
         address=address,
         discounts=discounts,
     )
-    shipping_price = get_base_money(shipping_price, taxes_included)
+    shipping_price = get_base_price_from_taxed_money(shipping_price, taxes_included)
     return voucher.get_discount_amount_for(shipping_price, checkout_info.channel)
 
 
@@ -377,7 +377,9 @@ def get_prices_of_discounted_specific_product(
             checkout_line_info=line_info,
             discounts=discounts,
         )
-        line_unit_price = get_base_money(line_unit_price, taxes_included)
+        line_unit_price = get_base_price_from_taxed_money(
+            line_unit_price, taxes_included
+        )
         line_prices.extend([line_unit_price] * line.quantity)
 
     return line_prices
@@ -405,7 +407,7 @@ def get_voucher_discount_for_checkout(
             address=address,
             discounts=discounts,
         )
-        subtotal = get_base_money(subtotal, taxes_included)
+        subtotal = get_base_price_from_taxed_money(subtotal, taxes_included)
         return voucher.get_discount_amount_for(subtotal, checkout_info.channel)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(
@@ -485,7 +487,7 @@ def recalculate_checkout_discount(
                 address=address,
                 discounts=discounts,
             )
-            subtotal = get_base_money(subtotal, taxes_included)
+            subtotal = get_base_price_from_taxed_money(subtotal, taxes_included)
             checkout.discount = (
                 min(discount, subtotal)
                 if voucher.type != VoucherType.SHIPPING
@@ -767,5 +769,12 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
         )
 
 
-def get_base_money(taxed_money: "TaxedMoney", from_gross: bool) -> Money:
-    return taxed_money.gross if from_gross else taxed_money.net
+def get_base_price_from_taxed_money(
+    taxed_money: "TaxedMoney", include_taxes_in_prices: bool
+) -> Money:
+    """Convert TaxedMoney to Money depending on `include_taxes_in_prices`.
+
+    Typically, end users in Americas are presented with net prices, while
+    European countries tend to use gross prices.
+    """
+    return taxed_money.gross if include_taxes_in_prices else taxed_money.net
