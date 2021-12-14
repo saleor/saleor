@@ -11,6 +11,7 @@ from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import InvoiceError
 from ..invoice.types import Invoice
 from ..order.types import Order
+from .utils import is_event_active_for_any_plugin
 
 
 class InvoiceRequest(ModelMutation):
@@ -61,15 +62,28 @@ class InvoiceRequest(ModelMutation):
         )
         cls.clean_order(order)
 
+        if not is_event_active_for_any_plugin(
+            "invoice_request", info.context.plugins.all_plugins
+        ):
+            raise ValidationError(
+                {
+                    "orderId": ValidationError(
+                        "No app or plugin is configured to handle invoice requests.",
+                        code=InvoiceErrorCode.NO_INVOICE_PLUGIN,
+                    )
+                }
+            )
+
         shallow_invoice = models.Invoice.objects.create(
             order=order,
             number=data.get("number"),
         )
+
         invoice = info.context.plugins.invoice_request(
             order=order, invoice=shallow_invoice, number=data.get("number")
         )
 
-        if invoice.status == JobStatus.SUCCESS:
+        if invoice and invoice.status == JobStatus.SUCCESS:
             order_events.invoice_generated_event(
                 order=order,
                 user=info.context.user,
