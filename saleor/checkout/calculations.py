@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, Optional, Tuple
 
 from django.conf import settings
 from django.utils import timezone
@@ -29,13 +29,14 @@ def checkout_shipping_price(
 
     It takes in account all plugins.
     """
-    return fetch_checkout_prices_if_expired(
+    checkout_info, _ = fetch_checkout_prices_if_expired(
         checkout_info,
         manager=manager,
         lines=lines,
         address=address,
         discounts=discounts,
-    ).shipping_price
+    )
+    return checkout_info.shipping_price
 
 
 def checkout_subtotal(
@@ -50,13 +51,14 @@ def checkout_subtotal(
 
     It takes in account all plugins.
     """
-    return fetch_checkout_prices_if_expired(
+    checkout_info, _ = fetch_checkout_prices_if_expired(
         checkout_info,
         manager=manager,
         lines=lines,
         address=address,
         discounts=discounts,
-    ).subtotal
+    )
+    return checkout_info.subtotal
 
 
 def calculate_checkout_total_with_gift_cards(
@@ -95,13 +97,29 @@ def checkout_total(
 
     It takes in account all plugins.
     """
-    return fetch_checkout_prices_if_expired(
+    checkout_info, _ = fetch_checkout_prices_if_expired(
         checkout_info,
         manager=manager,
         lines=lines,
         address=address,
         discounts=discounts,
-    ).total
+    )
+    return checkout_info.total
+
+
+def _find_checkout_line_info(
+    lines: Iterable["CheckoutLineInfo"],
+    checkout_line_info: "CheckoutLineInfo",
+) -> "CheckoutLineInfo":
+    """Return checkout line info from lines parameter.
+
+    The return value represents the updated version of checkout_line_info parameter.
+    """
+    return next(
+        line_info
+        for line_info in lines
+        if line_info.line.pk == checkout_line_info.line.pk
+    )
 
 
 def checkout_line_total(
@@ -117,17 +135,15 @@ def checkout_line_total(
     It takes in account all plugins.
     """
     address = checkout_info.shipping_address or checkout_info.billing_address
-    return (
-        fetch_checkout_prices_if_expired(
-            checkout_info,
-            manager=manager,
-            lines=lines,
-            address=address,
-            discounts=discounts,
-        )
-        .lines.get(pk=checkout_line_info.line.pk)
-        .total_price
+    _, lines = fetch_checkout_prices_if_expired(
+        checkout_info,
+        manager=manager,
+        lines=lines,
+        address=address,
+        discounts=discounts,
     )
+    checkout_line_info = _find_checkout_line_info(lines, checkout_line_info)
+    return checkout_line_info.line.total_price
 
 
 def checkout_line_unit_price(
@@ -143,17 +159,15 @@ def checkout_line_unit_price(
     It takes in account all plugins.
     """
     address = checkout_info.shipping_address or checkout_info.billing_address
-    return (
-        fetch_checkout_prices_if_expired(
-            checkout_info,
-            manager=manager,
-            lines=lines,
-            address=address,
-            discounts=discounts,
-        )
-        .lines.get(pk=checkout_line_info.line.pk)
-        .unit_price
+    _, lines = fetch_checkout_prices_if_expired(
+        checkout_info,
+        manager=manager,
+        lines=lines,
+        address=address,
+        discounts=discounts,
     )
+    checkout_line_info = _find_checkout_line_info(lines, checkout_line_info)
+    return checkout_line_info.line.unit_price
 
 
 def force_taxes_recalculation(
@@ -179,7 +193,7 @@ def fetch_checkout_prices_if_expired(
     address: Optional["Address"] = None,
     discounts: Optional[Iterable["DiscountInfo"]] = None,
     force_update: bool = False,
-) -> "Checkout":
+) -> Tuple["Checkout", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
     Apply checkout prices with taxes from plugins and
@@ -191,7 +205,7 @@ def fetch_checkout_prices_if_expired(
     checkout = checkout_info.checkout
 
     if not force_update and checkout.price_expiration < timezone.now():
-        return checkout
+        return checkout, lines
 
     _apply_tax_data_from_plugins(
         checkout, manager, checkout_info, lines, address, discounts
@@ -225,7 +239,7 @@ def fetch_checkout_prices_if_expired(
         ],
     )
 
-    return checkout
+    return checkout, lines
 
 
 def _apply_tax_data(
