@@ -778,7 +778,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             raise ValidationError(error)
 
     @staticmethod
-    def add_lines_to_order(order, lines_to_add, user, app, manager):
+    def add_lines_to_order(order, lines_to_add, user, app, manager, discounts):
         try:
             return [
                 add_variant_to_order(
@@ -788,6 +788,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     user,
                     app,
                     manager,
+                    discounts=discounts,
                     allocate_stock=order.is_unconfirmed(),
                 )
                 for quantity, variant in lines_to_add
@@ -813,6 +814,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             info.context.user,
             info.context.app,
             info.context.plugins,
+            info.context.discounts,
         )
 
         # Create the products added event
