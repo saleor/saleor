@@ -177,7 +177,7 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
         message_kwargs["MessageGroupId"] = domain
     with catch_duration_time() as duration:
         response = client.send_message(**message_kwargs)
-        return WebhookResponse(content=response, duration=duration().total_seconds())
+        return WebhookResponse(content=response, duration=duration())
 
 
 def send_webhook_using_google_cloud_pubsub(
@@ -194,7 +194,7 @@ def send_webhook_using_google_cloud_pubsub(
             eventType=event_type,
             signature=signature,
         )
-        response_duration = duration().total_seconds()
+        response_duration = duration()
         response = future.result()
         return WebhookResponse(content=response, duration=response_duration)
 

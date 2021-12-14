@@ -3,7 +3,7 @@ import decimal
 import json
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime
+from time import time
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from django.db.models import QuerySet
@@ -153,8 +153,8 @@ def parse_list_shipping_methods_response(
 
 @contextmanager
 def catch_duration_time():
-    start = datetime.now()
-    yield lambda: datetime.now() - start
+    start = time()
+    yield lambda: time() - start
 
 
 def create_event_delivery_list_for_webhooks(
