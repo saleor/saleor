@@ -20,9 +20,8 @@ from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType
 from ..discount.models import NotApplicable
 from ..discount.utils import (
     add_voucher_usage_by_customer,
-    decrease_voucher_usage,
     increase_voucher_usage,
-    remove_voucher_usage_by_customer,
+    release_voucher_usage,
 )
 from ..giftcard.models import GiftCard
 from ..graphql.checkout.utils import (
@@ -49,10 +48,11 @@ if TYPE_CHECKING:
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
-def _get_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
+def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     """Fetch, process and return voucher/discount data from checkout.
 
     Careful! It should be called inside a transaction.
+    If voucher has a usage limit, it will be increased!
 
     :raises NotApplicable: When the voucher is not applicable in the current checkout.
     """
@@ -316,10 +316,7 @@ def _prepare_order_data(
     # validate checkout gift cards
     _validate_gift_cards(checkout)
 
-    # Get voucher data (last) as they require a transaction
-    order_data.update(_get_voucher_data_for_order(checkout_info))
-
-    # assign gift cards to the order
+    order_data.update(_process_voucher_data_for_order(checkout_info))
 
     order_data["total_price_left"] = (
         manager.calculate_checkout_subtotal(checkout_info, lines, address, discounts)
@@ -327,7 +324,12 @@ def _prepare_order_data(
         - checkout.discount
     ).gross
 
-    manager.preprocess_order_creation(checkout_info, discounts, lines)
+    try:
+        manager.preprocess_order_creation(checkout_info, discounts, lines)
+    except TaxError:
+        release_voucher_usage(order_data)
+        raise
+
     return order_data
 
 
@@ -477,14 +479,6 @@ def _prepare_checkout(
     if to_update:
         to_update.append("last_change")
         checkout.save(update_fields=to_update)
-
-
-def release_voucher_usage(order_data: dict):
-    voucher = order_data.get("voucher")
-    if voucher and voucher.usage_limit:
-        decrease_voucher_usage(voucher)
-        if "user_email" in order_data:
-            remove_voucher_usage_by_customer(voucher, order_data["user_email"])
 
 
 def _get_order_data(
