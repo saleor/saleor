@@ -75,6 +75,7 @@ class CustomerCreate(BaseCustomerCreate):
         description = "Creates a new customer."
         exclude = ["password"]
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -91,6 +92,7 @@ class CustomerUpdate(CustomerCreate):
         description = "Updates an existing customer."
         exclude = ["password"]
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -157,6 +159,7 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
     class Meta:
         description = "Deletes a customer."
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -181,6 +184,7 @@ class StaffCreate(ModelMutation):
         description = "Creates a new staff user."
         exclude = ["password"]
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
@@ -280,6 +284,7 @@ class StaffUpdate(StaffCreate):
         description = "Updates an existing staff user."
         exclude = ["password"]
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
@@ -410,6 +415,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
     class Meta:
         description = "Deletes a staff user."
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"

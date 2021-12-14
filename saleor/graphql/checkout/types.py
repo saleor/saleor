@@ -262,6 +262,7 @@ class Checkout(CountableDjangoObjectType):
     )
     billing_address = graphene.Field("saleor.graphql.account.types.Address")
     shipping_address = graphene.Field("saleor.graphql.account.types.Address")
+    user = graphene.Field("saleor.graphql.account.types.User")
 
     class Meta:
         only_fields = [
@@ -273,7 +274,6 @@ class Checkout(CountableDjangoObjectType):
             "channel",
             "note",
             "translated_discount_name",
-            "user",
             "voucher_code",
             "discount",
         ]

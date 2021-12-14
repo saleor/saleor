@@ -65,15 +65,6 @@ def resolve_entities(parent, info, representations):
 
 def set_entity_type_resolver(schema):
     """Set type resolver aware of ChannelContext on _Entity union."""
-    # Build type => model mappings for current schema
-    types_mappings = {}
-    for graphql_type_name, graphql_type in schema.get_type_map().items():
-        try:
-            model = graphql_type.graphene_type.get_model()
-            types_mappings[model] = graphql_type_name
-        except AttributeError:
-            pass
-
     entity = schema.get_type("_Entity")
 
     def resolve_entity_type(instance, info):
@@ -83,13 +74,14 @@ def set_entity_type_resolver(schema):
         else:
             model = type(instance)
 
-        if model not in types_mappings:
+        model_type = schema.get_type(model._meta.object_name)
+        if model_type is None:
             raise ValueError(
                 f"GraphQL type for model {model} could not be found. "
                 "This is caused by federated type missing get_model method."
             )
 
-        return types_mappings[model]
+        return model_type
 
     entity.resolve_type = resolve_entity_type
 

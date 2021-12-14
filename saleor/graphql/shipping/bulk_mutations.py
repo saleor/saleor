@@ -38,7 +38,18 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
-    def get_nodes_or_error(cls, ids, field, only_type=None, qs=None):
+    def get_nodes_or_error(
+        cls,
+        ids,
+        field,
+        only_type=None,
+        qs=None,
+        schema=None,
+    ):
         return super().get_nodes_or_error(
-            ids, field, "ShippingMethodType", qs=models.ShippingMethod.objects
+            ids,
+            field,
+            "ShippingMethodType",
+            qs=models.ShippingMethod.objects,
+            schema=schema,
         )

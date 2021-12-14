@@ -225,9 +225,9 @@ class BaseMutation(graphene.Mutation):
         return pks
 
     @classmethod
-    def get_nodes_or_error(cls, ids, field, only_type=None, qs=None):
+    def get_nodes_or_error(cls, ids, field, only_type=None, qs=None, schema=None):
         try:
-            instances = get_nodes(ids, only_type, qs=qs)
+            instances = get_nodes(ids, only_type, qs=qs, schema=schema)
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
@@ -448,7 +448,9 @@ class ModelMutation(BaseMutation):
                 # handle list of IDs field
                 if value is not None and is_list_of_ids(field_item):
                     instances = (
-                        cls.get_nodes_or_error(value, field_name) if value else []
+                        cls.get_nodes_or_error(value, field_name, schema=info.schema)
+                        if value
+                        else []
                     )
                     cleaned_input[field_name] = instances
 
@@ -577,14 +579,24 @@ class BaseBulkMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, model=None, _meta=None, **kwargs):
+    def __init_subclass_with_meta__(
+        cls, model=None, object_type=None, _meta=None, **kwargs
+    ):
         if not model:
             raise ImproperlyConfigured("model is required for bulk mutation")
         if not _meta:
             _meta = ModelMutationOptions(cls)
         _meta.model = model
+        _meta.object_type = object_type
 
         super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
+
+    @classmethod
+    def get_type_for_model(cls):
+        if cls._meta.object_type:
+            return cls._meta.object_type
+
+        return registry.get_type_for_model(cls._meta.model)
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -607,9 +619,11 @@ class BaseBulkMutation(BaseMutation):
         if not ids:
             return 0, errors
         instance_model = cls._meta.model
-        model_type = registry.get_type_for_model(instance_model)
+        model_type = cls.get_type_for_model()
         try:
-            instances = cls.get_nodes_or_error(ids, "id", model_type)
+            instances = cls.get_nodes_or_error(
+                ids, "id", model_type, schema=info.schema
+            )
         except ValidationError as error:
             return 0, error
         for instance, node_id in zip(instances, ids):

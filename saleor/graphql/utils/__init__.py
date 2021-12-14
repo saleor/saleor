@@ -55,15 +55,23 @@ def resolve_global_ids_to_primary_keys(
     return used_type, pks
 
 
-def _resolve_graphene_type(type_name):
+def _resolve_graphene_type(type_name, schema=None):
     for _, _type in registry._registry.items():
         if _type._meta.name == type_name:
             return _type
+    if schema:
+        type_from_schema = schema.get_type(type_name)
+        if type_from_schema:
+            return type_from_schema.graphene_type
     raise GraphQLError("Could not resolve the type {}".format(type_name))
 
 
 def get_nodes(
-    ids, graphene_type: Union[graphene.ObjectType, str] = None, model=None, qs=None
+    ids,
+    graphene_type: Union[graphene.ObjectType, str] = None,
+    model=None,
+    qs=None,
+    schema=None,
 ):
     """Return a list of nodes.
 
@@ -82,7 +90,7 @@ def get_nodes(
     # the same. This prevents from accidentally mismatching IDs of different
     # types.
     if nodes_type and not graphene_type:
-        graphene_type = _resolve_graphene_type(nodes_type)
+        graphene_type = _resolve_graphene_type(nodes_type, schema)
 
     if qs is None and graphene_type and not isinstance(graphene_type, str):
         qs = graphene_type._meta.model.objects

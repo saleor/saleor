@@ -53,7 +53,8 @@ class AppManifestExtension(graphene.ObjectType):
     )
 
 
-class AppExtension(AppManifestExtension, CountableDjangoObjectType):
+class AppExtension(AppManifestExtension, ModelObjectType):
+    id = graphene.GlobalID(required=True)
     app = graphene.Field("saleor.graphql.app.types.App", required=True)
     access_token = graphene.String(
         description="JWT token used to authenticate by thridparty app extension."
@@ -138,7 +139,8 @@ class AppToken(graphene.ObjectType):
 
 
 @key(fields="id")
-class App(CountableDjangoObjectType):
+class App(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     permissions = graphene.List(
         Permission, description="List of the app's permissions."
     )
@@ -183,20 +185,6 @@ class App(CountableDjangoObjectType):
         description = "Represents app data."
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.App
-        permissions = (AppPermission.MANAGE_APPS,)
-        only_fields = [
-            "name",
-            "permissions",
-            "created",
-            "is_active",
-            "tokens",
-            "id",
-            "tokens",
-        ]
-
-    @staticmethod
-    def get_model():
-        return models.App
 
     @staticmethod
     def resolve_permissions(root: models.App, _info, **_kwargs):

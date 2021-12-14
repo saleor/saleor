@@ -17,11 +17,7 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
-from ..core.connection import (
-    CountableConnection,
-    CountableDjangoObjectType,
-    create_connection_slice,
-)
+from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import resolve_federation_references
@@ -140,7 +136,7 @@ class Address(ModelObjectType):
         return result
 
 
-class CustomerEvent(graphene.ObjectType):
+class CustomerEvent(ModelObjectType):
     id = graphene.GlobalID(required=True)
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
@@ -160,13 +156,7 @@ class CustomerEvent(graphene.ObjectType):
     class Meta:
         description = "History log of the customer."
         interfaces = [relay.Node]
-
-    @staticmethod
-    def get_node(info, id):
-        try:
-            return models.CustomerEvent.objects.get(pk=id)
-        except models.CustomerEvent.DoesNotExist:
-            return None
+        model = models.CustomerEvent
 
     @staticmethod
     def resolve_user(root: models.CustomerEvent, info):
@@ -228,7 +218,13 @@ class UserPermission(Permission):
 
 @key(fields="id")
 @key(fields="email")
-class User(CountableDjangoObjectType):
+class User(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    email = graphene.String(required=True)
+    first_name = graphene.String(required=True)
+    last_name = graphene.String(required=True)
+    is_staff = graphene.Boolean(required=True)
+    is_active = graphene.Boolean(required=True)
     addresses = graphene.List(Address, description="List of all user's addresses.")
     checkout = graphene.Field(
         Checkout,
@@ -282,25 +278,13 @@ class User(CountableDjangoObjectType):
     default_billing_address = graphene.Field(Address)
     default_shipping_address = graphene.Field(Address)
 
+    last_login = graphene.DateTime()
+    date_joined = graphene.DateTime(required=True)
+
     class Meta:
         description = "Represents user data."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = get_user_model()
-        only_fields = [
-            "date_joined",
-            "email",
-            "first_name",
-            "id",
-            "is_active",
-            "is_staff",
-            "last_login",
-            "last_name",
-            "note",
-        ]
-
-    @staticmethod
-    def get_model():
-        return get_user_model()
 
     @staticmethod
     def resolve_addresses(root: models.User, _info, **_kwargs):
@@ -518,7 +502,9 @@ class StaffNotificationRecipient(graphene.ObjectType):
 
 
 @key(fields="id")
-class Group(CountableDjangoObjectType):
+class Group(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
     users = graphene.List(User, description="List of group users")
     permissions = graphene.List(Permission, description="List of group permissions")
     user_can_manage = graphene.Boolean(
@@ -532,11 +518,6 @@ class Group(CountableDjangoObjectType):
         description = "Represents permission group data."
         interfaces = [relay.Node]
         model = auth_models.Group
-        only_fields = ["name", "permissions", "id"]
-
-    @staticmethod
-    def get_model():
-        return auth_models.Group
 
     @staticmethod
     @permission_required(AccountPermissions.MANAGE_STAFF)

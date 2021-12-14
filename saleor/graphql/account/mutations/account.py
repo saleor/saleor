@@ -81,6 +81,7 @@ class AccountRegister(ModelMutation):
         description = "Register a new user."
         exclude = ["password"]
         model = models.User
+        object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -174,6 +175,7 @@ class AccountUpdate(BaseCustomerCreate):
         description = "Updates the account of the logged-in user."
         exclude = ["password"]
         model = models.User
+        object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -247,6 +249,7 @@ class AccountDelete(ModelDeleteMutation):
     class Meta:
         description = "Remove user account."
         model = models.User
+        object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
 
