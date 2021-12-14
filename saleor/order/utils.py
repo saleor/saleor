@@ -157,7 +157,7 @@ def recalculate_order(order: Order, invalidate_prices: bool = False, **kwargs):
     Voucher discount amount is recalculated by default. To avoid this, pass
     update_voucher_discount argument set to False.
 
-    If you want to invalidate order prices in order mutation, pass
+    If you want to invalidate order prices, pass
     invalidate_prices_data argument set to True.
     """
 

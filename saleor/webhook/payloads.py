@@ -4,7 +4,7 @@ from dataclasses import asdict
 from typing import TYPE_CHECKING, Iterable, Optional
 
 import graphene
-from django.db.models import F, QuerySet, Sum
+from django.db.models import F, QuerySet, Sum, prefetch_related_objects
 
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
@@ -93,12 +93,13 @@ def prepare_order_lines_allocations_payload(line):
     return warehouse_id_quantity_allocated_map
 
 
-def _charge_taxes(order_line: OrderLine) -> bool:
+def _charge_taxes(order_line: OrderLine) -> Optional[bool]:
     variant = order_line.variant
-    return False if not variant else variant.product.charge_taxes
+    return None if not variant else variant.product.charge_taxes
 
 
 def generate_order_lines_payload(lines: Iterable[OrderLine]):
+    prefetch_related_objects(lines, "variant__product")
     line_fields = (
         "product_name",
         "variant_name",
