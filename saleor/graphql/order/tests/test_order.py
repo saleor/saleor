@@ -3811,6 +3811,16 @@ ORDER_LINES_CREATE_MUTATION = """
                 quantity
                 productSku
                 productVariantId
+                unitPrice {
+                    gross {
+                        amount
+                        currency
+                    }
+                    net {
+                        amount
+                        currency
+                    }
+                }
             }
             order {
                 total {
@@ -4015,6 +4025,63 @@ def test_order_lines_create_with_existing_variant(
     assert data["orderLines"][0]["quantity"] == old_quantity + quantity
     assert_proper_webhook_called_once(
         order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_lines_create_variant_on_sale(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+    sale,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+
+    variant = variant_with_many_stocks
+    sale.variants.add(variant)
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_proper_webhook_called_once(
+        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    line_data = data["orderLines"][0]
+    assert line_data["productSku"] == variant.sku
+    assert line_data["quantity"] == quantity
+    assert line_data["quantity"] == quantity
+    variant_channel_listing = variant.channel_listings.get(channel=order.channel)
+    sale_channel_listing = sale.channel_listings.first()
+    assert (
+        line_data["unitPrice"]["gross"]["amount"]
+        == variant_channel_listing.price_amount - sale_channel_listing.discount_value
+    )
+    assert (
+        line_data["unitPrice"]["net"]["amount"]
+        == variant_channel_listing.price_amount - sale_channel_listing.discount_value
     )
 
 
