@@ -22,6 +22,7 @@ from django.http import (
 )
 from django.http.request import HttpHeaders
 from django.http.response import HttpResponseRedirect
+from graphql import GraphQLError
 
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -29,7 +30,7 @@ from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
-from ....graphql.utils import from_global_id
+from ....graphql.core.utils import from_global_id_or_error
 from ....order.actions import (
     cancel_order,
     order_authorized,
@@ -63,8 +64,8 @@ def get_payment(
         logger.warning("Missing payment ID. Reference %s", transaction_id)
         return None
     try:
-        _type, db_payment_id = from_global_id(payment_id)
-    except (UnicodeDecodeError, binascii.Error):
+        _type, db_payment_id = from_global_id_or_error(payment_id)
+    except (UnicodeDecodeError, binascii.Error, GraphQLError):
         logger.warning(
             "Unable to decode the payment ID %s. Reference %s",
             payment_id,

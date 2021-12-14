@@ -16,6 +16,7 @@ from ..channel import ChannelContext
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
+from ..core.utils import from_global_id_or_error
 from ..discount import types as discount_types
 from ..menu import types as menu_types
 from ..page import types as page_types
@@ -23,7 +24,6 @@ from ..product import types as product_types
 from ..product.types import Product, ProductVariant
 from ..shipping import types as shipping_types
 from ..shop.types import Shop
-from ..utils import from_global_id
 from . import types as translation_types
 
 # discount and menu types need to be imported to get
@@ -66,8 +66,8 @@ class BaseTranslateMutation(ModelMutation):
 
         node_id = data["id"]
         try:
-            node_type, node_pk = from_global_id(node_id)
-        except (GraphQLError):
+            node_type, node_pk = from_global_id_or_error(node_id)
+        except GraphQLError:
             raise ValidationError(
                 {
                     "id": ValidationError(

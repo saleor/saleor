@@ -1,6 +1,5 @@
 import hashlib
 from typing import Union
-from uuid import UUID
 
 import graphene
 from django.db.models import Value
@@ -8,10 +7,10 @@ from django.db.models.functions import Concat
 from graphene_django.registry import get_global_registry
 from graphql import GraphQLDocument
 from graphql.error import GraphQLError
-from graphql_relay import from_global_id as _from_global_id
 
 from ..core.enums import PermissionEnum
 from ..core.types import Permission
+from ..core.utils import from_global_id_or_error
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
@@ -36,7 +35,7 @@ def resolve_global_ids_to_primary_keys(
             continue
 
         try:
-            node_type, _id = from_global_id(graphql_id)
+            node_type, _id = from_global_id_or_error(graphql_id)
         except Exception:
             invalid_ids.append(graphql_id)
             continue
@@ -150,15 +149,3 @@ def query_fingerprint(document: GraphQLDocument) -> str:
             break
     query_hash = hashlib.md5(document.document_string.encode("utf-8")).hexdigest()
     return f"{label}:{query_hash}"
-
-
-def from_global_id(global_id):
-    _type, _id = _from_global_id(global_id)
-    try:
-        int(_id)
-    except Exception:
-        try:
-            UUID(_id)
-        except (ValueError, AttributeError):
-            raise GraphQLError
-    return _type, _id

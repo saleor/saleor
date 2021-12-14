@@ -136,7 +136,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Modify order of auth middleware calls - #7572 by @tomaszszymanski129
 - Add app support for events - #7622 by @IKarbowiak
 - Add date & date time attributes - #7500 by @piotrgrundas
-- Add `withChoices` flag for Attribute type - #7733 by @dexon44
+- Add `withChoices` flag for Attribute type - #7733 by @CossackDex
 - Drop assigning cheapest shipping method in checkout - #7767 by @maarcingebala
 - Add `product_id`, `product_variant_id`, `attribute_id` and `page_id` when it's possible for `AttributeValue` translations webhook. - #7783 by @fowczarek
 - Deprecate `query` argument in `sales` and `vouchers` queries - #7806 by @maarcingebala
@@ -191,10 +191,10 @@ All notable, unreleased changes to this project will be documented in this file.
     - `preprocess_order_creation`
   - additionally, `preprocess_order_creation` was extend with `lines_info` parameter
 - Fix Avalara caching - #7036 by @fowczarek;
- - Introduced changes in plugin methods definitions:
-    - `calculate_checkout_line_total`  was extended with `lines` parameter
-    - `calculate_checkout_line_unit_price`  was extended with `lines` parameter
-    - `get_checkout_line_tax_rate`  was extended with `lines` parameter
+- Introduced changes in plugin methods definitions:
+   - `calculate_checkout_line_total`  was extended with `lines` parameter
+   - `calculate_checkout_line_unit_price`  was extended with `lines` parameter
+   - `get_checkout_line_tax_rate`  was extended with `lines` parameter
   To get proper taxes we should always send the whole checkout to Avalara.
 - Remove triggering a webhook event `PRODUCT_UPDATED`  when calling `ProductVariantCreate` mutation.  Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
 - Remove triggering a webhook event `PRODUCT_UPDATED` when calling  `ProductVariantChannelListingUpdate` mutation. Use `PRODUCT_VARIANT_UPDATED` instead - #6963 by @piotrgrundas
@@ -263,7 +263,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unify checkout identifier in checkout mutations and queries - #7511 by @IKarbowiak
 - Use root level channel argument for filtering and sorting - #7374 by @IKarbowiak
   - drop `channel` field from filters and sorters
-- Drop top-level `checkoutLine` query from the schema with related resolver, use `checkout` query instead - #7623 by @dexon44
+- Drop top-level `checkoutLine` query from the schema with related resolver, use `checkout` query instead - #7623 by @CossackDex
+- Add additional validation for `from_global_id_or_error` function - #8780 by @CossackDex
 
 ### Other
 

@@ -9,7 +9,7 @@ from django.core.cache import cache
 from django.db.models import QuerySet
 from graphql import GraphQLError
 
-from ...graphql.utils import from_global_id
+from ...graphql.core.utils import from_global_id_or_error
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ..base_plugin import ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_TIME
@@ -125,7 +125,7 @@ def get_excluded_shipping_methods_from_response(
     excluded_methods = []
     for method_data in response_data.get("excluded_methods", []):
         try:
-            typename, method_id = from_global_id(method_data["id"])
+            typename, method_id = from_global_id_or_error(method_data["id"])
             if typename != "ShippingMethod":
                 raise ValueError(
                     f"Invalid type received. Expected ShippingMethod, got {typename}"
