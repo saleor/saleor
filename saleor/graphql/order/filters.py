@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Exists, IntegerField, OuterRef, Q, Sum
-from django.utils import timezone
 from django.db.models.functions import Cast
+from django.utils import timezone
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...giftcard import GiftCardEvents
