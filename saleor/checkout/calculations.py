@@ -133,6 +133,10 @@ def _find_checkout_line_info(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
 ) -> "CheckoutLineInfo":
+    """Return checkout line info from lines parameter.
+
+    The return value represents the updated version of checkout_line_info parameter.
+    """
     return next(
         line_info
         for line_info in lines
@@ -146,13 +150,13 @@ def checkout_line_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    address: Optional["Address"] = None,
     discounts: Iterable[DiscountInfo],
 ) -> "TaxedMoney":
     """Return the total price of provided line, taxes included.
 
     It takes in account all plugins.
     """
+    address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_prices_if_expired(
         checkout_info,
         manager=manager,
@@ -170,13 +174,13 @@ def checkout_line_unit_price(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    address: Optional["Address"] = None,
     discounts: Iterable[DiscountInfo],
 ) -> "TaxedMoney":
     """Return the unit price of provided line, taxes included.
 
     It takes in account all plugins.
     """
+    address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_prices_if_expired(
         checkout_info,
         manager=manager,
@@ -194,13 +198,13 @@ def checkout_line_tax_rate(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    address: Optional["Address"] = None,
     discounts: Iterable[DiscountInfo],
 ) -> Decimal:
     """Return the tax rate of provided line.
 
     It takes in account all plugins.
     """
+    address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_prices_if_expired(
         checkout_info,
         manager=manager,
@@ -238,8 +242,8 @@ def fetch_checkout_prices_if_expired(
 ) -> Tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
-    Apply checkout prices with taxes from plugins and
-    if available, apply them from webhooks.
+    First calculate and apply all checkout prices with taxes separately,
+    then apply tax data as well if we receive one.
 
     Prices can be updated only if force_update == True, or if time elapsed from the
     last price update is greater than settings.CHECKOUT_PRICES_TTL.

@@ -154,9 +154,6 @@ def _create_line_for_order(
     quantity = checkout_line.quantity
     variant = checkout_line_info.variant
     product = checkout_line_info.product
-    address = (
-        checkout_info.shipping_address or checkout_info.billing_address
-    )  # FIXME: check which address we need here
 
     product_name = str(product)
     variant_name = str(variant)
@@ -175,7 +172,6 @@ def _create_line_for_order(
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=checkout_line_info,
-        address=address,
         discounts=discounts,
     )
     unit_price = calculations.checkout_line_unit_price(
@@ -183,7 +179,6 @@ def _create_line_for_order(
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=checkout_line_info,
-        address=address,
         discounts=discounts,
     )
     tax_rate = calculations.checkout_line_tax_rate(
@@ -191,7 +186,6 @@ def _create_line_for_order(
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=checkout_line_info,
-        address=address,
         discounts=discounts,
     )
 
