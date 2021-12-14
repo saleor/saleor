@@ -219,3 +219,4 @@ websockets==8.1; python_full_version >= "3.6.1"
 wrapt==1.13.3; python_version >= "3.6" and python_full_version < "3.0.0" and python_version < "4.0" or python_version >= "3.6" and python_version < "4.0" and python_full_version >= "3.5.0"
 yarl==1.7.2; python_version >= "3.6"
 zopfli==0.1.9; python_version >= "3.7"
+checkout-sdk==2.0b8
