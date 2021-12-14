@@ -3,7 +3,7 @@ from typing import DefaultDict, Dict, List
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....graphql.core.mutations import BaseMutation, ModelMutation
+from ....graphql.core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ....graphql.core.types.common import AppError
 from .. import models
 from .types import CustomerGroupType
@@ -80,6 +80,30 @@ class CustomerGroupUpdate(ModelMutation):
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         return cleaned_input
+
+
+class CustomerGroupDeleteInput(graphene.InputObjectType):
+    customer_group_id = graphene.ID(
+        required=True,
+        description="ID of customer group to delete the group",
+    )
+
+
+class CustomerGroupDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of customrt group to delete")
+        input = CustomerGroupDeleteInput(
+            description="Fields required to delete a customer group"
+        )
+
+    class Meta:
+        description = "delete the customer group"
+        model = models.CustomerGroup
+        error_type_class = AppError
+
+    @classmethod
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
 
 ErrorType = DefaultDict[str, List[ValidationError]]

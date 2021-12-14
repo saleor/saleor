@@ -16,6 +16,7 @@ from .mutations import (
     CustomerGroupActivate,
     CustomerGroupCreate,
     CustomerGroupDeactivate,
+    CustomerGroupDelete,
     CustomerGroupUpdate,
 )
 
@@ -57,6 +58,7 @@ class CustomerGroupMutations(graphene.ObjectType):
     customer_group_activate = CustomerGroupActivate.Field()
     customer_group_deactivate = CustomerGroupDeactivate.Field()
     customer_group_update = CustomerGroupUpdate.Field()
+    customer_group_delete = CustomerGroupDelete.Field()
 
 
 schema = graphene.Schema(query=CustomerGroupQueries, mutation=CustomerGroupMutations)
