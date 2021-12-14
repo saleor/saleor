@@ -7,9 +7,8 @@ from graphene_django import DjangoObjectType
 
 from ...channel import models
 from ...core.permissions import ChannelPermissions
-from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
-from ..core.types import CountryDisplay
+from ..core.types import CountryDisplay, ModelObjectType
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
@@ -90,7 +89,13 @@ class ChannelContextTypeWithMetadata(
         abstract = True
 
 
-class Channel(CountableDjangoObjectType):
+class Channel(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    is_active = graphene.Boolean(required=True)
+    slug = graphene.String(required=True)
+    currency_code = graphene.String(required=True)
+    slug = graphene.String(required=True)
     has_orders = graphene.Boolean(
         required=True, description="Whether a channel has associated orders."
     )
@@ -108,7 +113,6 @@ class Channel(CountableDjangoObjectType):
         description = "Represents channel."
         model = models.Channel
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name", "slug", "currency_code", "is_active"]
 
     @staticmethod
     @permission_required(ChannelPermissions.MANAGE_CHANNELS)

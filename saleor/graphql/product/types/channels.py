@@ -15,6 +15,7 @@ from ....product.utils.costs import (
 )
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
+from ...channel.types import Channel
 from ...core.connection import CountableDjangoObjectType
 from ...core.descriptions import ADDED_IN_31
 from ...decorators import permission_required
@@ -34,6 +35,7 @@ class Margin(graphene.ObjectType):
 
 
 class ProductChannelListing(CountableDjangoObjectType):
+    channel = graphene.Field(Channel, required=True)
     discounted_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
@@ -65,7 +67,6 @@ class ProductChannelListing(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = [
             "id",
-            "channel",
             "is_published",
             "publication_date",
             "visible_in_listings",
@@ -250,6 +251,7 @@ class PreorderThreshold(graphene.ObjectType):
 
 
 class ProductVariantChannelListing(CountableDjangoObjectType):
+    channel = graphene.Field(Channel, required=True)
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
     preorder_threshold = graphene.Field(
@@ -262,7 +264,7 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
         description = "Represents product varaint channel listing."
         model = models.ProductVariantChannelListing
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "channel", "price", "cost_price"]
+        only_fields = ["id", "price", "cost_price"]
 
     @staticmethod
     def resolve_channel(root: models.ProductVariantChannelListing, info, **_kwargs):
@@ -286,11 +288,13 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
 
 
 class CollectionChannelListing(CountableDjangoObjectType):
+    channel = graphene.Field(Channel, required=True)
+
     class Meta:
         description = "Represents collection channel listing."
         model = models.CollectionChannelListing
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "channel", "is_published", "publication_date"]
+        only_fields = ["id", "is_published", "publication_date"]
 
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):

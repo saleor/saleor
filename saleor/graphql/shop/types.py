@@ -14,9 +14,9 @@ from ...core.tracing import traced_resolver
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
-from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
+from ..core.types import ModelObjectType
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission, TimePeriod
 from ..core.utils import str_to_enum
 from ..decorators import (
@@ -45,17 +45,16 @@ class Domain(graphene.ObjectType):
         description = "Represents shop's domain."
 
 
-class OrderSettings(CountableDjangoObjectType):
+class OrderSettings(ModelObjectType):
+    automatically_confirm_all_new_orders = graphene.Boolean(required=True)
+    automatically_fulfill_non_shippable_gift_card = graphene.Boolean(required=True)
+
     class Meta:
-        only_fields = [
-            "automatically_confirm_all_new_orders",
-            "automatically_fulfill_non_shippable_gift_card",
-        ]
         description = "Order related settings from site settings."
         model = site_models.SiteSettings
 
 
-class GiftCardSettings(CountableDjangoObjectType):
+class GiftCardSettings(ModelObjectType):
     expiry_type = GiftCardSettingsExpiryTypeEnum(
         description="The gift card expiry type settings.", required=True
     )
@@ -66,7 +65,6 @@ class GiftCardSettings(CountableDjangoObjectType):
     class Meta:
         description = "Gift card related settings from site settings."
         model = site_models.SiteSettings
-        only_fields = ["expiry_type"]
 
     def resolve_expiry_type(root, info):
         return root.gift_card_expiry_type

@@ -6,6 +6,7 @@ from ...discount import models
 from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
+    Channel,
     ChannelContext,
     ChannelContextType,
     ChannelContextTypeWithMetadata,
@@ -40,11 +41,13 @@ from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 class SaleChannelListing(CountableDjangoObjectType):
+    channel = graphene.Field(Channel, required=True)
+
     class Meta:
         description = "Represents sale channel listing."
         model = models.SaleChannelListing
         interfaces = [relay.Node]
-        only_fields = ["id", "channel", "discount_value", "currency"]
+        only_fields = ["id", "discount_value", "currency"]
 
     @staticmethod
     def resolve_channel(root: models.SaleChannelListing, info, **_kwargs):
@@ -159,11 +162,13 @@ class SaleCountableConnection(CountableConnection):
 
 
 class VoucherChannelListing(CountableDjangoObjectType):
+    channel = graphene.Field(Channel, required=True)
+
     class Meta:
         description = "Represents voucher channel listing."
         model = models.VoucherChannelListing
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "channel", "discount_value", "currency", "min_spent"]
+        only_fields = ["id", "discount_value", "currency", "min_spent"]
 
     @staticmethod
     def resolve_channel(root: models.VoucherChannelListing, info, **_kwargs):

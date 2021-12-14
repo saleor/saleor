@@ -54,6 +54,7 @@ class ChannelCreate(ModelMutation):
     class Meta:
         description = "Creates new channel."
         model = models.Channel
+        object_type = Channel
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
@@ -112,6 +113,7 @@ class ChannelUpdate(ModelMutation):
     class Meta:
         description = "Update a channel."
         model = models.Channel
+        object_type = Channel
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
@@ -173,6 +175,7 @@ class ChannelDelete(ModelDeleteMutation):
             "Checkouts, product availability, and pricing will be removed."
         )
         model = models.Channel
+        object_type = Channel
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"

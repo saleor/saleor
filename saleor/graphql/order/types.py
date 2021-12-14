@@ -53,6 +53,7 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
+from ..channel.types import Channel
 from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
@@ -754,6 +755,7 @@ class Order(CountableDjangoObjectType):
     )
     billing_address = graphene.Field("saleor.graphql.account.types.Address")
     shipping_address = graphene.Field("saleor.graphql.account.types.Address")
+    channel = graphene.Field(Channel, required=True)
 
     class Meta:
         description = "Represents an order in the shop."
@@ -762,7 +764,6 @@ class Order(CountableDjangoObjectType):
         only_fields = [
             "created",
             "customer_note",
-            "channel",
             "discount",
             "discount_name",
             "display_gross_prices",

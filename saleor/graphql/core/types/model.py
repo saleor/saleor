@@ -19,18 +19,19 @@ class ModelObjectType(ObjectType):
         if not _meta:
             _meta = ModelObjectOptions(cls)
 
-        if not options.get("model"):
-            raise ValueError(
-                "ModelObjectType was declared without 'model' option in it's Meta."
-            )
-        elif not issubclass(options["model"], Model):
-            raise ValueError(
-                "ModelObjectType was declared with invalid 'model' option value "
-                "in it's Meta. Expected subclass of django.db.models.Model, received "
-                f"'{type(options['model'])}' type."
-            )
+        if not getattr(_meta, "model", None):
+            if not options.get("model"):
+                raise ValueError(
+                    "ModelObjectType was declared without 'model' option in it's Meta."
+                )
+            elif not issubclass(options["model"], Model):
+                raise ValueError(
+                    "ModelObjectType was declared with invalid 'model' option value "
+                    "in it's Meta. Expected subclass of django.db.models.Model, "
+                    f"received '{type(options['model'])}' type."
+                )
 
-        _meta.model = options.pop("model")
+            _meta.model = options.pop("model")
 
         super(ModelObjectType, cls).__init_subclass_with_meta__(
             interfaces=interfaces,

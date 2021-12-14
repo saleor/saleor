@@ -6,7 +6,7 @@ from graphene_federation import key
 from ...app import models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
-from ..core.connection import CountableConnection, CountableDjangoObjectType
+from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31
 from ..core.federation import resolve_federation_references
 from ..core.types import ModelObjectType, Permission
