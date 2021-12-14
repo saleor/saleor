@@ -6,10 +6,10 @@ import pytest
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from saleor.core.prices import quantize_price
-from saleor.core.taxes import TaxData, TaxLineData
-from saleor.order.calculations import _apply_tax_data, fetch_order_prices_if_expired
-from saleor.plugins.manager import get_plugins_manager
+from ...core.prices import quantize_price
+from ...core.taxes import TaxData, TaxLineData
+from ...plugins.manager import get_plugins_manager
+from ..calculations import _apply_tax_data, fetch_order_prices_if_expired
 
 
 @pytest.fixture

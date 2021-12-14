@@ -1,14 +1,14 @@
 from decimal import Decimal
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Tuple
 
 from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
-from saleor.core.prices import quantize_price
-from saleor.core.taxes import TaxData
-from saleor.order.models import Order, OrderLine
-from saleor.plugins.manager import PluginsManager
+from ..core.prices import quantize_price
+from ..core.taxes import TaxData
+from ..plugins.manager import PluginsManager
+from .models import Order, OrderLine
 
 
 def _apply_tax_data_from_plugins(
@@ -38,7 +38,7 @@ def _apply_tax_data_from_plugins(
 
 
 def _apply_tax_data(
-    order: Order, order_lines: Iterable[OrderLine], tax_data: TaxData
+    order: Order, lines: Iterable[OrderLine], tax_data: TaxData
 ) -> None:
     def qp(net: Decimal, gross: Decimal) -> TaxedMoney:
         currency = order.currency
@@ -55,7 +55,7 @@ def _apply_tax_data(
     order.shipping_tax_rate = tax_data.shipping_tax_rate
 
     tax_lines = {line.id: line for line in tax_data.lines}
-    zipped_order_and_tax_lines = ((line, tax_lines[line.id]) for line in order_lines)
+    zipped_order_and_tax_lines = ((line, tax_lines[line.id]) for line in lines)
 
     for (order_line, tax_line) in zipped_order_and_tax_lines:
         order_line.unit_price = qp(
@@ -72,12 +72,20 @@ def fetch_order_prices_if_expired(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-) -> Order:
-    if not force_update and order.price_expiration_for_unconfirmed < timezone.now():
-        return order
+) -> Tuple[Order, Iterable[OrderLine]]:
+    """Fetch order prices with taxes.
 
+    First calculate and apply all order prices with taxes separately,
+    then apply tax data as well if we receive one.
+
+    Prices can be updated only if force_update == True, or if time elapsed from the
+    last price update is greater than settings.ORDER_PRICES_TTL.
+    """
     if lines is None:
         lines = list(order.lines.all())
+
+    if not force_update and order.price_expiration_for_unconfirmed < timezone.now():
+        return order, lines
 
     _apply_tax_data_from_plugins(manager, order, lines)
 
@@ -109,68 +117,96 @@ def fetch_order_prices_if_expired(
         ],
     )
 
-    return order
+    return order, lines
+
+
+def _find_order_line(
+    lines: Iterable[OrderLine],
+    order_line: OrderLine,
+) -> OrderLine:
+    """Return order line from provided lines.
+
+    The return value represents the updated version of order_line parameter.
+    """
+    return next(line for line in lines if line.pk == order_line.pk)
 
 
 def order_line_unit(
     order: Order,
-    line: OrderLine,
+    order_line: OrderLine,
     manager: PluginsManager,
-    order_lines: Optional[Iterable[OrderLine]] = None,
+    lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
 ) -> TaxedMoney:
-    return (
-        fetch_order_prices_if_expired(order, manager, order_lines, force_update)
-        .lines.get(pk=line.pk)
-        .unit_price
-    )
+    """Return the unit price of provided line, taxes included.
+
+    Use it instead of calling manager methods directly.
+    It takes in account all plugins.
+    """
+    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    order_line = _find_order_line(lines, order_line)
+    return order_line.unit_price
 
 
 def order_line_total(
     order: Order,
-    line: OrderLine,
+    order_line: OrderLine,
     manager: PluginsManager,
-    order_lines: Optional[Iterable[OrderLine]] = None,
+    lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
 ) -> TaxedMoney:
-    return (
-        fetch_order_prices_if_expired(order, manager, order_lines, force_update)
-        .lines.get(pk=line.pk)
-        .total_price
-    )
+    """Return the total price of provided line, taxes included.
+
+    Use it instead of calling manager methods directly.
+    It takes in account all plugins.
+    """
+    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    order_line = _find_order_line(lines, order_line)
+    return order_line.total_price
 
 
 def order_line_tax_rate(
     order: Order,
-    line: OrderLine,
+    order_line: OrderLine,
     manager: PluginsManager,
-    order_lines: Optional[Iterable[OrderLine]] = None,
+    lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
 ) -> Decimal:
-    return (
-        fetch_order_prices_if_expired(order, manager, order_lines, force_update)
-        .lines.get(pk=line.pk)
-        .tax_rate
-    )
+    """Return the tax rate of provided line.
+
+    Use it instead of calling manager methods directly.
+    It takes in account all plugins.
+    """
+    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    order_line = _find_order_line(lines, order_line)
+    return order_line.tax_rate
 
 
 def order_shipping(
     order: Order,
     manager: PluginsManager,
-    order_lines: Optional[Iterable[OrderLine]] = None,
+    lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
 ) -> TaxedMoney:
-    return fetch_order_prices_if_expired(
-        order, manager, order_lines, force_update
-    ).shipping_price
+    """Return the shipping price of the order.
+
+    Use it instead of calling manager methods directly.
+    It takes in account all plugins.
+    """
+    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    return order.shipping_price
 
 
 def order_shipping_tax_rate(
     order: Order,
     manager: PluginsManager,
-    order_lines: Optional[Iterable[OrderLine]] = None,
+    lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
 ) -> Decimal:
-    return fetch_order_prices_if_expired(
-        order, manager, order_lines, force_update
-    ).shipping_tax_rate
+    """Return the shipping tax rate of the order.
+
+    Use it instead of calling manager methods directly.
+    It takes in account all plugins.
+    """
+    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    return order.shipping_tax_rate

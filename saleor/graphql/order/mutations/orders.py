@@ -6,14 +6,7 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
-from ....order import (
-    FulfillmentStatus,
-    OrderLineData,
-    OrderStatus,
-    calculations,
-    events,
-    models,
-)
+from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -347,18 +340,12 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         clean_order_update_shipping(order, method)
 
         order.shipping_method = method
-        shipping_price = calculations.order_shipping(order, manager)
-        order.shipping_price = shipping_price
-        order.shipping_tax_rate = calculations.order_shipping_tax_rate(order, manager)
         order.shipping_method_name = method.name
         order.save(
             update_fields=[
                 "currency",
                 "shipping_method",
                 "shipping_method_name",
-                "shipping_price_net_amount",
-                "shipping_price_gross_amount",
-                "shipping_tax_rate",
             ]
         )
         update_order_prices(
