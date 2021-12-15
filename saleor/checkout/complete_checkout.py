@@ -187,7 +187,7 @@ def _create_line_for_order(
         checkout_line_info,
         address,
         discounts,
-        unit_price_data.price,
+        unit_price_data.price_with_sale,
     )
 
     sale_id = get_sale_id_applied_as_a_discount(
@@ -204,7 +204,7 @@ def _create_line_for_order(
         voucher_code = checkout_line_info.voucher.code
 
     discount_price_data = (
-        unit_price_data.undiscounted_price - unit_price_data.price_with_voucher
+        unit_price_data.undiscounted_price - unit_price_data.price_with_discounts
     )
     if taxes_included_in_prices:
         discount_amount = discount_price_data.gross
@@ -229,12 +229,12 @@ def _create_line_for_order(
         is_shipping_required=variant.is_shipping_required(),
         quantity=quantity,
         variant=variant,
-        unit_price=unit_price_data.price_with_voucher,  # type: ignore
+        unit_price=unit_price_data.price_with_discounts,  # type: ignore
         undiscounted_unit_price=unit_price_data.undiscounted_price,  # type: ignore
         undiscounted_total_price=(
             total_line_price_data.undiscounted_price  # type: ignore
         ),
-        total_price=total_line_price_data.price_with_voucher,  # type: ignore
+        total_price=total_line_price_data.price_with_discounts,  # type: ignore
         tax_rate=tax_rate,
         sale_id=graphene.Node.to_global_id("Sale", sale_id),
         voucher_code=voucher_code,

@@ -142,7 +142,10 @@ class VatlayerPlugin(BasePlugin):
             return previous_value.net != previous_value.gross
 
         if isinstance(previous_value, TaxedPricesData):
-            return previous_value.price.net != previous_value.price.gross
+            return (
+                previous_value.price_with_sale.net
+                != previous_value.price_with_sale.gross
+            )
         return False
 
     def calculate_checkout_total(
@@ -269,8 +272,8 @@ class VatlayerPlugin(BasePlugin):
 
         quantity = checkout_line_info.line.quantity
         return TaxedPricesData(
-            price_with_voucher=unit_taxed_prices_data.price_with_voucher * quantity,
-            price=unit_taxed_prices_data.price * quantity,
+            price_with_discounts=unit_taxed_prices_data.price_with_discounts * quantity,
+            price_with_sale=unit_taxed_prices_data.price_with_sale * quantity,
             undiscounted_price=unit_taxed_prices_data.undiscounted_price * quantity,
         )
 
@@ -332,14 +335,14 @@ class VatlayerPlugin(BasePlugin):
 
         country = address.country if address else None
         taxed_prices_data = TaxedPricesData(
-            price=self.__apply_taxes_to_product(
-                checkout_line_info.product, prices_data.price, country
+            price_with_sale=self.__apply_taxes_to_product(
+                checkout_line_info.product, prices_data.price_with_sale, country
             ),
             undiscounted_price=self.__apply_taxes_to_product(
                 checkout_line_info.product, prices_data.undiscounted_price, country
             ),
-            price_with_voucher=self.__apply_taxes_to_product(
-                checkout_line_info.product, prices_data.price_with_voucher, country
+            price_with_discounts=self.__apply_taxes_to_product(
+                checkout_line_info.product, prices_data.price_with_discounts, country
             ),
         )
         return taxed_prices_data

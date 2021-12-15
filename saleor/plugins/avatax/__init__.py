@@ -257,12 +257,12 @@ def get_checkout_lines_data(
 
         if tax_included:
             undiscounted_amount = prices_data.undiscounted_price.gross.amount
-            price_amount = prices_data.price.gross.amount
-            price_with_voucher_amount = prices_data.price_with_voucher.gross.amount
+            price_amount = prices_data.price_with_sale.gross.amount
+            price_with_discounts_amount = prices_data.price_with_discounts.gross.amount
         else:
             undiscounted_amount = prices_data.undiscounted_price.net.amount
-            price_amount = prices_data.price.net.amount
-            price_with_voucher_amount = prices_data.price_with_voucher.net.amount
+            price_amount = prices_data.price_with_sale.net.amount
+            price_with_discounts_amount = prices_data.price_with_discounts.net.amount
 
         append_line_to_data_kwargs = {
             "data": data,
@@ -287,10 +287,10 @@ def get_checkout_lines_data(
                 amount=price_amount,
                 ref1=line_info.variant.sku,
             )
-        if price_amount != price_with_voucher_amount:
+        if price_amount != price_with_discounts_amount:
             append_line_to_data(
                 **append_line_to_data_kwargs,
-                amount=price_with_voucher_amount,
+                amount=price_with_discounts_amount,
                 ref2=line_info.variant.sku,
             )
 

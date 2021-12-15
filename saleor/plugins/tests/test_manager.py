@@ -245,7 +245,7 @@ def test_manager_calculates_checkout_line_total(
             checkout_with_item.shipping_address,
             [discount_info],
         )
-        .price
+        .price_with_sale
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
@@ -472,7 +472,7 @@ def test_manager_calculates_checkout_line_unit_price(
             address,
             [],
         )
-        .price
+        .price_with_sale
     )
     currency = total_line_price.net.currency
     expected_net = Money(

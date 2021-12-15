@@ -204,8 +204,8 @@ class AvataxPlugin(BasePlugin):
 
         currency = checkout_info.checkout.currency
         taxed_total = TaxedPricesData(
-            price_with_voucher=zero_taxed_money(currency),
-            price=zero_taxed_money(currency),
+            price_with_discounts=zero_taxed_money(currency),
+            price_with_sale=zero_taxed_money(currency),
             undiscounted_price=zero_taxed_money(currency),
         )
 
@@ -223,8 +223,10 @@ class AvataxPlugin(BasePlugin):
                 ),
             )
             taxed_total.undiscounted_price += taxed_line_total_data.undiscounted_price
-            taxed_total.price += taxed_line_total_data.price
-            taxed_total.price_with_voucher += taxed_line_total_data.price_with_voucher
+            taxed_total.price_with_sale += taxed_line_total_data.price_with_sale
+            taxed_total.price_with_discounts += (
+                taxed_line_total_data.price_with_discounts
+            )
 
         base_shipping_price = base_calculations.base_checkout_shipping_price(
             checkout_info, lines
@@ -234,17 +236,20 @@ class AvataxPlugin(BasePlugin):
         )
 
         taxed_total.undiscounted_price += shipping_price
-        taxed_total.price += shipping_price
-        taxed_total.price_with_voucher += shipping_price
+        taxed_total.price_with_sale += shipping_price
+        taxed_total.price_with_discounts += shipping_price
 
         voucher_value = checkout_info.checkout.discount
         # if price with voucher and without is the same it means that we didn't apply
         # any voucher for specifc product. The rest of the vouchers is applied to total
-        if voucher_value and taxed_total.price == taxed_total.price_with_voucher:
-            taxed_total.price_with_voucher -= voucher_value
+        if (
+            voucher_value
+            and taxed_total.price_with_sale == taxed_total.price_with_discounts
+        ):
+            taxed_total.price_with_discounts -= voucher_value
         return max(
-            taxed_total.price_with_voucher,
-            zero_taxed_money(taxed_total.price_with_voucher.currency),
+            taxed_total.price_with_discounts,
+            zero_taxed_money(taxed_total.price_with_discounts.currency),
         )
 
     def _calculate_checkout_shipping(
@@ -410,7 +415,7 @@ class AvataxPlugin(BasePlugin):
         currency = taxes_data.get("currencyCode")
         undiscounted_line_price = None
         line_price = None
-        line_price_with_voucher = None
+        line_price_with_discounts = None
 
         for line in taxes_data.get("lines", []):
             if line.get("itemCode") != item_code:
@@ -424,9 +429,9 @@ class AvataxPlugin(BasePlugin):
             if currency == "JPY" and tax_included():
                 line_gross = base_value.undiscounted_price.gross
                 if is_sale_record:
-                    line_gross = base_value.price.gross
+                    line_gross = base_value.price_with_sale.gross
                 elif is_voucher_record:
-                    line_gross = base_value.price_with_voucher.gross
+                    line_gross = base_value.price_with_discounts.gross
                 line_net = Money(amount=line_gross.amount - tax, currency=currency)
             else:
                 line_gross = Money(amount=net + tax, currency=currency)
@@ -436,22 +441,22 @@ class AvataxPlugin(BasePlugin):
             if is_sale_record:
                 line_price = total
             elif is_voucher_record:
-                line_price_with_voucher = total
+                line_price_with_discounts = total
             else:
                 undiscounted_line_price = total
 
         if undiscounted_line_price is not None:
             price = line_price if not line_price is None else undiscounted_line_price
-            if line_price_with_voucher is None:
-                price_with_voucher = (
+            if line_price_with_discounts is None:
+                price_with_discounts = (
                     line_price if not line_price is None else undiscounted_line_price
                 )
             else:
-                price_with_voucher = line_price_with_voucher
+                price_with_discounts = line_price_with_discounts
             return TaxedPricesData(
                 undiscounted_price=undiscounted_line_price,
-                price=price,
-                price_with_voucher=price_with_voucher,
+                price_with_sale=price,
+                price_with_discounts=price_with_discounts,
             )
 
         return base_value
@@ -535,8 +540,9 @@ class AvataxPlugin(BasePlugin):
         quantity = checkout_line_info.line.quantity
         return TaxedPricesData(
             undiscounted_price=taxed_total_prices_data.undiscounted_price / quantity,
-            price=taxed_total_prices_data.price / quantity,
-            price_with_voucher=taxed_total_prices_data.price_with_voucher / quantity,
+            price_with_sale=taxed_total_prices_data.price_with_sale / quantity,
+            price_with_discounts=taxed_total_prices_data.price_with_discounts
+            / quantity,
         )
 
     def calculate_order_line_unit(

@@ -390,7 +390,7 @@ def get_expected_checkout_payment_lines(
             line_info,
             address,
             discounts,
-        ).price.gross.amount
+        ).price_with_sale.gross.amount
         quantity = line_info.line.quantity
         variant_id = line_info.variant.id
         product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"

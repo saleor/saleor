@@ -97,8 +97,8 @@ class PluginSample(BasePlugin):
     ):
         price = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedPricesData(
-            price=TaxedMoney(price, price),
-            price_with_voucher=TaxedMoney(price, price),
+            price_with_sale=TaxedMoney(price, price),
+            price_with_discounts=TaxedMoney(price, price),
             undiscounted_price=TaxedMoney(price, price),
         )
 
@@ -125,8 +125,8 @@ class PluginSample(BasePlugin):
         currency = checkout_info.checkout.currency
         price = Money("10.0", currency)
         return TaxedPricesData(
-            price=TaxedMoney(price, price),
-            price_with_voucher=TaxedMoney(price, price),
+            price_with_sale=TaxedMoney(price, price),
+            price_with_discounts=TaxedMoney(price, price),
             undiscounted_price=TaxedMoney(price, price),
         )
 

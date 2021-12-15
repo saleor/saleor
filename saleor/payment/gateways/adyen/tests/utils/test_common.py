@@ -98,7 +98,9 @@ def test_append_checkout_details_tax_included(
     country_code = checkout_ready_to_complete.get_country()
 
     mocked_calculate_checkout_line_unit_price.return_value = TaxedPricesData(
-        price=unit_price, undiscounted_price=unit_price, price_with_voucher=unit_price
+        price_with_sale=unit_price,
+        undiscounted_price=unit_price,
+        price_with_discounts=unit_price,
     )
 
     checkout_ready_to_complete.payments.add(payment_dummy)

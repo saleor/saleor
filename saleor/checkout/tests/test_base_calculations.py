@@ -31,8 +31,8 @@ def test_calculate_base_line_unit_price(checkout_with_single_item):
         discounts=[],
     )
     assert prices_data.undiscounted_price == expected_price
-    assert prices_data.price == expected_price
-    assert prices_data.price_with_voucher == expected_price
+    assert prices_data.price_with_sale == expected_price
+    assert prices_data.price_with_discounts == expected_price
 
 
 def test_calculate_base_line_unit_price_with_variant_on_sale(
@@ -72,8 +72,8 @@ def test_calculate_base_line_unit_price_with_variant_on_sale(
     expected_price = expected_undiscounted_price - sale_discount_amount
 
     assert prices_data.undiscounted_price == expected_undiscounted_price
-    assert prices_data.price == expected_price
-    assert prices_data.price_with_voucher == expected_price
+    assert prices_data.price_with_sale == expected_price
+    assert prices_data.price_with_discounts == expected_price
 
 
 def test_calculate_base_line_unit_price_with_fixed_voucher(
@@ -110,8 +110,8 @@ def test_calculate_base_line_unit_price_with_fixed_voucher(
         discounts=[],
     )
     assert prices_data.undiscounted_price == expected_price
-    assert prices_data.price == expected_price
-    assert prices_data.price_with_voucher == expected_price - voucher_amount
+    assert prices_data.price_with_sale == expected_price
+    assert prices_data.price_with_discounts == expected_price - voucher_amount
 
 
 def test_calculate_base_line_unit_price_with_percentage_voucher(
@@ -150,11 +150,11 @@ def test_calculate_base_line_unit_price_with_percentage_voucher(
         discounts=[],
     )
     assert prices_data.undiscounted_price == expected_price
-    assert prices_data.price == expected_price
-    assert prices_data.price_with_voucher == expected_price - expected_voucher_amount
+    assert prices_data.price_with_sale == expected_price
+    assert prices_data.price_with_discounts == expected_price - expected_voucher_amount
 
 
-def test_calculate_base_line_unit_price_with_voucher_apply_once_per_order(
+def test_calculate_base_line_unit_price_with_discounts_apply_once_per_order(
     checkout_with_single_item, voucher, channel_USD
 ):
     # given
@@ -190,9 +190,9 @@ def test_calculate_base_line_unit_price_with_voucher_apply_once_per_order(
         discounts=[],
     )
     assert prices_data.undiscounted_price == expected_price
-    assert prices_data.price == expected_price
+    assert prices_data.price_with_sale == expected_price
     # apply once per order is applied when calculating line total.
-    assert prices_data.price_with_voucher == expected_price
+    assert prices_data.price_with_discounts == expected_price
 
 
 def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
@@ -242,8 +242,8 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
     expected_price = expected_undiscounted_price - sale_discount_amount
 
     assert prices_data.undiscounted_price == expected_undiscounted_price
-    assert prices_data.price == expected_price
-    assert prices_data.price_with_voucher == expected_price - voucher_amount
+    assert prices_data.price_with_sale == expected_price
+    assert prices_data.price_with_discounts == expected_price - voucher_amount
 
 
 def test_calculate_base_line_total_price(checkout_with_single_item):
@@ -271,8 +271,8 @@ def test_calculate_base_line_total_price(checkout_with_single_item):
         discounts=[],
     )
     assert prices_data.undiscounted_price == expected_price * quantity
-    assert prices_data.price == expected_price * quantity
-    assert prices_data.price_with_voucher == expected_price * quantity
+    assert prices_data.price_with_sale == expected_price * quantity
+    assert prices_data.price_with_discounts == expected_price * quantity
 
 
 def test_calculate_base_line_total_price_with_variant_on_sale(
@@ -317,8 +317,8 @@ def test_calculate_base_line_total_price_with_variant_on_sale(
     expected_price = expected_undiscounted_unit_price - sale_discount_amount
 
     assert prices_data.undiscounted_price == expected_undiscounted_unit_price * quantity
-    assert prices_data.price == expected_price * quantity
-    assert prices_data.price_with_voucher == expected_price * quantity
+    assert prices_data.price_with_sale == expected_price * quantity
+    assert prices_data.price_with_discounts == expected_price * quantity
 
 
 def test_calculate_base_line_total_price_with_fixed_voucher(
@@ -360,9 +360,9 @@ def test_calculate_base_line_total_price_with_fixed_voucher(
         discounts=[],
     )
     assert prices_data.undiscounted_price == expected_unit_price * quantity
-    assert prices_data.price == expected_unit_price * quantity
+    assert prices_data.price_with_sale == expected_unit_price * quantity
     assert (
-        prices_data.price_with_voucher
+        prices_data.price_with_discounts
         == (expected_unit_price - voucher_amount) * quantity
     )
 
@@ -408,14 +408,14 @@ def test_calculate_base_line_total_price_with_percentage_voucher(
         discounts=[],
     )
     assert prices_data.undiscounted_price == expected_unit_price * quantity
-    assert prices_data.price == expected_unit_price * quantity
+    assert prices_data.price_with_sale == expected_unit_price * quantity
     assert (
-        prices_data.price_with_voucher
+        prices_data.price_with_discounts
         == (expected_unit_price - expected_voucher_amount) * quantity
     )
 
 
-def test_calculate_base_line_total_price_with_voucher_apply_once_per_order(
+def test_calculate_base_line_total_price_with_discounts_apply_once_per_order(
     checkout_with_single_item, voucher, channel_USD
 ):
     # given
@@ -457,10 +457,10 @@ def test_calculate_base_line_total_price_with_voucher_apply_once_per_order(
         discounts=[],
     )
     assert prices_data.undiscounted_price == expected_unit_price * quantity
-    assert prices_data.price == expected_unit_price * quantity
+    assert prices_data.price_with_sale == expected_unit_price * quantity
     # apply once per order is applied when calculating line total.
     assert (
-        prices_data.price_with_voucher
+        prices_data.price_with_discounts
         == (expected_unit_price * quantity) - expected_voucher_amount
     )
 
@@ -520,9 +520,9 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher(
     expected_unit_price = expected_undiscounted_unit_price - sale_discount_amount
 
     assert prices_data.undiscounted_price == expected_undiscounted_unit_price * quantity
-    assert prices_data.price == expected_unit_price * quantity
+    assert prices_data.price_with_sale == expected_unit_price * quantity
     assert (
-        prices_data.price_with_voucher
+        prices_data.price_with_discounts
         == (expected_unit_price - voucher_amount) * quantity
     )
 
@@ -583,8 +583,8 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applie
     expected_unit_price = expected_undiscounted_unit_price - sale_discount_amount
 
     assert prices_data.undiscounted_price == expected_undiscounted_unit_price * quantity
-    assert prices_data.price == expected_unit_price * quantity
+    assert prices_data.price_with_sale == expected_unit_price * quantity
     assert (
-        prices_data.price_with_voucher
+        prices_data.price_with_discounts
         == (expected_unit_price * quantity) - voucher_amount
     )

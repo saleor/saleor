@@ -66,7 +66,7 @@ def create_checkout_payment_lines_information(
             line_info,
             address,
             discounts,
-        ).price
+        ).price_with_sale
         unit_gross = unit_price.gross.amount
 
         quantity = line_info.line.quantity

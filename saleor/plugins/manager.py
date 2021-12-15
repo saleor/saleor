@@ -205,7 +205,7 @@ class PluginsManager(PaymentInterface):
                 line_info,
                 address,
                 discounts,
-            ).price
+            ).price_with_sale
             for line_info in lines
         ]
         currency = checkout_info.checkout.currency
@@ -310,9 +310,11 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout_info.channel.slug,
         )
         currency = checkout_info.checkout.currency
-        line_total.price = quantize_price(line_total.price, currency)
-        line_total.price_with_voucher = quantize_price(
-            line_total.price_with_voucher, currency
+        line_total.price_with_sale = quantize_price(
+            line_total.price_with_sale, currency
+        )
+        line_total.price_with_discounts = quantize_price(
+            line_total.price_with_discounts, currency
         )
         line_total.undiscounted_price = quantize_price(
             line_total.undiscounted_price, currency
@@ -362,9 +364,9 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout_info.channel.slug,
         )
         currency = checkout_info.checkout.currency
-        line_unit.price = quantize_price(line_unit.price, currency)
-        line_unit.price_with_voucher = quantize_price(
-            line_unit.price_with_voucher, currency
+        line_unit.price_with_sale = quantize_price(line_unit.price_with_sale, currency)
+        line_unit.price_with_discounts = quantize_price(
+            line_unit.price_with_discounts, currency
         )
         line_unit.undiscounted_price = quantize_price(
             line_unit.undiscounted_price, currency
