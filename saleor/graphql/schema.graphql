@@ -2323,6 +2323,7 @@ enum InvoiceErrorCode {
   NUMBER_NOT_SET
   NOT_FOUND
   INVALID_STATUS
+  NO_INVOICE_PLUGIN
 }
 
 type InvoiceRequest {
