@@ -31,7 +31,10 @@ def get_payment_id_from_query(value):
 def get_order_id_from_query(value):
     if value.startswith("#"):
         value = value[1:]
-    return value if value.isnumeric() else None
+    try:
+        return int(value)
+    except ValueError:
+        return None
 
 
 def filter_order_by_payment(qs, payment_id):
