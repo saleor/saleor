@@ -369,46 +369,10 @@ class ShippingMethod(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_minimum_order_price(root: ShippingMethodData, info, **_kwargs):
-        return root.minimum_order_price
-
-    def resolve_maximum_order_price(root: ShippingMethodData, info, **_kwargs):
-        return root.maximum_order_price
-
-    @staticmethod
-    def resolve_price(root: ShippingMethodData, info, **_kwargs):
-        return root.price
-
-    @staticmethod
-    def resolve_name(root: ShippingMethodData, info, **kwargs):
-        return root.name
-
-    @staticmethod
     def resolve_id(root: ShippingMethodData, _info):
         if getattr(root, "is_external", False):
             return root.id
         return graphene.Node.to_global_id("ShippingMethod", root.id)
-
-    @staticmethod
-    def resolve_minimum_delivery_days(root: ShippingMethodData, _info):
-        return root.minimum_delivery_days
-
-    @staticmethod
-    def resolve_maximum_delivery_days(root: ShippingMethodData, _info):
-        return root.maximum_delivery_days
-
-    def resolve_active(root: ShippingMethodData, _info):
-        # Currently selected shipping method is not validated
-        # with webhooks on every single API call
-        if not hasattr(root, "active"):
-            return True
-        return root.active
-
-    @staticmethod
-    def resolve_message(root: ShippingMethodData, _info):
-        # Currently selected shipping method is not validated
-        # with webhooks on every single API call
-        return getattr(root, "message", "")
 
     @staticmethod
     def resolve_maximum_order_weight(root: ShippingMethodData, *_args):
@@ -417,10 +381,6 @@ class ShippingMethod(graphene.ObjectType):
     @staticmethod
     def resolve_minimum_order_weight(root: ShippingMethodData, *_args):
         return convert_weight_to_default_weight_unit(root.minimum_order_weight)
-
-    @staticmethod
-    def resolve_description(root: ShippingMethodData, *_args):
-        return root.description
 
 
 class ShippingZoneCountableConnection(CountableConnection):
