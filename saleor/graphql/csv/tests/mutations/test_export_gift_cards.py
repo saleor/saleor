@@ -94,52 +94,6 @@ def test_export_gift_cards_mutation(
 
 
 @patch("saleor.graphql.csv.mutations.export_gift_cards_task.delay")
-def test_export_gift_cards_mutation_by_app(
-    export_gift_cards_mock,
-    app_api_client,
-    gift_card,
-    gift_card_expiry_date,
-    permission_manage_gift_card,
-    permission_manage_apps,
-    permission_manage_staff,
-):
-    query = EXPORT_GIFT_CARDS_MUTATION
-    app = app_api_client.app
-    variables = {
-        "input": {
-            "scope": ExportScope.ALL.name,
-            "fileType": FileTypeEnum.XLSX.name,
-        }
-    }
-
-    response = app_api_client.post_graphql(
-        query,
-        variables=variables,
-        permissions=[
-            permission_manage_gift_card,
-            permission_manage_apps,
-            permission_manage_staff,
-        ],
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["exportGiftCards"]
-    export_file_data = data["exportFile"]
-
-    export_gift_cards_mock.assert_called_once_with(
-        ANY, {"all": ""}, FileTypeEnum.XLSX.value
-    )
-
-    assert not data["errors"]
-    assert data["exportFile"]["id"]
-    assert export_file_data["createdAt"]
-    assert export_file_data["user"] is None
-    assert export_file_data["app"]["name"] == app.name
-    assert ExportEvent.objects.filter(
-        user=None, app=app, type=ExportEvents.EXPORT_PENDING
-    ).exists()
-
-
-@patch("saleor.graphql.csv.mutations.export_gift_cards_task.delay")
 def test_export_gift_cards_mutation_ids_scope(
     export_gift_cards_mock,
     staff_api_client,
@@ -307,3 +261,70 @@ def test_export_gift_cards_mutation_failed(
     )
 
     export_gift_cards_mock.assert_not_called()
+
+
+EXPORT_GIFT_CARDS_MUTATION_BY_APP = """
+    mutation ExportGiftCards($input: ExportGiftCardsInput!){
+        exportGiftCards(input: $input){
+            exportFile {
+                id
+                status
+                createdAt
+                updatedAt
+                url
+                app {
+                    name
+                }
+            }
+            errors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
+@patch("saleor.graphql.csv.mutations.export_gift_cards_task.delay")
+def test_export_gift_cards_mutation_by_app(
+    export_gift_cards_mock,
+    app_api_client,
+    gift_card,
+    gift_card_expiry_date,
+    permission_manage_gift_card,
+    permission_manage_apps,
+    permission_manage_staff,
+):
+    query = EXPORT_GIFT_CARDS_MUTATION_BY_APP
+    app = app_api_client.app
+    variables = {
+        "input": {
+            "scope": ExportScope.ALL.name,
+            "fileType": FileTypeEnum.XLSX.name,
+        }
+    }
+
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_apps,
+        ],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["exportGiftCards"]
+    export_file_data = data["exportFile"]
+
+    export_gift_cards_mock.assert_called_once_with(
+        ANY, {"all": ""}, FileTypeEnum.XLSX.value
+    )
+
+    assert not data["errors"]
+    assert data["exportFile"]["id"]
+    assert export_file_data["createdAt"]
+    assert export_file_data["app"]["name"] == app.name
+    assert ExportEvent.objects.filter(
+        user=None, app=app, type=ExportEvents.EXPORT_PENDING
+    ).exists()
