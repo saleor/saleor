@@ -172,7 +172,7 @@ class OTOPlugin(BasePlugin):
         data = json.loads(request.body)
         # Check signatures and headers.
         if not self.check_oto_signature(data):
-            if path == "/webhook/orders":
+            if path == "/track/":
                 fulfillment = Fulfillment.objects.filter(pk=data["orderId"]).first()
                 if fulfillment:
                     fulfillment.tracking_number = data["trackingNumber"]
