@@ -264,54 +264,33 @@ def get_checkout_lines_data(
             price_amount = prices_data.price.net.amount
             price_with_voucher_amount = prices_data.price_with_voucher.net.amount
 
-        append_line_to_data(
-            data=data,
-            quantity=line_info.line.quantity,
-            amount=undiscounted_amount,
+        append_line_to_data_kwargs = {
+            "data": data,
+            "quantity": line_info.line.quantity,
             # This is a workaround for Avatax and sending a lines with amount 0. Like
             # order lines which are fully discounted for some reason. If we use a
             # standard tax_code, Avatax will raise an exception: "When shipping
             # cross-border into CIF countries, Tax Included is not supported with mixed
             # positive and negative line amounts."
-            tax_code=tax_code if undiscounted_amount else DEFAULT_TAX_CODE,
-            item_code=line_info.variant.sku,
-            name=name,
-            tax_included=tax_included,
+            "tax_code": tax_code if undiscounted_amount else DEFAULT_TAX_CODE,
+            "item_code": line_info.variant.sku,
+            "name": name,
+            "tax_included": tax_included,
+        }
+        append_line_to_data(
+            **append_line_to_data_kwargs,
+            amount=undiscounted_amount,
         )
         if undiscounted_amount != price_amount:
             append_line_to_data(
-                data=data,
-                quantity=line_info.line.quantity,
+                **append_line_to_data_kwargs,
                 amount=price_amount,
-                # This is a workaround for Avatax and sending a lines with amount 0.
-                # Like order lines which are fully discounted for some reason. If we use
-                # a standard tax_code, Avatax will raise an exception: "When shipping
-                # cross-border into CIF countries, Tax Included is not supported with
-                # mixed positive and negative line amounts."
-                tax_code=tax_code if undiscounted_amount else DEFAULT_TAX_CODE,
-                item_code=line_info.variant.sku,
-                name=name,
-                tax_included=tax_included,
-                # ref1 is custom field which we use to determine for which line we
-                # applied sale_discount
                 ref1=line_info.variant.sku,
             )
         if price_amount != price_with_voucher_amount:
             append_line_to_data(
-                data=data,
-                quantity=line_info.line.quantity,
+                **append_line_to_data_kwargs,
                 amount=price_with_voucher_amount,
-                # This is a workaround for Avatax and sending a lines with amount 0.
-                # Like order lines which are fully discounted for some reason. If we use
-                # a standard tax_code, Avatax will raise an exception: "When shipping
-                # cross-border into CIF countries, Tax Included is not supported with
-                # mixed positive and negative line amounts."
-                tax_code=tax_code if undiscounted_amount else DEFAULT_TAX_CODE,
-                item_code=line_info.variant.sku,
-                name=name,
-                tax_included=tax_included,
-                # ref2 is custom field which we use to determine for which line we
-                # applied voucher_discount
                 ref2=line_info.variant.sku,
             )
 

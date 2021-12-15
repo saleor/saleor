@@ -210,9 +210,6 @@ class AvataxPlugin(BasePlugin):
         )
 
         for line in lines:
-            # # Skip lines for each line where we don't include
-            # if not line.product.charge_taxes:
-            #     continue
             taxed_line_total_data = self._calculate_checkout_line_total_price(
                 taxes_data=response,
                 item_code=line.variant.sku,

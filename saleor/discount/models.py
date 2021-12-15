@@ -112,6 +112,7 @@ class Voucher(ModelWithMetadata):
         for channel_listing in self.channel_listings.all():
             if channel.id == channel_listing.channel_id:
                 voucher_channel_listing = channel_listing
+                break
 
         if not voucher_channel_listing:
             raise NotApplicable("This voucher is not assigned to this channel")

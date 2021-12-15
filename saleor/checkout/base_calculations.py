@@ -104,9 +104,14 @@ def calculate_base_line_total_price(
             ),
             zero_money(prices_data.price.currency),
         )
+        # we add -1 as we handle a case when voucher is applied only to single line
+        # of the cheapest line
+        quantity_without_voucher = line_info.line.quantity - 1
         prices_data = PricesData(
-            price_with_voucher=prices_data.price * (line_info.line.quantity - 1)
-            + variant_price_with_voucher,
+            price_with_voucher=(
+                prices_data.price * quantity_without_voucher
+                + variant_price_with_voucher
+            ),
             price=prices_data.price * line_info.line.quantity,
             undiscounted_price=prices_data.undiscounted_price * line_info.line.quantity,
         )
