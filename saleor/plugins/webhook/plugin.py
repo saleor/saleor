@@ -26,7 +26,11 @@ from ...webhook.payloads import (
     generate_translation_payload,
 )
 from ..base_plugin import BasePlugin
-from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
+from .tasks import (
+    _get_webhooks_for_event,
+    trigger_webhook_sync,
+    trigger_webhooks_for_event,
+)
 from .utils import (
     from_payment_app_id,
     parse_list_payment_gateways_response,
@@ -556,3 +560,8 @@ class WebhookPlugin(BasePlugin):
                     )
                     methods.extend(shipping_methods)
         return methods
+
+    def is_event_active(self, event: str, channel=Optional[str]):
+        map_event = {"invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED}
+        webhooks = _get_webhooks_for_event(event_type=map_event[event])
+        return any(webhooks)
