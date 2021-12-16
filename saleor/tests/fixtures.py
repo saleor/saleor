@@ -5408,7 +5408,7 @@ def event_payload():
 def event_delivery(event_payload, webhook, app):
     """Return event delivery object"""
     return EventDelivery.objects.create(
-        event_type=WebhookEventType.ANY,
+        event_type=WebhookEventAsyncType.ANY,
         payload=event_payload,
         webhook=webhook,
     )
@@ -5498,17 +5498,17 @@ def delivery_attempts(event_delivery):
 def event_deliveries(event_payload, webhook, app):
     """Return consecutive event deliveries ids"""
     delivery_1 = EventDelivery.objects.create(
-        event_type=WebhookEventType.ANY,
+        event_type=WebhookEventAsyncType.ANY,
         payload=event_payload,
         webhook=webhook,
     )
     delivery_2 = EventDelivery.objects.create(
-        event_type=WebhookEventType.ANY,
+        event_type=WebhookEventAsyncType.ANY,
         payload=event_payload,
         webhook=webhook,
     )
     delivery_3 = EventDelivery.objects.create(
-        event_type=WebhookEventType.ANY,
+        event_type=WebhookEventAsyncType.ANY,
         payload=event_payload,
         webhook=webhook,
     )

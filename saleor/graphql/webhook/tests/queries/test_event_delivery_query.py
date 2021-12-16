@@ -1,7 +1,7 @@
 import graphene
 
 from .....core import EventDeliveryStatus
-from .....webhook.event_types import WebhookEventType
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import get_graphql_content
 
 EVENT_DELIVERY_QUERY = """
@@ -61,7 +61,7 @@ def test_webhook_delivery_attempt_query(
     # then
     assert delivery_response["id"] == delivery_id
     assert delivery_response["status"] == EventDeliveryStatus.PENDING.upper()
-    assert delivery_response["eventType"] == WebhookEventType.ANY.upper()
+    assert delivery_response["eventType"] == WebhookEventAsyncType.ANY.upper()
     assert delivery_response["payload"] == delivery.payload.payload
     assert len(attempts_response) == 1
     assert attempts_response[0]["node"]["response"] == event_attempt.response
