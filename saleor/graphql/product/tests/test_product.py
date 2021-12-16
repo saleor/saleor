@@ -2603,15 +2603,10 @@ def test_products_query_with_filter_stock_availability_channel_without_shipping_
     query_products_with_filter,
     staff_api_client,
     product,
-    order_line,
     permission_manage_products,
     channel_USD,
 ):
     channel_USD.shipping_zones.clear()
-    stock = product.variants.first().stocks.first()
-    Allocation.objects.create(
-        order_line=order_line, stock=stock, quantity_allocated=stock.quantity
-    )
     variables = {
         "filter": {"stockAvailability": "OUT_OF_STOCK"},
         "channel": channel_USD.slug,
@@ -2620,8 +2615,10 @@ def test_products_query_with_filter_stock_availability_channel_without_shipping_
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
+    product_id = graphene.Node.to_global_id("Product", product.id)
 
-    assert len(products) == 0
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
 
 
 @pytest.mark.parametrize(
