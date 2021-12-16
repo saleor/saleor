@@ -4,10 +4,10 @@ interactions:
       "lines": [{"quantity": 3, "amount": "30.00", "taxCode": "O9999999", "taxIncluded":
       true, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
       "10.000", "taxCode": "FR000000", "taxIncluded": true, "itemCode": "Shipping",
-      "description": null}], "code": "44efbd04-db7f-4ea5-a129-5e2f425e7553", "date":
-      "2021-03-22", "customerCode": 0, "addresses": {"shipFrom": {"line1": "2000 Main
-      Street", "line2": "", "city": "Irvine", "region": "CA", "country": "US", "postalCode":
-      "92614"}, "shipTo": {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW",
+      "description": null}], "code": "bee2133d-d42a-4d57-aff9-730b79662260", "date":
+      "2021-12-14", "customerCode": 0, "addresses": {"shipFrom": {"line1": "Teczowa
+      7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode":
+      "53-601"}, "shipTo": {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW",
       "region": "", "country": "PL", "postalCode": "53-601"}}, "commit": false, "currencyCode":
       "USD", "email": ""}}'
     headers:
@@ -20,38 +20,36 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '761'
+      - '756'
       User-Agent:
-      - python-requests/2.25.1
+      - python-requests/2.26.0
     method: POST
     uri: https://rest.avatax.com/api/v2/transactions/createoradjust
   response:
     body:
       string: !!binary |
-        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
+        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
     headers:
       Connection:
       - keep-alive
@@ -60,17 +58,31 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 22 Mar 2021 09:36:33 GMT
+      - Tue, 14 Dec 2021 09:32:02 GMT
       Location:
       - /api/v2/companies/242975/transactions/0
-      Server:
-      - Kestrel
       ServerDuration:
-      - '00:00:00.0260429'
+      - '00:00:00.0180783'
       Transfer-Encoding:
       - chunked
       Vary:
       - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      referrer-policy:
+      - same-origin
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains
+      x-avalara-uid:
+      - 09c1fc60-7e03-4d99-9f97-a9fbb50eaf6d
+      x-correlation-id:
+      - 09c1fc60-7e03-4d99-9f97-a9fbb50eaf6d
+      x-frame-options:
+      - sameorigin
+      x-permitted-cross-domain-policies:
+      - none
+      x-xss-protection:
+      - 1; mode=block
     status:
       code: 201
       message: Created
