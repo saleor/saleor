@@ -218,7 +218,7 @@ def update_checkout_info_shipping_address(
     checkout_info.all_shipping_methods = valid_methods
 
 
-def get_valid_saleor_shipping_method_list_for_checkout_info(
+def get_valid_shipping_method_list_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
@@ -260,7 +260,7 @@ def get_shipping_method_list_for_checkout_info(
     Availability of shipping methods according to plugins is indicated
     by the `active` field.
     """
-    methods = get_valid_saleor_shipping_method_list_for_checkout_info(
+    methods = get_valid_shipping_method_list_for_checkout_info(
         checkout_info,
         shipping_address,
         lines,

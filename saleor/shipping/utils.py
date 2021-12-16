@@ -3,8 +3,8 @@ from typing import Optional
 
 from django_countries import countries
 
-from saleor.shipping.interface import ShippingMethodData
-from saleor.shipping.models import ShippingMethod, ShippingMethodChannelListing
+from .interface import ShippingMethodData
+from .models import ShippingMethod, ShippingMethodChannelListing
 
 logger = logging.getLogger(__name__)
 
