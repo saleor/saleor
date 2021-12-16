@@ -151,6 +151,8 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         "undiscounted_total_price_net_amount",
         "undiscounted_total_price_gross_amount",
         "tax_rate",
+        "sale_id",
+        "voucher_code",
     )
     line_price_fields = (
         "unit_price_gross_amount",

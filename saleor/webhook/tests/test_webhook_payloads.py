@@ -203,10 +203,12 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
 def test_order_lines_have_all_required_fields(order, order_line_with_one_allocation):
     order.lines.add(order_line_with_one_allocation)
     line = order_line_with_one_allocation
+    line.voucher_code = "Voucher001"
     line.unit_discount_amount = Decimal("10.0")
     line.unit_discount_type = DiscountValueType.FIXED
     line.undiscounted_unit_price = line.unit_price + line.unit_discount
     line.undiscounted_total_price = line.undiscounted_unit_price * line.quantity
+    line.sale_id = graphene.Node.to_global_id("Sale", 1)
     line.save()
 
     payload = json.loads(generate_order_payload(order))[0]
@@ -271,6 +273,8 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "undiscounted_total_price_gross_amount": str(
             undiscounted_total_price_gross_amount
         ),
+        "voucher_code": line.voucher_code,
+        "sale_id": line.sale_id,
     }
 
 

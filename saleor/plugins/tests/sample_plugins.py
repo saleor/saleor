@@ -7,6 +7,7 @@ from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from ...account.models import User
+from ...checkout.interface import TaxedPricesData
 from ...core.taxes import TaxType
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
@@ -97,7 +98,11 @@ class PluginSample(BasePlugin):
         previous_value: TaxedMoney,
     ):
         price = Money("1.0", currency=checkout_info.checkout.currency)
-        return TaxedMoney(price, price)
+        return TaxedPricesData(
+            price_with_sale=TaxedMoney(price, price),
+            price_with_discounts=TaxedMoney(price, price),
+            undiscounted_price=TaxedMoney(price, price),
+        )
 
     def calculate_order_line_total(
         self,
@@ -121,7 +126,11 @@ class PluginSample(BasePlugin):
     ):
         currency = checkout_info.checkout.currency
         price = Money("10.0", currency)
-        return TaxedMoney(price, price)
+        return TaxedPricesData(
+            price_with_sale=TaxedMoney(price, price),
+            price_with_discounts=TaxedMoney(price, price),
+            undiscounted_price=TaxedMoney(price, price),
+        )
 
     def calculate_order_line_unit(
         self,
