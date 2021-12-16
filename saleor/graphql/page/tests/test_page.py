@@ -13,7 +13,7 @@ from ....attribute.utils import associate_attribute_values_to_instance
 from ....page.error_codes import PageErrorCode
 from ....page.models import Page, PageType
 from ....tests.utils import dummy_editorjs
-from ....webhook.event_types import WebhookEventType
+from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_page_payload
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 
@@ -344,6 +344,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     assert tag_value_slug in values
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_page_create_trigger_page_webhook(
     mocked_webhook_trigger,
@@ -380,10 +381,10 @@ def test_page_create_trigger_page_webhook(
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
     page = Page.objects.first()
-    expected_data = generate_page_payload(page)
+    expected_data = generate_page_payload(page, staff_api_client.user)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventType.PAGE_CREATED
+        expected_data, WebhookEventAsyncType.PAGE_CREATED
     )
 
 
@@ -1233,6 +1234,7 @@ def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
         page.refresh_from_db()
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_page_delete_trigger_webhook(
     mocked_webhook_trigger, staff_api_client, page, permission_manage_pages, settings
@@ -1247,9 +1249,9 @@ def test_page_delete_trigger_webhook(
     assert data["page"]["title"] == page.title
     with pytest.raises(page._meta.model.DoesNotExist):
         page.refresh_from_db()
-    expected_data = generate_page_payload(page)
+    expected_data = generate_page_payload(page, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventType.PAGE_DELETED
+        expected_data, WebhookEventAsyncType.PAGE_DELETED
     )
 
 
@@ -1427,10 +1429,10 @@ def test_update_page_trigger_webhook(
     assert data["page"]["title"] == page_title
     assert data["page"]["slug"] == new_slug
     page.publication_date = date(2020, 3, 18)
-    expected_data = generate_page_payload(page)
+    expected_data = generate_page_payload(page, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
         expected_data,
-        WebhookEventType.PAGE_UPDATED,
+        WebhookEventAsyncType.PAGE_UPDATED,
     )
 
 

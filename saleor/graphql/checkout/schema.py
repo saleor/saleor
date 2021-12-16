@@ -1,8 +1,9 @@
 import graphene
 
 from ...core.permissions import CheckoutPermissions
+from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
-from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ..core.fields import ConnectionField, FilterConnectionField
 from ..core.scalars import UUID
 from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
@@ -27,7 +28,11 @@ from .mutations import (
 )
 from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
 from .sorters import CheckoutSortingInput
-from .types import Checkout, CheckoutLine
+from .types import (
+    Checkout,
+    CheckoutCountableConnection,
+    CheckoutLineCountableConnection,
+)
 
 
 class CheckoutQueries(graphene.ObjectType):
@@ -37,8 +42,8 @@ class CheckoutQueries(graphene.ObjectType):
         token=graphene.Argument(UUID, description="The checkout's token."),
     )
     # FIXME we could optimize the below field
-    checkouts = FilterInputConnectionField(
-        Checkout,
+    checkouts = FilterConnectionField(
+        CheckoutCountableConnection,
         sort_by=CheckoutSortingInput(description=f"{ADDED_IN_31} Sort checkouts."),
         filter=CheckoutFilterInput(
             description=f"{ADDED_IN_31} Filtering options for checkouts."
@@ -48,20 +53,25 @@ class CheckoutQueries(graphene.ObjectType):
         ),
         description="List of checkouts.",
     )
-    checkout_lines = PrefetchingConnectionField(
-        CheckoutLine, description="List of checkout lines."
+    checkout_lines = ConnectionField(
+        CheckoutLineCountableConnection, description="List of checkout lines."
     )
 
     def resolve_checkout(self, info, token):
         return resolve_checkout(info, token)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
-    def resolve_checkouts(self, *_args, channel=None, **_kwargs):
-        return resolve_checkouts(channel)
+    def resolve_checkouts(self, info, *_args, channel=None, **kwargs):
+        qs = resolve_checkouts(channel)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, CheckoutCountableConnection)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
-    def resolve_checkout_lines(self, *_args, **_kwargs):
-        return resolve_checkout_lines()
+    def resolve_checkout_lines(self, info, *_args, **kwargs):
+        qs = resolve_checkout_lines()
+        return create_connection_slice(
+            qs, info, kwargs, CheckoutLineCountableConnection
+        )
 
 
 class CheckoutMutations(graphene.ObjectType):

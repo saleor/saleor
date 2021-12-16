@@ -42,8 +42,9 @@ from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
+from ....shipping.models import ShippingMethodTranslation
 from ....shipping.utils import convert_to_shipping_method_data
-from ....warehouse.models import Reservation, Stock
+from ....warehouse.models import PreorderReservation, Reservation, Stock, Warehouse
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
     clean_delivery_method,
@@ -67,6 +68,20 @@ def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     delivery_method = convert_to_shipping_method_data(shipping_method)
     is_valid_method = clean_delivery_method(checkout_info, lines, delivery_method)
+    assert is_valid_method is True
+
+
+def test_clean_delivery_method_with_preorder_is_valid_for_enabled_warehouse(
+    checkout_with_preorders_only, address, warehouses_for_cc
+):
+    checkout = checkout_with_preorders_only
+    checkout.shipping_address = address
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    is_valid_method = clean_delivery_method(checkout_info, lines, warehouses_for_cc[1])
+
     assert is_valid_method is True
 
 
@@ -784,7 +799,7 @@ def test_checkout_create_with_variant_without_inventory_tracking(
         ),
         (
             51,
-            "Cannot add more than 50 times this item.",
+            "Cannot add more than 50 times this item: SKU_A.",
             CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
         ),
     ),
@@ -1232,6 +1247,130 @@ def test_checkout_create_check_lines_quantity(
     assert data["errors"][0]["field"] == "quantity"
 
 
+@pytest.mark.parametrize("is_preorder", [True, False])
+def test_checkout_create_check_lines_quantity_when_limit_per_variant_is_set_raise_err(
+    user_api_client, stock, graphql_address_data, channel_USD, is_preorder
+):
+    limit_per_customer = 5
+    variant = stock.product_variant
+    variant.quantity_limit_per_customer = limit_per_customer
+    variant.is_preorder = is_preorder
+    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=1)
+    variant.save(
+        update_fields=[
+            "quantity_limit_per_customer",
+            "is_preorder",
+            "preorder_end_date",
+        ]
+    )
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data
+    test_email = "test@example.com"
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 6, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+
+    assert data["errors"][0]["message"] == (
+        f"Cannot add more than {limit_per_customer} times this item: {variant}."
+    )
+    assert data["errors"][0]["field"] == "quantity"
+
+
+@pytest.mark.parametrize("is_preorder", [True, False])
+def test_checkout_create_check_lines_quantity_respects_site_settings(
+    user_api_client,
+    stock,
+    graphql_address_data,
+    channel_USD,
+    site_settings,
+    is_preorder,
+):
+    global_limit = 5
+    variant = stock.product_variant
+    variant.is_preorder = is_preorder
+    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=1)
+    variant.save(
+        update_fields=[
+            "is_preorder",
+            "preorder_end_date",
+        ]
+    )
+    site_settings.limit_quantity_per_checkout = global_limit
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data
+    test_email = "test@example.com"
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 6, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+
+    assert data["errors"][0]["message"] == (
+        f"Cannot add more than {global_limit} times this item: {variant}."
+    )
+    assert data["errors"][0]["field"] == "quantity"
+
+
+@pytest.mark.parametrize("is_preorder", [True, False])
+def test_checkout_create_check_lines_quantity_site_settings_no_limit(
+    user_api_client,
+    stock,
+    graphql_address_data,
+    channel_USD,
+    site_settings,
+    is_preorder,
+):
+    variant = stock.product_variant
+    variant.is_preorder = is_preorder
+    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=1)
+    variant.save(
+        update_fields=[
+            "is_preorder",
+            "preorder_end_date",
+        ]
+    )
+    site_settings.limit_quantity_per_checkout = None
+    site_settings.save(update_fields=["limit_quantity_per_checkout"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data
+    test_email = "test@example.com"
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 15, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+
+    assert not data["errors"]
+    assert Checkout.objects.first()
+
+
 def test_checkout_create_check_lines_quantity_against_reservations(
     site_settings_with_reservations,
     user_api_client,
@@ -1438,6 +1577,9 @@ query getCheckout($token: UUID!) {
             price {
                 amount
             }
+            translation (languageCode: PL) {
+                name
+            }
         }
     }
 }
@@ -1521,6 +1663,48 @@ def test_checkout_available_shipping_methods_weight_method_with_higher_minimal_w
     assert shipping_method.name not in shipping_methods
 
 
+def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount(
+    api_client,
+    checkout_with_item,
+    address,
+    shipping_method,
+):
+    """Ensure that price based shipping method is not returned when
+    checkout with discounts subtotal is lower than minimal order price."""
+    checkout_with_item.shipping_address = address
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
+    )
+
+    checkout_with_item.discount_amount = Decimal(5.0)
+    checkout_with_item.save(update_fields=["shipping_address", "discount_amount"])
+
+    shipping_method.name = "Price based"
+    shipping_method.save(update_fields=["name"])
+
+    shipping_channel_listing = shipping_method.channel_listings.get(
+        channel=checkout_with_item.channel
+    )
+    shipping_channel_listing.minimum_order_price_amount = subtotal.gross.amount - 1
+    shipping_channel_listing.save(update_fields=["minimum_order_price_amount"])
+
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
+    variables = {"token": checkout_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    shipping_methods = [method["name"] for method in data["availableShippingMethods"]]
+    assert shipping_method.name not in shipping_methods
+
+
 def test_checkout_available_shipping_methods_shipping_zone_without_channels(
     api_client, checkout_with_item, address, shipping_zone
 ):
@@ -1584,6 +1768,10 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     site_settings.save()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
+    translated_name = "Dostawa ekspresowa"
+    ShippingMethodTranslation.objects.create(
+        language_code="pl", shipping_method=shipping_method, name=translated_name
+    )
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
 
@@ -1595,9 +1783,9 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     apply_taxes_to_shipping_mock.assert_called_once_with(
         shipping_price, mock.ANY, checkout_with_item.channel.slug
     )
-    assert data["availableShippingMethods"] == [
-        {"name": "DHL", "price": {"amount": expected_price}}
-    ]
+    assert data["availableShippingMethods"][0]["name"] == "DHL"
+    assert data["availableShippingMethods"][0]["price"]["amount"] == expected_price
+    assert data["availableShippingMethods"][0]["translation"]["name"] == translated_name
 
 
 def test_checkout_no_available_shipping_methods_without_address(
@@ -1635,6 +1823,53 @@ query getCheckout($token: UUID!) {
     }
 }
 """
+
+QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT = """
+query AvailableCollectionPoints($token: UUID!) {
+  checkout(token: $token) {
+    availableCollectionPoints {
+      name
+    }
+  }
+}
+"""
+
+
+def test_available_collection_points_for_preorders_variants_in_checkout(
+    api_client, staff_api_client, checkout_with_preorders_only
+):
+
+    expected_collection_points = list(
+        Warehouse.objects.for_country("US").values("name")
+    )
+    response = staff_api_client.post_graphql(
+        QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT,
+        variables={"token": checkout_with_preorders_only.token},
+    )
+    response_content = get_graphql_content(response)
+    assert (
+        expected_collection_points
+        == response_content["data"]["checkout"]["availableCollectionPoints"]
+    )
+
+
+def test_available_collection_points_for_preorders_and_regular_variants_in_checkout(
+    api_client,
+    staff_api_client,
+    checkout_with_preorders_and_regular_variant,
+    warehouses_for_cc,
+):
+
+    expected_collection_points = [{"name": warehouses_for_cc[1].name}]
+    response = staff_api_client.post_graphql(
+        QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT,
+        variables={"token": checkout_with_preorders_and_regular_variant.token},
+    )
+    response_content = get_graphql_content(response)
+    assert (
+        expected_collection_points
+        == response_content["data"]["checkout"]["availableCollectionPoints"]
+    )
 
 
 def test_checkout_available_collection_points_with_lines_avail_in_1_local_and_1_all(
@@ -1924,7 +2159,7 @@ query getCheckoutStockReservationExpiration($token: UUID!) {
 """
 
 
-def test_checkout_reservation_date_for_single_reservation(
+def test_checkout_reservation_date_for_stock_reservation(
     site_settings_with_reservations,
     api_client,
     checkout_line_with_one_reservation,
@@ -1933,6 +2168,20 @@ def test_checkout_reservation_date_for_single_reservation(
     reservation = Reservation.objects.order_by("reserved_until").first()
     query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
     variables = {"token": checkout_line_with_one_reservation.checkout.token}
+    response = api_client.post_graphql(query, variables)
+    data = get_graphql_content(response)["data"]["checkout"]["stockReservationExpires"]
+    assert parse_datetime(data) == reservation.reserved_until
+
+
+def test_checkout_reservation_date_for_preorder_reservation(
+    site_settings_with_reservations,
+    api_client,
+    checkout_line_with_reserved_preorder_item,
+    address,
+):
+    reservation = PreorderReservation.objects.order_by("reserved_until").first()
+    query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
+    variables = {"token": checkout_line_with_reserved_preorder_item.checkout.token}
     response = api_client.post_graphql(query, variables)
     data = get_graphql_content(response)["data"]["checkout"]["stockReservationExpires"]
     assert parse_datetime(data) == reservation.reserved_until
@@ -1953,13 +2202,39 @@ def test_checkout_reservation_date_for_multiple_reservations(
     assert parse_datetime(data) == reservation.reserved_until
 
 
+def test_checkout_reservation_date_for_multiple_reservations_types(
+    site_settings_with_reservations,
+    api_client,
+    checkout_line_with_one_reservation,
+    checkout_line_with_reserved_preorder_item,
+    address,
+):
+    Reservation.objects.update(
+        reserved_until=timezone.now() + datetime.timedelta(minutes=3)
+    )
+    PreorderReservation.objects.update(
+        reserved_until=timezone.now() + datetime.timedelta(minutes=1)
+    )
+
+    reservation = PreorderReservation.objects.order_by("reserved_until").first()
+    query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
+    variables = {"token": checkout_line_with_one_reservation.checkout.token}
+    response = api_client.post_graphql(query, variables)
+    data = get_graphql_content(response)["data"]["checkout"]["stockReservationExpires"]
+    assert parse_datetime(data) == reservation.reserved_until
+
+
 def test_checkout_reservation_date_for_expired_reservations(
     site_settings_with_reservations,
     api_client,
     checkout_line_with_one_reservation,
+    checkout_line_with_reserved_preorder_item,
     address,
 ):
     Reservation.objects.update(
+        reserved_until=timezone.now() - datetime.timedelta(minutes=1)
+    )
+    PreorderReservation.objects.update(
         reserved_until=timezone.now() - datetime.timedelta(minutes=1)
     )
 
@@ -1974,9 +2249,11 @@ def test_checkout_reservation_date_for_no_reservations(
     site_settings_with_reservations,
     api_client,
     checkout_line_with_one_reservation,
+    checkout_line_with_reserved_preorder_item,
     address,
 ):
     Reservation.objects.all().delete()
+    PreorderReservation.objects.all().delete()
 
     query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
     variables = {"token": checkout_line_with_one_reservation.checkout.token}
@@ -1986,7 +2263,10 @@ def test_checkout_reservation_date_for_no_reservations(
 
 
 def test_checkout_reservation_date_for_disabled_reservations(
-    api_client, checkout_line_with_one_reservation, address
+    api_client,
+    checkout_line_with_one_reservation,
+    checkout_line_with_reserved_preorder_item,
+    address,
 ):
     query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
     variables = {"token": checkout_line_with_one_reservation.checkout.token}

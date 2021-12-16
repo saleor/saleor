@@ -39,6 +39,11 @@ class WarehouseQueryset(models.QuerySet):
         This method should be used only if stocks quantity will be checked in further
         validation steps, for instance in checkout completion.
         """
+        if all(
+            line.variant.is_preorder_active()
+            for line in lines_qs.select_related("variant").only("variant_id")
+        ):
+            return self.for_country(country)
 
         stocks_qs = Stock.objects.filter(
             product_variant__id__in=lines_qs.values("variant_id"),
@@ -55,6 +60,12 @@ class WarehouseQueryset(models.QuerySet):
         For `WarehouseClickAndCollect.LOCAL` all `CheckoutLine`s must be available from
         a single warehouse.
         """
+
+        if all(
+            line.variant.is_preorder_active()
+            for line in lines_qs.select_related("variant").only("variant_id")
+        ):
+            return self.for_country(country)
 
         lines_quantity = (
             lines_qs.filter(variant_id=OuterRef("product_variant_id"))
@@ -317,6 +328,34 @@ class ReservationQuerySet(models.QuerySet):
             return self.exclude(checkout_line__in=checkout_lines)
 
         return self
+
+
+class PreorderReservation(models.Model):
+    checkout_line = models.ForeignKey(
+        CheckoutLine,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="preorder_reservations",
+    )
+    product_variant_channel_listing = models.ForeignKey(
+        ProductVariantChannelListing,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="preorder_reservations",
+    )
+    quantity_reserved = models.PositiveIntegerField(default=0)
+    reserved_until = models.DateTimeField()
+
+    objects = models.Manager.from_queryset(ReservationQuerySet)()
+
+    class Meta:
+        unique_together = [["checkout_line", "product_variant_channel_listing"]]
+        indexes = [
+            models.Index(fields=["checkout_line", "reserved_until"]),
+        ]
+        ordering = ("pk",)
 
 
 class Reservation(models.Model):
