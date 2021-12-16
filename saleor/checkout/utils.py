@@ -297,6 +297,7 @@ def _get_shipping_voucher_discount_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    taxes_included: bool,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Calculate discount value for a voucher of shipping type."""
@@ -320,7 +321,8 @@ def _get_shipping_voucher_discount_for_checkout(
         lines=lines,
         address=address,
         discounts=discounts,
-    ).gross
+    )
+    shipping_price = get_base_price_from_taxed_money(shipping_price, taxes_included)
     return voucher.get_discount_amount_for(shipping_price, checkout_info.channel)
 
 
@@ -329,13 +331,19 @@ def _get_products_voucher_discount(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher,
+    taxes_included: bool,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         prices = get_prices_of_discounted_specific_product(
-            manager, checkout_info, lines, voucher, discounts
+            manager,
+            checkout_info,
+            lines,
+            voucher,
+            taxes_included,
+            discounts,
         )
     if not prices:
         msg = "This offer is only valid for selected items."
@@ -374,6 +382,7 @@ def get_prices_of_discounted_specific_product(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
+    taxes_included: bool,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[Money]:
     """Get prices of variants belonging to the discounted specific products.
@@ -396,7 +405,10 @@ def get_prices_of_discounted_specific_product(
             lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
-        ).gross
+        )
+        line_unit_price = get_base_price_from_taxed_money(
+            line_unit_price, taxes_included
+        )
         line_prices.extend([line_unit_price] * line.quantity)
 
     return line_prices
@@ -408,6 +420,7 @@ def get_voucher_discount_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    taxes_included: bool,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> Money:
     """Calculate discount value depending on voucher and discount types.
@@ -422,15 +435,27 @@ def get_voucher_discount_for_checkout(
             lines=lines,
             address=address,
             discounts=discounts,
-        ).gross
+        )
+        subtotal = get_base_price_from_taxed_money(subtotal, taxes_included)
         return voucher.get_discount_amount_for(subtotal, checkout_info.channel)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(
-            manager, voucher, checkout_info, lines, address, discounts
+            manager,
+            voucher,
+            checkout_info,
+            lines,
+            address,
+            taxes_included,
+            discounts,
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         return _get_products_voucher_discount(
-            manager, checkout_info, lines, voucher, discounts
+            manager,
+            checkout_info,
+            lines,
+            voucher,
+            taxes_included,
+            discounts,
         )
     raise NotImplementedError("Unknown discount type")
 
@@ -461,6 +486,7 @@ def recalculate_checkout_discount(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
+    taxes_included: bool,
 ):
     """Recalculate `checkout.discount` based on the voucher.
 
@@ -473,7 +499,13 @@ def recalculate_checkout_discount(
         address = checkout_info.shipping_address or checkout_info.billing_address
         try:
             discount = get_voucher_discount_for_checkout(
-                manager, voucher, checkout_info, lines, address, discounts
+                manager,
+                voucher,
+                checkout_info,
+                lines,
+                address,
+                taxes_included,
+                discounts,
             )
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
@@ -484,7 +516,8 @@ def recalculate_checkout_discount(
                 lines=lines,
                 address=address,
                 discounts=discounts,
-            ).gross
+            )
+            subtotal = get_base_price_from_taxed_money(subtotal, taxes_included)
             checkout.discount = (
                 min(discount, subtotal)
                 if voucher.type != VoucherType.SHIPPING
@@ -513,6 +546,7 @@ def add_promo_code_to_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     promo_code: str,
+    taxes_included: bool,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Add gift card or voucher data to checkout.
@@ -521,7 +555,12 @@ def add_promo_code_to_checkout(
     """
     if promo_code_is_voucher(promo_code):
         add_voucher_code_to_checkout(
-            manager, checkout_info, lines, promo_code, discounts
+            manager,
+            checkout_info,
+            lines,
+            promo_code,
+            taxes_included,
+            discounts,
         )
     elif promo_code_is_gift_card(promo_code):
         add_gift_card_code_to_checkout(
@@ -539,6 +578,7 @@ def add_voucher_code_to_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher_code: str,
+    taxes_included: bool,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Add voucher data to checkout by code.
@@ -552,7 +592,14 @@ def add_voucher_code_to_checkout(
     except Voucher.DoesNotExist:
         raise InvalidPromoCode()
     try:
-        add_voucher_to_checkout(manager, checkout_info, lines, voucher, discounts)
+        add_voucher_to_checkout(
+            manager,
+            checkout_info,
+            lines,
+            voucher,
+            taxes_included,
+            discounts,
+        )
     except NotApplicable:
         raise ValidationError(
             {
@@ -569,6 +616,7 @@ def add_voucher_to_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
+    taxes_included: bool,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Add voucher data to checkout.
@@ -578,7 +626,13 @@ def add_voucher_to_checkout(
     checkout = checkout_info.checkout
     address = checkout_info.shipping_address or checkout_info.billing_address
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout_info, lines, address, discounts
+        manager,
+        voucher,
+        checkout_info,
+        lines,
+        address,
+        taxes_included,
+        discounts,
     )
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name
@@ -769,3 +823,14 @@ def get_external_shipping_id(container: Union["Checkout", "Order"]):
 
 def delete_external_shipping_id(checkout: Checkout):
     checkout.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+
+
+def get_base_price_from_taxed_money(
+    taxed_money: "TaxedMoney", include_taxes_in_prices: bool
+) -> Money:
+    """Convert TaxedMoney to Money depending on `include_taxes_in_prices`.
+
+    Typically, end users in Americas are presented with net prices, while
+    European countries tend to use gross prices.
+    """
+    return taxed_money.gross if include_taxes_in_prices else taxed_money.net
