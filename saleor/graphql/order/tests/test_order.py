@@ -2506,7 +2506,7 @@ def test_draft_order_update_with_non_draft_order(
     assert error["code"] == OrderErrorCode.INVALID.name
 
 
-@patch("saleor.graphql.order.mutations.draft_orders.update_order_prices")
+@patch("saleor.graphql.order.mutations.draft_orders.update_order_prices_if_expired")
 def test_draft_order_update_tax_error(
     update_order_prices_mock,
     staff_api_client,

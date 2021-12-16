@@ -9,7 +9,14 @@ from prices import Money, TaxedMoney
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxLineData
 from ...plugins.manager import get_plugins_manager
+from .. import OrderStatus
 from ..calculations import _apply_tax_data, fetch_order_prices_if_expired
+
+
+@pytest.fixture
+def order_with_lines(order_with_lines):
+    order_with_lines.status = OrderStatus.UNCONFIRMED
+    return order_with_lines
 
 
 @pytest.fixture

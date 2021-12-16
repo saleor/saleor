@@ -606,7 +606,7 @@ CHECKOUT_PRICES_TTL = timedelta(
 )
 
 ORDER_PRICES_TTL = timedelta(
-    seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "5 minutes"))
+    seconds=parse(os.environ.get("ORDER_PRICES_TTL", "5 minutes"))
 )
 
 

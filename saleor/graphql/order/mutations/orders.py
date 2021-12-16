@@ -6,7 +6,14 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
-from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
+from ....order import (
+    ORDER_EDITABLE_STATUS,
+    FulfillmentStatus,
+    OrderLineData,
+    OrderStatus,
+    events,
+    models,
+)
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -24,7 +31,7 @@ from ....order.utils import (
     delete_order_line,
     get_valid_shipping_methods_for_order,
     recalculate_order,
-    update_order_prices,
+    update_order_prices_if_expired,
 )
 from ....payment import PaymentError, TransactionKind, gateway
 from ....shipping import models as shipping_models
@@ -45,8 +52,6 @@ from ..utils import (
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
-
-ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
 def clean_order_update_shipping(order, method):
@@ -210,7 +215,7 @@ class OrderUpdate(DraftOrderCreate):
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
         instance.save()
-        update_order_prices(
+        update_order_prices_if_expired(
             instance,
             info.context.plugins,
             info.context.site.settings.include_taxes_in_prices,
@@ -348,7 +353,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "shipping_method_name",
             ]
         )
-        update_order_prices(
+        update_order_prices_if_expired(
             order,
             manager,
             info.context.site.settings.include_taxes_in_prices,

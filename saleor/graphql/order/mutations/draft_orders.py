@@ -16,7 +16,7 @@ from ....order.utils import (
     add_variant_to_order,
     get_order_country,
     recalculate_order,
-    update_order_prices,
+    update_order_prices_if_expired,
 )
 from ....warehouse.management import allocate_stocks
 from ...account.i18n import I18nMixin
@@ -273,14 +273,14 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             return
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address and instance.is_shipping_required():
-            update_order_prices(
+            update_order_prices_if_expired(
                 instance,
                 info.context.plugins,
                 info.context.site.settings.include_taxes_in_prices,
             )
         billing_address = cleaned_input.get("billing_address")
         if billing_address and not instance.is_shipping_required():
-            update_order_prices(
+            update_order_prices_if_expired(
                 instance,
                 info.context.plugins,
                 info.context.site.settings.include_taxes_in_prices,

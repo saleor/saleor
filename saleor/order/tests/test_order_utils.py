@@ -13,7 +13,7 @@ from ..utils import (
     change_order_line_quantity,
     get_valid_shipping_methods_for_order,
     match_orders_with_new_user,
-    update_taxes_for_order_lines,
+    update_order_lines_prices_if_expired,
 )
 
 
@@ -219,7 +219,7 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
 
 
 @patch("saleor.order.utils.calculations")
-def test_update_taxes_for_order_lines(mocked_calculations, order_with_lines):
+def test_update_order_lines_prices_if_expired(mocked_calculations, order_with_lines):
     # given
     line_with_discount = order_with_lines.lines.first()
     line_with_discount.unit_discount_amount = Decimal("2.00")
@@ -232,14 +232,13 @@ def test_update_taxes_for_order_lines(mocked_calculations, order_with_lines):
     mocked_calculations.order_line_total = Mock(return_value=total_price)
     mocked_calculations.order_line_tax_rate = Mock(return_value=tax_rate)
     manager = Mock()
+    lines = order_with_lines.lines.all()
 
     # when
-    update_taxes_for_order_lines(
-        order_with_lines.lines.all(), order_with_lines, manager, True
-    )
+    update_order_lines_prices_if_expired(lines, order_with_lines, manager, True)
 
     # then
-    for line in order_with_lines.lines.all():
+    for line in lines:
         assert line.unit_price == unit_price
         assert line.total_price == total_price
         assert line.tax_rate == tax_rate

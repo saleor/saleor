@@ -27,6 +27,7 @@ from ..warehouse.management import (
 )
 from ..warehouse.models import Warehouse
 from . import calculations, events
+from .calculations import fetch_order_prices_if_expired
 
 if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
@@ -184,7 +185,7 @@ def recalculate_order_weight(order):
     order.save(update_fields=["weight"])
 
 
-def update_taxes_for_order_line(
+def update_order_line_prices_if_expired(
     line: "OrderLine", order: "Order", manager, tax_included
 ):
     line_price = line.unit_price.gross if tax_included else line.unit_price.net
@@ -204,19 +205,16 @@ def update_taxes_for_order_line(
         line.tax_rate = calculations.order_line_tax_rate(order, line, manager)
 
 
-def update_taxes_for_order_lines(
+def update_order_lines_prices_if_expired(
     lines: Iterable[OrderLine], order: "Order", manager, tax_included
 ):
     for line in lines:
-        update_taxes_for_order_line(line, order, manager, tax_included=tax_included)
+        update_order_line_prices_if_expired(
+            line, order, manager, tax_included=tax_included
+        )
     OrderLine.objects.bulk_update(
         lines,
         [
-            "tax_rate",
-            "unit_price_net_amount",
-            "unit_price_gross_amount",
-            "total_price_net_amount",
-            "total_price_gross_amount",
             "undiscounted_unit_price_gross_amount",
             "undiscounted_unit_price_net_amount",
             "undiscounted_total_price_gross_amount",
@@ -225,22 +223,18 @@ def update_taxes_for_order_lines(
     )
 
 
-def update_order_prices(order: Order, manager: "PluginsManager", tax_included: bool):
+def update_order_prices_if_expired(
+    order: Order, manager: "PluginsManager", tax_included: bool
+):
     """Update prices in order with given discounts and proper taxes."""
 
-    update_taxes_for_order_lines(order.lines.all(), order, manager, tax_included)
+    lines = order.lines.all()
+    update_order_lines_prices_if_expired(lines, order, manager, tax_included)
 
     if order.shipping_method:
-        order.shipping_price = calculations.order_shipping(order, manager)
-        order.shipping_tax_rate = calculations.order_shipping_tax_rate(order, manager)
-        order.save(
-            update_fields=[
-                "shipping_price_net_amount",
-                "shipping_price_gross_amount",
-                "shipping_tax_rate",
-                "currency",
-            ]
-        )
+        # recalculate order.shipping_price and order.shipping_tax_rate
+        fetch_order_prices_if_expired(order, manager, lines)
+        order.save(update_fields=["currency"])
 
     recalculate_order(order)
 
@@ -833,7 +827,7 @@ def update_discount_for_order_line(
     # from db
     order_line.save(update_fields=fields_to_update)
 
-    update_taxes_for_order_line(order_line, order, manager, tax_included)
+    update_order_line_prices_if_expired(order_line, order, manager, tax_included)
     order_line.save(
         update_fields=[
             "unit_price_gross_amount",
@@ -866,7 +860,7 @@ def remove_discount_from_order_line(
         ]
     )
 
-    update_taxes_for_order_line(order_line, order, manager, tax_included)
+    update_order_line_prices_if_expired(order_line, order, manager, tax_included)
     order_line.save(
         update_fields=[
             "unit_price_gross_amount",

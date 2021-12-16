@@ -46,7 +46,7 @@ from ..utils import (
     recalculate_order,
     restock_fulfillment_lines,
     restock_order_lines,
-    update_order_prices,
+    update_order_prices_if_expired,
     update_order_status,
 )
 
@@ -534,6 +534,13 @@ def test_update_order_prices(
     order_with_lines,
     site_settings,
 ):
+    manager = get_plugins_manager()
+    order_with_lines.price_expiration_for_unconfirmed = timezone.now() + timedelta(
+        minutes=15
+    )
+    order_with_lines.status = OrderStatus.UNCONFIRMED
+    order_with_lines.save()
+
     channel = order_with_lines.channel
     address = order_with_lines.shipping_address
     address.country = "DE"
@@ -565,19 +572,20 @@ def test_update_order_prices(
     shipping_price = order_with_lines.shipping_method.channel_listings.get(
         channel_id=order_with_lines.channel_id
     ).price
-    shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price * tax_rate)
+    shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
 
-    mocked_calculations.order_shipping = Mock(return_value=shipping_price)
-    mocked_calculations.order_shipping_tax_rate = Mock(return_value=tax_rate)
+    manager.calculate_order_shipping = Mock(return_value=shipping_price)
 
-    update_order_prices(order_with_lines, Mock(), site_settings.include_taxes_in_prices)
+    update_order_prices_if_expired(
+        order_with_lines, manager, site_settings.include_taxes_in_prices
+    )
 
     line_1.refresh_from_db()
     line_2.refresh_from_db()
     assert line_1.unit_price == price_1
     assert line_2.unit_price == price_2
     assert order_with_lines.shipping_price == shipping_price
-    assert order_with_lines.shipping_tax_rate == tax_rate
+    assert order_with_lines.shipping_tax_rate == Decimal("0.00")
     total = line_1.total_price + line_2.total_price + shipping_price
     assert order_with_lines.total == total
 
@@ -588,6 +596,8 @@ def test_update_order_prices_tax_included(
     order_with_lines.price_expiration_for_unconfirmed = timezone.now() + timedelta(
         minutes=15
     )
+    order_with_lines.status = OrderStatus.UNCONFIRMED
+    order_with_lines.save()
     manager = get_plugins_manager()
 
     channel = order_with_lines.channel
@@ -619,7 +629,7 @@ def test_update_order_prices_tax_included(
         channel_id=order_with_lines.channel_id
     ).price
 
-    update_order_prices(
+    update_order_prices_if_expired(
         order_with_lines, manager, site_settings.include_taxes_in_prices
     )
 
