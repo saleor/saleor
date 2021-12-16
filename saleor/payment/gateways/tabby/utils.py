@@ -1,9 +1,9 @@
 import json
 import logging
+import os
 from decimal import Decimal
 
 import requests
-from django.conf import settings
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 
 from saleor.payment.interface import (
@@ -32,6 +32,9 @@ def get_base_api_url():
     return base_api_url
 
 
+DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "SAR")
+
+
 def get_default_gateway_response(transaction_kind: str):
     response = GatewayResponse(
         error=None,
@@ -41,7 +44,7 @@ def get_default_gateway_response(transaction_kind: str):
         amount=Decimal(0),
         action_required=True,
         kind=transaction_kind,
-        currency=settings.DEFAULT_CURRENCY,
+        currency=DEFAULT_CURRENCY,
     )
     return response
 
