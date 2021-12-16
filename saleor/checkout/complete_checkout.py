@@ -236,7 +236,7 @@ def _create_line_for_order(
         ),
         total_price=total_line_price_data.price_with_discounts,  # type: ignore
         tax_rate=tax_rate,
-        sale_id=graphene.Node.to_global_id("Sale", sale_id),
+        sale_id=graphene.Node.to_global_id("Sale", sale_id) if sale_id else None,
         voucher_code=voucher_code,
         unit_discount=discount_amount,  # type: ignore
         unit_discount_reason=unit_discount_reason,
