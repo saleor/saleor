@@ -135,6 +135,9 @@ def test_generate_order_payload(
 def test_generate_fulfillment_lines_payload(order_with_lines):
     fulfillment = order_with_lines.fulfillments.create(tracking_number="123")
     line = order_with_lines.lines.first()
+    line.sale_id = graphene.Node.to_global_id("Sale", 1)
+    line.voucher_code = "code"
+    line.save()
     stock = line.allocations.get().stock
     warehouse_pk = stock.warehouse.pk
     fulfillment_line = fulfillment.lines.create(
@@ -176,6 +179,8 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
         "warehouse_id": graphene.Node.to_global_id(
             "Warehouse", fulfillment_line.stock.warehouse_id
         ),
+        "sale_id": line.sale_id,
+        "voucher_code": line.voucher_code,
     }
 
 
