@@ -6,7 +6,14 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
-from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
+from ....order import (
+    ORDER_EDITABLE_STATUS,
+    FulfillmentStatus,
+    OrderLineData,
+    OrderStatus,
+    events,
+    models,
+)
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -45,8 +52,6 @@ from ..utils import (
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
-
-ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
 def clean_order_update_shipping(order, method):

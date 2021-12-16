@@ -248,7 +248,6 @@ class Order(ModelWithMetadata):
         default=zero_weight,
     )
     redirect_url = models.URLField(blank=True, null=True)
-
     price_expiration_for_unconfirmed = models.DateTimeField(default=timezone.now)
 
     objects = models.Manager.from_queryset(OrderQueryset)()

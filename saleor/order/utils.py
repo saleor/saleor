@@ -158,12 +158,12 @@ def recalculate_order(order: Order, invalidate_prices: bool = False, **kwargs):
     update_voucher_discount argument set to False.
 
     If you want to invalidate order prices, pass
-    invalidate_prices_data argument set to True.
+    invalidate_prices argument set to True.
     """
 
     invalidate_updated_fields = []
 
-    if invalidate_prices is not None:
+    if invalidate_prices:
         invalidate_updated_fields = invalidate_order_prices(order, save=False)
 
     recalculate_order_prices(order, **kwargs)

@@ -7,23 +7,23 @@ from pytz import utc
 from ....order import OrderStatus
 from ..mutations.utils import invalidate_order_prices
 
-NOW = datetime(year=2000, month=1, day=1).replace(tzinfo=utc)
+TEST_DATE = datetime(year=2000, month=1, day=1).replace(tzinfo=utc)
 
 
-@freeze_time(NOW)
+@freeze_time(TEST_DATE)
 @pytest.mark.parametrize(
     "status, updated_fields, price_expiration",
     [
-        (OrderStatus.DRAFT, ["price_expiration_for_unconfirmed"], NOW),
-        (OrderStatus.UNCONFIRMED, ["price_expiration_for_unconfirmed"], NOW),
-        (OrderStatus.UNFULFILLED, [], NOW + timedelta(minutes=30)),
+        (OrderStatus.DRAFT, ["price_expiration_for_unconfirmed"], TEST_DATE),
+        (OrderStatus.UNCONFIRMED, ["price_expiration_for_unconfirmed"], TEST_DATE),
+        (OrderStatus.UNFULFILLED, [], TEST_DATE + timedelta(minutes=30)),
     ],
 )
 def test_invalidate_order_prices_status(
     order, status, updated_fields, price_expiration
 ):
     # given
-    order.price_expiration_for_unconfirmed = NOW + timedelta(minutes=30)
+    order.price_expiration_for_unconfirmed = TEST_DATE + timedelta(minutes=30)
     order.status = status
 
     # when
@@ -34,19 +34,23 @@ def test_invalidate_order_prices_status(
     assert order.price_expiration_for_unconfirmed == price_expiration
 
 
-@freeze_time(NOW)
+@freeze_time(TEST_DATE)
 @pytest.mark.parametrize(
     "save, updated_fields, price_expiration_from_db",
     [
-        (True, [], NOW),
-        (False, ["price_expiration_for_unconfirmed"], NOW + timedelta(minutes=30)),
+        (True, [], TEST_DATE),
+        (
+            False,
+            ["price_expiration_for_unconfirmed"],
+            TEST_DATE + timedelta(minutes=30),
+        ),
     ],
 )
 def test_invalidate_order_prices_save(
     order, save, updated_fields, price_expiration_from_db
 ):
     # given
-    order.price_expiration_for_unconfirmed = NOW + timedelta(minutes=30)
+    order.price_expiration_for_unconfirmed = TEST_DATE + timedelta(minutes=30)
     order.save(update_fields=["price_expiration_for_unconfirmed"])
     order.status = OrderStatus.DRAFT
 
@@ -54,7 +58,7 @@ def test_invalidate_order_prices_save(
     invalidate_fields = invalidate_order_prices(order, save=save)
 
     # then
-    assert order.price_expiration_for_unconfirmed == NOW
+    assert order.price_expiration_for_unconfirmed == TEST_DATE
     assert invalidate_fields == updated_fields
     order.refresh_from_db()
     assert order.price_expiration_for_unconfirmed == price_expiration_from_db
