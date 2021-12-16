@@ -571,8 +571,13 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
+        taxes_included = info.context.site.settings.include_taxes_in_prices
         recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
+            manager,
+            checkout_info,
+            lines,
+            info.context.discounts,
+            taxes_included,
         )
         invalidate_checkout_prices(checkout, save=True)
         manager.checkout_updated(checkout)
@@ -654,8 +659,14 @@ class CheckoutLineDelete(BaseMutation):
             checkout, lines, info.context.discounts, manager
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
+
+        taxes_included = info.context.site.settings.include_taxes_in_prices
         recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
+            manager,
+            checkout_info,
+            lines,
+            info.context.discounts,
+            taxes_included,
         )
         invalidate_checkout_prices(checkout, save=True)
         manager.checkout_updated(checkout)
@@ -880,7 +891,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             shipping_address_updated_fields = change_shipping_address_in_checkout(
                 checkout_info, shipping_address, lines, discounts, manager
             )
-        recalculate_checkout_discount(manager, checkout_info, lines, discounts)
+        taxes_included = info.context.site.settings.include_taxes_in_prices
+        recalculate_checkout_discount(
+            manager, checkout_info, lines, discounts, taxes_included
+        )
         invalidate_prices_updated_fields = invalidate_checkout_prices(
             checkout, save=False
         )
@@ -1114,8 +1128,13 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=["shipping_method", "last_change"])
+        taxes_included = info.context.site.settings.include_taxes_in_prices
         recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
+            manager,
+            checkout_info,
+            lines,
+            info.context.discounts,
+            taxes_included,
         )
         manager.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
@@ -1162,8 +1181,13 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             shipping_method=shipping_method,
             collection_point=None,
         )
+        taxes_included = info.context.site.settings.include_taxes_in_prices
         recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
+            manager,
+            checkout_info,
+            lines,
+            info.context.discounts,
+            taxes_included,
         )
         return CheckoutDeliveryMethodUpdate(checkout=checkout)
 
@@ -1472,12 +1496,14 @@ class CheckoutAddPromoCode(BaseMutation):
         discounts = info.context.discounts
         lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        taxes_included = info.context.site.settings.include_taxes_in_prices
 
         add_promo_code_to_checkout(
             manager,
             checkout_info,
             lines,
             promo_code,
+            taxes_included,
             discounts,
         )
 

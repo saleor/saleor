@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 import graphene
+import pytest
 from prices import Money
 
 from ....checkout import calculations
@@ -18,8 +19,9 @@ from .test_checkout import MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE
 from .test_checkout_lines import MUTATION_CHECKOUT_LINES_DELETE
 
 
+@pytest.mark.parametrize("taxes_included", [True, False])
 def test_checkout_lines_delete_with_not_applicable_voucher(
-    user_api_client, checkout_with_item, voucher, channel_USD
+    user_api_client, checkout_with_item, voucher, channel_USD, taxes_included
 ):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
@@ -35,7 +37,7 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
     )
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher, taxes_included)
     assert checkout_with_item.voucher_code == voucher.code
 
     line = checkout_with_item.lines.first()
@@ -52,6 +54,7 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
     assert checkout_with_item.voucher_code is None
 
 
+@pytest.mark.parametrize("taxes_included", [True, False])
 def test_checkout_shipping_address_update_with_not_applicable_voucher(
     user_api_client,
     checkout_with_item,
@@ -59,6 +62,7 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     graphql_address_data,
     address_other_country,
     shipping_method,
+    taxes_included,
 ):
     assert checkout_with_item.shipping_address is None
     assert checkout_with_item.voucher_code is None
@@ -74,7 +78,7 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher, taxes_included)
     assert checkout_with_item.voucher_code == voucher.code
 
     new_address = graphql_address_data
