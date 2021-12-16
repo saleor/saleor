@@ -23,7 +23,6 @@ class Transaction(CountableDjangoObjectType):
         description = "An object representing a single payment."
         interfaces = [relay.Node]
         model = models.Transaction
-        filter_fields = ["id"]
         only_fields = [
             "id",
             "created",
@@ -112,7 +111,6 @@ class Payment(CountableDjangoObjectType):
         description = "Represents a payment of a given type."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Payment
-        filter_fields = ["id"]
         only_fields = [
             "id",
             "gateway",

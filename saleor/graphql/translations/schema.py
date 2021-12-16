@@ -43,6 +43,34 @@ class TranslatableItem(graphene.Union):
             translation_types.MenuItemTranslatableContent,
         )
 
+    @classmethod
+    def resolve_type(cls, instance, info):
+        print(type(instance))
+        if isinstance(instance, Product):
+            return translation_types.ProductTranslatableContent
+        if isinstance(instance, Collection):
+            return translation_types.CollectionTranslatableContent
+        if isinstance(instance, Category):
+            return translation_types.CategoryTranslatableContent
+        if isinstance(instance, Attribute):
+            return translation_types.AttributeTranslatableContent
+        if isinstance(instance, AttributeValue):
+            return translation_types.AttributeValueTranslatableContent
+        if isinstance(instance, ProductVariant):
+            return translation_types.ProductVariantTranslatableContent
+        if isinstance(instance, Page):
+            return translation_types.PageTranslatableContent
+        if isinstance(instance, ShippingMethod):
+            return translation_types.ShippingMethodTranslatableContent
+        if isinstance(instance, Sale):
+            return translation_types.SaleTranslatableContent
+        if isinstance(instance, Voucher):
+            return translation_types.VoucherTranslatableContent
+        if isinstance(instance, MenuItem):
+            return translation_types.MenuItemTranslatableContent
+
+        return super(TranslatableItem, cls).resolve_type(instance, info)
+
 
 class TranslatableItemConnection(CountableConnection):
     class Meta:

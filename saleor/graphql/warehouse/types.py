@@ -8,13 +8,10 @@ from ...warehouse import models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
-from ..core.connection import (
-    CountableConnection,
-    CountableDjangoObjectType,
-    create_connection_slice,
-)
+from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.fields import ConnectionField
+from ..core.types import ModelObjectType
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
 from .enums import WarehouseClickAndCollectOptionEnum
@@ -53,7 +50,12 @@ class WarehouseUpdateInput(WarehouseInput):
     )
 
 
-class Warehouse(CountableDjangoObjectType):
+class Warehouse(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    slug = graphene.String(required=True)
+    email = graphene.String(required=True)
+    is_private = graphene.Boolean(required=True)
     address = graphene.Field("saleor.graphql.account.types.Address", required=True)
     company_name = graphene.String(
         required=True,
@@ -75,13 +77,6 @@ class Warehouse(CountableDjangoObjectType):
         description = "Represents warehouse."
         model = models.Warehouse
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
-        only_fields = [
-            "id",
-            "name",
-            "slug",
-            "email",
-            "is_private",
-        ]
 
     @staticmethod
     def resolve_shipping_zones(root, info, *_args, **kwargs):
@@ -122,7 +117,12 @@ class WarehouseCountableConnection(CountableConnection):
         node = Warehouse
 
 
-class Stock(CountableDjangoObjectType):
+class Stock(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    warehouse = graphene.Field(Warehouse, required=True)
+    product_variant = graphene.Field(
+        "saleor.graphql.product.types.ProductVariant", required=True
+    )
     quantity = graphene.Int(
         required=True,
         description="Quantity of a product in the warehouse's possession, "
@@ -139,13 +139,6 @@ class Stock(CountableDjangoObjectType):
         description = "Represents stock."
         model = models.Stock
         interfaces = [graphene.relay.Node]
-        only_fields = [
-            "warehouse",
-            "product_variant",
-            "quantity",
-            "quantity_allocated",
-            "quantity_reserved",
-        ]
 
     @staticmethod
     @one_of_permissions_required(

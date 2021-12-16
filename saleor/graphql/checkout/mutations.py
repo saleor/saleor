@@ -337,6 +337,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     class Meta:
         description = "Create a new checkout."
         model = models.Checkout
+        object_type = Checkout
         return_field_name = "checkout"
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"

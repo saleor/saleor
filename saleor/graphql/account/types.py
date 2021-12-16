@@ -30,7 +30,6 @@ from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
-from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from .dataloaders import CustomerEventsByUserLoader
 from .enums import CountryCodeEnum, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
@@ -393,10 +392,6 @@ class User(ModelObjectType):
         if root == info.context.user:
             return resolve_payment_sources(info, root, channel_slug=channel)
         raise PermissionDenied()
-
-    @staticmethod
-    def resolve_wishlist(root: models.User, info, **_kwargs):
-        return resolve_wishlist_items_from_user(root)
 
     @staticmethod
     def resolve_language_code(root, _info, **_kwargs):
