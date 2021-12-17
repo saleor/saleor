@@ -17,6 +17,7 @@ from ..core.units import WeightUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, TranslationProxy
 from ..core.weight import convert_weight, get_default_weight_unit, zero_weight
+from ..tax.models import TaxGroup
 from . import PostalCodeRuleInclusionType, ShippingMethodType
 from .postal_codes import filter_shipping_methods_by_postal_code_rules
 
@@ -206,6 +207,9 @@ class ShippingMethod(ModelWithMetadata):
 
     objects = models.Manager.from_queryset(ShippingMethodQueryset)()
     translated = TranslationProxy()
+    tax_group = models.ForeignKey(
+        to=TaxGroup, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)

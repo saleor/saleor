@@ -3,6 +3,7 @@ from django.db import models
 from django_countries.fields import CountryField
 
 from ..core.permissions import ChannelPermissions
+from ..tax.models import TaxSetting
 
 
 class Channel(models.Model):
@@ -11,6 +12,13 @@ class Channel(models.Model):
     slug = models.SlugField(max_length=255, unique=True)
     currency_code = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     default_country = CountryField()
+    tax_setting = models.ForeignKey(
+        to=TaxSetting,
+        related_name="channels",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     class Meta:
         ordering = ("slug",)
