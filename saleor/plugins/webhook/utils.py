@@ -217,3 +217,8 @@ def attempt_update(
 def delivery_update(delivery: "EventDelivery", status: str):
     delivery.status = status
     delivery.save(update_fields=["status"])
+
+
+def clear_successful_delivery(delivery: "EventDelivery"):
+    if delivery.status == EventDeliveryStatus.SUCCESS:
+        delivery.delete()

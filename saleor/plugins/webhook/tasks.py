@@ -27,6 +27,7 @@ from . import signature_for_payload
 from .utils import (
     attempt_update,
     catch_duration_time,
+    clear_successful_delivery,
     create_attempt,
     create_event_delivery_list_for_webhooks,
     delivery_update,
@@ -122,7 +123,6 @@ def send_webhook_using_http(
     :param event_type: Webhook event type.
     :param timeout: Request timeout.
 
-    :raises HTTPError: Requests exception class containg error message.
     :return: WebhookResponse object.
     """
     headers = {
@@ -137,12 +137,14 @@ def send_webhook_using_http(
     }
 
     response = requests.post(target_url, data=message, headers=headers, timeout=timeout)
-    response.raise_for_status()
     return WebhookResponse(
         content=response.text,
         request_headers=headers,
         response_headers=dict(response.headers),
         duration=response.elapsed.total_seconds(),
+        status=(
+            EventDeliveryStatus.SUCCESS if response.ok else EventDeliveryStatus.FAILED
+        ),
     )
 
 
@@ -294,9 +296,11 @@ def send_webhook_request_async(self, event_delivery_id):
             delivery.id,
         )
     except ValueError as e:
-        response = WebhookResponse(content=str(e))
+        response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+    if delivery.status == EventDeliveryStatus.SUCCESS:
+        clear_successful_delivery(delivery)
 
 
 def send_webhook_request_sync(app_name, delivery):
@@ -364,6 +368,8 @@ def send_webhook_request_sync(app_name, delivery):
         delivery_update(delivery, EventDeliveryStatus.FAILED)
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
     delivery_update(delivery, response.status)
+    if delivery.status == EventDeliveryStatus.SUCCESS:
+        clear_successful_delivery(delivery)
     return response_data
 
 

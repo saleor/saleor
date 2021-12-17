@@ -8,6 +8,7 @@ from django.conf import settings
 from requests import RequestException
 
 from ....app.models import App
+from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....payment import PaymentError, TransactionKind
 from ....payment.utils import create_payment_information
@@ -96,7 +97,7 @@ def test_trigger_webhook_sync_no_webhook_available():
     ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
 )
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
-def test_send_webhook_request_sync(
+def test_send_webhook_request_sync_failed_attempt(
     mock_post, target_url, site_settings, app, event_delivery
 ):
     # given
@@ -105,17 +106,50 @@ def test_send_webhook_request_sync(
         "headers": {"header_key": "header_val"},
         "duration": datetime.timedelta(seconds=2),
     }
+    mock_post().ok = False
     mock_post().text = expected_data["content"]
     mock_post().headers = expected_data["headers"]
     mock_post().elapsed = expected_data["duration"]
-
     # when
     send_webhook_request_sync(app.name, event_delivery)
     attempt = EventDeliveryAttempt.objects.first()
 
     # then
-    assert event_delivery.status == "success"
-    assert attempt.status == "success"
+    assert event_delivery.status == EventDeliveryStatus.FAILED
+    assert attempt.status == EventDeliveryStatus.FAILED
+    assert attempt.duration == expected_data["duration"].total_seconds()
+    assert attempt.response == expected_data["content"]
+    assert attempt.response_headers == json.dumps(expected_data["headers"])
+
+
+@pytest.mark.parametrize(
+    "target_url",
+    ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
+)
+@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+@mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
+def test_send_webhook_request_sync_successful_attempt(
+    mock_clear_delivery, mock_post, target_url, site_settings, app, event_delivery
+):
+    # given
+    expected_data = {
+        "content": '{"key": "response_text"}',
+        "headers": {"header_key": "header_val"},
+        "duration": datetime.timedelta(seconds=2),
+    }
+    mock_post().ok = True
+    mock_post().text = expected_data["content"]
+    mock_post().headers = expected_data["headers"]
+    mock_post().elapsed = expected_data["duration"]
+    # when
+    send_webhook_request_sync(app.name, event_delivery)
+
+    attempt = EventDeliveryAttempt.objects.first()
+
+    # then
+    mock_clear_delivery.assert_called_once_with(event_delivery)
+    assert event_delivery.status == EventDeliveryStatus.SUCCESS
+    assert attempt.status == EventDeliveryStatus.SUCCESS
     assert attempt.duration == expected_data["duration"].total_seconds()
     assert attempt.response == expected_data["content"]
     assert attempt.response_headers == json.dumps(expected_data["headers"])
