@@ -9,11 +9,7 @@ import opentracing.tags
 from django.conf import settings
 from django_countries.fields import Country
 
-from .....checkout.calculations import (
-    checkout_line_total,
-    checkout_shipping_price,
-    checkout_total,
-)
+from .....checkout.calculations import checkout_shipping_price, checkout_total
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import is_shipping_required
@@ -241,23 +237,14 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
 
     line_items = []
     for line_info in lines:
-        total = checkout_line_total(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            checkout_line_info=line_info,
-            discounts=discounts,
-        )
         address = checkout_info.shipping_address or checkout_info.billing_address
         unit_price = manager.calculate_checkout_line_unit_price(
-            total,
-            line_info.line.quantity,
             checkout_info,
             lines,
             line_info,
             address,
             discounts,
-        )
+        ).price_with_sale
         unit_gross = unit_price.gross.amount
         unit_net = unit_price.net.amount
         tax_amount = unit_price.tax.amount
