@@ -4,7 +4,6 @@ from typing import Union
 import graphene
 from django.db.models import Value
 from django.db.models.functions import Concat
-from graphene_django.registry import get_global_registry
 from graphql import GraphQLDocument
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
@@ -15,7 +14,6 @@ from ..core.types import Permission
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
 )
-registry = get_global_registry()
 REVERSED_DIRECTION = {
     "-": "",
     "": "-",
@@ -55,14 +53,10 @@ def resolve_global_ids_to_primary_keys(
     return used_type, pks
 
 
-def _resolve_graphene_type(type_name, schema=None):
-    for _, _type in registry._registry.items():
-        if _type._meta.name == type_name:
-            return _type
-    if schema:
-        type_from_schema = schema.get_type(type_name)
-        if type_from_schema:
-            return type_from_schema.graphene_type
+def _resolve_graphene_type(schema, type_name):
+    type_from_schema = schema.get_type(type_name)
+    if type_from_schema:
+        return type_from_schema.graphene_type
     raise GraphQLError("Could not resolve the type {}".format(type_name))
 
 
@@ -77,7 +71,7 @@ def get_nodes(
 
     If the `graphene_type` argument is provided, the IDs will be validated
     against this type. If the type was not provided, it will be looked up in
-    the Graphene's registry. Raises an error if not all IDs are of the same
+    the schema. Raises an error if not all IDs are of the same
     type.
 
     If the `graphene_type` is of type str, the model keyword argument must be provided.
@@ -90,7 +84,10 @@ def get_nodes(
     # the same. This prevents from accidentally mismatching IDs of different
     # types.
     if nodes_type and not graphene_type:
-        graphene_type = _resolve_graphene_type(nodes_type, schema)
+        if schema:
+            graphene_type = _resolve_graphene_type(schema, nodes_type)
+        else:
+            raise GraphQLError("GraphQL schema was not provided")
 
     if qs is None and graphene_type and not isinstance(graphene_type, str):
         qs = graphene_type._meta.model.objects

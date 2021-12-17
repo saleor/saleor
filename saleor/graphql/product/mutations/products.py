@@ -219,6 +219,7 @@ class CollectionCreate(ModelMutation):
     class Meta:
         description = "Creates a new collection."
         model = models.Collection
+        object_type = Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
@@ -276,6 +277,7 @@ class CollectionUpdate(CollectionCreate):
     class Meta:
         description = "Updates a collection."
         model = models.Collection
+        object_type = Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
@@ -299,6 +301,7 @@ class CollectionDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a collection."
         model = models.Collection
+        object_type = Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
@@ -562,6 +565,7 @@ class ProductCreate(ModelMutation):
     class Meta:
         description = "Creates a new product."
         model = models.Product
+        object_type = Product
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -690,6 +694,7 @@ class ProductUpdate(ProductCreate):
     class Meta:
         description = "Updates an existing product."
         model = models.Product
+        object_type = Product
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -726,6 +731,7 @@ class ProductDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a product."
         model = models.Product
+        object_type = Product
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -836,6 +842,7 @@ class ProductVariantCreate(ModelMutation):
     class Meta:
         description = "Creates a new variant for a product."
         model = models.ProductVariant
+        object_type = ProductVariant
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1050,6 +1057,7 @@ class ProductVariantUpdate(ProductVariantCreate):
     class Meta:
         description = "Updates an existing variant for product."
         model = models.ProductVariant
+        object_type = ProductVariant
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1101,6 +1109,7 @@ class ProductVariantDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a product variant."
         model = models.ProductVariant
+        object_type = ProductVariant
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"

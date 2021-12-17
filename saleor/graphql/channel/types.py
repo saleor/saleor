@@ -3,7 +3,6 @@ from typing import Union
 import graphene
 from django.db.models import Model
 from graphene.types.resolver import get_default_resolver
-from graphene_django import DjangoObjectType
 
 from ...channel import models
 from ...core.permissions import ChannelPermissions
@@ -39,7 +38,7 @@ class ChannelContextTypeForObjectType(graphene.ObjectType):
         return resolve_translation(root.node, info, language_code)
 
 
-class ChannelContextType(ChannelContextTypeForObjectType, DjangoObjectType):
+class ChannelContextType(ChannelContextTypeForObjectType, ModelObjectType):
     """A Graphene type that supports resolvers' root as ChannelContext objects."""
 
     class Meta:
@@ -49,10 +48,17 @@ class ChannelContextType(ChannelContextTypeForObjectType, DjangoObjectType):
     def is_type_of(cls, root: Union[ChannelContext, Model], info):
         # Unwrap node from ChannelContext if it didn't happen already
         if isinstance(root, ChannelContext):
-            return super().is_type_of(root.node, info)
+            root = root.node
 
-        # Check type that was already unwrapped by the Entity union check
-        return super().is_type_of(root, info)
+        if isinstance(root, cls):
+            return True
+
+        if cls._meta.model._meta.proxy:
+            model = root._meta.model
+        else:
+            model = root._meta.model._meta.concrete_model
+
+        return model == cls._meta.model
 
 
 class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectType):

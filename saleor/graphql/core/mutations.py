@@ -13,7 +13,6 @@ from django.core.files.storage import default_storage
 from django.db.models.fields.files import FileField
 from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
-from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 
 from ...core.exceptions import PermissionDenied
@@ -25,8 +24,6 @@ from .types import File, Upload
 from .types.common import UploadError
 from .utils import from_global_id_or_error, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
-
-registry = get_global_registry()
 
 
 def get_model_name(model):
@@ -398,7 +395,8 @@ class ModelMutation(BaseMutation):
         model_type = cls.get_type_for_model()
         if not model_type:
             raise ImproperlyConfigured(
-                "Unable to find type for model %s in graphene registry" % model.__name__
+                f"GraphQL type for model {cls._meta.model.__name__} could not be "
+                f"resolved for {cls.__name__}"
             )
         fields = {return_field_name: graphene.Field(model_type)}
 
@@ -489,10 +487,14 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def get_type_for_model(cls):
-        if cls._meta.object_type:
-            return cls._meta.object_type
+        if not cls._meta.object_type:
+            raise ImproperlyConfigured(
+                f"Either GraphQL type for model {cls._meta.model.__name__} needs to be "
+                f"specified on object_type option or {cls.__name__} needs to define "
+                "custom get_type_for_model() method."
+            )
 
-        return registry.get_type_for_model(cls._meta.model)
+        return cls._meta.object_type
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -593,10 +595,14 @@ class BaseBulkMutation(BaseMutation):
 
     @classmethod
     def get_type_for_model(cls):
-        if cls._meta.object_type:
-            return cls._meta.object_type
+        if not cls._meta.object_type:
+            raise ImproperlyConfigured(
+                f"Either GraphQL type for model {cls._meta.model.__name__} needs to be "
+                f"specified on object_type option or {cls.__name__} needs to define "
+                "custom get_type_for_model() method."
+            )
 
-        return registry.get_type_for_model(cls._meta.model)
+        return cls._meta.object_type
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -620,6 +626,12 @@ class BaseBulkMutation(BaseMutation):
             return 0, errors
         instance_model = cls._meta.model
         model_type = cls.get_type_for_model()
+        if not model_type:
+            raise ImproperlyConfigured(
+                f"GraphQL type for model {cls._meta.model.__name__} could not be "
+                f"resolved for {cls.__name__}"
+            )
+
         try:
             instances = cls.get_nodes_or_error(
                 ids, "id", model_type, schema=info.schema
