@@ -525,6 +525,8 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
             )
             if fl.stock
             else None,
+            "sale_id": lambda fl: fl.order_line.sale_id,
+            "voucher_code": lambda fl: fl.order_line.voucher_code,
         },
     )
 
