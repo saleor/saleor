@@ -46,7 +46,7 @@ from ....product.utils.availability import get_variant_availability
 from ....product.utils.costs import get_product_costs_data
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.models import Allocation, Stock, Warehouse
-from ....webhook.event_types import WebhookEventType
+from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_product_deleted_payload
 from ...core.enums import AttributeErrorCode, ReportingPeriod
 from ...tests.utils import (
@@ -2603,15 +2603,10 @@ def test_products_query_with_filter_stock_availability_channel_without_shipping_
     query_products_with_filter,
     staff_api_client,
     product,
-    order_line,
     permission_manage_products,
     channel_USD,
 ):
     channel_USD.shipping_zones.clear()
-    stock = product.variants.first().stocks.first()
-    Allocation.objects.create(
-        order_line=order_line, stock=stock, quantity_allocated=stock.quantity
-    )
     variables = {
         "filter": {"stockAvailability": "OUT_OF_STOCK"},
         "channel": channel_USD.slug,
@@ -2620,8 +2615,10 @@ def test_products_query_with_filter_stock_availability_channel_without_shipping_
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
+    product_id = graphene.Node.to_global_id("Product", product.id)
 
-    assert len(products) == 0
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
 
 
 @pytest.mark.parametrize(
@@ -7236,7 +7233,7 @@ def test_delete_product_trigger_webhook(
     )
 
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.PRODUCT_DELETED, expected_data
+        WebhookEventAsyncType.PRODUCT_DELETED, expected_data
     )
     mocked_recalculate_orders_task.assert_not_called()
 

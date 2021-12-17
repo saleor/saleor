@@ -120,7 +120,7 @@ from ..warehouse.models import (
     Stock,
     Warehouse,
 )
-from ..webhook.event_types import WebhookEventType
+from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.models import Webhook, WebhookEvent
 from ..wishlist.models import Wishlist
 from .utils import dummy_editorjs
@@ -4862,7 +4862,7 @@ def payment_app(db, permission_manage_payments):
     webhook.events.bulk_create(
         [
             WebhookEvent(event_type=event_type, webhook=webhook)
-            for event_type in WebhookEventType.PAYMENT_EVENTS
+            for event_type in WebhookEventSyncType.PAYMENT_EVENTS
         ]
     )
     return app
@@ -4883,8 +4883,8 @@ def shipping_app(db, permission_manage_shipping):
         [
             WebhookEvent(event_type=event_type, webhook=webhook)
             for event_type in [
-                WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                WebhookEventType.FULFILLMENT_CREATED,
+                WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                WebhookEventAsyncType.FULFILLMENT_CREATED,
             ]
         ]
     )
@@ -4915,7 +4915,7 @@ def webhook(app):
     webhook = Webhook.objects.create(
         name="Simple webhook", app=app, target_url="http://www.example.com/test"
     )
-    webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
     return webhook
 
 
