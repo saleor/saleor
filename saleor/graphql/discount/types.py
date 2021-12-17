@@ -14,13 +14,12 @@ from ..channel.types import (
 from ..core import types
 from ..core.connection import (
     CountableConnection,
-    CountableDjangoObjectType,
     create_connection_slice,
 )
 from ..core.descriptions import ADDED_IN_31
 from ..core.fields import ConnectionField
 from ..core.scalars import PositiveDecimal
-from ..core.types import Money
+from ..core.types import ModelObjectType, Money
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..product.types import (
@@ -37,24 +36,36 @@ from .dataloaders import (
     VoucherChannelListingByVoucherIdAndChanneSlugLoader,
     VoucherChannelListingByVoucherIdLoader,
 )
-from .enums import DiscountValueTypeEnum, VoucherTypeEnum
+from .enums import (
+    DiscountValueTypeEnum,
+    OrderDiscountTypeEnum,
+    SaleType,
+    VoucherTypeEnum,
+)
 
 
-class SaleChannelListing(CountableDjangoObjectType):
+class SaleChannelListing(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     channel = graphene.Field(Channel, required=True)
+    discount_value = graphene.Float(required=True)
+    currency = graphene.String(required=True)
 
     class Meta:
         description = "Represents sale channel listing."
         model = models.SaleChannelListing
         interfaces = [relay.Node]
-        only_fields = ["id", "discount_value", "currency"]
 
     @staticmethod
     def resolve_channel(root: models.SaleChannelListing, info, **_kwargs):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
-class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    type = SaleType(required=True)
+    start_date = graphene.DateTime(required=True)
+    end_date = graphene.DateTime()
     categories = ConnectionField(
         CategoryCountableConnection,
         description="List of categories this sale applies to.",
@@ -90,7 +101,6 @@ class Sale(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Sale
-        only_fields = ["end_date", "id", "name", "start_date", "type"]
 
     @staticmethod
     def resolve_categories(root: ChannelContext[models.Sale], info, *_args, **kwargs):
@@ -161,21 +171,35 @@ class SaleCountableConnection(CountableConnection):
         node = Sale
 
 
-class VoucherChannelListing(CountableDjangoObjectType):
+class VoucherChannelListing(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     channel = graphene.Field(Channel, required=True)
+    discount_value = graphene.Float(required=True)
+    currency = graphene.String(required=True)
+    min_spent = graphene.Field(Money)
 
     class Meta:
         description = "Represents voucher channel listing."
         model = models.VoucherChannelListing
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "discount_value", "currency", "min_spent"]
 
     @staticmethod
     def resolve_channel(root: models.VoucherChannelListing, info, **_kwargs):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
-class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String()
+    code = graphene.String(required=True)
+    usage_limit = graphene.Int()
+    used = graphene.Int(required=True)
+    start_date = graphene.DateTime(required=True)
+    end_date = graphene.DateTime()
+    apply_once_per_order = graphene.Boolean(required=True)
+    apply_once_per_customer = graphene.Boolean(required=True)
+    only_for_staff = graphene.Boolean(required=True)
+    min_checkout_items_quantity = graphene.Int()
     categories = ConnectionField(
         CategoryCountableConnection,
         description="List of categories this voucher applies to.",
@@ -223,21 +247,6 @@ class Voucher(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "collections or specific products. They can be used during checkout by "
             "providing valid voucher codes."
         )
-        only_fields = [
-            "only_for_staff",
-            "apply_once_per_order",
-            "apply_once_per_customer",
-            "code",
-            "discount_value_type",
-            "end_date",
-            "id",
-            "min_checkout_items_quantity",
-            "name",
-            "start_date",
-            "type",
-            "usage_limit",
-            "used",
-        ]
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Voucher
 
@@ -336,7 +345,11 @@ class VoucherCountableConnection(CountableConnection):
         node = Voucher
 
 
-class OrderDiscount(CountableDjangoObjectType):
+class OrderDiscount(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    type = OrderDiscountTypeEnum(required=True)
+    name = graphene.String()
+    translated_name = graphene.String()
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,
@@ -357,15 +370,6 @@ class OrderDiscount(CountableDjangoObjectType):
         description = (
             "Contains all details related to the applied discount to the order."
         )
-        only_fields = [
-            "id",
-            "type",
-            "value",
-            "value_type",
-            "reason",
-            "name",
-            "translated_name",
-        ]
         interfaces = [relay.Node]
         model = models.OrderDiscount
 

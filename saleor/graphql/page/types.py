@@ -136,4 +136,3 @@ class Page(ModelObjectType):
 class PageCountableConnection(CountableConnection):
     class Meta:
         node = Page
-

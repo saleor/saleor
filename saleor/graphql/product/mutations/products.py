@@ -99,6 +99,7 @@ class CategoryCreate(ModelMutation):
     class Meta:
         description = "Creates a new category."
         model = models.Category
+        object_type = Category
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -153,6 +154,7 @@ class CategoryUpdate(CategoryCreate):
     class Meta:
         description = "Updates a category."
         model = models.Category
+        object_type = Category
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -165,6 +167,7 @@ class CategoryDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a category."
         model = models.Category
+        object_type = Category
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1206,6 +1209,7 @@ class ProductTypeCreate(ModelMutation):
     class Meta:
         description = "Creates a new product type."
         model = models.ProductType
+        object_type = ProductType
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1283,6 +1287,7 @@ class ProductTypeUpdate(ProductTypeCreate):
     class Meta:
         description = "Updates an existing product type."
         model = models.ProductType
+        object_type = ProductType
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1313,6 +1318,7 @@ class ProductTypeDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a product type."
         model = models.ProductType
+        object_type = ProductType
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"

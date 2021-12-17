@@ -6,6 +6,7 @@ from ....order.actions import cancel_order
 from ...core.mutations import BaseBulkMutation
 from ...core.types.common import OrderError
 from ..mutations.orders import clean_order_cancel
+from ..types import Order
 
 
 class OrderBulkCancel(BaseBulkMutation):
@@ -17,6 +18,7 @@ class OrderBulkCancel(BaseBulkMutation):
     class Meta:
         description = "Cancels orders."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

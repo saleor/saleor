@@ -22,7 +22,6 @@ class DigitalContentUrl(ModelObjectType):
 
     class Meta:
         model = models.DigitalContentUrl
-        only_fields = ["content", "created", "download_num"]
         interfaces = (relay.Node,)
 
     @staticmethod
