@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Iterable, Optional
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo
+from .interface import TaxedPricesData
 
 if TYPE_CHECKING:
     from prices import TaxedMoney
@@ -97,7 +98,7 @@ def checkout_line_total(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo] = [],
-) -> "TaxedMoney":
+) -> "TaxedPricesData":
     """Return the total price of provided line, taxes included.
 
     It takes in account all plugins.
@@ -110,4 +111,4 @@ def checkout_line_total(
         address,
         discounts or [],
     )
-    return quantize_price(calculated_line_total, checkout_info.checkout.currency)
+    return calculated_line_total

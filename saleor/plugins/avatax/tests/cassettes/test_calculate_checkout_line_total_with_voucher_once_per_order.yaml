@@ -1,0 +1,93 @@
+interactions:
+- request:
+    body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
+      "lines": [{"quantity": 3, "amount": "30.00", "taxCode": "O9999999", "taxIncluded":
+      true, "itemCode": "123", "description": "Test product"}, {"quantity": 3, "amount":
+      "27.00", "taxCode": "O9999999", "taxIncluded": true, "itemCode": "123", "description":
+      "Test product", "ref2": "123"}, {"quantity": 1, "amount": "10.000", "taxCode":
+      "FR000000", "taxIncluded": true, "itemCode": "Shipping", "description": null}],
+      "code": "a8ee71a1-5bd4-4ab6-8aac-65861d1ae732", "date": "2021-12-14", "customerCode":
+      0, "addresses": {"shipFrom": {"line1": "Teczowa 7", "line2": null, "city": "Wroclaw",
+      "region": "", "country": "PL", "postalCode": "53-601"}, "shipTo": {"line1":
+      "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW", "region": "", "country":
+      "PL", "postalCode": "53-601"}}, "commit": false, "currencyCode": "USD", "email":
+      ""}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '901'
+      User-Agent:
+      - python-requests/2.26.0
+    method: POST
+    uri: https://rest.avatax.com/api/v2/transactions/createoradjust
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEA+1YbW/iOBD+K6t8BkReeP3G0a1UCUFV6K20p/1gEgPeC0nOdrrlVv3v94ztpFCg
+        7d31qj1p+RTG4/HMPOMnM/nuicQbthtenCfcG3qsz3nPZ36zs0yiZsSW3WafsbjZ7fS7fuIz3gsD
+        j7S3Bct2V9gbRMGg12l4CdNkIGgHftMPmn4EtYLttjzTFyeWlGa6VNiw4Nsil0zuoK93BdmYs5Sr
+        mUy4hGzJdLwZW+/o5FJKnsU7J7mdX0DI7+MNy9b8BgeNTynEpdL5lstbxdZ8YU+hfZkWener+L59
+        q/krz5JcOnnbHGwX9kT8Hr7raQ6XoSB5nGexSDmSsmKp4g0vzWOmRZ49mpccwWqRrSdHS0UpEYXi
+        JvBHoytO8e55qCg7BZdq367ONUtH27zMtDfsRK2oh2yS7KPxERC3ALKRXAgVW71H2YLde0M/aHVC
+        pwQBW6YAY98WhGOWxmWKNCNIp8+Sr8gu4XzDGZxCNqa5Hhkp1EwWft9Lyh1cR06w/xC4j6sVj7W4
+        46fKZR9h7KRg+JaJ1KZ+mydiJXhytHPRHgxDfxj1Wr7vR73u4DP8qbSBuzQV3A/9QYDA2f2RAXJf
+        ZByF+tv36qpoyTLF4Gqe0Xa4QirTcrtEwQ49H3teX28JV7EUBRnD3gVX+kMh86SMNcwkDqoKWAOY
+        rboTojGX2jl0WJlCXWm+rSHVskRtCohcXfpB6OKsrAZRKxw0vD9KZm6INwwp45KvfJtwPAXVkyvo
+        U6lDRlFBrS6QxiMV1JMDIN2vqFrVOTYb2B+8I02QAMXXCSOq5dNoQXyVxWmZUMXZSBOuUSnnIJwA
+        O5e1Y2DNRQE1Db3rCZyQfG1xMv9OAPG1lEI5542OEUzZlmjtejYZTYmuiPv4SCmxznhS3XSj6ahp
+        PF1AzUgSYQqtWqCLa6gyy7PFYUpNcUhDte1WELbxM1l6EQFne1bqoqSqQwrn5ZKklBdvZkUuiLlm
+        WcJk8oG41q6MSr3JJYi02hLhdQAjx8iSd+60yg5MVFKXtzlEZSb0bPULU4JeEddcVqx+iwWsCzXN
+        s2um1GIjy5puhbrkSLQj35pqXZ5oK6y50q5XYehQweax4mnLn27v4RK2VbmtrUF2HHYq2FKkLkGI
+        Z87TFFTx8KXhAUYKQ29kXq43F3WlYmlTFRLijXOlrzJVgnlifim5WG/A88adO6brgps3gfus2TSl
+        hwXLSRUs7YfGaznMvONf/c78QTnMbw1QiC9xmCW/GsBnaKxty/qAxuwZ+inqTtUB85PG1NvQ2LMI
+        OGL5j2mMXKgIi66yo8P3pzFbeXXd/msaM4FVrHdEY7T6/6Mxamv+Riv2Pt3WfCOKAhMAfKO+seqI
+        +i0/3Gcr0+P+s47Lb/Wp/T9sD6z9J0xVazqmuryhtqFN8w5puoYr6vXQDEJwhhx/NlxPGq46rfvv
+        ihqA9yAq68GPQFQ27LfiKRfXGZ6yq+/LU5fn2y00cSxJJFfqpQFyib4eXfVuwu84zbSfRdFx/EAT
+        14LHf+bf2Ieek7nZi+gjxDKkMbpLPH26mY0no08Q1KMKngt0jyx1V7wTNrttM6O6WcLNNrjeN2a8
+        oaY/aHf8NkZiTPpCY5ayh6R5tq7/PttMvlk8Mo9T9u1d4gFaqtxu6UsUDfvPjn4Hw1o9kxmpS/P5
+        6Q+JPpiYvCHNS0DoeCaE6nmyACbPj2anbz9sHnzZIS0aJQ4mxupT0GFf66SYWRaVETOC2EHYTMb4
+        //Dl4S9DhvJiVhQAAA==
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 14 Dec 2021 09:31:47 GMT
+      Location:
+      - /api/v2/companies/242975/transactions/0
+      ServerDuration:
+      - '00:00:00.0223500'
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      referrer-policy:
+      - same-origin
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains
+      x-avalara-uid:
+      - 0c4a76af-6548-43f5-ae55-9f6d60a09563
+      x-correlation-id:
+      - 0c4a76af-6548-43f5-ae55-9f6d60a09563
+      x-frame-options:
+      - sameorigin
+      x-permitted-cross-domain-policies:
+      - none
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 201
+      message: Created
+version: 1

@@ -122,7 +122,7 @@ class CheckoutLine(CountableDjangoObjectType):
                             checkout_line_info=line_info,
                             address=address,
                             discounts=discounts,
-                        )
+                        ).price_with_sale
                 return None
 
             return Promise.all(
