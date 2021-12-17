@@ -1,16 +1,17 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Optional
 
 import graphene
 from django.contrib.auth import get_user_model, password_validation
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.utils import timezone
 
 from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
 from ....account.notifications import get_default_user_payload
 from ....core.notification.utils import get_site_context
 from ....core.notify_events import NotifyEventType
-from ....graphql.account.mutations.base import SetPassword as SetPasswordByToken
+from ....graphql.account.mutations.authentication import CreateToken
 from ....graphql.channel.utils import clean_channel, validate_channel
 from ....graphql.core.mutations import BaseMutation, validation_error_to_error_type
 from ....graphql.core.types.common import AccountError
@@ -23,7 +24,7 @@ def send_password_reset_notification(
     user, manager, channel_slug: Optional[str], staff=False
 ):
 
-    otp = OTP(user=user)
+    otp = OTP.objects.create(user=user)
 
     payload = {
         "user": get_default_user_payload(user),
@@ -61,7 +62,7 @@ class RequestPasswordRecovery(BaseMutation):
 
     def clean_user(email):
         try:
-            user = User.objects.get(email=email)
+            return User.objects.get(email=email)
         except ObjectDoesNotExist:
             raise ValidationError(
                 {
@@ -71,16 +72,6 @@ class RequestPasswordRecovery(BaseMutation):
                     )
                 }
             )
-        if not user.is_active:
-            raise ValidationError(
-                {
-                    "email": ValidationError(
-                        "User with this email is inactive",
-                        code=AccountErrorCode.INACTIVE,
-                    )
-                }
-            )
-        return user
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -106,7 +97,7 @@ class RequestPasswordRecovery(BaseMutation):
         return RequestPasswordRecovery()
 
 
-class SetPasswordByCode(SetPasswordByToken):
+class SetPasswordByCode(CreateToken):
     class Arguments:
         code = graphene.String(
             description="An OTP required to set the password.", required=True
@@ -129,12 +120,12 @@ class SetPasswordByCode(SetPasswordByToken):
     @classmethod
     def handle_used_otp(cls, otp: OTP):
         if otp.is_used:
-            cls.handle_invalid.otp()
+            cls.fail("Used OTP supplied")
 
     @classmethod
     def handle_expired_otp(cls, otp: OTP):
-        if otp.issued_at + timedelta(minutes=15) <= datetime.now():
-            cls.handle_invalid_otp()
+        if otp.issued_at + timedelta(minutes=15) <= timezone.now():
+            cls.fail("Invalid OTP supplied")
 
     @classmethod
     def _set_password_for_user(cls, email, password, code):
@@ -152,10 +143,9 @@ class SetPasswordByCode(SetPasswordByToken):
         try:
             otp = OTP.objects.get(code=code, user=user)
         except OTP.DoesNotExist:
-            cls.handle_invalid_otp()
+            cls.fail("Invalid OTP supplied")
 
-        cls.handle_invalid_otp()
-        cls.handle_used_otp()
+        cls.handle_used_otp(otp)
         cls.handle_expired_otp(otp)
 
         try:
@@ -168,7 +158,7 @@ class SetPasswordByCode(SetPasswordByToken):
         account_events.customer_password_reset_event(user=user)
 
     @classmethod
-    def mutate(cls, root, info, **data):
+    def perform_mutation(cls, root, info, **data):
         email = data["email"]
         password = data["password"]
         code = data["code"]
@@ -178,4 +168,4 @@ class SetPasswordByCode(SetPasswordByToken):
         except ValidationError as e:
             errors = validation_error_to_error_type(e, AccountError)
             return cls.handle_typed_errors(errors)
-        return super().mutate(root, info, **data)
+        return super().perform_mutation(root, info, **data)
