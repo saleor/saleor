@@ -625,7 +625,7 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
     mocked_webhook_send.assert_called_once_with(event_delivery.pk)
 
 
-WEBHOOK_RESPONSE = WebhookResponse(
+TEST_WEBHOOK_RESPONSE = WebhookResponse(
     content="test_content",
     request_headers={"headers": "test_request"},
     response_headers={"headers": "test_response"},
@@ -637,7 +637,7 @@ WEBHOOK_RESPONSE = WebhookResponse(
 @mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
 @mock.patch(
     "saleor.plugins.webhook.tasks.send_webhook_using_scheme_method",
-    return_value=WEBHOOK_RESPONSE,
+    return_value=TEST_WEBHOOK_RESPONSE,
 )
 def test_send_webhook_request_async(
     mocked_send_response, mocked_clear_delivery, event_delivery
@@ -655,8 +655,10 @@ def test_send_webhook_request_async(
     attempt = EventDeliveryAttempt.objects.filter(delivery=event_delivery).first()
     delivery = EventDelivery.objects.get(id=event_delivery.pk)
     assert attempt.status == EventDeliveryStatus.SUCCESS
-    assert attempt.response == WEBHOOK_RESPONSE.content
-    assert attempt.response_headers == json.dumps(WEBHOOK_RESPONSE.response_headers)
-    assert attempt.request_headers == json.dumps(WEBHOOK_RESPONSE.request_headers)
-    assert attempt.duration == WEBHOOK_RESPONSE.duration
+    assert attempt.response == TEST_WEBHOOK_RESPONSE.content
+    assert attempt.response_headers == json.dumps(
+        TEST_WEBHOOK_RESPONSE.response_headers
+    )
+    assert attempt.request_headers == json.dumps(TEST_WEBHOOK_RESPONSE.request_headers)
+    assert attempt.duration == TEST_WEBHOOK_RESPONSE.duration
     assert delivery.status == EventDeliveryStatus.SUCCESS

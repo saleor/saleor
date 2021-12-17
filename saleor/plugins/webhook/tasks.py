@@ -299,8 +299,7 @@ def send_webhook_request_async(self, event_delivery_id):
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
-    if delivery.status == EventDeliveryStatus.SUCCESS:
-        clear_successful_delivery(delivery)
+    clear_successful_delivery(delivery)
 
 
 def send_webhook_request_sync(app_name, delivery):
@@ -368,8 +367,7 @@ def send_webhook_request_sync(app_name, delivery):
         delivery_update(delivery, EventDeliveryStatus.FAILED)
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
     delivery_update(delivery, response.status)
-    if delivery.status == EventDeliveryStatus.SUCCESS:
-        clear_successful_delivery(delivery)
+    clear_successful_delivery(delivery)
     return response_data
 
 

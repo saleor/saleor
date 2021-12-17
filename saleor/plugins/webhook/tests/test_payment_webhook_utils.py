@@ -178,7 +178,6 @@ def test_clear_successful_delivery(event_delivery):
 
 def test_clear_successful_delivery_on_failed_delivery(event_delivery):
     # given
-    assert EventDelivery.objects.filter(pk=event_delivery.pk).exists()
     event_delivery.status = EventDeliveryStatus.FAILED
     event_delivery.save()
     # when
