@@ -9,7 +9,7 @@ from django_countries.fields import Country
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from ..checkout.interface import TaxedPricesData
+from ..checkout.interface import CheckoutTaxedPricesData
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -154,7 +154,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             TaxedMoney,
         ],
-        TaxedPricesData,
+        CheckoutTaxedPricesData,
     ]
 
     #  Calculate checkout line unit price.
@@ -167,7 +167,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             Any,
         ],
-        TaxedPricesData,
+        CheckoutTaxedPricesData,
     ]
 
     #  Calculate the shipping costs for checkout.
