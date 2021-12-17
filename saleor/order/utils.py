@@ -233,7 +233,7 @@ def update_order_prices_if_expired(
 
     if order.shipping_method:
         # recalculate order.shipping_price and order.shipping_tax_rate
-        fetch_order_prices_if_expired(order, manager, lines)
+        fetch_order_prices_if_expired(order, manager)
         order.save(update_fields=["currency"])
 
     recalculate_order(order)

@@ -2508,7 +2508,7 @@ def test_draft_order_update_with_non_draft_order(
 
 @patch("saleor.graphql.order.mutations.draft_orders.update_order_prices_if_expired")
 def test_draft_order_update_tax_error(
-    update_order_prices_mock,
+    update_order_prices_if_expired_mock,
     staff_api_client,
     permission_manage_orders,
     draft_order,
@@ -2516,7 +2516,7 @@ def test_draft_order_update_tax_error(
     graphql_address_data,
 ):
     err_msg = "Test error"
-    update_order_prices_mock.side_effect = TaxError(err_msg)
+    update_order_prices_if_expired_mock.side_effect = TaxError(err_msg)
     order = draft_order
     assert not order.voucher
     assert not order.customer_note
