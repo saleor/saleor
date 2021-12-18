@@ -1,7 +1,17 @@
+import hashlib
+import hmac
+import json
+import logging
+
 import requests
 from django.contrib.sites.models import Site
+from django.http import HttpRequest, HttpResponseForbidden
 
 from saleor.celeryconf import app
+from saleor.order.models import Fulfillment
+from saleor.payment.interface import GatewayConfig
+
+logger = logging.Logger(__name__)
 
 
 def get_oto_auth_credentials(config):
@@ -42,6 +52,10 @@ def get_order_items_data(order):
     ]
 
 
+def get_oto_order_id(fulfillment: Fulfillment):
+    return str(f"#{fulfillment.composed_id}")
+
+
 def generate_create_order_data(fulfillment):
     fulfillment_line = fulfillment.lines.last()
     is_cod_order = (
@@ -53,9 +67,9 @@ def generate_create_order_data(fulfillment):
         "storeName": "WeCre8",
         "ref1": fulfillment.order.token,
         "currency": fulfillment.order.currency,
-        "orderId": f"#{fulfillment.composed_id}",
         "shippingNotes": fulfillment.order.customer_note,
         "payment_method": "cod" if is_cod_order else "paid",
+        "orderId": get_oto_order_id(fulfillment=fulfillment),
         "items": get_order_items_data(order=fulfillment.order),
         "customer": get_order_customer_data(order=fulfillment.order),
         "subtotal": float(fulfillment.order.get_subtotal().net.amount),
@@ -77,7 +91,7 @@ def generate_create_order_data(fulfillment):
 
 def generate_cancel_order_and_return_link_data(fulfillment):
     return dict(
-        orderId=str(fulfillment.id),
+        orderId=get_oto_order_id(fulfillment=fulfillment),
     )
 
 
@@ -96,18 +110,62 @@ def get_oto_url(destination_url):
 
 
 @app.task
-def send_oto_request(fulfillment, config, destination_url):
+def send_oto_request(
+    fulfillment, config: "GatewayConfig", destination_url: str, data=None
+):
     """Send request to OTO API."""
-    data = generate_oto_request_data(
-        fulfillment=fulfillment, destination_url=destination_url
-    )
     url = get_oto_url(destination_url=destination_url)
+    if not data:
+        data = generate_oto_request_data(
+            fulfillment=fulfillment, destination_url=destination_url
+        )
     response = requests.post(
         url=url,
         json=data,
         headers={
             "Content-Type": "application/json",
-            "Authorization": "Bearer {}".format(config.get("ACCESS_TOKEN")),
+            "Authorization": "Bearer {}".format(
+                config.connection_params.get("ACCESS_TOKEN")
+            ),
         },
     )
     return response.json()
+
+
+def verify_webhook(request: HttpRequest, config: "GatewayConfig"):
+    """Verify webhook request from OTO."""
+    return True
+    data = json.loads(request.body)
+    signature = request.POST.get("signature")
+    msg = f"{data['orderId']}:{data['status']}:{data['timestamp']}"
+    h = hmac.new(
+        msg=msg.encode("utf-8"),
+        digestmod=hashlib.sha256,
+        key=config.connection_params.get("PUBLIC_KEY_FOR_SIGNATURE").encode("utf-8"),
+    ).hexdigest()
+    if h != signature:
+        return HttpResponseForbidden()
+    return True
+
+
+def handle_webhook(request: HttpRequest, config: GatewayConfig):
+    """Handle webhook from OTO API."""
+    if verify_webhook(request=request, config=config) is True:
+        data = json.loads(request.body)
+        orderId = data.get("orderId").split("-")
+
+        fulfillment = Fulfillment.objects.filter(
+            order__pk=int(orderId[0].split("#")[1]), fulfillment_order=int(orderId[1])
+        ).first()
+        if fulfillment:
+            fulfillment.tracking_number = data.get("trackingNumber", "")
+            fulfillment.store_value_in_private_metadata(
+                items={
+                    "otoStatus": data.get("status", ""),
+                    "printAWBURL": data.get("printAWBURL", ""),
+                    "shippingCompanyStatus": data.get("dcStatus", ""),
+                }
+            )
+            fulfillment.save(update_fields=["tracking_number", "private_metadata"])
+            logger.info("Fulfillment #%s updated", fulfillment.composed_id)
+        logger.info("Fulfillment #%s is not found!", fulfillment)
