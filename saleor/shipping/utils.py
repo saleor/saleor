@@ -46,8 +46,6 @@ def convert_to_shipping_method_data(
         name=shipping_method.name,
         description=shipping_method.description,
         type=shipping_method.type,
-        excluded_products=shipping_method.excluded_products,
-        channel_listings=shipping_method.channel_listings,
         minimum_order_weight=shipping_method.minimum_order_weight,
         maximum_order_weight=shipping_method.maximum_order_weight,
         maximum_delivery_days=shipping_method.maximum_delivery_days,
