@@ -1607,6 +1607,10 @@ query getCheckout($token: UUID!) {
                 key
                 value
             }
+            metadata {
+                key
+                value
+            }
         }
     }
 }
@@ -1669,6 +1673,46 @@ def test_checkout_selected_shipping_method(
     assert data["shippingMethod"]["metadata"][0]["key"] == metadata_key
     assert data["shippingMethod"]["metadata"][0]["value"] == metadata_value
     assert data["shippingMethod"]["translation"]["name"] == translated_name
+
+
+GET_CHECKOUT_SELECTED_SHIPPING_METHOD_PRIVATE_FIELDS = """
+query getCheckout($token: UUID!) {
+    checkout(token: $token) {
+        shippingMethod {
+            id
+            privateMetadata {
+                key
+                value
+            }
+        }
+    }
+}
+"""
+
+
+def test_checkout_selected_shipping_method_as_staff(
+    staff_api_client, checkout_with_item, shipping_zone, permission_manage_shipping
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    shipping_method = shipping_zone.shipping_methods.first()
+    metadata_key = "md key"
+    metadata_value = "md value"
+    shipping_method.store_value_in_private_metadata({metadata_key: metadata_value})
+    shipping_method.save()
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.save()
+
+    # when
+    query = GET_CHECKOUT_SELECTED_SHIPPING_METHOD_PRIVATE_FIELDS
+    variables = {"token": checkout_with_item.token}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    response_metadata = data["shippingMethod"]["privateMetadata"][0]
+    assert response_metadata["key"] == metadata_key
+    assert response_metadata["value"] == metadata_value
 
 
 GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS_TEMPLATE = """

@@ -20,7 +20,7 @@ from ..utils import get_user_or_app_from_context
 from .permissions import PRIVATE_META_PERMISSION_MAP
 
 
-def resolve_object_with_metadata_type(instance: ModelWithMetadata):
+def resolve_object_with_metadata_type(instance):
     # Imports inside resolvers to avoid circular imports.
     from ...invoice import models as invoice_models
     from ...menu import models as menu_models
