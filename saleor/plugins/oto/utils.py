@@ -15,8 +15,8 @@ def get_order_customer_data(order):
         "name": order.user.get_full_name(),
         "email": order.get_customer_email(),
         "city": order.shipping_address.city,
+        "mobile": str(order.shipping_address.phone),
         "district": order.shipping_address.city_area,
-        "mobile": order.shipping_address.phone.as_e164,
         "country": order.shipping_address.country.code,
         "postcode": order.shipping_address.postal_code,
         "address": order.shipping_address.street_address_1
@@ -51,9 +51,9 @@ def generate_create_order_data(fulfillment):
     )
     data = {
         "storeName": "WeCre8",
-        "orderId": str(fulfillment.id),
         "ref1": fulfillment.order.token,
         "currency": fulfillment.order.currency,
+        "orderId": f"#{fulfillment.composed_id}",
         "shippingNotes": fulfillment.order.customer_note,
         "payment_method": "cod" if is_cod_order else "paid",
         "items": get_order_items_data(order=fulfillment.order),
