@@ -314,13 +314,14 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
     )
     allocated_subquery = Subquery(queryset=allocations, output_field=IntegerField())
 
-    stocks = list(
+    stocks = (
         Stock.objects.for_channel(channel_slug)
         .filter(quantity__gt=Coalesce(allocated_subquery, 0))
-        .values_list("product_variant_id", flat=True)
+        .values("product_variant_id")
     )
-
-    variants = ProductVariant.objects.filter(pk__in=stocks).values("product_id")
+    variants = ProductVariant.objects.filter(
+        Exists(stocks.filter(product_variant_id=OuterRef("pk")))
+    ).values("product_id")
 
     if stock_availability == StockAvailability.IN_STOCK:
         qs = qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
