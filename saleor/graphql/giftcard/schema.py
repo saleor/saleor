@@ -3,8 +3,9 @@ from graphql.error import GraphQLError
 
 from ...core.permissions import GiftcardPermissions
 from ...giftcard import models
+from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31
-from ..core.fields import FilterInputConnectionField
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .bulk_mutations import (
@@ -24,7 +25,7 @@ from .mutations import (
 )
 from .resolvers import resolve_gift_card, resolve_gift_cards
 from .sorters import GiftCardSortingInput
-from .types import GiftCard
+from .types import GiftCard, GiftCardCountableConnection
 
 
 class GiftCardQueries(graphene.ObjectType):
@@ -35,8 +36,8 @@ class GiftCardQueries(graphene.ObjectType):
         ),
         description="Look up a gift card by ID.",
     )
-    gift_cards = FilterInputConnectionField(
-        GiftCard,
+    gift_cards = FilterConnectionField(
+        GiftCardCountableConnection,
         sort_by=GiftCardSortingInput(description=f"{ADDED_IN_31} Sort gift cards."),
         filter=GiftCardFilterInput(
             description=f"{ADDED_IN_31} Filtering options for gift cards."
@@ -62,7 +63,9 @@ class GiftCardQueries(graphene.ObjectType):
         filtering_by_currency = "filter" in data and "currency" in data["filter"]
         if sorting_by_balance and not filtering_by_currency:
             raise GraphQLError("Sorting by balance requires filtering by currency.")
-        return resolve_gift_cards()
+        qs = resolve_gift_cards()
+        qs = filter_connection_queryset(qs, data)
+        return create_connection_slice(qs, info, data, GiftCardCountableConnection)
 
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
     def resolve_gift_card_currencies(self, info, **data):

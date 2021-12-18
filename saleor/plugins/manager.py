@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     Dict,
     Iterable,
     List,
@@ -34,6 +35,7 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
+    from ..core.middleware import Requestor
     from ..discount.models import Sale
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
@@ -68,6 +70,7 @@ class PluginsManager(PaymentInterface):
         PluginClass: Type["BasePlugin"],
         config,
         channel: Optional["Channel"] = None,
+        requestor_getter=None,
     ) -> "BasePlugin":
 
         if PluginClass.PLUGIN_ID in config:
@@ -79,9 +82,14 @@ class PluginsManager(PaymentInterface):
             plugin_config = PluginClass.DEFAULT_CONFIGURATION
             active = PluginClass.get_default_active()
 
-        return PluginClass(configuration=plugin_config, active=active, channel=channel)
+        return PluginClass(
+            configuration=plugin_config,
+            active=active,
+            channel=channel,
+            requestor_getter=requestor_getter,
+        )
 
-    def __init__(self, plugins: List[str]):
+    def __init__(self, plugins: List[str], requestor_getter=None):
         with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
             self.plugins_per_channel = defaultdict(list)
             self.all_plugins = []
@@ -96,14 +104,18 @@ class PluginsManager(PaymentInterface):
                 with opentracing.global_tracer().start_active_span(f"{plugin_path}"):
                     PluginClass = import_string(plugin_path)
                     if not getattr(PluginClass, "CONFIGURATION_PER_CHANNEL", False):
-                        plugin = self._load_plugin(PluginClass, self._global_config)
+                        plugin = self._load_plugin(
+                            PluginClass,
+                            self._global_config,
+                            requestor_getter=requestor_getter,
+                        )
                         self.global_plugins.append(plugin)
                         self.all_plugins.append(plugin)
                     else:
                         for channel in channels:
                             channel_configs = self._configs_per_channel.get(channel, {})
                             plugin = self._load_plugin(
-                                PluginClass, channel_configs, channel
+                                PluginClass, channel_configs, channel, requestor_getter
                             )
                             self.plugins_per_channel[channel.slug].append(plugin)
                             self.all_plugins.append(plugin)
@@ -1117,6 +1129,8 @@ class PluginsManager(PaymentInterface):
         )
 
 
-def get_plugins_manager() -> PluginsManager:
+def get_plugins_manager(
+    requestor_getter: Optional[Callable[[], "Requestor"]] = None
+) -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
-        return PluginsManager(settings.PLUGINS)
+        return PluginsManager(settings.PLUGINS, requestor_getter)
