@@ -7,17 +7,21 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils import timezone
 
 from ....account import events as account_events
-from ....account.error_codes import AccountErrorCode
 from ....account.notifications import get_default_user_payload
 from ....core.notification.utils import get_site_context
 from ....core.notify_events import NotifyEventType
 from ....graphql.account.mutations.authentication import CreateToken
 from ....graphql.channel.utils import clean_channel, validate_channel
-from ....graphql.core.mutations import BaseMutation, validation_error_to_error_type
-from ....graphql.core.types.common import AccountError
+from ....graphql.core.mutations import BaseMutation
+from ....graphql.core.types.common import Error
 from ..models import OTP
+from .enums import OTPErrorCode, OTPErrorCodeType
 
 User = get_user_model()
+
+
+class OTPError(Error):
+    code = OTPErrorCodeType(description="The error code.", required=True)
 
 
 def send_password_reset_notification(
@@ -57,8 +61,7 @@ class RequestPasswordRecovery(BaseMutation):
 
     class Meta:
         description = "Sends an email with the account password modification link."
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = OTPError
 
     def clean_user(email):
         try:
@@ -68,7 +71,7 @@ class RequestPasswordRecovery(BaseMutation):
                 {
                     "email": ValidationError(
                         "User with this email doesn't exist",
-                        code=AccountErrorCode.NOT_FOUND,
+                        code=OTPErrorCode.USER_NOT_FOUND,
                     )
                 }
             )
@@ -80,13 +83,9 @@ class RequestPasswordRecovery(BaseMutation):
         user = cls.clean_user(email)
 
         if not user.is_staff:
-            channel_slug = clean_channel(
-                channel_slug, error_class=AccountErrorCode
-            ).slug
+            channel_slug = clean_channel(channel_slug, error_class=OTPErrorCode).slug
         elif channel_slug is not None:
-            channel_slug = validate_channel(
-                channel_slug, error_class=AccountErrorCode
-            ).slug
+            channel_slug = validate_channel(channel_slug, error_class=OTPErrorCode).slug
 
         send_password_reset_notification(
             user,
@@ -108,45 +107,64 @@ class SetPasswordByCode(CreateToken):
     class Meta:
         description = (
             "Sets the user's password from the token sent by email "
-            "using the RequestPasswordReset mutation."
+            "using the RequestPasswordRecovery mutation."
         )
-        error_type_class = AccountError  # have custom OTP error
-        error_type_field = "account_errors"
-
-    @classmethod
-    def fail(cls, message):
-        raise ValidationError(message, code=AccountErrorCode.INVALID)
+        error_type_class = OTPError
 
     @classmethod
     def handle_used_otp(cls, otp: OTP):
         if otp.is_used:
-            cls.fail("Used OTP supplied")
-
-    @classmethod
-    def handle_expired_otp(cls, otp: OTP):
-        if otp.issued_at + timedelta(minutes=15) <= timezone.now():
-            cls.fail("Invalid OTP supplied")
-
-    @classmethod
-    def _set_password_for_user(cls, email, password, code):
-        try:
-            user = User.objects.get(email=email)
-        except ObjectDoesNotExist:
             raise ValidationError(
                 {
-                    "email": ValidationError(
-                        "User doesn't exist", code=AccountErrorCode.NOT_FOUND
+                    "code": ValidationError(
+                        "Invalid or expired OTP supplied",
+                        code=OTPErrorCode.INVALID.value,
                     )
                 }
             )
 
+    @classmethod
+    def handle_expired_otp(cls, otp: OTP):
+        if otp.issued_at + timedelta(minutes=15) <= timezone.now():
+            raise ValidationError(
+                {
+                    "code": ValidationError(
+                        "Invalid or expired OTP supplied",
+                        code=OTPErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def get_user(cls, _info, data):
+        email = data["email"]
+
+        try:
+            return User.objects.get(email=email)
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User doesn't exist", code=OTPErrorCode.USER_NOT_FOUND
+                    )
+                }
+            )
+
+    @classmethod
+    def validate_otp(cls, user, code):
         try:
             otp = OTP.objects.get(code=code, user=user)
         except OTP.DoesNotExist:
-            cls.fail("Invalid OTP supplied")
+            raise ValidationError(
+                "Invalid or expired OTP supplied", code=OTPErrorCode.INVALID
+            )
 
         cls.handle_used_otp(otp)
         cls.handle_expired_otp(otp)
+
+    @classmethod
+    def _set_password_for_user(cls, user, password, code):
+        cls.validate_otp(user, code)
 
         try:
             password_validation.validate_password(password, user)
@@ -159,13 +177,12 @@ class SetPasswordByCode(CreateToken):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        email = data["email"]
         password = data["password"]
         code = data["code"]
 
         try:
-            cls._set_password_for_user(email, password, code)
+            user = cls.get_user(info, data)
+            cls._set_password_for_user(user, password, code)
         except ValidationError as e:
-            errors = validation_error_to_error_type(e, AccountError)
-            return cls.handle_typed_errors(errors)
+            return cls.handle_errors(e)
         return super().perform_mutation(root, info, **data)
