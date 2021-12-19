@@ -1,7 +1,7 @@
 interactions:
 - request:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
-      "lines": [{"quantity": 1, "amount": "0.000", "taxCode": "FR020100", "taxIncluded":
+      "lines": [{"quantity": 1, "amount": "0.000", "taxCode": "FR000000", "taxIncluded":
       true, "itemCode": "Shipping", "description": null}], "code": "dd5c408f-b533-494c-b2a1-2985140b71be",
       "date": "2021-06-24", "customerCode": 0, "addresses": {"shipFrom": {"line1":
       "Teczowa 7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL",

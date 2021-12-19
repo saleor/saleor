@@ -1,9 +1,9 @@
+import sys
 from collections import defaultdict
 from dataclasses import asdict
 from typing import List, Optional
 
 import graphene
-from django.conf import settings
 from django_countries.fields import Country
 from graphene import relay
 from graphene_federation import key
@@ -26,16 +26,27 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.variants import get_variant_selection_attributes
+from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
 from ...attribute.resolvers import resolve_attributes
-from ...attribute.types import AssignedVariantAttribute, Attribute, SelectedAttribute
+from ...attribute.types import (
+    AssignedVariantAttribute,
+    Attribute,
+    AttributeCountableConnection,
+    SelectedAttribute,
+)
 from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
-from ...core.connection import CountableDjangoObjectType
+from ...core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
+    filter_connection_queryset,
+)
 from ...core.descriptions import (
     ADDED_IN_31,
     DEPRECATED_IN_3X_FIELD,
@@ -43,11 +54,7 @@ from ...core.descriptions import (
 )
 from ...core.enums import ReportingPeriod
 from ...core.federation import resolve_federation_references
-from ...core.fields import (
-    ChannelContextFilterConnectionField,
-    FilterInputConnectionField,
-    PrefetchingConnectionField,
-)
+from ...core.fields import ConnectionField, FilterConnectionField
 from ...core.types import Image, TaxedMoney, TaxedMoneyRange, TaxType
 from ...core.utils import from_global_id_or_error
 from ...decorators import (
@@ -76,6 +83,7 @@ from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
+    PreorderQuantityReservedByVariantChannelListingIdLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
 from ...warehouse.types import Stock
@@ -273,8 +281,13 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ),
     )
     quantity_available = graphene.Int(
-        required=True,
-        description="Quantity of a product available for sale in one checkout.",
+        required=False,
+        description=(
+            "Quantity of a product available for sale in one checkout. "
+            "Field value will be `null` when "
+            "no `limitQuantityPerCheckout` in global settings has been set, and "
+            "`productVariant` stocks are not tracked."
+        ),
         address=destination_address_argument,
         country_code=graphene.Argument(
             CountryCodeEnum,
@@ -298,7 +311,15 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description = (
             "Represents a version of a product such as different size or color."
         )
-        only_fields = ["id", "name", "product", "sku", "track_inventory", "weight"]
+        only_fields = [
+            "id",
+            "name",
+            "product",
+            "sku",
+            "track_inventory",
+            "weight",
+            "quantity_limit_per_customer",
+        ]
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductVariant
 
@@ -332,6 +353,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if address is not None:
             country_code = address.country
 
+        global_quantity_limit_per_checkout = (
+            info.context.site.settings.limit_quantity_per_checkout
+        )
+
         if root.node.is_preorder_active():
             variant = root.node
             channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
@@ -343,10 +368,34 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                     channel_listing
                     and channel_listing.preorder_quantity_threshold is not None
                 ):
+                    if is_reservation_enabled(info.context.site.settings):
+                        quantity_reserved = (
+                            PreorderQuantityReservedByVariantChannelListingIdLoader(
+                                info.context
+                            ).load(channel_listing.id)
+                        )
+
+                        def calculate_available_channel_quantity_with_reservations(
+                            reserved_quantity,
+                        ):
+                            return max(
+                                min(
+                                    channel_listing.preorder_quantity_threshold
+                                    - channel_listing.preorder_quantity_allocated
+                                    - reserved_quantity,
+                                    global_quantity_limit_per_checkout or sys.maxsize,
+                                ),
+                                0,
+                            )
+
+                        return quantity_reserved.then(
+                            calculate_available_channel_quantity_with_reservations
+                        )
+
                     return min(
                         channel_listing.preorder_quantity_threshold
                         - channel_listing.preorder_quantity_allocated,
-                        settings.MAX_CHECKOUT_LINE_QUANTITY,
+                        global_quantity_limit_per_checkout or sys.maxsize,
                     )
                 if variant.preorder_global_threshold is not None:
                     variant_channel_listings = VariantChannelListingByVariantIdLoader(
@@ -355,24 +404,55 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
                     def calculate_available_global(variant_channel_listings):
                         if not variant_channel_listings:
-                            return settings.MAX_CHECKOUT_LINE_QUANTITY
+                            return global_quantity_limit_per_checkout
                         global_sold_units = sum(
                             channel_listing.preorder_quantity_allocated
                             for channel_listing in variant_channel_listings
                         )
+
+                        available_quantity = variant.preorder_global_threshold
+                        available_quantity -= global_sold_units
+
+                        if is_reservation_enabled(info.context.site.settings):
+                            quantity_reserved = (
+                                PreorderQuantityReservedByVariantChannelListingIdLoader(
+                                    info.context
+                                ).load_many(
+                                    [listing.id for listing in variant_channel_listings]
+                                )
+                            )
+
+                            def calculate_available_global_quantity_with_reservations(
+                                reserved_quantities,
+                            ):
+                                return max(
+                                    min(
+                                        variant.preorder_global_threshold
+                                        - global_sold_units
+                                        - sum(reserved_quantities),
+                                        global_quantity_limit_per_checkout
+                                        or sys.maxsize,
+                                    ),
+                                    0,
+                                )
+
+                            return quantity_reserved.then(
+                                calculate_available_global_quantity_with_reservations
+                            )
+
                         return min(
                             variant.preorder_global_threshold - global_sold_units,
-                            settings.MAX_CHECKOUT_LINE_QUANTITY,
+                            global_quantity_limit_per_checkout or sys.maxsize,
                         )
 
                     return variant_channel_listings.then(calculate_available_global)
 
-                return settings.MAX_CHECKOUT_LINE_QUANTITY
+                return global_quantity_limit_per_checkout
 
             return channel_listing.then(calculate_available_per_channel)
 
         if not root.node.track_inventory:
-            return settings.MAX_CHECKOUT_LINE_QUANTITY
+            return global_quantity_limit_per_checkout
 
         return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             info.context
@@ -629,6 +709,11 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 )
 
         return [variants.get(root_id) for root_id in roots_ids]
+
+
+class ProductVariantCountableConnection(CountableConnection):
+    class Meta:
+        node = ProductVariant
 
 
 @key(fields="id channel")
@@ -1105,11 +1190,16 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return [products.get(root_id) for root_id in roots_ids]
 
 
+class ProductCountableConnection(CountableConnection):
+    class Meta:
+        node = Product
+
+
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)
-    products = ChannelContextFilterConnectionField(
-        Product,
+    products = ConnectionField(
+        ProductCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -1147,8 +1237,8 @@ class ProductType(CountableDjangoObjectType):
     product_attributes = graphene.List(
         Attribute, description="Product attributes of that product type."
     )
-    available_attributes = FilterInputConnectionField(
-        Attribute, filter=AttributeFilterInput()
+    available_attributes = FilterConnectionField(
+        AttributeCountableConnection, filter=AttributeFilterInput()
     )
 
     class Meta:
@@ -1242,12 +1332,14 @@ class ProductType(CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_products(root: models.ProductType, info, channel=None, **_kwargs):
+    def resolve_products(root: models.ProductType, info, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         qs = root.products.visible_to_user(requestor, channel)  # type: ignore
-        return ChannelQsContext(qs=qs, channel_slug=channel)
+        qs = ChannelQsContext(qs=qs, channel_slug=channel)
+        kwargs["channel"] = channel
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -1255,7 +1347,9 @@ class ProductType(CountableDjangoObjectType):
         qs = attribute_models.Attribute.objects.get_unassigned_product_type_attributes(
             root.pk
         )
-        return resolve_attributes(info, qs=qs, **kwargs)
+        qs = resolve_attributes(info, qs=qs, **kwargs)
+        qs = filter_connection_queryset(qs, kwargs, info.context)
+        return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
     def resolve_weight(root: models.ProductType, _info, **_kwargs):
@@ -1266,6 +1360,11 @@ class ProductType(CountableDjangoObjectType):
         return resolve_federation_references(
             ProductType, roots, models.ProductType.objects
         )
+
+
+class ProductTypeCountableConnection(CountableConnection):
+    class Meta:
+        node = ProductType
 
 
 @key(fields="id channel")
@@ -1282,8 +1381,8 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    products = ChannelContextFilterConnectionField(
-        Product,
+    products = FilterConnectionField(
+        ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
@@ -1339,7 +1438,11 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         qs = root.node.products.visible_to_user(  # type: ignore
             requestor, root.channel_slug
         )
-        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+
+        kwargs["channel"] = root.channel_slug
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -1376,6 +1479,11 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return [collections.get(root_id) for root_id in roots_ids]
 
 
+class CollectionCountableConnection(CountableConnection):
+    class Meta:
+        node = Collection
+
+
 @key(fields="id")
 class Category(CountableDjangoObjectType):
     description_json = graphene.JSONString(
@@ -1384,18 +1492,20 @@ class Category(CountableDjangoObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    ancestors = PrefetchingConnectionField(
-        lambda: Category, description="List of ancestors of the category."
+    ancestors = ConnectionField(
+        lambda: CategoryCountableConnection,
+        description="List of ancestors of the category.",
     )
-    products = ChannelContextFilterConnectionField(
-        Product,
+    products = ConnectionField(
+        ProductCountableConnection,
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of products in the category.",
     )
-    children = PrefetchingConnectionField(
-        lambda: Category, description="List of children of the category."
+    children = ConnectionField(
+        lambda: CategoryCountableConnection,
+        description="List of children of the category.",
     )
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
@@ -1422,8 +1532,10 @@ class Category(CountableDjangoObjectType):
         model = models.Category
 
     @staticmethod
-    def resolve_ancestors(root: models.Category, info, **_kwargs):
-        return root.get_ancestors()
+    def resolve_ancestors(root: models.Category, info, **kwargs):
+        return create_connection_slice(
+            root.get_ancestors(), info, kwargs, CategoryCountableConnection
+        )
 
     @staticmethod
     def resolve_description_json(root: models.Category, info):
@@ -1442,8 +1554,17 @@ class Category(CountableDjangoObjectType):
             )
 
     @staticmethod
-    def resolve_children(root: models.Category, info, **_kwargs):
-        return CategoryChildrenByCategoryIdLoader(info.context).load(root.pk)
+    def resolve_children(root: models.Category, info, **kwargs):
+        def slice_children_categories(children):
+            return create_connection_slice(
+                children, info, kwargs, CategoryCountableConnection
+            )
+
+        return (
+            CategoryChildrenByCategoryIdLoader(info.context)
+            .load(root.pk)
+            .then(slice_children_categories)
+        )
 
     @staticmethod
     def resolve_url(root: models.Category, _info):
@@ -1451,7 +1572,7 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_products(root: models.Category, info, channel=None, **_kwargs):
+    def resolve_products(root: models.Category, info, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -1471,11 +1592,17 @@ class Category(CountableDjangoObjectType):
         if channel and has_required_permissions:
             qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
-        return ChannelQsContext(qs=qs, channel_slug=channel)
+        qs = ChannelQsContext(qs=qs, channel_slug=channel)
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     def __resolve_references(roots: List["Category"], _info, **_kwargs):
         return resolve_federation_references(Category, roots, models.Category.objects)
+
+
+class CategoryCountableConnection(CountableConnection):
+    class Meta:
+        node = Category
 
 
 @key(fields="id")
