@@ -152,5 +152,4 @@ websockets==8.1; python_full_version >= "3.6.1"
 zopfli==0.1.9; python_version >= "3.7"
 checkout-sdk==2.0b8
 -e saleor/payment/gateways/checkout_payment/
-CustomerGroup/feature/w83-153
 -e saleor/plugins/customer_group/
