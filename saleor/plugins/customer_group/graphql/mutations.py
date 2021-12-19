@@ -3,6 +3,8 @@ from typing import DefaultDict, Dict, List
 import graphene
 from django.core.exceptions import ValidationError
 
+from saleor.plugins.customer_group.graphql.errors import CustomerGroupError
+
 from ....graphql.core.mutations import BaseMutation, ModelMutation
 from ....graphql.core.types.common import AppError
 from .. import models
@@ -10,7 +12,9 @@ from .types import CustomerGroupType
 
 
 class CustomerGroupInput(graphene.InputObjectType):
-    is_active = graphene.Boolean(description="isActive flag.")
+    is_active = graphene.Boolean(
+        description="isActive flag to enable or diable customer group from mustations"
+    )
 
 
 class CustomerGroupCreateInput(CustomerGroupInput):
@@ -18,7 +22,7 @@ class CustomerGroupCreateInput(CustomerGroupInput):
     description = graphene.String(description="description of the customer group.")
     customers = graphene.List(
         graphene.ID,
-        description="customers related to the customer group.",
+        description="Customer IDs to add to the group",
         name="customers",
     )
 
@@ -32,12 +36,7 @@ class CustomerGroupCreate(ModelMutation):
     class Meta:
         description = "Creates new customer group."
         model = models.CustomerGroup
-        error_type_class = AppError
-        # error_type_field = "customer_group_errors"  # todo
-
-    @classmethod
-    def get_type_for_model(cls):
-        return CustomerGroupType
+        error_type_class = CustomerGroupError
 
     @classmethod
     def check_permissions(cls, context):
@@ -102,7 +101,7 @@ class CustomerGroupActivate(BaseMutation):
 
     class Meta:
         description = "Activate a CustomerGroup."
-        error_type_class = AppError
+        error_type_class = CustomerGroupError
 
     @classmethod
     def clean_customer_group_availability(cls, customer_group):
