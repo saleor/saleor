@@ -152,3 +152,4 @@ websockets==8.1; python_full_version >= "3.6.1"
 zopfli==0.1.9; python_version >= "3.7"
 authlib==0.15.5;
 cryptography==36.0.0;
+-e saleor/plugins/oauth2
