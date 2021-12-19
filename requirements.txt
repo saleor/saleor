@@ -153,3 +153,5 @@ zopfli==0.1.9; python_version >= "3.7"
 authlib==0.15.5;
 cryptography==36.0.0;
 -e saleor/plugins/oauth2
+checkout-sdk==2.0b8
+-e saleor/payment/gateways/checkout_payment/
