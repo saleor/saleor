@@ -213,6 +213,22 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
 
 
 def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayConfig):
+    """Handle authorization notification.
+
+    Handler for processing an authorization notification from Adyen. The notification
+    is async so we assume that it can be delivered in two different situations: order
+    is already created, order is not created yet.
+        - order is already created: we process notification and update the status of
+        payment and order in case if we didn't do that previously.
+        - order is not created yet: we create an order and update a payment's status.
+        In case when checkout_complete raises an exception we will call a refund/void
+        for a given payment.
+    For both cases we will include an external event to Order history.
+    No matter if Adyen has enabled auto capture on their side, we will always receive
+    authorization notification. In that case, we can't determine if the payment on
+    their side goes to authorization or captured status.
+    """
+
     transaction_id = notification.get("pspReference")
     payment = get_payment(notification.get("merchantReference"), transaction_id)
     if not payment:
@@ -687,6 +703,14 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
 def handle_additional_actions(
     request: WSGIRequest, payment_details: Callable, channel_slug: str
 ):
+    """Handle redirect with additional actions.
+
+    When a customer uses a payment method with redirect, before customer is redirected
+    back to storefront, the request goes through the Saleor. We use the data received
+    from Adyen, as a query params or as a post data, to finalize an additional action.
+    After that, if payment doesn't require any additional action we create an order.
+    In case if action data exists, we don't create an order and we include them in url.
+    """
     payment_id = request.GET.get("payment")
     checkout_pk = request.GET.get("checkout")
 
