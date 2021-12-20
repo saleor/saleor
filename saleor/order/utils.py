@@ -416,7 +416,9 @@ def add_variant_to_order(
             line.unit_discount_reason = (
                 f"Sale: {graphene.Node.to_global_id('Sale', sale_id)}"
             )
-            line.sale_id = sale_id
+            line.sale_id = (
+                graphene.Node.to_global_id("Sale", sale_id) if sale_id else None
+            )
 
         line.save(
             update_fields=[

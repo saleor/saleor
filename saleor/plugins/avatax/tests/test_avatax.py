@@ -1026,7 +1026,10 @@ def test_calculate_order_line_unit(
     expected_line_price = TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")
     )
-    assert line_price_data.undiscounted_price == expected_line_price
+    expected_undiscounted_line_price = TaxedMoney(
+        net=Money("10.00", "USD"), gross=Money("12.30", "USD")
+    )
+    assert line_price_data.undiscounted_price == expected_undiscounted_line_price
     assert line_price_data.price_with_discounts == expected_line_price
 
 

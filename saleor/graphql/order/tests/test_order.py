@@ -3758,12 +3758,12 @@ def test_order_lines_create_variant_on_sale(
     )
 
     line = order.lines.get(product_sku=variant.sku)
-    assert line.sale_id == str(sale_channel_listing.id)
+    assert line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
     assert line.unit_discount_amount == sale_channel_listing.discount_value
     assert line.unit_discount_value == sale_channel_listing.discount_value
     assert (
         line.unit_discount_reason
-        == f"Sale: {graphene.Node.to_global_id('Sale', sale_channel_listing.id)}"
+        == f"Sale: {graphene.Node.to_global_id('Sale', sale.id)}"
     )
 
 
