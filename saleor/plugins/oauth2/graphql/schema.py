@@ -1,7 +1,7 @@
 import graphene
 
 from ....graphql.core.federation import build_federated_schema
-from .mutations import InitateOAuth2Mutation, OAuth2CallbackMutation
+from .mutations import InitiateOAuth2Mutation, OAuth2CallbackMutation
 
 
 class Queries(graphene.ObjectType):
@@ -9,7 +9,7 @@ class Queries(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
-    iniate_oauth2 = InitateOAuth2Mutation.Field()
+    initiate_oauth2 = InitiateOAuth2Mutation.Field()
     oauth2_callback = OAuth2CallbackMutation.Field()
 
 

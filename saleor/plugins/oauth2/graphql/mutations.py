@@ -12,7 +12,7 @@ from .enums import OAuth2ErrorCode
 from .types import OAuth2Error, ProviderEnum
 
 
-class InitateOAuth2Mutation(BaseMutation):
+class InitiateOAuth2Mutation(BaseMutation):
     class Arguments:
         provider = ProviderEnum(required=True)
 
@@ -50,7 +50,7 @@ class InitateOAuth2Mutation(BaseMutation):
         auth_endpoint = get_uri_for(provider, "auth")
         url, state = session.create_authorization_url(auth_endpoint)
 
-        return InitateOAuth2Mutation(
+        return InitiateOAuth2Mutation(
             client_id=client_id,
             baseUrl=auth_endpoint,
             fullUrl=url,
