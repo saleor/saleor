@@ -1220,17 +1220,15 @@ def test_menu_cannot_get_menu_item_not_from_same_menu(
         QUERY_REORDER_MENU, {"moves": moves, "menu": menu_id}, [permission_manage_menus]
     )
 
-    assert json.loads(response.content) == {
-        "data": {
-            "menuItemMove": {
-                "errors": [
-                    {
-                        "field": "item",
-                        "message": f"Couldn't resolve to a node: {node_id}",
-                    }
-                ],
-                "menu": None,
-            }
+    assert json.loads(response.content)["data"] == {
+        "menuItemMove": {
+            "errors": [
+                {
+                    "field": "item",
+                    "message": f"Couldn't resolve to a node: {node_id}",
+                }
+            ],
+            "menu": None,
         }
     }
 
@@ -1253,11 +1251,9 @@ def test_menu_cannot_pass_an_invalid_menu_item_node_type(
         QUERY_REORDER_MENU, {"moves": moves, "menu": menu_id}, [permission_manage_menus]
     )
 
-    assert json.loads(response.content) == {
-        "data": {
-            "menuItemMove": {
-                "errors": [{"field": "item", "message": "Must receive a MenuItem id."}],
-                "menu": None,
-            }
+    assert json.loads(response.content)["data"] == {
+        "menuItemMove": {
+            "errors": [{"field": "item", "message": "Must receive a MenuItem id."}],
+            "menu": None,
         }
     }

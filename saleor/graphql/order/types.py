@@ -43,6 +43,7 @@ from ...payment.model_helpers import (
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.product_images import get_product_image_thumbnail
+from ...shipping.interface import ShippingMethodData
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import requestor_has_access
@@ -50,7 +51,7 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
@@ -220,7 +221,12 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_app(root: models.OrderEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
+        if requestor_has_access(
+            requestor,
+            root.user,
+            AppPermission.MANAGE_APPS,
+            OrderPermissions.MANAGE_ORDERS,
+        ):
             return (
                 AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
             )
@@ -346,6 +352,11 @@ class OrderEvent(CountableDjangoObjectType):
         if not discount_obj:
             return None
         return get_order_discount_event(discount_obj)
+
+
+class OrderEventCountableConnection(CountableConnection):
+    class Meta:
+        node = OrderEvent
 
 
 class FulfillmentLine(CountableDjangoObjectType):
@@ -1032,7 +1043,12 @@ class Order(CountableDjangoObjectType):
     def resolve_user(root: models.Order, info):
         def _resolve_user(user):
             requester = get_user_or_app_from_context(info.context)
-            if requestor_has_access(requester, user, AccountPermissions.MANAGE_USERS):
+            if requestor_has_access(
+                requester,
+                user,
+                AccountPermissions.MANAGE_USERS,
+                OrderPermissions.MANAGE_ORDERS,
+            ):
                 return user
             raise PermissionDenied()
 
@@ -1046,15 +1062,14 @@ class Order(CountableDjangoObjectType):
         external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
-            shipping_method = info.context.plugins.get_shipping_method(
-                checkout=root,
-                channel_slug=root.channel.slug,
-                shipping_method_id=external_app_shipping_id,
+            keep_gross = info.context.site.settings.include_taxes_in_prices
+            price = root.shipping_price_gross if keep_gross else root.shipping_price_net
+            method = ShippingMethodData(
+                id=external_app_shipping_id,
+                name=root.shipping_method_name,
+                price=price,
             )
-            if shipping_method:
-                return ChannelContext(
-                    node=shipping_method, channel_slug=root.channel.slug
-                )
+            return ChannelContext(node=method, channel_slug=root.channel.slug)
 
         if not root.shipping_method_id:
             return None
@@ -1074,7 +1089,7 @@ class Order(CountableDjangoObjectType):
 
     @classmethod
     def resolve_delivery_method(cls, root: models.Order, info):
-        if root.shipping_method_id:
+        if root.shipping_method_id or get_external_shipping_id(root):
             return cls.resolve_shipping_method(root, info)
         if root.collection_point_id:
             collection_point = WarehouseByIdLoader(info.context).load(
@@ -1178,3 +1193,8 @@ class Order(CountableDjangoObjectType):
             except ValidationError as e:
                 return validation_error_to_error_type(e, OrderError)
         return []
+
+
+class OrderCountableConnection(CountableConnection):
+    class Meta:
+        node = Order
