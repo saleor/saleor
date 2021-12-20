@@ -1,6 +1,6 @@
 from decimal import Decimal
 from typing import Literal, Union
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, sentinel
 
 import pytest
 from freezegun import freeze_time
@@ -10,7 +10,15 @@ from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxLineData
 from ...plugins.manager import get_plugins_manager
 from .. import OrderStatus
-from ..calculations import _apply_tax_data, fetch_order_prices_if_expired
+from ..calculations import (
+    _apply_tax_data,
+    _apply_tax_data_from_plugins,
+    fetch_order_prices_if_expired,
+    order_line_tax_rate,
+    order_line_total,
+    order_line_unit,
+    order_shipping,
+)
 
 
 @pytest.fixture
@@ -55,6 +63,62 @@ def tax_data(order_with_lines, order_lines):
         total_gross_amount=total_gross,
         lines=lines,
     )
+
+
+def test_apply_tax_data_from_plugins(order_with_lines, order_lines):
+    # given
+    line_without_variant = Mock(variant=None)
+    order = order_with_lines
+    lines = list(order_lines)
+    lines.insert(0, line_without_variant)
+    lines.insert(2, line_without_variant)
+
+    currency = order.currency
+
+    def get_taxed_money(net: Decimal, gross: Decimal) -> TaxedMoney:
+        return TaxedMoney(net=Money(net, currency), gross=Money(gross, order.currency))
+
+    line_tax_rates = [
+        Decimal("0.23") + Decimal(i / 100) for i, _ in enumerate(order_lines)
+    ]
+
+    line_unit_prices = []
+    for i, tax_rate in enumerate(line_tax_rates):
+        net = Decimal("5.00") + i
+        gross = net * (tax_rate + 1)
+        line_unit_prices.append(get_taxed_money(net, gross))
+
+    line_total_prices = [
+        unit_price * line.quantity
+        for unit_price, line in zip(line_unit_prices, order_lines)
+    ]
+
+    shipping_tax_rate = Decimal("0.17")
+    shipping_price = get_taxed_money(Decimal("10.00"), Decimal("11.70"))
+
+    manager = Mock(
+        calculate_order_line_unit=Mock(side_effect=line_unit_prices),
+        calculate_order_line_total=Mock(side_effect=line_total_prices),
+        get_order_line_tax_rate=Mock(side_effect=line_tax_rates),
+        calculate_order_shipping=Mock(return_value=shipping_price),
+        get_order_shipping_tax_rate=Mock(return_value=shipping_tax_rate),
+    )
+
+    # when
+    _apply_tax_data_from_plugins(manager, order, lines)
+
+    # then
+    lines_with_variant = filter(lambda l: l.variant, lines)
+    for line, unit_price, total_price, tax_rate in zip(
+        lines_with_variant, line_unit_prices, line_total_prices, line_tax_rates
+    ):
+        assert line.unit_price == unit_price
+        assert line.total_price == total_price
+        assert line.tax_rate == tax_rate
+
+    assert order.shipping_price == shipping_price
+    assert order.shipping_tax_rate == shipping_tax_rate
+    assert order.total == order.shipping_price + order.get_subtotal()
 
 
 def test_apply_tax_data(order_with_lines, order_lines, tax_data):
@@ -185,3 +249,80 @@ def test_fetch_order_prices_if_expired_webhooks_success(
         assert order_line.unit_price == get_taxed_money(tax_line, "unit")
         assert order_line.total_price == get_taxed_money(tax_line, "total")
         assert order_line.tax_rate == tax_line.tax_rate
+
+
+@patch("saleor.order.calculations.fetch_order_prices_if_expired")
+def test_order_line_unit(mocked_fetch_order_prices_if_expired):
+    # given
+    expected_line_unit_price = sentinel.UNIT_PRICE
+
+    order = Mock()
+    order_line = Mock(pk=1, unit_price=expected_line_unit_price)
+    manager = Mock()
+    mocked_fetch_order_prices_if_expired.return_value = (Mock(), [order_line])
+
+    # when
+    line_unit_price = order_line_unit(order, order_line, manager)
+
+    # then
+    assert line_unit_price == expected_line_unit_price
+
+
+@patch("saleor.order.calculations.fetch_order_prices_if_expired")
+def test_order_line_total(mocked_fetch_order_prices_if_expired):
+    # given
+    expected_line_total_price = sentinel.UNIT_PRICE
+
+    order_line = Mock(pk=1, total_price=expected_line_total_price)
+    mocked_fetch_order_prices_if_expired.return_value = (Mock(), [order_line])
+
+    # when
+    line_total_price = order_line_total(Mock(), order_line, Mock())
+
+    # then
+    assert line_total_price == expected_line_total_price
+
+
+@patch("saleor.order.calculations.fetch_order_prices_if_expired")
+def test_order_line_tax_rate(mocked_fetch_order_prices_if_expired):
+    # given
+    expected_line_tax_rate = sentinel.UNIT_PRICE
+
+    order_line = Mock(pk=1, tax_rate=expected_line_tax_rate)
+    mocked_fetch_order_prices_if_expired.return_value = (Mock(), [order_line])
+
+    # when
+    line_tax_rate = order_line_tax_rate(Mock(), order_line, Mock())
+
+    # then
+    assert line_tax_rate == expected_line_tax_rate
+
+
+@patch("saleor.order.calculations.fetch_order_prices_if_expired")
+def test_order_shipping(mocked_fetch_order_prices_if_expired):
+    # given
+    expected_shipping_price = sentinel.UNIT_PRICE
+
+    order = Mock(shipping_price=expected_shipping_price)
+    mocked_fetch_order_prices_if_expired.return_value = (order, Mock())
+
+    # when
+    shipping_price = order_shipping(order, Mock())
+
+    # then
+    assert shipping_price == expected_shipping_price
+
+
+@patch("saleor.order.calculations.fetch_order_prices_if_expired")
+def test_order_shipping_tax_rate(mocked_fetch_order_prices_if_expired):
+    # given
+    expected_shipping_tax_rate = sentinel.UNIT_PRICE
+
+    order = Mock(shipping_price=expected_shipping_tax_rate)
+    mocked_fetch_order_prices_if_expired.return_value = (order, Mock())
+
+    # when
+    shipping_tax_rate = order_shipping(order, Mock())
+
+    # then
+    assert shipping_tax_rate == expected_shipping_tax_rate
