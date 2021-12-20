@@ -136,7 +136,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Modify order of auth middleware calls - #7572 by @tomaszszymanski129
 - Add app support for events - #7622 by @IKarbowiak
 - Add date & date time attributes - #7500 by @piotrgrundas
-- Add `withChoices` flag for Attribute type - #7733 by @dexon44
+- Add `withChoices` flag for Attribute type - #7733 by @CossackDex
 - Drop assigning cheapest shipping method in checkout - #7767 by @maarcingebala
 - Add `product_id`, `product_variant_id`, `attribute_id` and `page_id` when it's possible for `AttributeValue` translations webhook. - #7783 by @fowczarek
 - Deprecate `query` argument in `sales` and `vouchers` queries - #7806 by @maarcingebala
@@ -168,7 +168,10 @@ All notable, unreleased changes to this project will be documented in this file.
   - When any sale or voucher discount was applied, `line.discount_reason` will be fulfilled.
   - New interface for handling more data for prices: `PricesData` and `TaxedPricesData` used in checkout calculations
   and in plugins/pluginManager.
-
+- Attach sale discount info to the line when adding variant to order - #8821 by @IKarbowiak
+  - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
+  and `CheckoutPricesData` instead of `PricesData`
+  - New interface for handling more data for prices: `OrderTaxedPricesData` used in plugins/pluginManager.
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -201,10 +204,10 @@ All notable, unreleased changes to this project will be documented in this file.
     - `preprocess_order_creation`
   - additionally, `preprocess_order_creation` was extend with `lines_info` parameter
 - Fix Avalara caching - #7036 by @fowczarek;
- - Introduced changes in plugin methods definitions:
-    - `calculate_checkout_line_total`  was extended with `lines` parameter
-    - `calculate_checkout_line_unit_price`  was extended with `lines` parameter
-    - `get_checkout_line_tax_rate`  was extended with `lines` parameter
+- Introduced changes in plugin methods definitions:
+   - `calculate_checkout_line_total`  was extended with `lines` parameter
+   - `calculate_checkout_line_unit_price`  was extended with `lines` parameter
+   - `get_checkout_line_tax_rate`  was extended with `lines` parameter
   To get proper taxes we should always send the whole checkout to Avalara.
 - Remove triggering a webhook event `PRODUCT_UPDATED`  when calling `ProductVariantCreate` mutation.  Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
 - Remove triggering a webhook event `PRODUCT_UPDATED` when calling  `ProductVariantChannelListingUpdate` mutation. Use `PRODUCT_VARIANT_UPDATED` instead - #6963 by @piotrgrundas
@@ -277,6 +280,13 @@ All notable, unreleased changes to this project will be documented in this file.
 - Propagate sale and voucher discounts over specific lines - #8793 by @korycins
   - Use a new interface for response received from plugins/pluginManager. Methods `calculate_checkout_line_unit_price`
   and `calculate_checkout_line_total` returns `TaxedPricesData` instead of `TaxedMoney`.
+- Attach sale discount info to the line when adding variant to order - #8821 by @IKarbowiak
+  - Use a new interface for the response received from plugins/pluginManager.
+  Methods `calculate_order_line_unit` and `calculate_order_line_total` returns
+  `OrderTaxedPricesData` instead of `TaxedMoney`.
+  - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
+  and `CheckoutPricesData` instead of `PricesData`
+- Add additional validation for `from_global_id_or_error` function - #8780 by @CossackDex
 
 ### Other
 

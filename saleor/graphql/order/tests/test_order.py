@@ -3757,6 +3757,15 @@ def test_order_lines_create_variant_on_sale(
         == variant_channel_listing.price_amount - sale_channel_listing.discount_value
     )
 
+    line = order.lines.get(product_sku=variant.sku)
+    assert line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
+    assert line.unit_discount_amount == sale_channel_listing.discount_value
+    assert line.unit_discount_value == sale_channel_listing.discount_value
+    assert (
+        line.unit_discount_reason
+        == f"Sale: {graphene.Node.to_global_id('Sale', sale.id)}"
+    )
+
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
@@ -6526,6 +6535,27 @@ def test_orders_query_with_filter_search_by_product_sku_with_multiple_identic_sk
     )
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == 3
+
+
+@pytest.mark.parametrize(
+    "orders_filter",
+    [
+        {"search": "5430⑨0"},
+        {"search": "132935808982933ⅱ"},
+    ],
+)
+def test_orders_query_with_filter_search_by_invalid_id(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders_filter,
+):
+    variables = {"filter": orders_filter}
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 0
 
 
 def test_order_query_with_filter_search_by_product_sku_order_line(
