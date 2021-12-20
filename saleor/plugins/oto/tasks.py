@@ -17,7 +17,11 @@ def update_oto_access_token_task():
         # Send refresh token request to OTO
         response = requests.post(
             url="https://api.tryoto.com/rest/v2/refreshToken",
-            json={"refresh_token": oto_plugin.config.get("REFRESH_TOKEN")},
+            json={
+                "refresh_token": oto_plugin.config.connection_params.get(
+                    "REFRESH_TOKEN"
+                )
+            },
         )
         if response.status_code == 200:
             access_token = response.json().get("access_token")
