@@ -7,7 +7,11 @@ from i18naddress import get_validation_rules
 
 from ...account import models
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions
+from ...core.permissions import (
+    AccountPermissions,
+    OrderPermissions,
+    has_one_of_permissions,
+)
 from ...core.tracing import traced_resolver
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
@@ -64,7 +68,9 @@ def resolve_user(info, id=None, email=None):
             return models.User.objects.filter(**filter_kwargs).first()
         if requester.has_perm(AccountPermissions.MANAGE_STAFF):
             return models.User.objects.staff().filter(**filter_kwargs).first()
-        if requester.has_perm(AccountPermissions.MANAGE_USERS):
+        if has_one_of_permissions(
+            requester, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
+        ):
             return models.User.objects.customers().filter(**filter_kwargs).first()
     return PermissionDenied()
 

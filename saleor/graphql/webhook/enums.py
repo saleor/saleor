@@ -1,88 +1,104 @@
 import graphene
 
-from ...webhook.event_types import WebhookEventType
+from ...webhook.deprecated_event_types import WebhookEventType
+from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.utils import str_to_enum
 
 
 def description(enum):
     if enum is None:
         return "Enum determining type of webhook."
-    elif enum == WebhookEventTypeEnum.CHECKOUT_CREATED:
+    elif enum == WebhookEventTypeAsyncEnum.CHECKOUT_CREATED:
         return "A new checkout is created."
-    elif enum == WebhookEventTypeEnum.CHECKOUT_UPDATED:
+    elif enum == WebhookEventTypeAsyncEnum.CHECKOUT_UPDATED:
         return (
             "A checkout is updated. "
             "It also triggers all updates related to the checkout."
         )
-    elif enum == WebhookEventTypeEnum.CUSTOMER_CREATED:
+    elif enum == WebhookEventTypeAsyncEnum.CUSTOMER_CREATED:
         return "A new customer account is created."
-    elif enum == WebhookEventTypeEnum.CUSTOMER_UPDATED:
+    elif enum == WebhookEventTypeAsyncEnum.CUSTOMER_UPDATED:
         return "A customer account is updated."
-    elif enum == WebhookEventTypeEnum.NOTIFY_USER:
+    elif enum == WebhookEventTypeAsyncEnum.NOTIFY_USER:
         return "User notification triggered."
-    elif enum == WebhookEventTypeEnum.ORDER_CREATED:
+    elif enum == WebhookEventTypeAsyncEnum.ORDER_CREATED:
         return "A new order is placed."
-    elif enum == WebhookEventTypeEnum.ORDER_CONFIRMED:
+    elif enum == WebhookEventTypeAsyncEnum.ORDER_CONFIRMED:
         return (
             "An order is confirmed (status change unconfirmed -> unfulfilled) "
             "by a staff user using the OrderConfirm mutation. "
             "It also triggers when the user completes the checkout and the shop "
             "setting `automatically_confirm_all_new_orders` is enabled."
         )
-    elif enum == WebhookEventTypeEnum.ORDER_FULLY_PAID:
+    elif enum == WebhookEventTypeAsyncEnum.ORDER_FULLY_PAID:
         return "Payment is made and an order is fully paid."
-    elif enum == WebhookEventTypeEnum.ORDER_UPDATED:
+    elif enum == WebhookEventTypeAsyncEnum.ORDER_UPDATED:
         return (
             "An order is updated; triggered for all changes related to an order; "
             "covers all other order webhooks, except for ORDER_CREATED."
         )
-    elif enum == WebhookEventTypeEnum.ORDER_CANCELLED:
+    elif enum == WebhookEventTypeAsyncEnum.ORDER_CANCELLED:
         return "An order is cancelled."
-    elif enum == WebhookEventTypeEnum.ORDER_FULFILLED:
+    elif enum == WebhookEventTypeAsyncEnum.ORDER_FULFILLED:
         return "An order is fulfilled."
-    elif enum == WebhookEventTypeEnum.FULFILLMENT_CREATED:
+    elif enum == WebhookEventTypeAsyncEnum.FULFILLMENT_CREATED:
         return "A new fulfillment is created."
-    elif enum == WebhookEventTypeEnum.FULFILLMENT_CANCELED:
+    elif enum == WebhookEventTypeAsyncEnum.FULFILLMENT_CANCELED:
         return "A fulfillment is cancelled."
-    elif enum == WebhookEventTypeEnum.PAGE_CREATED:
+    elif enum == WebhookEventTypeAsyncEnum.PAGE_CREATED:
         return "A new page is created."
-    elif enum == WebhookEventTypeEnum.PAGE_UPDATED:
+    elif enum == WebhookEventTypeAsyncEnum.PAGE_UPDATED:
         return "A page is updated."
-    elif enum == WebhookEventTypeEnum.PAGE_DELETED:
+    elif enum == WebhookEventTypeAsyncEnum.PAGE_DELETED:
         return "A page is deleted."
-    elif enum == WebhookEventTypeEnum.PRODUCT_CREATED:
+    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_CREATED:
         return "A new product is created."
-    elif enum == WebhookEventTypeEnum.PRODUCT_UPDATED:
+    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_UPDATED:
         return "A product is updated."
-    elif enum == WebhookEventTypeEnum.PRODUCT_DELETED:
+    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_DELETED:
         return "A product is deleted."
-    elif enum == WebhookEventTypeEnum.PRODUCT_VARIANT_CREATED:
+    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_VARIANT_CREATED:
         return "A new product variant is created."
-    elif enum == WebhookEventTypeEnum.PRODUCT_VARIANT_UPDATED:
+    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_VARIANT_UPDATED:
         return "A product variant is updated."
-    elif enum == WebhookEventTypeEnum.PRODUCT_VARIANT_DELETED:
+    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_VARIANT_DELETED:
         return "A product variant is deleted."
-    elif enum == WebhookEventTypeEnum.INVOICE_REQUESTED:
+    elif enum == WebhookEventTypeAsyncEnum.INVOICE_REQUESTED:
         return "An invoice for order requested."
-    elif enum == WebhookEventTypeEnum.INVOICE_DELETED:
+    elif enum == WebhookEventTypeAsyncEnum.INVOICE_DELETED:
         return "An invoice is deleted."
-    elif enum == WebhookEventTypeEnum.INVOICE_SENT:
+    elif enum == WebhookEventTypeAsyncEnum.INVOICE_SENT:
         return "Invoice has been sent."
-    elif enum == WebhookEventTypeEnum.ANY_EVENTS:
+    elif enum == WebhookEventTypeAsyncEnum.ANY_EVENTS:
         return "All the events."
     return None
 
 
+# deprecated, use WebhookEventTypeAsyncEnum or WebhookEventTypeSyncEnum
 WebhookEventTypeEnum = graphene.Enum(
     "WebhookEventTypeEnum",
     [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventType.CHOICES],
     description=description,
 )
+
+
+WebhookEventTypeAsyncEnum = graphene.Enum(
+    "WebhookEventTypeAsyncEnum",
+    [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventAsyncType.CHOICES],
+    description=description,
+)
+
+WebhookEventTypeSyncEnum = graphene.Enum(
+    "WebhookEventTypeSyncEnum",
+    [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventSyncType.CHOICES],
+    description=description,
+)
+
 WebhookSampleEventTypeEnum = graphene.Enum(
     "WebhookSampleEventTypeEnum",
     [
         (str_to_enum(e_type[0]), e_type[0])
-        for e_type in WebhookEventType.CHOICES
-        if e_type[0] != WebhookEventType.ANY
+        for e_type in WebhookEventAsyncType.CHOICES
+        if e_type[0] != WebhookEventAsyncType.ANY
     ],
 )

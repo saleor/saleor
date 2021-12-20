@@ -18,7 +18,7 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     data = []
     channel = checkout.channel
     currency = channel.currency_code
-    for line_info in fetch_checkout_lines(checkout):
+    for line_info in fetch_checkout_lines(checkout, prefetch_variant_attributes=True):
         variant = line_info.variant
         channel_listing = line_info.channel_listing
         collections = line_info.collections

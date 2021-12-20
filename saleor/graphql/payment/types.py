@@ -5,7 +5,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import OrderPermissions
 from ...core.tracing import traced_resolver
 from ...payment import models
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
 from ..core.types import Money
 from ..decorators import permission_required
@@ -191,6 +191,11 @@ class Payment(CountableDjangoObjectType):
         if not requester.has_perms(permissions):
             raise PermissionDenied()
         return resolve_metadata(root.metadata)
+
+
+class PaymentCountableConnection(CountableConnection):
+    class Meta:
+        node = Payment
 
 
 class PaymentInitialized(graphene.ObjectType):
