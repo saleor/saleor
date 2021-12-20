@@ -21,6 +21,7 @@ from ..core.connection import (
     CountableDjangoObjectType,
     create_connection_slice,
 )
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.fields import ConnectionField
 from ..core.types import CountryDisplay, Money, MoneyRange, Weight
 from ..decorators import permission_required
@@ -320,6 +321,10 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 class ShippingMethod(graphene.ObjectType):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
+    )
+    type = ShippingMethodTypeEnum(
+        description="Type of the shipping method.",
+        deprecation_reason=DEPRECATED_IN_3X_INPUT,
     )
     name = graphene.String(required=True, description="Shipping method name.")
     description = graphene.JSONString(description="Shipping method description (JSON).")

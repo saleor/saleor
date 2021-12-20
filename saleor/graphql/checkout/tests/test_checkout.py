@@ -1720,6 +1720,7 @@ query getCheckout($token: UUID!) {
     checkout(token: $token) {
         %s {
             id
+            type
             name
             description
             price {
@@ -1797,6 +1798,7 @@ def test_checkout_available_shipping_methods(
         graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     )
     assert data[field][0]["name"] == shipping_method.name
+    assert data[field][0]["type"] == shipping_method.type.upper()
     assert raw_description in data[field][0]["description"]
     assert data[field][0]["active"]
     assert data[field][0]["message"] == ""
