@@ -220,5 +220,6 @@ wrapt==1.13.3; python_version >= "3.6" and python_full_version < "3.0.0" and pyt
 yarl==1.7.2; python_version >= "3.6"
 zopfli==0.1.9; python_version >= "3.7"
 checkout-sdk==2.0b8
+django-celery-results==2.2.0
 -e saleor/plugins/oto/
 -e saleor/payment/gateways/checkout_payment/
