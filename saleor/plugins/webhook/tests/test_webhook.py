@@ -19,6 +19,7 @@ from ....account.notifications import (
     send_account_confirmation,
 )
 from ....app.models import App
+from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
 from ....core.notify_events import NotifyEventType
@@ -39,7 +40,11 @@ from ....webhook.payloads import (
     generate_sale_payload,
 )
 from ...manager import get_plugins_manager
-from ...webhook.tasks import send_webhook_request_async, trigger_webhooks_async
+from ...webhook.tasks import (
+    WebhookResponse,
+    send_webhook_request_async,
+    trigger_webhooks_async,
+)
 
 first_url = "http://www.example.com/first/"
 third_url = "http://www.example.com/third/"
@@ -618,3 +623,42 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
 
     # then
     mocked_webhook_send.assert_called_once_with(event_delivery.pk)
+
+
+TEST_WEBHOOK_RESPONSE = WebhookResponse(
+    content="test_content",
+    request_headers={"headers": "test_request"},
+    response_headers={"headers": "test_response"},
+    duration=2.0,
+    status=EventDeliveryStatus.SUCCESS,
+)
+
+
+@mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
+@mock.patch(
+    "saleor.plugins.webhook.tasks.send_webhook_using_scheme_method",
+    return_value=TEST_WEBHOOK_RESPONSE,
+)
+def test_send_webhook_request_async(
+    mocked_send_response, mocked_clear_delivery, event_delivery
+):
+    send_webhook_request_async(event_delivery.pk)
+
+    mocked_send_response.assert_called_once_with(
+        event_delivery.webhook.target_url,
+        "mirumee.com",
+        event_delivery.webhook.secret_key,
+        event_delivery.event_type,
+        event_delivery.payload.payload,
+    )
+    mocked_clear_delivery.assert_called_once_with(event_delivery)
+    attempt = EventDeliveryAttempt.objects.filter(delivery=event_delivery).first()
+    delivery = EventDelivery.objects.get(id=event_delivery.pk)
+    assert attempt.status == EventDeliveryStatus.SUCCESS
+    assert attempt.response == TEST_WEBHOOK_RESPONSE.content
+    assert attempt.response_headers == json.dumps(
+        TEST_WEBHOOK_RESPONSE.response_headers
+    )
+    assert attempt.request_headers == json.dumps(TEST_WEBHOOK_RESPONSE.request_headers)
+    assert attempt.duration == TEST_WEBHOOK_RESPONSE.duration
+    assert delivery.status == EventDeliveryStatus.SUCCESS
