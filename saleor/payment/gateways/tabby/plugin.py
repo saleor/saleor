@@ -166,5 +166,5 @@ class TabbyGatewayPlugin(BasePlugin):
                 gateway=self.PLUGIN_ID,
                 config=self._get_gateway_config(),
             )
-            logger.info(msg="Finish handling webhook")
+            logger.info(msg=f"Finish {self.PLUGIN_ID} handling webhook")
         return HttpResponseNotFound("This path is not valid!")

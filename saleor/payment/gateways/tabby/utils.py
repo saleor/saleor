@@ -13,9 +13,9 @@ from saleor.payment.interface import (
     PaymentMethodInfo,
 )
 
-from . import errors
-
 # Get the logger for this file, it will allow us to log error responses from Tabby.
+from ... import ChargeStatus
+from . import errors
 
 logger = logging.getLogger(__name__)
 
@@ -142,9 +142,9 @@ def verify_webhook(request: HttpRequest, config: GatewayConfig):
 
 
 def handle_webhook(request: HttpRequest, config: GatewayConfig, gateway: str):
-    data_from_tabby = json.loads(request.body.decode("utf-8").replace("'", '"'))
     # Verify the webhook signature.
     if verify_webhook(request=request, config=config) is True:
+        data_from_tabby = json.loads(request.body.decode("utf-8").replace("'", '"'))
         if data_from_tabby.get("status") == "closed":
             from saleor.payment.models import Payment
 
@@ -161,6 +161,24 @@ def handle_webhook(request: HttpRequest, config: GatewayConfig, gateway: str):
                         checkout=payment.checkout,
                         manager=get_plugins_manager(),
                     )
+
+                    # Mark the payment as paid
+                    amount = Decimal(data_from_tabby.get("amount"))
+                    payment.captured_amount = amount
+                    payment.charge_status = (
+                        ChargeStatus.FULLY_CHARGED
+                        if amount == payment.total
+                        else ChargeStatus.PARTIALLY_CHARGED
+                    )
+                    payment.save(
+                        update_fields=["captured_amount", "charge_status", "modified"]
+                    )
+
+                    # Remove the unneeded payments from the database.
+                    for p in payment.checkout.payments.exclude(id=payment.id):
+                        p.transactions.all().delete()
+                        p.delete()
+
                     logger.info(
                         msg=f"Order #{order.id} created",
                         extra={"order_id": order.id},
