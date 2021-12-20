@@ -20,7 +20,7 @@ class BaseTranslationByIdAndLanguageCodeLoader(DataLoader):
         if not self.relation_name:
             raise ValueError("Provide a relation_name for this dataloader.")
 
-        ids = set([key[0] for key in keys])
+        ids = set([str(key[0]) for key in keys])
         language_codes = set([key[1] for key in keys])
 
         filters = {
@@ -34,9 +34,9 @@ class BaseTranslationByIdAndLanguageCodeLoader(DataLoader):
         )
         for translation in translations:
             language_code = translation.language_code
-            id = getattr(translation, self.relation_name)
+            id = str(getattr(translation, self.relation_name))
             translation_by_language_code_by_id[language_code][id] = translation
-        return [translation_by_language_code_by_id[key[1]][key[0]] for key in keys]
+        return [translation_by_language_code_by_id[key[1]][str(key[0])] for key in keys]
 
 
 class AttributeTranslationByIdAndLanguageCodeLoader(

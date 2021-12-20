@@ -7,6 +7,7 @@ from ...core.permissions import GiftcardPermissions, OrderPermissions, SitePermi
 from ...core.utils.url import validate_storefront_url
 from ...site import GiftCardSettingsExpiryType
 from ...site.error_codes import GiftCardSettingsErrorCode
+from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..core.descriptions import ADDED_IN_31
@@ -72,6 +73,13 @@ class ShopSettingsInput(graphene.InputObjectType):
             "authenticated checkout. Enter 0 or null to disable."
         )
     )
+    limit_quantity_per_checkout = graphene.Int(
+        description=(
+            f"{ADDED_IN_31} Default number of maximum line quantity "
+            "in single checkout. Minimum possible value is 1, default "
+            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}."
+        )
+    )
 
 
 class SiteDomainInput(graphene.InputObjectType):
@@ -111,6 +119,19 @@ class ShopSettingsUpdate(BaseMutation):
             new_value = data["reserve_stock_duration_authenticated_user"]
             if not new_value or new_value < 1:
                 data["reserve_stock_duration_authenticated_user"] = None
+        if "limit_quantity_per_checkout" in data:
+            new_value = data["limit_quantity_per_checkout"]
+            if new_value is not None and new_value < 1:
+                raise ValidationError(
+                    {
+                        "limit_quantity_per_checkout": ValidationError(
+                            "Quantity limit cannot be lower than 1.",
+                            code=ShopErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            if not new_value:
+                data["limit_quantity_per_checkout"] = None
 
         return data
 

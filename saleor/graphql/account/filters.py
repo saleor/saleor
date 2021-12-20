@@ -1,7 +1,8 @@
 import django_filters
-from django.db.models import Count, Exists, OuterRef, Q
+from django.db.models import Count
 
-from ...account.models import Address, User
+from ...account.models import User
+from ...account.search import search_users
 from ..core.filters import EnumFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput
 from ..utils.filters import filter_range_field
@@ -30,25 +31,7 @@ def filter_staff_status(qs, _, value):
 
 
 def filter_user_search(qs, _, value):
-    if value:
-        UserAddress = User.addresses.through
-        addresses = Address.objects.filter(
-            Q(first_name__ilike=value)
-            | Q(last_name__ilike=value)
-            | Q(city__ilike=value)
-            | Q(country__ilike=value)
-            | Q(phone=value)
-        ).values("id")
-        user_addresses = UserAddress.objects.filter(
-            Exists(addresses.filter(pk=OuterRef("address_id")))
-        ).values("user_id")
-        qs = qs.filter(
-            Q(email__ilike=value)
-            | Q(first_name__ilike=value)
-            | Q(last_name__ilike=value)
-            | Q(Exists(user_addresses.filter(user_id=OuterRef("pk"))))
-        )
-    return qs
+    return search_users(qs, value)
 
 
 def filter_search(qs, _, value):
