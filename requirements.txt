@@ -1,13 +1,13 @@
 adyen==4.0.0
-amqp==5.0.7; python_version >= "3.7"
+amqp==5.0.9; python_version >= "3.7"
 aniso8601==7.0.0
 asgiref==3.4.1; python_version >= "3.6"
 authorizenet==1.1.4
 babel==2.9.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 beautifulsoup4==4.7.1
 billiard==3.6.4.0; python_version >= "3.6"
-boto3==1.20.23; python_version >= "3.6"
-botocore==1.23.23; python_version >= "3.6"
+boto3==1.20.24; python_version >= "3.6"
+botocore==1.23.24; python_version >= "3.6"
 braintree==4.13.1
 brotli==1.0.9; platform_python_implementation == "CPython" and python_version >= "3.7"
 brotlicffi==1.0.9.2; platform_python_implementation != "CPython" and python_version >= "3.7"
@@ -44,10 +44,10 @@ django==3.2.10; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
-faker==9.9.1; python_version >= "3.6"
-fonttools==4.28.3; python_version >= "3.7"
+faker==10.0.0; python_version >= "3.6"
+fonttools==4.28.5; python_version >= "3.7"
 freezegun==1.1.0; python_version >= "3.5"
-google-api-core==2.3.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+google-api-core==2.3.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-auth==2.3.3; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-core==2.2.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-pubsub==2.9.0; python_version >= "3.6"
@@ -63,8 +63,8 @@ graphene==2.1.9
 graphql-core==2.3.2
 graphql-relay==2.0.1
 grpc-google-iam-v1==0.12.3; python_version >= "3.6"
-grpcio-status==1.42.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-grpcio==1.42.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+grpcio-status==1.43.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+grpcio==1.43.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 gunicorn==20.1.0; python_version >= "3.5"
 h11==0.12.0; python_version >= "3.6"
 html-to-draftjs==1.0.1
@@ -72,13 +72,13 @@ html2text==2020.1.16; python_version >= "3.5"
 html5lib==1.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 httptools==0.1.2; sys_platform != "win32" and sys_platform != "cygwin" and platform_python_implementation != "PyPy"
 idna==3.3; python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.5"
-importlib-metadata==4.8.2; python_version < "3.10" and python_version >= "3.6"
+importlib-metadata==4.10.0; python_version < "3.10" and python_version >= "3.7"
 jaeger-client==4.8.0; python_version >= "3.7"
 jmespath==0.10.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" and python_version >= "3.6"
 jsonfield==3.1.0; python_version >= "3.6"
 kombu==5.2.2; python_version >= "3.7"
 libcst==0.3.23; python_version >= "3.6"
-lxml==4.7.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
+lxml==4.7.1; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
 markdown==3.3.6; python_version >= "3.6"
 maxminddb==2.2.0; python_version >= "3.6"
 measurement==3.2.0
@@ -122,8 +122,8 @@ requests==2.26.0; (python_version >= "2.7" and python_full_version < "3.0.0") or
 rsa==4.8; python_version >= "3.6" and python_version < "4" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6")
 rx==1.6.1
 s3transfer==0.5.0; python_version >= "3.6"
-sendgrid==6.9.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
-sentry-sdk==1.5.0
+sendgrid==6.9.3; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
+sentry-sdk==1.5.1
 singledispatch==3.7.0; python_version >= "2.6"
 six==1.16.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
 soupsieve==2.3.1; python_version >= "3.6"
@@ -148,5 +148,5 @@ wcwidth==0.2.5; python_full_version >= "3.6.2" and python_version >= "3.6"
 weasyprint==53.4; python_version >= "3.6"
 webencodings==0.5.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 websockets==8.1; python_full_version >= "3.6.1"
-zipp==3.6.0; python_version < "3.10" and python_version >= "3.6"
+zipp==3.6.0; python_version < "3.10" and python_version >= "3.7"
 zopfli==0.1.9; python_version >= "3.7"
