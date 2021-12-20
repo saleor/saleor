@@ -6,11 +6,12 @@ from graphene_federation import key
 from ...app import models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31
 from ..core.federation import resolve_federation_references
 from ..core.types import Permission
 from ..core.types.common import Job
+from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
@@ -88,6 +89,11 @@ class AppExtension(AppManifestExtension, CountableDjangoObjectType):
     @staticmethod
     def resolve_access_token(root: models.App, info):
         return resolve_access_token_for_app_extension(info, root)
+
+
+class AppExtensionCountableConnection(CountableConnection):
+    class Meta:
+        node = AppExtension
 
 
 class Manifest(graphene.ObjectType):
@@ -190,14 +196,17 @@ class App(CountableDjangoObjectType):
         return format_permissions_for_display(permissions)
 
     @staticmethod
+    @permission_required(AppPermission.MANAGE_APPS)
     def resolve_tokens(root: models.App, _info, **_kwargs):
         return root.tokens.all()  # type: ignore
 
     @staticmethod
+    @permission_required(AppPermission.MANAGE_APPS)
     def resolve_webhooks(root: models.App, _info):
         return root.webhooks.all()
 
     @staticmethod
+    @permission_required(AppPermission.MANAGE_APPS)
     def resolve_access_token(root: models.App, info):
         return resolve_access_token_for_app(info, root)
 
@@ -216,6 +225,11 @@ class App(CountableDjangoObjectType):
             qs = resolve_apps(info)
 
         return resolve_federation_references(App, roots, qs)
+
+
+class AppCountableConnection(CountableConnection):
+    class Meta:
+        node = App
 
 
 class AppInstallation(CountableDjangoObjectType):

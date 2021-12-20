@@ -1,9 +1,10 @@
 import graphene
 
 from ...core.permissions import OrderPermissions
+from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import ReportingPeriod
-from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ..core.fields import ConnectionField, FilterConnectionField
 from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
 from ..core.utils import from_global_id_or_error
@@ -55,7 +56,7 @@ from .resolvers import (
     resolve_orders_total,
 )
 from .sorters import OrderSortingInput
-from .types import Order, OrderEvent
+from .types import Order, OrderCountableConnection, OrderEventCountableConnection
 
 
 class OrderFilterInput(FilterInputObjectType):
@@ -69,8 +70,8 @@ class OrderDraftFilterInput(FilterInputObjectType):
 
 
 class OrderQueries(graphene.ObjectType):
-    homepage_events = PrefetchingConnectionField(
-        OrderEvent,
+    homepage_events = ConnectionField(
+        OrderEventCountableConnection,
         description=(
             "List of activity events to display on "
             "homepage (at the moment it only contains order-events)."
@@ -81,8 +82,8 @@ class OrderQueries(graphene.ObjectType):
         description="Look up an order by ID.",
         id=graphene.Argument(graphene.ID, description="ID of an order.", required=True),
     )
-    orders = FilterInputConnectionField(
-        Order,
+    orders = FilterConnectionField(
+        OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort orders."),
         filter=OrderFilterInput(description="Filtering options for orders."),
         channel=graphene.String(
@@ -90,8 +91,8 @@ class OrderQueries(graphene.ObjectType):
         ),
         description="List of orders.",
     )
-    draft_orders = FilterInputConnectionField(
-        Order,
+    draft_orders = FilterConnectionField(
+        OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort draft orders."),
         filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
         description="List of draft orders.",
@@ -112,8 +113,9 @@ class OrderQueries(graphene.ObjectType):
     )
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_homepage_events(self, *_args, **_kwargs):
-        return resolve_homepage_events()
+    def resolve_homepage_events(self, info, *_args, **kwargs):
+        qs = resolve_homepage_events()
+        return create_connection_slice(qs, info, kwargs, OrderEventCountableConnection)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_order(self, info, **data):
@@ -121,12 +123,16 @@ class OrderQueries(graphene.ObjectType):
         return resolve_order(id)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_orders(self, info, channel=None, **_kwargs):
-        return resolve_orders(info, channel)
+    def resolve_orders(self, info, channel=None, **kwargs):
+        qs = resolve_orders(info, channel)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_draft_orders(self, info, **_kwargs):
-        return resolve_draft_orders(info)
+    def resolve_draft_orders(self, info, **kwargs):
+        qs = resolve_draft_orders(info)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_orders_total(self, info, period, channel=None, **_kwargs):

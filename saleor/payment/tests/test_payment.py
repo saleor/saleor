@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
@@ -213,6 +214,49 @@ def test_create_payment_information_for_checkout_payment(address, checkout_with_
     assert billing.street_address_1 == address.street_address_1
     assert billing.city == address.city
     assert shipping == billing
+
+
+def test_create_payment_information_for_checkout_token(payment_dummy, checkout):
+    payment_dummy.order = None
+    payment_dummy.checkout = checkout
+    payment_dummy.save(update_fields=["order", "checkout"])
+
+    payment_info = create_payment_information(payment_dummy)
+    assert payment_info.checkout_token == str(checkout.token)
+
+
+def test_create_payment_information_for_checkout_token_from_order(payment_dummy, order):
+    token = str(uuid.uuid4())
+    order.checkout_token = token
+    order.save(update_fields=["checkout_token"])
+    payment_dummy.order = order
+    payment_dummy.checkout = None
+    payment_dummy.save(update_fields=["order", "checkout"])
+
+    payment_info = create_payment_information(payment_dummy)
+    assert payment_info.checkout_token == order.checkout_token == token
+
+
+def test_create_payment_information_for_empty_payment(payment_dummy):
+    payment_dummy.order = None
+    payment_dummy.checkout = None
+    payment_dummy.save(update_fields=["order", "checkout"])
+
+    payment_info = create_payment_information(payment_dummy)
+    assert payment_info.checkout_token == ""
+    assert payment_info.checkout_metadata is None
+
+
+def test_create_payment_information_for_checkout_metadata(payment_dummy, checkout):
+    metadata = {"test_key": "test_val"}
+    checkout.metadata = metadata
+    checkout.save(update_fields=["metadata"])
+    payment_dummy.order = None
+    payment_dummy.checkout = checkout
+    payment_dummy.save(update_fields=["order", "checkout"])
+
+    payment_info = create_payment_information(payment_dummy)
+    assert payment_info.checkout_metadata == metadata
 
 
 def test_create_payment_information_for_draft_order(draft_order):
