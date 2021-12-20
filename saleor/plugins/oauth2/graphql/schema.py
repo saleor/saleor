@@ -1,16 +1,16 @@
 import graphene
-from graphene import ObjectType, Schema
 
+from ....graphql.core.federation import build_federated_schema
 from .mutations import InitateOAuth2Mutation, OAuth2CallbackMutation
 
 
-class Query(ObjectType):
+class Queries(graphene.ObjectType):
     author = graphene.String(default_value="wecre8")
 
 
-class Mutations(ObjectType):
+class Mutations(graphene.ObjectType):
     iniate_oauth2 = InitateOAuth2Mutation.Field()
     oauth2_callback = OAuth2CallbackMutation.Field()
 
 
-schema = Schema(query=Query, mutation=Mutations)
+schema = build_federated_schema(query=Queries, mutation=Mutations)
