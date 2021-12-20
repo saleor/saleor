@@ -46,7 +46,7 @@ def confirm_and_capture_payment(
         if (
             tabby_status
             and is_valid_payment_id
-            and tabby_response.get("currency") == payment_information.currency
+            # and tabby_response.get("currency") == payment_information.currency
             and Decimal(tabby_response.get("amount")) == payment_information.amount
         ):
             response = _success_response(
