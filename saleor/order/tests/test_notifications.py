@@ -293,6 +293,7 @@ def test_send_confirmation_emails_without_addresses_for_payment(
         user=info.context.user,
         app=info.context.app,
         manager=info.context.plugins,
+        site_settings=site_settings,
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
 
@@ -337,6 +338,7 @@ def test_send_confirmation_emails_without_addresses_for_order(
         user=info.context.user,
         app=info.context.app,
         manager=info.context.plugins,
+        site_settings=site_settings,
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
 
