@@ -34,7 +34,11 @@ def confirm_and_capture_payment(
         tabby_response = _call_tabby_get(
             config=config, endpoint="payments/{id}".format(id=payment.token)
         )
-        payment.psp_reference = tabby_response.get("order").get("reference_id")
+        payment.psp_reference = (
+            tabby_response.get("order").get("reference_id")
+            if tabby_response and tabby_response.get("order")
+            else None
+        )
         payment.save(update_fields=["psp_reference"])
 
         is_valid_payment_id = tabby_response.get("id") == payment.token
