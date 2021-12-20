@@ -1,3 +1,5 @@
+from enum import Enum
+
 from ..core.permissions import (
     AccountPermissions,
     CheckoutPermissions,
@@ -251,3 +253,19 @@ class WebhookEventSyncType:
         PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: ShippingPermissions.MANAGE_SHIPPING,
     }
+
+
+SUBSCRIBABLE_EVENTS = [
+    WebhookEventAsyncType.ORDER_CREATED,
+    WebhookEventAsyncType.ORDER_UPDATED,
+    WebhookEventAsyncType.ORDER_CONFIRMED,
+    WebhookEventAsyncType.ORDER_FULLY_PAID,
+    WebhookEventAsyncType.ORDER_FULFILLED,
+    WebhookEventAsyncType.ORDER_CANCELLED,
+    WebhookEventAsyncType.PRODUCT_CREATED,
+    WebhookEventAsyncType.PRODUCT_UPDATED,
+    WebhookEventAsyncType.PRODUCT_VARIANT_CREATED,
+    WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
+    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK,
+    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK,
+]

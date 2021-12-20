@@ -85,7 +85,7 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(order_data, event_type, webhooks, order)
 
     def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -93,7 +93,7 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_CONFIRMED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(order_data, event_type, webhooks, order)
 
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -101,7 +101,7 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_FULLY_PAID
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(order_data, event_type, webhooks, order)
 
     def order_updated(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -109,7 +109,7 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(order_data, event_type, webhooks, order)
 
     def sale_created(
         self, sale: "Sale", current_catalogue: "NodeCatalogueInfo", previous_value: Any
@@ -190,7 +190,7 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_CANCELLED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(order_data, event_type, webhooks, order)
 
     def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -198,7 +198,7 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_FULFILLED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(order_data, event_type, webhooks, order)
 
     def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -286,7 +286,7 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.PRODUCT_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             product_data = generate_product_payload(product, self.requestor)
-            trigger_webhooks_async(product_data, event_type, webhooks)
+            trigger_webhooks_async(product_data, event_type, webhooks, product)
 
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
@@ -294,7 +294,7 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.PRODUCT_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
             product_data = generate_product_payload(product, self.requestor)
-            trigger_webhooks_async(product_data, event_type, webhooks)
+            trigger_webhooks_async(product_data, event_type, webhooks, product)
 
     def product_deleted(
         self, product: "Product", variants: List[int], previous_value: Any
@@ -323,9 +323,7 @@ class WebhookPlugin(BasePlugin):
                 [product_variant], self.requestor
             )
             trigger_webhooks_async(
-                product_variant_data,
-                event_type,
-                webhooks,
+                product_variant_data, event_type, webhooks, product_variant
             )
 
     def product_variant_updated(
@@ -339,9 +337,7 @@ class WebhookPlugin(BasePlugin):
                 [product_variant], self.requestor
             )
             trigger_webhooks_async(
-                product_variant_data,
-                event_type,
-                webhooks,
+                product_variant_data, event_type, webhooks, product_variant
             )
 
     def product_variant_deleted(
@@ -355,9 +351,7 @@ class WebhookPlugin(BasePlugin):
                 [product_variant], self.requestor
             )
             trigger_webhooks_async(
-                product_variant_data,
-                event_type,
-                webhooks,
+                product_variant_data, event_type, webhooks, product_variant
             )
 
     def product_variant_out_of_stock(self, stock: "Stock", previous_value: Any) -> Any:
@@ -366,7 +360,7 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
         if webhooks := _get_webhooks_for_event(event_type):
             product_variant_data = generate_product_variant_with_stock_payload([stock])
-            trigger_webhooks_async(product_variant_data, event_type, webhooks)
+            trigger_webhooks_async(product_variant_data, event_type, webhooks, stock)
 
     def product_variant_back_in_stock(self, stock: "Stock", previous_value: Any) -> Any:
         if not self.active:
@@ -376,7 +370,7 @@ class WebhookPlugin(BasePlugin):
             product_variant_data = generate_product_variant_with_stock_payload(
                 [stock], self.requestor
             )
-            trigger_webhooks_async(product_variant_data, event_type, webhooks)
+            trigger_webhooks_async(product_variant_data, event_type, webhooks, stock)
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:

@@ -4,11 +4,27 @@ from django.core.exceptions import ValidationError
 from ...core.permissions import AppPermission
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
+from ...webhook.subscription_payload import validate_subscription_query
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import WebhookError
 from . import enums
 from .types import EventDelivery, Webhook
+
+
+def validate_query(query):
+    if not query:
+        return
+    is_valid = validate_subscription_query(query)
+    if not is_valid:
+        raise ValidationError(
+            {
+                "query": ValidationError(
+                    "Subscription query is not valid",
+                    code=WebhookErrorCode.INVALID.value,
+                )
+            }
+        )
 
 
 class WebhookCreateInput(graphene.InputObjectType):
@@ -38,6 +54,10 @@ class WebhookCreateInput(graphene.InputObjectType):
     )
     secret_key = graphene.String(
         description="The secret key used to create a hash signature with each payload.",
+        required=False,
+    )
+    query = graphene.String(
+        description="Subscription query used to define a webhook payload.",
         required=False,
     )
 
@@ -90,6 +110,9 @@ class WebhookCreate(ModelMutation):
                 code=WebhookErrorCode.NOT_FOUND,
             )
         clean_webhook_events(info, instance, cleaned_data)
+        if query := cleaned_data.get("query"):
+            validate_query(query)
+            instance.subscription_query = query
         return cleaned_data
 
     @classmethod
@@ -150,6 +173,10 @@ class WebhookUpdateInput(graphene.InputObjectType):
     secret_key = graphene.String(
         description="Use to create a hash signature with each payload.", required=False
     )
+    query = graphene.String(
+        description="Subscription query used to define a webhook payload.",
+        required=False,
+    )
 
 
 class WebhookUpdate(ModelMutation):
@@ -187,6 +214,10 @@ class WebhookUpdate(ModelMutation):
                 code=WebhookErrorCode.NOT_FOUND,
             )
         clean_webhook_events(info, instance, cleaned_data)
+
+        if query := cleaned_data.get("query"):
+            validate_query(query)
+            instance.subscription_query = query
         return cleaned_data
 
     @classmethod

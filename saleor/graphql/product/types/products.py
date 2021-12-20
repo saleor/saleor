@@ -27,6 +27,7 @@ from ....product.utils.availability import (
 )
 from ....product.utils.variants import get_variant_selection_attributes
 from ....warehouse.reservations import is_reservation_enabled
+from ....webhook.subscription_payload import generate_payload_from_subscription
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput

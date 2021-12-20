@@ -1,0 +1,115 @@
+from typing import Any, Dict, Optional
+
+from celery.utils.log import get_task_logger
+from django.core.handlers.base import BaseHandler
+from django.http import HttpRequest
+from django.test.client import RequestFactory
+from graphene_django.settings import graphene_settings
+from graphene_django.views import instantiate_middleware
+from graphql import get_default_backend, parse
+from graphql.error import GraphQLSyntaxError
+from promise import Promise
+
+from ..app.models import App
+
+logger = get_task_logger(__name__)
+
+
+def validate_subscription_query(query: str) -> bool:
+    from ..graphql.api import schema
+
+    graphql_backend = get_default_backend()
+    try:
+        graphql_backend.document_from_string(schema, query)
+    except (ValueError, GraphQLSyntaxError) as e:
+        return False
+    return True
+
+
+def initialize_context() -> HttpRequest:
+    """Prepare a request object for webhook subscription.
+
+    It creates a dummy request object and initialize middleware on it. It is required
+    to process a request in the same way as API logic does.
+    return: HttpRequest
+    """
+    handler = BaseHandler()
+    context = RequestFactory().request()
+    handler.load_middleware()
+    handler.get_response(context)
+    return context
+
+
+def generate_payload_from_subscription(
+    event_type: str,
+    subscribable_object,
+    subscription_query: str,
+    context: HttpRequest,
+    app: Optional[App] = None,
+) -> Optional[Dict[str, Any]]:
+    """Generate webhook payload from subscription query.
+
+    It uses a graphql's engine to build payload by using the same logic as response.
+    As an input it expects given event type and object and the query which will be
+    used to resolve a payload.
+    event_type: is a event which will be triggered.
+    subscribable_object: is a object which have a dedicated own type in Subscription
+    definition.
+    subscription_query: query used to prepare a payload via graphql engine.
+    context: A dummy request used to share context between apps in order to use
+    dataloaders benefits.
+    app: the owner of the given payload. Required in case when webhook contains
+    protected fields.
+    return: A payload ready to send via webhook. None if the function was not able to
+    generate a payload
+    """
+    from ..graphql.api import schema
+
+    graphql_backend = get_default_backend()
+    ast = parse(subscription_query)
+    document = graphql_backend.document_from_string(
+        schema,
+        ast,
+    )
+
+    graphql_middleware = graphene_settings.MIDDLEWARE
+    graphql_middleware = list(instantiate_middleware(graphql_middleware))
+
+    app_id = app.id if app else None
+
+    context.app = app
+
+    results = document.execute(
+        allow_subscriptions=True,
+        root=(event_type, subscribable_object),
+        context=context,
+        middleware=graphql_middleware,
+    )
+    if hasattr(results, "errors"):
+        logger.warning(str(results.errors))
+        logger.warning(
+            "Unable to build a payload for subscription",
+            extra={"query": subscription_query, "app": app_id},
+        )
+        return None
+    payload = []
+    results.subscribe(payload.append)
+
+    if not payload:
+        logger.warning(
+            "Subscription did not return a payload.",
+            extra={"query": subscription_query, "app": app_id},
+        )
+
+    payload_instance = payload[0]
+
+    event_payload = payload_instance.data.get("event")
+
+    # TODO Make sure that we handle missing permissions in proper way.
+
+    # Queries that use dataloaders return Promise object for the "event" field. In that
+    # case, we need to resolve them first.
+    if isinstance(event_payload, Promise):
+        return event_payload.get()
+
+    return event_payload

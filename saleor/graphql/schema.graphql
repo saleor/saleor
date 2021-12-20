@@ -1,6 +1,7 @@
 schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 
 type AccountAddressCreate {
@@ -2045,6 +2046,8 @@ type DraftOrderUpdate {
   errors: [OrderError!]!
   order: Order
 }
+
+union Event = OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | ProductCreated | ProductUpdated | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock
 
 type EventDelivery implements Node {
   id: ID!
@@ -4292,6 +4295,10 @@ type OrderConfirm {
   errors: [OrderError!]!
 }
 
+type OrderConfirmed {
+  order: Order
+}
+
 type OrderCountableConnection {
   pageInfo: PageInfo!
   edges: [OrderCountableEdge!]!
@@ -4301,6 +4308,10 @@ type OrderCountableConnection {
 type OrderCountableEdge {
   node: Order!
   cursor: String!
+}
+
+type OrderCreated {
+  order: Order
 }
 
 enum OrderDirection {
@@ -4549,6 +4560,10 @@ input OrderFulfillStockInput {
   warehouse: ID!
 }
 
+type OrderFullyPaid {
+  order: Order
+}
+
 type OrderLine implements Node {
   id: ID!
   productName: String!
@@ -4754,6 +4769,10 @@ type OrderUpdateShipping {
 
 input OrderUpdateShippingInput {
   shippingMethod: ID
+}
+
+type OrderUpdated {
+  order: Order
 }
 
 type OrderVoid {
@@ -5522,6 +5541,10 @@ input ProductCreateInput {
   productType: ID!
 }
 
+type ProductCreated {
+  product(channel: String): Product
+}
+
 type ProductDelete {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
@@ -5853,6 +5876,10 @@ type ProductUpdate {
   product: Product
 }
 
+type ProductUpdated {
+  product(channel: String): Product
+}
+
 type ProductVariant implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
@@ -5877,6 +5904,11 @@ type ProductVariant implements Node & ObjectWithMetadata {
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]
   quantityAvailable(address: AddressInput, countryCode: CountryCode): Int
   preorder: PreorderData
+}
+
+type ProductVariantBackInStock {
+  productVariant(channel: String): ProductVariant
+  warehouse: Warehouse
 }
 
 type ProductVariantBulkCreate {
@@ -5953,6 +5985,10 @@ input ProductVariantCreateInput {
   stocks: [StockInput!]
 }
 
+type ProductVariantCreated {
+  productVariant(channel: String): ProductVariant
+}
+
 type ProductVariantDelete {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
@@ -5973,6 +6009,11 @@ input ProductVariantInput {
   weight: WeightScalar
   preorder: PreorderSettingsInput
   quantityLimitPerCustomer: Int
+}
+
+type ProductVariantOutOfStock {
+  productVariant(channel: String): ProductVariant
+  warehouse: Warehouse
 }
 
 type ProductVariantPreorderDeactivate {
@@ -6040,6 +6081,10 @@ type ProductVariantUpdate {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   productVariant: ProductVariant
+}
+
+type ProductVariantUpdated {
+  productVariant(channel: String): ProductVariant
 }
 
 input PublishableChannelListingInput {
@@ -6857,6 +6902,10 @@ enum StorePaymentMethodEnum {
   NONE
 }
 
+type Subscription {
+  event: Event
+}
+
 type TaxType {
   description: String
   taxCode: String
@@ -7453,6 +7502,7 @@ input WebhookCreateInput {
   app: ID
   isActive: Boolean
   secretKey: String
+  query: String
 }
 
 type WebhookDelete {
@@ -7649,6 +7699,7 @@ input WebhookUpdateInput {
   app: ID
   isActive: Boolean
   secretKey: String
+  query: String
 }
 
 type Weight {
