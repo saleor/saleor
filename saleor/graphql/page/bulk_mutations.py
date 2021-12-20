@@ -1,9 +1,13 @@
 import graphene
+from django.core.exceptions import ValidationError
 
+from ...attribute import AttributeInputType
+from ...attribute import models as attribute_models
 from ...core.permissions import PagePermissions, PageTypePermissions
 from ...page import models
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types.common import PageError
+from .types import Page, PageType
 
 
 class PageBulkDelete(ModelBulkDeleteMutation):
@@ -18,6 +22,22 @@ class PageBulkDelete(ModelBulkDeleteMutation):
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, ids, **data):
+        try:
+            pks = cls.get_global_ids_or_error(ids, only_type=Page, field="pk")
+        except ValidationError as error:
+            return 0, error
+        cls.delete_assigned_attribute_values(pks)
+        return super().perform_mutation(_root, info, ids, **data)
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance_pks):
+        attribute_models.AttributeValue.objects.filter(
+            pageassignments__page_id__in=instance_pks,
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
 
 
 class PageBulkPublish(BaseBulkMutation):
@@ -55,3 +75,19 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = PageError
         error_type_field = "page_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, ids, **data):
+        try:
+            pks = cls.get_global_ids_or_error(ids, only_type=PageType, field="pk")
+        except ValidationError as error:
+            return 0, error
+        cls.delete_assigned_attribute_values(pks)
+        return super().perform_mutation(_root, info, ids, **data)
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance_pks):
+        attribute_models.AttributeValue.objects.filter(
+            pageassignments__assignment__page_type_id__in=instance_pks,
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
