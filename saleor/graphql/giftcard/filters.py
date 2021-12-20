@@ -16,12 +16,6 @@ from ..utils import resolve_global_ids_to_primary_keys
 from .enums import GiftCardEventsEnum
 
 
-def filter_gift_card_tag(qs, _, value):
-    if not value:
-        return qs
-    return qs.filter(tag__ilike=value)
-
-
 def filter_products(qs, _, value):
     if value:
         _, product_pks = resolve_global_ids_to_primary_keys(value, "Product")
@@ -49,7 +43,8 @@ def filter_gift_cards_by_used_by_user(qs, user_pks):
 def filter_tags_list(qs, _, value):
     if not value:
         return qs
-    return qs.filter(tag__in=value)
+    tags = models.GiftCardTag.objects.filter(name__in=value)
+    return qs.filter(Exists(tags.filter(pk=OuterRef("tags__id"))))
 
 
 def filter_gift_card_used(qs, _, value):
@@ -80,7 +75,6 @@ def filter_code(qs, _, value):
 
 
 class GiftCardFilter(MetadataFilterBase):
-    tag = django_filters.CharFilter(method=filter_gift_card_tag)
     tags = ListObjectTypeFilter(input_class=graphene.String, method=filter_tags_list)
     products = GlobalIDMultipleChoiceFilter(method=filter_products)
     used_by = GlobalIDMultipleChoiceFilter(method=filter_used_by)
@@ -141,3 +135,18 @@ def filter_events_by_orders(events: List[models.GiftCardEvent], order_ids: List[
 class GiftCardEventFilterInput(graphene.InputObjectType):
     type = graphene.Argument(GiftCardEventsEnum)
     orders = graphene.List(graphene.NonNull(graphene.ID))
+
+
+def filter_gift_card_tag_search(qs, _, value):
+    if not value:
+        return qs
+    return qs.filter(name__ilike=value)
+
+
+class GiftCardTagFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(method=filter_gift_card_tag_search)
+
+
+class GiftCardTagFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = GiftCardTagFilter

@@ -57,7 +57,7 @@ from ..discount.models import (
     VoucherTranslation,
 )
 from ..giftcard import GiftCardEvents
-from ..giftcard.models import GiftCard, GiftCardEvent
+from ..giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
@@ -3130,15 +3130,23 @@ def checkout_line_with_reserved_preorder_item(
 
 
 @pytest.fixture
+def gift_card_tag_list(db):
+    tags = [GiftCardTag(name=f"test-tag-{i}") for i in range(5)]
+    return GiftCardTag.objects.bulk_create(tags)
+
+
+@pytest.fixture
 def gift_card(customer_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="never_expiry",
         created_by=customer_user,
         created_by_email=customer_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
-        tag="test-tag",
     )
+    tag, _ = GiftCardTag.objects.get_or_create(name="test-tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
@@ -3155,20 +3163,22 @@ def gift_card_with_metadata(customer_user):
 
 @pytest.fixture
 def gift_card_expiry_date(customer_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="expiry_date",
         created_by=customer_user,
         created_by_email=customer_user.email,
         initial_balance=Money(20, "USD"),
         current_balance=Money(20, "USD"),
         expiry_date=datetime.date.today() + datetime.timedelta(days=100),
-        tag="another-tag",
     )
+    tag = GiftCardTag.objects.create(name="another-tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
 def gift_card_used(staff_user, customer_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="giftcard_used",
         created_by=staff_user,
         used_by=customer_user,
@@ -3176,20 +3186,24 @@ def gift_card_used(staff_user, customer_user):
         used_by_email=customer_user.email,
         initial_balance=Money(100, "USD"),
         current_balance=Money(80, "USD"),
-        tag="tag",
     )
+    tag = GiftCardTag.objects.create(name="tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
 def gift_card_created_by_staff(staff_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="created_by_staff",
         created_by=staff_user,
         created_by_email=staff_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
-        tag="test-tag",
     )
+    tag, _ = GiftCardTag.objects.get_or_create(name="test-tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
@@ -3198,8 +3212,8 @@ def gift_card_event(gift_card, order, app, staff_user):
         "message": "test message",
         "email": "testemail@email.com",
         "order_id": order.pk,
-        "tag": "test tag",
-        "old_tag": "test old tag",
+        "tags": ["test tag"],
+        "old_tags": ["test old tag"],
         "balance": {
             "currency": "USD",
             "initial_balance": 10,

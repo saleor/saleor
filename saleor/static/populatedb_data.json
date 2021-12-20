@@ -461,6 +461,21 @@
     }
   },
   {
+    "model": "product.producttype",
+    "pk": 16,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "name": "Gift card",
+      "slug": "gift-card",
+      "kind": "gift_card",
+      "has_variants": true,
+      "is_shipping_required": false,
+      "is_digital": false,
+      "weight": "0.0:kg"
+    }
+  },
+  {
     "model": "product.product",
     "pk": 61,
     "fields": {

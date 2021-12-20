@@ -48,10 +48,10 @@ EXPORT_GIFT_CARDS_MUTATION = """
         (
             {
                 "scope": ExportScope.FILTER.name,
-                "filter": {"tag": "abc"},
+                "filter": {"tags": ["abc"]},
                 "fileType": FileTypeEnum.CSV.name,
             },
-            {"filter": {"tag": "abc"}},
+            {"filter": {"tags": ["abc"]}},
         ),
     ],
 )
