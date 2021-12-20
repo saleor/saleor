@@ -24,6 +24,7 @@ def sendgrid_email_plugin(settings, channel_USD):
         order_payment_confirmation_template_id=None,
         order_canceled_template_id=None,
         order_refund_confirmation_template_id=None,
+        send_gift_card_template_id=None,
         api_key=None,
     ):
 
@@ -92,6 +93,10 @@ def sendgrid_email_plugin(settings, channel_USD):
                     {
                         "name": "order_refund_confirmation_template_id",
                         "value": order_refund_confirmation_template_id,
+                    },
+                    {
+                        "name": "send_gift_card_template_id",
+                        "value": send_gift_card_template_id,
                     },
                     {"name": "api_key", "value": api_key},
                 ],

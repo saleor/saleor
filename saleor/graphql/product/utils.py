@@ -1,5 +1,5 @@
 from collections import defaultdict, namedtuple
-from typing import TYPE_CHECKING, Dict, Iterable, List
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -105,3 +105,9 @@ def get_draft_order_lines_data_for_variants(
         order_pks.add(line.order_id)
 
     return DraftOrderLinesData(order_to_lines_mapping, line_pks, order_pks)
+
+
+def clean_variant_sku(sku: Optional[str]) -> Optional[str]:
+    if sku:
+        return sku.strip() or None
+    return None

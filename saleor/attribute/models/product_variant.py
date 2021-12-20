@@ -59,6 +59,7 @@ class AttributeVariant(SortableModel):
         through_fields=("assignment", "variant"),
         related_name="attributesrelated",
     )
+    variant_selection = models.BooleanField(default=False)
 
     objects = models.Manager.from_queryset(AssociatedAttributeQuerySet)()
 

@@ -1,11 +1,12 @@
 from django.db.models import Exists, OuterRef, Sum
 
-from ...account.utils import requestor_is_staff_member_or_app
 from ...channel.models import Channel
+from ...core.permissions import has_one_of_permissions
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ...order.models import Order
 from ...product import models
+from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelQsContext
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
@@ -77,7 +78,7 @@ def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
 @traced_resolver
 def resolve_products(info, requestor, channel_slug=None, **_kwargs) -> ChannelQsContext:
     qs = models.Product.objects.visible_to_user(requestor, channel_slug)
-    if not requestor_is_staff_member_or_app(requestor):
+    if not has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
         channels = Channel.objects.filter(slug=str(channel_slug))
         product_channel_listings = models.ProductChannelListing.objects.filter(
             Exists(channels.filter(pk=OuterRef("channel_id"))),

@@ -10,12 +10,13 @@ from django.db.models import JSONField  # type: ignore
 from prices import Money
 
 from ..checkout.models import Checkout
+from ..core.models import ModelWithMetadata
 from ..core.permissions import PaymentPermissions
 from ..core.taxes import zero_money
-from . import ChargeStatus, CustomPaymentChoices, TransactionKind
+from . import ChargeStatus, CustomPaymentChoices, StorePaymentMethod, TransactionKind
 
 
-class Payment(models.Model):
+class Payment(ModelWithMetadata):
     """A model that represents a single payment.
 
     This might be a transactable payment information such as credit card
@@ -59,6 +60,11 @@ class Payment(models.Model):
     order = models.ForeignKey(
         "order.Order", null=True, related_name="payments", on_delete=models.PROTECT
     )
+    store_payment_method = models.CharField(
+        max_length=11,
+        choices=StorePaymentMethod.CHOICES,
+        default=StorePaymentMethod.NONE,
+    )
 
     billing_email = models.EmailField(blank=True)
     billing_first_name = models.CharField(max_length=256, blank=True)
@@ -100,6 +106,7 @@ class Payment(models.Model):
             ),
         )
         indexes = [
+            *ModelWithMetadata.Meta.indexes,
             # Orders filtering by status index
             GinIndex(fields=["order_id", "is_active", "charge_status"]),
         ]

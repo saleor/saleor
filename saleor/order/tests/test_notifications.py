@@ -6,6 +6,7 @@ from measurement.measures import Weight
 from prices import Money, fixed_discount
 
 from ...core.notify_events import NotifyEventType
+from ...core.prices import quantize_price
 from ...discount import DiscountValueType
 from ...order import notifications
 from ...plugins.manager import get_plugins_manager
@@ -26,6 +27,7 @@ def test_get_custom_order_payload(order):
     assert expected_payload == {
         "order": {
             "id": expected_payload["order"]["id"],
+            "number": expected_payload["order"]["id"],
             "private_metadata": {},
             "metadata": {},
             "status": "unfulfilled",
@@ -74,6 +76,7 @@ def test_get_custom_order_payload(order):
                 "phone": "+48713988102",
             },
             "shipping_method_name": None,
+            "collection_point_name": None,
             "voucher_discount": None,
             "discounts": [],
             "discount_amount": 0,
@@ -118,12 +121,16 @@ def test_get_order_line_payload(order_line):
     total_gross = order_line.unit_price_gross * order_line.quantity
     total_net = order_line.unit_price_net * order_line.quantity
     total_tax = total_gross - total_net
+    currency = order_line.currency
     assert payload == {
         "variant": {
             "id": order_line.variant_id,
             "first_image": None,
             "images": None,
             "weight": "",
+            "is_preorder": False,
+            "preorder_global_threshold": None,
+            "preorder_end_date": None,
         },
         "product": {
             "attributes": expected_attributes_payload,
@@ -140,16 +147,21 @@ def test_get_order_line_payload(order_line):
         "product_name": order_line.product_name,
         "variant_name": order_line.variant_name,
         "product_sku": order_line.product_sku,
+        "product_variant_id": order_line.product_variant_id,
         "is_shipping_required": order_line.is_shipping_required,
         "quantity": order_line.quantity,
         "quantity_fulfilled": order_line.quantity_fulfilled,
         "currency": order_line.currency,
-        "unit_price_net_amount": order_line.unit_price_net_amount,
-        "unit_price_gross_amount": order_line.unit_price_gross_amount,
-        "unit_tax_amount": unit_tax_amount,
-        "total_gross_amount": total_gross.amount,
-        "total_net_amount": total_net.amount,
-        "total_tax_amount": total_tax.amount,
+        "unit_price_net_amount": quantize_price(
+            order_line.unit_price_net_amount, currency
+        ),
+        "unit_price_gross_amount": quantize_price(
+            order_line.unit_price_gross_amount, currency
+        ),
+        "unit_tax_amount": quantize_price(unit_tax_amount, currency),
+        "total_gross_amount": quantize_price(total_gross.amount, currency),
+        "total_net_amount": quantize_price(total_net.amount, currency),
+        "total_tax_amount": quantize_price(total_tax.amount, currency),
         "tax_rate": order_line.tax_rate,
         "is_digital": order_line.is_digital,
         "digital_url": "",
@@ -158,6 +170,14 @@ def test_get_order_line_payload(order_line):
         "unit_discount_type": order_line.unit_discount_type,
         "unit_discount_value": order_line.unit_discount_value,
     }
+
+
+def test_get_order_line_payload_deleted_variant(order_line):
+    order_line.variant = None
+    payload = get_order_line_payload(order_line)
+
+    assert payload["variant"] is None
+    assert payload["product"] is None
 
 
 def test_get_address_payload(address):
@@ -215,6 +235,7 @@ def test_get_default_order_payload(order_line):
         ],
         "channel_slug": order.channel.slug,
         "id": order.id,
+        "number": order.id,
         "token": order.token,
         "created": str(order.created),
         "display_gross_prices": order.display_gross_prices,
@@ -222,6 +243,7 @@ def test_get_default_order_payload(order_line):
         "total_gross_amount": order.total_gross_amount,
         "total_net_amount": order.total_net_amount,
         "shipping_method_name": order.shipping_method_name,
+        "collection_point_name": order.collection_point_name,
         "status": order.status,
         "metadata": order.metadata,
         "private_metadata": order.private_metadata,
@@ -323,6 +345,31 @@ def test_send_email_order_confirmation(mocked_notify, order, site_settings):
         expected_payload,
         channel_slug=order.channel.slug,
     )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_email_order_confirmation_for_cc(
+    mocked_notify, order_with_lines_for_cc, site_settings, warehouse_for_cc
+):
+    manager = get_plugins_manager()
+    redirect_url = "https://www.example.com"
+
+    notifications.send_order_confirmation(
+        order_with_lines_for_cc, redirect_url, manager
+    )
+
+    expected_payload = {
+        "order": get_default_order_payload(order_with_lines_for_cc, redirect_url),
+        "recipient_email": order_with_lines_for_cc.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
+    }
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ORDER_CONFIRMATION,
+        expected_payload,
+        channel_slug=order_with_lines_for_cc.channel.slug,
+    )
+    assert expected_payload["order"]["collection_point_name"] == warehouse_for_cc.name
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")

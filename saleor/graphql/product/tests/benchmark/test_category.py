@@ -1,6 +1,7 @@
 import graphene
 import pytest
 
+from .....product.models import Category
 from ....tests.utils import get_graphql_content
 
 
@@ -194,3 +195,66 @@ def test_category_delete(
     content = get_graphql_content(response)
     errors = content["data"]["categoryDelete"]["errors"]
     assert not errors
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_categories_for_federation_query_count(
+    api_client,
+    django_assert_num_queries,
+    count_queries,
+):
+    categories = Category.objects.bulk_create(
+        [
+            Category(
+                name="category 1", slug="category-1", lft=0, rght=1, tree_id=0, level=0
+            ),
+            Category(
+                name="category 2", slug="category-2", lft=2, rght=3, tree_id=0, level=0
+            ),
+            Category(
+                name="category 3", slug="category-3", lft=4, rght=5, tree_id=0, level=0
+            ),
+        ]
+    )
+
+    query = """
+        query GetCategoryInFederation($representations: [_Any]) {
+            _entities(representations: $representations) {
+                __typename
+                ... on Category {
+                    id
+                    name
+                }
+            }
+        }
+    """
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "Category",
+                "id": graphene.Node.to_global_id("Category", categories[0].pk),
+            },
+        ],
+    }
+
+    with django_assert_num_queries(1):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 1
+
+    variables = {
+        "representations": [
+            {
+                "__typename": "Category",
+                "id": graphene.Node.to_global_id("Category", category.pk),
+            }
+            for category in categories
+        ],
+    }
+
+    with django_assert_num_queries(1):
+        response = api_client.post_graphql(query, variables)
+        content = get_graphql_content(response)
+        assert len(content["data"]["_entities"]) == 3

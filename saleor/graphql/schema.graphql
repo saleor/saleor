@@ -70,14 +70,15 @@ enum AccountErrorCode {
   JWT_INVALID_CSRF_TOKEN
   CHANNEL_INACTIVE
   MISSING_CHANNEL_SLUG
+  ACCOUNT_NOT_CONFIRMED
 }
 
 input AccountInput {
   firstName: String
   lastName: String
+  languageCode: LanguageCodeEnum
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
-  languageCode: LanguageCodeEnum
 }
 
 type AccountRegister {
@@ -88,10 +89,12 @@ type AccountRegister {
 }
 
 input AccountRegisterInput {
+  firstName: String
+  lastName: String
+  languageCode: LanguageCodeEnum
   email: String!
   password: String!
   redirectUrl: String
-  languageCode: LanguageCodeEnum
   metadata: [MetadataInput!]
   channel: String
 }
@@ -454,10 +457,13 @@ type AssignNavigation {
   errors: [MenuError!]!
 }
 
+type AssignedVariantAttribute {
+  attribute: Attribute!
+  variantSelection: Boolean!
+}
+
 type Attribute implements Node & ObjectWithMetadata {
   id: ID!
-  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
-  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   inputType: AttributeInputTypeEnum
@@ -475,6 +481,8 @@ type Attribute implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
   storefrontSearchPosition: Int!
   withChoices: Boolean!
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
 }
 
 type AttributeBulkDelete {
@@ -585,6 +593,7 @@ enum AttributeInputTypeEnum {
   REFERENCE
   NUMERIC
   RICH_TEXT
+  SWATCH
   BOOLEAN
   DATE
   DATE_TIME
@@ -648,7 +657,7 @@ input AttributeUpdateInput {
   slug: String
   unit: MeasurementUnitsEnum
   removeValues: [ID]
-  addValues: [AttributeValueCreateInput]
+  addValues: [AttributeValueUpdateInput]
   valueRequired: Boolean
   isVariantOnly: Boolean
   visibleInStorefront: Boolean
@@ -698,9 +707,11 @@ type AttributeValueCreate {
 }
 
 input AttributeValueCreateInput {
-  name: String!
   value: String
   richText: JSONString
+  fileUrl: String
+  contentType: String
+  name: String!
 }
 
 type AttributeValueDelete {
@@ -759,6 +770,14 @@ type AttributeValueUpdate {
   attributeValue: AttributeValue
 }
 
+input AttributeValueUpdateInput {
+  value: String
+  richText: JSONString
+  fileUrl: String
+  contentType: String
+  name: String
+}
+
 input BulkAttributeValueInput {
   id: ID
   values: [String!]
@@ -785,10 +804,17 @@ type BulkStockError {
   index: Int
 }
 
+input CardInput {
+  code: String!
+  cvc: String
+  money: MoneyInput!
+}
+
 input CatalogueInput {
   products: [ID]
   categories: [ID]
   collections: [ID]
+  variants: [ID]
 }
 
 type Category implements Node & ObjectWithMetadata {
@@ -1002,6 +1028,7 @@ type Checkout implements Node & ObjectWithMetadata {
   email: String!
   isShippingRequired: Boolean!
   quantity: Int!
+  stockReservationExpires: DateTime
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
@@ -1087,6 +1114,7 @@ type CheckoutError {
   message: String
   code: CheckoutErrorCode!
   variants: [ID!]
+  lines: [ID!]
   addressType: AddressTypeEnum
 }
 
@@ -1111,10 +1139,19 @@ enum CheckoutErrorCode {
   TAX_ERROR
   UNIQUE
   VOUCHER_NOT_APPLICABLE
+  GIFT_CARD_NOT_APPLICABLE
   ZERO_QUANTITY
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
   UNAVAILABLE_VARIANT_IN_CHANNEL
+}
+
+input CheckoutFilterInput {
+  customer: String
+  created: DateRangeInput
+  search: String
+  metadata: [MetadataFilter]
+  channels: [ID]
 }
 
 type CheckoutLanguageCodeUpdate {
@@ -1159,6 +1196,11 @@ type CheckoutLinesAdd {
   errors: [CheckoutError!]!
 }
 
+type CheckoutLinesDelete {
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
 type CheckoutLinesUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -1190,6 +1232,17 @@ type CheckoutShippingMethodUpdate {
   errors: [CheckoutError!]!
 }
 
+enum CheckoutSortField {
+  CREATION_DATE
+  CUSTOMER
+  PAYMENT
+}
+
+input CheckoutSortingInput {
+  direction: OrderDirection!
+  field: CheckoutSortField!
+}
+
 type ChoiceValue {
   raw: String
   verbose: String
@@ -1204,6 +1257,7 @@ type Collection implements Node & ObjectWithMetadata {
   slug: String!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  channel: String
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
   products(filter: ProductFilterInput, sortBy: ProductOrder, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
@@ -2253,7 +2307,6 @@ type GiftCard implements Node & ObjectWithMetadata {
   code: String!
   isActive: Boolean!
   expiryDate: Date
-  expiryType: GiftCardExpiryTypeEnum!
   tag: String
   created: DateTime!
   lastUsedOn: DateTime
@@ -2268,9 +2321,9 @@ type GiftCard implements Node & ObjectWithMetadata {
   createdByEmail: String
   usedByEmail: String
   app: App
-  expiryPeriod: TimePeriod
   product: Product
   events: [GiftCardEvent!]!
+  boughtInChannel: String
   user: User @deprecated(reason: "This field will be removed in Saleor 4.0. Use `createdBy` field instead.")
   endDate: DateTime @deprecated(reason: "This field will be removed in Saleor 4.0. Use `expiryDate` field instead.")
   startDate: DateTime @deprecated(reason: "This field will be removed in Saleor 4.0.")
@@ -2279,6 +2332,31 @@ type GiftCard implements Node & ObjectWithMetadata {
 type GiftCardActivate {
   giftCard: GiftCard
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [GiftCardError!]!
+}
+
+type GiftCardAddNote {
+  giftCard: GiftCard
+  event: GiftCardEvent
+  errors: [GiftCardError!]!
+}
+
+input GiftCardAddNoteInput {
+  message: String!
+}
+
+type GiftCardBulkActivate {
+  count: Int!
+  errors: [GiftCardError!]!
+}
+
+type GiftCardBulkDeactivate {
+  count: Int!
+  errors: [GiftCardError!]!
+}
+
+type GiftCardBulkDelete {
+  count: Int!
   errors: [GiftCardError!]!
 }
 
@@ -2301,11 +2379,13 @@ type GiftCardCreate {
 
 input GiftCardCreateInput {
   tag: String
+  expiryDate: Date
   startDate: Date
   endDate: Date
   balance: PriceInput!
   userEmail: String
-  expirySettings: GiftCardExpirySettingsInput!
+  channel: String
+  isActive: Boolean!
   code: String
   note: String
 }
@@ -2350,23 +2430,15 @@ type GiftCardEvent implements Node {
   tag: String
   oldTag: String
   balance: GiftCardEventBalance
-  expiry: GiftCardEventExpiry
+  expiryDate: Date
+  oldExpiryDate: Date
 }
 
 type GiftCardEventBalance {
-  initialBalance: Money!
+  initialBalance: Money
   currentBalance: Money!
   oldInitialBalance: Money
   oldCurrentBalance: Money
-}
-
-type GiftCardEventExpiry {
-  expiryType: GiftCardExpiryTypeEnum
-  expiryPeriod: TimePeriod
-  expiryDate: Date
-  oldExpiryType: GiftCardExpiryTypeEnum
-  oldExpiryPeriod: TimePeriod
-  oldExpiryDate: Date
 }
 
 enum GiftCardEventsEnum {
@@ -2376,25 +2448,80 @@ enum GiftCardEventsEnum {
   ACTIVATED
   DEACTIVATED
   BALANCE_RESET
-  EXPIRY_SETTINGS_UPDATED
+  EXPIRY_DATE_UPDATED
+  TAG_UPDATED
   SENT_TO_CUSTOMER
   RESENT
-}
-
-input GiftCardExpirySettingsInput {
-  expiryType: GiftCardExpiryTypeEnum!
-  expiryDate: Date
-  expiryPeriod: TimePeriodInputType
-}
-
-enum GiftCardExpiryTypeEnum {
-  NEVER_EXPIRE
-  EXPIRY_PERIOD
-  EXPIRY_DATE
+  NOTE_ADDED
+  USED_IN_ORDER
 }
 
 input GiftCardFilterInput {
+  isActive: Boolean
+  metadata: [MetadataFilter]
   tag: String
+  tags: [String]
+  products: [ID]
+  usedBy: [ID]
+  currency: String
+  currentBalance: PriceRangeInput
+  initialBalance: PriceRangeInput
+  code: String
+}
+
+type GiftCardResend {
+  giftCard: GiftCard
+  errors: [GiftCardError!]!
+}
+
+input GiftCardResendInput {
+  id: ID!
+  email: String
+  channel: String!
+}
+
+type GiftCardSettings {
+  expiryType: GiftCardSettingsExpiryTypeEnum!
+  expiryPeriod: TimePeriod
+}
+
+type GiftCardSettingsError {
+  field: String
+  message: String
+  code: GiftCardSettingsErrorCode!
+}
+
+enum GiftCardSettingsErrorCode {
+  INVALID
+  REQUIRED
+  GRAPHQL_ERROR
+}
+
+enum GiftCardSettingsExpiryTypeEnum {
+  NEVER_EXPIRE
+  EXPIRY_PERIOD
+}
+
+type GiftCardSettingsUpdate {
+  giftCardSettings: GiftCardSettings
+  errors: [GiftCardSettingsError!]!
+}
+
+input GiftCardSettingsUpdateInput {
+  expiryType: GiftCardSettingsExpiryTypeEnum
+  expiryPeriod: TimePeriodInputType
+}
+
+enum GiftCardSortField {
+  TAG
+  PRODUCT
+  USED_BY
+  CURRENT_BALANCE
+}
+
+input GiftCardSortingInput {
+  direction: OrderDirection!
+  field: GiftCardSortField!
 }
 
 type GiftCardUpdate {
@@ -2405,10 +2532,10 @@ type GiftCardUpdate {
 
 input GiftCardUpdateInput {
   tag: String
+  expiryDate: Date
   startDate: Date
   endDate: Date
   balanceAmount: PositiveDecimal
-  expirySettings: GiftCardExpirySettingsInput
 }
 
 type Group implements Node {
@@ -3617,6 +3744,11 @@ type Money {
   amount: Float!
 }
 
+input MoneyInput {
+  currency: String!
+  amount: PositiveDecimal!
+}
+
 type MoneyRange {
   start: Money
   stop: Money
@@ -3645,6 +3777,7 @@ type Mutation {
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
+  giftCardSettingsUpdate(input: GiftCardSettingsUpdateInput!): GiftCardSettingsUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
@@ -3658,6 +3791,7 @@ type Mutation {
   shippingZoneBulkDelete(ids: [ID]!): ShippingZoneBulkDelete
   shippingZoneUpdate(id: ID!, input: ShippingZoneUpdateInput!): ShippingZoneUpdate
   productAttributeAssign(operations: [ProductAttributeAssignInput]!, productTypeId: ID!): ProductAttributeAssign
+  productAttributeAssignmentUpdate(operations: [ProductAttributeAssignmentUpdateInput]!, productTypeId: ID!): ProductAttributeAssignmentUpdate
   productAttributeUnassign(attributeIds: [ID]!, productTypeId: ID!): ProductAttributeUnassign
   categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
@@ -3707,12 +3841,14 @@ type Mutation {
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   productVariantChannelListingUpdate(id: ID!, input: [ProductVariantChannelListingAddInput!]!): ProductVariantChannelListingUpdate
   productVariantReorderAttributeValues(attributeId: ID!, moves: [ReorderInput]!, variantId: ID!): ProductVariantReorderAttributeValues
+  productVariantPreorderDeactivate(id: ID!): ProductVariantPreorderDeactivate
   variantMediaAssign(mediaId: ID!, variantId: ID!): VariantMediaAssign
   variantMediaUnassign(mediaId: ID!, variantId: ID!): VariantMediaUnassign
   paymentCapture(amount: PositiveDecimal, paymentId: ID!): PaymentCapture
   paymentRefund(amount: PositiveDecimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
   paymentInitialize(channel: String, gateway: String!, paymentData: JSONString): PaymentInitialize
+  paymentCheckBalance(input: PaymentCheckBalanceInput!): PaymentCheckBalance
   pageCreate(input: PageCreateInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -3739,7 +3875,7 @@ type Mutation {
   orderConfirm(id: ID!): OrderConfirm
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput): FulfillmentCancel
-  orderFulfillmentApprove(id: ID!, notifyCustomer: Boolean!): FulfillmentApprove
+  orderFulfillmentApprove(allowStockToBeExceeded: Boolean = false, id: ID!, notifyCustomer: Boolean!): FulfillmentApprove
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
   orderFulfillmentReturnProducts(input: OrderReturnProductsInput!, order: ID!): FulfillmentReturnProducts
@@ -3783,6 +3919,11 @@ type Mutation {
   giftCardDelete(id: ID!): GiftCardDelete
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
+  giftCardResend(input: GiftCardResendInput!): GiftCardResend
+  giftCardAddNote(id: ID!, input: GiftCardAddNoteInput!): GiftCardAddNote
+  giftCardBulkDelete(ids: [ID]!): GiftCardBulkDelete
+  giftCardBulkActivate(ids: [ID]!): GiftCardBulkActivate
+  giftCardBulkDeactivate(ids: [ID]!): GiftCardBulkDeactivate
   pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
   externalNotificationTrigger(channel: String!, input: ExternalNotificationTriggerInput!, pluginId: String): ExternalNotificationTrigger
   saleCreate(input: SaleInput!): SaleCreate
@@ -3810,10 +3951,11 @@ type Mutation {
   checkoutCustomerAttach(checkoutId: ID, customerId: ID, token: UUID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID, token: UUID): CheckoutCustomerDetach
   checkoutEmailUpdate(checkoutId: ID, email: String!, token: UUID): CheckoutEmailUpdate
-  checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete
+  checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete @deprecated(reason: "DEPRECATED: Will be removed in Saleor 4.0. Use `checkoutLinesDelete` instead.")
+  checkoutLinesDelete(linesIds: [ID]!, token: UUID!): CheckoutLinesDelete
   checkoutLinesAdd(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesUpdate
-  checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
+  checkoutRemovePromoCode(checkoutId: ID, promoCode: String, promoCodeId: ID, token: UUID): CheckoutRemovePromoCode
   checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
@@ -3832,7 +3974,7 @@ type Mutation {
   attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
-  attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
+  attributeValueUpdate(id: ID!, input: AttributeValueUpdateInput!): AttributeValueUpdate
   attributeValueTranslate(id: ID!, input: AttributeValueTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
   attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   appCreate(input: AppInput!): AppCreate
@@ -4090,6 +4232,7 @@ enum OrderErrorCode {
   CANNOT_REFUND
   CANNOT_FULFILL_UNPAID_ORDER
   CAPTURE_INACTIVE_PAYMENT
+  GIFT_CARD_LINE
   NOT_EDITABLE
   FULFILL_ORDER_LINE
   GRAPHQL_ERROR
@@ -4233,6 +4376,9 @@ input OrderFilterInput {
   search: String
   metadata: [MetadataFilter]
   channels: [ID]
+  isClickAndCollect: Boolean
+  isPreorder: Boolean
+  ids: [ID]
 }
 
 type OrderFulfill {
@@ -4245,6 +4391,7 @@ type OrderFulfill {
 input OrderFulfillInput {
   lines: [OrderFulfillLineInput!]!
   notifyCustomer: Boolean
+  allowStockToBeExceeded: Boolean = false
 }
 
 input OrderFulfillLineInput {
@@ -4261,7 +4408,8 @@ type OrderLine implements Node {
   id: ID!
   productName: String!
   variantName: String!
-  productSku: String!
+  productSku: String
+  productVariantId: String
   isShippingRequired: Boolean!
   quantity: Int!
   quantityFulfilled: Int!
@@ -4383,6 +4531,7 @@ input OrderReturnProductsInput {
 
 type OrderSettings {
   automaticallyConfirmAllNewOrders: Boolean!
+  automaticallyFulfillNonShippableGiftCard: Boolean!
 }
 
 type OrderSettingsError {
@@ -4402,7 +4551,8 @@ type OrderSettingsUpdate {
 }
 
 input OrderSettingsUpdateInput {
-  automaticallyConfirmAllNewOrders: Boolean!
+  automaticallyConfirmAllNewOrders: Boolean
+  automaticallyFulfillNonShippableGiftCard: Boolean
 }
 
 enum OrderSortField {
@@ -4730,7 +4880,7 @@ type PasswordChange {
   errors: [AccountError!]!
 }
 
-type Payment implements Node {
+type Payment implements Node & ObjectWithMetadata {
   id: ID!
   gateway: String!
   isActive: Boolean!
@@ -4741,6 +4891,8 @@ type Payment implements Node {
   order: Order
   paymentMethodType: String!
   customerIpAddress: String
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
   total: Money
@@ -4766,6 +4918,19 @@ enum PaymentChargeStatusEnum {
   FULLY_REFUNDED
   REFUSED
   CANCELLED
+}
+
+type PaymentCheckBalance {
+  data: JSONString
+  paymentErrors: [PaymentError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [PaymentError!]!
+}
+
+input PaymentCheckBalanceInput {
+  gatewayId: String!
+  method: String!
+  channel: String!
+  card: CardInput!
 }
 
 type PaymentCountableConnection {
@@ -4799,6 +4964,7 @@ enum PaymentErrorCode {
   PAYMENT_ERROR
   NOT_SUPPORTED_GATEWAY
   CHANNEL_INACTIVE
+  BALANCE_CHECK_ERROR
 }
 
 input PaymentFilterInput {
@@ -4829,6 +4995,8 @@ input PaymentInput {
   token: String
   amount: PositiveDecimal
   returnUrl: String
+  storePaymentMethod: StorePaymentMethodEnum = none
+  metadata: [MetadataInput!]
 }
 
 type PaymentRefund {
@@ -4841,6 +5009,7 @@ type PaymentSource {
   gateway: String!
   paymentMethodId: String
   creditCardInfo: CreditCard
+  metadata: [MetadataItem]!
 }
 
 type PaymentVoid {
@@ -5025,6 +5194,22 @@ enum PostalCodeRuleInclusionTypeEnum {
   EXCLUDE
 }
 
+type PreorderData {
+  globalThreshold: Int
+  globalSoldUnits: Int!
+  endDate: DateTime
+}
+
+input PreorderSettingsInput {
+  globalThreshold: Int
+  endDate: DateTime
+}
+
+type PreorderThreshold {
+  quantity: Int
+  soldUnits: Int!
+}
+
 input PriceInput {
   currency: String!
   amount: PositiveDecimal!
@@ -5051,6 +5236,7 @@ type Product implements Node & ObjectWithMetadata {
   rating: Float
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  channel: String
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
   thumbnail(size: Int): Image
   pricing(address: AddressInput): ProductPricingInfo
@@ -5078,6 +5264,18 @@ type ProductAttributeAssign {
 input ProductAttributeAssignInput {
   id: ID!
   type: ProductAttributeType!
+  variantSelection: Boolean
+}
+
+type ProductAttributeAssignmentUpdate {
+  productType: ProductType
+  productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [ProductError!]!
+}
+
+input ProductAttributeAssignmentUpdateInput {
+  id: ID!
+  variantSelection: Boolean!
 }
 
 enum ProductAttributeType {
@@ -5207,6 +5405,7 @@ enum ProductErrorCode {
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
   UNSUPPORTED_MEDIA_PROVIDER
+  PREORDER_VARIANT_CANNOT_BE_DEACTIVATED
 }
 
 enum ProductFieldEnum {
@@ -5218,6 +5417,7 @@ enum ProductFieldEnum {
   COLLECTIONS
   CHARGE_TAXES
   PRODUCT_MEDIA
+  VARIANT_ID
   VARIANT_SKU
   VARIANT_WEIGHT
   VARIANT_MEDIA
@@ -5236,7 +5436,9 @@ input ProductFilterInput {
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
+  giftCard: Boolean
   ids: [ID]
+  hasPreorderedVariants: Boolean
   channel: String
 }
 
@@ -5398,9 +5600,11 @@ type ProductType implements Node & ObjectWithMetadata {
   weight: Weight
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  kind: ProductTypeKindEnum!
   products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection @deprecated(reason: "This field will be removed in Saleor 4.0. Use the top-level `products` query with the `productTypes` filter.")
   taxType: TaxType
-  variantAttributes(variantSelection: VariantAttributeScope): [Attribute]
+  variantAttributes(variantSelection: VariantAttributeScope): [Attribute] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `assignedVariantAttributes` instead.")
+  assignedVariantAttributes(variantSelection: VariantAttributeScope): [AssignedVariantAttribute]
   productAttributes: [Attribute]
   availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
 }
@@ -5449,12 +5653,14 @@ input ProductTypeFilterInput {
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
   metadata: [MetadataFilter]
+  kind: ProductTypeKindEnum
   ids: [ID]
 }
 
 input ProductTypeInput {
   name: String
   slug: String
+  kind: ProductTypeKindEnum
   hasVariants: Boolean
   productAttributes: [ID]
   variantAttributes: [ID]
@@ -5462,6 +5668,11 @@ input ProductTypeInput {
   isDigital: Boolean
   weight: WeightScalar
   taxCode: String
+}
+
+enum ProductTypeKindEnum {
+  NORMAL
+  GIFT_CARD
 }
 
 type ProductTypeReorderAttributes {
@@ -5496,12 +5707,14 @@ type ProductUpdate {
 type ProductVariant implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
-  sku: String!
+  sku: String
   product: Product!
   trackInventory: Boolean!
+  quantityLimitPerCustomer: Int
   weight: Weight
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  channel: String
   channelListings: [ProductVariantChannelListing!]
   pricing(address: AddressInput): VariantPricingInfo
   attributes(variantSelection: VariantAttributeScope): [SelectedAttribute!]!
@@ -5513,7 +5726,8 @@ type ProductVariant implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]
-  quantityAvailable(address: AddressInput, countryCode: CountryCode): Int!
+  quantityAvailable(address: AddressInput, countryCode: CountryCode): Int
+  preorder: PreorderData
 }
 
 type ProductVariantBulkCreate {
@@ -5525,9 +5739,11 @@ type ProductVariantBulkCreate {
 
 input ProductVariantBulkCreateInput {
   attributes: [BulkAttributeValueInput!]!
-  sku: String!
+  sku: String
   trackInventory: Boolean
   weight: WeightScalar
+  preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
   stocks: [StockInput!]
   channelListings: [ProductVariantChannelListingAddInput!]
 }
@@ -5544,12 +5760,14 @@ type ProductVariantChannelListing implements Node {
   price: Money
   costPrice: Money
   margin: Int
+  preorderThreshold: PreorderThreshold
 }
 
 input ProductVariantChannelListingAddInput {
   channelId: ID!
   price: PositiveDecimal!
   costPrice: PositiveDecimal
+  preorderThreshold: Int
 }
 
 type ProductVariantChannelListingUpdate {
@@ -5580,6 +5798,8 @@ input ProductVariantCreateInput {
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
+  preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
   product: ID!
   stocks: [StockInput!]
 }
@@ -5594,6 +5814,7 @@ input ProductVariantFilterInput {
   search: String
   sku: [String]
   metadata: [MetadataFilter]
+  isPreorder: Boolean
 }
 
 input ProductVariantInput {
@@ -5601,6 +5822,13 @@ input ProductVariantInput {
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
+  preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
+}
+
+type ProductVariantPreorderDeactivate {
+  productVariant: ProductVariant
+  errors: [ProductError!]!
 }
 
 type ProductVariantReorder {
@@ -5683,6 +5911,7 @@ type Query {
   stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop!
   orderSettings: OrderSettings
+  giftCardSettings: GiftCardSettings!
   shippingZone(id: ID!, channel: String): ShippingZone
   shippingZones(filter: ShippingZoneFilterInput, channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
@@ -5715,7 +5944,8 @@ type Query {
   menuItem(id: ID!, channel: String): MenuItem
   menuItems(channel: String, sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
-  giftCards(filter: GiftCardFilterInput, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
+  giftCards(sortBy: GiftCardSortingInput, filter: GiftCardFilterInput, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
+  giftCardCurrencies: [String!]!
   plugin(id: ID!): Plugin
   plugins(filter: PluginFilterInput, sortBy: PluginSortingInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!, channel: String): Sale
@@ -5726,7 +5956,7 @@ type Query {
   exportFiles(filter: ExportFileFilterInput, sortBy: ExportFileSortingInput, before: String, after: String, first: Int, last: Int): ExportFileCountableConnection
   taxTypes: [TaxType]
   checkout(token: UUID): Checkout
-  checkouts(channel: String, before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
+  checkouts(sortBy: CheckoutSortingInput, filter: CheckoutFilterInput, channel: String, before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   channel(id: ID): Channel
   channels: [Channel!]
@@ -5793,6 +6023,7 @@ type Sale implements Node & ObjectWithMetadata {
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   translation(languageCode: LanguageCodeEnum!): SaleTranslation
   channelListings: [SaleChannelListing!]
   discountValue: Float
@@ -5870,6 +6101,7 @@ input SaleInput {
   type: DiscountValueTypeEnum
   value: PositiveDecimal
   products: [ID]
+  variants: [ID]
   categories: [ID]
   collections: [ID]
   startDate: DateTime
@@ -5966,14 +6198,10 @@ enum ShippingErrorCode {
 
 type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
-  name: String!
-  description: JSONString
-  minimumOrderWeight: Weight
-  maximumOrderWeight: Weight
-  maximumDeliveryDays: Int
-  minimumDeliveryDays: Int
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  name: String!
+  description: JSONString
   type: ShippingMethodTypeEnum
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
   channelListings: [ShippingMethodChannelListing!]
@@ -5982,6 +6210,10 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   minimumOrderPrice: Money
   postalCodeRules: [ShippingMethodPostalCodeRule]
   excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  minimumOrderWeight: Weight
+  maximumOrderWeight: Weight
+  maximumDeliveryDays: Int
+  minimumDeliveryDays: Int
 }
 
 type ShippingMethodChannelListing implements Node {
@@ -6209,6 +6441,9 @@ type Shop {
   defaultWeightUnit: WeightUnitsEnum
   translation(languageCode: LanguageCodeEnum!): ShopTranslation
   automaticFulfillmentDigitalProducts: Boolean
+  reserveStockDurationAnonymousUser: Int
+  reserveStockDurationAuthenticatedUser: Int
+  limitQuantityPerCheckout: Int
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
   companyAddress: Address
@@ -6268,6 +6503,9 @@ input ShopSettingsInput {
   defaultMailSenderName: String
   defaultMailSenderAddress: String
   customerSetPasswordUrl: String
+  reserveStockDurationAnonymousUser: Int
+  reserveStockDurationAuthenticatedUser: Int
+  limitQuantityPerCheckout: Int
 }
 
 type ShopSettingsTranslate {
@@ -6400,6 +6638,7 @@ type Stock implements Node {
   quantity: Int!
   id: ID!
   quantityAllocated: Int!
+  quantityReserved: Int!
 }
 
 enum StockAvailability {
@@ -6443,6 +6682,12 @@ input StockInput {
   quantity: Int!
 }
 
+enum StorePaymentMethodEnum {
+  ON_SESSION
+  OFF_SESSION
+  NONE
+}
+
 type TaxType {
   description: String
   taxCode: String
@@ -6472,6 +6717,7 @@ input TimePeriodInputType {
 
 enum TimePeriodTypeEnum {
   DAY
+  WEEK
   MONTH
   YEAR
 }
@@ -6744,6 +6990,7 @@ type Voucher implements Node & ObjectWithMetadata {
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
   discountValue: Float
@@ -6835,6 +7082,7 @@ input VoucherInput {
   endDate: DateTime
   discountValueType: DiscountValueTypeEnum
   products: [ID]
+  variants: [ID]
   collections: [ID]
   categories: [ID]
   minCheckoutItemsQuantity: Int
@@ -6902,7 +7150,6 @@ type Warehouse implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
-  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
   email: String!
   isPrivate: Boolean!
@@ -6910,6 +7157,7 @@ type Warehouse implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   companyName: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Address.companyName` instead.")
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
+  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
 }
 
 enum WarehouseClickAndCollectOptionEnum {
@@ -7065,6 +7313,12 @@ enum WebhookEventTypeEnum {
   ORDER_UPDATED
   ORDER_CANCELLED
   ORDER_FULFILLED
+  DRAFT_ORDER_CREATED
+  DRAFT_ORDER_UPDATED
+  DRAFT_ORDER_DELETED
+  SALE_CREATED
+  SALE_UPDATED
+  SALE_DELETED
   INVOICE_REQUESTED
   INVOICE_DELETED
   INVOICE_SENT
@@ -7095,6 +7349,7 @@ enum WebhookEventTypeEnum {
   PAYMENT_VOID
   CHECKOUT_CALCULATE_TAXES
   ORDER_CALCULATE_TAXES
+  SHIPPING_LIST_METHODS_FOR_CHECKOUT
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
@@ -7106,6 +7361,12 @@ enum WebhookSampleEventTypeEnum {
   ORDER_UPDATED
   ORDER_CANCELLED
   ORDER_FULFILLED
+  DRAFT_ORDER_CREATED
+  DRAFT_ORDER_UPDATED
+  DRAFT_ORDER_DELETED
+  SALE_CREATED
+  SALE_UPDATED
+  SALE_DELETED
   INVOICE_REQUESTED
   INVOICE_DELETED
   INVOICE_SENT
@@ -7136,6 +7397,7 @@ enum WebhookSampleEventTypeEnum {
   PAYMENT_VOID
   CHECKOUT_CALCULATE_TAXES
   ORDER_CALCULATE_TAXES
+  SHIPPING_LIST_METHODS_FOR_CHECKOUT
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
@@ -7172,7 +7434,7 @@ enum WeightUnitsEnum {
 
 scalar _Any
 
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | ProductImage | PageType
+union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | PageType
 
 type _Service {
   sdl: String

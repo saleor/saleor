@@ -1,5 +1,6 @@
 import json
 from dataclasses import asdict
+from datetime import datetime
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
@@ -8,10 +9,15 @@ from unittest.mock import ANY
 import graphene
 import pytest
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
+from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
+from ... import __version__
+from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
+from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.models import Order
@@ -28,10 +34,13 @@ from ..payloads import (
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
+    generate_meta,
     generate_order_payload,
     generate_payment_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
+    generate_requestor,
+    generate_sale_payload,
     generate_translation_payload,
 )
 from ..serializers import serialize_checkout_lines
@@ -69,6 +78,10 @@ def test_generate_order_payload(
         name="Voucher",
     )
 
+    line_without_sku = order_with_lines.lines.last()
+    line_without_sku.product_sku = None
+    line_without_sku.save()
+
     assert fulfilled_order.fulfillments.count() == 1
     fulfillment = fulfilled_order.fulfillments.first()
 
@@ -76,8 +89,11 @@ def test_generate_order_payload(
     payload = json.loads(generate_order_payload(order_with_lines))[0]
 
     assert order_id == payload["id"]
-    for field in ORDER_FIELDS:
+    non_empty_fields = [f for f in ORDER_FIELDS if f != "collection_point_name"]
+    for field in non_empty_fields:
         assert payload.get(field) is not None
+
+    assert payload["collection_point_name"] is None
 
     assert payload.get("shipping_method")
     assert payload.get("shipping_tax_rate")
@@ -100,9 +116,11 @@ def test_generate_order_payload(
         "modified": ANY,
         "charge_status": payment_txn_captured.charge_status,
         "psp_reference": payment_txn_captured.psp_reference,
-        "total": str(payment_txn_captured.total),
+        "total": str(payment_txn_captured.total.quantize(Decimal("0.01"))),
         "type": "Payment",
-        "captured_amount": str(payment_txn_captured.captured_amount),
+        "captured_amount": str(
+            payment_txn_captured.captured_amount.quantize(Decimal("0.01"))
+        ),
         "currency": payment_txn_captured.currency,
         "billing_email": payment_txn_captured.billing_email,
         "billing_first_name": payment_txn_captured.billing_first_name,
@@ -134,31 +152,58 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
     )
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
 
+    undiscounted_unit_price_gross = line.undiscounted_unit_price.gross.amount.quantize(
+        Decimal("0.01")
+    )
+    undiscounted_unit_price_net = line.undiscounted_unit_price.net.amount.quantize(
+        Decimal("0.01")
+    )
+    unit_price_gross = line.unit_price.gross.amount.quantize(Decimal("0.01"))
+    unit_price_net = line.unit_price.net.amount.quantize(Decimal("0.01"))
+
     assert payload == {
         "currency": "USD",
         "product_name": line.product_name,
         "variant_name": line.variant_name,
         "product_sku": line.product_sku,
+        "product_variant_id": line.product_variant_id,
         "id": graphene.Node.to_global_id("FulfillmentLine", fulfillment_line.id),
         "product_type": "Default Type",
         "quantity": fulfillment_line.quantity,
-        "total_price_gross_amount": str(
-            line.unit_price.gross.amount * fulfillment_line.quantity
-        ),
-        "total_price_net_amount": str(
-            line.unit_price.net.amount * fulfillment_line.quantity
-        ),
+        "total_price_gross_amount": str(unit_price_gross * fulfillment_line.quantity),
+        "total_price_net_amount": str(unit_price_net * fulfillment_line.quantity),
         "type": "FulfillmentLine",
-        "undiscounted_unit_price_gross": str(line.undiscounted_unit_price.gross.amount),
-        "undiscounted_unit_price_net": str(line.undiscounted_unit_price.net.amount),
-        "unit_price_gross": str(line.unit_price.gross.amount),
-        "unit_price_net": str(line.unit_price.net.amount),
+        "undiscounted_unit_price_gross": str(undiscounted_unit_price_gross),
+        "undiscounted_unit_price_net": str(undiscounted_unit_price_net),
+        "unit_price_gross": str(unit_price_gross),
+        "unit_price_net": str(unit_price_net),
         "weight": 0.0,
         "weight_unit": "gram",
         "warehouse_id": graphene.Node.to_global_id(
             "Warehouse", fulfillment_line.stock.warehouse_id
         ),
     }
+
+
+def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
+    # given
+    fulfillment = order_with_lines.fulfillments.create(tracking_number="123")
+    line = order_with_lines.lines.first()
+    stock = line.allocations.get().stock
+    warehouse_pk = stock.warehouse.pk
+    fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
+    fulfill_order_lines(
+        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        get_plugins_manager(),
+    )
+
+    # when
+    line.variant.delete()
+    payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
+
+    # then
+    assert payload["product_type"] is None
+    assert payload["weight"] is None
 
 
 def test_order_lines_have_all_required_fields(order, order_line_with_one_allocation):
@@ -176,21 +221,21 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     assert len(lines_payload) == 1
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     line_payload = lines_payload[0]
-    unit_net_amount = line.unit_price_net_amount.quantize(Decimal("0.001"))
-    unit_gross_amount = line.unit_price_gross_amount.quantize(Decimal("0.001"))
-    unit_discount_amount = line.unit_discount_amount.quantize(Decimal("0.001"))
+    unit_net_amount = line.unit_price_net_amount.quantize(Decimal("0.01"))
+    unit_gross_amount = line.unit_price_gross_amount.quantize(Decimal("0.01"))
+    unit_discount_amount = line.unit_discount_amount.quantize(Decimal("0.01"))
     allocation = line.allocations.first()
     undiscounted_unit_price_net_amount = (
-        line.undiscounted_unit_price.net.amount.quantize(Decimal("0.001"))
+        line.undiscounted_unit_price.net.amount.quantize(Decimal("0.01"))
     )
     undiscounted_unit_price_gross_amount = (
-        line.undiscounted_unit_price.gross.amount.quantize(Decimal("0.001"))
+        line.undiscounted_unit_price.gross.amount.quantize(Decimal("0.01"))
     )
     undiscounted_total_price_net_amount = (
-        line.undiscounted_total_price.net.amount.quantize(Decimal("0.001"))
+        line.undiscounted_total_price.net.amount.quantize(Decimal("0.01"))
     )
     undiscounted_total_price_gross_amount = (
-        line.undiscounted_total_price.gross.amount.quantize(Decimal("0.001"))
+        line.undiscounted_total_price.gross.amount.quantize(Decimal("0.01"))
     )
 
     total_line = line.total_price
@@ -205,6 +250,7 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "translated_product_name": line.translated_product_name,
         "translated_variant_name": line.translated_variant_name,
         "product_sku": line.product_sku,
+        "product_variant_id": line.product_variant_id,
         "quantity": line.quantity,
         "currency": line.currency,
         "unit_discount_amount": str(unit_discount_amount),
@@ -212,9 +258,9 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "unit_discount_reason": line.unit_discount_reason,
         "unit_price_net_amount": str(unit_net_amount),
         "unit_price_gross_amount": str(unit_gross_amount),
-        "total_price_net_amount": str(total_line.net.amount.quantize(Decimal("0.001"))),
+        "total_price_net_amount": str(total_line.net.amount.quantize(Decimal("0.01"))),
         "total_price_gross_amount": str(
-            total_line.gross.amount.quantize(Decimal("0.001"))
+            total_line.gross.amount.quantize(Decimal("0.01"))
         ),
         "tax_rate": str(line.tax_rate.quantize(Decimal("0.0001"))),
         "allocations": [
@@ -232,6 +278,26 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
             undiscounted_total_price_gross_amount
         ),
     }
+
+
+def test_order_line_without_sku_still_has_id(order, order_line_with_one_allocation):
+    order.lines.add(order_line_with_one_allocation)
+    line = order_line_with_one_allocation
+    line.unit_discount_amount = Decimal("10.0")
+    line.unit_discount_type = DiscountValueType.FIXED
+    line.undiscounted_unit_price = line.unit_price + line.unit_discount
+    line.undiscounted_total_price = line.undiscounted_unit_price * line.quantity
+    line.product_sku = None
+    line.save()
+
+    payload = json.loads(generate_order_payload(order))[0]
+    lines_payload = payload.get("lines")
+
+    assert len(lines_payload) == 1
+
+    line_payload = lines_payload[0]
+    assert line_payload["product_sku"] is None
+    assert line_payload["product_variant_id"] == line.product_variant_id
 
 
 def test_generate_base_product_variant_payload(product_with_two_variants):
@@ -256,6 +322,11 @@ def test_generate_base_product_variant_payload(product_with_two_variants):
                 "Warehouse", first_stock.warehouse_id
             ),
             "product_slug": "test-product-with-two-variant",
+            "meta": {
+                "issuing_principal": {"id": None, "type": None},
+                "issued_at": ANY,
+                "version": __version__,
+            },
         },
         {
             "type": "Stock",
@@ -270,19 +341,27 @@ def test_generate_base_product_variant_payload(product_with_two_variants):
                 "Warehouse", second_stock.warehouse_id
             ),
             "product_slug": "test-product-with-two-variant",
+            "meta": {
+                "issuing_principal": {"id": None, "type": None},
+                "issued_at": ANY,
+                "version": __version__,
+            },
         },
     ]
     assert payload == expected_payload
 
 
 def test_generate_product_variant_payload(
-    product_with_variant_with_two_attributes, product_with_images, channel_USD
+    product_with_variant_with_two_attributes,
+    product_with_images,
+    channel_USD,
+    staff_user,
 ):
     variant = product_with_variant_with_two_attributes.variants.first()
-    payload = json.loads(generate_product_variant_payload([variant]))[0]
+    payload = json.loads(generate_product_variant_payload([variant], staff_user))[0]
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -293,6 +372,7 @@ def test_generate_product_variant_payload(
         assert payload.get(field) is not None
 
     assert variant_id is not None
+    assert payload["id"] == variant_id
     assert payload["sku"] == "prodVar1"
     assert len(payload["attributes"]) == 2
     assert len(payload["channel_listings"]) == 1
@@ -304,6 +384,11 @@ def test_generate_product_variant_payload(
         "price_amount": "10.000",
         "type": "ProductVariantChannelListing",
     }
+    assert payload["meta"] == {
+        "issuing_principal": generate_requestor(staff_user),
+        "issued_at": ANY,
+        "version": __version__,
+    }
     assert len(payload.keys()) == len(payload_fields)
 
 
@@ -314,7 +399,7 @@ def test_generate_product_variant_with_external_media_payload(
     payload = json.loads(generate_product_variant_payload([variant]))[0]
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -324,6 +409,7 @@ def test_generate_product_variant_with_external_media_payload(
         assert payload.get(field) is not None
 
     assert variant_id is not None
+    assert payload["id"] == variant_id
     assert payload["sku"] == "prodVar1"
     assert payload["media"] == [
         {"alt": "video_1", "url": "https://www.youtube.com/watch?v=di8_dJ3Clyo"}
@@ -341,6 +427,37 @@ def test_generate_product_variant_with_external_media_payload(
     assert len(payload.keys()) == len(payload_fields)
 
 
+def test_generate_product_variant_without_sku_payload(
+    product_with_variant_with_two_attributes, product_with_images, channel_USD
+):
+    variant = product_with_variant_with_two_attributes.variants.first()
+    variant.sku = None
+    variant.save()
+    payload = json.loads(generate_product_variant_payload([variant]))[0]
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    additional_fields = ["channel_listings"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
+    payload_fields = list(
+        chain(
+            ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
+        )
+    )
+    assert variant_id is not None
+    assert payload["id"] == variant_id
+    assert payload["sku"] is None
+    assert len(payload["attributes"]) == 2
+    assert len(payload["channel_listings"]) == 1
+    assert payload["channel_listings"][0] == {
+        "cost_price_amount": "1.000",
+        "currency": "USD",
+        "id": ANY,
+        "channel_slug": channel_USD.slug,
+        "price_amount": "10.000",
+        "type": "ProductVariantChannelListing",
+    }
+    assert len(payload.keys()) == len(payload_fields)
+
+
 def test_generate_product_variant_deleted_payload(
     product_with_variant_with_two_attributes,
 ):
@@ -353,7 +470,7 @@ def test_generate_product_variant_deleted_payload(
     payload = json.loads(generate_product_variant_payload([variant]))[0]
     [_, payload_variant_id] = graphene.Node.from_global_id(payload["id"])
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -363,21 +480,37 @@ def test_generate_product_variant_deleted_payload(
         assert payload.get(field) is not None
 
     assert payload_variant_id != "None"
+    assert payload["id"] == variant.get_global_id()
     assert payload["sku"] == "prodVar1"
     assert len(payload["attributes"]) == 2
     assert len(payload["channel_listings"]) == 1
     assert len(payload.keys()) == len(payload_fields)
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_invoice_payload(fulfilled_order):
     fulfilled_order.origin = OrderOrigin.CHECKOUT
     fulfilled_order.save(update_fields=["origin"])
     invoice = fulfilled_order.invoices.first()
     payload = json.loads(generate_invoice_payload(invoice))[0]
+    undiscounted_total_net = fulfilled_order.undiscounted_total_net_amount.quantize(
+        Decimal("0.01")
+    )
+    undiscounted_total_gross = fulfilled_order.undiscounted_total_gross_amount.quantize(
+        Decimal("0.01")
+    )
+    timestamp = timezone.make_aware(
+        datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
+    ).isoformat()
 
     assert payload == {
         "type": "Invoice",
         "id": graphene.Node.to_global_id("Invoice", invoice.id),
+        "meta": {
+            "issued_at": timestamp,
+            "issuing_principal": {"id": None, "type": None},
+            "version": __version__,
+        },
         "order": {
             "type": "Order",
             "id": graphene.Node.to_global_id("Order", invoice.order.id),
@@ -388,18 +521,15 @@ def test_generate_invoice_payload(fulfilled_order):
             "origin": OrderOrigin.CHECKOUT,
             "user_email": "test@example.com",
             "shipping_method_name": "DHL",
-            "shipping_price_net_amount": "10.000",
-            "shipping_price_gross_amount": "12.300",
+            "collection_point_name": None,
+            "shipping_price_net_amount": "10.00",
+            "shipping_price_gross_amount": "12.30",
             "shipping_tax_rate": "0.0000",
-            "total_net_amount": "80.000",
-            "total_gross_amount": "98.400",
+            "total_net_amount": "80.00",
+            "total_gross_amount": "98.40",
             "weight": "0.0:g",
-            "undiscounted_total_net_amount": str(
-                fulfilled_order.undiscounted_total_net_amount
-            ),
-            "undiscounted_total_gross_amount": str(
-                fulfilled_order.undiscounted_total_gross_amount
-            ),
+            "undiscounted_total_net_amount": str(undiscounted_total_net),
+            "undiscounted_total_gross_amount": str(undiscounted_total_gross),
         },
         "number": "01/12/2020/TEST",
         "created": ANY,
@@ -407,6 +537,7 @@ def test_generate_invoice_payload(fulfilled_order):
     }
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_list_gateways_payload(checkout):
     currency = "USD"
     payload = generate_list_gateways_payload(currency, checkout)
@@ -415,13 +546,29 @@ def test_generate_list_gateways_payload(checkout):
     assert data["currency"] == currency
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_payment_payload(dummy_webhook_app_payment_data):
     payload = generate_payment_payload(dummy_webhook_app_payment_data)
     expected_payload = asdict(dummy_webhook_app_payment_data)
+    expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
+        Decimal("0.01")
+    )
     expected_payload["payment_method"] = from_payment_app_id(
         dummy_webhook_app_payment_data.gateway
     ).name
+    expected_payload["meta"] = generate_meta(requestor_data=generate_requestor())
+
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
+
+
+def test_generate_checkout_lines_payload(checkout_with_single_item):
+    payload = json.loads(generate_checkout_payload(checkout_with_single_item))[0]
+    assert payload.get("lines")
+
+    variant = checkout_with_single_item.lines.first().variant
+    line = payload["lines"][0]
+    assert line["sku"] == variant.sku
+    assert line["variant_id"] == variant.get_global_id()
 
 
 def test_generate_product_translation_payload(product_translation_fr):
@@ -548,14 +695,24 @@ def test_generate_unique_page_attribute_value_translation_payload(
     assert translation_keys["rich_text"] == translated_attribute_value.rich_text
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_customer_payload(customer_user, address_other_country, address):
     customer = customer_user
     customer.default_billing_address = address_other_country
     customer.save()
     payload = json.loads(generate_customer_payload(customer))[0]
+    timestamp = timezone.make_aware(
+        datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
+    ).isoformat()
+
     expected_payload = {
         "type": "User",
         "id": graphene.Node.to_global_id("User", customer.id),
+        "meta": {
+            "issuing_principal": {"id": None, "type": None},
+            "issued_at": timestamp,
+            "version": __version__,
+        },
         "default_shipping_address": {
             "type": "Address",
             "id": graphene.Node.to_global_id(
@@ -637,6 +794,91 @@ def test_generate_collection_point_payload(order_with_lines_for_cc):
     )
 
 
+def test_generate_sale_payload_no_previous_and_current_has_empty_catalogue_lists(sale):
+    payload = json.loads(generate_sale_payload(sale))[0]
+
+    assert not payload["categories_added"]
+    assert not payload["categories_removed"]
+    assert not payload["collections_added"]
+    assert not payload["collections_removed"]
+    assert not payload["products_added"]
+    assert not payload["products_removed"]
+
+    assert graphene.Node.to_global_id("Sale", sale.id) == payload["id"]
+
+
+def test_generate_sale_payload_with_current_only_has_empty_removed_fields(sale):
+    catalogue_info = {
+        "categories": {1, 2, 3},
+        "collections": {45, 70, 90},
+        "products": {4, 5, 6},
+        "variants": {"aa", "bb", "cc"},
+    }
+    payload = json.loads(generate_sale_payload(sale, current_catalogue=catalogue_info))[
+        0
+    ]
+
+    assert set(payload["categories_added"]) == catalogue_info["categories"]
+    assert set(payload["collections_added"]) == catalogue_info["collections"]
+    assert set(payload["products_added"]) == catalogue_info["products"]
+    assert set(payload["variants_added"]) == catalogue_info["variants"]
+    assert not payload["categories_removed"]
+    assert not payload["collections_removed"]
+    assert not payload["products_removed"]
+    assert not payload["variants_removed"]
+
+
+def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
+    catalogue_info = {
+        "categories": {1, 2, 3},
+        "collections": {45, 70, 90},
+        "products": {4, 5, 6},
+        "variants": {"aa", "bb", "cc"},
+    }
+    payload = json.loads(
+        generate_sale_payload(sale, previous_catalogue=catalogue_info)
+    )[0]
+
+    assert set(payload["categories_removed"]) == catalogue_info["categories"]
+    assert set(payload["collections_removed"]) == catalogue_info["collections"]
+    assert set(payload["products_removed"]) == catalogue_info["products"]
+    assert set(payload["variants_removed"]) == catalogue_info["variants"]
+    assert not payload["categories_added"]
+    assert not payload["collections_added"]
+    assert not payload["products_added"]
+    assert not payload["variants_added"]
+
+
+def test_generate_sale_payload_calculates_set_differences(sale):
+    previous_info = {
+        "categories": {1, 2, 3},
+        "collections": {45, 70, 90},
+        "products": {4, 5, 6},
+        "variants": {"aaa", "bbb", "ccc"},
+    }
+    current_info = {
+        "categories": {4, 2, 3},
+        "collections": set(),
+        "products": {4, 5, 6, 10, 20},
+        "variants": {"aaa", "bbb", "ddd"},
+    }
+
+    payload = json.loads(
+        generate_sale_payload(
+            sale, previous_catalogue=previous_info, current_catalogue=current_info
+        )
+    )[0]
+
+    assert set(payload["categories_removed"]) == {1}
+    assert set(payload["categories_added"]) == {4}
+    assert set(payload["collections_removed"]) == {45, 70, 90}
+    assert not payload["collections_added"]
+    assert not payload["products_removed"]
+    assert set(payload["products_added"]) == {10, 20}
+    assert set(payload["variants_added"]) == {"ddd"}
+    assert set(payload["variants_removed"]) == {"ccc"}
+
+
 @pytest.mark.parametrize("taxes_included", [True, False])
 def test_generate_checkout_payload(
     checkout,
@@ -699,10 +941,13 @@ def test_generate_checkout_payload(
         "last_change": parse_django_datetime(checkout.last_change),
         "email": checkout.email,
         "currency": checkout.currency,
-        "discount_amount": checkout.discount_amount,
+        "discount_amount": str(
+            quantize_price(checkout.discount_amount, checkout.currency)
+        ),
         "discount_name": checkout.discount_name,
         "private_metadata": checkout.private_metadata,
         "metadata": checkout.metadata,
+        "channel": checkout.channel_id,
         "user": {
             "type": "User",
             "id": graphene.Node.to_global_id("User", user.pk),
@@ -754,4 +999,45 @@ def test_generate_checkout_payload(
         "collection_point": json.loads(
             _generate_collection_point_payload(collection_point)
         )[0],
+        "meta": ANY,
+        "warehouse_address": ANY,
+    }
+
+
+def test_generate_requestor_returns_dict_with_user_id_and_user_type(staff_user, rf):
+    request = rf.request()
+    request.user = staff_user
+    request.app = None
+    requestor = get_user_or_app_from_context(request)
+
+    assert generate_requestor(requestor) == {
+        "id": graphene.Node.to_global_id("User", staff_user.id),
+        "type": "user",
+    }
+
+
+def test_generate_requestor_returns_dict_with_app_id_and_app_type(app, rf):
+    request = rf.request()
+    request.user = None
+    request.app = app
+    requestor = get_user_or_app_from_context(request)
+
+    assert generate_requestor(requestor) == {"id": app.name, "type": "app"}
+
+
+@freeze_time("1914-06-28 10:50")
+def test_generate_meta(app, rf):
+    request = rf.request()
+    request.app = app
+    request.user = None
+    requestor = get_user_or_app_from_context(request)
+
+    timestamp = timezone.make_aware(
+        datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
+    ).isoformat()
+
+    assert generate_meta(requestor_data=generate_requestor(requestor)) == {
+        "issuing_principal": {"id": "Sample app objects", "type": "app"},
+        "issued_at": timestamp,
+        "version": __version__,
     }

@@ -16,6 +16,7 @@ from ....product.utils.costs import (
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...core.connection import CountableDjangoObjectType
+from ...core.descriptions import ADDED_IN_31
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ..dataloaders import (
@@ -234,9 +235,28 @@ class ProductChannelListing(CountableDjangoObjectType):
         )
 
 
+class PreorderThreshold(graphene.ObjectType):
+    quantity = graphene.Int(
+        required=False,
+        description="Preorder threshold for product variant in this channel.",
+    )
+    sold_units = graphene.Int(
+        required=True,
+        description="Number of sold product variant in this channel.",
+    )
+
+    class Meta:
+        description = "Represents preorder variant data for channel."
+
+
 class ProductVariantChannelListing(CountableDjangoObjectType):
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
+    preorder_threshold = graphene.Field(
+        PreorderThreshold,
+        required=False,
+        description=f"{ADDED_IN_31} Preorder variant data.",
+    )
 
     class Meta:
         description = "Represents product varaint channel listing."
@@ -252,6 +272,17 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductVariantChannelListing, *_args):
         return get_margin_for_variant_channel_listing(root)
+
+    @staticmethod
+    def resolve_preorder_threshold(
+        root: models.ProductVariantChannelListing, info, **_kwargs
+    ):
+        # The preorder_quantity_allocated field is added through annotation
+        # when using the `resolve_channel_listings` resolver.
+        return PreorderThreshold(
+            quantity=root.preorder_quantity_threshold,
+            sold_units=getattr(root, "preorder_quantity_allocated", 0),
+        )
 
 
 class CollectionChannelListing(CountableDjangoObjectType):

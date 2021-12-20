@@ -20,6 +20,7 @@ from ...tests.utils import get_graphql_content, get_graphql_content_from_respons
 PAGE_QUERY = """
     query PageQuery($id: ID, $slug: String) {
         page(id: $id, slug: $slug) {
+            id
             title
             slug
             pageType {
@@ -93,7 +94,7 @@ def test_query_published_page(user_api_client, page):
     variables = {"slug": page.slug}
     response = user_api_client.post_graphql(PAGE_QUERY, variables)
     content = get_graphql_content(response)
-    assert content["data"]["page"] is not None
+    assert content["data"]["page"]["id"] == graphene.Node.to_global_id("Page", page.id)
 
 
 def test_customer_query_unpublished_page(user_api_client, page):
@@ -113,7 +114,28 @@ def test_customer_query_unpublished_page(user_api_client, page):
     assert content["data"]["page"] is None
 
 
-def test_staff_query_unpublished_page(staff_api_client, page):
+def test_staff_query_unpublished_page_by_id(
+    staff_api_client, page, permission_manage_pages
+):
+    page.is_published = False
+    page.save()
+
+    # query by ID
+    variables = {"id": graphene.Node.to_global_id("Page", page.id)}
+    response = staff_api_client.post_graphql(
+        PAGE_QUERY,
+        variables,
+        permissions=[permission_manage_pages],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["page"]["id"] == variables["id"]
+
+
+def test_staff_query_unpublished_page_by_id_without_required_permission(
+    staff_api_client,
+    page,
+):
     page.is_published = False
     page.save()
 
@@ -121,13 +143,39 @@ def test_staff_query_unpublished_page(staff_api_client, page):
     variables = {"id": graphene.Node.to_global_id("Page", page.id)}
     response = staff_api_client.post_graphql(PAGE_QUERY, variables)
     content = get_graphql_content(response)
-    assert content["data"]["page"] is not None
+    assert content["data"]["page"] is None
+
+
+def test_staff_query_unpublished_page_by_slug(
+    staff_api_client, page, permission_manage_pages
+):
+    page.is_published = False
+    page.save()
+
+    # query by slug
+    variables = {"slug": page.slug}
+    response = staff_api_client.post_graphql(
+        PAGE_QUERY,
+        variables,
+        permissions=[permission_manage_pages],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["page"]["id"] == graphene.Node.to_global_id("Page", page.id)
+
+
+def test_staff_query_unpublished_page_by_slug_without_required_permission(
+    staff_api_client,
+    page,
+):
+    page.is_published = False
+    page.save()
 
     # query by slug
     variables = {"slug": page.slug}
     response = staff_api_client.post_graphql(PAGE_QUERY, variables)
     content = get_graphql_content(response)
-    assert content["data"]["page"] is not None
+    assert content["data"]["page"] is None
 
 
 def test_staff_query_page_by_invalid_id(staff_api_client, page):
@@ -296,6 +344,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     assert tag_value_slug in values
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_page_create_trigger_page_webhook(
     mocked_webhook_trigger,
@@ -332,7 +381,7 @@ def test_page_create_trigger_page_webhook(
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
     page = Page.objects.first()
-    expected_data = generate_page_payload(page)
+    expected_data = generate_page_payload(page, staff_api_client.user)
 
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PAGE_CREATED, expected_data
@@ -1185,6 +1234,7 @@ def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
         page.refresh_from_db()
 
 
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_page_delete_trigger_webhook(
     mocked_webhook_trigger, staff_api_client, page, permission_manage_pages, settings
@@ -1200,7 +1250,7 @@ def test_page_delete_trigger_webhook(
     with pytest.raises(page._meta.model.DoesNotExist):
         page.refresh_from_db()
 
-    expected_data = generate_page_payload(page)
+    expected_data = generate_page_payload(page, staff_api_client.user)
 
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PAGE_DELETED, expected_data
@@ -1381,7 +1431,7 @@ def test_update_page_trigger_webhook(
     assert data["page"]["title"] == page_title
     assert data["page"]["slug"] == new_slug
     page.publication_date = date(2020, 3, 18)
-    expected_data = generate_page_payload(page)
+    expected_data = generate_page_payload(page, staff_api_client.user)
 
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PAGE_UPDATED, expected_data

@@ -2,7 +2,7 @@ import logging
 import operator
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from decimal import Decimal, InvalidOperation
 from email.headerregistry import Address
 from typing import List, Optional
@@ -15,6 +15,7 @@ from babel.numbers import format_currency
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.mail.backends.smtp import EmailBackend
+from django.core.validators import EmailValidator
 from django_prices.utils.locale import get_locale_data
 
 from ..product.product_images import get_thumbnail_size
@@ -280,20 +281,29 @@ def validate_default_email_configuration(
             }
         )
 
+    EmailValidator(
+        message={
+            "sender_address": ValidationError(
+                "Invalid email", code=PluginErrorCode.INVALID.value
+            )
+        }
+    )(config.sender_address)
+
     try:
         validate_email_config(config)
     except Exception as e:
         logger.warning("Unable to connect to email backend.", exc_info=e)
         error_msg = (
-            "Unable to connect to email backend. Make sure that you provided "
-            "correct values."
+            f"Unable to connect to email backend. Make sure that you provided "
+            f"correct values. {e}"
         )
+
         raise ValidationError(
             {
                 c: ValidationError(
                     error_msg, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value
                 )
-                for c in configuration.keys()
+                for c in asdict(config).keys()
             }
         )
 

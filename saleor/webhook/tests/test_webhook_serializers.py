@@ -6,6 +6,7 @@ import graphene
 import pytest
 
 from ...checkout.models import CheckoutLine
+from ...core.prices import quantize_price
 from ..serializers import (
     serialize_checkout_lines,
     serialize_product_or_variant_attributes,
@@ -134,19 +135,26 @@ def test_serialize_checkout_lines(
             product, collections, channel, variant_channel_listing
         )
         price = line.unit_price
+        currency = checkout.currency
         assert price.net != price.gross
         assert data == {
             "id": graphene.Node.to_global_id("CheckoutLine", line.pk),
             "sku": variant.sku,
             "quantity": line.quantity,
             "charge_taxes": product.charge_taxes,
-            "base_price": str(base_price.amount),
-            "price_net_amount": str(line.unit_price_net_amount),
-            "price_gross_amount": str(line.unit_price_gross_amount),
+            "base_price": str(quantize_price(base_price.amount, currency)),
+            "price_net_amount": str(
+                quantize_price(line.unit_price_net_amount, currency)
+            ),
+            "price_gross_amount": str(
+                quantize_price(line.unit_price_gross_amount, currency)
+            ),
             "currency": channel.currency_code,
             "full_name": variant.display_product(),
             "product_name": product.name,
             "variant_name": variant.name,
+            "attributes": ANY,
+            "variant_id": ANY,
         }
         data_len += 1
     assert len(checkout_lines_data) == data_len

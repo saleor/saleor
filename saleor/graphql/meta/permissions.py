@@ -15,10 +15,12 @@ from ...core.permissions import (
     OrderPermissions,
     PagePermissions,
     PageTypePermissions,
+    PaymentPermissions,
     ProductPermissions,
     ProductTypePermissions,
     ShippingPermissions,
 )
+from ...payment.utils import payment_owned_by_user
 
 
 def no_permissions(_info, _object_pk: Any) -> List[None]:
@@ -103,6 +105,21 @@ def discount_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [DiscountPermissions.MANAGE_DISCOUNTS]
 
 
+def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum]:
+    context_user = info.context.user
+    if info.context.app is not None or context_user.is_staff:
+        return [PaymentPermissions.HANDLE_PAYMENTS]
+    if payment_owned_by_user(payment_pk, context_user):
+        return []
+    raise PermissionDenied()
+
+
+def private_payment_permissions(info, _object_pk: Any) -> List[BasePermissionEnum]:
+    if info.context.app is not None or info.context.user.is_staff:
+        return [PaymentPermissions.HANDLE_PAYMENTS]
+    raise PermissionDenied()
+
+
 def gift_card_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [GiftcardPermissions.MANAGE_GIFT_CARD]
 
@@ -122,6 +139,7 @@ PUBLIC_META_PERMISSION_MAP = {
     "Order": no_permissions,
     "Page": page_permissions,
     "PageType": page_type_permissions,
+    "Payment": public_payment_permissions,
     "Product": product_permissions,
     "ProductType": product_type_permissions,
     "ProductVariant": product_permissions,
@@ -149,6 +167,7 @@ PRIVATE_META_PERMISSION_MAP = {
     "Order": order_permissions,
     "Page": page_permissions,
     "PageType": page_type_permissions,
+    "Payment": private_payment_permissions,
     "Product": product_permissions,
     "ProductType": product_type_permissions,
     "ProductVariant": product_permissions,

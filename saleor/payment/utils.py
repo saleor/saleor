@@ -6,15 +6,28 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 import graphene
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Q
 
 from ..account.models import User
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..order.models import Order
-from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
+from . import (
+    ChargeStatus,
+    GatewayError,
+    PaymentError,
+    StorePaymentMethod,
+    TransactionKind,
+)
 from .error_codes import PaymentErrorCode
-from .interface import AddressData, GatewayResponse, PaymentData, PaymentMethodInfo
+from .interface import (
+    AddressData,
+    GatewayResponse,
+    PaymentData,
+    PaymentMethodInfo,
+    StorePaymentMethodEnum,
+)
 from .models import Payment, Transaction
 
 if TYPE_CHECKING:
@@ -39,19 +52,27 @@ def create_payment_information(
     Returns information required to process payment and additional
     billing/shipping addresses for optional fraud-prevention mechanisms.
     """
-    checkout = payment.checkout
-    if checkout:
+    if checkout := payment.checkout:
         billing = checkout.billing_address
         shipping = checkout.shipping_address
         email = checkout.get_customer_email()
         user_id = checkout.user_id
-    elif payment.order:
-        billing = payment.order.billing_address
-        shipping = payment.order.shipping_address
-        email = payment.order.user_email
-        user_id = payment.order.user_id
+        checkout_token = str(checkout.token)
+        checkout_metadata = checkout.metadata
+    elif order := payment.order:
+        billing = order.billing_address
+        shipping = order.shipping_address
+        email = order.user_email
+        user_id = order.user_id
+        checkout_token = order.checkout_token
+        checkout_metadata = None
     else:
-        billing, shipping, email, user_id = None, None, payment.billing_email, None
+        billing = None
+        shipping = None
+        email = payment.billing_email
+        user_id = None
+        checkout_token = ""
+        checkout_metadata = None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
@@ -79,6 +100,13 @@ def create_payment_information(
         reuse_source=store_source,
         data=additional_data or {},
         graphql_customer_id=graphql_customer_id,
+        store_payment_method=StorePaymentMethodEnum[
+            payment.store_payment_method.upper()
+        ],
+        checkout_token=checkout_token,
+        checkout_metadata=checkout_metadata,
+        payment_metadata=payment.metadata,
+        psp_reference=payment.psp_reference,
     )
 
 
@@ -94,6 +122,8 @@ def create_payment(
     order: Order = None,
     return_url: str = None,
     external_reference: Optional[str] = None,
+    store_payment_method: str = StorePaymentMethod.NONE,
+    metadata: Optional[Dict[str, str]] = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -142,6 +172,8 @@ def create_payment(
         "total": total,
         "return_url": return_url,
         "psp_reference": external_reference or "",
+        "store_payment_method": store_payment_method,
+        "metadata": {} if metadata is None else metadata,
     }
 
     payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
@@ -278,6 +310,12 @@ def gateway_postprocess(transaction, payment):
     if payment.to_confirm:
         payment.to_confirm = False
         changed_fields.append("to_confirm")
+
+    update_payment_charge_status(payment, transaction, changed_fields)
+
+
+def update_payment_charge_status(payment, transaction, changed_fields=None):
+    changed_fields = changed_fields or []
 
     transaction_kind = transaction.kind
 
@@ -427,3 +465,14 @@ def price_to_minor_unit(value: Decimal, currency: str):
     number_places = Decimal("10.0") ** precision
     value_without_comma = value * number_places
     return str(value_without_comma.quantize(Decimal("1")))
+
+
+def payment_owned_by_user(payment_pk: int, user) -> bool:
+    if user.is_anonymous:
+        return False
+    return (
+        Payment.objects.filter(
+            (Q(order__user=user) | Q(checkout__user=user)) & Q(pk=payment_pk)
+        ).first()
+        is not None
+    )

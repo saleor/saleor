@@ -18,7 +18,7 @@ from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
-from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
+from ..core.types.common import CountryDisplay, LanguageDisplay, Permission, TimePeriod
 from ..core.utils import str_to_enum
 from ..decorators import (
     permission_required,
@@ -30,6 +30,7 @@ from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
+from .enums import GiftCardSettingsExpiryTypeEnum
 from .resolvers import resolve_available_shipping_methods
 
 
@@ -46,9 +47,36 @@ class Domain(graphene.ObjectType):
 
 class OrderSettings(CountableDjangoObjectType):
     class Meta:
-        only_fields = ["automatically_confirm_all_new_orders"]
+        only_fields = [
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
+        ]
         description = "Order related settings from site settings."
         model = site_models.SiteSettings
+
+
+class GiftCardSettings(CountableDjangoObjectType):
+    expiry_type = GiftCardSettingsExpiryTypeEnum(
+        description="The gift card expiry type settings.", required=True
+    )
+    expiry_period = graphene.Field(
+        TimePeriod, description="The gift card expiry period settings.", required=False
+    )
+
+    class Meta:
+        description = "Gift card related settings from site settings."
+        model = site_models.SiteSettings
+        only_fields = ["expiry_type"]
+
+    def resolve_expiry_type(root, info):
+        return root.gift_card_expiry_type
+
+    def resolve_expiry_period(root, info):
+        if root.gift_card_expiry_period_type is None:
+            return None
+        return TimePeriod(
+            amount=root.gift_card_expiry_period, type=root.gift_card_expiry_period_type
+        )
 
 
 class ExternalAuthentication(graphene.ObjectType):
@@ -187,6 +215,26 @@ class Shop(graphene.ObjectType):
     translation = TranslationField(ShopTranslation, type_name="shop", resolver=None)
     automatic_fulfillment_digital_products = graphene.Boolean(
         description="Enable automatic fulfillment for all digital products."
+    )
+
+    reserve_stock_duration_anonymous_user = graphene.Int(
+        description=(
+            f"{ADDED_IN_31} Default number of minutes stock will be reserved for "
+            "anonymous checkout or null when stock reservation is disabled."
+        )
+    )
+    reserve_stock_duration_authenticated_user = graphene.Int(
+        description=(
+            f"{ADDED_IN_31} Default number of minutes stock will be reserved for "
+            "authenticated checkout or null when stock reservation is disabled."
+        )
+    )
+
+    limit_quantity_per_checkout = graphene.Int(
+        description=(
+            f"{ADDED_IN_31} Default number of maximum line quantity in single checkout "
+            "(per single checkout line)."
+        )
     )
 
     default_digital_max_downloads = graphene.Int(
@@ -366,6 +414,24 @@ class Shop(graphene.ObjectType):
     def resolve_automatic_fulfillment_digital_products(_, info):
         site_settings = info.context.site.settings
         return site_settings.automatic_fulfillment_digital_products
+
+    @staticmethod
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
+    def resolve_reserve_stock_duration_anonymous_user(_, info):
+        site_settings = info.context.site.settings
+        return site_settings.reserve_stock_duration_anonymous_user
+
+    @staticmethod
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
+    def resolve_reserve_stock_duration_authenticated_user(_, info):
+        site_settings = info.context.site.settings
+        return site_settings.reserve_stock_duration_authenticated_user
+
+    @staticmethod
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
+    def resolve_limit_quantity_per_checkout(_, info):
+        site_settings = info.context.site.settings
+        return site_settings.limit_quantity_per_checkout
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)

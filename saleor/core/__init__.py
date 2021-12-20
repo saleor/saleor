@@ -17,7 +17,8 @@ class JobStatus:
 
 class TimePeriodType:
     DAY = "day"
+    WEEK = "week"
     MONTH = "month"
     YEAR = "year"
 
-    CHOICES = [(DAY, "day"), (MONTH, "Month"), (YEAR, "Year")]
+    CHOICES = [(DAY, "Day"), (WEEK, "Week"), (MONTH, "Month"), (YEAR, "Year")]

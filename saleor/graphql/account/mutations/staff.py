@@ -8,6 +8,7 @@ from ....account import events as account_events
 from ....account import models, utils
 from ....account.error_codes import AccountErrorCode
 from ....account.notifications import send_set_password_notification
+from ....account.search import USER_SEARCH_FIELDS, prepare_user_search_document_value
 from ....account.thumbnails import create_user_avatar_thumbnails
 from ....account.utils import remove_staff_member
 from ....checkout import AddressType
@@ -15,6 +16,8 @@ from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
+from ....giftcard.utils import assign_user_gift_cards
+from ....order.utils import match_orders_with_new_user
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -111,6 +114,8 @@ class CustomerUpdate(CustomerCreate):
             account_events.assigned_email_to_a_customer_event(
                 staff_user=staff_user, app=app, new_email=new_email
             )
+            assign_user_gift_cards(new_instance)
+            match_orders_with_new_user(new_instance)
         if has_new_name:
             account_events.assigned_name_to_a_customer_event(
                 staff_user=staff_user, app=app, new_name=new_fullname
@@ -241,6 +246,10 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def save(cls, info, user, cleaned_input):
+        if any([field in cleaned_input for field in USER_SEARCH_FIELDS]):
+            user.search_document = prepare_user_search_document_value(
+                user, attach_addresses_data=False
+            )
         user.save()
         if cleaned_input.get("redirect_url"):
             send_set_password_notification(
@@ -385,6 +394,17 @@ class StaffUpdate(StaffCreate):
         if remove_groups:
             instance.groups.remove(*remove_groups)
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        instance = cls.get_instance(info, **data)
+        old_email = instance.email
+        response = super().perform_mutation(_root, info, **data)
+        user = response.user
+        if user.email != old_email:
+            assign_user_gift_cards(user)
+            match_orders_with_new_user(user)
+        return response
+
 
 class StaffDelete(StaffDeleteMixin, UserDelete):
     class Meta:
@@ -445,6 +465,8 @@ class AddressCreate(ModelMutation):
             )
             user.addresses.add(address)
             response.user = user
+            user.search_document = prepare_user_search_document_value(user)
+            user.save(update_fields=["search_document"])
         return response
 
 
